@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Read and write of plain text file.
 
     @author   : Liangjun Zhu

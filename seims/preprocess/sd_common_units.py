@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Construct information of common units, e.g., subbasin, HRU, spatially unique HRU.
 
     @author   : Liangjun Zhu

@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
- Parameters sensitivity analysis based on Morris screening method and eFAST.
+"""@package parameters_sensitivity
+Parameters sensitivity analysis based on Morris screening method and eFAST.
+
                               -------------------
         author               : Liangjun Zhu
         copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS

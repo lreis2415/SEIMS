@@ -1,3 +1,6 @@
+seims.preprocess.autofuzslppos package {#intro_autofuzslppos_pkg}
+=================================================================
+
 Python scripts of [AutoFuzSlpPos](https://github.com/lreis2415/AutoFuzSlpPos)
 
 ## Changelogs

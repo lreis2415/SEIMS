@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base class of calibration.
 
     @author   : Liangjun Zhu

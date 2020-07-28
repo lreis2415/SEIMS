@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Create a connection to MongoDB as a global module used in SCOOP-based parallel applications
 
     Note that, this is a temporary and not elegant solution.

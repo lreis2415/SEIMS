@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """MongoDB utility
 
     @author   : Liangjun Zhu

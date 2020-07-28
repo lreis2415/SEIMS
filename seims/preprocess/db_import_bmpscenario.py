@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import BMP Scenario related parameters to MongoDB
 
     @author   : Liangjun Zhu

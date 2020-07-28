@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Delineate hillslopes for each subbasin, include header, left, and right hillslope.
 
     @author   : Liangjun Zhu

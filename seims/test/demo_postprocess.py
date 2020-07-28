@@ -1,12 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-  Postprocessing of SEIMS-based watershed model.
-  The invoking format is:
+"""Postprocessing of SEIMS-based watershed model.
 
-  python demo_postprocess.py -name <demo_watershed_name>
+The invoking format is:
 
-  - 18-02-09 - lj - compatible with Python3.
+  `python demo_postprocess.py -name <demo_watershed_name>`
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-02-09 - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

@@ -1,6 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Spatial optimization of watershed BMPs based on different spatial configuration units,
+"""@package spatialunits
+Spatial optimization of watershed BMPs based on different spatial configuration units,
+
    currently supported:
 
    - Common units such as Hydrologic response units (HRUs) and explicitly HRUs (e.g., farm units)

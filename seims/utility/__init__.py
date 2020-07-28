@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
- Utility functions and classes of pySEIMS
+""" @package utility
+Utility functions and classes of pySEIMS
+
                               -------------------
         author               : Liangjun Zhu
         copyright            : (C) 2018 by Lreis, IGSNRR, CAS
@@ -34,4 +30,3 @@ from utility.io_plain_text import *
 from utility.parse_config import *
 from utility.timeseries_data import *
 from utility.plot import *
-

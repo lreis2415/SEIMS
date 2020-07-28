@@ -1,12 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-  Data preprocessing of SEIMS-based watershed model.
-  The invoking format is:
+"""Data preprocessing of SEIMS-based watershed model.
 
-  python demo_preprocess.py -name <demo_watershed_name>
+The invoking format is:
 
-  - 18-02-09 - lj - compatible with Python3.
+  `python demo_preprocess.py -name <demo_watershed_name>`
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-02-09 - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

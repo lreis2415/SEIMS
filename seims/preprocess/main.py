@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Main function entrance for preprocessing
 
     @author   : Liangjun Zhu

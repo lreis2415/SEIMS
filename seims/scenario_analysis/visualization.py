@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Visualization of Scenarios, which is relative independent with SA.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-09-12  hr - initial implementation.
-    - 17-08-18  lj - reorganization.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-08-24  lj - ReDesign pareto graph and hypervolume graph.
-    - 18-10-31  lj - Add type hints based on typing package.
-    - 19-01-07  lj - incorporated with PlotConfig
+    - 16-09-12  - hr - initial implementation.
+    - 17-08-18  - lj - reorganization.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-08-24  - lj - ReDesign pareto graph and hypervolume graph.
+    - 18-10-31  - lj - Add type hints based on typing package.
+    - 19-01-07  - lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems

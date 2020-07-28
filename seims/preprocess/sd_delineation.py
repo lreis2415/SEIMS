@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Subbasin delineation based on TauDEM, as well as calculation of latitude dependent parameters
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 13-01-10  jz - initial implementation

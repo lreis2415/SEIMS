@@ -1,6 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSGA-II.
+"""@package scenario
+Base class of Scenario for coupling NSGA-II.
 
     @author   : Liangjun Zhu, Huiran Gao
 

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract ridge sources using flow direction, subbasin, and elevation.
 
     - 1. Identify original ridge sources (RdgOrgSrc), which are cells that have no flow-in cells
@@ -13,8 +11,8 @@
     @author   : Liangjun Zhu
 
     @changelog:
-    - 16-08-07  lj - initial implementation.
-    - 17-08-09  lj - reorganize and incorporate with pygeoc.
+    - 16-08-07  - lj - initial implementation.
+    - 17-08-09  - lj - reorganize and incorporate with pygeoc.
 """
 from __future__ import absolute_import, unicode_literals
 

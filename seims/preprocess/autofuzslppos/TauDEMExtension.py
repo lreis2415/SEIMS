@@ -1,12 +1,10 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extensions based on TauDEM framework.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 17-08-01  lj - initial implementation based on pygeoc.
-    - 17-12-20  lj - update code style
+    - 17-08-01  - lj - initial implementation based on pygeoc.
+    - 17-12-20  - lj - update code style
 """
 from __future__ import absolute_import, unicode_literals
 

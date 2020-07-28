@@ -1,6 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Run SEIMS model.
+"""@package run_seims
+Configure and run SEIMS model.
 
     In order to avoid thread lock problems may caused by pymongo (MongoClient),
       several functions should be called by following format:

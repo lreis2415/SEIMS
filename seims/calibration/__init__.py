@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
- Calibration by optimization algorithms e.g. NSGA-II.
+"""@package calibration
+Calibration by optimization algorithms e.g. NSGA-II.
+
                               -------------------
         author               : Liangjun Zhu
         copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS

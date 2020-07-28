@@ -92,3 +92,6 @@ data/*/*/connected_field_units_updown*.json
 # gitbook related
 _book
 node_modules
+
+# debug doxygen locally
+@CMAKE_CURRENT_BINARY_DIR@

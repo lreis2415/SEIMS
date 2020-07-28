@@ -4,7 +4,7 @@
 
 set -e
 
-DOXYGEN_VERSION=1.8.13
+DOXYGEN_VERSION=1.8.15
 DOXYGEN_VER=doxygen-${DOXYGEN_VERSION}
 DOXYGEN_TAR=${DOXYGEN_VER}.linux.bin.tar.gz
 # ftp.stack.nl has been shutdown, so I changed to sourceforge.net.

@@ -1,11 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Interpolate hydro-climate data from not regular observed data to desired time interval.
-   This script is not intended to be integrated into SEIMS preprocess workflow.
+
+This script is not intended to be integrated into SEIMS preprocess workflow.
    This function can be integrated into HydroClimateUtilClass in the future.
+
     @author   : Liangjun Zhu
-    @changelog: 17-07-25  lj - initial implementation
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-07-25  - lj - initial implementation
+    - 18-02-08  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Generate parameters of reaches.
 
     This script should be updated with the following files/code simultaneously.\n

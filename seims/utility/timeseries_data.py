@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Handle time series data.
 
     @author   : Liangjun Zhu

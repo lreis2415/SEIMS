@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Main entrance for parameters sensitivity analysis
 
     @author   : Liangjun Zhu

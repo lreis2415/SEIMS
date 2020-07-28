@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import measurement data, such as discharge, sediment yield, and nutrient export etc.
 
     @author   : Liangjun Zhu, Fang Shen

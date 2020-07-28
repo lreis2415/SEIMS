@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Meteorological daily data import, and calculate related statistical values
 
     @author   : Liangjun Zhu, Junzhi Liu, Fang Shen
