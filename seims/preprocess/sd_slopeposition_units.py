@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Construct hillslope-slope position units.
 
 The main procedure:

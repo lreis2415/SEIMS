@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract spatial soil parameters
 
     @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen

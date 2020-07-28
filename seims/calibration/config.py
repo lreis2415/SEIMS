@@ -1,9 +1,10 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base configuration of Parameter Calibration.
+
     @author   : Liangjun Zhu
-    @changelog: 18-1-20  lj - initial implementation.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+    - 18-01-20  - lj - initial implementation.
+    - 18-02-09  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

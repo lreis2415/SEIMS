@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Scenario for optimizing BMPs based on slope position units.
 
     @author   : Liangjun Zhu, Huiran Gao

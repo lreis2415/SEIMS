@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Construct information of hydrologically connected fields.
 
    Refers to: Wu, Hui, A-Xing Zhu, Junzhi Liu, Yongbo Liu, and Jingchao Jiang. 2018.

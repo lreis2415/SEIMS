@@ -1,14 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base classes of user defined tools for NSAG-II.
 
     @author   : Huiran Gao, Liangjun Zhu
 
     @changelog:
 
-    - 16-11-08  hr - initial implementation.
-    - 17-08-18  lj - move the original code to spatialunits module.
-    - 18-02-09  lj - compatible with Python3.
+    - 16-11-08  - hr - initial implementation.
+    - 17-08-18  - lj - move the original code to spatialunits module.
+    - 18-02-09  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

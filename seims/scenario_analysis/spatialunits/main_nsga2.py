@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""BMPs optimization based on slope position units.
+"""BMPs optimization based on different BMP configuration units.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-12-30  hr - initial implementation.
-    - 17-08-18  lj - reorganize.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-11-02  lj - Optimization.
-    - 18-12-04  lj - Updates of crossover operation of UPDOWN method.
-    - 19-03-13  lj - Support using input Pareto fronts to initialize population.
+    - 16-12-30  - hr - initial implementation.
+    - 17-08-18  - lj - reorganize.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-11-02  - lj - Optimization.
+    - 18-12-04  - lj - Updates of crossover operation of UPDOWN method.
+    - 19-03-13  - lj - Support using input Pareto fronts to initialize population.
 """
 from __future__ import absolute_import, unicode_literals
 

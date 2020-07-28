@@ -1,18 +1,16 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Configuration BMPs optimization based on various configuration units.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
 
-    - 16-12-30  hr - initial implementation.
-    - 17-08-18  lj - reorganize as basic class.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-11-01  lj - Config class should not do extra operation, e.g., read database.
-    - 18-11-06  lj - Add supports of other BMPs configuration units.
-    - 18-12-04  lj - Add `updown_units` for `SAConnFieldConfig` and `SASlpPosConfig`
-    - 19-03-13  lj - Add boundary adaptive thresholds for slope position units
+    - 16-12-30  - hr - initial implementation.
+    - 17-08-18  - lj - reorganize as basic class.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-11-01  - lj - Config class should not do extra operation, e.g., read database.
+    - 18-11-06  - lj - Add supports of other BMPs configuration units.
+    - 18-12-04  - lj - Add `updown_units` for `SAConnFieldConfig` and `SASlpPosConfig`
+    - 19-03-13  - lj - Add boundary adaptive thresholds for slope position units
 """
 from __future__ import absolute_import, unicode_literals
 

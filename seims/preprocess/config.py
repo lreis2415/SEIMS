@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Configuration of SEIMS project.
 
     @author   : Liangjun Zhu

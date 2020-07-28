@@ -8,6 +8,7 @@
 import os
 import re
 from inspect import getsourcefile
+from io import open
 
 
 def current_path(local_function):
@@ -29,17 +30,20 @@ def regrex_find_md_link(test_str, prefix):
     replaced_str = test_str[:]
     flag = False
     for matchNum, match in enumerate(matches):
-        matchNum = matchNum + 1
-        print('Match {matchNum} was found at {start}-{end}: {match}'.format(matchNum=matchNum,
+        print('Match {matchNum} was found at {start}-{end}: {match}'.format(matchNum=matchNum + 1,
                                                                             start=match.start(),
                                                                             end=match.end(),
                                                                             match=match.group()))
         substr = test_str[match.start():match.end()]
-        if 'https://' in substr:
+        if 'https://' in substr or 'http://' in substr or 'ftp://' in substr:
             continue
         i = substr.find('](')
-        j = replaced_str.find(substr)
-        replaced_str = replaced_str[: i + j + 2] + prefix + replaced_str[i + j + 2:]
+        j = substr.rfind(')')
+        oldpath = substr[i + 2:j]
+        newpath = os.path.normpath(prefix + oldpath)
+
+        k = replaced_str.find(substr)
+        replaced_str = replaced_str[: i + k + 2] + newpath + replaced_str[j:]
         flag = True
     if flag:
         print('origin: %s, replaced: %s' % (test_str, replaced_str))
@@ -49,7 +53,7 @@ def regrex_find_md_link(test_str, prefix):
 def replace_relative_paths(filepath, relative_path):
     print('Replace relative paths of %s' % filepath)
     lines = list()
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         for line in f.readlines():
             lines.append(line)
     rewrite = False
@@ -60,7 +64,7 @@ def replace_relative_paths(filepath, relative_path):
         if flag:
             rewrite = True
     if rewrite:
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             for line in new_lines:
                 f.write(line)
 

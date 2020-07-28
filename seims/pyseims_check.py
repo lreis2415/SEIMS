@@ -1,6 +1,4 @@
-"""
-   This file is part of SEIMS and for checking the dependent packages.
-   TODO: Update accordingly!
+"""Check the requirements of pySEIMS.
 """
 from __future__ import absolute_import, unicode_literals
 

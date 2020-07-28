@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
- Scenario Analysis by NSGA-II algorithm of DEAP, parallelized by SCOOP
+"""@package scenario_analysis
+Scenario Analysis by NSGA-II algorithm of DEAP, parallelized by SCOOP
+
                               -------------------
         author               : Liangjun Zhu, Huiran Gao
         copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract fuzzy slope positions along flow path from ridge to valley.
 
     - 1. Read ridge sources, by default, ridge means there are no cells flow in.
@@ -9,8 +7,8 @@
     @author   : Liangjun Zhu
 
     @changelog:
-    - 15-09-08  lj - initial implementation.
-    - 17-07-30  lj - reorganize and incorporate with pygeoc.
+    - 15-09-08  - lj - initial implementation.
+    - 17-07-30  - lj - reorganize and incorporate with pygeoc.
 """
 from __future__ import absolute_import, unicode_literals
 import os

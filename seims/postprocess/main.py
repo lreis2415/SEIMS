@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Entrance of Postprocess for SEIMS.
 
     @author   : Liangjun Zhu, Huiran Gao

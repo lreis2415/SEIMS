@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import hydroClimate sites information and variables
 
     @author   : Liangjun Zhu

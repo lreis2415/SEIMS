@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
+"""@package preprocess
  Preprocessing for creating SEIMS inputs
+
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
         copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS

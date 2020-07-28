@@ -1,12 +1,10 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Prepare configuration files for selecting typical location.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 15-09-08  lj - initial implementation.
-    - 17-07-30  lj - reorganize and incorporate with pygeoc.
+    - 15-09-08  - lj - initial implementation.
+    - 17-07-30  - lj - reorganize and incorporate with pygeoc.
 """
 from __future__ import absolute_import, unicode_literals
 

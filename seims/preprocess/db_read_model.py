@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Load data from MongoDB.
 
     @author   : Liangjun Zhu

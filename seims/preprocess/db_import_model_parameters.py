@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import model calibration parameters, model configuration information etc.
 
     @author   : Liangjun Zhu

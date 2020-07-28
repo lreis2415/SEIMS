@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Common used functions for plotting based on matplotlib.
 
     @author   : Liangjun Zhu

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base configuration of Parameters Sensitivity Analysis.
 
     @author   : Liangjun Zhu

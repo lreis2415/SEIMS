@@ -1,10 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Hydro-Climate utility class.
+
     @author   : Junzhi Liu, Liangjun Zhu
-    @changelog: 13-01-10  jz - initial implementation
-                17-06-23  lj - reformat according to pylint and google style
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 13-01-10  - jz - initial implementation
+    - 17-06-23  - lj - reformat according to pylint and google style
+    - 18-02-08  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

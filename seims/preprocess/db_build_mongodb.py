@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import all model parameters and spatial datasets to MongoDB
 
     @author   : Liangjun Zhu, Junzhi Liu
