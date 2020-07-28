@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Merge small subbasins to its downstream subbasin.
 
     @author   : Liangjun Zhu

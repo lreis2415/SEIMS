@@ -6,10 +6,10 @@
 #include <fstream>
 #include <vector>
 #include <sys/stat.h>
-#ifdef windows
+#ifdef WINDOWS
 #include <io.h>
 #endif
-#ifdef macos
+#ifdef MACOSX
 #include <libproc.h>
 #endif
 
@@ -21,7 +21,7 @@ using std::endl;
 namespace ccgl {
 namespace utils_filesystem {
 bool FileExists(string const& filename) {
-#ifdef windows
+#ifdef WINDOWS
     struct _finddata_t fdt;
     intptr_t ptr = _findfirst(filename.c_str(), &fdt);
     bool found = ptr != -1;
@@ -29,19 +29,19 @@ bool FileExists(string const& filename) {
     return found;
 #else
     return access(filename.c_str(), F_OK) == 0;
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 bool PathExists(string const& fullpath) {
     string abspath = GetAbsolutePath(fullpath);
     const char* path = abspath.c_str();
-#ifdef windows
+#ifdef WINDOWS
     struct _stat file_stat;
     return _stat(path, &file_stat) == 0 && file_stat.st_mode & _S_IFDIR;
 #else
     struct stat file_stat;
     return stat(path, &file_stat) == 0 && S_ISDIR(file_stat.st_mode);
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 int DeleteExistedFile(const string& filepath) {
@@ -55,7 +55,7 @@ int DeleteExistedFile(const string& filepath) {
 int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_files) {
     string abspath = GetAbsolutePath(lp_path);
     const char* newlp_path = abspath.c_str();
-#ifdef windows
+#ifdef WINDOWS
     char sz_find[MAX_PATH];
     stringcpy(sz_find, newlp_path);
     stringcat(sz_find, SEP);
@@ -106,17 +106,17 @@ int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_f
         }
         closedir(dir);
     }
-#endif /* windows */
+#endif /* WINDOWS */
     return 0;
 }
 
 bool DirectoryExists(const string& dirpath) {
     string abspath = GetAbsolutePath(dirpath);
-#ifdef windows
+#ifdef WINDOWS
     return ::GetFileAttributes(abspath.c_str()) != INVALID_FILE_ATTRIBUTES;
 #else
     return access(abspath.c_str(), F_OK) == 0;
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 bool CleanDirectory(const string& dirpath) {
@@ -131,12 +131,12 @@ bool CleanDirectory(const string& dirpath) {
             }
         } else {
             /// create new directory
-#ifdef windows
+#ifdef WINDOWS
             LPSECURITY_ATTRIBUTES att = nullptr;
             ::CreateDirectory(abspath.c_str(), att);
 #else
             mkdir(abspath.c_str(), 0777);
-#endif /* windows */
+#endif /* WINDOWS */
         }
         return true;
     } catch (...) {
@@ -148,7 +148,7 @@ bool CleanDirectory(const string& dirpath) {
 bool DeleteDirectory(const string& dirpath, bool del_subdirs/* = true */) {
     string abspath = GetAbsolutePath(dirpath);
     if (!DirectoryExists(abspath)) return true;
-#ifdef windows
+#ifdef WINDOWS
     bool b_subdirectory = false;      // Flag, indicating whether subdirectories have been found
     string str_file_path;             // Filepath
     WIN32_FIND_DATA file_information; // File information
@@ -222,16 +222,16 @@ bool DeleteDirectory(const string& dirpath, bool del_subdirs/* = true */) {
     printf("Deleting: %s\n", abspath.c_str());
     remove(abspath.c_str());
     return true;
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 string GetAppPath() {
     string root_path;
-#ifdef windows
+#ifdef WINDOWS
     TCHAR buffer[PATH_MAX];
     GetModuleFileName(nullptr, buffer, PATH_MAX);
     root_path = CVT_STR(static_cast<char *>(buffer));
-#elif defined macos
+#elif defined MACOSX
     /// http://stackoverflow.com/a/8149380/4837280
     int ret;
     pid_t pid;
@@ -254,19 +254,19 @@ string GetAppPath() {
         buf[rslt] = '\0';
     }
     root_path = buf;
-#endif /* windows */
+#endif /* WINDOWS */
     std::basic_string<char>::size_type idx = root_path.find_last_of(SEP);
     return root_path.substr(0, idx + 1);
 }
 
 string GetAbsolutePath(string const& full_filename) {
-#ifdef windows
+#ifdef WINDOWS
     TCHAR full_path[MAX_PATH];
     GetFullPathName(full_filename.c_str(), MAX_PATH, full_path, nullptr);
 #else
     char full_path[PATH_MAX];
     realpath(full_filename.c_str(), full_path);
-#endif /* windows */
+#endif /* WINDOWS */
     return CVT_STR(full_path);
 }
 

@@ -52,13 +52,14 @@
 #include <string>
 #include <cstring> // strcasecmp in GCC
 /// platform
-#if defined windows
+#if defined WINDOWS
 // For MSVC and MINGW64 in Windows OS
 // #define _WINSOCKAPI_    // In order to stop windows.h including winsock.h
 // _WINSOCKAPI_ is defined by <winsock2.h>
 #include <winsock2.h>
 #include <windows.h>
-#endif /* windows */
+#endif /* WINDOWS */
+
 #if defined CPP_GCC
 #include <dirent.h>
 #include <unistd.h>
@@ -86,7 +87,11 @@ using std::string;
 #define stringscanf sscanf
 #endif /* CPP_MSVC */
 
-#if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR) || defined(_MSC_VER)
+#if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR)
+#define MINGW
+#endif
+
+#if defined(MINGW) || defined(_MSC_VER)
 #define strcasecmp _stricmp
 #endif /* MINGW or MSVC */
 
@@ -261,7 +266,7 @@ typedef vint64_t pos_t;
 #define MINI_SLOPE      0.0001f
 #endif /* MINI_SLOPE */
 
-#ifdef windows
+#ifdef WINDOWS
 #define SEP             "\\"
 #ifndef MSVC
 #define LIBPREFIX       "lib"
@@ -270,12 +275,12 @@ typedef vint64_t pos_t;
 #else
 #define SEP             "/"
 #define LIBPREFIX       "lib"
-#endif /* windows */
-#ifdef linux
+#endif /* Windows */
+#ifdef LINUX
 #define LIBSUFFIX       ".so"
-#elif defined macos
+#elif defined MACOSX
 #define LIBSUFFIX       ".dylib"
-#endif /* linux and macOS */
+#endif /* Linux and macOS */
 
 /*! A reference to the postfix of executable file for DEBUG mode */
 #ifdef _DEBUG
@@ -457,7 +462,7 @@ void StatusMessage(const char* msg);
  * \param[in] millisecs Sleep timespan.
  */
 inline void SleepMs(const int millisecs) {
-#ifdef windows
+#ifdef WINDOWS
     Sleep(millisecs);
 #else
     usleep(millisecs * 1000);   // usleep takes sleep time_funcs in us (1 millionth of a second)

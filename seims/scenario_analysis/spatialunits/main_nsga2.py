@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""BMPs optimization based on slope position units.
+"""BMPs optimization based on different BMP configuration units.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-12-30  hr - initial implementation.
-    - 17-08-18  lj - reorganize.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-11-02  lj - Optimization.
-    - 18-12-04  lj - Updates of crossover operation of UPDOWN method.
-    - 19-03-13  lj - Support using input Pareto fronts to initialize population.
+    - 16-12-30  - hr - initial implementation.
+    - 17-08-18  - lj - reorganize.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-11-02  - lj - Optimization.
+    - 18-12-04  - lj - Updates of crossover operation of UPDOWN method.
+    - 19-03-13  - lj - Support using input Pareto fronts to initialize population.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -19,13 +17,14 @@ import os
 import sys
 import random
 import time
+from typing import Dict, List
 from io import open
 
 import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
-from typing import Dict
+
 import numpy
 from deap import base
 from deap import creator
@@ -36,7 +35,6 @@ from pygeoc.utils import UtilClass, get_config_parser
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-from typing import List
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
@@ -52,7 +50,7 @@ from scenario_analysis.spatialunits.userdef import check_individual_diff,\
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
-# Thus, DEAP related operations (initialize, register, etc.) are better defined here.
+# DEAP related operations such as initialize, register, etc.
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -200,7 +198,7 @@ def main(sceobj):
             invalid_pops = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
         except ImportError or ImportWarning:
             # serial
-            invalid_pops = list(toolbox.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
+            invalid_pops = list(map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
 
         # Filter for a valid solution
         if filter_ind:

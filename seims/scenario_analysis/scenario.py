@@ -1,36 +1,35 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSGA-II.
+"""@package scenario
+Base class of Scenario for coupling NSGA-II.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-10-29  hr - initial implementation.
-    - 17-08-18  lj - redesign and rewrite.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-10-30  lj - Update according to new config parser structure.
+    - 16-10-29  - hr - initial implementation.
+    - 17-08-18  - lj - redesign and rewrite.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-10-30  - lj - Update according to new config parser structure.
 """
 from __future__ import absolute_import, unicode_literals
-from future.utils import viewitems
 
 from datetime import timedelta
 from io import open
 import os
 import sys
-import random
 import uuid
+
+from future.utils import viewitems
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+import global_mongoclient as MongoDBObj
+
 from bson.objectid import ObjectId
 from pygeoc.utils import get_config_parser
 from pymongo.errors import NetworkTimeout
-from typing import List, Iterator, Optional, Union
+from typing import List, Iterator, Optional
 
-from scenario_analysis import BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
-from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, ModelCfgFields
 from run_seims import MainSEIMS
 from utility.scoop_func import scoop_log
@@ -91,6 +90,10 @@ class Scenario(object):
         self.modelcfg = cfg.model
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
+
+        self.model.SetMongoClient()
+        self.model.ReadMongoDBData()
+
         self.scenario_db = self.model.ScenarioDBName
         self.model.ResetSimulationPeriod()  # Reset the simulation period
         # Reset the starttime and endtime of the desired outputs according to evaluation period
@@ -100,6 +103,9 @@ class Scenario(object):
         else:
             print('Warning: No OUTPUTID is defined in BMPs_info. Please make sure the '
                   'STARTTIME and ENDTIME of ENVEVAL are consistent with Evaluation period!')
+
+        self.model.UnsetMongoClient()  # Unset in time!
+
         # (Re)Calculate timerange in the unit of year
         dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
         self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
@@ -146,8 +152,9 @@ class Scenario(object):
         """Export current scenario to MongoDB.
         Delete the same ScenarioID if existed.
         """
-        client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
-        conn = client.get_conn()
+        # client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
+        # conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.scenario_db]
         collection = db[DBTableNames.scenarios]
         try:
@@ -160,7 +167,7 @@ class Scenario(object):
         for objid, bmp_item in viewitems(self.bmp_items):
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
-        client.close()
+        # client.close()
 
     def export_scenario_to_txt(self):
         """Export current scenario information to text file.
@@ -226,9 +233,11 @@ class Scenario(object):
               delete_spatial_gfs=False):
         """Clean the intermediate data."""
         # model clean
+        self.model.SetMongoClient()
         self.model.clean(scenario_id=scenario_id, calibration_id=calibration_id,
                          delete_scenario=delete_scenario,
                          delete_spatial_gfs=delete_spatial_gfs)
+        self.model.UnsetMongoClient()
 
     def execute_seims_model(self):
         """Run SEIMS for evaluating environmental effectiveness.
@@ -237,7 +246,11 @@ class Scenario(object):
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
         self.model.scenario_id = self.ID
         self.modelout_dir = self.model.OutputDirectory
+
+        self.model.SetMongoClient()
         self.model.run()
+        self.model.UnsetMongoClient()
+
         self.modelrun = True
         return self.model.run_success
 

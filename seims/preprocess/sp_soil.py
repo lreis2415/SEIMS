@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract spatial soil parameters
 
     @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen
@@ -520,13 +518,17 @@ class SoilProperty(object):
         """Calculate USLE_K factor according to EPIC (Erosion Productivity Impact Calculator).
 
         References:
-            1. Williams, J.R. 1995. The EPIC model. In "Computer models of watershed hydrology".
-                 V.P. Singh, 909-1000. Highlands Ranch, CO, USA: Water Resources Publications.
+            1. Sharply, A. N., & Williams, J. R. (1990).
+               EPIC-erosion/productivity impact calculator I, Model documentation.
+               U.S. Department of Agriculture Technical Bulletin, No. 1768, page 26, Eq. 2.96.
             2. Equation. 4:1.1.5 - 4:1.1.9 in SWAT Theory 2009.
+               Note that one number is wrong, i.e., 0.0256 rather than 0.256 in SWAT theory doc.
+
+        TODO: Add more improved algorithms such as Wang et al. (2016, ISWCR)
         """
         cbn = om * 0.58
         sn = 1. - sand * 0.01
-        a = (0.2 + 0.3 * math.exp(-0.256 * sand * (1. - silt * 0.01)))
+        a = (0.2 + 0.3 * math.exp(-0.0256 * sand * (1. - silt * 0.01)))
         b = math.pow(silt / (clay + silt), 0.3)
         c = (1. - 0.25 * cbn / (cbn + math.exp(3.72 - 2.95 * cbn)))
         d = (1. - 0.7 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))

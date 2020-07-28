@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Visualization of Scenarios, which is relative independent with SA.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-09-12  hr - initial implementation.
-    - 17-08-18  lj - reorganization.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-08-24  lj - ReDesign pareto graph and hypervolume graph.
-    - 18-10-31  lj - Add type hints based on typing package.
-    - 19-01-07  lj - incorporated with PlotConfig
+    - 16-09-12  - hr - initial implementation.
+    - 17-08-18  - lj - reorganization.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-08-24  - lj - ReDesign pareto graph and hypervolume graph.
+    - 18-10-31  - lj - Add type hints based on typing package.
+    - 19-01-07  - lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems
@@ -72,17 +70,17 @@ def plot_2d_scatter(xlist,  # type: List[float] # X coordinates
     plt.ylabel(ylabel, fontsize=plot_cfg.axislabel_fsize)
     plt.scatter(xlist, ylist, c='r', alpha=0.8, s=12)
     if xmax is not None:
-        plt.xlim(xmax=xmax)
+        plt.xlim(right=xmax)
     if xmin is not None:
-        plt.xlim(xmin=xmin)
+        plt.xlim(left=xmin)
     if xstep is not None:
         xmin, xmax = plt.xlim()
         plt.xticks(numpy.arange(xmin, xmax + xstep * 0.99, step=xstep),
                    fontsize=plot_cfg.tick_fsize)
     if ymax is not None:
-        plt.ylim(ymax=ymax)
+        plt.ylim(top=ymax)
     if ymin is not None:
-        plt.ylim(ymin=ymin)
+        plt.ylim(bottom=ymin)
     if ystep is not None:
         ymin, ymax = plt.ylim()
         plt.yticks(numpy.arange(ymin, ymax + ystep * 0.99, step=ystep),
@@ -550,7 +548,7 @@ def plot_pareto_fronts(pareto_data,
                        # type: Dict[AnyStr, Dict[Union[AnyStr, int], Union[List[List[float]], numpy.ndarray]]]
                        xname,  # type: List[AnyStr, Optional[float], Optional[float]]
                        yname,  # type: List[AnyStr, Optional[float], Optional[float]]
-                       gens,  # type: List[int]
+                       gens,  # type: List[Union[AnyStr, int]]
                        ws,  # type: AnyStr
                        plot_cfg=None  # type: Optional[PlotConfig]
                        ):
@@ -658,11 +656,15 @@ def plot_pareto_fronts(pareto_data,
         if len(newxname) >= 3:
             ax.set_xlim(left=newxname[1])
             ax.set_xlim(right=newxname[2])
+            if len(newxname) >= 4:
+                ax.xaxis.set_ticks(numpy.arange(newxname[1], newxname[2] + newxname[3], newxname[3]))
 
         curylim = ax.get_ylim()
         if len(newyname) >= 3:
             ax.set_ylim(bottom=newyname[1])
             ax.set_ylim(top=newyname[2])
+            if len(newyname) >= 4:
+                ax.yaxis.set_ticks(numpy.arange(newyname[1], newyname[2] + newyname[3], newyname[3]))
 
         handles, labels = ax.get_legend_handles_labels()
         handles.reverse()
@@ -824,7 +826,6 @@ def plot_hypervolumes(hyperv,  # type: Dict[AnyStr, Optional[int, float, List[Li
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
         mark_idx += 1
-    plt.legend(fontsize=plot_cfg.legend_fsize, loc=4)
     xaxis = plt.gca().xaxis
     yaxis = plt.gca().yaxis
     for xticklabel in xaxis.get_ticklabels():
@@ -833,11 +834,15 @@ def plot_hypervolumes(hyperv,  # type: Dict[AnyStr, Optional[int, float, List[Li
         yticklabel.set_fontsize(plot_cfg.tick_fsize)
     plt.xlabel(generation_str, fontsize=plot_cfg.axislabel_fsize)
     plt.ylabel(hyperv_str, fontsize=plot_cfg.axislabel_fsize)
-    ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
+    ax.set_xlim(left=0, right=ax.get_xlim()[1])
     if 'bottom' in hyperv:
         ax.set_ylim(bottom=hyperv['bottom'])
     if 'top' in hyperv:
         ax.set_ylim(top=hyperv['top'])
+    ystart, yend = ax.get_ylim()
+    if 'interval' in hyperv:
+        ax.yaxis.set_ticks(numpy.arange(ystart, yend + hyperv['interval'], hyperv['interval']))
+    plt.legend(fontsize=plot_cfg.legend_fsize, loc=4)
     plt.tight_layout()
     save_png_eps(plt, ws, 'hypervolume', plot_cfg)
     # close current plot in case of 'figure.max_open_warning'

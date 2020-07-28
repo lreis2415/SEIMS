@@ -1,15 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """User defined operation for optimizing BMPs based on slope position units.
+
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
-    - 16-11-08  hr - initial implementation.
-    - 17-08-18  lj - reorganization.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-11-07  lj - support multiple BMPs configuration methods.
-    - 18-12-04  lj - add func:`crossover_updown` according to Wu et al. (2018).
+    - 16-11-08  - hr - initial implementation.
+    - 17-08-18  - lj - reorganization.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-11-07  - lj - support multiple BMPs configuration methods.
+    - 18-12-04  - lj - add func:`crossover_updown` according to Wu et al. (2018).
 """
 from __future__ import absolute_import, unicode_literals
 

@@ -1,13 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
+"""@package preprocess
  Preprocessing for creating SEIMS inputs
+
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -19,6 +15,6 @@
  *                                                                            *
  ******************************************************************************/
 """
+from __future__ import absolute_import
+
 __author__ = "SEIMS Team"
-__version__ = "2.2"
-__revision__ = "2.2.1"

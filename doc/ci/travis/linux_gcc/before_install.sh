@@ -24,8 +24,8 @@ set -e
 
 # Adding Ubuntu GIS repository to system's software sources
 sudo apt-get install python-software-properties
-sudo add-apt-repository ppa:ubuntugis/ppa
-#sudo apt-get update # Comment temporarily.
+sudo add-apt-repository -y ppa:ubuntugis/ppa
+sudo apt-get update
 
 # install gdal from apt-get
 sudo apt-get install -qq gdal-bin libgdal-dev

@@ -1,11 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base configuration of Parameters Sensitivity Analysis.
+
     @author   : Liangjun Zhu
-    @changelog: 17-12-22  lj - initial implementation.\n
-                18-1-11   lj - integration of screening method and variant-based method.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-07-10  lj - Extract a common parse class for SEIMS model, `ParseSEIMSConfig`.\n
+
+    @changelog:
+    - 17-12-22  - lj - initial implementation.
+    - 18-01-11  - lj - integration of screening method and variant-based method.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-07-10  - lj - Extract a common parse class for SEIMS model, `ParseSEIMSConfig`.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -21,6 +22,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from run_seims import ParseSEIMSConfig
 from utility import PlotConfig
+
 
 def get_psa_config():
     """Parse arguments.

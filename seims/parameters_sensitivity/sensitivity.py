@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base class of parameters sensitivity analysis.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 17-12-22  lj - initial implementation.
-    - 18-1-11   lj - integration of screening method and variant-based method.
-    - 18-1-16   lj - split tasks when the run_count is very very large.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-07-04  lj - support MPI version of SEIMS, and bugs fixed.
-    - 18-08-24  lj - Gather the execute time of all model runs.
+    - 17-12-22  - lj - initial implementation.
+    - 18-01-11  - lj - integration of screening method and variant-based method.
+    - 18-01-16  - lj - split tasks when the run_count is very very large.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-07-04  - lj - support MPI version of SEIMS, and bugs fixed.
+    - 18-08-24  - lj - Gather the execute time of all model runs.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -32,6 +30,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 import matplotlib.pyplot as plt
 import numpy
+from typing import List
 from pygeoc.utils import FileClass, UtilClass
 # Morris screening method
 from SALib.sample.morris import sample as morris_spl
@@ -44,7 +43,8 @@ from SALib.analyze.fast import analyze as fast_alz
 from utility import read_data_items_from_txt
 from utility import save_png_eps
 from utility import SpecialJsonEncoder
-from preprocess.db_mongodb import ConnectMongoDB
+import global_mongoclient as MongoDBObj
+from run_seims import MainSEIMS
 from preprocess.text import DBTableNames
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
@@ -89,8 +89,7 @@ class Sensitivity(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.model.host, self.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.model.db_name]
         stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
@@ -98,7 +97,6 @@ class Sensitivity(object):
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
-        client.close()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -128,8 +126,7 @@ class Sensitivity(object):
                     self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
                 return
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.model.host, self.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.model.db_name]
         collection = db['PARAMETERS']
 
@@ -210,15 +207,13 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        client = ConnectMongoDB(self.model.host, self.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.model.db_name]
         collection = db['PARAMETERS']
         collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
         for idx, pname in enumerate(self.param_defs['names']):
             v2str = ','.join(str(v) for v in self.param_values[:, idx])
             collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
-        client.close()
 
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.
@@ -236,7 +231,7 @@ class Sensitivity(object):
         input_eva_vars = self.cfg.evaluate_params
 
         # split tasks if needed
-        task_num = self.run_count // 480  # In our cluster, the largest workers number is 96.
+        task_num = self.run_count // 100  # TODO: Find a more proper way to divide tasks
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -257,19 +252,24 @@ class Sensitivity(object):
                 model_cfg_dict_list.append(tmpcfg)
             try:  # parallel on multiprocessor or clusters using SCOOP
                 from scoop import futures
-                output_models = list(futures.map(create_run_model, model_cfg_dict_list))
+                output_models = list(futures.map(create_run_model, model_cfg_dict_list))  # type: List[MainSEIMS]
             except ImportError or ImportWarning:  # serial
-                output_models = list(map(create_run_model, model_cfg_dict_list))
+                output_models = list(map(create_run_model, model_cfg_dict_list))  # type: List[MainSEIMS]
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
             # Read observation data from MongoDB only once
             if len(output_models) < 1:  # Although this is not gonna happen, just for insurance.
                 continue
+
+            output_models[0].SetMongoClient()
             obs_vars, obs_data_dict = output_models[0].ReadOutletObservations(input_eva_vars)
+            output_models[0].UnsetMongoClient()
+
             if (len(obs_vars)) < 1:  # Make sure the observation data exists.
                 continue
             # Loop the executed models
             eva_values = list()
             for imod, mod_obj in enumerate(output_models):
+                mod_obj.SetMongoClient()
                 # Read executable timespan of each model run
                 exec_times.append(mod_obj.GetTimespan())
                 # Set observation data since there is no need to read from MongoDB.
@@ -282,6 +282,7 @@ class Sensitivity(object):
                 eva_values.append(obj_values)
                 # delete model output directory and GridFS files for saving storage
                 mod_obj.clean()
+                mod_obj.UnsetMongoClient()
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
             numpy.savetxt(cur_out_file, eva_values, delimiter=str(' '), fmt=str('%.4f'))
@@ -328,12 +329,12 @@ class Sensitivity(object):
         """
         if not self.psa_si:
             if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
-                with open(self.cfg.outfiles.psa_si_json, 'r', encoding='utf-8') as f:
+                with open(self.cfg.outfiles.psa_si_json, 'rb') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
         if not self.objnames:
             if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
-                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'r', encoding='utf-8') as f:
+                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'rb') as f:
                     self.objnames = pickle.load(f)
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()

@@ -1,8 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Parse common used value or class from the configuration (*.ini) file.
+
     @author   : Liangjun Zhu
-    @changelog: 18-10-29 - lj - Extract from other packages.
+
+    @changelog:
+    - 18-10-29  - lj - Extract from other packages.
 """
 from __future__ import absolute_import, unicode_literals
 

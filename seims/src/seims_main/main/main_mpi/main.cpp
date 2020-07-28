@@ -14,7 +14,12 @@ int main(int argc, const char** argv) {
     /// Initialize of MPI environment
     int size;
     int rank;
-    MPI_Init(NULL, NULL);
+    int provided;
+    MPI_Init_thread(NULL, NULL, MPI_THREAD_FUNNELED, &provided);
+    if (provided < MPI_THREAD_FUNNELED) {
+        cout << "Not a high enough level of thread support!" << endl;
+        MPI_Abort(MCW, 1);
+    }
     {
         MPI_Comm_size(MCW, &size);
         MPI_Comm_rank(MCW, &rank);

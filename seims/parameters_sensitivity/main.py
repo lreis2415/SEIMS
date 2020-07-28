@@ -1,10 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Main entrance for parameters sensitivity analysis
+
     @author   : Liangjun Zhu
-    @changelog: 17-12-23  lj - initial implementation.\n
-                18-1-11   lj - code refactor to support multiple psa methods.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-12-23  - lj - initial implementation.
+    - 18-01-11  - lj - code refactor to support multiple psa methods.
+    - 18-02-09  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

@@ -33,6 +33,7 @@ cmake-build*
 
 # IDE related
 .idea/
+.vscode
 
 # office temp file
 ~$*
@@ -46,3 +47,6 @@ cmake-build*
 
 # putty log
 putty.log
+
+# macOS
+.DS_Store

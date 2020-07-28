@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract landuse parameters
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 13-01-10  jz - initial implementation

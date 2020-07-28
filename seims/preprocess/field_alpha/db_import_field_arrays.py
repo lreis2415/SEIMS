@@ -1,8 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import spatial parameters corresponding to fields as GridFS to MongoDB
+
     @author   : Liangjun Zhu
-    @changelog: 18-06-08  lj - first implementation version.\n
+
+    @changelog:
+    - 18-06-08  - lj - first implementation version.
 """
 from __future__ import absolute_import
 

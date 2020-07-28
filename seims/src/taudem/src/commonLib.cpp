@@ -496,7 +496,7 @@ char* convertStringToCharPtr(const std::string& s){
 
 double TimeCounting()
 {
-#ifdef windows
+#ifdef WINDOWS
     LARGE_INTEGER li;
 	if (QueryPerformanceFrequency(&li)) /// CPU supported
 	{

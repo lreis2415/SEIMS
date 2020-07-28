@@ -1,15 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Plot time-series variables.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 17-08-17  lj - redesign and rewrite the plotting program.
-    - 18-01-04  lj - separate load data from MongoDB operations.
-    - 18-02-01  lj - add plot of validation period.
-    - 18-02-09  lj - compatible with Python3.
-    - 19-01-09  lj - use PlotConfig for plot settings.
+    - 17-08-17  - lj - redesign and rewrite the plotting program.
+    - 18-01-04  - lj - separate load data from MongoDB operations.
+    - 18-02-01  - lj - add plot of validation period.
+    - 18-02-09  - lj - compatible with Python3.
+    - 19-01-09  - lj - use PlotConfig for plot settings.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -31,6 +29,7 @@ from typing import List, Union
 from pygeoc.utils import FileClass
 
 from preprocess.text import DataValueFields
+from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.db_read_model import ReadModelData
 from postprocess.config import PostConfig
 from run_seims import MainSEIMS
@@ -66,7 +65,8 @@ class TimeSeriesPlots(object):
         self.vali_etime = cfg.vali_etime
 
         # Read model data from MongoDB, the time period of simulation is read from FILE_IN.
-        self.readData = ReadModelData(self.model.host, self.model.port, self.model.db_name)
+        mongoclient = ConnectMongoDB(self.model.host, self.model.port).get_conn()
+        self.readData = ReadModelData(mongoclient, self.model.db_name)
         self.mode = self.readData.Mode
         self.interval = self.readData.Interval
         # check start and end time of calibration

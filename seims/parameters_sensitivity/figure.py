@@ -1,13 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Plot figures based on matplotlib for parameters sensitivity analysis.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 18-01-15  lj - initial implementation.
-    - 18-02-09  lj - compatible with Python3.
-    - 19-01-07  lj - incorporated with PlotConfig
+    - 18-01-15  - lj - initial implementation.
+    - 18-02-09  - lj - compatible with Python3.
+    - 19-01-07  - lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 

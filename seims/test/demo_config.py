@@ -1,14 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-  Generate configuration files of SEIMS-based watershed model.
-  The invoking format is:
+"""Generate configuration files of SEIMS-based watershed model.
 
-  python demo_config.py -name <demo_watershed_name>
+The invoking format is:
 
-  - 18-02-09 - lj - compatible with Python3.
-  - 19-01-07 - lj - add configuration settings of sensitivity analysis, calibration,
-                    and scenario analysis
+  `python demo_config.py -name <demo_watershed_name>`
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-02-09 - lj - compatible with Python3.
+    - 19-01-07 - lj - add configuration settings of sensitivity analysis, calibration,
+                        and scenario analysis
 """
 from __future__ import absolute_import, unicode_literals
 

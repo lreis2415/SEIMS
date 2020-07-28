@@ -1,13 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """User defined functions.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 18-01-22  lj - initial implementation.
-    - 18-02-09  lj - compatible with Python3.
-    - 19-01-07  lj - incorporated with PlotConfig
+    - 18-01-22  - lj - initial implementation.
+    - 18-02-09  - lj - compatible with Python3.
+    - 19-01-07  - lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -31,21 +29,19 @@ from typing import Optional
 from pygeoc.utils import StringClass, is_string
 
 from utility import save_png_eps, PlotConfig
-from preprocess.db_mongodb import ConnectMongoDB
+import global_mongoclient as MongoDBObj
 from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 
 
-def write_param_values_to_mongodb(hostname, port, spatial_db, param_defs, param_values):
+def write_param_values_to_mongodb(spatial_db, param_defs, param_values):
     # update Parameters collection in MongoDB
-    client = ConnectMongoDB(hostname, port)
-    conn = client.get_conn()
+    conn = MongoDBObj.client
     db = conn[spatial_db]
     collection = db['PARAMETERS']
     collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
     for idx, pname in enumerate(param_defs['names']):
         v2str = ','.join(str(v) for v in param_values[:, idx])
         collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
-    client.close()
 
 
 def output_population_details(pops, outdir, gen_num,

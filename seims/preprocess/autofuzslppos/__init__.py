@@ -1,10 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pyAutoFuzSlpPos
-                      Python for Automatic Fuzzy Slope Positions
- Python workflow for data preparation, running model, etc.
+"""@package autofuzslppos
+Python for Automatic Fuzzy Slope Positions including data preparation, running model, etc.
 
  Currently, the five basic slope position types are supported, i.e., ridge,
      shoulder slope, back slope, foot slope and valley.

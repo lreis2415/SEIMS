@@ -1,12 +1,10 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Utility Classes and Functions
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 15-07-31  lj - initial implementation
-    - 17-07-21  lj - reorganize and incorporate with pygeoc
+    - 15-07-31  - lj - initial implementation
+    - 17-07-21  - lj - reorganize and incorporate with pygeoc
 """
 from __future__ import absolute_import, unicode_literals
 import os

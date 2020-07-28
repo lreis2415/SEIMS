@@ -1,10 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Generate weight data for interpolate of hydroclimate data
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reorganize according to pylint and google style
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-06-26  - lj - reorganize according to pylint and google style
+    - 18-02-08  - lj - compatible with Python3.
 """
 from __future__ import absolute_import
 

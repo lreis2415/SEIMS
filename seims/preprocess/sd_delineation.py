@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Subbasin delineation based on TauDEM, as well as calculation of latitude dependent parameters
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 13-01-10  jz - initial implementation
@@ -112,8 +110,7 @@ class SpatialDelineation(object):
                         cfg.spatials.dist2stream_d8]
 
         default_values = list()
-        for i in range(len(original_files)):
-            default_values.append(DEFAULT_NODATA)
+        default_values = [DEFAULT_NODATA] * len(original_files)
 
         # other input rasters need to be masked
         # soil and landuse

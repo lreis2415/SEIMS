@@ -1,10 +1,11 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Configuration of Postprocess for SEIMS.
+
     @author   : Liangjun Zhu, Huiran Gao
-    @changelog: 17-08-17  lj - reorganize as basic class
-                18-02-09  lj - compatible with Python3.
-                18-10-23  lj - Use `ParseSEIMSConfig` class.
+
+    @changelog:
+    - 17-08-17  - lj - reorganize as basic class
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-10-23  - lj - Use `ParseSEIMSConfig` class.
 """
 from __future__ import absolute_import, unicode_literals
 

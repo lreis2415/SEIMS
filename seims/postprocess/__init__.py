@@ -1,13 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- pySEIMS
-                             Python APIs for SEIMS
- Postprocess for plotting
+"""package postprocess
+Postprocess for plotting
+
                               -------------------
         author               : Liangjun Zhu, Huiran Gao, Junzhi Liu
-        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -21,5 +17,3 @@
 """
 
 __author__ = "Liangjun Zhu, Huiran Gao"
-__version__ = "1.1"
-__revision__ = "1.1.2"

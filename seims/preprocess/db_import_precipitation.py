@@ -1,25 +1,22 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import precipitation data, daily or storm
 
     @author   : Liangjun Zhu, Junzhi Liu
 
     @changelog:
-    - 16-12-07  lj - rewrite for version 2.0
-    - 17-07-04  lj - reorganize according to pylint and google style
-    - 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
-    - 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
-    - 18-02-08  lj - compatible with Python3.
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-07-04  - lj - reorganize according to pylint and google style
+    - 17-07-05  - lj - Using bulk operation interface to improve MongoDB efficiency.
+    - 17-08-05  - lj - Add Timezone preprocessor statement in the first line of data file.
+    - 18-02-08  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from datetime import timedelta
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
-
-import time
-from datetime import timedelta
 
 from pygeoc.utils import StringClass
 from pymongo import ASCENDING

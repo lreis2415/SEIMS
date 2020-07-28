@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# IDE related
+.idea/
+.vscode
+
+# Executables
+*.exe
+*.out
+*.app
+bin
+build*
+cmake-build*

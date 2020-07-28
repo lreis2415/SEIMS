@@ -1,43 +1,40 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Load data from MongoDB.
-
-    @Note:
-    - The ReadModelData class is not picklable,
-       since MongoClient returns thread.lock objects.
 
     @author   : Liangjun Zhu
 
     @changelog:
     - 18-01-02  - lj - separated from plot_timeseries.
     - 18-02-09  - lj - compatible with Python3.
+    - 20-07-20  - lj - take MongoClient object as argument of ReadModelData class.
 """
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems
 
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 from collections import OrderedDict
-
-from pygeoc.utils import StringClass, is_string
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from gridfs import GridFS
+from pygeoc.utils import StringClass, is_string
 from typing import Dict, List, Tuple, Union, AnyStr, Optional
-from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
+from preprocess.db_mongodb import MongoClient, MongoQuery
 from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStatsName, \
     DataValueFields, DataType, StationFields
 
 
 class ReadModelData(object):
-    def __init__(self, host, port, dbname):
-        # type: (AnyStr, int, AnyStr) -> None
-        """Initialization."""
-        client = ConnectMongoDB(host, port)
-        conn = client.get_conn()
+    def __init__(self, conn, dbname):
+        # type: (MongoClient, AnyStr) -> None
+        """Initialization.
+
+        Args:
+            conn: `MongoClient` instance that can be created by ConnectMongoDB(host, port)
+            dbname: Main spatial database name
+        """
         self.maindb = conn[dbname]
         self.filein_tab = self.maindb[DBTableNames.main_filein]
         self.fileout_tab = self.maindb[DBTableNames.main_fileout]
@@ -335,13 +332,17 @@ class ReadModelData(object):
 def main():
     """Functional tests."""
     import datetime
+    from preprocess.db_mongodb import ConnectMongoDB
 
-    host = '192.168.253.203'
-    port = 27018
+    host = '127.0.0.1'
+    port = 27017
     dbname = 'youwuzhen10m_longterm_model'
     stime = datetime.datetime(2013, 1, 1, 0, 0)
     etime = datetime.datetime(2013, 12, 31, 0, 0)
-    rd = ReadModelData(host, port, dbname)
+
+    client = ConnectMongoDB(host, port).get_conn()
+
+    rd = ReadModelData(client, dbname)
     print(rd.HydroClimateDBName)
     print(rd.Precipitation(4, stime, etime))
     print(rd.Observation(4, ['Q'], stime, etime))

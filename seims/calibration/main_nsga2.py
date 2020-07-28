@@ -1,16 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Calibration by NSGA-II algorithm.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 18-01-22  lj - initial implementation.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-07-10  lj - Support MPI version of SEIMS.
-    - 18-08-26  lj - Gather the execute time of all model runs. Plot pareto graphs.
-    - 18-08-29  jz,lj,sf - Add Nutrient calibration step.
-    - 18-10-22  lj - Make the customizations of multi-objectives flexible.
+    - 18-01-22  - lj - initial implementation.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-07-10  - lj - Support MPI version of SEIMS.
+    - 18-08-26  - lj - Gather the execute time of all model runs. Plot pareto graphs.
+    - 18-08-29  - jz,lj,sf - Add Nutrient calibration step.
+    - 18-10-22  - lj - Make the customizations of multi-objectives flexible.
 """
 from __future__ import absolute_import, division, unicode_literals
 
@@ -160,7 +158,10 @@ def main(cfg):
     # Read observation data just once
     model_cfg_dict = cali_obj.model.ConfigDict
     model_obj = MainSEIMS(args_dict=model_cfg_dict)
+
+    model_obj.SetMongoClient()
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
+    model_obj.UnsetMongoClient()
 
     # Initialize population
     param_values = cali_obj.initialize(cfg.opt.npop)
@@ -176,8 +177,7 @@ def main(cfg):
 
     # Write calibrated values to MongoDB
     # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
-    write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
-                                  cali_obj.ParamDefs, param_values)
+    write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
     # get the low and up bound of calibrated parameters
     bounds = numpy.array(cali_obj.ParamDefs['bounds'])
     low = bounds[:, 0]
@@ -206,7 +206,7 @@ def main(cfg):
             from scoop import futures
             invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         except ImportError or ImportWarning:  # Python build-in map (serial)
-            invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+            invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
@@ -291,8 +291,7 @@ def main(cfg):
             ind.id = idx
             param_values.append(ind[:])
         param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
-                                      cali_obj.ParamDefs, param_values)
+        write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
         # Count the model runs, and execute models
         invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)

@@ -1,13 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-  Running SEIMS-based watershed model of demo data.
-  The invoking format is:
+"""Running SEIMS-based watershed model of demo data.
 
-  python demo_runmodel.py -name <demo_watershed_name>
+The invoking format is:
 
-  - 18-02-09 - lj - compatible with Python3.
-  - 19-01-09 - lj - redesign to use configuration INI file
+  `python demo_runmodel.py -name <demo_watershed_name>`
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-02-09 - lj - compatible with Python3.
+    - 19-01-09 - lj - redesign to use configuration INI file
 """
 from __future__ import absolute_import, unicode_literals
 

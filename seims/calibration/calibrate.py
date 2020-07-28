@@ -1,14 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base class of calibration.
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 18-01-22  lj - design and implement.
-    - 18-01-25  lj - redesign the individual class, add 95PPU, etc.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-07-10  lj - Update accordingly.
+    - 18-01-22  - lj - design and implement.
+    - 18-01-25  - lj - redesign the individual class, add 95PPU, etc.
+    - 18-02-09  - lj - compatible with Python3.
+    - 20-07-22  - lj - update to use global MongoClient object.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -25,7 +23,7 @@ from typing import Optional
 from pygeoc.utils import FileClass
 
 from utility import read_data_items_from_txt
-from preprocess.db_mongodb import ConnectMongoDB
+import global_mongoclient as MongoDBObj
 from preprocess.text import DBTableNames
 from run_seims import MainSEIMS
 from calibration.config import CaliConfig, get_optimization_config
@@ -133,8 +131,7 @@ class Calibration(object):
         if self.param_defs:
             return self.param_defs
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
 
@@ -161,8 +158,7 @@ class Calibration(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.cfg.model.db_name]
         stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.cfg.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
@@ -170,7 +166,6 @@ class Calibration(object):
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
-        client.close()
 
     def initialize(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
@@ -210,6 +205,7 @@ def calibration_objectives(cali_obj, ind):
     model_obj.SetOutletObservations(ind.obs.vars, ind.obs.data)
 
     # Execute model
+    model_obj.SetMongoClient()
     model_obj.run()
     time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
 
@@ -219,6 +215,7 @@ def calibration_objectives(cali_obj, ind):
         ind.sim.data = deepcopy(model_obj.sim_value)
     else:
         model_obj.clean(calibration_id=ind.id)
+        model_obj.UnsetMongoClient()
         return ind
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
     ind.cali.vars, ind.cali.data = model_obj.ExtractSimData(cali_obj.cfg.cali_stime,
@@ -252,6 +249,7 @@ def calibration_objectives(cali_obj, ind):
 
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)
+    model_obj.UnsetMongoClient()
     return ind
 
 

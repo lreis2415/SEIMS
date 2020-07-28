@@ -1,8 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Append or update some data items for field version SEIMS.
+
     @author   : Liangjun Zhu
-    @changelog: 18-06-09  lj - first implementation version.\n
+
+    @changelog:
+    - 18-06-09  - lj - first implementation version.
 """
 from __future__ import absolute_import
 

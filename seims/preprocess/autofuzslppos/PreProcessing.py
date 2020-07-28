@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Calculate terrain attributes from DEM and other optional inputs for deriving slope position.
 
     Slope, Curvature, RPI, HAND, Hillslope, etc.
@@ -7,8 +5,8 @@
     @author   : Liangjun Zhu
 
     @changelog:
-    - 15-09-08  lj - initial implementation.
-    - 17-07-31  lj - reorganize and incorporate with pygeoc.
+    - 15-09-08  - lj - initial implementation.
+    - 17-07-31  - lj - reorganize and incorporate with pygeoc.
 """
 from __future__ import absolute_import, unicode_literals
 

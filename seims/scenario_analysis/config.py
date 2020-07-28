@@ -1,15 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base configuration of Scenario Analysis.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
-    - 16-12-30  hr - initial implementation.
-    - 17-08-18  lj - reorganize as basic class.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-10-29  lj - Redesign the code structure.
+    - 16-12-30  - hr - initial implementation.
+    - 17-08-18  - lj - reorganize as basic class.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-10-29  - lj - Redesign the code structure.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -122,7 +119,7 @@ class SAConfig(object):
 
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
-        self.opt = None  # type: Union[ParseNSGA2Config]
+        self.opt = None  # type: Union[ParseNSGA2Config, None]
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir,
                                         'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,

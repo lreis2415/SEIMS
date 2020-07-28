@@ -1,13 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """MongoDB utility
 
     @author   : Liangjun Zhu
 
     @changelog:
-    - 16-12-07  lj - rewrite for version 2.0
-    - 17-06-27  lj - reorganize as basic class other than Global variables
-    - 18-02-08  lj - compatible with Python3.
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-06-27  - lj - reorganize as basic class other than Global variables
+    - 18-02-08  - lj - compatible with Python3.
+    - 20-07-20  - lj - no need to invoke close() of MongoClient after use
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -18,7 +17,6 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
-
 from preprocess.text import DBTableNames, ModelParamFields
 
 
@@ -26,9 +24,18 @@ class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
 
     def __init__(self, ip, port, maxPoolSize=None):
-        """initial mongodb client by IP address and port."""
+        """initial mongodb client by IP address and port.
+
+        Starting with version 3.0 the MongoClient constructor no longer blocks while connecting to
+         the server or servers, and it no longer raises ConnectionFailure if they are unavailable,
+         nor ConfigurationError if the user's credentials are wrong.
+         Instead, the constructor returns immediately and launches the connection process on
+          background threads.
+        --https://api.mongodb.com/python/current/api/pymongo/mongo_client.html
+        """
+        self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
         try:
-            self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
+            self.conn.admin.command('ismaster')
         except ConnectionFailure as err:
             sys.stderr.write('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
@@ -38,8 +45,16 @@ class ConnectMongoDB(object):
         return self.conn
 
     def close(self):
-        """Close collection."""
-        self.conn.close()
+        """Close collection.
+
+        Create this client once for each process, and reuse it for all operations.
+        It is a common mistake to create a new client for each request, which is very inefficient.
+        --https://stackoverflow.com/questions/41015490/how-can-i-force-pymongo-to-close-sockets
+
+        So, for now, I will comment the close operation. By lj.
+        """
+        # self.conn.close()
+        pass
 
 
 class MongoQuery(object):

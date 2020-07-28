@@ -1,12 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-  BMP scenarios analysis based on SEIMS-based watershed model and NSGA-II algorithm.
-  The invoking format is:
+"""BMP scenarios analysis based on SEIMS-based watershed model and NSGA-II algorithm.
 
-  python demo_scenario_analysis.py -name <demo_watershed_name>
+The invoking format is:
 
-  - 19-01-08 - lj - initial implementation.
+  `python demo_scenario_analysis.py -name <demo_watershed_name>`
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 19-01-08 - lj - initial implementation.
 """
 from __future__ import absolute_import, unicode_literals
 
