@@ -1,9 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Replace the relative links by global paths for Doxygen.
+
     @author   : Liang-Jun Zhu
-    @changelog: 2018-08-08 - lj - Initial implementation.
-                2018-08-10 - lj - Add identification of images with png or jpg formats.
+
+    @changelog:
+    - 18-08-08  - lj - Initial implementation.
+    - 18-08-10  - lj - Add identification of images with png or jpg formats.
+    - 20-07-29  - lj - Check the existence of the replaced file path, if not, then do not replace.
 """
 import os
 import re
@@ -21,6 +25,9 @@ def current_path(local_function):
     if fpath is None:
         return None
     return os.path.dirname(os.path.abspath(fpath))
+
+
+CPATH = current_path(lambda: 0)
 
 
 def regrex_find_md_link(test_str, prefix):
@@ -42,9 +49,10 @@ def regrex_find_md_link(test_str, prefix):
         oldpath = substr[i + 2:j]
         newpath = os.path.normpath(prefix + oldpath)
 
-        k = replaced_str.find(substr)
-        replaced_str = replaced_str[: i + k + 2] + newpath + replaced_str[j:]
-        flag = True
+        if os.path.exists('%s/../%s' % (CPATH, newpath)):
+            k = replaced_str.find(substr)
+            replaced_str = replaced_str[: i + k + 2] + newpath + replaced_str[j:]
+            flag = True
     if flag:
         print('origin: %s, replaced: %s' % (test_str, replaced_str))
     return replaced_str, flag
@@ -85,11 +93,11 @@ def main(fpath, relative_path):
 
 
 if __name__ == '__main__':
-    cpath = current_path(lambda: 0)
-    topname = os.path.split(cpath)[-1] + '/'  # By default this should be 'doc/'
+    # cpath = current_path(lambda: 0)
+    topname = os.path.split(CPATH)[-1] + '/'  # By default this should be 'doc/'
     langs = ['en', 'zh-cn']
     for lang in langs:
-        nextdir = cpath + os.sep + lang
+        nextdir = CPATH + os.sep + lang
         if not os.path.exists(nextdir):
             print('%s is not existed!' % nextdir)
             continue
