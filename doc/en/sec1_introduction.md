@@ -30,5 +30,3 @@ Q&A 1. Insert an image
 - Doxygen accepted format:
 
 ![gitremote](doc/img/gitremotev.png)
-
-
