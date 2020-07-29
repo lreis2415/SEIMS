@@ -21,3 +21,12 @@ Please refer to Zhu et al. (2019, EM&S) for more information.
         - Dr. Junzhi Liu (liujunzhi@njnu.edu.cn)
 
 
+Q&A 1. Insert an image
+
+- Markdown format:
+
+![gitremote](../img/gitremotev.png)
+
+- Doxygen accepted format:
+
+![gitremote](doc/img/gitremotev.png)
