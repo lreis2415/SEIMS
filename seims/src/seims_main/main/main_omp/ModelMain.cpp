@@ -2,6 +2,7 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace ccgl::utils_time;
 
@@ -137,9 +138,9 @@ void ModelMain::Execute() {
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
         if (preYearIdx != yearIdx) {
-            cout << "Simulation year: " << startYear + yearIdx << endl;
+            LOG(DEBUG) << "Simulation year: " << startYear + yearIdx;
         }
-        StatusMessage(ConvertToString2(t).c_str());
+        LOG(DEBUG) << ConvertToString2(t);
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
@@ -149,7 +150,7 @@ void ModelMain::Execute() {
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1 << endl;
+    CLOG(INFO, LOG_TIMESPAN) << "[COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1;
     OutputExecuteTime();
 }
 
@@ -185,15 +186,15 @@ double ModelMain::Output() {
     double t2 = TimeCounting();
     if (m_dataCenter->GetSubbasinID() == 0) {
         // Only print for OpenMP version
-        cout << "[TIMESPAN][IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1 << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1;
     }
     return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
-        cout << "[TIMESPAN][COMP][" << m_factory->GetModuleID(i) << "] " <<
-                std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[COMP][" << m_factory->GetModuleID(i) << "] " <<
+        std::fixed << std::setprecision(3) << m_executeTime[i];
     }
 }
 
@@ -210,7 +211,7 @@ void ModelMain::CheckAvailableOutput() {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
             if (m_dataCenter->GetSubbasinID() <= 1 || m_dataCenter->GetSubbasinID() == 9999) {
                 // Print only once
-                cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
+                LOG(WARNING) << "Can't find output variable for output id : " << outputid << "." << endl;
             }
             it = m_output->m_printInfos.erase(it);
         } else {

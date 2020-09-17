@@ -1,4 +1,5 @@
 #include "Scenario.h"
+#include "Logging.h"
 
 namespace bmps {
 Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
@@ -10,7 +11,7 @@ Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 
 }
 
 Scenario::~Scenario() {
-    StatusMessage("Releasing Scenario...");
+    CLOG(TRACE, LOG_RELEASE) << "Releasing Scenario...";
     for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end();) {
         if (nullptr != it->second) {
             delete it->second;

@@ -1,7 +1,10 @@
 #include "KinWavSed_OL.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_nLayers(-1),
                                    m_routingLayers(NULL),

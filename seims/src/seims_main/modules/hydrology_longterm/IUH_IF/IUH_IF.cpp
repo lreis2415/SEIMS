@@ -1,7 +1,10 @@
 #include "IUH_IF.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nsub(-1), m_subbasin(NULL),
                        m_iuhCell(NULL), m_ssru(NULL), m_iuhCols(-1), m_cellFlowCols(-1) {

@@ -1,5 +1,8 @@
 #include "DepressionFS.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
@@ -87,7 +90,7 @@ bool DepressionFS::CheckInputSize(const char *key, int n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_DEP_FS, "CheckInputSize", oss.str());

@@ -4,6 +4,9 @@
 
 #include "PlantGrowthCommon.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 
 Biomass_EPIC::Biomass_EPIC() :

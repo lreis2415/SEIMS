@@ -1,5 +1,8 @@
 #include "MUSLE_I30.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 MUSLE_I30::MUSLE_I30(void) {
     // set default values for member variables

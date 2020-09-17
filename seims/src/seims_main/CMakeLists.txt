@@ -32,7 +32,7 @@ ENDIF()
 
 ### Check OMP which is optional
 IF(XCODE)
-  # To use OpenMP in Xcode built by CMake, the recommended way is to 
+  # To use OpenMP in Xcode built by CMake, the recommended way is to
   #   install llvm by 'brew install llvm', which has builtin 'libomp'
   IF (NOT LLVM_ROOT_DIR)
     SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
@@ -44,10 +44,10 @@ IF(XCODE)
     SET(OpenMP_C_FLAGS "-fopenmp")
 	FIND_LIBRARY(OpenMP_LIBRARY
 		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS}) 
+		HINTS ${LLVM_LIBRARY_DIRS})
     SET(OPENMP_FOUND 1)
   ENDIF ()
-ELSE ()  
+ELSE ()
   FIND_PACKAGE(OpenMP)
 ENDIF ()
 IF(OPENMP_FOUND)
@@ -72,7 +72,8 @@ ENDIF ()
 
 ########  Stand-alone libraries/programs   ###########
 SET(BASE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/base)
-SET(BASE_INC ${BASE_HOME} ${BASE_HOME}/common_algorithm ${BASE_HOME}/data ${BASE_HOME}/module_setting ${BASE_HOME}/bmps)
+SET(BASE_INC ${BASE_HOME} ${BASE_HOME}/util ${BASE_HOME}/common_algorithm
+             ${BASE_HOME}/data ${BASE_HOME}/module_setting ${BASE_HOME}/bmps)
 SET(MODULE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 SET(MAIN_HOME ${CMAKE_CURRENT_SOURCE_DIR}/main)
 ############  Set include directories    #############

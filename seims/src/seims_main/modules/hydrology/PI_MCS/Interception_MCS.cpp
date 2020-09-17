@@ -2,6 +2,9 @@
 
 #include "text.h"
 #include "utils_time.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),

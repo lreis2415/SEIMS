@@ -14,7 +14,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup SplashEro_Park
  * \ingroup Erosion
  * \brief Park Equation for splash erosion

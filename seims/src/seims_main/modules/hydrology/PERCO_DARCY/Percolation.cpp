@@ -1,5 +1,8 @@
 #include "Percolation.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 Percolation_DARCY::Percolation_DARCY(void) {
     // set default values for member variables

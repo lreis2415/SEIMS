@@ -3,6 +3,9 @@
 #include "text.h"
 #include "ClimateParams.h"
 #include "utils_time.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 PETPriestleyTaylor::PETPriestleyTaylor() :
     m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),

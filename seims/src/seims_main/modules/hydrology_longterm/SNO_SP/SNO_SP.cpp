@@ -3,6 +3,9 @@
 #include "text.h"
 #include "PlantGrowthCommon.h"
 #include "utils_time.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 
 SNO_SP::SNO_SP() :

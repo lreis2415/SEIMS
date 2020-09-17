@@ -11,7 +11,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup PI_SVSC
  * \ingroup Hydrology
  * \brief Module for Precipitation Interception module by Seasonal Variation of Storage Capacity method.

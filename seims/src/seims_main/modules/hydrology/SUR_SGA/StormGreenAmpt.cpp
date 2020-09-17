@@ -1,7 +1,10 @@
 #include "StormGreenAmpt.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 StormGreenAmpt::StormGreenAmpt(void) : m_infil(NULL), m_capillarySuction(NULL), m_accumuDepth(NULL),
                                        m_dt(-1), m_nCells(-1), m_pNet(NULL), m_porosity(NULL), m_soilMoisture(NULL),

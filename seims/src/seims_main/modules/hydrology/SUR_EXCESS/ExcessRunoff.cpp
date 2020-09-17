@@ -1,7 +1,10 @@
 #include "ExcessRunoff.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL), m_accumuDepth(NULL), m_infilCapacitySurplus(NULL),
                                    m_dt(-1), m_nCells(-1), m_fieldCap(NULL), m_porosity(NULL), m_ks(NULL),
@@ -134,7 +137,7 @@ bool ExcessRunoff::CheckInputSize(const char *key, int n) {
         else {
             throw ModelException("SUR_EXCESS", "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException("SUR_EXCESS", "CheckInputSize", oss.str());
@@ -259,7 +262,7 @@ int ExcessRunoff::Execute(void) {
         if (m_infil[i] < 0.f) {
             //string datestr = getDate(&m_date);
             string datestr = ConvertToString(m_date);
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Date: " << datestr << "\n Precipitation(mm) = " << m_pNet[i] << "\n Infiltration(mm) = " <<
                 m_infil[i] << "\n";
             throw ModelException("SUR_EXCESS", "Execute", "Output data error: infiltration is less than zero. Where:\n"

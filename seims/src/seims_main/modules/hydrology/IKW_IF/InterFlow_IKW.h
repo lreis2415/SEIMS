@@ -9,7 +9,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup IKW_IF
  * \ingroup Hydrology
  * \brief Interflow routing using implicit finite difference method

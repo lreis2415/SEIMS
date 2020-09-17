@@ -2,6 +2,9 @@
 
 #include "text.h"
 #include "PlantGrowthCommon.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 MGTOpt_SWAT::MGTOpt_SWAT() :
     m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),

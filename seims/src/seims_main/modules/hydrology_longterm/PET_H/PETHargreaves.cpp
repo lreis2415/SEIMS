@@ -3,6 +3,9 @@
 #include "utils_time.h"
 #include "ClimateParams.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 PETHargreaves::PETHargreaves() :
     m_nCells(-1), m_HCoef_pet(0.0023f), m_petFactor(1.f),

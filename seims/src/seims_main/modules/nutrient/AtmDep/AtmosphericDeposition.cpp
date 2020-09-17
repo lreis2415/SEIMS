@@ -1,6 +1,9 @@
 #include "AtmosphericDeposition.h"
 
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 AtmosphericDeposition::AtmosphericDeposition() :
     m_nCells(-1), m_maxSoilLyrs(-1), m_rainNO3Conc(-1.f), m_rainNH4Conc(-1.f),

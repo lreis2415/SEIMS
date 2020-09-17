@@ -218,7 +218,6 @@ public:
     int GetCalibrationID() const { return calibration_id_; }
     int GetThreadNumber() const { return thread_num_; }
     bool UseScenario() const { return use_scenario_; }
-    string GetOutputSceneName() const { return output_scene_; }
     string GetOutputScenePath() const { return output_path_; }
     string GetModelMode() const { return model_mode_; }
     int GetSubbasinsCount() const { return n_subbasins_; }
@@ -262,7 +261,6 @@ protected:
     const int calibration_id_;             ///< Calibration ID
     const int thread_num_;                 ///< Thread number for OpenMP
     bool use_scenario_;                    ///< Model Scenario
-    string output_scene_;                  ///< Output scenario identifier, e.g. output1 means scenario 1
     string output_path_;                   ///< Output path (with / in the end) according to m_outputScene
     vector<string> file_in_strs_;          ///< file.in configuration
     vector<OrgOutItem> origin_out_items_;  ///< file.out configuration

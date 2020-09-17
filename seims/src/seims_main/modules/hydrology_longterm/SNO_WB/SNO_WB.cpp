@@ -1,5 +1,8 @@
 #include "SNO_WB.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 SNO_WB::SNO_WB(void) {
     // set default values for member variables

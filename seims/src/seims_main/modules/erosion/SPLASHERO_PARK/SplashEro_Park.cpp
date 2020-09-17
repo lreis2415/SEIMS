@@ -1,7 +1,10 @@
 #include "SplashEro_Park.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 SplashEro_Park::SplashEro_Park(void) : m_CellWith(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_Omega(NODATA_VALUE),
                                        m_Slope(NULL),

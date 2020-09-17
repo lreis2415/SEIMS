@@ -1,5 +1,8 @@
 #include "SUR_GreenAmpt.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
@@ -319,7 +322,7 @@ int SUR_GreenAmpt::Execute() {
         // check the output data
         if (m_INFIL[iCell] > 10000.0f || m_INFIL[iCell] < 0.0f) {
             //string datestr = getDate(&m_date);
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Cell(Row:" << m_mask[iCell][0] << ", Col:" << m_mask[iCell][1] << "\n Infiltration =" <<
                 m_INFIL[iCell]
                 << "\n Precipitation(mm) = " << pNet << "\n InfiltrationRate(m/h) = " << rateinf << "\n";

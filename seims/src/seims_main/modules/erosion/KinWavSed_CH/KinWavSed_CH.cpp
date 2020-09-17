@@ -1,7 +1,10 @@
 #include "KinWavSed_CH.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+//using namespace std;  // Avoid this statement! by lj.
 
 KinWavSed_CH::KinWavSed_CH() : m_CellWith(-1),
                                    m_nCells(-1),

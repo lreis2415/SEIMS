@@ -1,7 +1,6 @@
 #include "CalculateProcess.h"
 
 #include <map>
-#include <set>
 #include <vector>
 
 #include "utils_time.h"
@@ -10,6 +9,7 @@
 #include "ModelMain.h"
 #include "CombineRaster.h"
 #include "text.h"
+#include "Logging.h"
 
 #include "parallel.h"
 #include "TaskInformation.h"
@@ -18,11 +18,10 @@
 using namespace utils_time;
 using namespace utils_array;
 using std::map;
-using std::set;
 using std::vector;
 
 void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
-    StatusMessage(("Computing process, Rank: " + ValueToString(rank)).c_str());
+    LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
     /// Get module path, i.e., the path of executable and dynamic libraries
     string module_path = GetAppPath();
@@ -35,7 +34,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     TaskInfo* task_info = new TaskInfo(size, rank);
     LoadTasks(mongo_client, input_args, size, rank, task_info);
     if (!task_info->Build()) {
-        cout << "Rank: " << rank << ", task information build failed!" << endl;
+        LOG(TRACE) << "Rank: " << rank << ", task information build failed!";
         MPI_Abort(MCW, 1);
     }
     double t_load_task = MPI_Wtime() - tstart;
@@ -44,7 +43,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     tstart = MPI_Wtime();                             /// Start to construct objects of subbasin models
     int n_subbasins = task_info->GetSubbasinNumber(); // subbasin number of current rank
     if (n_subbasins == 0) {
-        cout << "No task for rank " << rank << endl;
+        LOG(TRACE) << "No task for rank " << rank;
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
@@ -140,7 +139,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
     /// Reduce for model constructing time, which also input time
     double t_model_construct = MPI_Wtime() - tstart;
-    StatusMessage(("Rank " + ValueToString(rank) + " construct models done!").c_str());
+    LOG(TRACE) << "Rank " << rank << " construct models done!";
 
     MPI_Request request;
     MPI_Status status;
@@ -162,25 +161,17 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
         act_loop_num += 1;
-#ifdef _DEBUG
-        //cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
-        if (StringMatch(ConvertToString(ts), "2014-03-30")) {
-        //    cout << "Debugging..." << endl;
-        }
-#endif
         int year_idx = GetYear(ts) - start_year;
         if (rank == MASTER_RANK) {
             if (pre_year_idx != year_idx) {
-                cout << "  Simulation year: " << start_year + year_idx << endl;
+                LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;
             }
             // cout << "     " << ConvertToString2(ts) << endl;
         }
         // Execute by layering orders
         for (int ilyr = 1; ilyr <= max_lyr_id_all; ilyr++) {
             // if (subbsn_layers.find(ilyr) == subbsn_layers.end()) continue; // DO NOT UNCOMMENT THIS!
-#ifdef _DEBUG
-            cout << "Rank: " << rank << ", Layer " << ilyr << endl;
-#endif
+
             if (input_args->skd_mtd == TEMPOROSPATIAL) exec_lyr_num = ilyr;
 
             for (int lyr_dlt = 0; lyr_dlt < exec_lyr_num; lyr_dlt++) {
@@ -198,10 +189,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 1. Execute hillslope processes
                     t_slope_start = MPI_Wtime();
-#ifdef _DEBUG
-                    cout << "  " << ConvertToString2(cur_time) <<
-                            "  Hillslope process, subbasin: " << subbasin_id << endl;
-#endif
                     ModelMain* psubbasin = model_map[*it];
                     for (int i = 0; i < n_hs; i++) {
                         psubbasin->StepHillSlope(cur_time + i * dt_hs, year_idx, i);
@@ -211,10 +198,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
                     // 2. Execute channel processes
                     t_channel_start = MPI_Wtime();
-#ifdef _DEBUG
-                    cout << "  " << ConvertToString2(cur_time) <<
-                            "  Channel process, subbasin: " << subbasin_id << endl;
-#endif
 
                     // 2.1 Set transferred data from upstreams
                     for (auto it_upid = upstreams[subbasin_id].begin();
@@ -226,14 +209,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             int work_tag = *it_upid * 10000 + cur_sim_loop_num;;
                             MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
-#ifdef _DEBUG
-                            cout << "Receive data of subbasin: " << *it_upid << " of sim_loop: " <<
-                                    cur_sim_loop_num << " from rank: " << subbasin_rank[*it_upid] << ", tfValues: ";
-                            for (int itf = MSG_LEN; itf < buflen; itf++) {
-                                cout << std::fixed << setprecision(6) << buf[itf] << ", ";
-                            }
-                            cout << endl;
-#endif
+
                             for (int vi = 0; vi < transfer_count; vi++) {
                                 recv_ts_subbsn_tf_values[cur_sim_loop_num][*it_upid][vi] = buf[MSG_LEN + vi];
                             }
@@ -260,14 +236,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
                     psubbasin->GetTransferredValue(&buf[MSG_LEN]);
-#ifdef _DEBUG
-                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " of sim_loop: " <<
-                            cur_sim_loop_num << " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
-                    for (int itf = MSG_LEN; itf < buflen; itf++) {
-                        cout << std::fixed << setprecision(6) << buf[itf] << ", ";
-                    }
-                    cout << endl;
-#endif
+
                     int dest_rank = subbasin_rank[downstream[subbasin_id]];
                     buf[0] = CVT_FLT(subbasin_id);      // subbasin ID
                     buf[1] = CVT_FLT(cur_sim_loop_num); // simulation loop number
@@ -359,33 +328,32 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     double all_tavg = io_tavg + comp_tavg;
 
     if (rank == MASTER_RANK) {
-        cout << endl;
-        cout << "[TIMESPAN][MAX][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmax << endl;
-        cout << "[TIMESPAN][MAX][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmax << endl;
-        cout << endl;
-        cout << "[TIMESPAN][MIN][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmin << endl;
-        cout << "[TIMESPAN][MIN][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmin << endl;
-        cout << endl;
-        cout << "[TIMESPAN][AVG][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][Channel] " << std::fixed << setprecision(3) << channel_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][Input]   " << std::fixed << setprecision(3) << input_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][Output]  " << std::fixed << setprecision(3) << output_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tavg << endl;
-        cout << "[TIMESPAN][AVG][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tavg << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmax;
+
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmin;
+
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Channel] " << std::fixed << setprecision(3) << channel_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][Input]   " << std::fixed << setprecision(3) << input_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][Output]  " << std::fixed << setprecision(3) << output_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tavg;
     }
 
     /*** Combine raster outputs serially by one processor. ***/
@@ -399,7 +367,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                 PrintInfoItem* item = *item_it;
                 if (item->m_nLayers >= 1) {
                     // Only need to handle raster data
-                    StatusMessage(("Combining raster: " + item->Corename).c_str());
+                    CLOG(TRACE,  LOG_OUTPUT) << "Combining raster: " << item->Corename;
                     CombineRasterResultsMongo(gfs, item->Corename,
                                               data_center_map.begin()->second->GetSubbasinsCount(),
                                               data_center_map.begin()->second->GetOutputScenePath(),

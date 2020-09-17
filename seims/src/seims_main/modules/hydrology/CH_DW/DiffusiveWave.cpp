@@ -1,20 +1,23 @@
 #include "DiffusiveWave.h"
 
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+//using namespace std;  // Avoid this statement! by lj.
 
-//! Constructor
-DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
-                                     m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_chWidth(NULL),
-                                     m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
-                                     m_elevation(NULL),
-                                     m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL),
-                                     m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
-                                     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
+DiffusiveWave::DiffusiveWave() :
+    m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
+    m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_reachN(nullptr),
+    m_chWidth(NULL),
+    m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
+    m_elevation(NULL),
+    m_flowLen(NULL), m_qi(NULL), m_flowInIndex(nullptr), m_flowOutIndex(nullptr),
+    m_streamLink(NULL),
+    m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
+    m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
 }
 
-//! Destructor
 DiffusiveWave::~DiffusiveWave(void) {
     //Release1DArray(m_reachId);
     //Release1DArray(m_streamOrder);
@@ -280,7 +283,7 @@ int DiffusiveWave::Execute() {
     }
     return 0;
 }
-
+/*
 //! Check input size
 bool DiffusiveWave::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
@@ -300,7 +303,7 @@ bool DiffusiveWave::CheckInputSize(const char *key, int n) {
 
     return true;
 }
-
+*/
 //! Check input size channel
 bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
     if (n <= 0) {
@@ -354,7 +357,7 @@ void DiffusiveWave::SetValue(const char *key, float data) {
 void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     //check the input data
-    CheckInputSize(key, n);
+    CheckInputSize(MID_CH_DW, key, n, m_nCells);
 
     if (StringMatch(sk, VAR_SLOPE)) {
         m_s0 = data;

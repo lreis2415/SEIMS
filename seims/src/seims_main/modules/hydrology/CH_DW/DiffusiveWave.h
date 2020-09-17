@@ -10,7 +10,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+//using namespace std;  // Avoid this statement! by lj.
+
 /*! \defgroup CH_DW
  * \ingroup Hydrology
  * \brief Channel routing using diffusive wave equation.
@@ -45,10 +46,10 @@ public:
     void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
     void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
-
+    /*
     // TODO: CheckInputSize and CheckInputSizeChannel should be overrided from SimulationModule, by zhulj.
     bool CheckInputSize(const char *key, int n);
-
+    */
     bool CheckInputSizeChannel(const char *key, int n);
 
     bool CheckInputData() OVERRIDE;

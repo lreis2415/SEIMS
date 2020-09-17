@@ -1,7 +1,10 @@
 #include "GWaterReservoir.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_recessionCoefficient(-1.f),
                                          m_recessionExponent(1.f), m_CellWidth(-1.f),
@@ -61,7 +64,7 @@ bool GWaterReservoir::CheckInputSize(const char *key, int n) {
             this->m_nCells = n;
         } else {
             //throw ModelException(MID_GW_RSVR,"CheckInputSize","Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_GW_RSVR, "CheckInputSize", oss.str());

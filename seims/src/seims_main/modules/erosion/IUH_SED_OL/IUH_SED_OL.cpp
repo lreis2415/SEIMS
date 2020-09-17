@@ -1,6 +1,9 @@
 #include "IUH_SED_OL.h"
 
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 IUH_SED_OL::IUH_SED_OL() :
     m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),

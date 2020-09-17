@@ -11,13 +11,25 @@
 #include "seims.h"
 #include "invoke.h"
 #include "ModelMain.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 int main(const int argc, const char** argv) {
     /// Parse input arguments
     InputArgs* input_args = InputArgs::Init(argc, argv);
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
+
+    /// Initialize easylogging++
+    START_EASYLOGGINGPP(argc, argv);
+    el::Helpers::setStorage(sharedLoggingRepository());
+    Logging::init();
+    Logging::setLoggingToFile(input_args->output_path + SEP + input_args->output_scene + ".log");
+    Logging::setLogLevel(Logging::getLLfromString(input_args->log_level), nullptr);
+
     /// Register GDAL
     GDALAllRegister();
+
     /// Run model.
     try {
         double input_t = TimeCounting();
@@ -38,11 +50,11 @@ int main(const int argc, const char** argv) {
                                                                module_factory, input_args->subbasin_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model_main = new ModelMain(data_center, module_factory);
-        cout << "[TIMESPAN][IO  ][Input] " << std::fixed << setprecision(3) << TimeCounting() - input_t << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[IO  ][Input] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
         /// Execute model and write outputs
         model_main->Execute();
         model_main->Output();
-        cout << "[TIMESPAN][SIMU][ALL] " << std::fixed << setprecision(3) << TimeCounting() - input_t << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[SIMU][ALL] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
         /// Clean up
         delete model_main;
         delete data_center;
@@ -50,15 +62,15 @@ int main(const int argc, const char** argv) {
         delete mongo_client;
         delete input_args;
     } catch (ModelException& e) {
-        cout << e.ToString() << endl;
+        LOG(ERROR) << e.ToString();
         exit(EXIT_FAILURE);
     }
     catch (std::exception& e) {
-        cout << e.what() << endl;
+        LOG(ERROR) << e.what();
         exit(EXIT_FAILURE);
     }
     catch (...) {
-        cout << "Unknown exception occurred!" << endl;
+        LOG(ERROR) << "Unknown exception occurred!";
         exit(EXIT_FAILURE);
     }
     return 0;

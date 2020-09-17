@@ -1,5 +1,8 @@
 #include "SSM_PE.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 SSM_PE::SSM_PE(void) {
     // set default values for member variables

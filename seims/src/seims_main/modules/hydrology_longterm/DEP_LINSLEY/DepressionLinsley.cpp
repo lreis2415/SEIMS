@@ -1,6 +1,9 @@
 #include "DepressionLinsley.h"
 
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 DepressionFSDaily::DepressionFSDaily() :
     m_nCells(-1), m_impoundTriger(nullptr),

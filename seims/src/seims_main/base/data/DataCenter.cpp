@@ -2,6 +2,7 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_time;
 
@@ -10,68 +11,57 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int 
     lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
     scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
     thread_num_(input_args->thread_num),
-    use_scenario_(false), output_scene_(DB_TAB_OUT_SPATIAL),
-    output_path_(""),
+    use_scenario_(false), 
+    output_path_(input_args->output_path),
     model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
     reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
-    /// Clean output folder
-    if (scenario_id_ >= 0) {
-        // -1 means no BMPs scenario will be simulated
-        output_scene_ += ValueToString(scenario_id_);
-        /// Be aware, m_useScenario will be updated in checkModelPreparedData().
-    }
-    if (calibration_id_ >= 0) {
-        // -1 means no calibration setting will be used.
-        output_scene_ += "-" + ValueToString(calibration_id_);
-    }
-    output_path_ = model_path_ + SEP + output_scene_ + SEP;
-    if (subbasin_id_ <= 1) CleanDirectory(output_path_); // avoid repeat operation in mpi version
+    // Nothing to do for now.
 }
 
 DataCenter::~DataCenter() {
-    StatusMessage("Release DataCenter...");
+    CLOG(TRACE, LOG_RELEASE) << "Release DataCenter...";
     if (nullptr != input_) {
-        StatusMessage("---release setting input data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release setting input data ...";
         delete input_;
         input_ = nullptr;
     }
     if (nullptr != output_) {
-        StatusMessage("---release setting output data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release setting output data ...";
         delete output_;
         output_ = nullptr;
     }
     if (nullptr != clim_station_) {
-        StatusMessage("---release climate station data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release climate station data ...";
         delete clim_station_;
         clim_station_ = nullptr;
     }
     if (nullptr != scenario_) {
-        StatusMessage("---release bmps scenario data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release bmps scenario data ...";
         delete scenario_;
         scenario_ = nullptr;
     }
     if (nullptr != reaches_) {
-        StatusMessage("---release reaches data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release reaches data ...";
         delete reaches_;
         reaches_ = nullptr;
     }
     if (nullptr != subbasins_) {
-        StatusMessage("---release subbasins data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release subbasins data ...";
         delete subbasins_;
         subbasins_ = nullptr;
     }
-    StatusMessage("---release map of all 1D and 2D raster data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of all 1D and 2D raster data ...";
     for (auto it = rs_map_.begin(); it != rs_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
         rs_map_.erase(it++);
     }
     rs_map_.clear();
-    StatusMessage("---release map of parameters in MongoDB ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in MongoDB ...";
     for (auto it = init_params_.begin(); it != init_params_.end();) {
         if (nullptr != it->second) {
             delete it->second;
@@ -80,19 +70,19 @@ DataCenter::~DataCenter() {
         init_params_.erase(it++);
     }
     init_params_.clear();
-    StatusMessage("---release map of 1D array data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of 1D array data ...";
     for (auto it = array1d_map_.begin(); it != array1d_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             Release1DArray(it->second);
         }
         array1d_map_.erase(it++);
     }
     array1d_map_.clear();
-    StatusMessage("---release map of 2D array data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of 2D array data ...";
     for (auto it = array2d_map_.begin(); it != array2d_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             Release2DArray(array2d_rows_map_[it->first], it->second);
         }
         array2d_map_.erase(it++);
@@ -299,15 +289,13 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
         }
     }
     double timeconsume = TimeCounting() - t1;
-    StatusMessage(("Loading data for modules, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
+    CLOG(TRACE, LOG_INIT) << "Loading data for modules, TIMESPAN " << timeconsume << " sec.";
     return timeconsume;
 }
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
                          SimulationModule* p_module) {
-#ifdef _DEBUG
     double stime = TimeCounting();
-#endif
     string name = param->BasicName;
     if (setting->dataTypeString().empty()
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
@@ -357,11 +345,9 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         default: break;
     }
-#ifdef _DEBUG
     double timeconsume = TimeCounting() - stime;
-    StatusMessage(("Set " + name + ": " + remote_filename + " done, TIMESPAN " +
-                      ValueToString(timeconsume) + " sec.").c_str());
-#endif
+    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename << 
+    " done, TIMESPAN " << timeconsume << " sec.";
 }
 
 void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {

@@ -1,7 +1,10 @@
 #include "ImplicitKinematicWave.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellWidth(-1.0f),
                                                            m_s0(NULL), m_n(NULL), m_flowInIndex(NULL),
@@ -320,7 +323,7 @@ bool ImplicitKinematicWave_OL::CheckInputSize(const char *key, int n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_IKW_OL, "CheckInputSize", oss.str());

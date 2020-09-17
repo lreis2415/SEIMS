@@ -1,7 +1,10 @@
 #include "InterFlow_IKW.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 InterFlow_IKW::InterFlow_IKW(void) : m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chWidth(NULL),
                                      m_s0(NULL), m_rootDepth(NULL), m_ks(NULL), m_landuseFactor(1.f),
@@ -187,7 +190,7 @@ bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
             //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_IKW_IF, "CheckInputSize", oss.str());

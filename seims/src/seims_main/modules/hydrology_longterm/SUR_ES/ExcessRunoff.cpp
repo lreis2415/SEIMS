@@ -1,7 +1,10 @@
 #include "ExcessRunoff.h"
 #include "text.h"
+#include "Logging.h"
 
-using namespace std;
+INITIALIZE_EASYLOGGINGPP
+
+// using namespace std;  // Avoid this statement! by lj.
 
 ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL),
                                    m_dt(-1), m_nCells(-1), m_fieldCap(NULL), m_porosity(NULL), m_ks(NULL),
@@ -119,7 +122,7 @@ bool ExcessRunoff::CheckInputSize(const char *key, int n) {
         else {
             throw ModelException("SUR_ES", "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException("SUR_ES", "CheckInputSize", oss.str());

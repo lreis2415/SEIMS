@@ -1,5 +1,8 @@
 #include "SRD_MB.h"
 #include "text.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 SRD_MB::SRD_MB(void) {
     // set default values for member variables

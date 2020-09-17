@@ -12,7 +12,8 @@
 #define MODEL_NAME                             "SEIMS"
 #define MODEL_VERSION                          "2019"
 #define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
-#define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
+//#define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
+const char SEIMS_SITE[] =                      "https://github.com/lreis2415/SEIMS";
 
 //! Constant input variables
 #define CONS_IN_ELEV                           "Elevation"

@@ -3,6 +3,7 @@
 #include "utils_time.h"
 #include "text.h"
 #include "BMPText.h"
+#include "Logging.h"
 
 using namespace utils_time;
 
@@ -24,7 +25,7 @@ PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = 
 }
 
 PrintInfoItem::~PrintInfoItem() {
-    StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
+    CLOG(TRACE, LOG_RELEASE) << "Start to release PrintInfoItem for " << Filename << " ...";
     Release2DArray(m_Counter, m_1DDataWithRowCol);
     Release1DArray(m_1DData);
     Release2DArray(m_nRows, m_2DData);
@@ -37,7 +38,7 @@ PrintInfoItem::~PrintInfoItem() {
     }
     TimeSeriesDataForSubbasin.clear();
 
-    StatusMessage(("End to release PrintInfoItem for " + Filename + " ...").c_str());
+    CLOG(TRACE, LOG_RELEASE) << "End to release PrintInfoItem for " << Filename << " .";
 }
 
 bool PrintInfoItem::IsDateInRange(time_t dt) {
@@ -101,7 +102,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
     if (m_scenarioID >= 0) gfs_name += itoa(m_scenarioID);
     gfs_name += "_";
     if (m_calibrationID >= 0) gfs_name += itoa(m_calibrationID);
-    StatusMessage(("Creating output file " + Filename + "...").c_str());
+    CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "...";
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
     if (m_AggregationType == AT_SpecificCells) {
         // TODO, this function has been removed in current version
@@ -130,7 +131,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename + " successfully!";
         }
         return;
     }
@@ -156,7 +157,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                 fs << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
         }
         return;
     }
@@ -183,7 +184,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                     fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
                 }
                 fs.close();
-                StatusMessage(("Create " + filename + " successfully!").c_str());
+                CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
             }
         }
         return;
@@ -218,7 +219,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                     fs << endl;
                 }
                 fs.close();
-                StatusMessage(("Create " + filename + " successfully!").c_str());
+                CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
             }
         }
         return;
@@ -236,15 +237,15 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
         }
         return;
     }
     //Don't throw exception, just print the warning message. by lj 08/6/17
     //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
     //    " is failed. There is no result data for this file. Please check output variables of modules.");
-    cout << "PrintInfoItem\n Flush\n Creating " << Filename <<
-            " is failed. There is no result data for this file. Please check output variables of modules." << endl;
+    LOG(WARNING) << "PrintInfoItem\n Flush\n Creating " << Filename <<
+    " is failed. There is no result data for this file. Please check output variables of modules.";
 }
 
 void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** data) {

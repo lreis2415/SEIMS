@@ -2,6 +2,9 @@
 
 #include "text.h"
 #include "NutrientCommon.h"
+#include "Logging.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 NutrientTransportSediment::NutrientTransportSediment() :
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_cellWth(-1.f), m_cellArea(-1.f), m_nCells(-1),

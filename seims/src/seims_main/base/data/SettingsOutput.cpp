@@ -2,6 +2,7 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_time;
 
@@ -88,7 +89,7 @@ SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, 
 }
 
 SettingsOutput::~SettingsOutput() {
-    StatusMessage("Start to release SettingsOutput ...");
+    CLOG(TRACE, LOG_RELEASE) << "Start to release SettingsOutput ...";
     for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end();) {
         if (it->second != nullptr) {
             delete it->second;
@@ -103,7 +104,7 @@ SettingsOutput::~SettingsOutput() {
         it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
-    StatusMessage("End to release SettingsOutput ...");
+    CLOG(TRACE, LOG_RELEASE) << "End to release SettingsOutput.";
 }
 
 void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
@@ -111,19 +112,15 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
             if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
                 (*itemIt)->setStartTime(startTime);
-                std::ostringstream oss;
-                oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                        << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
-                        << ConvertToString(startTime) << ", and will be updated." << endl;
-                StatusMessage(oss.str().c_str());
+                LOG(WARNING) << "The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
+                << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
+                << ConvertToString(startTime) << ", and will be updated.";
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
-                std::ostringstream oss;
-                oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                        << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
-                        << ConvertToString(endTime) << ", and will be updated." << endl;
-                StatusMessage(oss.str().c_str());
+                LOG(WARNING)  << "The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
+                << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
+                << ConvertToString(endTime) << ", and will be updated.";
             }
         }
     }
