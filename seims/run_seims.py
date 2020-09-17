@@ -23,6 +23,7 @@ Configure and run SEIMS model.
     - 2018-11-15 - lj - Add model clean function.
     - 2019-01-08 - lj - Add output time period setting.
     - 2020-07-20 - lj - Read data from MongoDB once for all currently used properties.
+    - 2020-08-11 - lj - Separate actually execution from run() and add CommandString property.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -45,152 +46,186 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 import global_mongoclient as MongoDBObj
 
-from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string, get_config_parser
+from pygeoc.utils import UtilClass, FileClass, StringClass, \
+    sysstr, is_string, get_config_parser
 
 from preprocess.text import DBTableNames
 from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from preprocess.db_read_model import ReadModelData
-from utility import read_simulation_from_txt, parse_datetime_from_ini
+from utility import read_simulation_from_txt, get_option_value, parse_datetime_from_ini
 from utility import match_simulation_observation, calculate_statistics
 
 
 class ParseSEIMSConfig(object):
-    """Parse SEIMS model related configurations from `ConfigParser` object."""
+    """Parse SEIMS model related configurations from `ConfigParser` object.
+
+    Attributes:
+        host (str): MongoDB IP address
+        port (int): MongoDB port number
+        bin_dir (str): Executable dir of SEIMS. Spaces and unicode characters are not allowed
+        model_dir (str): Model dir which contains essential data and configs for running a model
+        db_name (str): Name of main database stored in MongoDB, default is dirname of `model_dir`
+        version (str): Version of SEIMS main program, can be `MPI` or `OMP` (default)
+        mpi_bin (str): Path of MPI executable file, e.g., /usr/bin/mpirun
+        hosts_opt (str): (Optional) Key to specify hostfile for MPI version,
+                          e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
+        hostfile (str): File containing hostnames or file mapping process numbers to computing nodes
+        nprocess (int): Process number of MPI, i.e., how many MPI tasks will be executed
+        npernode (int): Launch num processes per node on all allocated computing nodes
+        nthread (int): Thread number of OpenMP, i.e., how many threads of each processes
+        lyrmtd (int): Method of creating routing layers of simulation units,
+                        can be 0 (UP_DOWN) and 1 (DOWN_UP)
+        scenario_id (int): Scenario ID
+        calibration_id (int): Calibration ID
+        subbasin_id (int): Subbasin ID, 0 for the entire basin, 1-N for subbasin,
+                             9999 for SEIMS-field version
+        simu_stime (datetime): Start time of simulation (UTCTIME), the format is YYYY-MM-DD HH:MM:SS
+        simu_etime (datetime): End time of simulation (UTCTIME), the format is YYYY-MM-DD HH:MM:SS
+        out_stime (datetime): Start time of output data (UTCTIME)
+        out_etime (datetime): End time of output data (UTCTIME)
+        workload (str): Use workload manager to run multiple models simultaneously, e.g., Slurm
+        config_dict (dict): Dict of all configurations
+        runtime (float): Running time counted by `time.time()` of Python,
+                           in case of `GetTimespan()` failed
+    """
 
     def __init__(self, cf=None):
         # type: (Optional[ConfigParser]) -> None
-        self.host = '127.0.0.1'  # localhost by default
-        self.port = 27017
-        self.bin_dir = ''
-        self.model_dir = ''
-        self.db_name = ''
-        self.version = 'OMP'
-        self.mpi_bin = None
-        self.hosts_opt = None
-        self.hostfile = None
-        self.nprocess = 1
-        self.nthread = 1
-        self.lyrmtd = 1
-        self.scenario_id = 0
-        self.calibration_id = -1
-        self.subbasin_id = 0
-        self.simu_stime = None
-        self.simu_etime = None
-        self.out_stime = None
-        self.out_etime = None
-        self.config_dict = dict()
-        # Running time counted by time.time() of Python, in case of GetTimespan() function failed
-        self.runtime = 0.
+        self.host = '127.0.0.1'  # type: AnyStr
+        self.port = 27017  # type: float
+        self.bin_dir = ''  # type: AnyStr
+        self.model_dir = ''  # type: AnyStr
+        self.db_name = ''  # type: AnyStr
+        self.version = 'OMP'  # type: AnyStr
+        self.mpi_bin = ''  # type: AnyStr
+        self.hosts_opt = ''  # type: AnyStr
+        self.hostfile = ''  # type: AnyStr
+        self.nprocess = 2  # type: int
+        self.npernode = 1  # type: int
+        self.nthread = 2  # type: int
+        self.lyrmtd = 1  # type: int
+        self.scenario_id = 0  # type: int
+        self.calibration_id = -1  # type: int
+        self.subbasin_id = 0  # type: int
+        self.simu_stime = None  # type: Optional[datetime]
+        self.simu_etime = None  # type: Optional[datetime]
+        self.out_stime = None  # type: Optional[datetime]
+        self.out_etime = None  # type: Optional[datetime]
+        self.workload = ''  # type: AnyStr
+
+        self.config_dict = dict()  # type: Dict[AnyStr, Optional[AnyStr, datetime, int, float]]
+        self.runtime = 0.  # type: float
 
         if cf is None:
             return
 
         sec_name = 'SEIMS_Model'
-        if sec_name not in cf.sections():
-            raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
-        if cf.has_option(sec_name, 'hostname'):
-            self.host = cf.get(sec_name, 'hostname')
-        if cf.has_option(sec_name, 'port'):
-            self.port = cf.getint(sec_name, 'port')
-        if not StringClass.is_valid_ip_addr(self.host):
-            raise ValueError('HOSTNAME defined in [%s] is illegal!' % sec_name)
 
-        self.bin_dir = cf.get(sec_name, 'bin_dir')
-        self.model_dir = cf.get(sec_name, 'model_dir')
+        # Don't raise exception, since DEFAULT session may be used.
+        # if sec_name not in cf.sections():
+        #     raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
+
+        self.host = get_option_value(cf, sec_name, ['hostname', 'host', 'ip'])
+        if not StringClass.is_valid_ip_addr(self.host):
+            raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
+        self.port = get_option_value(cf, sec_name, 'port', valtyp=int)
+        self.bin_dir = get_option_value(cf, sec_name, 'bin_dir')
+        self.model_dir = get_option_value(cf, sec_name, 'model_dir')
         if not (FileClass.is_dir_exists(self.model_dir)
                 and FileClass.is_dir_exists(self.bin_dir)):
-            raise IOError('Please Check Directories defined in [%s]. '
-                          'BIN_DIR and MODEL_DIR are required!' % sec_name)
-        self.db_name = os.path.split(self.model_dir)[1]  # Defaultly, spatial dbname equals dirname
-        if cf.has_option(sec_name, 'spatial_dbname'):
-            self.db_name = cf.get(sec_name, 'spatial_dbname')
-
-        if cf.has_option(sec_name, 'version'):
-            self.version = cf.get(sec_name, 'version')
-        if cf.has_option(sec_name, 'mpi_bin'):  # full path of the executable MPI program
-            self.mpi_bin = cf.get(sec_name, 'mpi_bin')
-        if cf.has_option(sec_name, 'hostopt'):
-            self.hosts_opt = cf.get(sec_name, 'hostopt')
-        if cf.has_option(sec_name, 'hostfile'):
-            self.hostfile = cf.get(sec_name, 'hostfile')
-        if cf.has_option(sec_name, 'processnum'):
-            self.nprocess = cf.getint(sec_name, 'processnum')
-        if cf.has_option(sec_name, 'threadsnum'):
-            self.nthread = cf.getint(sec_name, 'threadsnum')
-        if cf.has_option(sec_name, 'layeringmethod'):
-            self.lyrmtd = cf.getint(sec_name, 'layeringmethod')
-        if cf.has_option(sec_name, 'scenarioid'):
-            self.scenario_id = cf.getint(sec_name, 'scenarioid')
-        if cf.has_option(sec_name, 'calibrationid'):
-            self.calibration_id = cf.getint(sec_name, 'calibrationid')
-        if cf.has_option(sec_name, 'subbasinid'):
-            self.subbasin_id = cf.getint(sec_name, 'subbasinid')
-
-        self.simu_stime = parse_datetime_from_ini(cf, sec_name, 'sim_time_start')
-        self.simu_etime = parse_datetime_from_ini(cf, sec_name, 'sim_time_end')
+            raise IOError('Please Check the existence of BIN_DIR and MODEL_DIR!')
+        self.db_name = get_option_value(cf, sec_name, ['db_name', 'spatial_dbname'])
+        if not self.db_name:  # If not specified, by default, equals to dir name of self.model_dir
+            self.db_name = os.path.split(self.model_dir)[1]
+        self.version = get_option_value(cf, sec_name, 'version')
+        if not self.version:
+            self.version = 'OMP'
+        self.mpi_bin = get_option_value(cf, sec_name, 'mpi_bin')
+        self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
+        self.hostfile = get_option_value(cf, sec_name, 'hostfile')
+        self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
+        self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
+        self.nthread = get_option_value(cf, sec_name, ['nthread', 'threadsnum'], valtyp=int)
+        self.lyrmtd = get_option_value(cf, sec_name, ['lyrmtd', 'layeringmethod'], valtyp=int)
+        self.scenario_id = get_option_value(cf, sec_name, ['scenario_id', 'scenarioid'], valtyp=int)
+        self.calibration_id = get_option_value(cf, sec_name,
+                                               ['calibration_id', 'calibrationid'], valtyp=int)
+        self.subbasin_id = get_option_value(cf, sec_name, ['subbasin_id', 'subbasinid'], valtyp=int)
+        self.simu_stime = parse_datetime_from_ini(cf, sec_name, ['simu_stime', 'sim_time_start'])
+        self.simu_etime = parse_datetime_from_ini(cf, sec_name, ['simu_etime', 'sim_time_end'])
         if self.simu_stime and self.simu_etime and self.simu_stime >= self.simu_etime:
             raise ValueError('Wrong simulation time settings in [%s]!' % sec_name)
 
-        self.out_stime = parse_datetime_from_ini(cf, sec_name, 'output_time_start')
-        self.out_etime = parse_datetime_from_ini(cf, sec_name, 'output_time_end')
+        self.out_stime = parse_datetime_from_ini(cf, sec_name, ['out_stime', 'output_time_start'])
+        self.out_etime = parse_datetime_from_ini(cf, sec_name, ['out_etime', 'output_time_end'])
         if self.out_stime and self.out_etime and self.out_stime >= self.out_etime:
             raise ValueError('Wrong output time settings in [%s]!' % sec_name)
 
+        self.workload = get_option_value(cf, sec_name, 'workload')
 
     @property
-    def ConfigDict(self):
-        # type: () -> Dict[AnyStr, Union[AnyStr, datetime, int, None]]
-        if self.config_dict:
-            return self.config_dict
-        model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
-                          'nthread': self.nthread, 'lyrmtd': self.lyrmtd,
-                          'host': self.host, 'port': self.port,
-                          'db_name': self.db_name,
-                          'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
-                          'out_stime': self.out_stime, 'out_etime': self.out_etime,
-                          'scenario_id': self.scenario_id, 'calibration_id': self.calibration_id,
-                          'subbasin_id': self.subbasin_id,
-                          'version': self.version,
-                          'mpi_bin': self.mpi_bin, 'nprocess': self.nprocess,
-                          'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile}
-        return model_cfg_dict
+    def ConfigDict(self):  # type: () -> Dict[AnyStr, Optional[AnyStr, datetime, int, float]]
+        if not self.config_dict:
+            self.config_dict = {'host': self.host, 'port': self.port,
+                                'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
+                                'db_name': self.db_name, 'version': self.version,
+                                'mpi_bin': self.mpi_bin,
+                                'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
+                                'nprocess': self.nprocess, 'npernode': self.npernode,
+                                'nthread': self.nthread,
+                                'lyrmtd': self.lyrmtd,
+                                'scenario_id': self.scenario_id,
+                                'calibration_id': self.calibration_id,
+                                'subbasin_id': self.subbasin_id,
+                                'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
+                                'out_stime': self.out_stime, 'out_etime': self.out_etime,
+                                'workload': self.workload
+                                }
+        return self.config_dict
 
 
 class MainSEIMS(object):
     """Main entrance to SEIMS model."""
 
-    def __init__(self, bin_dir='',  # type: AnyStr # The directory of SEIMS binary
-                 model_dir='',  # type: AnyStr # The directory of SEIMS model
-                 nthread=4,  # type: int # Thread number for OpenMP
-                 lyrmtd=0,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
+    LOGNAME = 'runlogs.txt'
+
+    def __init__(self,
+                 args_dict=None,  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
                  host='127.0.0.1',  # type: AnyStr # MongoDB host address, default is `localhost`
                  port=27017,  # type: int # MongoDB port, default is 27017
+                 bin_dir='',  # type: AnyStr # The directory of SEIMS binary
+                 model_dir='',  # type: AnyStr # The directory of SEIMS model
                  db_name='',  # type: AnyStr  # Main spatial dbname which can diff from dirname
+                 version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
+                 mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
+                 hosts_opt='-f',  # type: AnyStr # Option for assigning hostfile for MPI version
+                 hostfile='',  # type: AnyStr # File containing computing nodes
+                 nprocess=2,  # type: int # Process number of MPI
+                 npernode=1,  # type: int # Process number per computing node
+                 nthread=2,  # type: int # Thread number of OpenMP
+                 lyrmtd=1,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
                  scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
                  calibration_id=-1,  # type: int # Calibration ID used for model auto-calibration
-                 subbasin_id=0,  # type: int # Subbasin ID, 0 for whole watershed, 9999 for field version
-                 version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
-                 nprocess=1,  # type: int # Process number for MPI
-                 mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
-                 hosts_opt='-f',  # type: AnyStr # Option for assigning hosts,
-                 # e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
-                 hostfile='',  # type: AnyStr # File containing host names,
-                 # or file mapping process numbers to machines
+                 subbasin_id=0,  # type: int # Subbasin ID
                  simu_stime=None,  # type: Optional[datetime, AnyStr] # Start time of simulation
                  simu_etime=None,  # type: Optional[datetime, AnyStr] # End time of simulation
                  out_stime=None,  # type: Optional[datetime, AnyStr] # Start time of outputs
                  out_etime=None,  # type: Optional[datetime, AnyStr] # End time of outputs
-                 args_dict=None  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
+                 workload=''  # type: AnyStr # Type of workload manager
                  ):
         # type: (...) -> None
         #  Derived from input arguments
-        if args_dict is None:  # Preferred to use 'args_dict' if existed.
+        if not args_dict:  # Preferred to use 'args_dict' if existed, otherwise create it.
             args_dict = dict()
+
+        self.host = args_dict['host'] if 'host' in args_dict else host
+        self.port = args_dict['port'] if 'port' in args_dict else port
+
+        self.version = args_dict['version'] if 'version' in args_dict else version
         bin_dir = args_dict['bin_dir'] if 'bin_dir' in args_dict else bin_dir
         model_dir = args_dict['model_dir'] if 'model_dir' in args_dict else model_dir
-        self.version = args_dict['version'] if 'version' in args_dict else version
         suffix = '.exe' if sysstr == 'Windows' else ''
-        if self.version == 'MPI':
+        if self.version.upper() == 'MPI':
             self.seims_exec = '%s/seims_mpi%s' % (bin_dir, suffix)
         else:
             self.seims_exec = '%s/seims_omp%s' % (bin_dir, suffix)
@@ -199,20 +234,20 @@ class MainSEIMS(object):
         self.seims_exec = os.path.abspath(self.seims_exec)
         self.model_dir = os.path.abspath(model_dir)
 
+        self.db_name = args_dict['db_name'] if 'db_name' in args_dict else db_name
+        self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
+        self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
+        self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
+
+        self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
+        self.npernode = args_dict['npernode'] if 'npernode' in args_dict else npernode
         self.nthread = args_dict['nthread'] if 'nthread' in args_dict else nthread
         self.lyrmtd = args_dict['lyrmtd'] if 'lyrmtd' in args_dict else lyrmtd
-        self.host = args_dict['host'] if 'host' in args_dict else host
-        self.port = args_dict['port'] if 'port' in args_dict else port
-        self.db_name = args_dict['db_name'] if 'db_name' in args_dict \
-            else os.path.split(self.model_dir)[1]
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
         self.calibration_id = args_dict['calibration_id'] \
             if 'calibration_id' in args_dict else calibration_id
         self.subbasin_id = args_dict['subbasin_id'] if 'subbasin_id' in args_dict else subbasin_id
-        self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
-        self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
-        self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
-        self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
+
         self.simu_stime = args_dict['simu_stime'] if 'simu_stime' in args_dict else simu_stime
         self.simu_etime = args_dict['simu_etime'] if 'simu_etime' in args_dict else simu_etime
         self.out_stime = args_dict['out_stime'] if 'out_stime' in args_dict else out_stime
@@ -226,10 +261,13 @@ class MainSEIMS(object):
         if is_string(self.out_etime) and not isinstance(self.out_etime, datetime):
             self.out_etime = StringClass.get_datetime(self.out_etime)
 
+        self.workload = args_dict['workload'] if 'workload' in args_dict else workload
+
         # Concatenate executable command
-        self.cmd = self.Command
-        self.run_success = False
-        self.output_dir = self.OutputDirectory
+        self.cmd = list()
+        self.executed = False  # The model has been executed or not, no matter success.
+        self.run_success = False  # The model executed successfully or not.
+        self.output_dir = ''
 
         # Model data read from MongoDB
         self.outlet_id = -1
@@ -271,7 +309,7 @@ class MainSEIMS(object):
         """
         self.output_dir = os.path.join(self.model_dir, 'OUTPUT')
         if self.scenario_id >= 0:
-            self.output_dir += str(self.scenario_id)
+            self.output_dir += '%d' % self.scenario_id
         if self.calibration_id >= 0:
             self.output_dir += '-%d' % self.calibration_id
         return self.output_dir
@@ -279,12 +317,24 @@ class MainSEIMS(object):
     @property
     def Command(self):
         # type: (...) -> List[AnyStr]
-        """Concatenate command to run SEIMS-based model."""
+        """Concatenate command (as a list) to run SEIMS-based model."""
+        if self.cmd:
+            return self.cmd
         self.cmd = list()
         if self.version == 'MPI':
-            self.cmd += [self.mpi_bin]
-            if self.hostfile != '' and self.hostfile is not None and os.path.exists(self.hostfile):
-                self.cmd += [self.hosts_opt, self.hostfile]
+            if self.workload.lower() == 'slurm':
+                if self.npernode > 1:
+                    # srun is for a parallel job on cluster managed by Slurm, replacing mpirun.
+                    self.cmd += ['srun --ntasks-per-node=%d' % self.npernode]
+            else:
+                self.cmd += [self.mpi_bin]
+                if self.hostfile and os.path.exists(self.hostfile):
+                    self.cmd += [self.hosts_opt, self.hostfile]
+                if self.npernode > 1:
+                    # TODO, find a way to differentiate MPI implementation used,
+                    #  so to specific proper args, e.g., -cores for MSMPI
+                    self.cmd += ['-ppn', str(self.npernode)]  # For Intel MPI
+
             self.cmd += ['-n', str(self.nprocess)]
         self.cmd += [self.seims_exec,
                      '-wp', self.model_dir, '-thread', str(self.nthread),
@@ -296,6 +346,12 @@ class MainSEIMS(object):
         if self.subbasin_id >= 0:
             self.cmd += ['-id', str(self.subbasin_id)]
         return self.cmd
+
+    @property
+    def CommandString(self):
+        """Concatenate commands list to one string."""
+        return ' '.join(repr(aa) if isinstance(aa, int) or isinstance(aa, float) else aa
+                        for aa in self.Command)
 
     def SetMongoClient(self):
         """Should be invoked outset of this script and followed by `UnsetMongoClient`
@@ -467,13 +523,18 @@ class MainSEIMS(object):
         # type: (...) -> List[float]
         """Get summarized timespan, format is [IO, COMP, SIMU, RUNTIME]."""
         time_list = [0., 0., 0., self.runtime]
-        # Do not use self.run_success to check if the timespan data is available or not! By lj.
-        # if not self.run_success:
-        #     time_list[2] = self.runtime
-        #     return time_list
-        if not self.timespan:
-            time_list[2] = self.runtime
-            return time_list
+        if not self.timespan and self.executed:
+            if os.path.exists(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME):
+                self.runlogs = list()
+                with open(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME, 'r',
+                          encoding='utf-8') as f:
+                    for tmpl in f:
+                        self.runlogs.append(tmpl.strip())
+                self.ParseTimespan(self.runlogs)
+                self.run_success = True
+            else:
+                time_list[2] = self.runtime
+                return time_list
         tmp_timespan = self.timespan
         if 'MAX' in self.timespan:
             tmp_timespan = self.timespan['MAX']
@@ -496,8 +557,8 @@ class MainSEIMS(object):
             time_list[2] = self.runtime
         return time_list
 
-    def ParseTimespan(self, items):
-        # type: (List[AnyStr]) -> Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]
+    def ParseTimespan(self):
+        # type: (...) -> Optional[Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]]
         """The format of self.timespan is different for OpenMP version and MPI&OpenMP version.
         For OpenMP version:
            {'IO': {'Input': 0.2,
@@ -524,14 +585,18 @@ class MainSEIMS(object):
             'AVG': {...}
            }
         """
-        for item in items:
+        if not self.runlogs:
+            self.GetTimespan()
+        if not self.runlogs:  # if runlogs.txt not existed
+            return None
+        for item in self.runlogs:
             if 'TIMESPAN' not in item:
                 continue
             item = item.split('\n')[0]
             values = StringClass.extract_numeric_values_from_string(item)
             if values is None or len(values) != 1:
                 continue
-            time = values[0]
+            curtime = values[0]
             titles = item.replace('[', '').split(']')[:-1]  # e.g., 'TIMESPAN', 'COMP', 'ALL'
             if len(titles) < 3:  # e.g., 'TIMESPAN', 'MAX', 'COMP', 'ALL'
                 continue
@@ -539,10 +604,12 @@ class MainSEIMS(object):
             self.timespan.setdefault(titles[1], dict())
             if len(titles) > 3:
                 self.timespan[titles[1]].setdefault(titles[2], dict())
-                self.timespan[titles[1]][titles[2]].setdefault(titles[3], time)
+                self.timespan[titles[1]][titles[2]].setdefault(titles[3], curtime)
             else:
-                self.timespan[titles[1]].setdefault(titles[2], time)
-            return self.timespan
+                self.timespan[titles[1]].setdefault(titles[2], curtime)
+        if self.timespan:
+            self.run_success = True
+        return self.timespan
 
     def ResetSimulationPeriod(self):
         """Update simulation time range in MongoDB [FILE_IN].
@@ -598,7 +665,7 @@ class MainSEIMS(object):
                                                               {'$set': {'STARTTIME': cur_stime_str,
                                                                         'ENDTIME': cur_etime_str}})
 
-    def run(self):
+    def run(self, do_execute=True):
         """Run SEIMS model
 
         Examples:
@@ -616,12 +683,19 @@ class MainSEIMS(object):
         # If the output time period is specified, reset the time period of all output IDs
         if self.out_stime and self.out_etime:
             self.ResetOutputsPeriod(self.OutputIDs, self.out_stime, self.out_etime)
+
+        if not do_execute:
+            self.executed = False
+            self.run_success = False
+            return self.executed
+
         try:
             self.runlogs = UtilClass.run_command(self.Command)
-            with open(self.OutputDirectory + os.sep + 'runlogs.txt', 'w', encoding='utf-8') as f:
-                f.write('\n'.join(self.runlogs))
-            self.ParseTimespan(self.runlogs)
-            self.run_success = True
+            # Move this function to SEIMS main program (i.e., class `ModelMain`). by lj 2020/08/11
+            # with open(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME,
+            #           'w', encoding='utf-8') as f:
+            #     f.write('\n'.join(self.runlogs))
+            self.ParseTimespan()
         except CalledProcessError or IOError or Exception as err:
             # 1. SEIMS-based model running failed
             # 2. The OUTPUT directory was not been created successfully by SEIMS-based model
@@ -629,7 +703,8 @@ class MainSEIMS(object):
             print('Run SEIMS model failed! %s' % str(err))
             self.run_success = False
         self.runtime = time.time() - stime
-        return self.run_success
+        self.executed = True
+        return self.executed
 
     def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False,
               delete_spatial_gfs=False):
@@ -655,7 +730,8 @@ class MainSEIMS(object):
                 read_model.CleanSpatialGridFs(scenario_id)
 
 
-def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1, subbasin_id=0):
+def create_run_model(modelcfg_dict, scenario_id=-1, calibration_id=-1, subbasin_id=-1,
+                     do_execute=True):
     """Create, Run, and return SEIMS-based watershed model object.
 
     Args:
@@ -664,19 +740,20 @@ def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1, subbasin_i
         calibration_id: Calibration ID which can override the calibration_id in modelcfg_dict
         subbasin_id: Subbasin ID (0 for the whole watershed, 9999 for the field version) which
                      can override the subbasin_id in modelcfg_dict
+        do_execute: Execute model or not.
     Returns:
         The instance of SEIMS-based watershed model.
     """
-    if 'scenario_id' not in modelcfg_dict:
+    if scenario_id > 0:
         modelcfg_dict['scenario_id'] = scenario_id
-    if 'calibration_id' not in modelcfg_dict:
+    if calibration_id >= 0:
         modelcfg_dict['calibration_id'] = calibration_id
-    if 'subbasin_id' not in modelcfg_dict:
+    if subbasin_id >= 0:
         modelcfg_dict['subbasin_id'] = subbasin_id
     model_obj = MainSEIMS(args_dict=modelcfg_dict)
 
     model_obj.SetMongoClient()
-    model_obj.run()
+    model_obj.run(do_execute=do_execute)
     model_obj.UnsetMongoClient()
 
     return model_obj

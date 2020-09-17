@@ -12,8 +12,8 @@ import argparse
 from configparser import ConfigParser
 from datetime import datetime
 
-from typing import Optional, AnyStr
-from pygeoc.utils import FileClass, StringClass, UtilClass
+from typing import Optional, List, AnyStr
+from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, is_integer
 
 
 def get_optimization_config(desc='The help information is supposed not be empty.'):
@@ -42,6 +42,33 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     return cf, psa_mtd
 
 
+def get_option_value_exactly(cf, secname, optname, valtyp=str):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
+    if valtyp == int:
+        return cf.getint(secname, optname)
+    elif valtyp == float:
+        return cf.getfloat(secname, optname)
+    elif valtyp == bool:
+        return cf.getboolean(secname, optname)
+    else:
+        return cf.get(secname, optname)
+
+
+def get_option_value(cf, secname, optnames, valtyp=str):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
+    if type(optnames) is not list:
+        optnames = [optnames]
+    value = ''
+    for optname in optnames:  # For backward compatibility
+        if secname in cf.sections() and cf.has_option(secname, optname):
+            value = get_option_value_exactly(cf, secname, optname, valtyp=valtyp)
+            break
+        elif cf.has_option('', optname):  # May be in [DEFAULT] section
+            value = get_option_value_exactly(cf, '', optname, valtyp=valtyp)
+            break
+    return value
+
+
 def check_config_option(cf, section_name, option_name, print_warn=False):
     # type: (ConfigParser, AnyStr, AnyStr, bool) -> bool
     if not isinstance(cf, ConfigParser):
@@ -57,9 +84,10 @@ def check_config_option(cf, section_name, option_name, print_warn=False):
 
 
 def parse_datetime_from_ini(cf, section_name, option_name):
-    # type: (ConfigParser, AnyStr, AnyStr) -> Optional[datetime]
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]]) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
-    if not check_config_option(cf, section_name, option_name):
+    time_str = get_option_value(cf, section_name, option_name)
+    if not time_str:
         return None
     time_str = cf.get(section_name, option_name)
     try:  # UTCTIME
