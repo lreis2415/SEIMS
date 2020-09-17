@@ -83,7 +83,7 @@ void IUH_IF:: InitialOutputs() {
         m_cellFlow = new float *[this->m_nCells];
 
         for (int i = 0; i < this->m_nCells; i++) {
-            m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
 
         //get m_cellFlowCols, i.e. the maximum of second column of iuh add 1.

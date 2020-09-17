@@ -175,13 +175,13 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * Power(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * Power(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
-        Qkx = max(Qkx, MIN_FLUX);
+        Qkx = Max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (fabs(fQkx) > _epsilon && count < MAX_ITERS_KW);
+    } while (Abs(fQkx) > _epsilon && count < MAX_ITERS_KW);
 
     if (Qkx != Qkx) {
         throw ModelException(MID_IKW_OL, "GetNewQ", "Error in iteration!");
@@ -283,7 +283,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     // compute to channel flow
     if (m_streamLink[id] > 0) {
-        float fractiontochannel = min(m_dtStorm * m_vel[id] / (0.5f * flowWidth), 1.0f);
+        float fractiontochannel = Min(m_dtStorm * m_vel[id] / (0.5f * flowWidth), 1.0f);
         float Volume = m_sr[id] / 1000.f * m_flowWidth[id] * flowLen;
 
         //if (id == m_idOutlet)// in catchment outlet cell, throw everything in channel

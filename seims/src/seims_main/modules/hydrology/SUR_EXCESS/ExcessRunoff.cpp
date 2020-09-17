@@ -228,7 +228,7 @@ int ExcessRunoff::Execute(void) {
                     m_infil[i] = 0.f;
                 } else if (m_soilMoisture[i] >= m_fieldCap[i]) {
                     float limitContent = m_rootDepth[i] * (m_porosity[i] - m_soilMoisture[i]);
-                    m_infil[i] = min(ks * m_dt, limitContent);
+                    m_infil[i] = Min(ks * m_dt, limitContent);
                 } else {
                     m_infil[i] = pNet;
                 }

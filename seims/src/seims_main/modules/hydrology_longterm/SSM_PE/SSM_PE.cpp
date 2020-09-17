@@ -124,7 +124,7 @@ int SSM_PE::Execute() {
                 this->m_SE[rw] = 0.0f;   //if temperature is higher than t0, the sublimation is 0.
             } else {
                 float se = this->m_ksubli * this->m_PET[rw];
-                this->m_SE[rw] = min(snow, se);
+                this->m_SE[rw] = Min(snow, se);
             }
         }
     }

@@ -127,7 +127,7 @@ int SNO_WB::Execute() {
             dtmp2 += dPnet;
         }
 
-        this->m_SA[rw] = max(dtmp2, 0.0f);
+        this->m_SA[rw] = Max(dtmp2, 0.0f);
 
         this->m_SWE += this->m_SA[rw];
     }

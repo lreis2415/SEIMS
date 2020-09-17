@@ -481,7 +481,7 @@ void SUR_GreenAmpt::initalW1W2() {
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
         c1 = cnn - 20.f * c2 / (c2 + exp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
-        c1 = max(c1, 0.4f * cnn);
+        c1 = Max(c1, 0.4f * cnn);
         c3 = cnn * exp(0.006729f * c2);                                //CN3  2:1.1.5
 
         //calculate maximum retention parameter value

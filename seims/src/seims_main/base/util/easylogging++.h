@@ -5866,7 +5866,7 @@ static inline void crashAbort(int sig) {
 ///
 /// @detail This function writes log using 'default' logger, prints stack trace for GCC based compilers and aborts program.
 static inline void defaultCrashHandler(int sig) {
-  base::debug::logCrashReason(sig, true, Level::Fatal, base::consts::kDefaultLoggerId);
+  base::debug::logCrashReason(sig, true, el::Level::Fatal, base::consts::kDefaultLoggerId);
   base::debug::crashAbort(sig);
 }
 /// @brief Handles unexpected crashes

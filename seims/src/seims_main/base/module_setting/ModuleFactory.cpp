@@ -39,7 +39,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     string cfgNames[] = {file_in, file_out, file_cfg};
     for (int i = 0; i < 3; ++i) {
         if (!FileExists(cfgNames[i])) {
-            CLOG(ERROR) << cfgNames[i] << " does not exist or has not the read permission!";
+            LOG(ERROR) << cfgNames[i] << " does not exist or has not the read permission!";
             return nullptr;
         }
     }

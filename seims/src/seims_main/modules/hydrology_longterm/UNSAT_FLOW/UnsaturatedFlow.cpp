@@ -60,7 +60,7 @@ int UnsaturatedFlow::Execute() {
             m_D_SOET[i] = 0.0f;
         }   //???
 
-        m_D_SOET[i] = max(m_D_SOET[i], 0.0f);
+        m_D_SOET[i] = Max(m_D_SOET[i], 0.0f);
 
         float availableWater = (m_Moist[i] - m_WiltPoint[i]) * m_rootDepth[i];
         if (m_D_SOET[i] > availableWater) {

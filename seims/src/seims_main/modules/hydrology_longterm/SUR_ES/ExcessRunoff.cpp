@@ -205,7 +205,7 @@ int ExcessRunoff::Execute(void) {
                     //	m_infil[i] = min(pNet, m_infil[i]);
                     //}
                 else {
-                    m_infil[i] = min(pNet, limitContent);
+                    m_infil[i] = Min(pNet, limitContent);
                 }
 
                 // update excess precipitation

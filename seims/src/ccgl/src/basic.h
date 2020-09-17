@@ -77,13 +77,13 @@ using std::string;
 #define stringcat strcat_s
 #define stringcpy strcpy_s
 #define strprintf sprintf_s
-#define strtok strtok_s
+#define stringtoken strtok_s
 #define stringscanf sscanf_s
 #else
 #define stringcat strcat
 #define stringcpy strcpy
 #define strprintf snprintf
-#define strtok strtok_r
+#define stringtoken strtok_r
 #define stringscanf sscanf
 #endif /* CPP_MSVC */
 

@@ -235,7 +235,7 @@ int StormGreenAmpt::Execute(void) {
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = 0.f;
             } else {
-                m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
+                m_infil[i] = Min(infilRate * dt * 1000.f, infilCap); // mm
 
                 //cout << m_infil[i] << endl;
                 //check if the infiltration potential exceeds the available water
@@ -259,7 +259,7 @@ int StormGreenAmpt::Execute(void) {
         } else {
             m_sr[i] = 0.0f;
             m_infil[i] = 0.0f;
-            m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
+            m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
         }
     }
 
