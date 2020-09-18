@@ -6,6 +6,7 @@
  *   - 1. 2010-07-31 - jz - Initial implementation.
  *   - 2. 2016-06-14 - lj - Add SetScenario etc. functions.
  *   - 3. 2018-03-03 - lj - Add CHECK_XXX series macros for data checking.
+ *   - 4. 2020-09-18 - lj - Using Easyloggingpp
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -17,6 +18,7 @@
 #include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
+#include "Logging.h"
 
 #include <string>
 #include <ctime>
@@ -194,6 +196,8 @@ protected:
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
+    /// Saving the storage of easyloggingpp locally in case of segementation fault after dlclose()
+    el::base::type::StoragePointer m_storage;
 };
 
 /*!

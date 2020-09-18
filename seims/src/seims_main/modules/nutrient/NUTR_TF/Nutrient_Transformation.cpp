@@ -3,7 +3,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 Nutrient_Transformation::Nutrient_Transformation() :
     m_cellWth(-1.f), m_nCells(-1), m_cellAreaFr(NODATA_VALUE),

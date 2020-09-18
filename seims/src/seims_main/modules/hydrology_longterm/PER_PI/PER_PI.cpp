@@ -3,7 +3,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 PER_PI::PER_PI() :
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr),

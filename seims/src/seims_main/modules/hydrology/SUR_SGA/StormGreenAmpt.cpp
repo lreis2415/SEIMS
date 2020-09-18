@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 // using namespace std;  // Avoid this statement! by lj.
 
@@ -13,7 +13,6 @@ StormGreenAmpt::StormGreenAmpt(void) : m_infil(NULL), m_capillarySuction(NULL), 
                                        m_tSnow(0.0f), m_t0(1.0f), m_snowAccu(NULL), m_snowMelt(NULL),
                                        m_tSoilFrozen(-5.0f), m_sFrozen(0.5f), m_soilTemp(NULL),
                                        m_ks(NULL), m_clay(NULL), m_sand(NULL), m_initSoilMoisture(NULL) {
-
 }
 
 StormGreenAmpt::~StormGreenAmpt(void) {

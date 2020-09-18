@@ -1,6 +1,12 @@
 #include "template.h"
 #include "text.h"
 
+#include "Logging.h"
+
+// DLL export not working with easyloggingpp?
+// https://github.com/amrayn/easyloggingpp/issues/386
+INITIALIZE_NULL_EASYLOGGINGPP
+
 ModuleTemplate::ModuleTemplate() :
     m_nCells(-1) {
 }

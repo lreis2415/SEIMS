@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 // using namespace std;  // Avoid this statement! by lj.
 
@@ -12,7 +12,6 @@ ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL),
                                    m_sd(NULL), m_soilMoisture(NULL), m_pNet(NULL), m_tMax(NULL), m_tMin(NULL),
                                    m_tSnow(0.0f), m_t0(1.0f), m_snowAccu(NULL), m_snowMelt(NULL),
                                    m_tFrozen(-5.0f), m_sFrozen(0.5f), m_soilTemp(NULL) {
-
 }
 
 ExcessRunoff::~ExcessRunoff(void) {

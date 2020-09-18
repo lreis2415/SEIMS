@@ -5,7 +5,7 @@
 #include "utils_time.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 
 SNO_SP::SNO_SP() :

@@ -5,7 +5,7 @@
 #include "ChannelRoutingCommon.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 using namespace utils_math;
 

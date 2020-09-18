@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),

@@ -4,10 +4,11 @@
 #include "ClimateParams.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 clsPI_SVSC::clsPI_SVSC(void) : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
                              m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
+    
 #ifndef STORM_MODE
     m_evaporationLoss = NULL;
 #else

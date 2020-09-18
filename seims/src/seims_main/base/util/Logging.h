@@ -15,21 +15,12 @@
 
 // macros="-DELPP_THREAD_SAFE -DELPP_FEATURE_CRASH_LOG"  ## Macros for library
 // https://github.com/amrayn/easyloggingpp/blob/master/samples/STL/shared-static-libs/compile_shared.sh
-#ifndef ELPP_THREAD_SAFE
+#define ELPP_STL_LOGGING
 #define ELPP_THREAD_SAFE
-#endif
-#ifndef ELPP_FEATURE_CRASH_LOG
 #define ELPP_FEATURE_CRASH_LOG
-#endif
-#ifndef ELPP_DISABLE_DEFAULT_CRASH_HANDLING
 #define ELPP_DISABLE_DEFAULT_CRASH_HANDLING
-#endif
-#ifndef ELPP_NO_DEFAULT_LOG_FILE
 #define ELPP_NO_DEFAULT_LOG_FILE
-#endif
-#ifndef ELPP_LOGGING_FLAGS_FROM_ARG
 #define ELPP_LOGGING_FLAGS_FROM_ARG
-#endif
 
 // NOTE: Nothing else should include "easylogging++.h" directly,
 //  include this file ("Logging.h") instead

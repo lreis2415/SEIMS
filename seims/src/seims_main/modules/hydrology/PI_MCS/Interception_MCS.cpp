@@ -4,7 +4,7 @@
 #include "utils_time.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
@@ -12,6 +12,7 @@ clsPI_MCS::clsPI_MCS() :
     m_minIntcpStoCap(nullptr),
     m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
     m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
+    
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
 #else

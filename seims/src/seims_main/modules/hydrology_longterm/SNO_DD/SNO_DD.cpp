@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 SNO_DD::SNO_DD(void) : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE),
                        m_tsnow(NODATA_VALUE), m_crain(NODATA_VALUE), m_csnow(NODATA_VALUE),

@@ -4,7 +4,7 @@
 #include "NutrientCommon.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 NutrientMovementViaWater::NutrientMovementViaWater() :
     m_cellWth(-1.f), m_cellArea(-1.f), m_nCells(-1), m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),

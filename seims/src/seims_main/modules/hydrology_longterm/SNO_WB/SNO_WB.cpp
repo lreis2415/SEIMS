@@ -2,9 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 SNO_WB::SNO_WB(void) {
+    
     // set default values for member variables
     this->m_nCells = -1;
     this->m_t0 = NODATA_VALUE;

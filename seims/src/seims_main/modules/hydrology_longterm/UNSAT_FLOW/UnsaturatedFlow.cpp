@@ -2,10 +2,11 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 
 UnsaturatedFlow::UnsaturatedFlow(void) {
+    
     // set default values for member variables
 
     this->m_FieldCap = NULL;

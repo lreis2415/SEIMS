@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
@@ -13,7 +13,6 @@ SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NU
                        m_T0(NODATA_VALUE), m_SM(NULL),
                        m_SA(NULL), m_TS(NULL), m_mask(NULL), m_INFIL(NULL), m_PE(NULL), m_date(-1), m_w1(NULL),
                        m_w2(NULL), m_sMax(NULL), m_wfmp(NULL) {
-
 }
 
 SUR_GreenAmpt::~SUR_GreenAmpt(void) {

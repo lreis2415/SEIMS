@@ -2,9 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 SSM_PE::SSM_PE(void) {
+    
     // set default values for member variables
     this->m_nCells = -1;
 

@@ -4,10 +4,10 @@
 #include <dlfcn.h> // dlopen()
 #endif
 
+#include "Logging.h"
 #include "basic.h"
 #include "MetadataInfo.h"
 #include "text.h"
-#include "Logging.h"
 
 ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, SEIMSModuleSetting *>& moduleSettings,
@@ -92,14 +92,6 @@ ModuleFactory::~ModuleFactory() {
         m_settings.erase(it++);
     }
     m_settings.clear();
-    CLOG(TRACE, LOG_RELEASE) << "---release dynamic library handles ...";
-    for (size_t i = 0; i < m_dllHandles.size(); i++) {
-#ifdef WIN32
-        FreeLibrary(m_dllHandles[i]);
-#else
-        dlclose(m_dllHandles[i]);
-#endif /* WIN32 */
-    }
     CLOG(TRACE, LOG_RELEASE) << "---release module parameters ...";
     for (auto it = m_moduleParameters.begin(); it != m_moduleParameters.end();) {
         for (auto it2 = it->second.begin(); it2 != it->second.end();) {
@@ -150,6 +142,15 @@ ModuleFactory::~ModuleFactory() {
             *it = nullptr;
         }
         it = m_tfValueInputs.erase(it);
+    }
+    CLOG(TRACE, LOG_RELEASE) << "---release dynamic library handles ...";
+    for (vector<DLLINSTANCE>::iterator dllit = m_dllHandles.begin(); dllit != m_dllHandles.end(); ) {
+#ifdef WIN32
+        FreeLibrary(*dllit);
+#else
+        dlclose(*dllit);
+#endif /* WIN32 */
+        dllit = m_dllHandles.erase(dllit);
     }
     CLOG(TRACE, LOG_RELEASE) << "End to release ModuleFactory.";
 }
@@ -304,8 +305,8 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
 #else
     void *handle = dlopen(moduleFileName.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
-        cout << dlerror() << endl;
-        throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
+        LOG(ERROR) << dlerror();
+        throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + dllID);
     }
     instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
@@ -319,7 +320,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: MetadataInformation");
     }
-    CLOG(TRACE, LOG_INIT) << "Read DLL: " << moduleFileName;
+    CLOG(TRACE, LOG_INIT) << "Read DLL: " << dllID;
 }
 
 dimensionTypes ModuleFactory::MatchType(string strType) {

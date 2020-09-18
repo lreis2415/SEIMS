@@ -6,7 +6,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 
 Biomass_EPIC::Biomass_EPIC() :

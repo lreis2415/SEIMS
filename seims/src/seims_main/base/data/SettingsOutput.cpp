@@ -108,6 +108,7 @@ SettingsOutput::~SettingsOutput() {
 }
 
 void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
+    // TODO: The warning messages may be redundant for outputs with multiple types (MAX, MIN, etc.)
     for (auto it = m_printInfos.begin(); it < m_printInfos.end(); ++it) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
             if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {

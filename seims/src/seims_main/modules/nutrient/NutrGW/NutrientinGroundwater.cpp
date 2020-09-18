@@ -3,7 +3,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 NutrientinGroundwater::NutrientinGroundwater() :
     m_inputSubbsnID(-1), m_cellWth(-1), m_nCells(-1), m_TimeStep(-1), m_gw0(NODATA_VALUE),
@@ -13,7 +13,6 @@ NutrientinGroundwater::NutrientinGroundwater() :
     m_soilSolP(nullptr), m_maxSoilLyrs(-1),
     m_nSoilLyrs(nullptr), m_gwNO3ToCh(nullptr), m_gwSolPToCh(nullptr), m_nSubbsns(-1),
     m_subbsnID(nullptr), m_subbasinsInfo(nullptr) {
-
 }
 
 NutrientinGroundwater::~NutrientinGroundwater() {

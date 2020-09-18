@@ -6949,21 +6949,21 @@ new el::base::AsyncDispatchWorker()))\
 #else
 #  define INITIALIZE_EASYLOGGINGPP ELPP_INIT_EASYLOGGINGPP(new el::base::Storage(el::LogBuilderPtr(new el::base::DefaultLogBuilder())))
 #endif  // ELPP_ASYNC_LOGGING
-#define INITIALIZE_NULL_EASYLOGGINGPP\
-ELPP_INITI_BASIC_DECLR\
-namespace el {\
-namespace base {\
-el::base::type::StoragePointer elStorage;\
-}\
-el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);\
+#define INITIALIZE_NULL_EASYLOGGINGPP \
+ELPP_INITI_BASIC_DECLR \
+namespace el { \
+namespace base { \
+el::base::type::StoragePointer elStorage; \
+} \
+el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER); \
 }
 // NOTE: no ELPP_INITI_BASIC_DECLR when sharing - causes double free corruption on external symbols
-#define SHARE_EASYLOGGINGPP(initializedStorage)\
-namespace el {\
-namespace base {\
-el::base::type::StoragePointer elStorage(initializedStorage);\
-}\
-el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);\
+#define SHARE_EASYLOGGINGPP(initializedStorage) \
+namespace el { \
+namespace base { \
+el::base::type::StoragePointer elStorage(initializedStorage); \
+} \
+el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER); \
 }
 
 #if defined(ELPP_UNICODE)

@@ -1,5 +1,5 @@
-#include "Logging.h"
 #include "utils_string.h"
+#include "Logging.h"
 
 using namespace ccgl::utils_string;
 using std::string;

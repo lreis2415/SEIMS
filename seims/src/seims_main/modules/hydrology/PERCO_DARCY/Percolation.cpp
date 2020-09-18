@@ -2,9 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 Percolation_DARCY::Percolation_DARCY(void) {
+    
     // set default values for member variables
     this->m_timestep = -1;
     m_nCells = -1;

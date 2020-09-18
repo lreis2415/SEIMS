@@ -2,7 +2,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 // using namespace std;  // Avoid this statement! by lj.
 
@@ -15,7 +15,6 @@ KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NOD
                                    m_Sed_kg(NULL), m_SedToChannel(NULL),
                                    m_ManningN(NULL), m_whtoCh(NULL), m_USLE_C(NULL), m_Ccoe(NODATA_VALUE), m_WH(NULL),
                                    m_streamLink(NULL) {
-
 }
 
 KinWavSed_OL::~KinWavSed_OL(void) {

@@ -5,6 +5,8 @@
 
 using namespace utils_math;
 
+INITIALIZE_NULL_EASYLOGGINGPP
+
 AET_PT_H::AET_PT_H() :
     m_nCells(-1), m_maxSoilLyrs(-1),
     m_esco(nullptr), m_nSoilLyrs(nullptr), m_soilDepth(nullptr), m_soilThk(nullptr),

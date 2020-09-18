@@ -3,7 +3,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 SERO_MUSLE::SERO_MUSLE() :
     m_nCells(-1), m_cellWth(-1.f), m_maxSoilLyrs(-1), m_soilRock(nullptr),

@@ -2,9 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 MUSLE_I30::MUSLE_I30(void) {
+    
     // set default values for member variables
     this->m_Date = -1;
     this->m_cellSize = -1;

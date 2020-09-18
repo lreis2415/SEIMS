@@ -3,7 +3,7 @@
 #include "text.h"
 #include "Logging.h"
 
-INITIALIZE_EASYLOGGINGPP
+INITIALIZE_NULL_EASYLOGGINGPP
 
 clsTSD_RD::clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
 }
