@@ -22,6 +22,10 @@
 #define ELPP_NO_DEFAULT_LOG_FILE
 #define ELPP_LOGGING_FLAGS_FROM_ARG
 
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
+#pragma warning(disable: 4482)
+#endif /* Ignore warnings of nonstandard extension used: enum 'xxx' used in qualified name */
+
 // NOTE: Nothing else should include "easylogging++.h" directly,
 //  include this file ("Logging.h") instead
 #include "easylogging++.h"

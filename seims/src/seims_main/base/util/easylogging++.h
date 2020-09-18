@@ -1046,7 +1046,7 @@ class Mutex : base::NoCopy {
 #  if ELPP_OS_UNIX
     return (pthread_mutex_trylock(&m_underlyingMutex) == 0);
 #  elif ELPP_OS_WINDOWS
-    return TryEnterCriticalSection(&m_underlyingMutex);
+    return (TryEnterCriticalSection(&m_underlyingMutex) != 0);
 #  endif  // ELPP_OS_UNIX
   }
 

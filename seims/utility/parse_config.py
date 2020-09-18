@@ -89,7 +89,6 @@ def parse_datetime_from_ini(cf, section_name, option_name):
     time_str = get_option_value(cf, section_name, option_name)
     if not time_str:
         return None
-    time_str = cf.get(section_name, option_name)
     try:  # UTCTIME
         return StringClass.get_datetime(time_str)
     except ValueError:
