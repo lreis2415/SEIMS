@@ -49,7 +49,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
 
     /// Create module factory
-    ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
+    ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
     if (nullptr == module_factory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }

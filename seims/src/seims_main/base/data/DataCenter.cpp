@@ -9,9 +9,10 @@ using namespace utils_time;
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
     lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
-    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
+    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id), 
+    mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),
-    use_scenario_(false), 
+    use_scenario_(false),
     output_path_(input_args->output_path),
     model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
@@ -332,7 +333,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt);
             break;
-        case DT_Array1DDateValue: break;
+        case DT_Array1DDateValue:
+            break;
         case DT_Raster1D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
         case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);

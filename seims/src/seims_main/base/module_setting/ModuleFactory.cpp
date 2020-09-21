@@ -17,21 +17,19 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, vector<ParamInfo *> >& moduleInputs,
                              map<string, vector<ParamInfo *> >& moduleOutputs,
                              map<string, vector<ParamInfo *> >& moduleInOutputs,
-                             vector<ParamInfo *>& tfValueInputs) : m_dbName(std::move(model_name)),
-                                                                   m_moduleIDs(moduleIDs),
-                                                                   m_instanceFuncs(instanceFuncs),
-                                                                   m_metadataFuncs(metadataFuncs),
-                                                                   m_dllHandles(dllHandles),
-                                                                   m_settings(moduleSettings),
-                                                                   m_moduleParameters(moduleParameters),
-                                                                   m_moduleInputs(moduleInputs),
-                                                                   m_moduleOutputs(moduleOutputs),
-                                                                   m_moduleInOutputs(moduleInOutputs),
-                                                                   m_tfValueInputs(tfValueInputs) {
+                             vector<ParamInfo *>& tfValueInputs,
+                             const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
+    m_mpi_rank(mpi_rank), m_mpi_size(mpi_size),
+    m_dbName(std::move(model_name)), m_moduleIDs(moduleIDs),
+    m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs), m_dllHandles(dllHandles),
+    m_settings(moduleSettings), m_moduleParameters(moduleParameters),
+    m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs), m_moduleInOutputs(moduleInOutputs),
+    m_tfValueInputs(tfValueInputs) {
     // nothing to do
 }
 
-ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args) {
+ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args,
+                                   const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     /// Check the existence of configuration files
     string file_in = input_args->model_path + SEP + File_Input;
     string file_out = input_args->model_path + SEP + File_Output;
@@ -75,7 +73,8 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     }
     return new ModuleFactory(input_args->model_name, moduleIDs, moduleSettings, dllHandles,
                              instanceFuncs, metadataFuncs,
-                             moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
+                             moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs,
+                             mpi_rank, mpi_size);
 }
 
 ModuleFactory::~ModuleFactory() {

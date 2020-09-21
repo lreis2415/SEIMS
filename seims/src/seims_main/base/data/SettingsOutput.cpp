@@ -8,9 +8,11 @@ using namespace utils_time;
 
 SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
                                vector<OrgOutItem>& outputItems,
-                               int scenarioID /* = 0 */, int calibrationID /* = -1 */) :
+                               int scenarioID /* = 0 */, int calibrationID /* = -1 */,
+                               const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
     m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID),
-    m_scenarioID(scenarioID), m_calibrationID(calibrationID){
+    m_scenarioID(scenarioID), m_calibrationID(calibrationID),
+    m_mpi_rank(mpi_rank), m_mpi_size(mpi_size) {
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
         string suffix = GetSuffix((*iter).outFileName);
@@ -81,11 +83,14 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
 
 SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, const int subbasinID,
                                      vector<OrgOutItem>& outputItems,
-                                     int scenarioID /* = 0 */, int calibrationID /* = -1 */) {
+                                     int scenarioID /* = 0 */, int calibrationID /* = -1 */,
+                                     const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     if (outputItems.empty()) {
+        LOG(ERROR) << "To run SEIMS-based model, at least one output item should be set!";
         return nullptr;
     }
-    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID);
+    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID,
+                              mpi_rank, mpi_size);
 }
 
 SettingsOutput::~SettingsOutput() {
@@ -108,7 +113,9 @@ SettingsOutput::~SettingsOutput() {
 }
 
 void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
-    // TODO: The warning messages may be redundant for outputs with multiple types (MAX, MIN, etc.)
+    // if (m_mpi_rank > 0) return; // Only log warning messages to master rank for MPI. The subbasin 0 may not assigned to rank 0!
+    if (m_subbasinID > 1 && m_subbasinID != 9999) return; // Only log once (subbasin 1) for one rank (the rank ID is casual)
+
     for (auto it = m_printInfos.begin(); it < m_printInfos.end(); ++it) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
             if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
@@ -123,6 +130,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                 << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
                 << ConvertToString(endTime) << ", and will be updated.";
             }
+            break; // To avoid print several logs with the same output ID for different aggregated type
         }
     }
 }

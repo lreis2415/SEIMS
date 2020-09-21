@@ -55,9 +55,12 @@ public:
      * \param[in] outputItems Vector of original output items read from FILE_OUT file (or table)
      * \param[in] scenarioID Scenario ID, -1 means no scenario is used, default is 0
      * \param[in] calibrationID Calibration ID, -1 means no calibration from calibration sequence is used
+     * \param[in] mpi_rank Rank ID for MPI, 0 is the default, also for OMP version
+     * \param[in] mpi_size Rank size for MPI, -1 is the default for compatible with OMP version
      */
     SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems,
-                   int scenarioID = 0, int calibrationID = -1);
+                   int scenarioID = 0, int calibrationID = -1,
+                   int mpi_rank = 0, int mpi_size = -1);
 
     //! Destructor
     ~SettingsOutput();
@@ -65,7 +68,8 @@ public:
     //! Init function
     static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID,
                                 vector<OrgOutItem>& outputItems,
-                                int scenarioID = 0, int calibrationID = -1);
+                                int scenarioID = 0, int calibrationID = -1,
+                                int mpi_rank = 0, int mpi_size = -1);
 
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;
@@ -95,5 +99,9 @@ private:
     int m_scenarioID;
     //! Calibration ID, -1 means no calibration from calibration sequence is used
     int m_calibrationID;
+    //! Rank ID for MPI, starts from 0 to mpi_size_ - 1
+    int m_mpi_rank;
+    //! Rank size for MPI
+    int m_mpi_size;
 };
 #endif /* SEIMS_SETTING_OUTPUT_H */

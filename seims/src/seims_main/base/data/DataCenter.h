@@ -259,6 +259,8 @@ protected:
     const int subbasin_id_;                ///< Subbasin ID
     const int scenario_id_;                ///< Scenario ID
     const int calibration_id_;             ///< Calibration ID
+    const int mpi_rank_;                   ///< Rank ID for MPI, starts from 0 to mpi_size_ - 1
+    const int mpi_size_;                   ///< Rank size for MPI
     const int thread_num_;                 ///< Thread number for OpenMP
     bool use_scenario_;                    ///< Model Scenario
     string output_path_;                   ///< Output path (with / in the end) according to m_outputScene
