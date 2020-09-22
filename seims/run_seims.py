@@ -24,6 +24,7 @@ Configure and run SEIMS model.
     - 2019-01-08 - lj - Add output time period setting.
     - 2020-07-20 - lj - Read data from MongoDB once for all currently used properties.
     - 2020-08-11 - lj - Separate actually execution from run() and add CommandString property.
+    - 2020-09-22 - lj - Add workload (slurm, mpi, etc.) mode. Functions improved.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -72,6 +73,7 @@ class ParseSEIMSConfig(object):
         hostfile (str): File containing hostnames or file mapping process numbers to computing nodes
         nprocess (int): Process number of MPI, i.e., how many MPI tasks will be executed
         npernode (int): Launch num processes per node on all allocated computing nodes
+        flag_npernode (string): Flag to specify NPERNODE, e.g., -ppn for common MPI implementation
         nthread (int): Thread number of OpenMP, i.e., how many threads of each processes
         lyrmtd (int): Method of creating routing layers of simulation units,
                         can be 0 (UP_DOWN) and 1 (DOWN_UP)
@@ -102,6 +104,7 @@ class ParseSEIMSConfig(object):
         self.hostfile = ''  # type: AnyStr
         self.nprocess = 2  # type: int
         self.npernode = 1  # type: int
+        self.flag_npernode = ''  # type: AnyStr
         self.nthread = 2  # type: int
         self.lyrmtd = 1  # type: int
         self.scenario_id = 0  # type: int
@@ -145,6 +148,7 @@ class ParseSEIMSConfig(object):
         self.hostfile = get_option_value(cf, sec_name, 'hostfile')
         self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
         self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
+        self.flag_npernode = get_option_value(cf, sec_name, 'flag_npernode')
         self.nthread = get_option_value(cf, sec_name, ['nthread', 'threadsnum'], valtyp=int)
         self.lyrmtd = get_option_value(cf, sec_name, ['lyrmtd', 'layeringmethod'], valtyp=int)
         self.scenario_id = get_option_value(cf, sec_name, ['scenario_id', 'scenarioid'], valtyp=int)
@@ -172,6 +176,7 @@ class ParseSEIMSConfig(object):
                                 'mpi_bin': self.mpi_bin,
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
+                                'flag_npernode': self.flag_npernode,
                                 'nthread': self.nthread,
                                 'lyrmtd': self.lyrmtd,
                                 'scenario_id': self.scenario_id,
@@ -186,9 +191,6 @@ class ParseSEIMSConfig(object):
 
 class MainSEIMS(object):
     """Main entrance to SEIMS model."""
-
-    LOGNAME = 'runlogs.txt'
-
     def __init__(self,
                  args_dict=None,  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
                  host='127.0.0.1',  # type: AnyStr # MongoDB host address, default is `localhost`
@@ -202,6 +204,7 @@ class MainSEIMS(object):
                  hostfile='',  # type: AnyStr # File containing computing nodes
                  nprocess=2,  # type: int # Process number of MPI
                  npernode=1,  # type: int # Process number per computing node
+                 flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
                  lyrmtd=1,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
                  scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
@@ -241,6 +244,7 @@ class MainSEIMS(object):
 
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.npernode = args_dict['npernode'] if 'npernode' in args_dict else npernode
+        self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict else flag_npernode
         self.nthread = args_dict['nthread'] if 'nthread' in args_dict else nthread
         self.lyrmtd = args_dict['lyrmtd'] if 'lyrmtd' in args_dict else lyrmtd
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
@@ -261,13 +265,25 @@ class MainSEIMS(object):
         if is_string(self.out_etime) and not isinstance(self.out_etime, datetime):
             self.out_etime = StringClass.get_datetime(self.out_etime)
 
-        self.workload = args_dict['workload'] if 'workload' in args_dict else workload
+        self.workload = args_dict['workload'] if 'workload' in args_dict else workload  # type: AnyStr
+
+        # Concatenate output directory name, which is also the name of runtime log
+        # The format of OUTPUT directory is: OUTPUT<ScenarioID>-<CalibrationID>
+        # - OUTPUT-1 means no scenario, calibration ID is 1
+        # - OUTPUT100 means scenario ID is 100, no calibration
+        # - OUTPUT100-2 means scenario ID is 100, calibration ID is 2
+        self.output_name = 'OUTPUT'
+        if self.scenario_id >= 0:
+            self.output_name += '%d' % self.scenario_id
+        if self.calibration_id >= 0:
+            self.output_name += '-%d' % self.calibration_id
+        self.output_dir = os.path.join(self.model_dir, self.output_name)
+        self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
 
         # Concatenate executable command
         self.cmd = list()
         self.executed = False  # The model has been executed or not, no matter success.
         self.run_success = False  # The model executed successfully or not.
-        self.output_dir = ''
 
         # Model data read from MongoDB
         self.outlet_id = -1
@@ -297,31 +313,13 @@ class MainSEIMS(object):
         self.mongoclient = None  # type: Union[MongoClient, None]  # Set to None after use
 
     @property
-    def OutputDirectory(self):
-        # type: (...) -> AnyStr
-        """The format of OUTPUT directory is: OUTPUT<ScenarioID>-<CalibrationID>
-        - OUTPUT-1 means no scenario, calibration ID is 1
-        - OUTPUT100 means scenario ID is 100, no calibration
-        - OUTPUT100-2 means scenario ID is 100, calibration ID is 2
-
-        Returns:
-            The fullpath of output directory
-        """
-        self.output_dir = os.path.join(self.model_dir, 'OUTPUT')
-        if self.scenario_id >= 0:
-            self.output_dir += '%d' % self.scenario_id
-        if self.calibration_id >= 0:
-            self.output_dir += '-%d' % self.calibration_id
-        return self.output_dir
-
-    @property
     def Command(self):
         # type: (...) -> List[AnyStr]
         """Concatenate command (as a list) to run SEIMS-based model."""
         if self.cmd:
             return self.cmd
         self.cmd = list()
-        if self.version == 'MPI':
+        if self.version.lower() == 'mpi':
             if self.workload.lower() == 'slurm':
                 if self.npernode > 1:
                     # srun is for a parallel job on cluster managed by Slurm, replacing mpirun.
@@ -330,10 +328,8 @@ class MainSEIMS(object):
                 self.cmd += [self.mpi_bin]
                 if self.hostfile and os.path.exists(self.hostfile):
                     self.cmd += [self.hosts_opt, self.hostfile]
-                if self.npernode > 1:
-                    # TODO, find a way to differentiate MPI implementation used,
-                    #  so to specific proper args, e.g., -cores for MSMPI
-                    self.cmd += ['-ppn', str(self.npernode)]  # For Intel MPI
+                    if self.npernode > 1 and self.flag_npernode != '':
+                        self.cmd += [self.flag_npernode, str(self.npernode)]
 
             self.cmd += ['-n', str(self.nprocess)]
         self.cmd += [self.seims_exec,
@@ -460,7 +456,7 @@ class MainSEIMS(object):
             stime = startt
         if etime is None:
             etime = endt
-        self.sim_vars, self.sim_value = read_simulation_from_txt(self.OutputDirectory,
+        self.sim_vars, self.sim_value = read_simulation_from_txt(self.output_dir,
                                                                  self.obs_vars,
                                                                  self.OutletID,
                                                                  stime, etime)
@@ -524,15 +520,8 @@ class MainSEIMS(object):
         """Get summarized timespan, format is [IO, COMP, SIMU, RUNTIME]."""
         time_list = [0., 0., 0., self.runtime]
         if not self.timespan and self.executed:
-            if os.path.exists(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME):
-                self.runlogs = list()
-                with open(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME, 'r',
-                          encoding='utf-8') as f:
-                    for tmpl in f:
-                        self.runlogs.append(tmpl.strip())
-                self.ParseTimespan(self.runlogs)
-                self.run_success = True
-            else:
+            parsed = self.ParseTimespan()
+            if parsed is None:
                 time_list[2] = self.runtime
                 return time_list
         tmp_timespan = self.timespan
@@ -586,29 +575,35 @@ class MainSEIMS(object):
            }
         """
         if not self.runlogs:
-            self.GetTimespan()
-        if not self.runlogs:  # if runlogs.txt not existed
-            return None
+            if os.path.exists(self.runlog_name):
+                self.runlogs = list()
+                with open(self.runlog_name, 'r', encoding='utf-8') as f:
+                    for tmpl in f:
+                        self.runlogs.append(tmpl.strip().split('\n')[0])
+            else:  # The runtime log does not exist
+                return None
         for item in self.runlogs:
             if 'TIMESPAN' not in item:
                 continue
-            item = item.split('\n')[0]
+            item = item.split('[TIMESPAN]')[1]
             values = StringClass.extract_numeric_values_from_string(item)
             if values is None or len(values) != 1:
                 continue
             curtime = values[0]
-            titles = item.replace('[', '').split(']')[:-1]  # e.g., 'TIMESPAN', 'COMP', 'ALL'
-            if len(titles) < 3:  # e.g., 'TIMESPAN', 'MAX', 'COMP', 'ALL'
+            titles = item.replace('[', '').split(']')[:-1]  # e.g., 'COMP', 'ALL'
+            if len(titles) < 2:  # e.g., 'MAX', 'COMP', 'ALL'
                 continue
             titles = [title.strip() for title in titles]
-            self.timespan.setdefault(titles[1], dict())
-            if len(titles) > 3:
-                self.timespan[titles[1]].setdefault(titles[2], dict())
-                self.timespan[titles[1]][titles[2]].setdefault(titles[3], curtime)
+            self.timespan.setdefault(titles[0], dict())
+            if len(titles) > 2:
+                self.timespan[titles[0]].setdefault(titles[1], dict())
+                self.timespan[titles[0]][titles[1]].setdefault(titles[2], curtime)
             else:
-                self.timespan[titles[1]].setdefault(titles[2], curtime)
+                self.timespan[titles[0]].setdefault(titles[1], curtime)
         if self.timespan:
             self.run_success = True
+        else:
+            self.run_success = False
         return self.timespan
 
     def ResetSimulationPeriod(self):
@@ -674,8 +669,8 @@ class MainSEIMS(object):
             model.UnsetMongoClient()
         """
         stime = time.time()
-        if not os.path.isdir(self.OutputDirectory) or not os.path.exists(self.OutputDirectory):
-            os.makedirs(self.OutputDirectory)
+        if not os.path.isdir(self.output_dir) or not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
         # If the input time period is not consistent with the predefined time period in FILE_IN.
         if self.simu_stime and self.simu_etime and self.simu_stime != self.start_time \
             and self.simu_etime != self.end_time:
@@ -691,10 +686,6 @@ class MainSEIMS(object):
 
         try:
             self.runlogs = UtilClass.run_command(self.Command)
-            # Move this function to SEIMS main program (i.e., class `ModelMain`). by lj 2020/08/11
-            # with open(self.OutputDirectory + os.sep + MainSEIMS.LOGNAME,
-            #           'w', encoding='utf-8') as f:
-            #     f.write('\n'.join(self.runlogs))
             self.ParseTimespan()
         except CalledProcessError or IOError or Exception as err:
             # 1. SEIMS-based model running failed
@@ -716,7 +707,7 @@ class MainSEIMS(object):
             model.clean()
             model.UnsetMongoClient()
         """
-        rmtree(self.OutputDirectory, ignore_errors=True)
+        rmtree(self.output_dir, ignore_errors=True)
         self.ConnectMongoDB()
         read_model = ReadModelData(self.mongoclient, self.db_name)
         if scenario_id is None:

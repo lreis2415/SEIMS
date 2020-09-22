@@ -21,7 +21,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from run_seims import ParseSEIMSConfig
-from utility import PlotConfig
+from utility import PlotConfig, ParseResourceConfig, parse_config
 
 
 def get_psa_config():
@@ -113,7 +113,11 @@ class PSAOutputs(object):
         self.output_values_txt = wp + os.path.sep + 'output_values.txt'
         self.psa_si_json = wp + os.path.sep + 'psa_si.json'
         self.psa_si_sort_txt = wp + os.path.sep + 'psa_si_sorted.csv'
+        self.psa_scripts_dir = wp + os.path.sep + 'scripts'
+        self.psa_logs_dir = wp + os.path.sep + 'logs'
         UtilClass.mkdir(self.output_values_dir)
+        UtilClass.mkdir(self.psa_scripts_dir)
+        UtilClass.mkdir(self.psa_logs_dir)
 
 
 class PSAConfig(object):
@@ -122,8 +126,11 @@ class PSAConfig(object):
     def __init__(self, cf, method='morris'):
         """Initialization."""
         self.method = method
+        # 0. Computing resources related
+        res_sec = 'Computing_Resources'
+        self.resource = ParseResourceConfig(cf)  # type: ParseResourceConfig
         # 1. SEIMS model related
-        self.model = ParseSEIMSConfig(cf)
+        self.model = ParseSEIMSConfig(cf)  # type: ParseSEIMSConfig
         # 2. Common settings of parameters sensitivity analysis
         if 'PSA_Settings' not in cf.sections():
             raise ValueError("[PSA_Settings] section MUST be existed in *.ini file.")

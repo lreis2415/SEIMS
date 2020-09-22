@@ -134,3 +134,27 @@ class ParseNSGA2Config(object):
         self.logbookfile = self.out_dir + os.path.sep + 'logbook.txt'
         self.simdata_dir = self.out_dir + os.path.sep + 'simulated_data'
         UtilClass.rmmkdir(self.simdata_dir)
+
+
+class ParseResourceConfig(object):
+    """Configuration of computing resources for model-level parallel computing."""
+
+    def __init__(self, cf=None):
+        # type: (Optional[ConfigParser]) -> None
+        """Get parameters from ConfigParser object."""
+        self.workload = 'scoop'  # type: AnyStr # available: scoop, slurm
+        self.partition = ''  # type: AnyStr
+        self.nnodes = -1  # type: int  # computing nodes required
+        self.ntasks_pernode = -1  # type: int  # maximum tasks (process of mpi or task of scoop)
+        self.ncores_pernode = -1  # type: int  # maximum cores/processors of each node
+
+        res_sec = 'Computing_Resources'
+        self.workload = get_option_value(cf, res_sec, 'workload')
+        if self.workload is '':
+            self.workload = 'scoop'
+        self.partition = get_option_value(cf, res_sec, 'partition')
+        self.nnodes = get_option_value(cf, res_sec, 'nnodes', valtyp=int)
+        self.ntasks_pernode = get_option_value(cf, res_sec, 'ntasks_pernode', valtyp=int)
+        self.ncores_pernode = get_option_value(cf, res_sec, 'ncores_pernode', valtyp=int)
+
+
