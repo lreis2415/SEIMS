@@ -55,6 +55,7 @@ import tempfile
 import atexit
 import hashlib
 import datetime
+from pygeoc.utils import UtilClass
 
 TMPL = """\
 #!/bin/bash
@@ -99,13 +100,12 @@ class Slurm(object):
 
         # add bash setup list to collect bash script config
         bash_setup = []
-        if bash_strict:
+        if self.bash_strict:
             bash_setup.append("set -eo pipefail -o nounset")
 
         self.header = "\n".join(header)
         self.bash_setup = "\n".join(bash_setup)
-        self.name = "".join(x for x in name.replace(
-            " ", "-") if x.isalnum() or x == "-")
+        self.name = "".join(x for x in name.replace(" ", "-") if x.isalnum() or x == "-")
         self.tmpl = tmpl
         self.slurm_kwargs = slurm_kwargs
         if scripts_dir is not None:
@@ -177,11 +177,14 @@ class Slurm(object):
                 args.append(mid)
             args.append(sh.name)
             res = subprocess.check_output(args).strip()
+            # res = UtilClass.run_command(args)
             print(res, file=sys.stderr)
             self.name = n
-            if not res.startswith(b"Submitted batch"):
+            # if not res[0].startswith('Submitted batch'):
+            if not res.startswith('Submitted batch'):
                 return None
             j_id = int(res.split()[-1])
+            # j_id = int(res[-1])
             if itry == 1:
                 job_id = j_id
         return job_id

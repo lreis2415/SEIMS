@@ -102,7 +102,7 @@ class ParseSEIMSConfig(object):
         self.mpi_bin = ''  # type: AnyStr
         self.hosts_opt = ''  # type: AnyStr
         self.hostfile = ''  # type: AnyStr
-        self.nprocess = 2  # type: int
+        self.nprocess = 1  # type: int
         self.npernode = 1  # type: int
         self.flag_npernode = ''  # type: AnyStr
         self.nthread = 2  # type: int
@@ -147,6 +147,8 @@ class ParseSEIMSConfig(object):
         self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
         self.hostfile = get_option_value(cf, sec_name, 'hostfile')
         self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
+        if self.version.lower() == 'omp':
+            self.nprocess = 1
         self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
         self.flag_npernode = get_option_value(cf, sec_name, 'flag_npernode')
         self.nthread = get_option_value(cf, sec_name, ['nthread', 'threadsnum'], valtyp=int)

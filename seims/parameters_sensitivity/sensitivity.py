@@ -231,26 +231,33 @@ class Sensitivity(object):
         # Parameters to be evaluated
         input_eva_vars = self.cfg.evaluate_params
 
-        # split tasks if needed
-        task_num = self.run_count // 100  # TODO: Find a more proper way to divide tasks
+        # Computing resources
+        # Recommend: n / N * c = cores of one node (taking the args of Slurm as an example)
+        # For example, we want to submit the job on 6 nodes, each node has 36 cores,
+        #              each SEIMS-based model require 4 processes and each process
+        #              with 2 threads (i.e., mpiexec -n 4 seims_mpi -thread 2 ...),
+        #              then N = 6, n = 108 (6*36//2), c = 2.
+        #              This means, a total of 108//4=27 models can be executed simultaneously.
+        arg_N = self.cfg.resource.nnodes
+        arg_c = self.model.nthread
+        arg_n = -1
+        if arg_N >= 1 and self.cfg.resource.ntasks_pernode >= 1 and \
+                self.cfg.resource.ncores_pernode >= 1:
+            arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
+
+        # split tasks
+        #   1. If workload of sensitivity analysis is slurm or scoop, pnum_task equals n // nprocess of SEIMS-model
+        #   2. Otherwise, pnum_task equals 100
+        pnum_task = 100
+        if self.cfg.resource.workload.lower() == 'slurm' or self.cfg.resource.workload.lower() == 'scoop':
+            pnum_task = arg_n // self.cfg.model.nprocess
+        task_num = self.run_count // pnum_task
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
             split_seqs = [a.tolist() for a in split_seqs]
 
-        # Computing resources
-        # Recommend: n / N * c = cores of one node
-        # For example, we want to submit the job on 4 nodes, each node has 36 cores,
-        #              each SEIMS-based model require 4 processes and each process
-        #              with 2 threads (i.e., mpiexec -n 4 seims_mpi -thread 2 ...),
-        #              then N = 4, n = 72 (4*36/2), c = 2
-        arg_N = self.cfg.resource.nnodes
-        arg_c = self.model.nthread
-        arg_n = -1
-        if arg_N >= 1 and self.cfg.resource.ntasks_pernode >= 1 and \
-            self.cfg.resource.ncores_pernode >= 1:
-            arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
         # Loop partitioned tasks
         run_model_stime = time.time()
         exec_times = list()  # execute time of all model runs
@@ -265,8 +272,8 @@ class Sensitivity(object):
                 model_cfg_dict_list.append(tmpcfg)
 
             if self.cfg.resource.workload.lower() == 'slurm' or \
-                self.model.workload.lower() == 'bash':
-                from slurmpy import Slurm
+                    self.cfg.resource.workload.lower() == 'bash':
+                from utility.slurmpy import Slurm
                 output_models = list()
                 model_cmd_list = list()
                 for ii_model_cfg in model_cfg_dict_list:
@@ -284,8 +291,10 @@ class Sensitivity(object):
                                  },
                                  scripts_dir=self.cfg.outfiles.psa_scripts_dir,
                                  log_dir=self.cfg.outfiles.psa_logs_dir,
-                                 bash_strict=False)
-                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list),
+                                 bash_strict=False if self.cfg.resource.workload.lower() == 'slurm'
+                                 else True)
+                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list) if self.cfg.resource.workload.lower() == 'slurm'
+                             else '%s\nwait' % '\n'.join(model_cmd_list),
                              _cmd='sbatch' if self.cfg.resource.workload.lower() == 'slurm'
                              else 'bash')
                 print('Slurm job index %d done!' % idx)
