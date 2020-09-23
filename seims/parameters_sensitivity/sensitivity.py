@@ -246,10 +246,12 @@ class Sensitivity(object):
             arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
 
         # split tasks
-        #   1. If workload of sensitivity analysis is slurm or scoop, pnum_task equals n // nprocess of SEIMS-model
+        #   1. If workload of sensitivity analysis is slurm or scoop,
+        #      pnum_task equals n // nprocess of SEIMS-model
         #   2. Otherwise, pnum_task equals 100
         pnum_task = 100
-        if self.cfg.resource.workload.lower() == 'slurm' or self.cfg.resource.workload.lower() == 'scoop':
+        if self.cfg.resource.workload.lower() == 'slurm' or \
+            self.cfg.resource.workload.lower() == 'scoop':
             pnum_task = arg_n // self.cfg.model.nprocess
         task_num = self.run_count // pnum_task
         if task_num == 0:
@@ -286,14 +288,13 @@ class Sensitivity(object):
                                      'W': '',  # -W, --wait. Do not exit until all jobs terminate
                                      'partition': self.cfg.resource.partition,
                                      'N': arg_N,  # -N, --nodes. Request N nodes to the job
-                                     'n': arg_n,  # -n, --ntasks
-                                     'c': arg_c,  # -c, --cpus-per-task. For OpenMP job
                                  },
                                  scripts_dir=self.cfg.outfiles.psa_scripts_dir,
                                  log_dir=self.cfg.outfiles.psa_logs_dir,
                                  bash_strict=False if self.cfg.resource.workload.lower() == 'slurm'
                                  else True)
-                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list) if self.cfg.resource.workload.lower() == 'slurm'
+                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list)
+                             if self.cfg.resource.workload.lower() == 'slurm'
                              else '%s\nwait' % '\n'.join(model_cmd_list),
                              _cmd='sbatch' if self.cfg.resource.workload.lower() == 'slurm'
                              else 'bash')

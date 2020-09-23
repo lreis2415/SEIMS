@@ -147,9 +147,13 @@ class ParseSEIMSConfig(object):
         self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
         self.hostfile = get_option_value(cf, sec_name, 'hostfile')
         self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
+        self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
         if self.version.lower() == 'omp':
             self.nprocess = 1
-        self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
+            self.npernode = 1
+        # Nodes required for each SEIMS-based model
+        self.nnodes = self.nprocess // self.npernode + self.nprocess % self.npernode
+
         self.flag_npernode = get_option_value(cf, sec_name, 'flag_npernode')
         self.nthread = get_option_value(cf, sec_name, ['nthread', 'threadsnum'], valtyp=int)
         self.lyrmtd = get_option_value(cf, sec_name, ['lyrmtd', 'layeringmethod'], valtyp=int)
@@ -178,7 +182,7 @@ class ParseSEIMSConfig(object):
                                 'mpi_bin': self.mpi_bin,
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
-                                'flag_npernode': self.flag_npernode,
+                                'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
                                 'nthread': self.nthread,
                                 'lyrmtd': self.lyrmtd,
                                 'scenario_id': self.scenario_id,
@@ -204,8 +208,9 @@ class MainSEIMS(object):
                  mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
                  hosts_opt='-f',  # type: AnyStr # Option for assigning hostfile for MPI version
                  hostfile='',  # type: AnyStr # File containing computing nodes
-                 nprocess=2,  # type: int # Process number of MPI
+                 nprocess=1,  # type: int # Process number of MPI
                  npernode=1,  # type: int # Process number per computing node
+                 nnodes=1,  # type: int # Nodes required to execute
                  flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
                  lyrmtd=1,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
@@ -246,7 +251,10 @@ class MainSEIMS(object):
 
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.npernode = args_dict['npernode'] if 'npernode' in args_dict else npernode
-        self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict else flag_npernode
+
+        self.nnodes = args_dict['nnodes'] if 'nnodes' in args_dict else nnodes
+        self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict \
+            else flag_npernode
         self.nthread = args_dict['nthread'] if 'nthread' in args_dict else nthread
         self.lyrmtd = args_dict['lyrmtd'] if 'lyrmtd' in args_dict else lyrmtd
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
@@ -325,7 +333,10 @@ class MainSEIMS(object):
             if self.workload.lower() == 'slurm':
                 if self.npernode > 1:
                     # srun is for a parallel job on cluster managed by Slurm, replacing mpirun.
-                    self.cmd += ['srun --ntasks-per-node=%d' % self.npernode]
+                    self.cmd += ['srun']
+                    self.cmd += ['-N', str(self.nnodes)]
+                    self.cmd += ['--ntasks-per-node=', str(self.npernode)]
+                    self.cmd += ['--cpu_bind=cores --cpus-per-task=', str(self.nthread)]
             else:
                 self.cmd += [self.mpi_bin]
                 if self.hostfile and os.path.exists(self.hostfile):

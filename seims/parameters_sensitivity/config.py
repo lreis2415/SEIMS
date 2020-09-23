@@ -131,6 +131,10 @@ class PSAConfig(object):
         self.resource = ParseResourceConfig(cf)  # type: ParseResourceConfig
         # 1. SEIMS model related
         self.model = ParseSEIMSConfig(cf)  # type: ParseSEIMSConfig
+        if self.model.nnodes > self.resource.nnodes:
+            raise ValueError("The nodes count required by each SEIMS-based model MUST be <= "
+                             "the nodes count allocated.")
+
         # 2. Common settings of parameters sensitivity analysis
         if 'PSA_Settings' not in cf.sections():
             raise ValueError("[PSA_Settings] section MUST be existed in *.ini file.")

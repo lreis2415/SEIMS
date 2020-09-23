@@ -19,6 +19,9 @@ int main(int argc, const char** argv) {
     /// Initialize MPI environment
     int size;
     int rank;
+    int namelen;
+    char hostname[MPI_MAX_PROCESSOR_NAME];
+
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_FUNNELED, &provided);
     if (provided < MPI_THREAD_FUNNELED) {
@@ -28,6 +31,7 @@ int main(int argc, const char** argv) {
     {
         MPI_Comm_size(MCW, &size);
         MPI_Comm_rank(MCW, &rank);
+        MPI_Get_processor_name(hostname, &namelen);
 
         /// Initialize easylogging++
         START_EASYLOGGINGPP(argc, argv);
@@ -42,6 +46,8 @@ int main(int argc, const char** argv) {
                                       ValueToString(rank) + ".log");
         }
         Logging::setLogLevel(Logging::getLLfromString(input_args->log_level), nullptr);
+
+        LOG(INFO) << "Process " << rank << " out of " << size << " running on " << hostname;
 
         try {
             CalculateProcess(input_args, rank, size);
