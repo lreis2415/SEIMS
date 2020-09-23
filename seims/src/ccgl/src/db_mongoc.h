@@ -1,16 +1,16 @@
 /*!
  * \file db_mongoc.h
- * \brief Utility functions of MongoDB
- *        Currently, mongo-c-driver 1.3.5 or later is supported.
- *        Part of the Common Cross-platform Geographic Library (CCGL)
+ * \brief Simple wrappers of the API of MongoDB C driver `mongo-c-driver`,
+ * see <a href="http://mongoc.org/">MongoDB C Driver</a> for more information.
  *
  * Changelog:
  *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
  *   - 2. 2018-05-02 - lj - Make part of CCGL.
+ *   - 3. 2019-08-16 - lj - Simplify brief desc. and move detail desc. to implementation.
  *
  * \note No exceptions will be thrown.
- * \author Liangjun Zhu (crazyzlj)
- * \version 1.0
+ * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \version 1.1
  */
 #ifndef CCGL_DB_MONGOC_H
 #define CCGL_DB_MONGOC_H
@@ -33,223 +33,151 @@ using std::endl;
 namespace ccgl {
 /*!
  * \namespace ccgl::db_mongoc
- * \brief Utility functions of MongoDB
+ * \brief Simple wrappers of the API of MongoDB C driver `mongo-c-driver`,
+ * see <a href="http://mongoc.org/">MongoDB C Driver</a> for more information.
  */
 namespace db_mongoc {
 class MongoGridFs;
 
 /*!
  * \class MongoClient
- * \brief Create a MongoDB Client
+ * \brief A simple wrapper of the class of MongoDB Client `mongoc_client_t`.
  */
 class MongoClient: NotCopyable {
 public:
-    /*!
-     * \brief Constructor
-     * Get a client for a MongoDB instance using ip address and port number
-     * Caution: The constructor should be used with caution, since it does
-     *          not check the validation of IP address and the status of
-     *          the database.
-     *          So, `MongoClient *client = MongoClient::Init(host, port)`
-     *          is highly recommended.
-     */
+    /*! Constructor using IP address and port number */
     MongoClient(const char* host, vuint16_t port);
-    /*!
-     * \brief Validation check before the constructor of MongoClient.
-     *        1. Check IP address
-     *        2. Check database status
-     *
-     * Examples:
-     * \code
-     *       MongoClient *client = MongoClient::Init(host, port)
-     *       if (nullptr == client) {
-     *           throw exception("MongoClient initialization failed!");
-     *           // or other error handling code.
-     *       }
-     * \endcode
-     */
+
+    /*! Initialization of MongoClient with the validation check of database */
     static MongoClient* Init(const char* host, vuint16_t port);
-    /*!
-     * \brief Destructor
-     */
+
+    /*! Destructor */
     ~MongoClient();
 
-    /*!
-     * \brief Get mongoc_client instance
-     */
+    /*! Get `mongoc_client_t` instance */
     mongoc_client_t* GetConn() { return conn_; }
 
-    /*!
-     * \brief Get existed Database instance
-     * Besides, Databases are automatically created on the MongoDB server
-     * upon insertion of the first document into a collection.
-     * Therefore, there is no need to create a database manually.
-     */
+    /*! Get existing or newly created `mongoc_database_t` instance */
     mongoc_database_t* GetDatabase(string const& dbname);
 
-    /*!
-     * \brief Get Collection instance
-     */
+    /*! Get `mongoc_collection_t` instance */
     mongoc_collection_t* GetCollection(string const& dbname, string const& collectionname);
 
-    /*!
-     * \brief Get GridFS instance
-     */
+    /*! Get `mongoc_gridfs_t` instance */
     mongoc_gridfs_t* GetGridFs(string const& dbname, string const& gfsname);
 
-    /*!
-    * \brief Get MongoGridFs instance
-    */
+    /*! Get MongoGridFs instance */
     MongoGridFs* GridFs(string const& dbname, string const& gfsname);
 
-    /*!
-     * \brief Get database names
-     * \return Database names, vector<string>
-     */
+    /*! Get existing database names */
     void GetDatabaseNames(vector<string>& dbnames);
 
-    /*!
-     * \brief Get collection names in MongoDB database
-     * \param[in] dbname \a string database name
-     * \param[out] collnames Collection names in the database
-     */
+    /*! Get collection names in MongoDB database */
     void GetCollectionNames(string const& dbname, vector<string>& collnames);
 
-    /*!
-     * \brief Get GridFs file names in MongoDB database
-     * \param[in] dbname \a string database name
-     * \param[in] gfsname \a string GridFS name
-     * \param[out] gfs_exists Existed GridFS file names
-     */
+    /*! Get GridFs file names in MongoDB database */
     void GetGridFsFileNames(string const& dbname, string const& gfsname, vector<string>& gfs_exists);
 
 private:
-    const char* host_;
-    vuint16_t port_;
-    mongoc_client_t* conn_;
+    const char* host_;      ///< Host IP address of MongoDB
+    vuint16_t port_;        ///< Port number
+    mongoc_client_t* conn_; ///< Instance of `mongoc_client_t`
 };
 
 /*!
  * \class MongoDatabase
- * \brief Create a MongoDB database instance
+ * \brief A simple wrapper of the class of MongoDB database `mongoc_database_t`.
  */
 class MongoDatabase: NotCopyable {
 public:
-    /*!
-     * \brief Constructor, initialized by a mongoc_database_t* pointer
-     */
+    /*! Constructor by a `mongoc_database_t` pointer */
     explicit MongoDatabase(mongoc_database_t* db);
 
-    /*!
-     * \brief Constructor, initialized by mongodb client and database name
-     */
+    /*! Constructor by mongodb client (`mongoc_client_t` pointer) and database name */
     MongoDatabase(mongoc_client_t* conn, string& dbname);
 
-    /*!
-     * \brief Destructor by Destroy function
-     */
+    /*! Destructor */
     ~MongoDatabase();
 
-    /*!
-      * \brief Get collection names in current database
-      */
+    /*! Get collection names in current database */
     void GetCollectionNames(vector<string>& collnames);
 
 private:
-    mongoc_database_t* db_;
-    string dbname_;
+    mongoc_database_t* db_; ///< Instance of `mongoc_database_t`
+    string dbname_;         ///< Database name
 };
 
+/*!
+* \class MongoCollection
+* \brief A simple wrapper of the class of MongoDB Collection `mongoc_collection_t`.
+*/
 class MongoCollection {
 public:
-    /*!
-    * \brief Constructor, initialized by a mongoc_collection_t* pointer
-    */
+    /*! Constructor by a `mongoc_collection_t` pointer */
     explicit MongoCollection(mongoc_collection_t* coll);
 
-    //! Destructor
+    /*! Destructor */
     ~MongoCollection();
 
-    /*!
-     * \brief Execute query
-     */
+    /*! Execute query */
     mongoc_cursor_t* ExecuteQuery(const bson_t* b);
 
-    /*!
-    * \brief Query the records number
-    */
+    /*! Query the records number */
     int QueryRecordsCount();
 private:
-    mongoc_collection_t* collection_;
+    mongoc_collection_t* collection_; ///< Instance of `mongoc_collection_t`
 };
 
 /*!
  * \class MongoGridFs
- * \brief Create a MongoDB GridFS instance
+ * \brief A simple wrapper of the class of MongoDB database `mongoc_gridfs_t`.
  */
 class MongoGridFs {
 public:
-    /*!
-     * \brief Constructor, initialized by a mongoc_gridfs_t* pointer or NULL
-     */
+    /*! Constructor by a `mongoc_gridfs_t` pointer or NULL */
     explicit MongoGridFs(mongoc_gridfs_t* gfs = NULL);
 
-    /*!
-     * \brief Destructor by Destroy function
-     */
+    /*! Destructor */
     ~MongoGridFs();
 
+    /*! Get the current instance of `mongoc_gridfs_t` */
     mongoc_gridfs_t* GetGridFs() { return gfs_; }
 
-    /*!
-     * \brief Get GridFS file by name
-     */
+    /*! Get GridFS file by name */
     mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
                                   STRING_MAP opts = STRING_MAP());
 
-    /*!
-     * \brief Remove GridFS file by name
-     */
+    /*! Remove GridFS file by name */
     bool RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
 
-    /*!
-     * \brief Get GridFS file names
-     */
+    /*! Get GridFS file names */
     void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL);
 
-    /*!
-     * \brief Get metadata of a given GridFS file name
-     */
+    /*! Get metadata of a given GridFS file name */
     bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
                             STRING_MAP opts = STRING_MAP());
 
-    /*!
-     * \brief Get stream data of a given GridFS file name
-     */
+    /*! Get stream data of a given GridFS file name */
     void GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
                        mongoc_gridfs_t* gfs = NULL,
                        STRING_MAP opts = STRING_MAP());
 
-    /*!
-     * \brief Write stream data to a GridFS file
-     */
+    /*! Write stream data to a GridFS file */
     void WriteStreamData(const string& gfilename, char*& buf, size_t length,
                          const bson_t* p, mongoc_gridfs_t* gfs = NULL);
 
 private:
-    mongoc_gridfs_t* gfs_;
+    mongoc_gridfs_t* gfs_; ///< Instance of `mongoc_gridfs_t`
 };
 
-/*!
- * \brief Append options to bson
- */
+/*! Append options to `bson_t` */
 void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts);
 
 /*!
- * \brief Get numeric value from \a bson_iter_t according to a given key
- * \param[in] iter \a bson_iter_t
- * \param[out] numericvalue \a int, \a float, or \a double
- * \return True if succeed, otherwise false.
+ * \brief Get numeric value from the iterator (`bson_iter_t`) of `bson_t`according to a given key
+ * \param[in] iter Iterator of an instance of `bson_t`
+ * \param[in,out] numericvalue The extracted value which can be `int`, `float`, or `double`
+ * \return true if succeed, otherwise false.
  */
 template <typename T>
 bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
@@ -276,11 +204,12 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
 }
 
 /*!
- * \brief Get numeric value from \a bson_t according to a given key
- * \param[in] bmeta \a bson_t
+ * \brief Get numeric value from `bson_t` according to a given key
+ * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
- * \param[out] numericvalue \a int, \a float, or \a double
- * \return True if succeed, otherwise false.
+ * \param[in,out] numericvalue The extracted value which can be `int`, `float`, or `double`
+ * \return true if succeed, otherwise false.
+ * \sa GetNumericFromBsonIterator()
  */
 template <typename T>
 bool GetNumericFromBson(bson_t* bmeta, const char* key, T& numericvalue) {
@@ -293,47 +222,50 @@ bool GetNumericFromBson(bson_t* bmeta, const char* key, T& numericvalue) {
 }
 
 /*!
- * \brief Get String from \a bson_iter_t
- * \param[in] iter \a bson_iter_t
- * \return Float value if success, or "" if failed.
+ * \brief Get String from the iterator (`bson_iter_t`) of `bson_t`
+ * \param[in] iter Iterator of an instance of `bson_t`
+ * \return String of value if succeed, otherwise empty string ("").
  */
 string GetStringFromBsonIterator(bson_iter_t* iter);
 
 /*!
- * \brief Get String from \a bson_t
- * \param[in] bmeta \a bson_t
+ * \brief Get String from `bson_t`
+ * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
- * \return Float value if success, or "" if failed.
+ * \return String of value if succeed, otherwise empty string ("").
+ * \sa GetStringFromBsonIterator()
  */
 string GetStringFromBson(bson_t* bmeta, const char* key);
 
 /*!
- * \brief Get Bool from \a bson_iter_t
- * \param[in] iter \a bson_iter_t
- * \return true if success, or false if failed.
+ * \brief Get Bool from the iterator (`bson_iter_t`) of `bson_t`
+ * \param[in] iter Iterator of an instance of `bson_t`
+ * \return true if succeed, otherwise false.
  */
 bool GetBoolFromBsonIterator(bson_iter_t* iter);
 
 /*!
- * \brief Get String from \a bson_t
- * \param[in] bmeta \a bson_t
+ * \brief Get String from `bson_t`
+ * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
- * \return true if success, or false if failed.
+ * \return true if succeed, otherwise false.]
+ * \sa GetBoolFromBsonIterator()
  */
 bool GetBoolFromBson(bson_t* bmeta, const char* key);
 
 /*!
- * \brief Get Datetime from \a bson_iter_t
- * \param[in] iter \a bson_iter_t
- * \return time_t float value if success, or -1 if failed.
+ * \brief Get Datetime from the iterator (`bson_iter_t`) of `bson_t`
+ * \param[in] iter Iterator of an instance of `bson_t`
+ * \return float value (`time_t`) if succeed, otherwise -1.
  */
 time_t GetDatetimeFromBsonIterator(bson_iter_t* iter);
 
 /*!
- * \brief Get Datetime from \a bson_t
- * \param[in] bmeta \a bson_t
+ * \brief Get Datetime from `bson_t`
+ * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
- * \return time_t float value if success, or -1 if failed.
+ * \return float value (`time_t`) if succeed, otherwise -1.
+ * \sa GetDatetimeFromBsonIterator()
  */
 time_t GetDatetimeFromBson(bson_t* bmeta, const char* key);
 } /* namespace: db_mongoc */
