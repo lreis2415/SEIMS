@@ -1,3 +1,15 @@
+/*!
+ * \file db_mongoc.cpp
+ * \brief Implementation of utility functions of MongoDB.
+ * 
+ *  * Changelog:
+ *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
+ *   - 2. 2018-05-02 - lj - Make part of CCGL.
+ *   - 3. 2019-08-16 - lj - Add or move detail description in the implementation code.
+ *   
+ * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \version 1.1
+ */
 #include "db_mongoc.h"
 
 #include <cassert>
@@ -19,7 +31,20 @@ namespace db_mongoc {
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
 ///////////////////////////////////////////////////
-MongoClient::MongoClient(const char* host, vuint16_t port) : host_(host), port_(port) {
+
+/*!
+ * Get a client for a MongoDB instance using IP address and port number
+ * \param[in] host IP address, e.g., 127.0.0.1
+ * \param[in] port Port number, the default is 27017
+ *
+ * \note The constructor should be used with caution, since it does
+ *          not check the validation of IP address and the status of
+ *          the database.
+ *          So, please use the alternative initialization usage,
+ *          `MongoClient *client = MongoClient::Init(host, port)`.
+ * \sa MongoClient::Init()
+ */
+MongoClient::MongoClient(const char* host, const vuint16_t port) : host_(host), port_(port) {
     assert(IsIpAddress(host));
     mongoc_init();
     mongoc_uri_t* uri = mongoc_uri_new_for_host_port(host_, port_);
@@ -28,6 +53,24 @@ MongoClient::MongoClient(const char* host, vuint16_t port) : host_(host), port_(
     mongoc_uri_destroy(uri);
 }
 
+/*!
+ *  1. Check IP address
+ *  2. Check database status
+ *
+ * \param[in] host IP address, e.g., 127.0.0.1
+ * \param[in] port Port number, the default is 27017
+ * \return MongoClient instance
+ * 
+ * Examples:
+ * \code
+ *       MongoClient *client = MongoClient::Init(host, port)
+ *       if (nullptr == client) {
+ *           throw exception("MongoClient initialization failed!");
+ *           // or other error handling code.
+ *       }
+ * \endcode
+ * \sa MongoClient()
+ */
 MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
     if (!IsIpAddress(host)) {
         cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
@@ -41,15 +84,6 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
         mongoc_client_destroy(conn);
         return nullptr;
     }
-    /// Deprecated usage!
-    /// Check the connection to MongoDB is success or not
-    //    bson_t* reply = bson_new();
-    //    bson_error_t* err = NULL;
-    //    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
-    //        cout << "Failed to connect to MongoDB!" << endl;
-    //        return nullptr;
-    //    }
-    //    bson_destroy(reply);
 
     mongoc_uri_destroy(uri);
     mongoc_client_destroy(conn);
@@ -60,7 +94,7 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
 MongoClient::~MongoClient() {
     StatusMessage("Releasing MongoClient ...");
     if (conn_) {
-        /// Check the connection to MongoDB is success or not
+        // Check the connection to MongoDB is success or not
         bson_t* reply = bson_new();
         bson_error_t* err = NULL;
         if (mongoc_client_get_server_status(conn_, NULL, reply, err) && err != NULL) {
@@ -71,13 +105,16 @@ MongoClient::~MongoClient() {
     mongoc_cleanup();
 }
 
+/*!
+ * \param[in,out] dbnames String vector of existing Database names
+ */
 void MongoClient::GetDatabaseNames(vector<string>& dbnames) {
     char** dbnames_char = NULL;
     bson_error_t* err = NULL;
     dbnames_char = mongoc_client_get_database_names(conn_, err);
     if (!dbnames.empty()) {
-        dbnames.clear();
-    } /// get clear before push database names
+        dbnames.clear(); // get clean vector before push database names
+    }
     if (err == NULL) {
         for (vuint i = 0; dbnames_char[i]; i++) {
             // cout<<dbnames[i]<<endl;
@@ -88,12 +125,18 @@ void MongoClient::GetDatabaseNames(vector<string>& dbnames) {
     vector<string>(dbnames).swap(dbnames);
 }
 
+/*!
+ * \param[in] dbname Database name string
+ * \param[in,out] collnames Collection names vector in the database
+ */
 void MongoClient::GetCollectionNames(string const& dbname, vector<string>& collnames) {
-    MongoDatabase(this->GetDatabase(dbname)).GetCollectionNames(collnames);
+    MongoDatabase(GetDatabase(dbname)).GetCollectionNames(collnames);
 }
 
 mongoc_database_t* MongoClient::GetDatabase(string const& dbname) {
-    // Get Database or create if not existed
+    /// Databases are automatically created on the MongoDB server
+    /// upon insertion of the first document into a collection.
+    /// Therefore, there is no need to create a database manually.
     return mongoc_client_get_database(conn_, dbname.c_str());
 }
 
@@ -128,6 +171,11 @@ MongoGridFs* MongoClient::GridFs(string const& dbname, string const& gfsname) {
     return new MongoGridFs(GetGridFs(dbname, gfsname));
 }
 
+/*!
+ * \param[in] dbname Database name
+ * \param[in] gfsname GridFS name
+ * \param[in,out] gfs_exists Existing GridFS file names
+ */
 void MongoClient::GetGridFsFileNames(string const& dbname, string const& gfsname, vector<string>& gfs_exists) {
     mongoc_gridfs_t* gfs = GetGridFs(dbname, gfsname);
     MongoGridFs(gfs).GetFileNames(gfs_exists);
@@ -148,6 +196,9 @@ MongoDatabase::~MongoDatabase() {
     mongoc_database_destroy(db_);
 }
 
+/*!
+ * \param[in,out] collnames Collection names vector in current database
+ */
 void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
     bson_error_t* err = NULL;
     const bson_t* doc;
@@ -351,6 +402,10 @@ void MongoGridFs::WriteStreamData(const string& gfilename, char*& buf, const siz
 /////////  bson related utilities   ///////////////
 ///////////////////////////////////////////////////
 
+/*!
+ * \param[in,out] bson_opts Instance of `bson_t`
+ * \param[in] opts STRING_MAP key-value
+ */
 void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts) {
     if (!opts.empty()) {
         for (auto iter = opts.begin(); iter != opts.end(); ++iter) {

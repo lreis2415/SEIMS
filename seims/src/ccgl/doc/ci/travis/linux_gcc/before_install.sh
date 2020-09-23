@@ -4,11 +4,11 @@ set -e
 
 # NO need to update gcc, since trusty ships with 4.8.2. 07/22/2019
 # update gcc to version 4.8
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-sudo apt-get update -qq
-sudo apt-get install -qq gcc-4.8 g++-4.8
-export CXX="g++-4.8" CC="gcc-4.8"
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+#sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+#sudo apt-get update -qq
+#sudo apt-get install -qq gcc-4.8 g++-4.8
+#export CXX="g++-4.8" CC="gcc-4.8"
+#sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 
 # NO need to build gdal from source
 # download gdal from osgeo, and compile and install

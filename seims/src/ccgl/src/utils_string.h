@@ -1,13 +1,12 @@
 /*!
  * \file utils_string.h
- * \brief Handling string related issues.
- *        Part of the Common Cross-platform Geographic Library (CCGL)
+ * \brief Handling string related issues in CCGL.
  *
  * Changelog:
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *   - 2. 2018-11-12 - lj - Add check and conversion between string and number (int, float, double)
  *
- * \author Liangjun Zhu (crazyzlj)
+ * \author Liangjun Zhu (zlj@lreis.ac.cn)
  * \version 1.1
  */
 #ifndef CCGL_UTILS_STRING_H

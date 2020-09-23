@@ -327,7 +327,7 @@ typedef vint64_t pos_t;
 /*! Convert to 8-byte (64-bit) unsigned integer `vuint64_t` */
 #define CVT_VUINT64(param) static_cast<vuint64_t>((param))
 
-
+/*! Map of string key and string value */
 typedef std::map<string, string> STRING_MAP;
 
 #ifdef CPP_64

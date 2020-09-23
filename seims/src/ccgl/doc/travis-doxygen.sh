@@ -1,17 +1,18 @@
 #!/bin/bash
 # Update Doxygen documentation after push to 'master'.
 # Author: @pah, https://github.com/pah
+# Adapted by @crazyzlj, https://github.com/crazyzlj
 
 set -e
 
-DOXYGEN_VERSION=1.8.15
+DOXYGEN_VERSION=1.8.16
 DOXYGEN_VER=doxygen-${DOXYGEN_VERSION}
 DOXYGEN_TAR=${DOXYGEN_VER}.linux.bin.tar.gz
 # ftp.stack.nl has been shutdown, so I changed to sourceforge.net.
 # DOXYGEN_URL="http://ftp.stack.nl/pub/users/dimitri/${DOXYGEN_TAR}"
 DOXYGEN_URL="https://sourceforge.net/projects/doxygen/files/rel-${DOXYGEN_VERSION}/${DOXYGEN_TAR}/download"
 
-: ${GITHUB_REPO:="lreis2415/SEIMS"}
+: ${GITHUB_REPO:="crazyzlj/CCGL"}
 GITHUB_HOST="github.com"
 GITHUB_CLONE="git://${GITHUB_HOST}/${GITHUB_REPO}"
 GITHUB_URL="https://${GITHUB_HOST}/${GITHUB_PUSH-${GITHUB_REPO}}"
@@ -82,11 +83,6 @@ gh_pages_commit() {
 	cd "${TRAVIS_BUILD_DIR}/build/doc/html";
 	# This line can be uncommented when we have a domain address.
 	# echo "seims.lreis.ac.cn" > CNAME
-	# In my case, I had folders whose names started with _ (like _css and _js),
-	#   which GH Pages ignores as per Jekyll processing rules. If you don't use Jekyll,
-	#   the workaround is to place a file named .nojekyll in the root directory.
-	#   See https://stackoverflow.com/a/39691475
-	touch .nojekyll
 	git add --all;
 	git diff-index --quiet HEAD || git commit -m "Automatic doxygen build";
 }
