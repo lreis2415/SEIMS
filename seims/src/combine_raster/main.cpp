@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
         CombineRasterResultsMongo(gfs, s_var, n_subbasins, folder, scenario_id, calibration_id);
         // clean up
         delete gfs;
-        delete client;
+        client->Destroy();
     }
     return 0;
 }
