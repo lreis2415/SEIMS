@@ -1,12 +1,12 @@
 /*!
  * \file db_mongoc.cpp
  * \brief Implementation of utility functions of MongoDB.
- * 
+ *
  *  * Changelog:
  *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
  *   - 2. 2018-05-02 - lj - Make part of CCGL.
  *   - 3. 2019-08-16 - lj - Add or move detail description in the implementation code.
- *   
+ *
  * \author Liangjun Zhu (zlj@lreis.ac.cn)
  * \version 1.1
  */
@@ -60,7 +60,7 @@ MongoClient::MongoClient(const char* host, const vuint16_t port) : host_(host), 
  * \param[in] host IP address, e.g., 127.0.0.1
  * \param[in] port Port number, the default is 27017
  * \return MongoClient instance
- * 
+ *
  * Examples:
  * \code
  *       MongoClient *client = MongoClient::Init(host, port)
@@ -93,11 +93,13 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
 
 MongoClient::~MongoClient() {
     StatusMessage("Releasing MongoClient ...");
+    // TODO: mongoc_client_get_server_status() has been deprecated.
+    //       Shall we use mongoc_client_destroy() directly or in other way? -lj
     if (conn_) {
         // Check the connection to MongoDB is success or not
         bson_t* reply = bson_new();
         bson_error_t* err = NULL;
-        if (mongoc_client_get_server_status(conn_, NULL, reply, err) && err != NULL) {
+        if (mongoc_client_get_server_status(conn_, NULL, reply, err) && err == NULL) {
             mongoc_client_destroy(conn_);
         }
         bson_destroy(reply);
