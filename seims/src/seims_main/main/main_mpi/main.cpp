@@ -64,10 +64,11 @@ int main(int argc, const char** argv) {
             MPI_Abort(MCW, 5);
         }
     }
+    /// Finalize the MPI environment and exit with success
+    MPI_Finalize();
+
     /// clean up
     delete input_args;
 
-    /// Finalize the MPI environment and exit with success
-    MPI_Finalize();
     return 0;
 }

@@ -95,14 +95,17 @@ MongoClient::~MongoClient() {
     StatusMessage("Releasing MongoClient ...");
     // TODO: mongoc_client_get_server_status() has been deprecated.
     //       Shall we use mongoc_client_destroy() directly or in other way? -lj
+    //if (conn_) {
+    //    // Check the connection to MongoDB is success or not
+    //    bson_t* reply = bson_new();
+    //    bson_error_t* err = NULL;
+    //    if (mongoc_client_get_server_status(conn_, NULL, reply, err) && err == NULL) {
+    //        mongoc_client_destroy(conn_);
+    //    }
+    //    bson_destroy(reply);
+    //}
     if (conn_) {
-        // Check the connection to MongoDB is success or not
-        bson_t* reply = bson_new();
-        bson_error_t* err = NULL;
-        if (mongoc_client_get_server_status(conn_, NULL, reply, err) && err == NULL) {
-            mongoc_client_destroy(conn_);
-        }
-        bson_destroy(reply);
+        mongoc_client_destroy(conn_);
     }
     mongoc_cleanup();
 }
