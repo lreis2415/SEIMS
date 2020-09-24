@@ -62,6 +62,8 @@ int main(const int argc, const char** argv) {
         mongo_client->Destroy();
         delete mongo_client;
         delete input_args;
+        /// Mannually to flush all log files for all levels
+        el::Loggers::flushAll();
     } catch (ModelException& e) {
         LOG(ERROR) << e.ToString();
         exit(EXIT_FAILURE);
@@ -74,5 +76,6 @@ int main(const int argc, const char** argv) {
         LOG(ERROR) << "Unknown exception occurred!";
         exit(EXIT_FAILURE);
     }
+
     return 0;
 }
