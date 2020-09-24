@@ -53,6 +53,11 @@ MongoClient::MongoClient(const char* host, const vuint16_t port) : host_(host), 
     mongoc_uri_destroy(uri);
 }
 
+MongoClient::MongoClient(mongoc_client_t* conn): conn_(conn) {
+    // Do nothing
+}
+
+
 /*!
  *  1. Check IP address
  *  2. Check database status
@@ -92,7 +97,11 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
 }
 
 MongoClient::~MongoClient() {
-    StatusMessage("Releasing MongoClient ...");
+    // Do nothing
+}
+
+void MongoClient::Destroy() {
+    //StatusMessage("Releasing MongoClient ...");
     // TODO: mongoc_client_get_server_status() has been deprecated.
     //       Shall we use mongoc_client_destroy() directly or in other way? -lj
     //if (conn_) {

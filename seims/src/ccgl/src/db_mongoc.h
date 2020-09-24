@@ -48,11 +48,17 @@ public:
     /*! Constructor using IP address and port number */
     MongoClient(const char* host, vuint16_t port);
 
+    /*! Constructor using mongoc_client_t* */
+    MongoClient(mongoc_client_t* conn);
+
     /*! Initialization of MongoClient with the validation check of database */
     static MongoClient* Init(const char* host, vuint16_t port);
 
     /*! Destructor */
     ~MongoClient();
+
+    /*! Destroy explicitly */
+    void Destroy();
 
     /*! Get `mongoc_client_t` instance */
     mongoc_client_t* GetConn() { return conn_; }
