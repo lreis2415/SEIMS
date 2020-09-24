@@ -124,10 +124,15 @@ int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const 
     MPI_Barrier(MCW); /// Wait for non-master rank
 
     MPI_Bcast(task->subbsn_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->lyr_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->down_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->up_count, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->up_ids, n_task_all * MAX_UPSTREAM, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     if (rank == MASTER_RANK) {
         CLOG(TRACE, LOG_INIT) << "Tasks are dispatched.";
     }
