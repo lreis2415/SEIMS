@@ -18,7 +18,9 @@
  * \param input_args Input arguments
  * \param rank Rank number
  * \param size Number of all processors, including one management rank and N-1 slave ranks
+ * \param mongo_pool
  */
-void CalculateProcess(InputArgs* input_args, int rank, int size);
+void CalculateProcess(InputArgs* input_args, int rank, int size,
+                      mongoc_client_pool_t* mongo_pool);
 
 #endif /* SEIMS_MPI_CALCULATE_PROCESS_H */

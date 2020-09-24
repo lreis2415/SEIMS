@@ -20,18 +20,22 @@ using namespace utils_array;
 using std::map;
 using std::vector;
 
-void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
+void CalculateProcess(InputArgs* input_args, const int rank, const int size,
+                      mongoc_client_pool_t* mongo_pool) {
     LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
     /// Get module path, i.e., the path of executable and dynamic libraries
     string module_path = GetAppPath();
-    /// Connect to MongoDB
-    MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
-    if (nullptr == mongo_client) {
-        throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
-    }
+
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
+    mongoc_client_t* mclient = mongoc_client_pool_pop(mongo_pool);
+    if (!mclient) {
+        throw ModelException("MongoDBClient", "Constructor",
+                             "Failed to pop mongoClient from mongoc_client_pool!");
+    }
+
+    MongoClient* mongo_client = new MongoClient(mclient);
     LoadTasks(mongo_client, input_args, size, rank, task_info);
     if (!task_info->Build()) {
         LOG(TRACE) << "Rank: " << rank << ", task information build failed!";
@@ -393,7 +397,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         data_center_map.erase(it++);
     }
     delete module_factory;
-    delete mongo_client;
+    mongoc_client_pool_push(mongo_pool, mclient);
     delete task_info;
     if (buf != nullptr) Release1DArray(buf);
 }

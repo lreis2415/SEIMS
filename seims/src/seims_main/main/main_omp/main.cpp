@@ -59,6 +59,7 @@ int main(const int argc, const char** argv) {
         delete model_main;
         delete data_center;
         delete module_factory;
+        mongo_client->Destroy();
         delete mongo_client;
         delete input_args;
     } catch (ModelException& e) {

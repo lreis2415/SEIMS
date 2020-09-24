@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #ifndef USE_MONGODB
 #define USE_MONGODB
 #endif /* USE_MONGODB */
@@ -15,6 +18,16 @@ int main(int argc, const char** argv) {
 
     /// Register GDAL
     GDALAllRegister();
+
+    /// Connect to MongoDB
+    //MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
+    //if (nullptr == mongo_client) {
+    //    throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
+    //}
+    mongoc_init();
+    mongoc_uri_t* uri = mongoc_uri_new_for_host_port(input_args->host.c_str(), input_args->port);
+    mongoc_client_pool_t *mongoc_pool = mongoc_client_pool_new(uri);
+    mongoc_client_pool_set_error_api(mongoc_pool, 2);
 
     /// Initialize MPI environment
     int size;
@@ -50,7 +63,7 @@ int main(int argc, const char** argv) {
         LOG(INFO) << "Process " << rank << " out of " << size << " running on " << hostname;
 
         try {
-            CalculateProcess(input_args, rank, size);
+            CalculateProcess(input_args, rank, size, mongoc_pool);
         } catch (ModelException& e) {
             LOG(ERROR) << e.what();
             MPI_Abort(MCW, 3);
@@ -63,12 +76,20 @@ int main(int argc, const char** argv) {
             LOG(ERROR) << "Unknown exception occurred!";
             MPI_Abort(MCW, 5);
         }
+        MPI_Barrier(MCW);
+        el::Loggers::flushAll();
     }
+
+    /// clean up input arguments
+    delete input_args;
+
+    /// clean up mongoc
+    mongoc_client_pool_destroy(mongoc_pool);
+    mongoc_uri_destroy(uri);
+    mongoc_cleanup();
+
     /// Finalize the MPI environment and exit with success
     MPI_Finalize();
-
-    /// clean up
-    delete input_args;
 
     return 0;
 }
