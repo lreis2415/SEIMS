@@ -150,7 +150,7 @@ void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
         string cur_file_name = itoa(i) + "_" + real_name;
         FloatRaster* rs = FloatRaster::Init(gfs, cur_file_name.c_str(), true,
                                             nullptr, true, NODATA_VALUE, opts);
-        if (nullptr == rs) {
+        if (nullptr == rs || !rs->Initialized()) {
             exit(-1);
         }
 #ifdef HAS_VARIADIC_TEMPLATES
