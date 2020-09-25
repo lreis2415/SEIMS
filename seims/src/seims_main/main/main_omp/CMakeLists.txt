@@ -1,7 +1,7 @@
 MESSAGE(STATUS "        Compiling main_subdir: seims_omp...")
 SET(EXECNAME seims)
 FILE(GLOB SRC_LIST *.cpp *.h)
-IF(WITH_OMP)
+IF(WITH_OPENMP)
   SET(EXECNAME ${EXECNAME}_omp)
   PROJECT(SEIMS_MAIN_OMP_VERSION)
 ELSE()
