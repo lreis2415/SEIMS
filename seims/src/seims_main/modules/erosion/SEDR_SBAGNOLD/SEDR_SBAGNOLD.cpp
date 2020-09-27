@@ -2,12 +2,12 @@
 
 #include "text.h"
 #include "ChannelRoutingCommon.h"
-#include "Logging.h"
+//#include "Logging.h"
 //#ifndef PRINT_DEBUG
 //#define PRINT_DEBUG
 //#endif
 
-INITIALIZE_NULL_EASYLOGGINGPP
+//INITIALIZE_NULL_EASYLOGGINGPP
 
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_dt(-1), m_inputSubbsnID(-1),

@@ -3,9 +3,6 @@
 #include "utils_math.h"
 #include "text.h"
 #include "ChannelRoutingCommon.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 using namespace utils_math;
 

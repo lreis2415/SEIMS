@@ -18,7 +18,6 @@
 #include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
-#include "Logging.h"
 
 #include <string>
 #include <ctime>
@@ -196,8 +195,6 @@ protected:
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
-    /// Saving the storage of easyloggingpp locally in case of segementation fault after dlclose()
-    el::base::type::StoragePointer m_storage;
 };
 
 /*!

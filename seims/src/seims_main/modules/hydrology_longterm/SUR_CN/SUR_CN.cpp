@@ -1,8 +1,5 @@
 #include "SUR_CN.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SUR_CN::SUR_CN(void) : m_nCells(-1), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE), m_T0(NODATA_VALUE),
                        m_Sfrozen(NODATA_VALUE),

@@ -1,9 +1,6 @@
 #include "clsTSD_RD.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 clsTSD_RD::clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
 }

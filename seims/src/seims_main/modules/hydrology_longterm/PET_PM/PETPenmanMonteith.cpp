@@ -3,9 +3,6 @@
 #include "utils_time.h"
 #include "text.h"
 #include "ClimateParams.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 PETPenmanMonteith::PETPenmanMonteith() :
     m_meanTemp(nullptr), m_minTemp(nullptr),

@@ -1,9 +1,6 @@
 #include "SOL_WB.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SOL_WB::SOL_WB() :
     m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr), m_soilMaxRootD(nullptr),

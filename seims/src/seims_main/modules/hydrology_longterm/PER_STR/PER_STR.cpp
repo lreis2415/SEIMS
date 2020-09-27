@@ -1,9 +1,6 @@
 #include "PER_STR.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 PER_STR::PER_STR() :
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr), m_dt(-1),

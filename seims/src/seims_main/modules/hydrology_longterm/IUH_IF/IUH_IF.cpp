@@ -1,8 +1,5 @@
 #include "IUH_IF.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 // using namespace std;  // Avoid this statement! by lj.
 

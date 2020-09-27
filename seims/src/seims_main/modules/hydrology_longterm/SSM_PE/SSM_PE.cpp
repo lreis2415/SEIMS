@@ -1,8 +1,5 @@
 #include "SSM_PE.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SSM_PE::SSM_PE(void) {
     

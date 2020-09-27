@@ -1,8 +1,5 @@
 #include "Percolation.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 Percolation_DARCY::Percolation_DARCY(void) {
     

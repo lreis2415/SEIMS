@@ -6,7 +6,7 @@
 
 #include "text.h"
 #include "ParamInfo.h"
-#include "Logging.h"
+//#include "Logging.h"
 
 using namespace utils_array;
 using namespace utils_string;
@@ -369,7 +369,8 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
 }
 
 clsReaches::~clsReaches() {
-    CLOG(TRACE, LOG_RELEASE) << "Release clsReach...";
+    //CLOG(TRACE, LOG_RELEASE) << "Release clsReach...";
+    cout << "Release clsReach..." << endl;
     if (!reaches_obj_.empty()) {
         for (auto iter = reaches_obj_.begin(); iter != reaches_obj_.end();) {
             if (nullptr != iter->second) {

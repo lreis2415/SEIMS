@@ -1,9 +1,6 @@
 #include "NutrCH_QUAL2E.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 NutrCH_QUAL2E::NutrCH_QUAL2E() :
     m_inputSubbsnID(-1), m_nCells(-1), m_dt(-1), m_reachDownStream(nullptr), m_nReaches(-1),

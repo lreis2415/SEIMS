@@ -1,9 +1,6 @@
 #include "NonPointSource_Management.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 NPS_Management::NPS_Management() :
     m_nCells(-1), m_cellWth(-1.f), m_cellArea(-1.f), m_timestep(-1.f),

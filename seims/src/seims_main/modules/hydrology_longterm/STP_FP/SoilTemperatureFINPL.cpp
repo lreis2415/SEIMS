@@ -2,9 +2,6 @@
 
 #include "text.h"
 #include "utils_time.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SoilTemperatureFINPL::SoilTemperatureFINPL() :
     m_a0(NODATA_VALUE), m_a1(NODATA_VALUE), m_a2(NODATA_VALUE),

@@ -1,9 +1,6 @@
 #include "SUR_MR.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SUR_MR::SUR_MR() :
     m_dt(-1), m_nCells(-1), m_netPcp(nullptr), m_potRfCoef(nullptr),

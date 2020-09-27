@@ -1,8 +1,5 @@
 #include "MUSLE_I30.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 MUSLE_I30::MUSLE_I30(void) {
     

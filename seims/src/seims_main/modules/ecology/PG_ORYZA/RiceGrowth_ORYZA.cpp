@@ -3,9 +3,6 @@
 #include <cmath>
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 ORYZA::ORYZA() :
     m_nCells(-1), m_co2(NODATA_VALUE), m_meanTemp(nullptr), m_tMax(nullptr), m_tMin(nullptr), m_SR(nullptr),

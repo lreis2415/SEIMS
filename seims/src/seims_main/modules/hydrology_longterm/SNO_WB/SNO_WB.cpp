@@ -1,8 +1,5 @@
 #include "SNO_WB.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SNO_WB::SNO_WB(void) {
     

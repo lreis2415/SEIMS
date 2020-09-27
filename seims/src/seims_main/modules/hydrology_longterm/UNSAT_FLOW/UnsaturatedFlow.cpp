@@ -1,8 +1,5 @@
 #include "UnsaturatedFlow.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 
 UnsaturatedFlow::UnsaturatedFlow(void) {

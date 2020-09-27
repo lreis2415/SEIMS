@@ -1,9 +1,6 @@
 #include "SET_LM.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SET_LM::SET_LM() :
     m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),

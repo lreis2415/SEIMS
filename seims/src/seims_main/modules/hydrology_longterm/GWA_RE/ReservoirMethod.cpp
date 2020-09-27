@@ -1,9 +1,6 @@
 #include "ReservoirMethod.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 ReservoirMethod::ReservoirMethod() :
     m_dt(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_maxSoilLyrs(-1),

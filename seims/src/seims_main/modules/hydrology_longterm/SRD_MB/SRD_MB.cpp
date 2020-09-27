@@ -1,8 +1,5 @@
 #include "SRD_MB.h"
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 SRD_MB::SRD_MB(void) {
     

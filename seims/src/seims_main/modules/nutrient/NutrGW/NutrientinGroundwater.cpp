@@ -1,9 +1,6 @@
 #include "NutrientinGroundwater.h"
 
 #include "text.h"
-#include "Logging.h"
-
-INITIALIZE_NULL_EASYLOGGINGPP
 
 NutrientinGroundwater::NutrientinGroundwater() :
     m_inputSubbsnID(-1), m_cellWth(-1), m_nCells(-1), m_TimeStep(-1), m_gw0(NODATA_VALUE),
