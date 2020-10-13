@@ -40,14 +40,14 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
                 /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
                 pi->setInterval((*iter).interval);
                 pi->setIntervalUnits((*iter).intervalUnit);
-                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName,
+                pi->AddPrintItem((*iter).sTimet, (*iter).eTimet, coreFileName,
                                  ValueToString(m_outletID), suffix, true);
             }
         } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && (isRaster || m_subbasinID == 9999)) {
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
             /// Output of all subbasins of DT_Raster1D and DT_Raster2D or DT_Array1D and DT_Array2D (field-version)
             for (auto it = aggTypes.begin(); it != aggTypes.end(); ++it) {
-                pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix, m_subbasinID);
+                pi->AddPrintItem(*it, (*iter).sTimet, (*iter).eTimet, coreFileName, suffix, m_subbasinID);
             }
         } else {
             // subbasin IDs is provided
@@ -69,7 +69,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
                     newCoreFileName += "_" + ValueToString(m_subbasinID);
                 }
                 if (m_subbasinID == 0 || StringMatch(*it, ValueToString(m_subbasinID))) {
-                    pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, newCoreFileName, *it, suffix, true);
+                    pi->AddPrintItem((*iter).sTimet, (*iter).eTimet, newCoreFileName, *it, suffix, true);
                 }
             }
         }
@@ -112,6 +112,7 @@ SettingsOutput::~SettingsOutput() {
     CLOG(TRACE, LOG_RELEASE) << "End to release SettingsOutput.";
 }
 
+/* This function has been deprecated and replaced by DataCenter::UpdateOutputDate(). The code should be removed later. -LJ.
 void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
     // if (m_mpi_rank > 0) return; // Only log warning messages to master rank for MPI. The subbasin 0 may not assigned to rank 0!
     if (m_subbasinID > 1 && m_subbasinID != 9999) return; // Only log once (subbasin 1) for one rank (the rank ID is casual)
@@ -126,7 +127,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
-                LOG(WARNING)  << "The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
+                LOG(WARNING) << "The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                 << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
                 << ConvertToString(endTime) << ", and will be updated.";
             }
@@ -134,6 +135,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
         }
     }
 }
+*/
 
 void SettingsOutput::Dump(const string& fileName) {
     std::ofstream fs;
@@ -148,8 +150,8 @@ void SettingsOutput::Dump(const string& fileName) {
             for (size_t idx2 = 0; idx2 < info->m_PrintItems.size(); idx2++) {
                 PrintInfoItem* item = info->m_PrintItems.at(idx2);
                 fs << "Type: " << item->getAggregationType() << endl;
-                fs << "Start Time:" << item->StartTime << endl;
-                fs << "End Time:" << item->EndTime << endl;
+                fs << "Start Time:" << ConvertToString2(item->m_startTime) << endl;
+                fs << "End Time:" << ConvertToString2(item->m_endTime) << endl;
                 fs << "File Name:" << item->Filename << endl;
             }
             fs << "-------------------------------------------" << endl;

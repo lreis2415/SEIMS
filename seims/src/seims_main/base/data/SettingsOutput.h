@@ -21,8 +21,8 @@
  */
 struct OrgOutItem {
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
-                   aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
-                   eTimeStr(""), interval(-1), use(-1) {
+                   aggType(""), unit(""), subBsn(""), intervalUnit(""),
+                   sTimet(0), eTimet(0), interval(-1), use(-1) {
     }
 
     string modCls;
@@ -33,8 +33,8 @@ struct OrgOutItem {
     string unit;
     string subBsn;
     string intervalUnit;
-    string sTimeStr;
-    string eTimeStr;
+    time_t sTimet;
+    time_t eTimet;
     int interval;
     int use;
 };
@@ -74,8 +74,9 @@ public:
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;
 
+    // This function has been deprecated and replaced by DataCenter::UpdateOutputDate(). -LJ.
     //! Check date of output settings
-    void checkDate(time_t, time_t);
+    //void checkDate(time_t, time_t);
 
 public:
     //! All the print settings

@@ -21,14 +21,17 @@ const char* SOILWATER_VARS[] = {
     VAR_SOL_SUMAWC, VAR_SOL_SUMSAT
 };
 
-DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, ModuleFactory* factory,
+DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, 
+                                     MongoGridFs* spatial_gfs_in, MongoGridFs* spatial_gfs_out,
+                                     ModuleFactory* factory,
                                      const int subbasin_id /* = 0 */) :
     DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
     mongodb_port_(input_args->port),
     clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
-    spatial_gridfs_(nullptr) {
-    spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
+    spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
+    //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
+    //spatial_gfs_out_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_OUT_SPATIAL));
     if (DataCenterMongoDB::GetFileInStringVector()) {
         input_ = SettingsInput::Init(file_in_strs_);
         if (nullptr == input_) {
@@ -41,6 +44,8 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (DataCenterMongoDB::GetFileOutVector()) {
+        // The start and end time of output items should be checked and updated here! -LJ. 09/28/2020
+        UpdateOutputDate(input_->getStartTime(), input_->getEndTime());
         output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
                                        scenario_id_, calibration_id_, mpi_rank_, mpi_size_);
         if (nullptr == output_) {
@@ -57,10 +62,14 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
 
 DataCenterMongoDB::~DataCenterMongoDB() {
     CLOG(TRACE, LOG_RELEASE) << "Release DataCenterMongoDB...";
-    if (spatial_gridfs_ != nullptr) {
+    /*if (spatial_gridfs_ != nullptr) {
         delete spatial_gridfs_;
         spatial_gridfs_ = nullptr;
     }
+    if (spatial_gfs_out_ != nullptr) {
+        delete spatial_gfs_out_;
+        spatial_gfs_out_ = nullptr;
+    }*/
     if (main_database_ != nullptr) {
         delete main_database_;
         main_database_ = nullptr;
@@ -162,8 +171,8 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         std::unique_ptr<MongoCollection>
                 collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_IN)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-        bson_error_t* err = nullptr;
-        if (mongoc_cursor_error(cursor, err)) {
+        bson_error_t err;
+        if (mongoc_cursor_error(cursor, &err)) {
             LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_IN << ".";
             return false;
         }
@@ -187,6 +196,11 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
     }
+    if (!file_in_strs_.empty()) {
+        for (auto it = file_in_strs_.begin(); it != file_in_strs_.end(); ++it) {
+            CLOG(TRACE, LOG_INIT) << "FILE_IN Info: " << *it;
+        }
+    }
     return true;
 }
 
@@ -198,8 +212,8 @@ bool DataCenterMongoDB::GetFileOutVector() {
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_OUT)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
         LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_OUT << ".";
         /// destroy
         bson_destroy(b);
@@ -235,10 +249,13 @@ bool DataCenterMongoDB::GetFileOutVector() {
             tmp_output_item.subBsn = GetStringFromBsonIterator(&itertor);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_StartTime)) {
-            tmp_output_item.sTimeStr = GetStringFromBsonIterator(&itertor);
+            /// TODO: Currently we only accept "%d-%d-%d %d:%d:%d" for UTC TIME! -LJ. 09/28/2020
+            tmp_output_item.sTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                                                   "%d-%d-%d %d:%d:%d", true);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_EndTime)) {
-            tmp_output_item.eTimeStr = GetStringFromBsonIterator(&itertor);
+            tmp_output_item.eTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                                                   "%d-%d-%d %d:%d:%d", true);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_Interval)) {
             GetNumericFromBsonIterator(&itertor, tmp_output_item.interval);
@@ -267,8 +284,8 @@ bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
         LOG(ERROR) << "Nothing found for subbasin number and outlet ID.";
         /// destroy
         bson_destroy(b);
@@ -353,9 +370,9 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
 
-    bson_error_t* err = NULL;
+    bson_error_t err;
     const bson_t* info;
-    if (mongoc_cursor_error(cursor, err)) {
+    if (mongoc_cursor_error(cursor, &err)) {
         LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_PARAMETERS << ".";
         /// destroy
         bson_destroy(filter);

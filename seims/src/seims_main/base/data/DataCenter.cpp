@@ -160,7 +160,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
     FloatRaster* raster = ReadRasterData(remote_filename);
     if (nullptr == raster) {
         if (is_optional) return;
-        throw ModelException("DataCenter", "LoadRasterData", "Load " + remote_filename + " failed!");
+        throw ModelException("DataCenter", "LoadAdjustRasterData", "Load " + remote_filename + " failed!");
     }
     string upper_name = GetUpper(para_name);
     if (!CheckAdjustment(upper_name)) return;
@@ -475,6 +475,26 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
         throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
     }
     p_module->SetSubbasins(subbasins_);
+}
+
+void DataCenter::UpdateOutputDate(time_t start_time, time_t end_time) {
+    for (auto it = origin_out_items_.begin(); it < origin_out_items_.end(); ++it) {
+        if ((*it).sTimet < start_time || (*it).sTimet >= end_time) {
+            CLOG(TRACE, LOG_INIT) << "The start time of output " << (*it).outFileName
+            << " will be changed to " << ConvertToString2(start_time);
+            (*it).sTimet = start_time;
+        }
+        if ((*it).eTimet > end_time || (*it).eTimet <= start_time) {
+            (*it).eTimet = end_time;
+            CLOG(TRACE, LOG_INIT) << "The end time of output " << (*it).outFileName
+            << " will be changed to " << ConvertToString2(end_time);
+            (*it).eTimet = end_time;
+        }
+        CLOG(TRACE, LOG_INIT) << "Output Info of subbasin: " << subbasin_id_ << ": "
+        << (*it).outputID << ": " << (*it).aggType << ", "
+        << ConvertToString((*it).sTimet) << " -- " << ConvertToString2((*it).eTimet)
+        << ", " << (*it).subBsn;
+    }
 }
 
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {

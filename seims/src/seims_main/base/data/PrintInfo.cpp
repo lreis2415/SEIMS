@@ -15,8 +15,7 @@ PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = 
     : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
       m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
       SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
-      StartTime(""), m_startTime(0),
-      EndTime(""), m_endTime(0), Suffix(""), Corename(""),
+      m_startTime(0),  m_endTime(0), Suffix(""), Corename(""),
       Filename(""),
       m_scenarioID(scenario_id), m_calibrationID(calibration_id),
       m_Counter(-1), m_AggregationType(AT_Unknown) {
@@ -58,7 +57,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
+void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, const string& header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     /*   Currently, I cannot find a way to store GridFS files with the same filename but with
     *        different metadata information by mongo-c-driver, which can be done by pymongo.
@@ -102,7 +101,11 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
     if (m_scenarioID >= 0) gfs_name += itoa(m_scenarioID);
     gfs_name += "_";
     if (m_calibrationID >= 0) gfs_name += itoa(m_calibrationID);
-    CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "...";
+    if (outToMongoDB) {
+        CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "(GridFS file: " << gfs_name << ")...";
+    } else {
+        CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "...";
+    }
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
     if (m_AggregationType == AT_SpecificCells) {
         // TODO, this function has been removed in current version
@@ -161,35 +164,65 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         }
         return;
     }
-    if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) {
-        if (templateRaster == nullptr) {
+    if (m_nRows > -1 &&
+        (nullptr != m_1DData && m_nLayers == 1) || // Single-layered raster data
+        (nullptr != m_2DData && m_nLayers > 1)) {  // Multi-layered raster data
+        if (nullptr == templateRaster) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
+        bool is1d = nullptr != m_1DData && m_nLayers == 1 ? true : false;
+
         if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
+            FloatRaster* rs_data = nullptr;
+            if (is1d) { // Single-layered and cell-based raster data
+                rs_data = new FloatRaster(templateRaster, m_1DData);
+            } else { // Multi-layered and cell-based raster data
+                rs_data = new FloatRaster(templateRaster, m_2DData, m_nLayers);
+            }
             if (outToMongoDB) {
                 gfs->RemoveFile(gfs_name);
-                FloatRaster(templateRaster, m_1DData).OutputToMongoDB(gfs_name, gfs, opts);
+                int try_times = 1;
+                while (try_times <= 3) { // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
+                    if (!rs_data->OutputToMongoDB(gfs_name, gfs, opts)) {
+                        CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
+                        << " Try time: " << try_times;
+                    } else {
+                        CLOG(TRACE, LOG_OUTPUT) << "-- The raster data " << gfs_name << "-- saved to MongoDB SUCCEED!";
+                        break;
+                    }
+                    SleepMs(2); // Sleep 0.002 second
+                    try_times++;
+                }
             } else {
-                FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
+                rs_data->OutputToFile(projectPath + Filename + "." + Suffix);
             }
-        } else if (Suffix == TextExtension) {
-            /// For field-version models, the Suffix is TextExtension
+            delete rs_data; // Release temp raster data
+        } else if (Suffix == TextExtension) { /// For field-version models, the Suffix is TextExtension
             std::ofstream fs;
             string filename = projectPath + Filename + "." + TextExtension;
             DeleteExistedFile(filename);
             fs.open(filename.c_str(), std::ios::out);
             if (fs.is_open()) {
                 int valid_num = templateRaster->GetValidNumber();
+                int nlyrs = is1d == true ? 1 : templateRaster->GetLayers();
                 for (int idx = 0; idx < valid_num; idx++) {
-                    fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
+                    if (is1d) {
+                        fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
+                    } else {
+                        fs << idx;
+                        for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
+                            fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
+                        }
+                        fs << endl;
+                    }
                 }
                 fs.close();
-                CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
+                CLOG(TRACE, LOG_OUTPUT) << "-- Create " << filename << " successfully!";
             }
         }
         return;
     }
-
+    /* This snippet has been integrated with the above one. This snippet should be removed. -LJ.
     if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) {
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
@@ -198,7 +231,23 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
             /// Multi-Layers raster data
             if (outToMongoDB) {
                 gfs->RemoveFile(gfs_name);
-                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(gfs_name, gfs, opts);
+                int try_times = 1;
+                mongoc_gridfs_file_t* gfile = NULL;
+                while (try_times <= 3) {  // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
+                    FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(gfs_name, gfs, opts);
+                    // Check if the raster data has been save successfully.
+                    gfile = gfs->GetFile(gfs_name);
+                    if (NULL == gfile) {
+                        CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
+                        << " Try time: " << try_times;
+                    } else {
+                        CLOG(TRACE, LOG_OUTPUT) << "-- The raster data " << gfs_name << "-- saved to MongoDB SUCCEED!";
+                        break;
+                    }
+                    SleepMs(2);  // Sleep 0.002 second
+                    try_times++;
+                }
+                mongoc_gridfs_file_destroy(gfile);
             } else {
                 FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
             }
@@ -224,7 +273,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         }
         return;
     }
-
+    */
     if (!TimeSeriesData.empty()) {
         /// time series data
         std::ofstream fs;
@@ -253,7 +302,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
         return; // TODO to implement.
     }
     // check to see if there is an aggregate array to add data to
-    if (m_2DData == nullptr) {
+    if (nullptr == m_2DData) {
         // create the aggregate array
         m_nRows = nRows;
         m_nLayers = nCols;
@@ -621,25 +670,23 @@ string PrintInfo::getOutputTimeSeriesHeader() {
     return oss.str();
 }
 
-void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& sufi) {
+void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string& sufi) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
     // set its properties
     itm->SiteID = -1;
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
     // add it to the list
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi,
+void PrintInfo::AddPrintItem(string& type, time_t start, time_t end, string& file, string& sufi,
                              int subbasinID /* = 0 */) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
@@ -647,14 +694,12 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     // set its properties
     itm->SiteID = -1;
     itm->SubbasinID = subbasinID;
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = subbasinID == 0 || subbasinID == 9999 ? file : file + "_" + ValueToString(subbasinID);
     itm->Suffix = sufi;
 
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
 
     type = Trim(type);
     itm->AggType = type;
@@ -668,7 +713,7 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename,
+void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string sitename,
                              string& sufi, bool isSubbasin) {
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
     char* strend = nullptr;
@@ -686,13 +731,11 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
         itm->SubbasinIndex = CVT_INT(m_subbasinSeleted.size());
         m_subbasinSeleted.emplace_back(itm->SubbasinID);
     }
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
 
     m_PrintItems.emplace_back(itm);
 }
