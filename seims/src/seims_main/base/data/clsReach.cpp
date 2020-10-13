@@ -370,7 +370,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
 
 clsReaches::~clsReaches() {
     //CLOG(TRACE, LOG_RELEASE) << "Release clsReach...";
-    cout << "Release clsReach..." << endl;
+    StatusMessage("Release clsReach...");
     if (!reaches_obj_.empty()) {
         for (auto iter = reaches_obj_.begin(); iter != reaches_obj_.end();) {
             if (nullptr != iter->second) {

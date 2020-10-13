@@ -45,16 +45,16 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
         }
     }
 
-    CLOG(TRACE,  LOG_INIT) << "Group set: ";
+    CLOG(TRACE, LOG_INIT) << "Group set: ";
     for (auto it = group_map.begin(); it != group_map.end(); ++it) {
         std::ostringstream oss;
         oss << "  group id: " << it->first << ", subbasin IDs: ";
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             oss << *it2 << ", ";
         }
-        CLOG(TRACE,  LOG_INIT) << oss.str();
+        CLOG(TRACE, LOG_INIT) << oss.str();
     }
-    CLOG(TRACE,  LOG_INIT) << "  max task length: " << task->max_len;
+    CLOG(TRACE, LOG_INIT) << "  max task length: " << task->max_len;
 
     int n_task_all = task->max_len * size;
     // initialization
@@ -79,7 +79,7 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
             int n_ups = CVT_INT(subbasin_map[id]->up_streams.size());
             task->up_count[group_index + i] = n_ups;
             if (n_ups > MAX_UPSTREAM) {
-                CLOG(TRACE,  LOG_INIT) << "The number of upstreams exceeds MAX_UPSTREAM: " << MAX_UPSTREAM;
+                CLOG(TRACE, LOG_INIT) << "The number of upstreams exceeds MAX_UPSTREAM: " << MAX_UPSTREAM;
                 MPI_Abort(MCW, 1);
             }
             for (int j = 0; j < n_ups; j++) {
@@ -89,13 +89,13 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
         igroup++;
     }
     // send the information to all processes
-    CLOG(TRACE,  LOG_INIT) << "Sending tasks to the all processes...";
+    CLOG(TRACE, LOG_INIT) << "Sending tasks to the all processes...";
 
-    CLOG(TRACE,  LOG_INIT) << "  pTaskSubbasinID, pGroupID, pLayerNumber, pDownStream, pUpNums";
+    CLOG(TRACE, LOG_INIT) << "  pTaskSubbasinID, pGroupID, pLayerNumber, pDownStream, pUpNums";
 
     for (int i = 0; i < n_task_all; i++) {
         if (task->subbsn_id[i] < 0) continue;
-        CLOG(TRACE,  LOG_INIT) << "  " << task->subbsn_id[i] << ", " << i / task->max_len << ", " << task->lyr_id[i] << ", "
+        CLOG(TRACE, LOG_INIT) << "  " << task->subbsn_id[i] << ", " << i / task->max_len << ", " << task->lyr_id[i] << ", "
         << task->down_id[i] << ", " << task->up_count[i];
     }
 

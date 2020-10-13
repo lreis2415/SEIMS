@@ -40,10 +40,10 @@ void Scenario::loadScenarioName() {
     /// Find the unique scenario name
     bson_t *query = bson_new(), *reply = bson_new();
     query = BCON_NEW("distinct", BCON_UTF8(TAB_BMP_SCENARIO), "key", FLD_SCENARIO_NAME,
-        "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
+                     "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
     bson_iter_t iter, sub_iter;
-    bson_error_t* err = NULL;
-    if (mongoc_collection_command_simple(sceCollection, query, NULL, reply, err)) {
+    bson_error_t err;
+    if (mongoc_collection_command_simple(sceCollection, query, NULL, reply, &err)) {
         //cout<<bson_as_json(reply,NULL)<<endl;
         if (bson_iter_init_find(&iter, reply, "values") &&
             (BSON_ITER_HOLDS_DOCUMENT(&iter) || BSON_ITER_HOLDS_ARRAY(&iter)) &&
@@ -79,8 +79,8 @@ void Scenario::loadBMPs() {
     std::unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
         throw ModelException("BMP Scenario", "loadBMPs",
                              "There are no record with scenario ID: " + ValueToString(m_sceneID));
     }
@@ -120,7 +120,7 @@ void Scenario::loadBMPs() {
 
         mongoc_cursor_t* cursor2 = collbmpidx->ExecuteQuery(queryBMP);
 
-        if (mongoc_cursor_error(cursor2, err)) {
+        if (mongoc_cursor_error(cursor2, &err)) {
             throw ModelException("BMP Scenario", "loadBMPs",
                                  "There are no record with BMP ID: " + ValueToString(BMPID));
         }

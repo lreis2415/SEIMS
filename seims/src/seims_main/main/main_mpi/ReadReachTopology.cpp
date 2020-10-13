@@ -59,9 +59,9 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
         oss << *it << " ";
     }
-    CLOG(TRACE,  LOG_INIT) << oss.str();
-    CLOG(TRACE,  LOG_INIT) << "Subbasin size: " << subbasins.size();
-    CLOG(TRACE,  LOG_INIT) << "SubbasinStruct Map: ";
+    CLOG(TRACE, LOG_INIT) << oss.str();
+    CLOG(TRACE, LOG_INIT) << "Subbasin size: " << subbasins.size();
+    CLOG(TRACE, LOG_INIT) << "SubbasinStruct Map: ";
     for (auto it = subbasins.begin(); it != subbasins.end(); ++it) {
         std::ostringstream oss2;
         oss2 << "  Subbasin ID: " << it->first << ", Group index: " << it->second->group
@@ -72,7 +72,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
         } else {
             oss2 << ", Downstream ID: " << it->second->down_stream->id;
         }
-        CLOG(TRACE,  LOG_INIT) << oss2.str();
+        CLOG(TRACE, LOG_INIT) << oss2.str();
     }
 
     delete reaches;
