@@ -57,10 +57,6 @@ MongoClient::MongoClient(mongoc_client_t* conn): conn_(conn) {
     // Do nothing
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 /*!
  *  1. Check IP address
  *  2. Check database status
@@ -238,7 +234,7 @@ void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
                 // Refers to https://stackoverflow.com/a/18703743/4837280
                 std::for_each(splitstrs.begin(), splitstrs.end() - 1,
                               [&](const std::string &piece){ realname += piece; });
-                string another_coll = splitstrs.back() == "files" ?
+                string another_coll = splitstrs.back() == "files" ? 
                                           realname + ".chunks" :
                                           realname + ".files";
                 if (find(collnames.begin(), collnames.end(), another_coll) == collnames.end()) {
