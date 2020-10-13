@@ -7,6 +7,7 @@ NPS_Management::NPS_Management() :
     m_mgtFields(nullptr), m_soilWtrSto(nullptr),
     m_soilNO3(nullptr), m_soilNH4(nullptr), m_soilSolP(nullptr),
     m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr) {
+    
     m_arealSrcFactory.clear();
 }
 

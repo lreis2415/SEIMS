@@ -2,6 +2,7 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace ccgl::utils_time;
 
@@ -137,9 +138,9 @@ void ModelMain::Execute() {
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
         if (preYearIdx != yearIdx) {
-            cout << "Simulation year: " << startYear + yearIdx << endl;
+            LOG(DEBUG) << "Simulation year: " << startYear + yearIdx;
         }
-        StatusMessage(ConvertToString2(t).c_str());
+        LOG(DEBUG) << ConvertToString2(t);
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
@@ -149,7 +150,7 @@ void ModelMain::Execute() {
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1 << endl;
+    CLOG(INFO, LOG_TIMESPAN) << "[COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1;
     OutputExecuteTime();
 }
 
@@ -173,32 +174,31 @@ void ModelMain::SetTransferredValue(const int index, float* tfvalues) {
 
 double ModelMain::Output() {
     double t1 = TimeCounting();
-    MongoGridFs* gfs = new MongoGridFs(m_dataCenter->GetMongoClient()->GetGridFs(m_dataCenter->GetModelName(),
-                                                                                 DB_TAB_OUT_SPATIAL));
+    //MongoGridFs* gfs = new MongoGridFs(m_dataCenter->GetMongoClient()->GetGridFs(m_dataCenter->GetModelName(),
+    //                                                                             DB_TAB_OUT_SPATIAL));
     for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end(); ++it) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); ++itemIt) {
-            PrintInfoItem* item = *itemIt;
-            item->Flush(m_outputPath, gfs, m_maskRaster, (*it)->getOutputTimeSeriesHeader());
+            (*itemIt)->Flush(m_outputPath, m_dataCenter->GetMongoGridFsOutput(),
+                             m_maskRaster, (*it)->getOutputTimeSeriesHeader());
         }
     }
-    delete gfs;
+    //delete gfs;
     double t2 = TimeCounting();
-    if (m_dataCenter->GetSubbasinID() == 0) {
-        // Only print for OpenMP version
-        cout << "[TIMESPAN][IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1 << endl;
+    if (m_dataCenter->GetSubbasinID() == 0 || m_dataCenter->GetSubbasinID() == 9999) {
+        // Only print for OpenMP version, including the field-version
+        CLOG(INFO, LOG_TIMESPAN) << "[IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1;
     }
     return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
-        cout << "[TIMESPAN][COMP][" << m_factory->GetModuleID(i) << "] " <<
-                std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[COMP][" << m_factory->GetModuleID(i) << "] " <<
+        std::fixed << std::setprecision(3) << m_executeTime[i];
     }
 }
 
 void ModelMain::CheckAvailableOutput() {
-    m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
     for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
         outputid = Trim(outputid);
@@ -210,7 +210,7 @@ void ModelMain::CheckAvailableOutput() {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
             if (m_dataCenter->GetSubbasinID() <= 1 || m_dataCenter->GetSubbasinID() == 9999) {
                 // Print only once
-                cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
+                LOG(WARNING) << "Can't find output variable for output id : " << outputid << "." << endl;
             }
             it = m_output->m_printInfos.erase(it);
         } else {
@@ -238,73 +238,72 @@ void ModelMain::AppendOutputData(const time_t time) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
             PrintInfoItem* item = *itemIt;
             const char* keyName = param->Name.c_str();
-            //time_t t1 = item->getStartTime();
-            //time_t t2 = item->getEndTime();
-            if (time >= item->getStartTime() && time <= item->getEndTime()) {
-                if (param->Dimension == DT_Single) {
-                    float value;
-                    module->GetValue(keyName, &value);
-                    item->TimeSeriesData[time] = value;
-                }
-                    //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
-                else if (param->Dimension == DT_Array1D) {
-                    int index = item->SubbasinID;
-                    //time series data for some time series data for subbasins
-                    if (index < 0) index = 0;
+            if (time < item->getStartTime() || time > item->getEndTime()) {
+                continue;
+            }
+            if (param->Dimension == DT_Single) {
+                float value;
+                module->GetValue(keyName, &value);
+                item->TimeSeriesData[time] = value;
+            }
+                //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
+            else if (param->Dimension == DT_Array1D) {
+                int index = item->SubbasinID;
+                //time series data for some time series data for subbasins
+                if (index < 0) index = 0;
 
-                    int n;
-                    float* data;
-                    module->Get1DData(keyName, &n, &data);
-                    item->TimeSeriesData[time] = data[index];
-                } else if (param->Dimension == DT_Array2D) {
-                    //time series data for subbasins
-                    //some modules will calculate result for all subbasins or all reaches,
-                    //regardless of whether they are output to file or not. In this case,
-                    //the 2-D array will contain all the results and the subbasinid or reachid
-                    //will be used to locate the result.
-                    if (StringMatch(param->BasicName, "RECH") || //discharge of reach
-                        StringMatch(param->BasicName, "WABA") || //channel water balance
-                        StringMatch(param->BasicName, "RSWB") || //reservoir water balance
-                        StringMatch(param->BasicName, "RESB") || //reservoir sediment balance
-                        StringMatch(param->BasicName, "CHSB") ||
-                        StringMatch(param->BasicName, VAR_GWWB) || // groundwater water balance
-                        StringMatch(param->BasicName, VAR_SOWB)    // soil water balance
-                    ) {
-                        // TODO: more conditions will be added in the future.
-                        //for modules in which only the results of output subbasins are calculated.
-                        //In this case, the 2-D array just contain the results of selected subbasins in file.out.
-                        //So, the index of Subbasin in file.out will be used to locate the result.
-                        int subbasinIndex = item->SubbasinIndex;
-                        if (subbasinIndex == -1) {
-                            char s[20];
-                            strprintf(s, 20, "%d", item->SubbasinID);
-                            throw ModelException("ModelMain", "Output",
-                                                 "Can't find subbasin " + string(s) + " in input sites.");
-                        }
-                        float** data;
-                        int nRows, nCols;
-                        module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
-                        item->add1DTimeSeriesResult(time, nCols, data[subbasinIndex]);
-                    } else {
-                        float** data;
-                        int nRows, nCols;
-                        module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
-                        item->AggregateData2D(time, nRows, nCols, data);
+                int n;
+                float* data;
+                module->Get1DData(keyName, &n, &data);
+                item->TimeSeriesData[time] = data[index];
+            } else if (param->Dimension == DT_Array2D) {
+                //time series data for subbasins
+                //some modules will calculate result for all subbasins or all reaches,
+                //regardless of whether they are output to file or not. In this case,
+                //the 2-D array will contain all the results and the subbasinid or reachid
+                //will be used to locate the result.
+                if (StringMatch(param->BasicName, "RECH") || //discharge of reach
+                    StringMatch(param->BasicName, "WABA") || //channel water balance
+                    StringMatch(param->BasicName, "RSWB") || //reservoir water balance
+                    StringMatch(param->BasicName, "RESB") || //reservoir sediment balance
+                    StringMatch(param->BasicName, "CHSB") ||
+                    StringMatch(param->BasicName, VAR_GWWB) || // groundwater water balance
+                    StringMatch(param->BasicName, VAR_SOWB)    // soil water balance
+                ) {
+                    // TODO: more conditions will be added in the future.
+                    //for modules in which only the results of output subbasins are calculated.
+                    //In this case, the 2-D array just contain the results of selected subbasins in file.out.
+                    //So, the index of Subbasin in file.out will be used to locate the result.
+                    int subbasinIndex = item->SubbasinIndex;
+                    if (subbasinIndex == -1) {
+                        char s[20];
+                        strprintf(s, 20, "%d", item->SubbasinID);
+                        throw ModelException("ModelMain", "Output",
+                                             "Can't find subbasin " + string(s) + " in input sites.");
                     }
-                } else if (param->Dimension == DT_Raster1D) {
-                    //spatial distribution, calculate average,sum,min or max
-                    int n;
-                    float* data;
-                    //cout << keyName << " " << n << endl;
-                    module->Get1DData(keyName, &n, &data);
-                    item->AggregateData(time, n, data);
-                } else if (param->Dimension == DT_Raster2D) {
-                    // spatial distribution with layers
-                    int n, lyrs;
                     float** data;
-                    module->Get2DData(keyName, &n, &lyrs, &data);
-                    item->AggregateData2D(time, n, lyrs, data);
+                    int nRows, nCols;
+                    module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
+                    item->add1DTimeSeriesResult(time, nCols, data[subbasinIndex]);
+                } else {
+                    float** data;
+                    int nRows, nCols;
+                    module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
+                    item->AggregateData2D(time, nRows, nCols, data);
                 }
+            } else if (param->Dimension == DT_Raster1D) {
+                //spatial distribution, calculate average,sum,min or max
+                int n;
+                float* data;
+                //cout << keyName << " " << n << endl;
+                module->Get1DData(keyName, &n, &data);
+                item->AggregateData(time, n, data);
+            } else if (param->Dimension == DT_Raster2D) {
+                // spatial distribution with layers
+                int n, lyrs;
+                float** data;
+                module->Get2DData(keyName, &n, &lyrs, &data);
+                item->AggregateData2D(time, n, lyrs, data);
             }
         }
     }

@@ -7,6 +7,7 @@
 #include "RegularMeasurement.h"
 #include "NotRegularMeasurement.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_string;
 
@@ -15,7 +16,7 @@ InputStation::InputStation(MongoClient* conn, const time_t dtHillslope, const ti
 }
 
 InputStation::~InputStation() {
-    StatusMessage("Start to release InputStation data ...");
+    CLOG(TRACE, LOG_RELEASE) << "Start to release InputStation data ...";
     for (auto it = m_measurement.begin(); it != m_measurement.end();) {
         if (it->second != nullptr) {
             delete it->second;

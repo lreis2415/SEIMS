@@ -2,6 +2,7 @@
 #include "text.h"
 
 SRD_MB::SRD_MB(void) {
+    
     // set default values for member variables
     this->m_Date = -1;
     this->m_t_wind = -99.0f;

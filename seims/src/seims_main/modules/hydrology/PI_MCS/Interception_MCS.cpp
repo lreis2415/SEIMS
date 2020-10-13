@@ -9,6 +9,7 @@ clsPI_MCS::clsPI_MCS() :
     m_minIntcpStoCap(nullptr),
     m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
     m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
+    
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
 #else

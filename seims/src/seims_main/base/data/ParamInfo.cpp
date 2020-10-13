@@ -123,7 +123,7 @@ void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
 }
 
 int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
-                               const vector<int>& selunits, float* lu, const vector<int>& sellu) {
+                              const vector<int>& selunits, float* lu, const vector<int>& sellu) {
     int count = 0;
 #pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {

@@ -1,5 +1,6 @@
 #include "invoke.h"
-#include <utility>
+
+#include <text.h>
 
 void Usage(const string& appname, const string& error_msg = "") {
     if (!error_msg.empty()) {
@@ -30,6 +31,7 @@ void Usage(const string& appname, const string& error_msg = "") {
     // cout << "\t<scheduleMethod> can be 0 and 1, which means "
     //         "SPATIAL (default) and TEMPOROSPATIAL, respectively." << endl;
     // cout << "\t<timeSlices> should be greater than 1, required when <scheduleMethod> is 1." << endl;
+    cout << "\t<logLevel> is the logging level: Trace, Debug, Info (default), Warning, Error, and Fatal" << endl;
     cout << endl;
     cout << "Complete and recommended Usage:\n    ";
     if (mpi_version) {
@@ -42,6 +44,7 @@ void Usage(const string& appname, const string& error_msg = "") {
             " -sce <scenarioID> -cali <calibrationID>"
             " -id <subbasinID>"
             // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"
+            " -ll <logLevel>"
             "]" << endl;
     exit(1);
 }
@@ -59,6 +62,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
     GroupMethod group_method = KMETIS;
     ScheduleMethod schedule_method = SPATIAL;
     int time_slices = -1;
+    string log_level = "Info";
     /// Parse input arguments.
     int i = 0;
     char* strend = nullptr;
@@ -186,6 +190,15 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
                 Usage(argv[0]);
                 return nullptr;
             }
+        } else if (StringMatch(argv[i], "-ll")) {
+            i++;
+            if (argc > i) {
+                log_level = argv[i];
+                i++;
+            } else {
+                Usage(argv[0]);
+                return nullptr;
+            }
         }
     }
     /// Check the validation of input arguments
@@ -207,18 +220,32 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
     }
     return new InputArgs(model_path, num_thread, layering_method, mongodb_ip, port,
                          scenario_id, calibration_id,
-                         subbasin_id, group_method, schedule_method, time_slices);
+                         subbasin_id, group_method, schedule_method, time_slices, log_level);
 }
 
 InputArgs::InputArgs(const string& model_path, const int thread_num, const LayeringMethod lyr_mtd,
                      const string& host, const uint16_t port,
                      const int scenario_id, const int calibration_id,
                      const int subbasin_id, const GroupMethod grp_mtd,
-                     const ScheduleMethod skd_mtd, const int time_slices)
-    : model_path(model_path), model_name(""), thread_num(thread_num), lyr_mtd(lyr_mtd),
+                     const ScheduleMethod skd_mtd, const int time_slices,
+                     const string& log_level)
+    : model_path(model_path), model_name(""), output_scene(DB_TAB_OUT_SPATIAL),
+      thread_num(thread_num), lyr_mtd(lyr_mtd),
       host(host), port(port), scenario_id(scenario_id), calibration_id(calibration_id),
-      subbasin_id(subbasin_id), grp_mtd(grp_mtd), skd_mtd(skd_mtd), time_slices(time_slices) {
+      subbasin_id(subbasin_id), grp_mtd(grp_mtd), skd_mtd(skd_mtd), time_slices(time_slices),
+      log_level(log_level) {
     /// Get model name
     size_t name_idx = model_path.rfind(SEP);
     model_name = model_path.substr(name_idx + 1);
+    /// Clean output folder
+    if (scenario_id >= 0) {
+        // -1 means no BMPs scenario will be simulated
+        output_scene += ValueToString(scenario_id);
+    }
+    if (calibration_id >= 0) {
+        // -1 means no calibration setting will be used.
+        output_scene += "-" + ValueToString(calibration_id);
+    }
+    output_path = model_path + SEP + output_scene + SEP;
+    if (subbasin_id <= 1) CleanDirectory(output_path); // avoid repeat operation in mpi version
 }

@@ -27,6 +27,7 @@ public:
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
+                      MongoGridFs* spatial_gfs_in, MongoGridFs* spatial_gfs_out,
                       ModuleFactory* factory, int subbasin_id = 0);
     //! Destructor
     ~DataCenterMongoDB();
@@ -114,6 +115,7 @@ public:
     MongoClient* GetMongoClient() const { return mongo_client_; }
     MongoDatabase* GetMainDatabase() const { return main_database_; }
     MongoGridFs* GetMongoGridFs() const { return spatial_gridfs_; }
+    MongoGridFs* GetMongoGridFsOutput() const { return spatial_gfs_out_; }
 private:
     const char* mongodb_ip_;       ///< Host IP address of MongoDB
     const uint16_t mongodb_port_;  ///< Port
@@ -122,5 +124,6 @@ private:
     MongoClient* mongo_client_;    ///< MongoDB Client
     MongoDatabase* main_database_; ///< Main model database
     MongoGridFs* spatial_gridfs_;  ///< Spatial data handler
+    MongoGridFs* spatial_gfs_out_; ///< Spatial data handler
 };
 #endif /* SEIMS_DATA_CENTER_MONGODB_H */

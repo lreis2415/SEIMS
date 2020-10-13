@@ -1,7 +1,7 @@
 #include "SplashEro_Park.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 SplashEro_Park::SplashEro_Park(void) : m_CellWith(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_Omega(NODATA_VALUE),
                                        m_Slope(NULL),
@@ -174,9 +174,9 @@ int SplashEro_Park::Execute() {
 
         //rainfall between plants in mm  //Rainc->Drc = Rain->Drc * _dx/DX->Drc;
         // correction for slope dx/DX, water spreads out over larger area
-        float s = max(0.001f, m_Slope[i]);
+        float s = Max(0.001f, m_Slope[i]);
         float S0 = sin(atan(s));
-        float Dm = 0.00124f * pow(RainInten, 0.182f);
+        float Dm = 0.00124f * Power(RainInten, 0.182f);
         float waterdepth = (m_sr[i] + m_depression[i]) / 1000.f;   // mm convert to m
         float Fw, Dr;
         if (waterdepth > Dm) {
@@ -185,7 +185,7 @@ int SplashEro_Park::Execute() {
             Fw = 1.f;
         }
         // kg/(m2*min)
-        Dr = m_Omega * Fw * m_USLE_C[i] * m_USLE_K[i] * pow(RainInten, 2.f) * (2.96f * pow(S0, 0.79f) + 0.56f);
+        Dr = m_Omega * Fw * m_USLE_C[i] * m_USLE_K[i] * Power(RainInten, 2.f) * (2.96f * Power(S0, 0.79f) + 0.56f);
         // convert kg/(m2*min) to kg/cell
         float cellareas = (m_CellWith / cos(atan(s))) * m_CellWith;
         m_DETSplash[i] = Dr * (m_TimeStep / 60.f) * cellareas;

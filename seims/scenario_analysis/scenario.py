@@ -245,7 +245,7 @@ class Scenario(object):
         """
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
         self.model.scenario_id = self.ID
-        self.modelout_dir = self.model.OutputDirectory
+        self.modelout_dir = self.model.output_dir
 
         self.model.SetMongoClient()
         self.model.run()

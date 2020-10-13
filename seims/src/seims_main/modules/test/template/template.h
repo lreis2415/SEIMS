@@ -14,7 +14,7 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 class ModuleTemplate: public SimulationModule {
 public:

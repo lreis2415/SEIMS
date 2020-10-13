@@ -772,7 +772,7 @@ def main_manual(sceid, gene_values):
     sce.export_to_mongodb()
     sce.execute_seims_model()
     sce.export_sce_tif = True
-    sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.calculate_economy()
     sce.calculate_environment()
 

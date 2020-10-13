@@ -2,6 +2,7 @@
 #include "text.h"
 
 Percolation_DARCY::Percolation_DARCY(void) {
+    
     // set default values for member variables
     this->m_timestep = -1;
     m_nCells = -1;

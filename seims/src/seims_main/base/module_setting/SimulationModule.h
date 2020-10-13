@@ -6,6 +6,7 @@
  *   - 1. 2010-07-31 - jz - Initial implementation.
  *   - 2. 2016-06-14 - lj - Add SetScenario etc. functions.
  *   - 3. 2018-03-03 - lj - Add CHECK_XXX series macros for data checking.
+ *   - 4. 2020-09-18 - lj - Using Easyloggingpp
  *
  * \author Junzhi Liu, Liangjun Zhu
  */

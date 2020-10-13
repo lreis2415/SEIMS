@@ -4,6 +4,7 @@
  * \version 1.0
  * \authors Liangjun Zhu (crazyzlj)
  * \revised 2017-12-02 - lj - Initial version.
+ *          2019-11-06 - lj - Add global test environment to intialize input arguments.
  */
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
@@ -17,16 +18,44 @@
 #include "gtest/gtest.h"
 #ifdef USE_GDAL
 #include <gdal.h>
+#include <utility>
 #endif
 
+#include "test_global.h"
 #include "../src/basic.h"
 #include "../src/utils_filesystem.h"
+#include "../src/utils_string.h"
 
 using namespace ccgl;
 using namespace utils_filesystem;
 
+GlobalEnvironment* GlobalEnv;
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
+    // Parse the input arguments
+    int i = 1;
+    char* strend = nullptr;
+    string mongo_host = "127.0.0.1";
+    vint16_t mongo_port = 27017;
+    while (argc > i) {
+        if (utils_string::StringMatch(argv[i], "-host")) {
+            i++;
+            if (argc > i) {
+                mongo_host = argv[i];
+                i++;
+            }
+        }
+        else if (utils_string::StringMatch(argv[i], "-port")) {
+            i++;
+            if (argc > i) {
+                mongo_port = strtol(argv[i], &strend, 10);
+                i++;
+            }
+        }
+    }
+    GlobalEnv = new GlobalEnvironment(mongo_host, mongo_port);
+    ::testing::AddGlobalTestEnvironment(GlobalEnv);
 
 #ifdef SUPPORT_OMP
     SetDefaultOpenMPThread();

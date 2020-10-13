@@ -6,6 +6,7 @@
 
 #include "text.h"
 #include "ParamInfo.h"
+//#include "Logging.h"
 
 using namespace utils_array;
 using namespace utils_string;
@@ -40,11 +41,11 @@ clsReach::clsReach(const bson_t*& bson_table) {
         if (bson_iter_init_find(&iterator, bson_table, REACH_PARAM_NAME[i]) &&
             GetNumericFromBsonIterator(&iterator, tmp_param)) {
             // Existed in database and is numerical value
-            if (REACH_PARAM_NAME[i] == REACH_BOD && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BOD) && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
         } else {
             // Not existed in database, the set default values
-            if (REACH_PARAM_NAME[i] == REACH_BEDTC) tmp_param = 0.f;
-            if (REACH_PARAM_NAME[i] == REACH_BNKTC) tmp_param = 0.f;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BEDTC)) tmp_param = 0.f;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BNKTC)) tmp_param = 0.f;
         }
 #ifdef HAS_VARIADIC_TEMPLATES
         param_map_.emplace(REACH_PARAM_NAME[i], tmp_param);
@@ -368,6 +369,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
 }
 
 clsReaches::~clsReaches() {
+    //CLOG(TRACE, LOG_RELEASE) << "Release clsReach...";
     StatusMessage("Release clsReach...");
     if (!reaches_obj_.empty()) {
         for (auto iter = reaches_obj_.begin(); iter != reaches_obj_.end();) {

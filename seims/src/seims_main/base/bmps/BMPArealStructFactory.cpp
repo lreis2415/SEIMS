@@ -3,6 +3,7 @@
 #include "utils_string.h"
 
 #include "BMPText.h"
+#include "Logging.h"
 
 using namespace utils_string;
 using namespace bmps;
@@ -50,10 +51,10 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
 }
 
 BMPArealStruct::~BMPArealStruct() {
-    StatusMessage("---release map of parameters in BMPArealStruct ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in BMPArealStruct ...";
     for (auto it = m_parameters.begin(); it != m_parameters.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             delete it->second;
             it->second = nullptr;
         }

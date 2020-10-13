@@ -1,7 +1,7 @@
 #include "KinWavSed_CH.h"
 #include "text.h"
 
-using namespace std;
+//using namespace std;  // Avoid this statement! by lj.
 
 KinWavSed_CH::KinWavSed_CH() : m_CellWith(-1),
                                    m_nCells(-1),
@@ -394,7 +394,7 @@ void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id
     float wh = m_ChannelWH[iReach][iCell] / 1000;    // mm to m -> /1000
     float FW = m_chWidth[id];
     float S = sin(atan(m_Slope[id]));   //sine of the slope
-    float grad = max(0.001f, sqrt(S));
+    float grad = Max(0.001f, sqrt(S));
     float Perim = 2 * wh + FW;
     float area = FW * wh;
     float R = 0.0f;
@@ -454,7 +454,7 @@ void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is 
     //using simplified Srinivasan and Galvao (1995) equation to calculate channel flow detachment
     // the critical shear stress for sediment was neglected.
     float Df, shearStr, waterden, g, chwdeepth;
-    float s = max(0.01f, m_Slope[id]);
+    float s = Max(0.01f, m_Slope[id]);
     float S0 = sin(atan(s));
     waterden = 1000;
     g = 9.8f;
@@ -463,7 +463,7 @@ void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is 
     //m_detCH[id] = m_ChannelWH[iReach][iCell];
     shearStr = waterden * g * chwdeepth * S0;
     // kg/(m2*min)
-    Df = m_ChDetCo * m_USLE_K[id] * pow(shearStr, 1.5f);
+    Df = m_ChDetCo * m_USLE_K[id] * Power(shearStr, 1.5f);
     ///  kg/(m2*min), convert to kg
     float DX, CHareas;
     DX = m_CellWith / cos(atan(s));
@@ -501,12 +501,12 @@ float KinWavSed_CH::GetTransportCapacity(int iReach, int iCell, int id) {
     //WH = m_ChannelWH[iReach][iCell];
     //q = m_ChV[iReach][iCell]* WH * 60;
     q = m_ChQkin[iReach][iCell] * 60;   // convert to m3/min
-    float s = max(0.01f, m_Slope[id]);
+    float s = Max(0.01f, m_Slope[id]);
     S0 = sin(atan(s));
     K = m_USLE_K[id];
     chVol = m_ChVol[iReach][iCell];
     if (chVol > 0) {
-        TranCap = m_ChTcCo * K * S0 * pow(q, 2.0f) * (m_TimeStep / 60) / chVol;   // kg/min, convert to kg/m3
+        TranCap = m_ChTcCo * K * S0 * Power(q, 2.0f) * (m_TimeStep / 60) / chVol;   // kg/min, convert to kg/m3
         //float threadhold = 0.046f;
         //if(q < threadhold)
         //	TranCap = m_eco1 * K * S0 * sqrt(q) * (m_TimeStep/60);   // convert to kg
@@ -540,7 +540,7 @@ void KinWavSed_CH::GetSedimentInFlow(int iReach, int iCell, int id) {
     } else {
         concentration = 0.0f;
     }
-    Deposition = max(concentration - TC, 0.0f);   //kg, >0
+    Deposition = Max(concentration - TC, 0.0f);   //kg, >0
     if (Deposition > 0) {
         m_CHSed_kg[iReach][iCell] = TC * chVol;
     }
@@ -555,7 +555,7 @@ float KinWavSed_CH::simpleSedCalc(float Qn, float Qin, float Sin, float dt, floa
     if (totwater <= 1e-10) {
         return (Qsn);
     }
-    Qsn = min(totsed / dt, Qn * totsed / totwater);
+    Qsn = Min(totsed / dt, Qn * totsed / totwater);
     return (Qsn); // sedoutflow is new concentration * new out flux
 
 }
@@ -575,8 +575,8 @@ float KinWavSed_CH::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
     }
 
     Cavg = (Sj1i + Sji1) / (Qj1i + Qji1);
-    aQb = alpha * pow(Qavg, beta);
-    abQb_1 = alpha * beta * pow(Qavg, beta - 1);
+    aQb = alpha * Power(Qavg, beta);
+    abQb_1 = alpha * beta * Power(Qavg, beta - 1);
 
     A = dt * Sj1i;
     B = -dx * Cavg * abQb_1 * (Qj1i1 - Qji1);
@@ -587,7 +587,7 @@ float KinWavSed_CH::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
         Sj1i1 = 0;
     }
 
-    return max(0.0f, Sj1i1);
+    return Max(0.0f, Sj1i1);
 }
 
 void KinWavSed_CH::ChannelflowSedRouting(int iReach, int iCell, int id) {
@@ -638,11 +638,11 @@ void KinWavSed_CH::ChannelflowSedRouting(int iReach, int iCell, int id) {
 
     float tem = Sin + m_CHSed_kg[iReach][iCell] / m_TimeStep;    //kg/s
     // no more sediment outflow than total sed in cell
-    m_Qsn[iReach][iCell] = min(m_Qsn[iReach][iCell], tem);
+    m_Qsn[iReach][iCell] = Min(m_Qsn[iReach][iCell], tem);
     m_routQs[id] = m_Qsn[iReach][iCell];
     tem = Sin * m_TimeStep + m_CHSed_kg[iReach][iCell] - m_Qsn[iReach][iCell] * m_TimeStep;
     // new sed volume based on all fluxes and or sed present
-    m_CHSed_kg[iReach][iCell] = max(0.0f, tem);
+    m_CHSed_kg[iReach][iCell] = Max(0.0f, tem);
     float concentration = 0;
     if (WtVol > 0) {
         concentration = m_CHSed_kg[iReach][iCell] / WtVol;   //kg/m3

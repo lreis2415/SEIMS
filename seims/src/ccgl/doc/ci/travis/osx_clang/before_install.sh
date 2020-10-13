@@ -11,12 +11,15 @@ brew list gdal &>/dev/null || brew install gdal
 
 # MongoDB database service
 echo "Installing and starting mongodb"
-# The follow dependencies will be automatically installed by mongodb
-# brew install automake autoconf libtool openssl
-brew install mongodb
+# The follow dependencies will be automatically installed by mongodb, i.e., automake autoconf libtool openssl
+# brew install mongodb # deprecated 2019-9-30, use new installation method according to the official instrument
+# https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+brew tap mongodb/brew
+brew install mongodb-community@4.2
 # create a folder for mongodb to prevent an error on mac osx
 sudo mkdir -p /data/db
-brew services start mongodb
+# run MongoDB as a macOS service. Previous command: brew services start mongodb
+brew services start mongodb-community@4.2
 
 # Install mongo-c-driver via brew
 brew install mongo-c-driver

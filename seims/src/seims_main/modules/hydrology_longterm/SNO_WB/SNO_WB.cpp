@@ -2,6 +2,7 @@
 #include "text.h"
 
 SNO_WB::SNO_WB(void) {
+    
     // set default values for member variables
     this->m_nCells = -1;
     this->m_t0 = NODATA_VALUE;
@@ -124,7 +125,7 @@ int SNO_WB::Execute() {
             dtmp2 += dPnet;
         }
 
-        this->m_SA[rw] = max(dtmp2, 0.0f);
+        this->m_SA[rw] = Max(dtmp2, 0.0f);
 
         this->m_SWE += this->m_SA[rw];
     }

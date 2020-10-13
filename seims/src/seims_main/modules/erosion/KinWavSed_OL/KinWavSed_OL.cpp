@@ -1,7 +1,7 @@
 #include "KinWavSed_OL.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_nLayers(-1),
                                    m_routingLayers(NULL),
@@ -12,7 +12,6 @@ KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NOD
                                    m_Sed_kg(NULL), m_SedToChannel(NULL),
                                    m_ManningN(NULL), m_whtoCh(NULL), m_USLE_C(NULL), m_Ccoe(NODATA_VALUE), m_WH(NULL),
                                    m_streamLink(NULL) {
-
 }
 
 KinWavSed_OL::~KinWavSed_OL(void) {
@@ -269,7 +268,7 @@ void KinWavSed_OL::CalcuVelocityOverlandFlow() {
                 R = 0.0f;
             }
             S = sin(atan(m_Slope[i]));   //sine of the slope
-            S = max(0.001f, S);
+            S = Max(0.001f, S);
             n = m_ManningN[i];  //manning n
             //float Alpha = pow(n/sqrt(S) * pow(Perim, _23), beta);
             //if(Alpha > 0)
@@ -277,7 +276,7 @@ void KinWavSed_OL::CalcuVelocityOverlandFlow() {
             //else
             //	m_OverlandQ[i] = 0;
 
-            m_V[i] = pow(R, _2div3) * sqrt(S) / n;
+            m_V[i] = Power(R, _2div3) * sqrt(S) / n;
         } else {
             m_V[i] = 0;
         }
@@ -299,7 +298,7 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
     float q, S0, K;
     q = m_V[id] * m_WH[id] *
         60.f;   // m2/s -> m2/min                                 // m_Qkin[id]*60;   // convert to m3/min
-    float s = max(0.001f, m_Slope[id]);
+    float s = Max(0.001f, m_Slope[id]);
     S0 = sin(atan(s));
     K = m_USLE_K[id];
     float threadhold = 0.046f;
@@ -309,7 +308,7 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
         if (q < threadhold) {
             m_Ctrans[id] = m_eco1 * K * S0 * sqrt(q);   // kg/(m*min) kg per unit width per minute
         } else {
-            m_Ctrans[id] = m_eco2 * K * S0 * pow(q, 2.0f);
+            m_Ctrans[id] = m_eco2 * K * S0 * Power(q, 2.0f);
         }
         // kg/(m*min)  -> convert to kg/m3
         m_Ctrans[id] = m_Ctrans[id] / q;
@@ -335,7 +334,7 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
     } else {
         concentration = 0;
     }
-    Deposition = max(concentration - TC, 0.0f);   //kg/m3, >0
+    Deposition = Max(concentration - TC, 0.0f);   //kg/m3, >0
     if (Deposition > 0) {
         m_Sed_kg[id] = TC * Vol;
     }
@@ -375,8 +374,8 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
 void KinWavSed_OL::MaxConcentration(float watvol, float sedvol, int id) {
     float conc = (watvol > m_CellWidth * m_CellWidth * 1e-6 ? sedvol / watvol : 0);
     if (conc > 848) {
-        m_SedDep[id] += max(0.f, sedvol - 848 * watvol);
-        //m_SedDep[id] = min(0.f, 848 * watvol - sedvol);
+        m_SedDep[id] += Max(0.f, sedvol - 848 * watvol);
+        //m_SedDep[id] = Min(0.f, 848 * watvol - sedvol);
         conc = 848;
     }
     m_Sed_kg[id] = conc * watvol;
@@ -407,7 +406,7 @@ void KinWavSed_OL::WaterVolumeCalc() {
 void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the grid map
 {
     // correction for slope dx/DX, water spreads out over larger area
-    float s = max(0.001f, m_Slope[i]);
+    float s = Max(0.001f, m_Slope[i]);
     float S0 = sin(atan(s));
     float waterdepth = m_WH[i] / 1000.f;   // mm convert to m
     //float waterdepth = m_Runoff[i] / 1000;   // mm convert to m
@@ -417,7 +416,7 @@ void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the 
     waterden = 1000;
     g = 9.8f;
     shearStr = waterden * g * waterdepth * S0;
-    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * pow(shearStr, 1.5f);
+    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * Power(shearStr, 1.5f);
     /*q = m_Q[i];
     Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * q * S0;*/
     // convert kg/(m2*min) to kg/cell
@@ -430,7 +429,7 @@ float KinWavSed_OL::SedToChannel(int ID) {
     if (m_chWidth[ID] > 0) {
         float tem = m_ChV[ID] * m_TimeStep;
         fractiontochannel = 2 * tem / (m_CellWidth - m_chWidth[ID]);
-        fractiontochannel = min(fractiontochannel, 1.0f);
+        fractiontochannel = Min(fractiontochannel, 1.0f);
     }
     float sedtoch = fractiontochannel * m_Sed_kg[ID];
     m_Sed_kg[ID] -= sedtoch;
@@ -451,7 +450,7 @@ float KinWavSed_OL::simpleSedCalc(float Qn, float Qin, float Sin, float dt, floa
     if (totwater <= 1e-10) {
         return (Qsn);
     }
-    Qsn = min(totsed / dt, Qn * totsed / totwater);
+    Qsn = Min(totsed / dt, Qn * totsed / totwater);
     return (Qsn); // outflow is new concentration * new out flux
 
 }
@@ -471,8 +470,8 @@ float KinWavSed_OL::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
     }
 
     Cavg = (Sj1i + Sji1) / (Qj1i + Qji1);
-    aQb = alpha * pow(Qavg, beta);
-    abQb_1 = alpha * beta * pow(Qavg, beta - 1);
+    aQb = alpha * Power(Qavg, beta);
+    abQb_1 = alpha * beta * Power(Qavg, beta - 1);
 
     A = dt * Sj1i;
     B = -dx * Cavg * abQb_1 * (Qj1i1 - Qji1);
@@ -482,7 +481,7 @@ float KinWavSed_OL::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
     } else {
         Sj1i1 = 0;
     }
-    Sj1i1 = max(0.f, Sj1i1);
+    Sj1i1 = Max(0.f, Sj1i1);
     return Sj1i1;
 }
 
@@ -525,9 +524,9 @@ void KinWavSed_OL::OverlandflowSedRouting(int id) {
     //m_Qsn[id] = complexSedCalc(m_OverlandQ[id], Qin, Q, Sin, Qs, Alpha, m_TimeStep, DX);
     //----end
     float tem = Sin + m_Sed_kg[id] / m_TimeStep;
-    m_Qsn[id] = min(m_Qsn[id], tem);
+    m_Qsn[id] = Min(m_Qsn[id], tem);
     tem = Sin * m_TimeStep + m_Sed_kg[id] - m_Qsn[id] * m_TimeStep;
-    m_Sed_kg[id] = max(0.0f, tem);
+    m_Sed_kg[id] = Max(0.0f, tem);
     //m_SedConc[id] = MaxConcentration(WtVol, m_Sed_kg[id], id);
     //calculate sediment to channel
     m_SedToChannel[id] = SedToChannel(id);

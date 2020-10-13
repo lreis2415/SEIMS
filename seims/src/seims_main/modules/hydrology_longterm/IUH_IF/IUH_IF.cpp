@@ -1,10 +1,11 @@
 #include "IUH_IF.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nsub(-1), m_subbasin(NULL),
                        m_iuhCell(NULL), m_ssru(NULL), m_iuhCols(-1), m_cellFlowCols(-1) {
+    
     m_Q_SBIF = NULL;
     m_cellFlow = NULL;
 }
@@ -80,7 +81,7 @@ void IUH_IF:: InitialOutputs() {
         m_cellFlow = new float *[this->m_nCells];
 
         for (int i = 0; i < this->m_nCells; i++) {
-            m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
 
         //get m_cellFlowCols, i.e. the maximum of second column of iuh add 1.

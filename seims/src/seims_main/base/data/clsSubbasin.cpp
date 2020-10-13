@@ -1,6 +1,7 @@
 #include "clsSubbasin.h"
 
 #include "text.h"
+// #include "Logging.h"
 
 Subbasin::Subbasin(const int id) :
     subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
@@ -138,6 +139,7 @@ clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int pr
 }
 
 clsSubbasins::~clsSubbasins() {
+    // CLOG(TRACE, LOG_RELEASE) << "Release subbasin class ...";
     StatusMessage("Release subbasin class ...");
     if (!subbasin_objs_.empty()) {
         for (auto iter = subbasin_objs_.begin(); iter != subbasin_objs_.end();) {

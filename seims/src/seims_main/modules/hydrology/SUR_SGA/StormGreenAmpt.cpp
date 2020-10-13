@@ -1,7 +1,7 @@
 #include "StormGreenAmpt.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 StormGreenAmpt::StormGreenAmpt(void) : m_infil(NULL), m_capillarySuction(NULL), m_accumuDepth(NULL),
                                        m_dt(-1), m_nCells(-1), m_pNet(NULL), m_porosity(NULL), m_soilMoisture(NULL),
@@ -10,7 +10,6 @@ StormGreenAmpt::StormGreenAmpt(void) : m_infil(NULL), m_capillarySuction(NULL), 
                                        m_tSnow(0.0f), m_t0(1.0f), m_snowAccu(NULL), m_snowMelt(NULL),
                                        m_tSoilFrozen(-5.0f), m_sFrozen(0.5f), m_soilTemp(NULL),
                                        m_ks(NULL), m_clay(NULL), m_sand(NULL), m_initSoilMoisture(NULL) {
-
 }
 
 StormGreenAmpt::~StormGreenAmpt(void) {
@@ -232,7 +231,7 @@ int StormGreenAmpt::Execute(void) {
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = 0.f;
             } else {
-                m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
+                m_infil[i] = Min(infilRate * dt * 1000.f, infilCap); // mm
 
                 //cout << m_infil[i] << endl;
                 //check if the infiltration potential exceeds the available water
@@ -256,7 +255,7 @@ int StormGreenAmpt::Execute(void) {
         } else {
             m_sr[i] = 0.0f;
             m_infil[i] = 0.0f;
-            m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
+            m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
         }
     }
 

@@ -1,12 +1,11 @@
 /*!
  * \file utils_math.h
- * \brief Useful equations.
- *        Part of the Common Cross-platform Geographic Library (CCGL)
+ * \brief Useful math equations in CCGL.
  *
  * Changelog:
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *
- * \author Liangjun Zhu (crazyzlj)
+ * \author Liangjun Zhu (zlj@lreis.ac.cn)
  * \version 1.0
  */
 #ifndef CCGL_UTILS_MATH_H
@@ -31,7 +30,7 @@ namespace utils_math {
 #ifndef Min
 #define Min(a, b) ((a) >= (b) ? (b) : (a))
 #endif
-/*! Return absoulte value */
+/*! Return absolute value */
 #ifndef Abs
 #define Abs(x) ((x) >= 0 ? (x) : -(x))
 #endif

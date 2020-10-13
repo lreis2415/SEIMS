@@ -1,5 +1,6 @@
 #include "DataCenterMongoDB.h"
 #include "text.h"
+#include "Logging.h"
 
 const int MAIN_DB_TABS_REQ_NUM = 6;
 const char* MAIN_DB_TABS_REQ[] = {
@@ -20,14 +21,17 @@ const char* SOILWATER_VARS[] = {
     VAR_SOL_SUMAWC, VAR_SOL_SUMSAT
 };
 
-DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, ModuleFactory* factory,
+DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, 
+                                     MongoGridFs* spatial_gfs_in, MongoGridFs* spatial_gfs_out,
+                                     ModuleFactory* factory,
                                      const int subbasin_id /* = 0 */) :
     DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
     mongodb_port_(input_args->port),
     clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
-    spatial_gridfs_(nullptr) {
-    spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
+    spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
+    //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
+    //spatial_gfs_out_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_OUT_SPATIAL));
     if (DataCenterMongoDB::GetFileInStringVector()) {
         input_ = SettingsInput::Init(file_in_strs_);
         if (nullptr == input_) {
@@ -40,8 +44,10 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (DataCenterMongoDB::GetFileOutVector()) {
+        // The start and end time of output items should be checked and updated here! -LJ. 09/28/2020
+        UpdateOutputDate(input_->getStartTime(), input_->getEndTime());
         output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
-                                       scenario_id_, calibration_id_);
+                                       scenario_id_, calibration_id_, mpi_rank_, mpi_size_);
         if (nullptr == output_) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
         }
@@ -55,11 +61,15 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
 }
 
 DataCenterMongoDB::~DataCenterMongoDB() {
-    StatusMessage("Release DataCenterMongoDB...");
-    if (spatial_gridfs_ != nullptr) {
+    CLOG(TRACE, LOG_RELEASE) << "Release DataCenterMongoDB...";
+    /*if (spatial_gridfs_ != nullptr) {
         delete spatial_gridfs_;
         spatial_gridfs_ = nullptr;
     }
+    if (spatial_gfs_out_ != nullptr) {
+        delete spatial_gfs_out_;
+        spatial_gfs_out_ = nullptr;
+    }*/
     if (main_database_ != nullptr) {
         delete main_database_;
         main_database_ = nullptr;
@@ -71,7 +81,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     vector<string> existed_dbnames;
     mongo_client_->GetDatabaseNames(existed_dbnames);
     if (!ValueInVector(string(model_name_), existed_dbnames)) {
-        cout << "ERROR: The main model is not existed: " << model_name_ << endl;
+        LOG(ERROR) << "The main model is not existed: " << model_name_;
         return false;
     }
     main_database_ = new MongoDatabase(mongo_client_->GetDatabase(model_name_));
@@ -80,7 +90,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     main_database_->GetCollectionNames(existed_main_db_tabs);
     for (int i = 0; i < MAIN_DB_TABS_REQ_NUM; ++i) {
         if (!ValueInVector(string(MAIN_DB_TABS_REQ[i]), existed_main_db_tabs)) {
-            cout << "ERROR: Table " << MAIN_DB_TABS_REQ[i] << " must be existed in " << model_name_ << endl;
+            LOG(ERROR) << "Table " << MAIN_DB_TABS_REQ[i] << " must be existed in " << model_name_;
             return false;
         }
     }
@@ -148,7 +158,7 @@ string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) 
             dbname = GetStringFromBsonIterator(&iter);
             break;
         }
-        cout << "ERROR: The DB field does not exist in " << string(tabname) << endl;
+        LOG(ERROR) << "The DB field does not exist in " << string(tabname);
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);
@@ -161,9 +171,9 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         std::unique_ptr<MongoCollection>
                 collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_IN)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-        bson_error_t* err = nullptr;
-        if (mongoc_cursor_error(cursor, err)) {
-            cout << "ERROR: Nothing found in the collection: " << DB_TAB_FILE_IN << "." << endl;
+        bson_error_t err;
+        if (mongoc_cursor_error(cursor, &err)) {
+            LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_IN << ".";
             return false;
         }
         bson_iter_t itertor;
@@ -186,6 +196,11 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
     }
+    if (!file_in_strs_.empty()) {
+        for (auto it = file_in_strs_.begin(); it != file_in_strs_.end(); ++it) {
+            CLOG(TRACE, LOG_INIT) << "FILE_IN Info: " << *it;
+        }
+    }
     return true;
 }
 
@@ -197,9 +212,9 @@ bool DataCenterMongoDB::GetFileOutVector() {
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_OUT)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
-        cout << "ERROR: Nothing found in the collection: " << DB_TAB_FILE_OUT << "." << endl;
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_OUT << ".";
         /// destroy
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
@@ -234,10 +249,13 @@ bool DataCenterMongoDB::GetFileOutVector() {
             tmp_output_item.subBsn = GetStringFromBsonIterator(&itertor);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_StartTime)) {
-            tmp_output_item.sTimeStr = GetStringFromBsonIterator(&itertor);
+            /// TODO: Currently we only accept "%d-%d-%d %d:%d:%d" for UTC TIME! -LJ. 09/28/2020
+            tmp_output_item.sTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                                                   "%d-%d-%d %d:%d:%d", true);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_EndTime)) {
-            tmp_output_item.eTimeStr = GetStringFromBsonIterator(&itertor);
+            tmp_output_item.eTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                                                   "%d-%d-%d %d:%d:%d", true);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_Interval)) {
             GetNumericFromBsonIterator(&itertor, tmp_output_item.interval);
@@ -259,16 +277,16 @@ bool DataCenterMongoDB::GetFileOutVector() {
 
 bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
     bson_t* b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID),
-        BCON_UTF8(VAR_SUBBSNID_NUM),
-        "]", "}", "}");
+                         BCON_UTF8(VAR_SUBBSNID_NUM),
+                         "]", "}", "}");
     // printf("%s\n",bson_as_json(b, NULL));
 
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
-        cout << "ERROR: Nothing found for subbasin number and outlet ID." << endl;
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(ERROR) << "Nothing found for subbasin number and outlet ID.";
         /// destroy
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
@@ -293,7 +311,7 @@ bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
                 GetNumericFromBsonIterator(&iter, n_subbasins_);
             }
         } else {
-            cout << "ERROR: Nothing found for subbasin number and outlet ID." << endl;
+            LOG(ERROR) << "Nothing found for subbasin number and outlet ID.";
         }
     }
     bson_destroy(b);
@@ -352,10 +370,10 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
 
-    bson_error_t* err = NULL;
+    bson_error_t err;
     const bson_t* info;
-    if (mongoc_cursor_error(cursor, err)) {
-        cout << "ERROR: Nothing found in the collection: " << DB_TAB_PARAMETERS << "." << endl;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_PARAMETERS << ".";
         /// destroy
         bson_destroy(filter);
         mongoc_cursor_destroy(cursor);
@@ -399,7 +417,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 #else
         if (!init_params_.insert(make_pair(GetUpper(p->Name), p)).second) {
 #endif
-            cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
+            LOG(ERROR) << "Load parameter: " << GetUpper(p->Name) << " failed!";
             return false;
         }
         /// Special handling code for soil water capcity parameters
@@ -481,7 +499,7 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     int n_cols = -1;
     rows = n_rows;
     data = new(nothrow) float*[rows];
-    //cout<<n<<endl;
+
     int index = 1;
     for (int i = 0; i < rows; i++) {
         int col = CVT_INT(float_values[index]); // real column

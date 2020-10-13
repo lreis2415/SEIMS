@@ -51,7 +51,7 @@ class TimeSeriesPlots(object):
         # type: (PostConfig) -> None
         """Constructor"""
         self.model = MainSEIMS(args_dict=cfg.model_cfg.ConfigDict)
-        self.ws = self.model.OutputDirectory
+        self.ws = self.model.output_dir
         if not FileClass.is_dir_exists(self.ws):
             raise ValueError('The output directory %s is not existed!' % self.ws)
         self.plot_vars = cfg.plot_vars

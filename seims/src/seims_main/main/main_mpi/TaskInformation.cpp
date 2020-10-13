@@ -1,6 +1,7 @@
 #include "TaskInformation.h"
 #include "utils_array.h"
 #include "parallel.h"
+#include "Logging.h"
 
 using namespace ccgl::utils_array;
 using std::make_pair;
@@ -69,12 +70,12 @@ bool TaskInfo::Build() {
         rank_subbsn_id_.emplace_back(subbsn_id[i]);
         downstream_[subbsn_id[i]] = down_id[i] > 0 ? down_id[i] : -1;
     }
-#ifdef _DEBUG
-    cout << "Subbasin ID -> Rank ID" << endl;
+
+    CLOG(TRACE, LOG_INIT) << "Subbasin ID -> Rank ID";
     for (auto it = subbsn_rank_.begin(); it != subbsn_rank_.end(); ++it) {
-        cout << it->first << " -> " << it->second << endl;
+        CLOG(TRACE, LOG_INIT) << it->first << " -> " << it->second;
     }
-#endif
+
     /// subbsn_layer_, lyr_subbsns_, srclyr_subbsns_ and nonsrclyr_subbsns_
     max_lyr_all_ = 0;
     for (int i = 0; i < size_ * max_len; i++) {
@@ -118,26 +119,25 @@ bool TaskInfo::Build() {
             nonsrclyr_subbsns_[stream_order].emplace_back(sub_id);
         }
     }
-#ifdef _DEBUG
-    cout << "Rank: " << rank_ << ", Source subbasins: " << endl;
+
+    CLOG(TRACE, LOG_INIT) << "Rank: " << rank_ << ", Source subbasins: ";
     for (auto it = srclyr_subbsns_.begin(); it != srclyr_subbsns_.end(); ++it) {
-        cout << "    Layer ID: " << it->first << ": ";
+        std::ostringstream oss;
+        oss << "    Layer ID: " << it->first << ": ";
         for (auto it_id = it->second.begin(); it_id != it->second.end(); ++it_id) {
-            cout << *it_id << ", ";
+            oss << *it_id << ", ";
         }
-        cout << endl;
+        CLOG(TRACE, LOG_INIT) << oss.str();
     }
-    cout << endl;
-    cout << "Rank: " << rank_ << ", Non-Source subbasins: " << endl;
+    CLOG(TRACE, LOG_INIT) << "Rank: " << rank_ << ", Non-Source subbasins: ";
     for (auto it = nonsrclyr_subbsns_.begin(); it != nonsrclyr_subbsns_.end(); ++it) {
-        cout << "    Layer ID: " << it->first << ": ";
+        std::ostringstream oss2;
+        oss2 << "    Layer ID: " << it->first << ": ";
         for (auto it_id = it->second.begin(); it_id != it->second.end(); ++it_id) {
-            cout << *it_id << ", ";
+            oss2 << *it_id << ", ";
         }
-        cout << endl;
+        CLOG(TRACE, LOG_INIT) << oss2.str();
     }
-    cout << endl;
-#endif /* _DEBUG */
 
     /// upstreams_ and upstreams_inrank_
     for (int irank = 0; irank < size_; irank++) {
@@ -161,20 +161,20 @@ bool TaskInfo::Build() {
             }
         }
     }
-#ifdef _DEBUG
-    cout << "Subbasin ID -> Upstreams" << endl;
+    CLOG(TRACE, LOG_INIT) << "Subbasin ID -> Upstreams";
     for (auto it = upstreams_.begin(); it != upstreams_.end(); ++it) {
-        cout << it->first << " -> ";
+        std::ostringstream oss3;
+        oss3 << it->first << " -> ";
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-            cout << *it2 << ", ";
+            oss3 << *it2 << ", ";
         }
-        cout << endl;
+        CLOG(TRACE, LOG_INIT) << oss3.str();
     }
-    cout << "Subbasin ID -> Is all upstream subbasins in the same rank?" << endl;
+    CLOG(TRACE, LOG_INIT) << "Subbasin ID -> Is all upstream subbasins in the same rank?";
     for (auto it = upstreams_inrank_.begin(); it != upstreams_inrank_.end(); ++it) {
-        cout << it->first << " -> " << it->second << endl;
+        CLOG(TRACE, LOG_INIT) << it->first << " -> " << it->second;
     }
-#endif /* _DEBUG */
+
     return true;
 }
 

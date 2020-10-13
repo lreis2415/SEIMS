@@ -4,6 +4,7 @@
 #include <dlfcn.h> // dlopen()
 #endif
 
+#include "Logging.h"
 #include "basic.h"
 #include "MetadataInfo.h"
 #include "text.h"
@@ -16,21 +17,19 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, vector<ParamInfo *> >& moduleInputs,
                              map<string, vector<ParamInfo *> >& moduleOutputs,
                              map<string, vector<ParamInfo *> >& moduleInOutputs,
-                             vector<ParamInfo *>& tfValueInputs) : m_dbName(std::move(model_name)),
-                                                                   m_moduleIDs(moduleIDs),
-                                                                   m_instanceFuncs(instanceFuncs),
-                                                                   m_metadataFuncs(metadataFuncs),
-                                                                   m_dllHandles(dllHandles),
-                                                                   m_settings(moduleSettings),
-                                                                   m_moduleParameters(moduleParameters),
-                                                                   m_moduleInputs(moduleInputs),
-                                                                   m_moduleOutputs(moduleOutputs),
-                                                                   m_moduleInOutputs(moduleInOutputs),
-                                                                   m_tfValueInputs(tfValueInputs) {
+                             vector<ParamInfo *>& tfValueInputs,
+                             const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
+    m_mpi_rank(mpi_rank), m_mpi_size(mpi_size),
+    m_dbName(std::move(model_name)), m_moduleIDs(moduleIDs),
+    m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs), m_dllHandles(dllHandles),
+    m_settings(moduleSettings), m_moduleParameters(moduleParameters),
+    m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs), m_moduleInOutputs(moduleInOutputs),
+    m_tfValueInputs(tfValueInputs) {
     // nothing to do
 }
 
-ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args) {
+ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args,
+                                   const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     /// Check the existence of configuration files
     string file_in = input_args->model_path + SEP + File_Input;
     string file_out = input_args->model_path + SEP + File_Output;
@@ -38,7 +37,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     string cfgNames[] = {file_in, file_out, file_cfg};
     for (int i = 0; i < 3; ++i) {
         if (!FileExists(cfgNames[i])) {
-            cout << cfgNames[i] << " does not exist or has not the read permission!" << endl;
+            LOG(ERROR) << cfgNames[i] << " does not exist or has not the read permission!";
             return nullptr;
         }
     }
@@ -61,46 +60,38 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
                          metadataFuncs, moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
     } catch (ModelException& e) {
-        cout << e.ToString() << endl;
+        LOG(ERROR) << e.ToString();
         return nullptr;
     }
     catch (std::exception& e) {
-        cout << e.what() << endl;
+        LOG(ERROR) << e.what();
         return nullptr;
     }
     catch (...) {
-        cout << "Unknown exception occurred when loading module library!" << endl;
+        LOG(ERROR) << "Unknown exception occurred when loading module library!";
         return nullptr;
     }
     return new ModuleFactory(input_args->model_name, moduleIDs, moduleSettings, dllHandles,
                              instanceFuncs, metadataFuncs,
-                             moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
+                             moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs,
+                             mpi_rank, mpi_size);
 }
 
 ModuleFactory::~ModuleFactory() {
-    StatusMessage("Start to release ModuleFactory ...");
+    CLOG(TRACE, LOG_RELEASE) << "Start to release ModuleFactory ...";
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
-    StatusMessage("---release map of SEIMSModuleSettings ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of SEIMSModuleSettings ...";
     for (auto it = m_settings.begin(); it != m_settings.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
         m_settings.erase(it++);
     }
     m_settings.clear();
-
-    StatusMessage("---release dynamic library handles ...");
-    for (size_t i = 0; i < m_dllHandles.size(); i++) {
-#ifdef WIN32
-        FreeLibrary(m_dllHandles[i]);
-#else
-        dlclose(m_dllHandles[i]);
-#endif /* WIN32 */
-    }
-    StatusMessage("---release module parameters ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release module parameters ...";
     for (auto it = m_moduleParameters.begin(); it != m_moduleParameters.end();) {
         for (auto it2 = it->second.begin(); it2 != it->second.end();) {
             if (*it2 != nullptr) {
@@ -111,7 +102,7 @@ ModuleFactory::~ModuleFactory() {
         }
         m_moduleParameters.erase(it++);
     }
-    StatusMessage("---release module inputs ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release module inputs ...";
     for (auto it = m_moduleInputs.begin(); it != m_moduleInputs.end();) {
         for (auto it2 = it->second.begin(); it2 != it->second.end();) {
             if (*it2 != nullptr) {
@@ -122,7 +113,7 @@ ModuleFactory::~ModuleFactory() {
         }
         m_moduleInputs.erase(it++);
     }
-    StatusMessage("---release module outputs ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release module outputs ...";
     for (auto it = m_moduleOutputs.begin(); it != m_moduleOutputs.end();) {
         for (auto it2 = it->second.begin(); it2 != it->second.end();) {
             if (*it2 != nullptr) {
@@ -133,7 +124,7 @@ ModuleFactory::~ModuleFactory() {
         }
         m_moduleOutputs.erase(it++);
     }
-    StatusMessage("---release module in/outputs ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release module in/outputs ...";
     for (auto it = m_moduleInOutputs.begin(); it != m_moduleInOutputs.end();) {
         for (auto it2 = it->second.begin(); it2 != it->second.end();) {
             if (*it2 != nullptr) {
@@ -144,14 +135,23 @@ ModuleFactory::~ModuleFactory() {
         }
         m_moduleInOutputs.erase(it++);
     }
-    StatusMessage("---release module transferred value inputs ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release module transferred value inputs ...";
     for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end();) {
         if (*it != nullptr) {
             *it = nullptr;
         }
         it = m_tfValueInputs.erase(it);
     }
-    StatusMessage("End to release ModuleFactory ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release dynamic library handles ...";
+    for (vector<DLLINSTANCE>::iterator dllit = m_dllHandles.begin(); dllit != m_dllHandles.end(); ) {
+#ifdef WIN32
+        FreeLibrary(*dllit);
+#else
+        dlclose(*dllit);
+#endif /* WIN32 */
+        dllit = m_dllHandles.erase(dllit);
+    }
+    CLOG(TRACE, LOG_RELEASE) << "End to release ModuleFactory.";
 }
 
 bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& moduleIDs,
@@ -304,8 +304,8 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
 #else
     void *handle = dlopen(moduleFileName.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
-        cout << dlerror() << endl;
-        throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
+        LOG(ERROR) << dlerror();
+        throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + dllID);
     }
     instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
@@ -319,7 +319,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: MetadataInformation");
     }
-    StatusMessage(("Read DLL: " + moduleFileName).c_str());
+    CLOG(TRACE, LOG_INIT) << "Read DLL: " << dllID;
 }
 
 dimensionTypes ModuleFactory::MatchType(string strType) {
