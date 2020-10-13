@@ -129,7 +129,7 @@ void CombineRasterResults(const string& folder, const string& s_var,
 }
 
 #ifdef USE_MONGODB
-void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
                                const int n_subbasins, const string& folder /* = "" */,
                                int scenario_id /* = 0 */, int calibration_id /* = -1 */) {
     map<string, string> opts;
@@ -146,28 +146,33 @@ void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
     if (scenario_id >= 0) real_name += itoa(scenario_id);
     real_name += "_";
     if (calibration_id >= 0) real_name += itoa(calibration_id);
+    bool read_data_flag = true;
     for (int i = 1; i <= n_subbasins; i++) {
         string cur_file_name = itoa(i) + "_" + real_name;
         FloatRaster* rs = FloatRaster::Init(gfs, cur_file_name.c_str(), true,
                                             nullptr, true, NODATA_VALUE, opts);
         if (nullptr == rs || !rs->Initialized()) {
-            exit(-1);
+            read_data_flag = false;
+            break;
         }
+        StatusMessage(("Read " + cur_file_name + " from MongoDB SUCCEED!").c_str());
 #ifdef HAS_VARIADIC_TEMPLATES
         all_raster_data.emplace(i, rs);
 #else
         all_raster_data.insert(make_pair(i, rs));
 #endif
     }
-    FloatRaster* combined_rs = CombineRasters(all_raster_data);
-    gfs->RemoveFile(real_name);
-    combined_rs->OutputToMongoDB(real_name, gfs);
-    if (!folder.empty()) {
-        // Ouput as gtiff file will not contain ScenarioID and CalibrationID information
-        combined_rs->OutputToFile(folder + SEP + s_var + "." + GTiffExtension);
+    if (read_data_flag) {
+        FloatRaster* combined_rs = CombineRasters(all_raster_data);
+        gfs->RemoveFile(real_name);
+        combined_rs->OutputToMongoDB(real_name, gfs);
+        if (!folder.empty()) {
+            // Ouput as gtiff file will not contain ScenarioID and CalibrationID information
+            combined_rs->OutputToFile(folder + SEP + s_var + "." + GTiffExtension);
+        }
+        // clean up
+        delete combined_rs;
     }
-    // clean up
-    delete combined_rs;
     for (auto it = all_raster_data.begin(); it != all_raster_data.end();) {
         if (it->second != nullptr) {
             delete it->second;
@@ -175,5 +180,6 @@ void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
         }
         all_raster_data.erase(it++);
     }
+    return read_data_flag;
 }
 #endif /* USE_MONGODB */
