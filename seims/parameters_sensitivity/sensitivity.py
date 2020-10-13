@@ -241,8 +241,7 @@ class Sensitivity(object):
         arg_N = self.cfg.resource.nnodes
         arg_c = self.model.nthread
         arg_n = -1
-        if arg_N >= 1 and self.cfg.resource.ntasks_pernode >= 1 and \
-                self.cfg.resource.ncores_pernode >= 1:
+        if arg_N >= 1 and self.cfg.resource.ncores_pernode >= 1:
             arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
 
         # split tasks

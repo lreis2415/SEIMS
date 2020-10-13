@@ -141,7 +141,7 @@ class ParseSEIMSConfig(object):
         if not self.db_name:  # If not specified, by default, equals to dir name of self.model_dir
             self.db_name = os.path.split(self.model_dir)[1]
         self.version = get_option_value(cf, sec_name, 'version')
-        if not self.version:
+        if not self.version or self.version not in ['MPI', 'mpi']:
             self.version = 'OMP'
         self.mpi_bin = get_option_value(cf, sec_name, 'mpi_bin')
         self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
@@ -331,12 +331,12 @@ class MainSEIMS(object):
         self.cmd = list()
         if self.version.lower() == 'mpi':
             if self.workload.lower() == 'slurm':
-                if self.npernode > 1:
-                    # srun is for a parallel job on cluster managed by Slurm, replacing mpirun.
-                    self.cmd += ['srun']
-                    self.cmd += ['-N', str(self.nnodes)]
-                    self.cmd += ['--ntasks-per-node=', str(self.npernode)]
-                    self.cmd += ['--cpu_bind=cores --cpus-per-task=', str(self.nthread)]
+                # srun is for a parallel job on cluster managed by Slurm, replacing mpirun.
+                self.cmd += ['srun']
+                self.cmd += ['-N', str(self.nnodes)]
+                if self.npernode >= 1:
+                    self.cmd += ['--ntasks-per-node=%d' % self.npernode]
+                self.cmd += ['--cpu_bind=cores --cpus-per-task=%d' % self.nthread]
             else:
                 self.cmd += [self.mpi_bin]
                 if self.hostfile and os.path.exists(self.hostfile):

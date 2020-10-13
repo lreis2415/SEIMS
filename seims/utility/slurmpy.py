@@ -181,7 +181,7 @@ class Slurm(object):
             print(res, file=sys.stderr)
             self.name = n
             # if not res[0].startswith('Submitted batch'):
-            if not res.startswith('Submitted batch'):
+            if not res.startswith(b'Submitted batch'):
                 return None
             j_id = int(res.split()[-1])
             # j_id = int(res[-1])
