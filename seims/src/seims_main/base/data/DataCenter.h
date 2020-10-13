@@ -245,6 +245,10 @@ public:
     */
     virtual bool GetFileOutVector() = 0;
     /*!
+     * \brief Check date of output settings
+     */
+    void UpdateOutputDate(time_t start_time, time_t end_time);
+    /*!
     * \brief Get subbasin number and outlet ID
     */
     virtual bool GetSubbasinNumberAndOutletID() = 0;
