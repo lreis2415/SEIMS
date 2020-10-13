@@ -9,10 +9,9 @@
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
-#define MODEL_NAME                             "SEIMS"
-#define MODEL_VERSION                          "2019"
-#define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
-//#define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
+const char MODEL_NAME[] =                      "SEIMS";
+const char MODEL_VERSION[] =                   "2020";
+const char SEIMS_EMAIL[] =                     "zlj@lreis.ac.cn";
 const char SEIMS_SITE[] =                      "https://github.com/lreis2415/SEIMS";
 
 //! Constant input variables
@@ -173,34 +172,34 @@ const char SEIMS_SITE[] =                      "https://github.com/lreis2415/SEI
 #define Source_Module_Optional                 "Module_Optional"
 
 ///////// Table Names required in MongoDB /////////
-#define DB_TAB_PARAMETERS                      "PARAMETERS"
-#define DB_TAB_SITELIST                        "SITELIST"
-#define DB_TAB_SCENARIO                        "BMPDATABASE"
-#define DB_TAB_REACH                           "REACHES"
-#define DB_TAB_SPATIAL                         "SPATIAL"  /// i.e., spatial.files
-#define DB_TAB_SITES                           "SITES"
-#define DB_TAB_DATAVALUES                      "DATA_VALUES" // hydroClimate data values
-#define DB_TAB_MEASUREMENT                     "MEASUREMENT"
-#define DB_TAB_ANNSTAT                         "ANNUAL_STATS"
-#define DB_TAB_OUT_SPATIAL                     "OUTPUT"
-#define DB_TAB_FILE_IN                         "FILE_IN"
-#define DB_TAB_FILE_OUT                        "FILE_OUT"
+const char DB_TAB_PARAMETERS[] =                      "PARAMETERS";
+const char DB_TAB_SITELIST[] =                        "SITELIST";
+const char DB_TAB_SCENARIO[] =                        "BMPDATABASE";
+const char DB_TAB_REACH[] =                           "REACHES";
+const char DB_TAB_SPATIAL[] =                         "SPATIAL"; // i.e., SPATIAL.files
+const char DB_TAB_SITES[] =                           "SITES";
+const char DB_TAB_DATAVALUES[] =                      "DATA_VALUES"; // hydroClimate data values
+const char DB_TAB_MEASUREMENT[] =                     "MEASUREMENT";
+const char DB_TAB_ANNSTAT[] =                         "ANNUAL_STATS";
+const char DB_TAB_OUT_SPATIAL[] =                     "OUTPUT"; // i.e., OUTPUT.files
+const char DB_TAB_FILE_IN[] =                         "FILE_IN";
+const char DB_TAB_FILE_OUT[] =                        "FILE_OUT";
 /// Fields in DB_TAB_REACH ///
-#define REACH_SUBBASIN                         "SUBBASINID"
-#define REACH_NUMCELLS                         "NUM_CELLS"
-#define REACH_GROUP                            "GROUP"
-#define REACH_KMETIS                           "KMETIS"
-#define REACH_PMETIS                           "PMETIS"
-#define REACH_DOWNSTREAM                       "DOWNSTREAM"
-#define REACH_UPDOWN_ORDER                     "UP_DOWN_ORDER"
-#define REACH_DOWNUP_ORDER                     "DOWN_UP_ORDER"
-#define REACH_WIDTH                            "CH_WIDTH"
-#define REACH_LENGTH                           "CH_LEN"
-#define REACH_DEPTH                            "CH_DEPTH"
-#define REACH_WDRATIO                          "CH_WDRATIO"
-#define REACH_AREA                             "CH_AREA"
-#define REACH_SIDESLP                          "CH_SSLP"
-#define REACH_SLOPE                            "CH_SLP"
+const char REACH_SUBBASIN[] =                         "SUBBASINID";
+const char REACH_NUMCELLS[] =                         "NUM_CELLS";
+const char REACH_GROUP[] =                            "GROUP";
+const char REACH_KMETIS[] =                           "KMETIS";
+const char REACH_PMETIS[] =                           "PMETIS";
+const char REACH_DOWNSTREAM[] =                       "DOWNSTREAM";
+const char REACH_UPDOWN_ORDER[] =                     "UP_DOWN_ORDER";
+const char REACH_DOWNUP_ORDER[] =                     "DOWN_UP_ORDER";
+const char REACH_WIDTH[] =                            "CH_WIDTH";
+const char REACH_LENGTH[] =                           "CH_LEN";
+const char REACH_DEPTH[] =                            "CH_DEPTH";
+const char REACH_WDRATIO[] =                          "CH_WDRATIO";
+const char REACH_AREA[] =                             "CH_AREA";
+const char REACH_SIDESLP[] =                          "CH_SSLP";
+const char REACH_SLOPE[] =                            "CH_SLP";
 // Hydrological related parameters
 #define REACH_MANNING                          "CH_N" // Manning's "n" value
 #define REACH_BEDK                             "CH_BED_K" /// hydraulic conductivity of the channel bed
