@@ -398,7 +398,7 @@ public:
      * \param[in] gfs \a mongoc_gridfs_t
      * \param[in] opts (optional) Key-value map for user-specific metadata
      */
-    void OutputToMongoDB(const string& filename, MongoGridFs* gfs,
+    bool OutputToMongoDB(const string& filename, MongoGridFs* gfs,
                          STRING_MAP opts = STRING_MAP());
 
 #endif /* USE_MONGODB */
@@ -865,7 +865,7 @@ private:
      * \param[in] datalength
      * \param[in] opts (optional) Key-value map for user-specific metadata
      */
-    static void WriteStreamDataAsGridfs(MongoGridFs* gfs, const string& filename,
+    static bool WriteStreamDataAsGridfs(MongoGridFs* gfs, const string& filename,
                                         map<string, double>& header,
                                         T* values, int datalength,
                                         STRING_MAP opts = STRING_MAP());
@@ -1238,7 +1238,7 @@ clsRasterData<T, MASK_T>::clsRasterData(clsRasterData<MASK_T>* mask, T* const va
 #else
     options_.insert(make_pair(HEADER_RS_SRS, mask_->GetSrsString()));
 #endif
-    default_value_ = mask_->GetDefaultValue();
+    default_value_ = static_cast<T>(mask_->GetDefaultValue());
     calc_pos_ = false;
     if (mask->PositionsCalculated()) {
         mask->GetRasterPositionData(&n_cells_, &raster_pos_data_);
@@ -1261,7 +1261,7 @@ clsRasterData<T, MASK_T>::clsRasterData(clsRasterData<MASK_T>* mask, T** const v
 #endif
     n_cells_ = mask_->GetCellNumber();
     Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, values); // DO NOT ASSIGN ARRAY DIRECTLY!
-    default_value_ = mask_->GetDefaultValue();
+    default_value_ = static_cast<T>(mask_->GetDefaultValue());
     use_mask_ext_ = true;
     if (mask->PositionsCalculated()) {
         mask->GetRasterPositionData(&n_cells_, &raster_pos_data_);
@@ -1344,7 +1344,7 @@ bool clsRasterData<T, MASK_T>::ConstructFromSingleFile(const string& filename,
 
 template <typename T, typename MASK_T>
 clsRasterData<T, MASK_T>::~clsRasterData() {
-    StatusMessage(("Release raster: " + core_name_).c_str());
+    if (core_name_ != "") StatusMessage(("Release raster: " + core_name_).c_str());
     if (nullptr != raster_) Release1DArray(raster_);
     if (nullptr != raster_pos_data_ && store_pos_) Release2DArray(n_cells_, raster_pos_data_);
     if (nullptr != raster_2d_ && is_2draster) Release2DArray(n_cells_, raster_2d_);
@@ -1952,27 +1952,34 @@ bool clsRasterData<T, MASK_T>::OutputFileByGdal(const string& filename) {
 
 #ifdef USE_MONGODB
 template <typename T, typename MASK_T>
-void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGridFs* gfs,
+bool clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGridFs* gfs,
                                                STRING_MAP opts /* = STRING_MAP() */) {
     CopyStringMap(opts, options_);
     // 1. Is there need to calculate valid position index?
     int cnt;
-    int** pos;
+    int** pos = nullptr;
     bool outputdirectly = true;
     if (nullptr != raster_pos_data_) {
         GetRasterPositionData(&cnt, &pos);
         outputdirectly = false;
-        assert(nullptr != pos);
+        // assert(nullptr != pos);  // Avoid assert statement. -LJ.
+        if (nullptr == pos) {
+            cout << "Position data of the valid raster data are required for saving "
+                    << filename << " to MongoDB!" << endl;
+            return false;
+		}
     }
     // 2. Get raster data
-    // 2.1 2D raster data
+    bool saved;
+    int try_times = 1;
+    T* data_1d = nullptr;
     T no_data_value = static_cast<T>(headers_.at(HEADER_RS_NODATA));
     int n_rows = CVT_INT(headers_.at(HEADER_RS_NROWS));
     int n_cols = CVT_INT(headers_.at(HEADER_RS_NCOLS));
     int datalength;
     string core_name = GetCoreFileName(filename);
+    // 2.1 2D raster data
     if (is_2draster) {
-        T* data_1d = nullptr;
         datalength = n_rows * n_cols * n_lyrs_;
         Initialize1DArray(datalength, data_1d, no_data_value);
         int cnt_idx = 0;
@@ -1994,16 +2001,14 @@ void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGrid
                 }
             }
         }
-        WriteStreamDataAsGridfs(gfs, core_name, headers_, data_1d, datalength, options_);
-        Release1DArray(data_1d);
     } else {
         // 3.2 1D raster data
-        float* data_1d = nullptr;
         datalength = n_rows * n_cols;
         if (outputdirectly) {
             data_1d = raster_;
-        } else
+        } else {
             Initialize1DArray(datalength, data_1d, no_data_value);
+		}
         int validnum = 0;
         if (!outputdirectly) {
             for (int i = 0; i < n_rows; ++i) {
@@ -2016,14 +2021,26 @@ void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGrid
                 }
             }
         }
-        WriteStreamDataAsGridfs(gfs, core_name, headers_, data_1d, datalength, options_);
-        if (outputdirectly) { data_1d = nullptr; } else
-            Release1DArray(data_1d);
     }
+    while (try_times <= 3) { // Try 3 times
+        saved = WriteStreamDataAsGridfs(gfs, core_name, headers_, data_1d, datalength, options_);
+        if (saved) {
+            break;
+        } else {
+            SleepMs(2); // Sleep 0.002 sec and retry
+            try_times++;
+        }
+    }
+    if (!is_2draster && outputdirectly) {
+        data_1d = nullptr;
+    } else {
+        Release1DArray(data_1d);
+	}
+    return saved;
 }
 
 template <typename T, typename MASK_T>
-void clsRasterData<T, MASK_T>::WriteStreamDataAsGridfs(MongoGridFs* gfs,
+bool clsRasterData<T, MASK_T>::WriteStreamDataAsGridfs(MongoGridFs* gfs,
                                                        const string& filename,
                                                        map<string, double>& header,
                                                        T* values,
@@ -2055,8 +2072,9 @@ void clsRasterData<T, MASK_T>::WriteStreamDataAsGridfs(MongoGridFs* gfs,
     }
     char* buf = reinterpret_cast<char *>(values);
     int buflength = datalength * sizeof(T);
-    gfs->WriteStreamData(filename, buf, buflength, &p);
+    bool gstatus = gfs->WriteStreamData(filename, buf, buflength, &p);
     bson_destroy(&p);
+    return gstatus;
 }
 
 #endif /* USE_MONGODB */
@@ -2086,8 +2104,8 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     // 1. Get stream data and metadata by file name
     char* buf = NULL;
     size_t length;
-    gfs->GetStreamData(filename, buf, length, NULL, opts);
-    if (NULL == buf) {
+    if (!gfs->GetStreamData(filename, buf, length, NULL, opts) || 
+        NULL == buf) {
         initialized_ = false;
         return false;
     }
@@ -2100,7 +2118,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     };
     // Loop the metadata, add to `headers_` or `options_`
     bson_iter_t iter;
-    if (bson_iter_init(&iter, bmeta)) {
+    if (NULL != bmeta && bson_iter_init(&iter, bmeta)) {
         while (bson_iter_next(&iter)) {
             const char* key = bson_iter_key(&iter);
             bool is_header = false;
@@ -2120,6 +2138,9 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
             }
         }
     }
+    // Destory bson of metadata immediately after use
+    bson_destroy(bmeta);
+
     // Check if "SRS" is existed in `options_`
     if (options_.find(HEADER_RS_SRS) == options_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
