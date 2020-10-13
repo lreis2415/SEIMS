@@ -9,6 +9,7 @@
 #include "basic.h"
 
 #include "seims.h"
+#include <text.h>
 #include "invoke.h"
 #include "ModelMain.h"
 #include "Logging.h"
@@ -40,13 +41,15 @@ int main(const int argc, const char** argv) {
         if (nullptr == mongo_client) {
             throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
         }
+        MongoGridFs* spatial_gfs_in = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_SPATIAL));
+        MongoGridFs* spatial_gfs_out = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
         /// Create module factory
         ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
         if (nullptr == module_factory) {
             throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
         }
         /// Create data center according to subbasin number, 0 means the whole basin which is default for omp version.
-        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client,
+        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
                                                                module_factory, input_args->subbasin_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model_main = new ModelMain(data_center, module_factory);

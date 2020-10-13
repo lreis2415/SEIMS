@@ -19,16 +19,23 @@ int main(int argc, const char** argv) {
     /// Register GDAL
     GDALAllRegister();
 
-    /// Connect to MongoDB
-    //MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
-    //if (nullptr == mongo_client) {
-    //    throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
-    //}
-    mongoc_init();
-    mongoc_uri_t* uri = mongoc_uri_new_for_host_port(input_args->host.c_str(), input_args->port);
-    mongoc_client_pool_t *mongoc_pool = mongoc_client_pool_new(uri);
-    mongoc_client_pool_set_error_api(mongoc_pool, 2);
-
+    /// Connect to MongoDB. Two method are provided and the 2nd one used as default.
+    int conn2mongo = 2;
+    mongoc_uri_t* uri = nullptr;
+    mongoc_client_pool_t *mongoc_pool = nullptr;
+    if (conn2mongo == 1) {
+        /// Method 1: test mongo host and port; create mongo client in each process. NOT RECOMMENDED!
+        MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
+        if (nullptr == mongo_client) {
+            throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
+        }
+    } else if (conn2mongo == 2) {
+        /// Method 2: create mongo client pool in the master process
+        mongoc_init();
+        uri = mongoc_uri_new_for_host_port(input_args->host.c_str(), input_args->port);
+        mongoc_pool = mongoc_client_pool_new(uri);
+        mongoc_client_pool_set_error_api(mongoc_pool, MONGOC_ERROR_API_VERSION_2);
+    }
     /// Initialize MPI environment
     int size;
     int rank;
@@ -63,7 +70,11 @@ int main(int argc, const char** argv) {
         LOG(INFO) << "Process " << rank << " out of " << size << " running on " << hostname;
 
         try {
-            CalculateProcess(input_args, rank, size, mongoc_pool);
+            if (conn2mongo == 1) {
+                CalculateProcess(input_args, rank, size);
+            } else if (conn2mongo == 2) {
+                CalculateProcess(input_args, rank, size, mongoc_pool);
+            }
         } catch (ModelException& e) {
             LOG(ERROR) << e.what();
             MPI_Abort(MCW, 3);
@@ -79,17 +90,19 @@ int main(int argc, const char** argv) {
         MPI_Barrier(MCW);
         el::Loggers::flushAll();
     }
+    /// Finalize the MPI environment
+    MPI_Finalize();
 
     /// clean up input arguments
     delete input_args;
 
     /// clean up mongoc
-    mongoc_client_pool_destroy(mongoc_pool);
-    mongoc_uri_destroy(uri);
-    mongoc_cleanup();
+    if (conn2mongo == 2) {
+        mongoc_client_pool_destroy(mongoc_pool);
+        mongoc_uri_destroy(uri);
+        mongoc_cleanup();
+    }
 
-    /// Finalize the MPI environment and exit with success
-    MPI_Finalize();
-
+    /// exit with success
     return 0;
 }

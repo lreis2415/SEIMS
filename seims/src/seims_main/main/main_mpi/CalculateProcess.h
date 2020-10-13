@@ -21,6 +21,6 @@
  * \param mongo_pool
  */
 void CalculateProcess(InputArgs* input_args, int rank, int size,
-                      mongoc_client_pool_t* mongo_pool);
+                      mongoc_client_pool_t* mongo_pool=nullptr);
 
 #endif /* SEIMS_MPI_CALCULATE_PROCESS_H */

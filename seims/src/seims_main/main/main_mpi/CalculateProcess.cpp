@@ -21,7 +21,7 @@ using std::map;
 using std::vector;
 
 void CalculateProcess(InputArgs* input_args, const int rank, const int size,
-                      mongoc_client_pool_t* mongo_pool) {
+                      mongoc_client_pool_t* mongo_pool /* = nullptr */) {
     LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
     /// Get module path, i.e., the path of executable and dynamic libraries
@@ -29,13 +29,35 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
 
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
-    mongoc_client_t* mclient = mongoc_client_pool_pop(mongo_pool);
-    if (!mclient) {
-        throw ModelException("MongoDBClient", "Constructor",
-                             "Failed to pop mongoClient from mongoc_client_pool!");
+    mongoc_client_t* mclient = nullptr;
+    MongoClient* mongo_client = nullptr;
+    MongoGridFs* spatial_gfs_in = nullptr;
+    MongoGridFs* spatial_gfs_out = nullptr;
+    if (nullptr == mongo_pool) {
+        mongo_client = new MongoClient(input_args->host.c_str(), input_args->port);
+    } else {
+        // The total number of clients that can be created from this pool is limited
+        //   by the URI option ¡°maxPoolSize¡±, default 100.
+        mclient = mongoc_client_pool_pop(mongo_pool);
+        if (!mclient) {
+            throw ModelException("MongoDBClient", "Constructor",
+                                 "Failed to pop mongoClient from mongoc_client_pool!");
+        }
+        mongo_client = new MongoClient(mclient);
+    }
+    spatial_gfs_in = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_SPATIAL));
+    spatial_gfs_out = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
+    if (!spatial_gfs_in || !spatial_gfs_out) {
+        LOG(TRACE) << "MongoDB GridFS initialized failed, the program will be terminated!";
+        if (mongo_pool && mclient) {
+            mongoc_client_pool_push(mongo_pool, mclient);
+        } else {
+            mongo_client->Destroy();
+            delete mongo_client;
+        }
+        MPI_Abort(MCW, 1);
     }
 
-    MongoClient* mongo_client = new MongoClient(mclient);
     LoadTasks(mongo_client, input_args, size, rank, task_info);
     if (!task_info->Build()) {
         LOG(TRACE) << "Rank: " << rank << ", task information build failed!";
@@ -65,7 +87,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     vector<int>& rank_subbsn_ids = task_info->GetRankSubbasinIDs();
     for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
         /// Create data center according to subbasin number
-        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client,
+        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
                                                                module_factory, *it_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model = new ModelMain(data_center, module_factory);
@@ -170,7 +192,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
             if (pre_year_idx != year_idx) {
                 LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;
             }
-            // cout << "     " << ConvertToString2(ts) << endl;
+            LOG(DEBUG) << ConvertToString2(ts);
         }
         // Execute by layering orders
         for (int ilyr = 1; ilyr <= max_lyr_id_all; ilyr++) {
@@ -364,22 +386,26 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     /// The operation could be considered as post-process,
     ///   therefore, the time-consuming is not included.
     if (rank == MASTER_RANK) {
-        MongoGridFs* gfs = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
+        CLOG(TRACE, LOG_OUTPUT) << "Combining raster data to GeoTIFF file(s)...";
+        //MongoGridFs* gfs = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
         SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
         for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
             for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
                 PrintInfoItem* item = *item_it;
-                if (item->m_nLayers >= 1) {
-                    // Only need to handle raster data
-                    CLOG(TRACE,  LOG_OUTPUT) << "Combining raster: " << item->Corename;
-                    CombineRasterResultsMongo(gfs, item->Corename,
-                                              data_center_map.begin()->second->GetSubbasinsCount(),
-                                              data_center_map.begin()->second->GetOutputScenePath(),
-                                              input_args->scenario_id, input_args->calibration_id);
+                if (item->m_nLayers < 1) continue;
+                // Only need to handle raster data
+                CLOG(TRACE, LOG_OUTPUT) << "Combining raster: " << item->Corename << "...";
+                if (!CombineRasterResultsMongo(spatial_gfs_out, item->Corename,
+                                               data_center_map.begin()->second->GetSubbasinsCount(),
+                                               data_center_map.begin()->second->GetOutputScenePath(),
+                                               input_args->scenario_id, input_args->calibration_id)) {
+                    CLOG(WARNING, LOG_OUTPUT) << "Combining raster: " << item->Corename << " FAILED!";
+                } else {
+                    CLOG(TRACE, LOG_OUTPUT) << "Combining raster: " << item->Corename << " SUCCEED!";
                 }
             }
         }
-        delete gfs;
+        //delete gfs;
     }
     /*** End of Combine raster outputs. ***/
 
@@ -397,7 +423,20 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         data_center_map.erase(it++);
     }
     delete module_factory;
-    mongoc_client_pool_push(mongo_pool, mclient);
+    if (spatial_gfs_in) {
+        delete spatial_gfs_in;
+        spatial_gfs_in = nullptr;
+    }
+    if (spatial_gfs_out != nullptr) {
+        delete spatial_gfs_out;
+        spatial_gfs_out = nullptr;
+    }
+    if (mongo_pool && mclient) {
+        mongoc_client_pool_push(mongo_pool, mclient);
+    } else {
+        mongo_client->Destroy();
+        delete mongo_client;
+    }
     delete task_info;
     if (buf != nullptr) Release1DArray(buf);
 }
