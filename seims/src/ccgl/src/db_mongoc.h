@@ -129,7 +129,7 @@ public:
     mongoc_cursor_t* ExecuteQuery(const bson_t* b);
 
     /*! Query the records number */
-    int QueryRecordsCount();
+    vint QueryRecordsCount();
 private:
     mongoc_collection_t* collection_; ///< Instance of `mongoc_collection_t`
 };
@@ -159,17 +159,17 @@ public:
     /*! Get GridFS file names */
     void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL);
 
-    /*! Get metadata of a given GridFS file name */
+    /*! Get metadata of a given GridFS file name, remember to destory bson_t after use */
     bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
                             STRING_MAP opts = STRING_MAP());
 
     /*! Get stream data of a given GridFS file name */
-    void GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
+    bool GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
                        mongoc_gridfs_t* gfs = NULL,
                        STRING_MAP opts = STRING_MAP());
 
     /*! Write stream data to a GridFS file */
-    void WriteStreamData(const string& gfilename, char*& buf, size_t length,
+    bool WriteStreamData(const string& gfilename, char*& buf, size_t length,
                          const bson_t* p, mongoc_gridfs_t* gfs = NULL);
 
 private:
