@@ -55,7 +55,6 @@ int main(int argc, const char** argv) {
 
         /// Initialize easylogging++
         START_EASYLOGGINGPP(argc, argv);
-        el::Helpers::setStorage(sharedLoggingRepository());
         Logging::init();
         if (rank == 0) {
             Logging::setLoggingToFile(input_args->output_path + SEP + 

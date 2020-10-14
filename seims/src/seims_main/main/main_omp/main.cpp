@@ -23,7 +23,6 @@ int main(const int argc, const char** argv) {
 
     /// Initialize easylogging++
     START_EASYLOGGINGPP(argc, argv);
-    el::Helpers::setStorage(sharedLoggingRepository());
     Logging::init();
     Logging::setLoggingToFile(input_args->output_path + SEP + input_args->output_scene + ".log");
     Logging::setLogLevel(Logging::getLLfromString(input_args->log_level), nullptr);

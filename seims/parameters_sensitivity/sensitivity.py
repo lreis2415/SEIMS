@@ -296,7 +296,8 @@ class Sensitivity(object):
                              if self.cfg.resource.workload.lower() == 'slurm'
                              else '%s\nwait' % '\n'.join(model_cmd_list),
                              _cmd='sbatch' if self.cfg.resource.workload.lower() == 'slurm'
-                             else 'bash')
+                             else 'bash',
+                             name_addition='psa')
                 print('Slurm job index %d done!' % idx)
 
                 # Postprocess the models that executed by Slurm job

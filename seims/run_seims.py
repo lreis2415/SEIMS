@@ -337,6 +337,7 @@ class MainSEIMS(object):
                 if self.npernode >= 1:
                     self.cmd += ['--ntasks-per-node=%d' % self.npernode]
                 self.cmd += ['--cpu_bind=cores --cpus-per-task=%d' % self.nthread]
+                self.cmd += ['--exclusive']
             else:
                 self.cmd += [self.mpi_bin]
                 if self.hostfile and os.path.exists(self.hostfile):
