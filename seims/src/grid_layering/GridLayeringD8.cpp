@@ -1,4 +1,4 @@
-#include "GridLayeringD8.h"
+#include "GridLayering.h"
 
 GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_dir) :
     GridLayering(id, gfs, out_dir) {
@@ -9,6 +9,11 @@ GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_d
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN";
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP";
 }
+
+GridLayeringD8::~GridLayeringD8() {
+    // Nothing to do.
+}
+
 
 bool GridLayeringD8::LoadData() {
     flowdir_ = clsRasterData<int>::Init(gfs_, flowdir_name_.c_str(), false);

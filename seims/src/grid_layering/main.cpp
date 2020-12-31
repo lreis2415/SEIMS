@@ -9,7 +9,8 @@
 *               9-February-2017
 *               4-July-2017  Check if success after import layering to MongoDB
 *               29-Dec-2017  Refactor to make code more clearly
-*                5-Mar-2018  Use CCGL, and reformat code style.\n
+*                5-Mar-2018  Use CCGL, and reformat code style
+*               27-Otc-2020  Grid layering based on MFD-md algorithm
 *---------------------------------------------------------------------*/
 
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
@@ -17,8 +18,7 @@
 #endif /* Run Visual Leak Detector during Debug */
 
 #include "utils_time.h"
-#include "GridLayeringD8.h"
-#include "GridLayeringDinf.h"
+#include "GridLayering.h"
 
 using namespace utils_time;
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     }
 
     delete gfs;
-    delete client;
+    client->Destroy();
 
     cout << "time-consuming: " << TimeCounting() - t1 << " seconds." << endl;
     return 0;

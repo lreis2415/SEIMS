@@ -4,15 +4,17 @@
  * \author Liangjun Zhu, 21-July-2016
  *          lj - 28-Dec-2017 - Refactor as class.\n
  *          lj -  5-Mar-2018 - Use CCGL, and reformat code style.\n
+ *          lj - 27-Otc-2020 - Code review and implement MFD-md algorithm.\n
  * \description:
  *               The output list:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
  *                     in which X is subbasinID (0 for the whole basin)
- *                              FD is the flow direction algorithm, include D8, Dinf
+ *                              `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`
  *                  X_FLOWIN_PERCENTAGE_{MFD}
- *                     in which MFD is multi-flow direction algorithm, include Dinf
- *               2. X_ROUTING_LAYERS_UP_DOWN or X_ROUTING_LAYERS_DOWN_UP for D8
- *                  X_ROUTING_LAYERS_DINF for Dinf
+ *                     in which `MFD` is two- or multi-flow direction algorithm, include `DINF` and `MFDMD`
+ *               2. X_ROUTING_LAYERS_UP_DOWN{_METHOD} and X_ROUTING_LAYERS_DOWN_UP{_METHOD}
+ *                     in which `_METHOD` represent flow direction method, the empty denotes `D8`, others
+ *                        include `_DINF` and `_MFDMD`
  *
  */
 
@@ -128,7 +130,7 @@ protected:
     int out_nodata_;         ///< Nodata value in output
     int n_valid_cells_;      ///< Valid Cells number
     int* pos_index_;         ///< Valid cell's index
-    IntRaster* flowdir_;     ///< Flow direction raster data, e.g., <int> for D8
+    IntRaster* flowdir_;     ///< Flow direction raster data, e.g., `int` for D8
     int* flowdir_matrix_;    ///< Flow direction data, e.g., D8, compressed Dinf
     int* reverse_dir_;       ///< Compressed reversed direction
     int* flow_in_num_;       ///< Flow in cells number
@@ -163,6 +165,49 @@ protected:
     string flowout_index_name_;   ///< Flow out index
     string layering_updown_name_; ///< Routing layers from sources
     string layering_downup_name_; ///< Routing layers from outlet
+};
+
+class GridLayeringD8 : public GridLayering {
+public:
+    GridLayeringD8(int id, MongoGridFs* gfs, const char* out_dir);
+
+    ~GridLayeringD8() OVERRIDE;
+
+    bool LoadData() OVERRIDE;
+    bool OutputFlowOut() OVERRIDE;
+};
+
+
+class GridLayeringDinf : public GridLayering {
+public:
+    GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir);
+    ~GridLayeringDinf() OVERRIDE;
+    bool LoadData() OVERRIDE;
+    bool OutputFlowIn() OVERRIDE;
+    bool OutputFlowOut() OVERRIDE;
+
+    /** Dinf specific functions **/
+
+    /*!
+     * \brief Get flow partition of Dinf model in delta row (i) and delta col (j)
+     */
+    static float GetPercentage(float angle, int di, int dj);
+protected:
+    /*!
+     * \brief
+     * \param compressed_dir
+     * \param connect_count
+     * \param p_output
+     */
+    void BuildMultiFlowOutAngleArray(int*& compressed_dir,
+                                     int*& connect_count, float*& p_output);
+private:
+    FloatRaster* flow_angle_; ///< Flow direction in radiation
+    float* angle_;            ///< Flow angle array
+    float* flow_in_angle_;    ///< Flow in partition, #m_flowInCells
+
+    string flow_angle_name_;   ///< Dinf flow direction name
+    string flowin_angle_name_; ///< Output of flow in partition
 };
 
 #endif /* GRID_LAYERING_H */

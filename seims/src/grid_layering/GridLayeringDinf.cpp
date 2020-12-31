@@ -1,4 +1,4 @@
-#include "GridLayeringDinf.h"
+#include "GridLayering.h"
 
 GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* out_dir) :
     GridLayering(id, gfs, out_dir),
