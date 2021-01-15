@@ -301,7 +301,7 @@ MongoGridFs::MongoGridFs(mongoc_gridfs_t* gfs /* = NULL */) : gfs_(gfs) {
 }
 
 MongoGridFs::~MongoGridFs() {
-    mongoc_gridfs_destroy(gfs_);
+    if (gfs_ != NULL) mongoc_gridfs_destroy(gfs_);
 }
 
 mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */,
