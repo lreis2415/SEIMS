@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Generate configuration files of SEIMS-based watershed model.
 
