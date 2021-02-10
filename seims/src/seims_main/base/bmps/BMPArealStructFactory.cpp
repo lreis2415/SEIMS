@@ -9,7 +9,8 @@ using namespace utils_string;
 using namespace bmps;
 
 BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
-    m_id(-1), m_name(""), m_desc(""), m_refer("") {
+    m_id(-1), m_name(""), m_desc(""), m_refer(""), m_effectivenessVariable(false),
+	m_changeFrequency(31536000), m_lastUpdateTime(-1){
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SUB)) {
         GetNumericFromBsonIterator(&iter, m_id);
     }
@@ -26,6 +27,15 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
         string landuse_str = GetStringFromBsonIterator(&iter);
         SplitStringForValues(landuse_str, '-', m_landuse);
     }
+	if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_EFFECTIVENESSVARIABLE)){
+		int tmp = -1;
+		if (GetNumericFromBsonIterator(&iter, tmp)){
+			m_effectivenessVariable = tmp == 1 ? true : false;
+		}
+	}    
+	if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_CHANGEFREQUENCY)) {
+		GetNumericFromBsonIterator(&iter, m_changeFrequency);
+	}
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_PARAMS)) {
         string params_str = GetStringFromBsonIterator(&iter);
         vector<string> params_strs = SplitString(params_str, '-');
@@ -36,8 +46,11 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Name = tmp_param_items[0];
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
-            char* end = nullptr;
-            p->Impact = CVT_FLT(strtod(tmp_param_items[3].c_str(), &end));
+			vector<string> impactsStrings = SplitString(tmp_param_items[3],',');
+			for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
+				p->ImpactSeries.push_back(CVT_FLT(ToDouble((*impactStrIt).c_str())));
+			}
+            p->Impact = p->ImpactSeries.back();//For compatibility with previous versions
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
 #else

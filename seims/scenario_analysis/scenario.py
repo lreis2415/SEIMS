@@ -121,8 +121,10 @@ class Scenario(object):
             self.ID = given_id
         # Update scenario ID for self.modelcfg and self.model
         self.model.scenario_id = self.ID
+        self.model.UpdateScenarioID()
         self.modelcfg.scenario_id = self.ID
         self.modelcfg_dict['scenario_id'] = self.ID if self.modelcfg_dict else 0
+
         return self.ID
 
     def rule_based_config(self, method, conf_rate):

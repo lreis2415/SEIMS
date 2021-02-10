@@ -10,7 +10,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from future.utils import viewitems
 
-
 import array
 from collections import OrderedDict
 from copy import deepcopy
@@ -724,7 +723,7 @@ def main_multiple(eval_num):
     print(max(cost), min(cost), sum(cost) / len(cost))
 
 
-def main_single():
+def main_single(sceid, gene_values):
     """Test of single evaluation of scenario."""
     cf = get_config_parser()
     base_cfg = SAConfig(cf)  # type: SAConfig
@@ -737,13 +736,14 @@ def main_single():
     cfg.construct_indexes_units_gene()
 
     sce = SUScenario(cfg)
-    sce.initialize()
+    sce.initialize(input_genes=gene_values)
     sce.boundary_adjustment()
-    sceid = sce.set_unique_id()
-    print(sceid, sce.gene_values.__str__())
+    sce.set_unique_id(sceid)
+    # print(sceid, sce.gene_values.__str__())
     sce.decoding()
     sce.export_to_mongodb()
     sce.execute_seims_model()
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.calculate_economy()
     sce.calculate_environment()
 
@@ -786,41 +786,53 @@ def test_func():
     # main_single()
     # main_multiple(4)
 
-    sid = 210213956
-    gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
-               2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-               -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
-               0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
-               0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
-               0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
+    # sid = 210213956
+    # gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
+    #            2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+    #            -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
+    #            0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
+    #            0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
+    #            0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
+    #            0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
+    #            0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+    #            0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
     # sid = 10000000
     # gvalues = [0.] * 175
 
+    sid = 229353850
+    gvalues = [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0,
+               2.0, 2.0, 0.0, 3.0, 4.0, 0.0, 1.0, 4.0, 0.0, 3.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
+               0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 4.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 3.0, 4.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+               2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 3.0, 0.0]
+
     main_manual(sid, gvalues)
 
+    # # run base
+    # sid = 0
+    # gvalues = [0.0] * 105
+    # main_manual(sid, gvalues)
 
 if __name__ == '__main__':
-    cf = get_config_parser()
-    # cfg = SAConfig(cf)  # type: SAConfig
-    cfg = SAConnFieldConfig(cf)
-    sceobj = SUScenario(cfg)  # type: Scenario
-
-    # test the picklable of Scenario class.
-    import pickle
-
-    s = pickle.dumps(sceobj)
-    # print(s)
-    new_cfg = pickle.loads(s)  # type: Scenario
-    print(new_cfg.modelcfg.ConfigDict)
-    print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                         new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
-    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
-                                                                 new_cfg.ID))
-    new_cfg.set_unique_id()
-    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
-                                                                 new_cfg.ID))
+    test_func()
+# cf = get_config_parser()
+# # cfg = SAConfig(cf)  # type: SAConfig
+# cfg = SAConnFieldConfig(cf)
+# sceobj = SUScenario(cfg)  # type: Scenario
+#
+# # test the picklable of Scenario class.
+# import pickle
+#
+# s = pickle.dumps(sceobj)
+# # print(s)
+# new_cfg = pickle.loads(s)  # type: Scenario
+# print(new_cfg.modelcfg.ConfigDict)
+# print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+#                                      new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
+# print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+#                                                              new_cfg.ID))
+# new_cfg.set_unique_id()
+# print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+#                                                              new_cfg.ID))

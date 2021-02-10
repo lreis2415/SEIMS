@@ -13,7 +13,7 @@ ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dim
                          Transfer(TF_None), Source(""), Value(0.f), Impact(0.f), Change(""),
                          Maximum(0.f), Minimun(0.f), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
-                         BasicName(""), initialized(false) {
+						 BasicName(""), initialized(false), ImpactSeries(), CurrentImpactIndex(0){
 }
 
 ParamInfo::ParamInfo(const ParamInfo& another) {
@@ -36,6 +36,8 @@ ParamInfo::ParamInfo(const ParamInfo& another) {
     OutputToOthers = another.OutputToOthers;
     BasicName = another.BasicName;
     initialized = another.initialized;
+	ImpactSeries = another.ImpactSeries;
+	CurrentImpactIndex = another.CurrentImpactIndex;
 }
 
 ParamInfo::~ParamInfo() {
@@ -44,7 +46,7 @@ ParamInfo::~ParamInfo() {
     }
 }
 
-float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
+float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */, bool isImpactVariable /*=false*/) {
     float res = pre_value;
     if (FloatEqual(pre_value, NODATA_VALUE)) {
         res = Value;
@@ -54,16 +56,38 @@ float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
         return res;
     }
 
-    if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
-        res *= Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
-        res += Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
-        res = Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
-        //don't change
-        return res;
-    }
+	if (isImpactVariable){
+		float tmpImpact = ImpactSeries[CurrentImpactIndex];
+		if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(tmpImpact, 1.f)) {
+			res *= tmpImpact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(tmpImpact, 0.f)) {
+			res += tmpImpact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(tmpImpact, NODATA_VALUE)) {
+			res = tmpImpact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_NC)) {
+			//don't change
+			return res;
+		}
+	}
+	else{
+		if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
+			res *= Impact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
+			res += Impact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
+			res = Impact;
+		}
+		else if (StringMatch(Change, PARAM_CHANGE_NC)) {
+			//don't change
+			return res;
+		}
+	}
+
     if (!FloatEqual(Maximum, NODATA_VALUE) && res > Maximum) res = Maximum;
     if (!FloatEqual(Minimun, NODATA_VALUE) && res < Minimun) res = Minimun;
     return res;
@@ -85,7 +109,8 @@ void ParamInfo::Adjust1DRaster(const int n, float* data) {
 
 int ParamInfo::Adjust1DRaster(const int n, float* data, const float* units,
                               const vector<int>& selunits,
-                              const float* lu, const vector<int>& sellu) {
+                              const float* lu, const vector<int>& sellu,
+							  bool effectivenessVariable) {
     int count = 0;
 #pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
@@ -101,7 +126,7 @@ int ParamInfo::Adjust1DRaster(const int n, float* data, const float* units,
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
-        data[i] = GetAdjustedValue(data[i]);
+        data[i] = GetAdjustedValue(data[i], effectivenessVariable);
         count += 1;
     }
     return count;
@@ -123,7 +148,7 @@ void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
 }
 
 int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
-                              const vector<int>& selunits, float* lu, const vector<int>& sellu) {
+	const vector<int>& selunits, float* lu, const vector<int>& sellu, bool effectivenessVariable) {
     int count = 0;
 #pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
@@ -136,7 +161,7 @@ int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* 
             continue;
         }
         for (int j = 0; j < lyrs; j++) {
-            data[i][j] = GetAdjustedValue(data[i][j]);
+            data[i][j] = GetAdjustedValue(data[i][j], effectivenessVariable);
         }
         count += 1;
     }

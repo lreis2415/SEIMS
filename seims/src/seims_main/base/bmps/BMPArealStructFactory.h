@@ -40,12 +40,26 @@ public:
     vector<int>& getSuitableLanduse() { return m_landuse; }
     //! Get parameters
     map<string, ParamInfo*>& getParameters() { return m_parameters; }
+	//! Is EffectivenessVariable
+	bool isEffectivenessVariable(){ return m_effectivenessVariable; }
+	//! get change frequency
+	int getChangeFrequency(){ return m_changeFrequency; }
+	//! getter and setter for last update time
+	time_t getLastUpdateTime() const { return m_lastUpdateTime; }
+	void setLastUpdateTime(time_t val) { m_lastUpdateTime = val; }
 private:
     int m_id; ///< unique BMP ID
     string m_name; ///< name
     string m_desc; ///< description
     string m_refer; ///< references
     vector<int> m_landuse; ///< suitable placement landuse
+
+	//! Is BMP effectiveness variable or not
+	bool m_effectivenessVariable;
+	//! Set the change frequency in seconds, if the BMP effectiveness is variable
+	int m_changeFrequency;
+	//! last update time of BMP effectiveness
+	time_t m_lastUpdateTime;
     /*!
      * \key the parameter name, remember to add subbasin number as prefix when use GridFS file in MongoDB
      * \value the ParamInfo class

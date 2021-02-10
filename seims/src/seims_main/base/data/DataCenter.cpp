@@ -498,6 +498,9 @@ void DataCenter::UpdateOutputDate(time_t start_time, time_t end_time) {
 }
 
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {
+	// update bmp parameters 
+	UpdateParametersByScenario(GetSubbasinID(), t);
+
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
     map<string, vector<ParamInfo*> >& module_inputs = factory_->GetModuleInputs();
@@ -532,7 +535,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     }
 }
 
-void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
+void DataCenter::UpdateParametersByScenario(const int subbsn_id, time_t t) {
     if (nullptr == scenario_) {
         return;
     }
@@ -542,62 +545,103 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
         if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) {
             continue;
         }
-        cout << "Update parameters by Scenario settings." << endl;
-        BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
-        map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
-        float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
-        vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
-        /// Get landuse data of current subbasin ("0_" for the whole basin)
-        string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
-        int nsize = -1;
-        float* ludata = nullptr;
-        rs_map_[lur]->GetRasterData(&nsize, &ludata);
+		BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
+		map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
+		for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
+			time_t lastUpdateTime = iter2->second->getLastUpdateTime();
+			time_t changeFrequency = iter2->second->getChangeFrequency();
+			//first time or long enough to update
+			if (lastUpdateTime == -1 || t >= (lastUpdateTime + changeFrequency))
+			{
+				cout << "Update parameters by Scenario settings." << endl;
+				float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
+				vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
+				/// Get landuse data of current subbasin ("0_" for the whole basin)
+				string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
+				int nsize = -1;
+				float* ludata = nullptr;
+				rs_map_[lur]->GetRasterData(&nsize, &ludata);
 
-        for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
-            cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
-                    << iter2->second->getBMPName() << endl;
-            vector<int>& suitablelu = iter2->second->getSuitableLanduse();
-            map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
-            for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
-                string paraname = iter3->second->Name;
-                cout << "   -- Parameter ID: " << paraname << endl;
-                /// Check whether the parameter is existed in m_parametersInDB.
-                ///   If existed, update the missing values, otherwise, print warning message and continue.
-                if (init_params_.find(paraname) == init_params_.end()) {
-                    cout << "      Warning: the parameter is not defined in PARAMETER table, and "
-                            " will not work as expected." << endl;
-                    continue;
-                }
-                ParamInfo* tmpparam = init_params_[paraname];
-                if (iter3->second->Change.empty()) {
-                    iter3->second->Change = tmpparam->Change;
-                }
-                iter3->second->Maximum = tmpparam->Maximum;
-                iter3->second->Minimun = tmpparam->Minimun;
-                // Perform update
-                string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
-                if (rs_map_.find(remote_filename) == rs_map_.end()) {
-                    cout << "      Warning: the parameter name: " << remote_filename <<
-                            " is not loaded as 1D or 2D raster, and "
-                            " will not work as expected." << endl;
-                    continue;
-                }
-                int count = 0;
-                if (rs_map_[remote_filename]->Is2DRaster()) {
-                    int lyr = -1;
-                    float** data2d = nullptr;
-                    rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
-                    count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
-                                                          sel_ids, ludata, suitablelu);
-                } else {
-                    float* data = nullptr;
-                    rs_map_[remote_filename]->GetRasterData(&nsize, &data);
-                    count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
-                                                          ludata, suitablelu);
-                }
-                cout << "      A total of "  << count << " has been updated for " <<
-                    remote_filename << endl;
-            }
-        }
+				cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
+					<< iter2->second->getBMPName() << endl;
+				vector<int>& suitablelu = iter2->second->getSuitableLanduse();
+				map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
+				for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
+					string paraname = iter3->second->Name;
+					cout << "   -- Parameter ID: " << paraname << endl;
+					/// Check whether the parameter is existed in m_parametersInDB.
+					///   If existed, update the missing values, otherwise, print warning message and continue.
+					if (init_params_.find(paraname) == init_params_.end()) {
+						cout << "      Warning: the parameter is not defined in PARAMETER table, and "
+							" will not work as expected." << endl;
+						continue;
+					}
+					ParamInfo* tmpparam = init_params_[paraname];
+					if (iter3->second->Change.empty()) {
+						iter3->second->Change = tmpparam->Change;
+					}
+					iter3->second->Maximum = tmpparam->Maximum;
+					iter3->second->Minimun = tmpparam->Minimun;
+					// Perform update
+					string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
+					if (rs_map_.find(remote_filename) == rs_map_.end()) {
+						cout << "      Warning: the parameter name: " << remote_filename <<
+							" is not loaded as 1D or 2D raster, and "
+							" will not work as expected." << endl;
+						continue;
+					}
+#ifdef _DEBUG
+					// for debug: output the modified data
+					CLOG(INFO, LOG_TIMESPAN) << t << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
+						<< iter2->second->getBMPName() << " param: " << remote_filename << endl;
+					vector<string> output_params{ "0_CONDUCTIVITY" };//"0_DENSITY", "0_CONDUCTIVITY"
+#endif // _DEBUG
+					int count = 0;
+					if (rs_map_[remote_filename]->Is2DRaster()) {
+						int lyr = -1;
+						float** data2d = nullptr;
+						rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
+						count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
+							sel_ids, ludata, suitablelu, iter2->second->isEffectivenessVariable());
+#ifdef _DEBUG
+						if (std::find(output_params.begin(),output_params.end(),remote_filename)!=output_params.end())
+						{
+							std::stringstream ss;
+							for (int x = 0; x < nsize; x++)
+							{
+								for (int y = 0; y < lyr; y++)
+								{
+									ss << data2d[x][y] << ' ';
+								}
+								ss << endl;
+							}
+							CLOG(INFO, LOG_TIMESPAN) << ss.str() << endl;
+						}
+#endif
+					}
+					else {
+						float* data = nullptr;
+						rs_map_[remote_filename]->GetRasterData(&nsize, &data);
+						count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
+							ludata, suitablelu, iter2->second->isEffectivenessVariable()); 
+#ifdef _DEBUG
+						if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+						{
+							std::stringstream ss;
+							for (int x = 0; x < nsize; x++)
+							{
+								ss << data[x] << ' ';
+							}
+							CLOG(INFO, LOG_TIMESPAN) << ss.str() << endl;
+						}
+#endif
+					}
+					iter3->second->CurrentImpactIndex++;
+					cout << "      A total of " << count << " has been updated for " <<
+						remote_filename << endl;
+				}
+				iter2->second->setLastUpdateTime(t);
+			}			
+		}
     }
 }

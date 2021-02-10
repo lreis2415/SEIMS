@@ -199,11 +199,12 @@ public:
     * changelog:
     *   - 1. Added by Huiran GAO, Feb. 2017
     *   - 2. Redesigned by Liangjun Zhu, 08/16/17
+	*   - 3. Add time parameter by Shen Shen, Feb. 2021
     *
     * \sa BMPArealStructFactory
     * \sa BMPArealStruct
     */
-    void UpdateParametersByScenario(int subbsn_id);
+    void UpdateParametersByScenario(int subbsn_id, time_t t);
 
     /**** Accessors: Set and Get *****/
 
