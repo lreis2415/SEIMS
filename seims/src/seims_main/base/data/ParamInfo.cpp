@@ -5,6 +5,7 @@
 #include "utils_math.h"
 #include "utils_string.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_math;
 using namespace utils_string;
@@ -163,6 +164,7 @@ int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* 
         for (int j = 0; j < lyrs; j++) {
             data[i][j] = GetAdjustedValue(data[i][j], effectivenessVariable);
         }
+        CLOG(INFO, LOG_TIMESPAN) << i << '\t' << data[i][0];
         count += 1;
     }
     return count;

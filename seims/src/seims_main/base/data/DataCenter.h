@@ -204,7 +204,9 @@ public:
     * \sa BMPArealStructFactory
     * \sa BMPArealStruct
     */
-    void UpdateParametersByScenario(int subbsn_id, time_t t);
+    void UpdateScenarioParametersStable(int subbsn_id);
+
+    void UpdateScenarioParametersDynamic(int subbsn_id, time_t t);
 
     /**** Accessors: Set and Get *****/
 
