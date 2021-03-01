@@ -642,7 +642,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                 needUpdateTime = lastUpdateTime + changeFrequency;
 
             if (t >= needUpdateTime){
-                cout << "Update parameters by Scenario settings." << endl;
+                cout << "Update scenario parameters dynamically." << endl;
 				float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
 				vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
 				/// Get landuse data of current subbasin ("0_" for the whole basin)
@@ -684,9 +684,9 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 						continue;
 					}
 #ifdef _DEBUG
-					// for debug: output the modified data
-					CLOG(INFO, LOG_TIMESPAN) << t << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
-						<< iter2->second->getBMPName() << " param: " << remote_filename << endl;
+					// DEBUG: output the modified data
+                    CLOG(INFO, LOG_OUTPUT) << t << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
+						<< iter2->second->getBMPName() << " param: " << remote_filename;
 					vector<string> output_params{ "0_CONDUCTIVITY" };//"0_DENSITY", "0_CONDUCTIVITY"
 #endif // _DEBUG
 					int count = 0;
@@ -695,28 +695,24 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 						float** data2d = nullptr;
 						rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
 						count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
-							sel_ids, ludata, suitablelu, iter2->second->isEffectivenessVariable());
-//#ifdef _DEBUG
-//						if (std::find(output_params.begin(),output_params.end(),remote_filename)!=output_params.end())
-//						{
-//							std::stringstream ss;
-//							for (int x = 0; x < nsize; x++)
-//							{
-//								for (int y = 0; y < lyr; y++)
-//								{
-//									ss << data2d[x][y] << ' ';
-//								}
-//								ss << endl;
-//							}
-//							CLOG(INFO, LOG_TIMESPAN) << ss.str() << endl;
-//						}
-//#endif
+							sel_ids, ludata, suitablelu, true);
+#ifdef _DEBUG
+						if (std::find(output_params.begin(),output_params.end(),remote_filename)!=output_params.end())
+						{
+							std::stringstream ss;
+							for (int x = 0; x < nsize; x++)
+							{
+								ss << data2d[x][0] << ' '<< endl;
+							}
+                            CLOG(INFO, LOG_OUTPUT) << ss.str();
+						}
+#endif
 					}
 					else {
 						float* data = nullptr;
 						rs_map_[remote_filename]->GetRasterData(&nsize, &data);
 						count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
-							ludata, suitablelu, iter2->second->isEffectivenessVariable()); 
+							ludata, suitablelu, true); 
 //#ifdef _DEBUG
 //						if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
 //						{
@@ -725,7 +721,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 //							{
 //								ss << data[x] << ' ';
 //							}
-//							CLOG(INFO, LOG_TIMESPAN) << ss.str() << endl;
+//							CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
 //						}
 //#endif
 					}

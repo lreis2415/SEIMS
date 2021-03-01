@@ -77,11 +77,11 @@ BMPArealStruct::~BMPArealStruct() {
 }
 
 BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                             const int bmpType, const int bmpPriority,
-                                             vector<string>& distribution,
-                                             const string& collection, const string& location):
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
-    m_mgtFieldsRs(nullptr) {
+                                             const int bmpType, const int bmpPriority, vector<string>& distribution,
+                                             const string& collection, const string& location, int effectivenessVariable,
+                                             int variableTimes) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessVariable, variableTimes),
+    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_variableTimes) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     } else {
@@ -89,7 +89,25 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                              "The distribution field must follow the format: "
                              "RASTER|CoreRasterName.\n");
     }
-    SplitStringForValues(location, '-', m_unitIDs);
+    if (m_effectivenessVariable) {
+        vector<string> tempLocations;
+        SplitStringForValues(location, '-', tempLocations);
+        for (vector<string>::iterator it = tempLocations.begin();it!=tempLocations.end();it++)
+        {
+            vector<int> temp;
+            SplitStringForValues(*it, '/', temp);
+            int loc = temp[0];
+            int time = temp[1];
+            for (int t = time; t < m_variableTimes; t++)
+            {
+                m_unitIDsSeries[t].push_back(loc);
+            }
+        }
+
+    }
+    else{
+        SplitStringForValues(location, '-', m_unitIDs);
+    }    
 }
 
 BMPArealStructFactory::~BMPArealStructFactory() {

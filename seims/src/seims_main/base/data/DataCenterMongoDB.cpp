@@ -137,7 +137,8 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         scenario_dbname_ = QueryDatabaseName(query, DB_TAB_SCENARIO);
         if (!scenario_dbname_.empty()) {
             use_scenario_ = true;
-            scenario_ = new Scenario(mongo_client_, scenario_dbname_, subbasin_id_, scenario_id_);
+            scenario_ = new Scenario(mongo_client_, scenario_dbname_, subbasin_id_, scenario_id_,
+                input_->getStartTime(), input_->getEndTime());
             if (SetRasterForScenario()) {
                 scenario_->setRasterForEachBMP();
             }

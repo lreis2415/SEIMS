@@ -35,7 +35,7 @@ public:
     /// Constructor
     BMPFactory(int scenario_id, int bmp_id, int sub_scenario, int bmp_type,
                int bmp_priority, vector<string>& distribution, const string& collection,
-               const string& location);
+               const string& location, int effectivenessVariable = 0, int variableTimes = -1);
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -82,6 +82,8 @@ protected:
     vector<string> m_distribution;
     const string m_bmpCollection; ///< Collection name
     const string m_location; ///< Define where the BMP will be applied
+    const int m_effectivenessVariable;
+    const int m_variableTimes;
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

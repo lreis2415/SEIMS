@@ -3,8 +3,9 @@
 
 namespace bmps {
 Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
-                   int scenarioID /* = 0 */) :
-    m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID) {
+    int scenarioID /* = 0 */, time_t startTime/* = -1 */, time_t endTime/* = -1 */) :
+    m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID),
+    m_startTime(startTime), m_endTime(endTime){
     assert(m_sceneID >= 0);
     assert(m_subbsnID >= 0);
     loadScenario();
@@ -93,11 +94,16 @@ void Scenario::loadBMPs() {
         string distribution = "";
         string collectionName = "";
         string location = "";
+        int effectivenessVariable = -1;
+        int changeFrequency = -1;
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) GetNumericFromBsonIterator(&iter, BMPID);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) GetNumericFromBsonIterator(&iter, subScenario);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_TABLE)) collectionName = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_LOCATION)) location = GetStringFromBsonIterator(&iter);
+        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_EFFECTIVENESSVARIABLE)) GetNumericFromBsonIterator(&iter, effectivenessVariable);
+        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
+        int variableTimes = (m_endTime - m_startTime) / changeFrequency;
 
         /// check if raster data is need for the current BMP
         vector<string> dist = SplitString(distribution, '|');
@@ -163,7 +169,8 @@ void Scenario::loadBMPs() {
                 m_bmpFactories.emplace(uniqueBMPID,
                                        new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
                                                                  BMPType, BMPPriority, dist,
-                                                                 collectionName, location));
+                                                                 collectionName, location, effectivenessVariable,
+                                                                 variableTimes));
             }
 #else
             if (BMPID == BMP_TYPE_POINTSOURCE) {

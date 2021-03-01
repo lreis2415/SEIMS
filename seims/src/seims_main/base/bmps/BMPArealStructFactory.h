@@ -77,7 +77,8 @@ public:
     /// Constructor
     BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
                           int bmpType, int bmpPriority, vector<string>& distribution,
-                          const string& collection, const string& location);
+                          const string& collection, const string& location, int effectivenessVariable = 0,
+                          int variableTimes = -1);
 
     /// Destructor
     ~BMPArealStructFactory();
@@ -107,6 +108,8 @@ private:
     float* m_mgtFieldsRs;
     //! locations
     vector<int> m_unitIDs;
+    //! 
+    vector< vector<int> > m_unitIDsSeries;
     /*!
      *\key The unique areal BMP ID
      *\value Instance of BMPArealStruct
