@@ -9,8 +9,7 @@ using namespace utils_string;
 using namespace bmps;
 
 BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
-    m_id(-1), m_name(""), m_desc(""), m_refer(""), m_effectivenessVariable(false),
-	m_changeFrequency(31536000), m_lastUpdateTime(-1){
+    m_id(-1), m_name(""), m_desc(""), m_refer(""), m_lastUpdateTime(-1){
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SUB)) {
         GetNumericFromBsonIterator(&iter, m_id);
     }
@@ -27,15 +26,15 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
         string landuse_str = GetStringFromBsonIterator(&iter);
         SplitStringForValues(landuse_str, '-', m_landuse);
     }
-	if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_EFFECTIVENESSVARIABLE)){
-		int tmp = -1;
-		if (GetNumericFromBsonIterator(&iter, tmp)){
-			m_effectivenessVariable = tmp == 1 ? true : false;
-		}
-	}    
-	if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_CHANGEFREQUENCY)) {
-		GetNumericFromBsonIterator(&iter, m_changeFrequency);
-	}
+	//if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_EFFECTIVENESSVARIABLE)){
+	//	int tmp = -1;
+	//	if (GetNumericFromBsonIterator(&iter, tmp)){
+	//		m_effectivenessVariable = tmp == 1 ? true : false;
+	//	}
+	//}    
+	//if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_CHANGEFREQUENCY)) {
+	//	GetNumericFromBsonIterator(&iter, m_changeFrequency);
+	//}
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_PARAMS)) {
         string params_str = GetStringFromBsonIterator(&iter);
         vector<string> params_strs = SplitString(params_str, '-');
@@ -78,10 +77,11 @@ BMPArealStruct::~BMPArealStruct() {
 
 BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
                                              const int bmpType, const int bmpPriority, vector<string>& distribution,
-                                             const string& collection, const string& location, int effectivenessVariable,
-                                             int variableTimes) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessVariable, variableTimes),
-    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_variableTimes) {
+                                             const string& collection, const string& location, bool effectivenessVariable,
+                                             time_t changeFrequency, int variableTimes) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessVariable, 
+    changeFrequency, variableTimes),
+    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_variableTimes),m_seriesIndex(0) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     } else {
@@ -90,8 +90,7 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                              "RASTER|CoreRasterName.\n");
     }
     if (m_effectivenessVariable) {
-        vector<string> tempLocations;
-        SplitStringForValues(location, '-', tempLocations);
+        vector<string> tempLocations = SplitString(location, '-');
         for (vector<string>::iterator it = tempLocations.begin();it!=tempLocations.end();it++)
         {
             vector<int> temp;
@@ -103,7 +102,6 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                 m_unitIDsSeries[t].push_back(loc);
             }
         }
-
     }
     else{
         SplitStringForValues(location, '-', m_unitIDs);

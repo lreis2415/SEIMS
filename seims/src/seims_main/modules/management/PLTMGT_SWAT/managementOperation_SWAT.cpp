@@ -437,7 +437,8 @@ void MGTOpt_SWAT::SetScenario(Scenario* sce) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
         if (it->first / 100000 == BMP_TYPE_PLANT_MGT) {
             /// calculate unique index for the key of m_mgtFactory, using Landuse_ID * 100 + subScenario
-            BMPPlantMgtFactory* tmpPltFactory = static_cast<BMPPlantMgtFactory *>(it->second);
+            //BMPPlantMgtFactory* tmpPltFactory = static_cast<BMPPlantMgtFactory *>(it->second);
+            BMPPlantMgtFactory* tmpPltFactory = dynamic_cast<BMPPlantMgtFactory *>(it->second);
             m_landuseMgtOp.emplace_back(tmpPltFactory->GetLUCCID());
             if (m_subSceneID < 0) m_subSceneID = it->second->GetSubScenarioId();
             int uniqueIdx = tmpPltFactory->GetLUCCID() * 100 + m_subSceneID;

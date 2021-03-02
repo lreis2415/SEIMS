@@ -94,16 +94,21 @@ void Scenario::loadBMPs() {
         string distribution = "";
         string collectionName = "";
         string location = "";
-        int effectivenessVariable = -1;
+        bool effectivenessVariable = false;
+        int tempEffectivenessVariable = -1;
         int changeFrequency = -1;
+        int variableTimes = -1;
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) GetNumericFromBsonIterator(&iter, BMPID);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) GetNumericFromBsonIterator(&iter, subScenario);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_TABLE)) collectionName = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_LOCATION)) location = GetStringFromBsonIterator(&iter);
-        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_EFFECTIVENESSVARIABLE)) GetNumericFromBsonIterator(&iter, effectivenessVariable);
-        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
-        int variableTimes = (m_endTime - m_startTime) / changeFrequency;
+        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_EFFECTIVENESSVARIABLE)) GetNumericFromBsonIterator(&iter, tempEffectivenessVariable);
+        effectivenessVariable = tempEffectivenessVariable == 1 ? true : false;
+        if (effectivenessVariable) {
+            if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
+            variableTimes = (m_endTime - m_startTime) / changeFrequency;
+        }
 
         /// check if raster data is need for the current BMP
         vector<string> dist = SplitString(distribution, '|');
@@ -170,7 +175,7 @@ void Scenario::loadBMPs() {
                                        new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
                                                                  BMPType, BMPPriority, dist,
                                                                  collectionName, location, effectivenessVariable,
-                                                                 variableTimes));
+                                                                 changeFrequency, variableTimes));
             }
 #else
             if (BMPID == BMP_TYPE_POINTSOURCE) {

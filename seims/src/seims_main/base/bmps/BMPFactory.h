@@ -35,7 +35,8 @@ public:
     /// Constructor
     BMPFactory(int scenario_id, int bmp_id, int sub_scenario, int bmp_type,
                int bmp_priority, vector<string>& distribution, const string& collection,
-               const string& location, int effectivenessVariable = 0, int variableTimes = -1);
+               const string& location, bool effectivenessVariable = false, 
+               time_t changeFrequency = -1, int variableTimes = -1);
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -70,6 +71,10 @@ public:
     /// Output
     virtual void Dump(std::ostream* fs) = 0;
 
+    bool IsEffectivenessVariable(){ return m_effectivenessVariable; }
+    time_t GetChangeFrequency(){ return m_changeFrequency; }
+    int GetVariableTimes(){ return m_variableTimes; }
+
 protected:
     const int m_scenarioId; ///< Scenario ID
     const int m_bmpId; ///< BMP ID
@@ -82,7 +87,8 @@ protected:
     vector<string> m_distribution;
     const string m_bmpCollection; ///< Collection name
     const string m_location; ///< Define where the BMP will be applied
-    const int m_effectivenessVariable;
+    const bool m_effectivenessVariable;
+    const time_t m_changeFrequency;
     const int m_variableTimes;
 };
 }

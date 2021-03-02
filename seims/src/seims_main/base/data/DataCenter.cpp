@@ -547,6 +547,9 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
             continue;
         }
 
+        // only update BMP without variable parameters
+        if (iter->second->IsEffectivenessVariable()) continue;
+
         cout << "Update by Scenario parameters stable" << endl;
         BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
         map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
@@ -559,8 +562,6 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
         rs_map_[lur]->GetRasterData(&nsize, &ludata);
 
         for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
-            // only update BMP without variable parameters
-            if (iter2->second->isEffectivenessVariable()) continue;
 
             cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                 << iter2->second->getBMPName() << endl;
@@ -619,24 +620,23 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
     map<int, BMPFactory *> bmp_factories = scenario_->GetBMPFactories();
     for (auto iter = bmp_factories.begin(); iter != bmp_factories.end(); ++iter) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
-        if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) {
-            continue;
-        }
+        if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) continue;
+
+        // only update BMP without variable parameters
+        if (!iter->second->IsEffectivenessVariable()) continue;
 
         //DEBUG: only fengjin
 		if (iter->second->GetSubScenarioId() != 1) continue;
 
 		BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
 		map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
-        for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
-            // only update BMP without variable parameters
-            if (!iter2->second->isEffectivenessVariable()) continue;
-            
+        for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {           
 			time_t lastUpdateTime = iter2->second->getLastUpdateTime();
-			time_t changeFrequency = iter2->second->getChangeFrequency();
+			time_t changeFrequency = iter->second->GetChangeFrequency();
+
             // update condition: long enough
             time_t needUpdateTime = -1;
-            if (lastUpdateTime == -1) 
+            if (lastUpdateTime == -1) //first time
                 needUpdateTime = input_->getStartTime() + changeFrequency;
             else
                 needUpdateTime = lastUpdateTime + changeFrequency;
@@ -644,7 +644,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
             if (t >= needUpdateTime){
                 cout << "Update scenario parameters dynamically." << endl;
 				float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
-				vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
+				vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDsByIndex();
 				/// Get landuse data of current subbasin ("0_" for the whole basin)
 				string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
 				int nsize = -1;
@@ -675,6 +675,8 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 					}
 					iter3->second->Maximum = tmpparam->Maximum;
 					iter3->second->Minimun = tmpparam->Minimun;
+                    iter3->second->CurrentImpactIndex = tmp_bmp_areal_struct_factory->getSeriesIndex();
+
 					// Perform update
 					string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
 					if (rs_map_.find(remote_filename) == rs_map_.end()) {
@@ -702,7 +704,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 							std::stringstream ss;
 							for (int x = 0; x < nsize; x++)
 							{
-								ss << data2d[x][0] << ' '<< endl;
+								ss << data2d[x][0] << ' ';
 							}
                             CLOG(INFO, LOG_OUTPUT) << ss.str();
 						}
@@ -725,7 +727,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 //						}
 //#endif
 					}
-					iter3->second->CurrentImpactIndex++;
+                    tmp_bmp_areal_struct_factory->increaseSeriesIndex();
 					cout << "      A total of " << count << " has been updated for " <<
 						remote_filename << endl;
 				}
