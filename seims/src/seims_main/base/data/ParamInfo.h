@@ -42,7 +42,10 @@ public:
      *                      as ParamInfo.Value, otherwise adjust the given value.
      * \return adjusted float value
      */
-    float GetAdjustedValue(float pre_value = NODATA_VALUE, bool isImpactVariable = false);
+    float GetAdjustedValue(float pre_value = NODATA_VALUE);
+
+    //! 
+    float GetAdjustedValueWithImpactIndexes(float pre_value, int curImpactIndex);
 
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
@@ -52,7 +55,11 @@ public:
 
     //! Adjust 1D Raster on selected area
     int Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
-		const float* lu, const vector<int>& sellu, bool effectivenessVariable);
+		const float* lu, const vector<int>& sellu);
+
+    //! 
+    int Adjust1DRasterWithImpactIndexes(const int n, float* data, const float* units,
+        const vector<int>& selunits, const float* lu, const vector<int>& sellu);
 
     //! Adjust 2D array
     void Adjust2DArray(int n, float** data);
@@ -62,7 +69,11 @@ public:
 
     //! Adjust 1D Raster on selected area
     int Adjust2DRaster(int n, int lyrs, float** data, float* units, const vector<int>& selunits,
-		float* lu, const vector<int>& sellu, bool effectivenessVariable);
+		float* lu, const vector<int>& sellu);
+
+
+    int Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, float** data, float* units,
+        const vector<int>& selunits, float* lu, const vector<int>& sellu);
 
     //! Name
     string Name;
@@ -104,8 +115,8 @@ public:
     bool initialized;
 	//! If the BMP effectiveness is variable, set the values of impacts 
 	vector<float> ImpactSeries;
-	//! current impact Index used by impact series
-	int CurrentImpactIndex;
+	//! current impact Index used by impact series, same size with data in rs_map_
+	vector<int> CurrentImpactIndexes;
 };
 
 #endif /* SEIMS_PARAMETER_INFO_H */

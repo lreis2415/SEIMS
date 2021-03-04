@@ -597,13 +597,13 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                     float** data2d = nullptr;
                     rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                     count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
-                        sel_ids, ludata, suitablelu, false);
+                        sel_ids, ludata, suitablelu);
                 }
                 else {
                     float* data = nullptr;
                     rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                     count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
-                        ludata, suitablelu, false);
+                        ludata, suitablelu);
                 }
                 cout << "      A total of " << count << " has been updated for " <<
                     remote_filename << endl;
@@ -626,7 +626,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
         if (!iter->second->IsEffectivenessVariable()) continue;
 
         //DEBUG: only fengjin
-		if (iter->second->GetSubScenarioId() != 1) continue;
+		//if (iter->second->GetSubScenarioId() != 1) continue;
 
 		BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
 		map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
@@ -659,7 +659,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 					string paraname = iter3->second->Name;
 
                     //DEBUG: only conductivity
-					if (paraname != "CONDUCTIVITY")continue;
+					//if (paraname != "CONDUCTIVITY")continue;
 
 					cout << "   -- Parameter ID: " << paraname << endl;
 					/// Check whether the parameter is existed in m_parametersInDB.
@@ -675,7 +675,6 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 					}
 					iter3->second->Maximum = tmpparam->Maximum;
 					iter3->second->Minimun = tmpparam->Minimun;
-                    iter3->second->CurrentImpactIndex = tmp_bmp_areal_struct_factory->getSeriesIndex();
 
 					// Perform update
 					string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
@@ -696,41 +695,41 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 						int lyr = -1;
 						float** data2d = nullptr;
 						rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
-						count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
-							sel_ids, ludata, suitablelu, true);
+                        count = iter3->second->Adjust2DRasterWithImpactIndexes(nsize, lyr, data2d, mgtunits,
+							sel_ids, ludata, suitablelu);
 #ifdef _DEBUG
-						if (std::find(output_params.begin(),output_params.end(),remote_filename)!=output_params.end())
-						{
-							std::stringstream ss;
-							for (int x = 0; x < nsize; x++)
-							{
-								ss << data2d[x][0] << ' ';
-							}
+                        if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+                        {
+                            std::stringstream ss;
+                            for (int x = 0; x < nsize; x++)
+                            {
+                                ss << data2d[x][0] << ' ';
+                            }
                             CLOG(INFO, LOG_OUTPUT) << ss.str();
-						}
+                        }
 #endif
 					}
 					else {
 						float* data = nullptr;
 						rs_map_[remote_filename]->GetRasterData(&nsize, &data);
-						count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
-							ludata, suitablelu, true); 
-//#ifdef _DEBUG
-//						if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-//						{
-//							std::stringstream ss;
-//							for (int x = 0; x < nsize; x++)
-//							{
-//								ss << data[x] << ' ';
-//							}
-//							CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
-//						}
-//#endif
+						count = iter3->second->Adjust1DRasterWithImpactIndexes(nsize, data, mgtunits, sel_ids,
+							ludata, suitablelu); 
+#ifdef _DEBUG
+						if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+						{
+							std::stringstream ss;
+							for (int x = 0; x < nsize; x++)
+							{
+								ss << data[x] << ' ';
+							}
+							CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
+						}
+#endif
 					}
-                    tmp_bmp_areal_struct_factory->increaseSeriesIndex();
 					cout << "      A total of " << count << " has been updated for " <<
 						remote_filename << endl;
-				}
+                }
+                tmp_bmp_areal_struct_factory->increaseSeriesIndex();//use next location array
 				iter2->second->setLastUpdateTime(t);
 			}			
 		}

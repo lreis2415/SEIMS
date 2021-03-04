@@ -46,8 +46,18 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
 			vector<string> impactsStrings = SplitString(tmp_param_items[3],',');
+            float lastImpact;
+            // convert absolute impact value to relative impact value
 			for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
-				p->ImpactSeries.push_back(CVT_FLT(ToDouble((*impactStrIt).c_str())));
+                if (impactStrIt == impactsStrings.begin()) {
+                    lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+                    p->ImpactSeries.push_back(lastImpact);
+                }
+                else{
+                    float temp = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+                    p->ImpactSeries.push_back(temp/lastImpact);
+                    lastImpact = temp;
+                }
 			}
             p->Impact = p->ImpactSeries.back();//For compatibility with previous versions
 #ifdef HAS_VARIADIC_TEMPLATES
