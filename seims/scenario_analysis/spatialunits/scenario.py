@@ -691,7 +691,7 @@ def initialize_scenario_with_bmps_order(cf, opt_genes, input_genes=False):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
     """Initialize gene values"""
     sce = SUScenario(cf)
-    return sce.initialize_bmps_order(opt_genes, input_genes=input_genes)
+    return sce.initialize_with_bmps_order(opt_genes, input_genes=input_genes)
 
 
 def scenario_effectiveness(cf, ind):

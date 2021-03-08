@@ -1,6 +1,6 @@
 # #! /usr/bin/env python
 # # -*- coding: utf-8 -*-
-# """Time extened BMPs optimization based on slope position units.
+# """ BMPs order optimization based on slope position units.
 #
 #     @author   : Shen Shen
 #
@@ -42,8 +42,8 @@ from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldCon
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness, \
-    initialize_scenario_with_bmps_order, timeext_scenario_effectiveness
-from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_timeext
+    initialize_scenario_with_bmps_order#, timeext_scenario_effectiveness
+from scenario_analysis.spatialunits.userdef import check_individual_diff#, mutate_timeext
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -70,10 +70,10 @@ toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Indi
                  toolbox.gene_values)
 toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
-toolbox.register('evaluate', timeext_scenario_effectiveness)
-toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', mutate_timeext)
-toolbox.register('select', tools.selNSGA2)
+# toolbox.register('evaluate', timeext_scenario_effectiveness)
+# toolbox.register('crossover', tools.cxTwoPoint)
+# toolbox.register('mutate', mutate_timeext)
+# toolbox.register('select', tools.selNSGA2)
 
 
 def run_base_scenario(sceobj):
