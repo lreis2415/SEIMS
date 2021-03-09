@@ -26,15 +26,6 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
         string landuse_str = GetStringFromBsonIterator(&iter);
         SplitStringForValues(landuse_str, '-', m_landuse);
     }
-	//if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_EFFECTIVENESSVARIABLE)){
-	//	int tmp = -1;
-	//	if (GetNumericFromBsonIterator(&iter, tmp)){
-	//		m_effectivenessVariable = tmp == 1 ? true : false;
-	//	}
-	//}    
-	//if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_CHANGEFREQUENCY)) {
-	//	GetNumericFromBsonIterator(&iter, m_changeFrequency);
-	//}
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_PARAMS)) {
         string params_str = GetStringFromBsonIterator(&iter);
         vector<string> params_strs = SplitString(params_str, '-');
@@ -45,7 +36,7 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Name = tmp_param_items[0];
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
-			vector<string> impactsStrings = SplitString(tmp_param_items[3],',');
+			vector<string> impactsStrings = SplitString(tmp_param_items[3],'/');
             float lastImpact;
             // convert absolute impact value to relative impact value
 			for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
@@ -106,7 +97,7 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
             vector<int> temp;
             SplitStringForValues(*it, '/', temp);
             int loc = temp[0];
-            int time = temp[1];
+            int time = temp[1]-1; // year index start from 0
             for (int t = time; t < m_variableTimes; t++)
             {
                 m_unitIDsSeries[t].push_back(loc);

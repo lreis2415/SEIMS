@@ -414,6 +414,44 @@ class SUScenario(Scenario):
                 self.bmp_items[sce_item_count] = curd
                 sce_item_count += 1
 
+    def decoding_with_bmps_order(self):
+        """Decode gene values to Scenario item, i.e., `self.bmp_items`."""
+        if self.ID < 0:
+            self.set_unique_id()
+        if self.bmp_items:
+            self.bmp_items.clear()
+        bmp_units = dict()  # type: Dict[int, List[str]] # {BMPs_ID: [units list]}
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            subscenario, year = [int(x) for x in str(int(gene_v))]
+            if subscenario not in bmp_units:
+                bmp_units[subscenario] = list()
+            bmp_units[subscenario].append('{0}/{1}'.format(unit_id, year))
+
+        sce_item_count = 0
+        for k, v in viewitems(bmp_units):
+            curd = dict()
+            curd['BMPID'] = self.cfg.bmpid
+            curd['NAME'] = 'S%d' % self.ID
+            curd['COLLECTION'] = self.bmps_info[self.cfg.bmpid]['COLLECTION']
+            curd['DISTRIBUTION'] = self.bmps_info[self.cfg.bmpid]['DISTRIBUTION']
+            curd['LOCATION'] = '-'.join(v)
+            curd['SUBSCENARIO'] = k
+            curd['ID'] = self.ID
+            self.bmp_items[sce_item_count] = curd
+            sce_item_count += 1
+        # if BMPs_retain is not empty, append it.
+        if len(self.bmps_retain) > 0:
+            for k, v in viewitems(self.bmps_retain):
+                curd = deepcopy(v)
+                curd['BMPID'] = k
+                curd['NAME'] = 'S%d' % self.ID
+                curd['ID'] = self.ID
+                self.bmp_items[sce_item_count] = curd
+                sce_item_count += 1
+
     def import_from_mongodb(self, sid):
         pass
 
@@ -716,6 +754,44 @@ def scenario_effectiveness(cf, ind):
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
+    # 7. Clean the intermediate data of current scenario
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 8. Assign fitness values
+    ind.fitness.values = [sce.economy, sce.environment]
+
+    return ind
+
+
+def scenario_effectiveness_with_bmps_order(cf, ind):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
+    """Run SEIMS-based model and calculate time extended economic and environmental effectiveness."""
+    # 1. instantiate the inherited Scenario class.
+    sce = SUScenario(cf)
+    ind.id = sce.set_unique_id()
+    setattr(sce, 'gene_values', ind)
+    # 2. update BMP configuration units and related data according to gene_values,
+    #      i.e., bmps_info and units_infos
+    # do not consider boundary adjustment in bmps order optimization
+    # sce.boundary_adjustment()
+    # 3. decode gene values to BMP items and exporting to MongoDB.
+    sce.decoding_with_bmps_order()
+    sce.export_to_mongodb()
+    if True:  # sce.check_custom_constraints():
+        # 4. execute the SEIMS-based watershed model and get the timespan
+        sce.execute_seims_model()
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        # 5. calculate scenario effectiveness and delete intermediate data
+        sce.calculate_timeext_economy()
+        sce.calculate_timeext_environment()
+        sce.environment *= 100.0
+    else:
+        # worst conditions
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
+        sce.economy = sce.worst_econ
+        sce.environment = sce.worst_env
+    # 6. Export scenarios information
+    sce.export_scenario_to_txt()
+    # sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values

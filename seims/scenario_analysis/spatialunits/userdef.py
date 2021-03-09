@@ -423,6 +423,20 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
     return individual
 
 
+def mutate_with_bmps_order(indv, low, up, indpb):
+    for i, bit in enumerate(indv):
+        bit = int(bit)  # float -> int
+        if bit == 0:
+            continue  # the bit which doesn't configure bmp will not mutate
+        if random.random() < indpb:
+            ints = list(map(int, str(bit)))
+            # modify the last bit to a random integer between [low,up]
+            ints[len(ints) - 1] = random.randint(low, up)
+            # list -> str -> float
+            indv[i] = float(''.join(map(str, ints)))
+    return indv
+
+
 def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
     # type: (int, float, float, float) -> None
     """Test mutate function."""

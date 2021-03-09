@@ -42,8 +42,8 @@ from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldCon
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness, \
-    initialize_scenario_with_bmps_order#, timeext_scenario_effectiveness
-from scenario_analysis.spatialunits.userdef import check_individual_diff#, mutate_timeext
+    initialize_scenario_with_bmps_order, scenario_effectiveness_with_bmps_order
+from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_with_bmps_order
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -70,10 +70,10 @@ toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Indi
                  toolbox.gene_values)
 toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
-# toolbox.register('evaluate', timeext_scenario_effectiveness)
-# toolbox.register('crossover', tools.cxTwoPoint)
-# toolbox.register('mutate', mutate_timeext)
-# toolbox.register('select', tools.selNSGA2)
+toolbox.register('evaluate', scenario_effectiveness_with_bmps_order)
+toolbox.register('crossover', tools.cxTwoPoint)
+toolbox.register('mutate', mutate_with_bmps_order)
+toolbox.register('select', tools.selNSGA2)
 
 
 def run_base_scenario(sceobj):
@@ -224,7 +224,7 @@ def main(scenario_obj, indv_obj_benchmark):
     scoop_log(logbook.stream)
     front = numpy.array([ind.fitness.values for ind in pop])
     # save front for further possible use
-    numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'timeext_pareto_front_gen0.txt',
+    numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_with_bmps_order_gen0.txt',
                   front, delimiter=str(' '), fmt=str('%.4f'))
 
     # Begin the generational process
@@ -249,11 +249,11 @@ def main(scenario_obj, indv_obj_benchmark):
                 toolbox.mutate(ind2, 1, scenario_obj.cfg.runtime_years, mut_rate)
 
                 if check_individual_diff(old_ind1, ind1):
-                    delete_fitness(ind1)  # 删除适应度，valid变为false
+                    delete_fitness(ind1)  # delete fitness, valid will be false
                 if check_individual_diff(old_ind2, ind2):
                     delete_fitness(ind2)
 
-        # 只评估无效适应度的个体
+        # only evaluate the individuals with invalid fitness
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
         valid_inds = [ind for ind in offspring if ind.fitness.valid]
         invalid_ind_size = len(invalid_inds)
@@ -275,7 +275,7 @@ def main(scenario_obj, indv_obj_benchmark):
         # Previous version may result in duplications of the same scenario in one Pareto front,
         #   thus, I decided to check and remove the duplications first.
         # pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
-        # 删除代数重复、id也重复的个体
+        # remove individuals with duplicated gen and id
         tmppop = pop + valid_inds + invalid_inds
         pop = list()
         unique_sces = dict()
@@ -312,7 +312,7 @@ def main(scenario_obj, indv_obj_benchmark):
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
         # save front for further possible use
-        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'timeext_pareto_front_gen%d.txt' % gen,
+        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_with_bmps_order_gen%d.txt' % gen,
                       front, delimiter=str(' '), fmt=str('%.4f'))
 
         # Comment out the following plot code if matplotlib does not work.
