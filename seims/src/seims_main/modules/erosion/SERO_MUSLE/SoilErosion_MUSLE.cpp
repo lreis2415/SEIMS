@@ -241,7 +241,7 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(s, VAR_CHT)) m_canHgt = data;
     else if (StringMatch(s, VAR_LAIDAY)) m_lai = data;
     else if (StringMatch(s, VAR_USLE_P)) m_usleP = data;
-    else if (StringMatch(s, VAR_ACC)) m_flowAccm = data;
+    else if (StringMatch(s, VAR_ACC[0])) m_flowAccm = data;
     else if (StringMatch(s, VAR_SLOPE)) m_slope = data;
     else if (StringMatch(s, VAR_SLPLEN)) m_slpLen = data;
     else if (StringMatch(s, VAR_SURU)) m_surfRf = data;

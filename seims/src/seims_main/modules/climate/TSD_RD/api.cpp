@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Zhiqiang Yu");
-    mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
+    mdi.SetClass(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
     mdi.SetDescription(MDESC_TSD_RD);
     mdi.SetID(MID_TSD_RD);
     mdi.SetName(MID_TSD_RD);

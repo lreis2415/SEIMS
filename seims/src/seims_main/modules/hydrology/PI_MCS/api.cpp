@@ -47,7 +47,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, DT_Raster1D);
 
     // set the dependencies
-    mdi.AddDependency(MCLS_CLIMATE, MCLSDESC_CLIMATE);
+    mdi.AddDependency(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
 
     string res = mdi.GetXMLDocument();
 

@@ -3,16 +3,24 @@
  * \brief Predefined string constants used in the code
  *        BE CAUTION, constant value must be aligned by SPACE, not TAB!
  * \author Junzhi Liu, LiangJun Zhu, Huiran Gao
- * \version 1.2
- * \date Jun.2010, Apr.2016, Apr.2018
+ * \version 1.3
+ * \date Jun.2010, Apr.2016, Apr.2018, Mar. 2021
+ *
+ * Changelog:
+ *   - 1. 2021-03-13 - lj - Instead of using a macro to store a constant, use a const variable.
+ *
  */
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
-const char MODEL_NAME[] =                      "SEIMS";
-const char MODEL_VERSION[] =                   "2020";
-const char SEIMS_EMAIL[] =                     "zlj@lreis.ac.cn";
-const char SEIMS_SITE[] =                      "https://github.com/lreis2415/SEIMS";
+#define CONST_CHARS static const char*
+#define CONST_CHARS_LIST static const char* const
+
+CONST_CHARS MODEL_NAME =                      "SEIMS";
+CONST_CHARS MODEL_FULLNAME =                  "Spatially Explicit Integrated Modeling System";
+CONST_CHARS MODEL_VERSION =                   "2021";
+CONST_CHARS SEIMS_EMAIL =                     "zlj@lreis.ac.cn";
+CONST_CHARS SEIMS_SITE =                      "https://github.com/lreis2415/SEIMS";
 
 //! Constant input variables
 #define CONS_IN_ELEV                           "Elevation"
@@ -282,8 +290,10 @@ const char REACH_SLOPE[] =                            "CH_SLP";
 //////////////////////////////////////////////////////////////////////////
 
 /// Hydro-Meteorological data
-#define MCLS_CLIMATE                           "HydroClimate"
-#define MCLSDESC_CLIMATE                       "HydroClimate data modules"
+CONST_CHARS_LIST MCLS_CLIMATE[] = {"HydroClimate", "HydroClimate data modules"};
+
+//#define MCLS_CLIMATE                           "HydroClimate"
+//#define MCLSDESC_CLIMATE                       "HydroClimate data modules"
 #define MID_TSD_RD                             "TSD_RD"
 #define MDESC_TSD_RD                           "Read time series data from HydroClimate database."
 #define MID_ITP                                "ITP"
@@ -496,7 +506,10 @@ const char REACH_SLOPE[] =                            "CH_SLP";
 ///Apr. , 2016  //////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 #define VAR_A_BNK "a_bnk"                           /// bank flow recession constant
-#define VAR_ACC "acc" /// m_flowAccm, flow accumulation (number of accumulated cells)
+
+CONST_CHARS_LIST VAR_ACC[] = { "acc", "Flow accumulation, equals to the number of accumulated cells" }; /// m_flowAccm
+
+//#define VAR_ACC "acc" /// m_flowAccm, flow accumulation (number of accumulated cells)
 #define VAR_ACC_INFIL "AccumuInfil"
 #define VAR_ADDRNH4 "addrnh4"                       /// ammonium added by rainfall (kg/ha)
 #define VAR_ADDRNO3 "addrno3"                       /// nitrate added by rainfall (kg/ha)
@@ -1252,7 +1265,7 @@ const char REACH_SLOPE[] =                            "CH_SLP";
 ///               Apr. 25, 2016  //////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 #define DESC_A_BNK "bank flow recession constant"
-#define DESC_ACC "the number of flow accumulation cells of each cell"
+//#define DESC_ACC "the number of flow accumulation cells of each cell"
 #define DESC_ACC_INFIL "accumulative infiltration"
 #define DESC_ADDRNH4 "ammonium added by rainfall"
 #define DESC_ADDRNO3 "nitrate added by rainfall"
