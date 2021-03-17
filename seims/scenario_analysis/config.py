@@ -51,6 +51,8 @@ class SAConfig(object):
         self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
         self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
         self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
+        self.effectiveness_variable = cf.getboolean('Scenario_Common', 'effectiveness_variable')
+        self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
         if cf.has_option('Scenario_Common', 'export_scenario_txt'):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):

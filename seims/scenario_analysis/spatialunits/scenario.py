@@ -440,6 +440,8 @@ class SUScenario(Scenario):
             curd['LOCATION'] = '-'.join(v)
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
+            curd['EFFECTIVENESSVARIABLE'] = 1 if self.cfg.effectiveness_variable else 0
+            curd['CHANGEFREQUENCY'] = self.cfg.change_frequency
             self.bmp_items[sce_item_count] = curd
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
@@ -449,6 +451,8 @@ class SUScenario(Scenario):
                 curd['BMPID'] = k
                 curd['NAME'] = 'S%d' % self.ID
                 curd['ID'] = self.ID
+                curd['EFFECTIVENESSVARIABLE'] = 0
+                curd['CHANGEFREQUENCY'] = -1
                 self.bmp_items[sce_item_count] = curd
                 sce_item_count += 1
 
@@ -484,6 +488,32 @@ class SUScenario(Scenario):
         # self.economy = capex
         # self.economy = capex + opex
         self.economy = capex + opex - income
+        return self.economy
+
+    def calculate_economy_bmps_order(self):
+        """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
+        self.economy = 0.
+        capex = 0.
+        income = 0.
+        total_sim_years = self.cfg.runtime_years
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            subscenario, install_in_year = [int(x) for x in str(int(gene_v))]
+            actual_install_years = total_sim_years - install_in_year
+            bmpparam = self.bmps_params[subscenario]
+            for luid, luarea in unit_lu.items():
+                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                    capex += luarea * bmpparam['CAPEX']
+                    income += luarea * bmpparam['INCOME'] * actual_install_years
+
+        self.economy = capex - income
         return self.economy
 
     def calculate_environment(self):
@@ -781,7 +811,7 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
         sce.execute_seims_model()
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
         # 5. calculate scenario effectiveness and delete intermediate data
-        sce.calculate_timeext_economy()
+        sce.calculate_economy_bmps_order()
         sce.calculate_timeext_environment()
         sce.environment *= 100.0
     else:
@@ -883,6 +913,37 @@ def main_manual(sceid, gene_values):
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
+def main_manual_bmps_order(sceid, gene_values):
+    """Test of set scenario manually."""
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding_with_bmps_order()
+    sce.export_to_mongodb()
+    sce.execute_seims_model()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt=True
+    sce.export_scenario_to_txt()
+    sce.calculate_economy_bmps_order()
+    sce.calculate_environment()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
 def test_func():
     # main_single()
     # main_multiple(4)
@@ -903,14 +964,14 @@ def test_func():
     # gvalues = [0.] * 175
 
     sid = 229353850
-    gvalues = [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0,
-               2.0, 2.0, 0.0, 3.0, 4.0, 0.0, 1.0, 4.0, 0.0, 3.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
-               0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 4.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 3.0, 4.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-               2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 3.0, 0.0]
+    gvalues = [0.0, 0.0, 0.0, 24.0, 0.0, 0.0, 14.0, 0.0, 24.0, 0.0, 0.0, 22.0, 24.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0,
+               24.0, 24.0, 0.0, 33.0, 43.0, 0.0, 13.0, 43.0, 0.0, 32.0, 0.0, 0.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
+               0.0, 0.0, 23.0, 0.0, 13.0, 0.0, 43.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 24.0, 0.0, 0.0, 0.0, 0.0, 0.0, 32.0, 0.0, 0.0, 32.0, 42.0, 22.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0, 12.0, 0.0, 0.0,
+               24.0, 0.0, 0.0, 0.0, 43.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 22.0, 0.0, 0.0, 31.0, 0.0]
 
-    main_manual(sid, gvalues)
-
+    # main_manual(sid, gvalues)
+    main_manual_bmps_order(sid,gvalues)
     # # run base
     # sid = 0
     # gvalues = [0.0] * 105
