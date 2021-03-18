@@ -795,10 +795,14 @@ def scenario_effectiveness(cf, ind):
 def scenario_effectiveness_with_bmps_order(cf, ind):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
     """Run SEIMS-based model and calculate time extended economic and environmental effectiveness."""
+    # first evaluate economic investment to exclude scenarios that don't satisfy the constraints
+    # if that don't satisfy the constraints, don't execute the time-consuming simulation process
+
     # 1. instantiate the inherited Scenario class.
     sce = SUScenario(cf)
     ind.id = sce.set_unique_id()
     setattr(sce, 'gene_values', ind)
+
     # 2. update BMP configuration units and related data according to gene_values,
     #      i.e., bmps_info and units_infos
     # do not consider boundary adjustment in bmps order optimization
@@ -931,51 +935,98 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
     sce.execute_seims_model()
-    sce.export_sce_tif = True
-    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
-    sce.export_sce_txt=True
-    sce.export_scenario_to_txt()
     sce.calculate_economy_bmps_order()
     sce.calculate_environment()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+def generate_giff_txt(sceid, gene_values):
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding()
+    sce.export_to_mongodb()
+    # indicate the model has run
+    sce.modelrun = True
+    sce.modelout_dir = sce.model.output_dir
+    sce.calculate_economy()
+    sce.calculate_environment()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
 
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
-
 def test_func():
     # main_single()
     # main_multiple(4)
 
-    # sid = 210213956
-    # gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
-    #            2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-    #            -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
-    #            0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
-    #            0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
-    #            0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
-    #            0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
-    #            0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-    #            0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
-    # sid = 10000000
-    # gvalues = [0.] * 175
-
-    sid = 229353850
-    gvalues = [0.0, 0.0, 0.0, 24.0, 0.0, 0.0, 14.0, 0.0, 24.0, 0.0, 0.0, 22.0, 24.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0,
-               24.0, 24.0, 0.0, 33.0, 43.0, 0.0, 13.0, 43.0, 0.0, 32.0, 0.0, 0.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
-               0.0, 0.0, 23.0, 0.0, 13.0, 0.0, 43.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 24.0, 0.0, 0.0, 0.0, 0.0, 0.0, 32.0, 0.0, 0.0, 32.0, 42.0, 22.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0, 12.0, 0.0, 0.0,
-               24.0, 0.0, 0.0, 0.0, 43.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 22.0, 0.0, 0.0, 31.0, 0.0]
-
-    # main_manual(sid, gvalues)
-    main_manual_bmps_order(sid,gvalues)
     # # run base
     # sid = 0
     # gvalues = [0.0] * 105
     # main_manual(sid, gvalues)
+
+    # benchmark scenario: not consider BMPs long-term effectiveness and implementation order
+    sid = 210213956
+    # gvalues = [0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0,
+    #            2.0, 2.0, 0.0,
+    #            2.0, 2.0, 0.0, 3.0, 4.0, 0.0, 1.0, 4.0, 0.0, 3.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 2.0,
+    #            0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 4.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 3.0, 4.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0,
+    #            1.0, 0.0, 0.0,
+    #            2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 3.0, 0.0]
+    gvalues = [0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               21.0, 21.0, 0.0,
+               21.0, 21.0, 0.0, 31.0, 41.0, 0.0, 11.0, 41.0, 0.0, 31.0, 0.0, 0.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 21.0,
+               0.0, 0.0, 21.0, 0.0, 11.0, 0.0, 41.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0, 31.0, 41.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 11.0,
+               11.0, 0.0, 0.0,
+               21.0, 0.0, 0.0, 0.0, 41.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 31.0, 0.0]
+    # main_manual(sid, gvalues)
+    main_manual_bmps_order(sid, gvalues)
+
+    # generate_giff_txt(sid, gvalues)
+
+    sid = 229353850
+    gvalues = [0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 11.0, 0.0, 24.0, 0.0, 0.0, 22.0, 24.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               21.0, 21.0, 0.0,
+               21.0, 21.0, 0.0, 33.0, 43.0, 0.0, 13.0, 43.0, 0.0, 32.0, 0.0, 0.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 21.0,
+               0.0, 0.0, 23.0, 0.0, 11.0, 0.0, 43.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 32.0, 0.0, 0.0, 32.0, 42.0, 22.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0,
+               12.0, 0.0, 0.0,
+               21.0, 0.0, 0.0, 0.0, 43.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 22.0, 0.0, 0.0, 31.0, 0.0]
+
+    # main_manual(sid, gvalues)
+    # main_manual_bmps_order(sid, gvalues)
+
 
 if __name__ == '__main__':
     test_func()

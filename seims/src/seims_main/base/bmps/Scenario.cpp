@@ -96,8 +96,8 @@ void Scenario::loadBMPs() {
         string location = "";
         bool effectivenessVariable = false;
         int tempEffectivenessVariable = -1;
-        int changeFrequency = -1;
-        int variableTimes = -1;
+        int changeFrequency = 0;
+        int variableTimes = 0;
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) GetNumericFromBsonIterator(&iter, BMPID);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) GetNumericFromBsonIterator(&iter, subScenario);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBsonIterator(&iter);
