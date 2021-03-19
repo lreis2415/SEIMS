@@ -183,7 +183,7 @@ class SUScenario(Scenario):
                 if numpy.isclose(gene, 0.):
                     self.gene_values[idx] = 0
                 else:
-                    rand_bit = random.randint(1, self.cfg.runtime_years)
+                    rand_bit = random.randint(1, self.cfg.change_times)
                     self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
         return self.gene_values
 
@@ -441,7 +441,7 @@ class SUScenario(Scenario):
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
             curd['EFFECTIVENESSVARIABLE'] = 1 if self.cfg.effectiveness_variable else 0
-            curd['CHANGEFREQUENCY'] = self.cfg.change_frequency
+            curd['CHANGEFREQUENCY'] = self.cfg.change_frequency * 365 * 24 * 60 *60 # convert to seconds
             self.bmp_items[sce_item_count] = curd
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
@@ -495,7 +495,7 @@ class SUScenario(Scenario):
         self.economy = 0.
         capex = 0.
         income = 0.
-        total_sim_years = self.cfg.runtime_years
+        total_impl_period = self.cfg.change_times
         for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
             gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
@@ -505,13 +505,13 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            subscenario, install_in_year = [int(x) for x in str(int(gene_v))]
-            actual_install_years = total_sim_years - install_in_year
+            subscenario, impl_in_period = [int(x) for x in str(int(gene_v))]
+            actual_impl_period = total_impl_period - impl_in_period
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
-                    income += luarea * bmpparam['INCOME'] * actual_install_years
+                    income += luarea * bmpparam['INCOME'] * actual_impl_period
 
         self.economy = capex - income
         return self.economy
@@ -627,6 +627,43 @@ class SUScenario(Scenario):
             RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
                                              srs, nodata_value)
             # client.close()
+
+    def calculate_profits_by_period(self):
+        bmp_costs_by_period = [0.] * self.cfg.change_times
+        bmp_income_by_period = [0.] * self.cfg.change_times
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            subscenario, impl_period = [int(x) for x in str(int(gene_v))]
+            bmpparam = self.bmps_params[subscenario]
+            for luid, luarea in unit_lu.items():
+                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                    capex = luarea * bmpparam['CAPEX']
+                    income = luarea * bmpparam['INCOME']
+                    bmp_costs_by_period[impl_period-1] += capex
+                    # every period has income after impl
+                    for _ in range(impl_period, self.cfg.change_times + 1):  # closed interval
+                        bmp_income_by_period[impl_period-1] += income
+        return bmp_costs_by_period, bmp_income_by_period
+
+    def satisfy_investment_constraints(self):
+        # not consider investment quota
+        if not self.cfg.enable_investment_quota:
+            return True
+        else:
+            if self.cfg.investment_each_period is None:
+                return False
+            bmp_costs_by_period, bmp_income_by_period = self.calculate_profits_by_period()
+            for invst, cost, income in zip(self.cfg.investment_each_period, bmp_costs_by_period, bmp_income_by_period):
+                if cost - income > invst:
+                    return False
+            return True
 
 
 def select_potential_bmps(unitid,  # type: int
@@ -795,22 +832,18 @@ def scenario_effectiveness(cf, ind):
 def scenario_effectiveness_with_bmps_order(cf, ind):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
     """Run SEIMS-based model and calculate time extended economic and environmental effectiveness."""
-    # first evaluate economic investment to exclude scenarios that don't satisfy the constraints
-    # if that don't satisfy the constraints, don't execute the time-consuming simulation process
-
     # 1. instantiate the inherited Scenario class.
     sce = SUScenario(cf)
     ind.id = sce.set_unique_id()
     setattr(sce, 'gene_values', ind)
 
-    # 2. update BMP configuration units and related data according to gene_values,
-    #      i.e., bmps_info and units_infos
-    # do not consider boundary adjustment in bmps order optimization
-    # sce.boundary_adjustment()
-    # 3. decode gene values to BMP items and exporting to MongoDB.
+    # 2. decode gene values to BMP items and exporting to MongoDB.
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
-    if True:  # sce.check_custom_constraints():
+
+    # 3. first evaluate economic investment to exclude scenarios that don't satisfy the constraints
+    # if that don't satisfy the constraints, don't execute the time-consuming simulation process
+    if sce.satisfy_investment_constraints():  # sce.check_custom_constraints():
         # 4. execute the SEIMS-based watershed model and get the timespan
         sce.execute_seims_model()
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
@@ -934,18 +967,19 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.initialize(input_genes=gene_values)
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
-    sce.execute_seims_model()
-    sce.calculate_economy_bmps_order()
-    sce.calculate_environment()
-    sce.export_sce_tif = True
-    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
-    sce.export_sce_txt = True
-    sce.export_scenario_to_txt()
+    if sce.satisfy_investment_constraints():
+        sce.execute_seims_model()
+        sce.calculate_economy_bmps_order()
+        sce.calculate_environment()
+        sce.export_sce_tif = True
+        sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+        sce.export_sce_txt = True
+        sce.export_scenario_to_txt()
 
-    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+        print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
-    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 def generate_giff_txt(sceid, gene_values):
@@ -1025,7 +1059,7 @@ def test_func():
                21.0, 0.0, 0.0, 0.0, 43.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 22.0, 0.0, 0.0, 31.0, 0.0]
 
     # main_manual(sid, gvalues)
-    # main_manual_bmps_order(sid, gvalues)
+    main_manual_bmps_order(sid, gvalues)
 
 
 if __name__ == '__main__':
