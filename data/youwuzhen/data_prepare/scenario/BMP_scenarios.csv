@@ -1,2 +1,7 @@
 ID,NAME,BMPID,SUBSCENARIO,DISTRIBUTION,COLLECTION,LOCATION
 0,base,12,0,RASTER|LANDUSE,plant_management,33
+#0,base,17,1,RASTER|MGT_FIELDS,areal_struct_management,
+#0,base,17,2,RASTER|MGT_FIELDS,areal_struct_management,
+#0,base,17,3,RASTER|MGT_FIELDS,areal_struct_management,
+#0,base,17,4,RASTER|MGT_FIELDS,areal_struct_management,
+#0,base,17,5,RASTER|MGT_FIELDS,areal_struct_management,

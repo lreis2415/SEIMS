@@ -90,12 +90,12 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                              "The distribution field must follow the format: "
                              "RASTER|CoreRasterName.\n");
     }
-    if (m_effectivenessVariable) {
+    if (m_effectivenessChangeable) {
         vector<string> tempLocations = SplitString(location, '-');
         for (vector<string>::iterator it = tempLocations.begin();it!=tempLocations.end();it++)
         {
             vector<int> temp;
-            SplitStringForValues(*it, '/', temp);
+            SplitStringForValues(*it, '|', temp);
             int loc = temp[0];
             int time = temp[1]-1; // year index start from 0
             for (int t = time; t < m_variableTimes; t++)

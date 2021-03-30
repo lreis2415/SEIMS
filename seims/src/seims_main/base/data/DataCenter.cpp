@@ -548,7 +548,7 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
         }
 
         // only update BMP without variable parameters
-        if (iter->second->IsEffectivenessVariable()) continue;
+        if (iter->second->IsEffectivenessChangeable()) continue;
 
         cout << "Update by Scenario parameters stable" << endl;
         BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
@@ -623,7 +623,7 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
         if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) continue;
 
         // only update BMP without variable parameters
-        if (!iter->second->IsEffectivenessVariable()) continue;
+        if (!iter->second->IsEffectivenessChangeable()) continue;
 
         //DEBUG: only fengjin
 		//if (iter->second->GetSubScenarioId() != 1) continue;

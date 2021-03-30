@@ -52,7 +52,7 @@ class SAConfig(object):
         self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
         self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
         self.implementation_period = cf.getfloat('Scenario_Common', 'implementation_period')
-        self.effectiveness_variable = cf.getboolean('Scenario_Common', 'effectiveness_variable')
+        self.effectiveness_changeable = cf.getboolean('Scenario_Common', 'effectiveness_changeable')
         self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
         self.change_times = int(self.implementation_period/self.change_frequency)
         self.enable_investment_quota = cf.getboolean('Scenario_Common', 'enable_investment_quota')

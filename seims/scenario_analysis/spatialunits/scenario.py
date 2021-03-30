@@ -440,7 +440,7 @@ class SUScenario(Scenario):
             curd['LOCATION'] = '-'.join(v)
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
-            curd['EFFECTIVENESSVARIABLE'] = 1 if self.cfg.effectiveness_variable else 0
+            curd['EFFECTIVENESSVARIABLE'] = 1 if self.cfg.effectiveness_changeable else 0
             curd['CHANGEFREQUENCY'] = self.cfg.change_frequency * 365 * 24 * 60 *60 # convert to seconds
             self.bmp_items[sce_item_count] = curd
             sce_item_count += 1
