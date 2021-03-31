@@ -401,24 +401,24 @@ if __name__ == "__main__":
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
 
-    with open(sa_cfg.model.model_dir + os.path.sep + 'gen60.pickle', 'rb') as fp:
-        pareto_pop = pickle.load(fp)
-        # print(type(pareto_pop))
-        # print(pareto_pop)
+    with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
+        pareto_pop = pickle.load(fp, encoding="bytes")
+        print(type(pareto_pop))
+        print(pareto_pop)
     sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
     # Select an individual from the pareto front as the benchmark scenario
-    target_indv_id = 107852387
+    target_indv_id = 156278373 # modify to an input parameter later
     for indv in pareto_pop:
         if indv.id == target_indv_id:
             selected_indv = indv
             break
 
-    print('Basic opt scenario ID: ' + str(selected_indv.id))
-    print('Basic opt scenario genes: ' + str(selected_indv.tolist()))
+    print('The ID of the scenario that provided spatial configuration: ' + str(selected_indv.id))
+    print('The genes of the scenario: ' + str(selected_indv.tolist()))
     sce.set_unique_id(selected_indv.id)
     sce.gene_values = selected_indv.tolist()
     sce.economy = selected_indv.fitness.values[0]
