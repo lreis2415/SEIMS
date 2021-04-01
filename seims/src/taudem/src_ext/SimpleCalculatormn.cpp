@@ -1,6 +1,6 @@
 /*  SimpleCalculator is used to conduct some simple algorithms like add, minus etc.
 
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS
   Apr 13, 2015
 
