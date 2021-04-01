@@ -61,9 +61,8 @@ int main(int argc, char** argv) {
             suffix = argv[i + 2];
             i += 3;
         } else if (StringMatch(argv[i], "-mongo")) {
-            if (argc < i + 4) {
-                // at least 4 arguments
-                Usage("Two arguments are required followed '-mongo'!");
+            if (argc < i + 4) { // at least 4 arguments
+                Usage("Four arguments are required followed '-mongo'!");
             }
             from_mongo = true;
             mongodb_ip = argv[i + 1];
