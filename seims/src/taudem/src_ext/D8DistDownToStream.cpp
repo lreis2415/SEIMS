@@ -9,7 +9,7 @@
   the horizontal component of the straight line path, the vertical component of the straight line path, 
   or the total surface flow path.
 
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS  
   Apr 2, 2015 
   

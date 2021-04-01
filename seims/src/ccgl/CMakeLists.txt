@@ -45,6 +45,7 @@ endif()
 if(POLICY CMP0074)
     cmake_policy(SET CMP0074 NEW)
 endif()
+SET(CMAKE_SH "CMAKE_SH-NOTFOUND")
 
 ### Set coding language
 PROJECT(CCGL CXX C)
@@ -112,7 +113,7 @@ ENDIF()
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
-# Build documatation by doxygen
+# Build documentation by doxygen
 option(BUILD_DOC "Build CCGL documentation." OFF)
 
 ### Detect compiler and target platform architecture.
@@ -350,6 +351,10 @@ STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
 STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
+
+IF(UNITTEST STREQUAL 1)
+STATUS("    Use GTest:"   GTEST_FOUND    THEN "YES (LIB: ${GTEST_BOTH_LIBRARIES}, INC: ${GTEST_INCLUDE_DIRS})" ELSE "NO")
+ENDIF()
 
 ### Auxiliary.
 STATUS("")
