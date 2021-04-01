@@ -656,7 +656,7 @@ public:
      * \brief Check if the raster data is NoData via row and col
      * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
      */
-    T IsNoData(const int row, const int col, const int lyr = 1) {
+    bool IsNoData(const int row, const int col, const int lyr = 1) {
         return FloatEqual(GetValue(row, col, lyr), no_data_value_);
     }
 
@@ -696,8 +696,8 @@ public:
      */
     bool ValidateRowCol(const int row, const int col) {
         if ((row < 0 || row >= GetRows()) || (col < 0 || col >= GetCols())) {
-            StatusNoUnitTest("The row must between 0 and " + ValueToString(GetRows() - 1) +
-                             ", and the col must between 0 and " + ValueToString(GetCols() - 1));
+            //StatusNoUnitTest("The row must between 0 and " + ValueToString(GetRows() - 1) +
+            //                 ", and the col must between 0 and " + ValueToString(GetCols() - 1));
             return false;
         }
         return true;
@@ -1149,8 +1149,13 @@ clsRasterData<T, MASK_T>::clsRasterData(vector<string>& filenames,
             return;
         }
         // 2. then, change the core file name and file path template which format is: `<file dir>/CoreName_%d.<suffix>`
-        core_name_ = SplitString(core_name_, '_').at(0);
-        full_path_ = GetPathFromFullName(filenames[0]) + SEP + core_name_ + "_%d." + GetSuffix(filenames[0]);
+        // core_name_ = SplitString(core_name_, '_').at(0); // Old way will lost info after the first underline
+        string::size_type last_underline = core_name_.find_last_of('_');
+        if (last_underline == string::npos) {
+            last_underline = core_name_.length();
+        }
+        core_name_ = core_name_.substr(0, last_underline);
+        full_path_ = GetPathFromFullName(filenames[0]) + core_name_ + "_%d." + GetSuffix(filenames[0]);
         // So, to get a given layer's filepath, please use the following code. Definitely, maximum 99 layers is supported now.
         //    string layerFilepath = m_filePathName.replace(m_filePathName.find_last_of("%d") - 1, 2, ValueToString(1));
         // 3. initialize raster_2d_ and read the other layers according to position data if stated,
@@ -2536,6 +2541,9 @@ void clsRasterData<T, MASK_T>::ReplaceNoData(T replacedv) {
             }
         }
     }
+    no_data_value_ = replacedv;
+    default_value_ = replacedv;
+    headers_[HEADER_RS_NODATA] = replacedv;
 }
 
 template <typename T, typename MASK_T>
