@@ -1,5 +1,4 @@
-# #! /usr/bin/env python
-# # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # """ BMPs order optimization based on slope position units.
 #
 #     @author   : Shen Shen
@@ -402,7 +401,7 @@ if __name__ == "__main__":
     sa_cfg.construct_indexes_units_gene()
 
     with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
-        pareto_pop = pickle.load(fp, encoding="bytes")
+        pareto_pop = pickle.load(fp)
         print(type(pareto_pop))
         print(pareto_pop)
     sce = SUScenario(sa_cfg)
