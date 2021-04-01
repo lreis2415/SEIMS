@@ -13,6 +13,7 @@ set(D8DISTUP D8DistUpToRidge.cpp D8DistUpToRidgemn.cpp ${common_srcs})
 set(DINFDISTUPRDG DinfDistUpToRidge.cpp DinfDistUpToRidgemn.cpp ${common_srcs})
 set(CALCULATOR SimpleCalculator.cpp SimpleCalculatormn.cpp ${common_srcs})
 set(RPISKIDMORE RPISkidmore.cpp RPISkidmoremn.cpp ${common_srcs})
+set(FLOWMFDMD MultiFlowDirMaxDown.cpp MultiFlowDirMaxDownmn.cpp ${common_srcs})
 
 add_executable(curvature ${CURVATURE})
 add_executable(logop ${LOGOP})
@@ -21,6 +22,7 @@ add_executable(d8distuptoridge ${D8DISTUP})
 add_executable(dinfdistuptoridge ${DINFDISTUPRDG})
 add_executable(simplecalculator ${CALCULATOR})
 add_executable(rpiskidmore ${RPISKIDMORE})
+add_executable(flowmfdmd ${FLOWMFDMD})
 
 set(TAUDEM_EXT_APP curvature
                    logop
@@ -29,6 +31,7 @@ set(TAUDEM_EXT_APP curvature
                    dinfdistuptoridge
                    simplecalculator
                    rpiskidmore
+                   flowmfdmd
         )
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})

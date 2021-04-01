@@ -1,7 +1,7 @@
 /*  Curvature algorithm calculate ProfileCurvature, PlanCurvature...
     algorithm is adpoted from Shary et al.(2002).
      
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS  
   Apr 8, 2015 
   
