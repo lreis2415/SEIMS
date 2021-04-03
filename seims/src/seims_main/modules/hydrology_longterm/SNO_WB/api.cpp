@@ -14,37 +14,37 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Chunping Ou");
-    mdi.SetClass(MCLS_SNOW, MCLSDESC_SNOW);
-    mdi.SetDescription(MDESC_SNO_WB);
+    mdi.SetClass(MCLS_SNOW[0], MCLS_SNOW[1]);
+    mdi.SetDescription(M_SNO_WB[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SNO_WB);
-    mdi.SetName(MID_SNO_WB);
+    mdi.SetID(M_SNO_WB[0]);
+    mdi.SetName(M_SNO_WB[0]);
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SNO_WB.chm");
-    mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T0, UNIT_TEMP_DEG, DESC_T0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_K_BLOW, UNIT_NON_DIM, DESC_K_BLOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T_SNOW, UNIT_TEMP_DEG, DESC_T_SNOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SWE0, UNIT_DEPTH_MM, DESC_SWE0, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T0[0], UNIT_TEMP_DEG, VAR_T0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_K_BLOW[0], UNIT_NON_DIM, VAR_K_BLOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T_SNOW[0], UNIT_TEMP_DEG, VAR_T_SNOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SWE0[0], UNIT_DEPTH_MM, VAR_SWE0[1], Source_ParameterDB, DT_Single);
 
     // In my view, this is irrelevant, so should be deprecated. By LJ.
-    //mdi.AddParameter(Tag_SubbasinSelected,  UNIT_NON_DIM, DESC_SubbasinSelected, File_Output, DT_Array1D); //this list is used to constrain the output size. Its name must be subbasinSelected.
-    //mdi.AddParameter(VAR_SUBBSN,  UNIT_NON_DIM, DESC_SUBBSN,  Source_ParameterDB, DT_Raster1D); //this list is used to constrain the output size
+    //mdi.AddParameter(Tag_SubbasinSelected,  UNIT_NON_DIM, Tag_SubbasinSelected[1]ected, File_Output, DT_Array1D); //this list is used to constrain the output size. Its name must be subbasinSelected.
+    //mdi.AddParameter(VAR_SUBBSN[0],  UNIT_NON_DIM, VAR_SUBBSN[1],  Source_ParameterDB, DT_Raster1D); //this list is used to constrain the output size
 
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);
     // TODO: SNRD currently have not incoming modules, therefore initialized as zero.By LJ
-    //mdi.AddInput(VAR_SNRD, UNIT_DEPTH_MM, DESC_SNRD, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SNSB, UNIT_DEPTH_MM, DESC_SNSB, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SNME, UNIT_DEPTH_MM, DESC_SNME, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_TMAX, UNIT_TEMP_DEG, DESC_TMAX, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PCP, UNIT_DEPTH_MM, DESC_PCP, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_WS, UNIT_SPEED_MS, DESC_WS, Source_Module, DT_Raster1D);
+    //mdi.AddInput(VAR_SNRD[0], UNIT_DEPTH_MM, VAR_SNRD[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SNSB[0], UNIT_DEPTH_MM, VAR_SNSB[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SNME[0], UNIT_DEPTH_MM, VAR_SNME[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMAX[0], UNIT_TEMP_DEG, VAR_TMAX[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_WS[0], UNIT_SPEED_MS, VAR_WS[1], Source_Module, DT_Raster1D);
 
     // set the output variables
-    mdi.AddOutput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, DT_Raster1D);
-    mdi.AddOutput(VAR_SWE, UNIT_DEPTH_MM, DESC_SWE, DT_Single);
+    mdi.AddOutput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], DT_Raster1D);
+    mdi.AddOutput(VAR_SWE[0], UNIT_DEPTH_MM, VAR_SWE[1], DT_Single);
 
     // set the dependencies
     //mdi.AddDependency("T", "average temperature obtained from the interpolation module");
@@ -63,4 +63,4 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddOutput(VAR_SNWB, UNIT_DEPTH_MM, DESC_SNWB, DT_Array2D);
+//mdi.AddOutput(VAR_SNWB[0], UNIT_DEPTH_MM, VAR_SNWB[1], DT_Array2D);

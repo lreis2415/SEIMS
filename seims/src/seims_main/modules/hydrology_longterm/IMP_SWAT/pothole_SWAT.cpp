@@ -53,133 +53,133 @@ IMP_SWAT::~IMP_SWAT() {
 }
 
 bool IMP_SWAT::CheckInputData() {
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_cellWidth);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_maxSoilLyrs);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nRteLyrs);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_evLAI);
-    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potTilemm);
-    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potNo3Decay);
-    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potSolPDecay);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_nCells);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_cellWidth);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_maxSoilLyrs);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_nRteLyrs);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_evLAI);
+    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potTilemm);
+    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potNo3Decay);
+    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potSolPDecay);
     return true;
 }
 
 void IMP_SWAT::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_CellWidth)) {
+    if (StringMatch(sk, Tag_CellWidth[0])) {
         m_cellWidth = value;
         m_cellArea = m_cellWidth * m_cellWidth * 1.e-4f; // m2 ==> ha
         m_cnv = 10.f * m_cellArea;                       // mm/ha => m^3
-    } else if (StringMatch(sk, Tag_TimeStep)) m_timestep = value;
-    else if (StringMatch(sk, VAR_EVLAI)) m_evLAI = value;
-    else if (StringMatch(sk, VAR_POT_TILEMM)) m_potTilemm = value;
-    else if (StringMatch(sk, VAR_POT_NO3DECAY)) m_potNo3Decay = value;
-    else if (StringMatch(sk, VAR_POT_SOLPDECAY)) m_potSolPDecay = value;
-    else if (StringMatch(sk, VAR_KV_PADDY)) m_kVolat = value;
-    else if (StringMatch(sk, VAR_KN_PADDY)) m_kNitri = value;
-    else if (StringMatch(sk, VAR_POT_K)) m_pot_k = value;
+    } else if (StringMatch(sk, Tag_TimeStep[0])) m_timestep = value;
+    else if (StringMatch(sk, VAR_EVLAI[0])) m_evLAI = value;
+    else if (StringMatch(sk, VAR_POT_TILEMM[0])) m_potTilemm = value;
+    else if (StringMatch(sk, VAR_POT_NO3DECAY[0])) m_potNo3Decay = value;
+    else if (StringMatch(sk, VAR_POT_SOLPDECAY[0])) m_potSolPDecay = value;
+    else if (StringMatch(sk, VAR_KV_PADDY[0])) m_kVolat = value;
+    else if (StringMatch(sk, VAR_KN_PADDY[0])) m_kNitri = value;
+    else if (StringMatch(sk, VAR_POT_K[0])) m_pot_k = value;
     else {
-        throw ModelException(MID_IMP_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IMP_SWAT[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
 
-    if (StringMatch(sk, VAR_SBOF)) {
+    if (StringMatch(sk, VAR_SBOF[0])) {
         m_surfqToCh = data;
         m_nSubbasins = n - 1; /// TODO, add a checkInputSize2 function
         return;
-    } else if (StringMatch(sk, VAR_SED_TO_CH)) {
+    } else if (StringMatch(sk, VAR_SED_TO_CH[0])) {
         m_sedToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SUR_NO3_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_NO3_TOCH[0])) {
         m_surNO3ToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SUR_NH4_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_NH4_TOCH[0])) {
         m_surNH4ToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH[0])) {
         m_surSolPToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SUR_COD_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_COD_TOCH[0])) {
         m_surCodToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SEDORGN_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDORGN_TOCH[0])) {
         m_sedOrgNToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SEDORGP_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDORGP_TOCH[0])) {
         m_sedOrgPToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SEDMINPA_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDMINPA_TOCH[0])) {
         m_sedMinPAToCh = data;
         m_nSubbasins = n - 1;
         return;
-    } else if (StringMatch(sk, VAR_SEDMINPS_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDMINPS_TOCH[0])) {
         m_sedMinPSToCh = data;
         m_nSubbasins = n - 1;
         return;
     }
-    CheckInputSize(MID_IMP_SWAT, key, n, m_nCells);
-    if (StringMatch(sk, VAR_SLOPE)) m_slope = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
-    else if (StringMatch(sk, VAR_SUBBSN)) m_subbasin = data;
-    else if (StringMatch(sk, VAR_SOL_SUMAWC)) m_sol_sumfc = data;
-    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
-    else if (StringMatch(sk, VAR_POT_VOLMAXMM)) m_potVolMax = data;
-    else if (StringMatch(sk, VAR_POT_VOLLOWMM)) m_potVolMin = data;
-    else if (StringMatch(sk, VAR_SEDYLD)) m_sedYield = data;
-    else if (StringMatch(sk, VAR_SANDYLD)) m_sandYield = data;
-    else if (StringMatch(sk, VAR_SILTYLD)) m_siltYield = data;
-    else if (StringMatch(sk, VAR_CLAYYLD)) m_clayYield = data;
-    else if (StringMatch(sk, VAR_SAGYLD)) m_smaggreYield = data;
-    else if (StringMatch(sk, VAR_LAGYLD)) m_lgaggreYield = data;
-    else if (StringMatch(sk, VAR_LAIDAY)) m_LAIDay = data;
-    else if (StringMatch(sk, VAR_PET)) m_pet = data;
-    else if (StringMatch(sk, VAR_SOL_SW)) m_soilStorageProfile = data;
-    else if (StringMatch(sk, VAR_DEET)) m_depEvapor = data;
-    else if (StringMatch(sk, VAR_DPST)) m_depStorage = data;
-    else if (StringMatch(sk, VAR_OLFLOW)) m_surfaceRunoff = data;
-    else if (StringMatch(sk, VAR_SUR_NO3)) m_surqNo3 = data;
-    else if (StringMatch(sk, VAR_SUR_NH4)) m_surqNH4 = data;
-    else if (StringMatch(sk, VAR_SUR_SOLP)) m_surqSolP = data;
-    else if (StringMatch(sk, VAR_SUR_COD)) m_surqCOD = data;
-    else if (StringMatch(sk, VAR_SEDORGN)) m_sedOrgN = data;
-    else if (StringMatch(sk, VAR_SEDORGP)) m_sedOrgP = data;
-    else if (StringMatch(sk, VAR_SEDMINPA)) m_sedActiveMinP = data;
-    else if (StringMatch(sk, VAR_SEDMINPS)) m_sedStableMinP = data;
+    CheckInputSize(M_IMP_SWAT[0], key, n, m_nCells);
+    if (StringMatch(sk, VAR_SLOPE[0])) m_slope = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
+    else if (StringMatch(sk, VAR_SUBBSN[0])) m_subbasin = data;
+    else if (StringMatch(sk, VAR_SOL_SUMAWC[0])) m_sol_sumfc = data;
+    else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impoundTrig = data;
+    else if (StringMatch(sk, VAR_POT_VOLMAXMM[0])) m_potVolMax = data;
+    else if (StringMatch(sk, VAR_POT_VOLLOWMM[0])) m_potVolMin = data;
+    else if (StringMatch(sk, VAR_SEDYLD[0])) m_sedYield = data;
+    else if (StringMatch(sk, VAR_SANDYLD[0])) m_sandYield = data;
+    else if (StringMatch(sk, VAR_SILTYLD[0])) m_siltYield = data;
+    else if (StringMatch(sk, VAR_CLAYYLD[0])) m_clayYield = data;
+    else if (StringMatch(sk, VAR_SAGYLD[0])) m_smaggreYield = data;
+    else if (StringMatch(sk, VAR_LAGYLD[0])) m_lgaggreYield = data;
+    else if (StringMatch(sk, VAR_LAIDAY[0])) m_LAIDay = data;
+    else if (StringMatch(sk, VAR_PET[0])) m_pet = data;
+    else if (StringMatch(sk, VAR_SOL_SW[0])) m_soilStorageProfile = data;
+    else if (StringMatch(sk, VAR_DEET[0])) m_depEvapor = data;
+    else if (StringMatch(sk, VAR_DPST[0])) m_depStorage = data;
+    else if (StringMatch(sk, VAR_OLFLOW[0])) m_surfaceRunoff = data;
+    else if (StringMatch(sk, VAR_SUR_NO3[0])) m_surqNo3 = data;
+    else if (StringMatch(sk, VAR_SUR_NH4[0])) m_surqNH4 = data;
+    else if (StringMatch(sk, VAR_SUR_SOLP[0])) m_surqSolP = data;
+    else if (StringMatch(sk, VAR_SUR_COD[0])) m_surqCOD = data;
+    else if (StringMatch(sk, VAR_SEDORGN[0])) m_sedOrgN = data;
+    else if (StringMatch(sk, VAR_SEDORGP[0])) m_sedOrgP = data;
+    else if (StringMatch(sk, VAR_SEDMINPA[0])) m_sedActiveMinP = data;
+    else if (StringMatch(sk, VAR_SEDMINPS[0])) m_sedStableMinP = data;
     else {
-        throw ModelException(MID_IMP_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IMP_SWAT[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IMP_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_nRteLyrs = n;
         m_rteLyrs = data;
         return;
     }
-    CheckInputSize2D(MID_IMP_SWAT, key, n, col, m_nCells, m_maxSoilLyrs);
-    if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
-    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThick = data;
-    else if (StringMatch(sk, VAR_POROST)) m_sol_por = data;
-    else if (StringMatch(sk, VAR_SOL_ST)) m_soilStorage = data;
-    else if (StringMatch(sk, VAR_SOL_UL)) m_sol_sat = data;
+    CheckInputSize2D(M_IMP_SWAT[0], key, n, col, m_nCells, m_maxSoilLyrs);
+    if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
+    else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThick = data;
+    else if (StringMatch(sk, VAR_POROST[0])) m_sol_por = data;
+    else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilStorage = data;
+    else if (StringMatch(sk, VAR_SOL_UL[0])) m_sol_sat = data;
     else {
-        throw ModelException(MID_IMP_SWAT, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IMP_SWAT[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IMP_SWAT::InitialOutputs() {
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
+    CHECK_POSITIVE(M_IMP_SWAT[0], m_nCells);
     if (m_potArea == nullptr) Initialize1DArray(m_nCells, m_potArea, 0.f);
     if (m_potVol == nullptr) Initialize1DArray(m_nCells, m_potVol, 0.f);
     if (m_potNo3 == nullptr) Initialize1DArray(m_nCells, m_potNo3, 0.f);
@@ -815,13 +815,13 @@ void IMP_SWAT::ReleaseWater(const int id) {
 void IMP_SWAT::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_POT_VOL)) *data = m_potVol;
-    else if (StringMatch(sk, VAR_POT_SA)) *data = m_potArea;
-    else if (StringMatch(sk, VAR_POT_NO3)) *data = m_potNo3;
-    else if (StringMatch(sk, VAR_POT_NH4)) *data = m_potNH4;
-    else if (StringMatch(sk, VAR_POT_SOLP)) *data = m_potSolP;
+    if (StringMatch(sk, VAR_POT_VOL[0])) *data = m_potVol;
+    else if (StringMatch(sk, VAR_POT_SA[0])) *data = m_potArea;
+    else if (StringMatch(sk, VAR_POT_NO3[0])) *data = m_potNo3;
+    else if (StringMatch(sk, VAR_POT_NH4[0])) *data = m_potNH4;
+    else if (StringMatch(sk, VAR_POT_SOLP[0])) *data = m_potSolP;
     else {
-        throw ModelException(MID_IMP_SWAT, "Get1DData", "Parameter" + sk + "does not exist.");
+        throw ModelException(M_IMP_SWAT[0], "Get1DData", "Parameter" + sk + "does not exist.");
     }
     *n = m_nCells;
 }

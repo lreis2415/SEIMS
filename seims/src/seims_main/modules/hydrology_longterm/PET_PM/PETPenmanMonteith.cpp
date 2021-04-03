@@ -25,64 +25,64 @@ PETPenmanMonteith::~PETPenmanMonteith() {
 }
 
 bool PETPenmanMonteith::CheckInputData() {
-    CHECK_POSITIVE(MID_PET_PM, m_date);
-    CHECK_POSITIVE(MID_PET_PM, m_nCells);
-    CHECK_POINTER(MID_PET_PM, m_canHgt);
-    CHECK_POINTER(MID_PET_PM, m_dem);
-    CHECK_POINTER(MID_PET_PM, m_igro);
-    CHECK_POINTER(MID_PET_PM, m_lai);
-    CHECK_POINTER(MID_PET_PM, m_alb);
-    CHECK_POINTER(MID_PET_PM, m_rhd);
-    CHECK_POINTER(MID_PET_PM, m_sr);
-    CHECK_POINTER(MID_PET_PM, m_maxTemp);
-    CHECK_POINTER(MID_PET_PM, m_meanTemp);
-    CHECK_POINTER(MID_PET_PM, m_minTemp);
-    CHECK_POINTER(MID_PET_PM, m_cellLat);
-    CHECK_POINTER(MID_PET_PM, m_ws);
-    CHECK_POINTER(MID_PET_PM, m_gsi);
-    CHECK_POINTER(MID_PET_PM, m_minTemp);
-    CHECK_POINTER(MID_PET_PM, m_vpdfr);
-    CHECK_POINTER(MID_PET_PM, m_frgmax);
+    CHECK_POSITIVE(M_PET_PM[0], m_date);
+    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
+    CHECK_POINTER(M_PET_PM[0], m_canHgt);
+    CHECK_POINTER(M_PET_PM[0], m_dem);
+    CHECK_POINTER(M_PET_PM[0], m_igro);
+    CHECK_POINTER(M_PET_PM[0], m_lai);
+    CHECK_POINTER(M_PET_PM[0], m_alb);
+    CHECK_POINTER(M_PET_PM[0], m_rhd);
+    CHECK_POINTER(M_PET_PM[0], m_sr);
+    CHECK_POINTER(M_PET_PM[0], m_maxTemp);
+    CHECK_POINTER(M_PET_PM[0], m_meanTemp);
+    CHECK_POINTER(M_PET_PM[0], m_minTemp);
+    CHECK_POINTER(M_PET_PM[0], m_cellLat);
+    CHECK_POINTER(M_PET_PM[0], m_ws);
+    CHECK_POINTER(M_PET_PM[0], m_gsi);
+    CHECK_POINTER(M_PET_PM[0], m_minTemp);
+    CHECK_POINTER(M_PET_PM[0], m_vpdfr);
+    CHECK_POINTER(M_PET_PM[0], m_frgmax);
     return true;
 }
 
 void PETPenmanMonteith::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_CO2)) m_co2Conc = value;
-    else if (StringMatch(sk, VAR_T_SNOW)) m_snowTemp = value;
-    else if (StringMatch(sk, VAR_K_PET)) m_petFactor = value;
+    if (StringMatch(sk, VAR_CO2[0])) m_co2Conc = value;
+    else if (StringMatch(sk, VAR_T_SNOW[0])) m_snowTemp = value;
+    else if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else {
-        throw ModelException(MID_PET_PM, "SetValue", "Parameter " + sk +
+        throw ModelException(M_PET_PM[0], "SetValue", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void PETPenmanMonteith::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(MID_PET_PM, key, n, m_nCells);
+    CheckInputSize(M_PET_PM[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
-    else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;
-    else if (StringMatch(sk, VAR_TMIN)) m_minTemp = value;
-    else if (StringMatch(sk, VAR_CELL_LAT)) m_cellLat = value;
+    if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
+    else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
+    else if (StringMatch(sk, VAR_TMIN[0])) m_minTemp = value;
+    else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
     else if (StringMatch(sk, DataType_RelativeAirMoisture)) m_rhd = value;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_sr = value;
     else if (StringMatch(sk, DataType_WindSpeed)) m_ws = value;
-    else if (StringMatch(sk, VAR_DEM)) m_dem = value;
-    else if (StringMatch(sk, VAR_CHT)) m_canHgt = value;
-    else if (StringMatch(sk, VAR_ALBDAY)) m_alb = value;
-    else if (StringMatch(sk, VAR_LAIDAY)) m_lai = value;
-    else if (StringMatch(sk, VAR_PHUTOT)) m_phuAnn = value;
-    else if (StringMatch(sk, VAR_IGRO)) m_igro = value;
-    else if (StringMatch(sk, VAR_GSI)) m_gsi = value;
-    else if (StringMatch(sk, VAR_VPDFR)) m_vpdfr = value;
-    else if (StringMatch(sk, VAR_FRGMAX)) m_frgmax = value;
+    else if (StringMatch(sk, VAR_DEM[0])) m_dem = value;
+    else if (StringMatch(sk, VAR_CHT[0])) m_canHgt = value;
+    else if (StringMatch(sk, VAR_ALBDAY[0])) m_alb = value;
+    else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = value;
+    else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
+    else if (StringMatch(sk, VAR_IGRO[0])) m_igro = value;
+    else if (StringMatch(sk, VAR_GSI[0])) m_gsi = value;
+    else if (StringMatch(sk, VAR_VPDFR[0])) m_vpdfr = value;
+    else if (StringMatch(sk, VAR_FRGMAX[0])) m_frgmax = value;
     else {
-        throw ModelException(MID_PET_PM, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PET_PM[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void PETPenmanMonteith::InitialOutputs() {
-    CHECK_POSITIVE(MID_PET_PM, m_nCells);
+    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
     if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
     if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.f);
@@ -254,12 +254,12 @@ void PETPenmanMonteith::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_PET)) *data = m_pet;
-    else if (StringMatch(sk, VAR_PPT)) *data = m_maxPltET;
-    else if (StringMatch(sk, VAR_VPD)) *data = m_vpd;
-    else if (StringMatch(sk, VAR_DAYLEN)) *data = m_dayLen;
-    else if (StringMatch(sk, VAR_PHUBASE)) *data = m_phuBase;
+    if (StringMatch(sk, VAR_PET[0])) *data = m_pet;
+    else if (StringMatch(sk, VAR_PPT[0])) *data = m_maxPltET;
+    else if (StringMatch(sk, VAR_VPD[0])) *data = m_vpd;
+    else if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
+    else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else {
-        throw ModelException(MID_PET_PM, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PET_PM[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }

@@ -8,7 +8,7 @@
  * Changelog:
  *   - 1. 2016-07-15 - lj -
  *      -# Code reformat with common functions, such as Release1DArray.
- *      -# VAR_SNSB should be output other than input.
+ *      -# VAR_SNSB[0] should be output other than input.
  *   - 2. 2018-05-07 - lj - Reformat code style.
  *   - 3. 2018-06-26 - lj - Bug fixed when pet less than intercept ET.
  *

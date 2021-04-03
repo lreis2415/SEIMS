@@ -574,7 +574,7 @@ PrintInfo::~PrintInfo() {
 
 string PrintInfo::getOutputTimeSeriesHeader() {
     vector<string> headers;
-    if (StringMatch(m_OutputID, VAR_SNWB)) {
+    if (StringMatch(m_OutputID, VAR_SNWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("P");
         headers.emplace_back("P_net");
@@ -585,7 +585,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("SE");
         headers.emplace_back("SM");
         headers.emplace_back("SA");
-    } else if (StringMatch(m_OutputID, VAR_SOWB)) {
+    } else if (StringMatch(m_OutputID, VAR_SOWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("PCP (mm)");
         headers.emplace_back("meanTmp (deg C)");
@@ -604,7 +604,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("AllRunoff (mm)");
         headers.emplace_back("SoilMoisture (mm)");
         //headers.emplace_back("MoistureDepth");
-    } else if (StringMatch(m_OutputID, VAR_GWWB)) {
+    } else if (StringMatch(m_OutputID, VAR_GWWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("Percolation (mm)");
         headers.emplace_back("Revaporization (mm)");

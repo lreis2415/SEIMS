@@ -77,10 +77,10 @@ int Percolation_DARCY::Execute() {
 
 void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
     string s(key);
-    if (StringMatch(s, VAR_PERCO)) {
+    if (StringMatch(s, VAR_PERCO[0])) {
         *data = m_recharge;
     } else {
-        throw ModelException(MID_PERCO_DARCY, "Get1DData", "Result " + s + " does not exist.");
+        throw ModelException(M_PERCO_DARCY[0], "Get1DData", "Result " + s + " does not exist.");
     }
     *nRows = m_nCells;
 }
@@ -90,17 +90,17 @@ void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
 
     this->CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_CONDUCT)) { this->m_Conductivity = data; }
-    else if (StringMatch(s, VAR_POROST)) { this->m_Porosity = data; }
-    else if (StringMatch(s, VAR_POREIDX)) { this->m_Poreindex = data; }
-    else if (StringMatch(s, VAR_SOL_ST)) { this->m_Moisture = data; }
-    else if (StringMatch(s, VAR_FIELDCAP)) { this->m_FieldCapacity = data; }
-    else if (StringMatch(s, VAR_SOILDEPTH)) {
+    if (StringMatch(s, VAR_CONDUCT[0])) { this->m_Conductivity = data; }
+    else if (StringMatch(s, VAR_POROST[0])) { this->m_Porosity = data; }
+    else if (StringMatch(s, VAR_POREIDX[0])) { this->m_Poreindex = data; }
+    else if (StringMatch(s, VAR_SOL_ST[0])) { this->m_Moisture = data; }
+    else if (StringMatch(s, VAR_FIELDCAP[0])) { this->m_FieldCapacity = data; }
+    else if (StringMatch(s, VAR_SOILDEPTH[0])) {
         this->m_rootDepth = data;
         //else if(StringMatch(s,"D_ES"))			this->m_ES = data;
         //else if(StringMatch(s,"D_SOTE"))		this->m_SoilT = data;
     } else {
-        throw ModelException(MID_PERCO_DARCY, "SetValue", "Parameter " + s +
+        throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 
@@ -108,60 +108,60 @@ void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
 
 void Percolation_DARCY::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, Tag_HillSlopeTimeStep)) {
+    if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
         this->m_timestep = int(data);
-    } else if (StringMatch(s, Tag_CellWidth)) {
+    } else if (StringMatch(s, Tag_CellWidth[0])) {
         m_CellWidth = data;
         //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
-        throw ModelException(MID_PERCO_DARCY, "SetValue", "Parameter " + s +
+        throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 bool Percolation_DARCY::CheckInputData() {
     if (this->m_date <= 0) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "You have not set the time.");
     }
     if (m_nCells <= 0) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData",
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (this->m_timestep <= 0) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The time step can not be less than zero.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The time step can not be less than zero.");
     }
     if (m_CellWidth < 0) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The parameter CellWidth is not set.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The parameter CellWidth is not set.");
     }
     if (this->m_Conductivity == NULL) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The Conductivity can not be NULL.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Conductivity can not be NULL.");
     }
     if (this->m_Porosity == NULL) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The Porosity can not be NULL.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Porosity can not be NULL.");
     }
 
     if (this->m_Poreindex == NULL) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The Poreindex can not be NULL.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Poreindex can not be NULL.");
     }
     if (this->m_Moisture == NULL) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputData", "The Moisture can not be NULL.");
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Moisture can not be NULL.");
     }
-    //if(this->m_SoilT == NULL)			throw ModelException(MID_PERCO_DARCY,"CheckInputData","The soil temerature can not be NULL.");
-    //if(this->m_ForzenT == -99.0f)		throw ModelException(MID_PERCO_DARCY,"CheckInputData","The threshold soil freezing temerature can not be NULL.");
+    //if(this->m_SoilT == NULL)			throw ModelException(M_PERCO_DARCY[0],"CheckInputData","The soil temerature can not be NULL.");
+    //if(this->m_ForzenT == -99.0f)		throw ModelException(M_PERCO_DARCY[0],"CheckInputData","The threshold soil freezing temerature can not be NULL.");
 
     return true;
 }
 
 bool Percolation_DARCY::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_PERCO_DARCY, "CheckInputSize",
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (this->m_nCells != n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
-            throw ModelException(MID_PERCO_DARCY, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_PERCO_DARCY[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }

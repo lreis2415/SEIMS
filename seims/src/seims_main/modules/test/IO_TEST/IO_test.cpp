@@ -18,8 +18,8 @@ IO_TEST::~IO_TEST() {
 void IO_TEST::Set1DData(const char* key, const int n, float* data) {
     if (!CheckInputSize("IO_TEST", key, n, m_nCells)) return;
     string sk(key);
-    if (StringMatch(sk, VAR_CN2)) m_raster1D = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
+    if (StringMatch(sk, VAR_CN2[0])) m_raster1D = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else {
         throw ModelException("IO_TEST", "Set1DData", "Parameter " + string(key) + " is not exist");
     }
@@ -28,7 +28,7 @@ void IO_TEST::Set1DData(const char* key, const int n, float* data) {
 void IO_TEST::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     if (!CheckInputSize2D("IO_TEST", key, n, col, m_nCells, m_maxSoilLyrs)) return;
-    if (StringMatch(sk, VAR_CONDUCT)) {
+    if (StringMatch(sk, VAR_CONDUCT[0])) {
         m_raster2D = data;
     }
 }

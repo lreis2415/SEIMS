@@ -12,33 +12,33 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Junzhi Liu");
-    mdi.SetClass(MCLS_HS_HYDRO, MCLSDESC_HS_HYDRO);
-    mdi.SetDescription(MDESC_HS_WB);
+    mdi.SetClass(MCLS_HS_HYDRO[0], MCLS_HS_HYDRO[1]);
+    mdi.SetDescription(M_HS_WB[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_HS_WB);
-    mdi.SetName(MID_HS_WB);
+    mdi.SetID(M_HS_WB[0]);
+    mdi.SetName(M_HS_WB[0]);
     mdi.SetVersion("0.3");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("HS_WB.chm");
 
-    mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOILDEPTH, UNIT_DEPTH_MM, DESC_SOILDEPTH, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddParameter(VAR_POROST, UNIT_VOL_FRA_M3M3, DESC_POROST, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_FIELDCAP, UNIT_VOL_FRA_M3M3, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D);
-    //mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_POROST[0], UNIT_VOL_FRA_M3M3, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_FIELDCAP[0], UNIT_VOL_FRA_M3M3, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D);
+    //mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Array2D);
     // add reach information
-    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
+    mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_QOVERLAND, UNIT_FLOW_CMS, DESC_QOVERLAND, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_QSOIL, UNIT_FLOW_CMS, DESC_QSOIL, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_QSOIL[0], UNIT_FLOW_CMS, VAR_QSOIL[1], Source_Module, DT_Raster1D);
 
     // set the output variables
-    mdi.AddOutput(VAR_SOWB, UNIT_DEPTH_MM, DESC_SOWB, DT_Array2D);
-    mdi.AddOutput(VAR_SBOF, UNIT_FLOW_CMS, DESC_SBOF, DT_Array1D);
-    mdi.AddOutput(VAR_SBIF, UNIT_FLOW_CMS, DESC_SBIF, DT_Array1D);
+    mdi.AddOutput(VAR_SOWB[0], UNIT_DEPTH_MM, VAR_SOWB[1], DT_Array2D);
+    mdi.AddOutput(VAR_SBOF[0], UNIT_FLOW_CMS, VAR_SBOF[1], DT_Array1D);
+    mdi.AddOutput(VAR_SBIF[0], UNIT_FLOW_CMS, VAR_SBIF[1], DT_Array1D);
 
     string res = mdi.GetXMLDocument();
 

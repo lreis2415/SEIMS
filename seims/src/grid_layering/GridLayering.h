@@ -171,7 +171,7 @@ class GridLayeringD8 : public GridLayering {
 public:
     GridLayeringD8(int id, MongoGridFs* gfs, const char* out_dir);
 
-    ~GridLayeringD8() OVERRIDE;
+    ~GridLayeringD8();
 
     bool LoadData() OVERRIDE;
     bool OutputFlowOut() OVERRIDE;
@@ -181,7 +181,7 @@ public:
 class GridLayeringDinf : public GridLayering {
 public:
     GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir);
-    ~GridLayeringDinf() OVERRIDE;
+    ~GridLayeringDinf();
     bool LoadData() OVERRIDE;
     bool OutputFlowIn() OVERRIDE;
     bool OutputFlowOut() OVERRIDE;

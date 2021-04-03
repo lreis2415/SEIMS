@@ -33,36 +33,36 @@ SERO_MUSLE::~SERO_MUSLE() {
 }
 
 bool SERO_MUSLE::CheckInputData() {
-    CHECK_POSITIVE(MID_SERO_MUSLE, m_nCells);
-    CHECK_POSITIVE(MID_SERO_MUSLE, m_cellWth);
-    CHECK_POINTER(MID_SERO_MUSLE, m_soilRock);
-    CHECK_POINTER(MID_SERO_MUSLE, m_usleK);
-    CHECK_POINTER(MID_SERO_MUSLE, m_usleP);
-    CHECK_POINTER(MID_SERO_MUSLE, m_flowAccm);
-    CHECK_POINTER(MID_SERO_MUSLE, m_slope);
-    CHECK_POINTER(MID_SERO_MUSLE, m_rchID);
-    CHECK_POINTER(MID_SERO_MUSLE, m_detSand);
-    CHECK_POINTER(MID_SERO_MUSLE, m_detSilt);
-    CHECK_POINTER(MID_SERO_MUSLE, m_detClay);
-    CHECK_POINTER(MID_SERO_MUSLE, m_detSmAgg);
-    CHECK_POINTER(MID_SERO_MUSLE, m_detLgAgg);
+    CHECK_POSITIVE(M_SERO_MUSLE[0], m_nCells);
+    CHECK_POSITIVE(M_SERO_MUSLE[0], m_cellWth);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_soilRock);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_usleK);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_usleP);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_flowAccm);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_slope);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_rchID);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_detSand);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_detSilt);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_detClay);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_detSmAgg);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_detLgAgg);
 
-    CHECK_NONNEGATIVE(MID_SERO_MUSLE, m_iCfac);
-    CHECK_POINTER(MID_SERO_MUSLE, m_aveAnnUsleC);
-    CHECK_POINTER(MID_SERO_MUSLE, m_landCover);
+    CHECK_NONNEGATIVE(M_SERO_MUSLE[0], m_iCfac);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_aveAnnUsleC);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_landCover);
     if (m_iCfac == 1) {
-        CHECK_NODATA(MID_SERO_MUSLE, m_rsdCovCoef);
-        CHECK_POINTER(MID_SERO_MUSLE, m_canHgt);
-        CHECK_POINTER(MID_SERO_MUSLE, m_lai);
+        CHECK_NODATA(M_SERO_MUSLE[0], m_rsdCovCoef);
+        CHECK_POINTER(M_SERO_MUSLE[0], m_canHgt);
+        CHECK_POINTER(M_SERO_MUSLE[0], m_lai);
     }
 
-    CHECK_POINTER(MID_SERO_MUSLE, m_surfRf);
-    CHECK_POINTER(MID_SERO_MUSLE, m_snowAccum);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_surfRf);
+    CHECK_POINTER(M_SERO_MUSLE[0], m_snowAccum);
     return true;
 }
 
 void SERO_MUSLE::InitialOutputs() {
-    CHECK_POSITIVE(MID_SERO_MUSLE, m_nCells);
+    CHECK_POSITIVE(M_SERO_MUSLE[0], m_nCells);
     if (nullptr == m_eroSed) Initialize1DArray(m_nCells, m_eroSed, 0.f);
     if (nullptr == m_eroSand) Initialize1DArray(m_nCells, m_eroSand, 0.f);
     if (nullptr == m_eroSilt) Initialize1DArray(m_nCells, m_eroSilt, 0.f);
@@ -221,50 +221,50 @@ int SERO_MUSLE::Execute() {
 
 void SERO_MUSLE::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_CellWidth)) {
+    if (StringMatch(sk, Tag_CellWidth[0])) {
         m_cellWth = value;
-    } else if (StringMatch(sk, VAR_RSDCOV_COEF)) {
+    } else if (StringMatch(sk, VAR_RSDCOV_COEF[0])) {
         m_rsdCovCoef = value;
-    } else if (StringMatch(sk, VAR_ICFAC)) {
+    } else if (StringMatch(sk, VAR_ICFAC[0])) {
         m_iCfac = CVT_INT(value);
     } else {
-        throw ModelException(MID_SERO_MUSLE, "SetValue", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_SERO_MUSLE[0], "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
 }
 
 void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_SERO_MUSLE, key, n, m_nCells);
+    CheckInputSize(M_SERO_MUSLE[0], key, n, m_nCells);
     string s(key);
-    if (StringMatch(s, VAR_USLE_C)) m_aveAnnUsleC = data;
-    else if (StringMatch(s, VAR_LANDCOVER)) m_landCover = data;
-    else if (StringMatch(s, VAR_SOL_COV)) m_rsdCovSoil = data;
-    else if (StringMatch(s, VAR_CHT)) m_canHgt = data;
-    else if (StringMatch(s, VAR_LAIDAY)) m_lai = data;
-    else if (StringMatch(s, VAR_USLE_P)) m_usleP = data;
+    if (StringMatch(s, VAR_USLE_C[0])) m_aveAnnUsleC = data;
+    else if (StringMatch(s, VAR_LANDCOVER[0])) m_landCover = data;
+    else if (StringMatch(s, VAR_SOL_COV[0])) m_rsdCovSoil = data;
+    else if (StringMatch(s, VAR_CHT[0])) m_canHgt = data;
+    else if (StringMatch(s, VAR_LAIDAY[0])) m_lai = data;
+    else if (StringMatch(s, VAR_USLE_P[0])) m_usleP = data;
     else if (StringMatch(s, VAR_ACC[0])) m_flowAccm = data;
-    else if (StringMatch(s, VAR_SLOPE)) m_slope = data;
-    else if (StringMatch(s, VAR_SLPLEN)) m_slpLen = data;
-    else if (StringMatch(s, VAR_SURU)) m_surfRf = data;
-    else if (StringMatch(s, VAR_SNAC)) m_snowAccum = data;
-    else if (StringMatch(s, VAR_STREAM_LINK)) m_rchID = data;
-    else if (StringMatch(s, VAR_DETACH_SAND)) m_detSand = data;
-    else if (StringMatch(s, VAR_DETACH_SILT)) m_detSilt = data;
-    else if (StringMatch(s, VAR_DETACH_CLAY)) m_detClay = data;
-    else if (StringMatch(s, VAR_DETACH_SAG)) m_detSmAgg = data;
-    else if (StringMatch(s, VAR_DETACH_LAG)) m_detLgAgg = data;
+    else if (StringMatch(s, VAR_SLOPE[0])) m_slope = data;
+    else if (StringMatch(s, VAR_SLPLEN[0])) m_slpLen = data;
+    else if (StringMatch(s, VAR_SURU[0])) m_surfRf = data;
+    else if (StringMatch(s, VAR_SNAC[0])) m_snowAccum = data;
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) m_rchID = data;
+    else if (StringMatch(s, VAR_DETACH_SAND[0])) m_detSand = data;
+    else if (StringMatch(s, VAR_DETACH_SILT[0])) m_detSilt = data;
+    else if (StringMatch(s, VAR_DETACH_CLAY[0])) m_detClay = data;
+    else if (StringMatch(s, VAR_DETACH_SAG[0])) m_detSmAgg = data;
+    else if (StringMatch(s, VAR_DETACH_LAG[0])) m_detLgAgg = data;
     else {
-        throw ModelException(MID_SERO_MUSLE, "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SERO_MUSLE[0], "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
 
 void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(MID_SERO_MUSLE, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_SERO_MUSLE[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
     m_maxSoilLyrs = ncols;
-    if (StringMatch(s, VAR_USLE_K)) m_usleK = data;
-    else if (StringMatch(s, VAR_ROCK)) m_soilRock = data;
+    if (StringMatch(s, VAR_USLE_K[0])) m_usleK = data;
+    else if (StringMatch(s, VAR_ROCK[0])) m_soilRock = data;
     else {
-        throw ModelException(MID_SERO_MUSLE, "Set2DData", "Parameter " + s +
+        throw ModelException(M_SERO_MUSLE[0], "Set2DData", "Parameter " + s +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -272,17 +272,17 @@ void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, fl
 void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_USLE_L)) *data = m_usleL;
-    else if (StringMatch(sk, VAR_USLE_S)) *data = m_usleS;
-    else if (StringMatch(sk, VAR_USLE_C)) *data = m_usleC;
-    else if (StringMatch(sk, VAR_SOER)) *data = m_eroSed;
-    else if (StringMatch(sk, VAR_SANDYLD)) *data = m_eroSand;
-    else if (StringMatch(sk, VAR_SILTYLD)) *data = m_eroSilt;
-    else if (StringMatch(sk, VAR_CLAYYLD)) *data = m_eroClay;
-    else if (StringMatch(sk, VAR_SAGYLD)) *data = m_eroSmAgg;
-    else if (StringMatch(sk, VAR_LAGYLD)) *data = m_eroLgAgg;
+    if (StringMatch(sk, VAR_USLE_L[0])) *data = m_usleL;
+    else if (StringMatch(sk, VAR_USLE_S[0])) *data = m_usleS;
+    else if (StringMatch(sk, VAR_USLE_C[0])) *data = m_usleC;
+    else if (StringMatch(sk, VAR_SOER[0])) *data = m_eroSed;
+    else if (StringMatch(sk, VAR_SANDYLD[0])) *data = m_eroSand;
+    else if (StringMatch(sk, VAR_SILTYLD[0])) *data = m_eroSilt;
+    else if (StringMatch(sk, VAR_CLAYYLD[0])) *data = m_eroClay;
+    else if (StringMatch(sk, VAR_SAGYLD[0])) *data = m_eroSmAgg;
+    else if (StringMatch(sk, VAR_LAGYLD[0])) *data = m_eroLgAgg;
     else {
-        throw ModelException(MID_SERO_MUSLE, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_SERO_MUSLE[0], "Get1DData", "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
 }

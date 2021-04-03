@@ -20,43 +20,43 @@ PETHargreaves::~PETHargreaves() {
 
 void PETHargreaves::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_K_PET)) m_petFactor = value;
-    else if (StringMatch(sk, VAR_PET_HCOEF)) m_HCoef_pet = value;
+    if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
+    else if (StringMatch(sk, VAR_PET_HCOEF[0])) m_HCoef_pet = value;
     else {
-        throw ModelException(MID_PET_H, "SetValue", "Parameter " + sk +
+        throw ModelException(M_PET_H[0], "SetValue", "Parameter " + sk +
                              " does not exist in current module.");
     }
 }
 
 void PETHargreaves::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(MID_PET_H, key, n, m_nCells);
+    CheckInputSize(M_PET_H[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
-    else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;
-    else if (StringMatch(sk, VAR_TMIN)) m_minTemp = value;
+    if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
+    else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
+    else if (StringMatch(sk, VAR_TMIN[0])) m_minTemp = value;
     else if (StringMatch(sk, DataType_RelativeAirMoisture)) m_rhd = value;
-    else if (StringMatch(sk, VAR_CELL_LAT)) m_cellLat = value;
-    else if (StringMatch(sk, VAR_PHUTOT)) m_phuAnn = value;
+    else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
+    else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
     else {
-        throw ModelException(MID_PET_H, "Set1DData", "Parameter " + sk +
+        throw ModelException(M_PET_H[0], "Set1DData", "Parameter " + sk +
                              " does not exist in current module.");
     }
 }
 
 bool PETHargreaves::CheckInputData() {
-    CHECK_POSITIVE(MID_PET_H, m_date);
-    CHECK_POSITIVE(MID_PET_H, m_nCells);
-    CHECK_POINTER(MID_PET_H, m_maxTemp);
-    CHECK_POINTER(MID_PET_H, m_meanTemp);
-    CHECK_POINTER(MID_PET_H, m_minTemp);
-    CHECK_POINTER(MID_PET_H, m_rhd);
-    CHECK_POINTER(MID_PET_H, m_cellLat);
-    CHECK_POINTER(MID_PET_H, m_phuAnn);
+    CHECK_POSITIVE(M_PET_H[0], m_date);
+    CHECK_POSITIVE(M_PET_H[0], m_nCells);
+    CHECK_POINTER(M_PET_H[0], m_maxTemp);
+    CHECK_POINTER(M_PET_H[0], m_meanTemp);
+    CHECK_POINTER(M_PET_H[0], m_minTemp);
+    CHECK_POINTER(M_PET_H[0], m_rhd);
+    CHECK_POINTER(M_PET_H[0], m_cellLat);
+    CHECK_POINTER(M_PET_H[0], m_phuAnn);
     return true;
 }
 
 void PETHargreaves::InitialOutputs() {
-    CHECK_POSITIVE(MID_PET_H, m_nCells);
+    CHECK_POSITIVE(M_PET_H[0], m_nCells);
     if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
     if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
@@ -110,11 +110,11 @@ void PETHargreaves::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_PET)) *data = m_pet;
-    else if (StringMatch(sk, VAR_VPD)) *data = m_vpd;
-    else if (StringMatch(sk, VAR_DAYLEN)) *data = m_dayLen;
-    else if (StringMatch(sk, VAR_PHUBASE)) *data = m_phuBase;
+    if (StringMatch(sk, VAR_PET[0])) *data = m_pet;
+    else if (StringMatch(sk, VAR_VPD[0])) *data = m_vpd;
+    else if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
+    else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else {
-        throw ModelException(MID_PET_H, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PET_H[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }

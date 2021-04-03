@@ -14,30 +14,30 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Chunping Ou, Liangjun Zhu");
-    mdi.SetClass(MCLS_AET, MCLSDESC_AET);
-    mdi.SetDescription(MDESC_SET_LM);
+    mdi.SetClass(MCLS_AET[0], MCLS_AET[1]);
+    mdi.SetDescription(M_SET_LM[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SET_LM);
-    mdi.SetName(MID_SET_LM);
+    mdi.SetID(M_SET_LM[0]);
+    mdi.SetName(M_SET_LM[0]);
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    mdi.AddParameter(VAR_T_SOIL, UNIT_TEMP_DEG, DESC_T_SOIL, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SOL_AWC, UNIT_DEPTH_MM, DESC_SOL_AWC, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
 
     // set the parameters (non-time series)
-    mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_INET, UNIT_DEPTH_MM, DESC_INET, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_DEET, UNIT_DEPTH_MM, DESC_DEET, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PPT, UNIT_DEPTH_MM, DESC_PPT, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_INET[0], UNIT_DEPTH_MM, VAR_INET[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_DEET[0], UNIT_DEPTH_MM, VAR_DEET[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SOTE[0], UNIT_TEMP_DEG, VAR_SOTE[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PPT[0], UNIT_DEPTH_MM, VAR_PPT[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module, DT_Raster2D);
 
     // set the output variables
-    mdi.AddOutput(VAR_SOET, UNIT_DEPTH_MM, DESC_SOET, DT_Raster1D);
+    mdi.AddOutput(VAR_SOET[0], UNIT_DEPTH_MM, VAR_SOET[1], DT_Raster1D);
 
     // write out the XML file.
     res = mdi.GetXMLDocument();
