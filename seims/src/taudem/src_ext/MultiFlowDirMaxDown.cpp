@@ -2,6 +2,7 @@
 
 #include "commonLib.h"
 #include "createpart.h"
+#include <sstream>
 
 int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
                          double p0 /* = 1.1 */, double p_range /* = 8.9 */,
@@ -154,8 +155,9 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         // write flow fractions data into separated raster files
         for (lyr = 1; lyr <= 8; lyr++) {
             char ffracfile[MAXLN];
-            std::string intstr = std::to_string(lyr);
-            intstr.insert(0, "_");
+            std::ostringstream oss;
+            oss << "_" << lyr;
+            std::string intstr = oss.str();
             nameadd(ffracfile, fportion, intstr.c_str());
             tiffIO ffractTIFF(ffracfile, FLOAT_TYPE, static_cast<double>(DEFAULTNODATA), srcf);
             ffractTIFF.write(xstart, ystart, ny, nx, flowfractions[lyr - 1].getGridPointer());

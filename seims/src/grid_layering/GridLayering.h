@@ -205,7 +205,7 @@ public:
 #endif
     GridLayeringD8(int id, const char* in_file, const char* mask_file, const char* out_dir);
 
-    ~GridLayeringD8() OVERRIDE;
+    ~GridLayeringD8();
 
     bool LoadData() OVERRIDE;
 };
@@ -219,7 +219,7 @@ public:
     GridLayeringDinf(int id, const char* fd_file, const char* fraction_file,
                      const char* mask_file, const char* out_dir);
 
-    ~GridLayeringDinf() OVERRIDE;
+    ~GridLayeringDinf();
 
     bool LoadData() OVERRIDE;
     bool OutputFlowIn() OVERRIDE;
@@ -245,7 +245,7 @@ public:
     GridLayeringMFDmd(int id, const char* fd_file, const char* fraction_file,
                       const char* mask_file, const char* out_dir);
 
-    ~GridLayeringMFDmd() OVERRIDE;
+    ~GridLayeringMFDmd();
 
     bool LoadData() OVERRIDE;
     bool OutputFlowIn() OVERRIDE;

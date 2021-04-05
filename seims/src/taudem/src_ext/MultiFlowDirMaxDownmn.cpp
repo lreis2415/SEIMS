@@ -6,11 +6,11 @@
  *
  * Input: DEM
  * Output: Compound flow direction and flow fractions of each cell to downslope cells
-     
+
   Liangjun Zhu
-  Lreis, CAS  
-  Oct 19, 2020 
-  
+  Lreis, CAS
+  Oct 19, 2020
+
   changelog:
     - 1. 2021-04-01 - lj - Output flow fractions of 8 directions.
 */
@@ -24,15 +24,15 @@ int main(int argc, char** argv) {
     double tanb_lb = 0.;
     double tanb_ub = 1.;
     double min_portion = 0.05;
-
+    char* err = nullptr;
     int scount = 2; // argument count of simple usage including the executable itself
+    int i = argc == scount ? scount : 1;
+
     if (argc < scount) {
         printf("Error: To run the program, use either the Simple Usage option or\n");
         printf("the Usage with Specific file names option\n");
         goto errexit;
     }
-    int i = argc == scount ? scount : 1;
-    char* err = nullptr;
     while (argc > i) {
         if (strcmp(argv[i], "-dem") == 0) {
             i++;
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
         goto errexit;
     }
 
-    flowdirection_mfd_md(indemfile, outflowmfdfile, outflowportionfile, 
+    flowdirection_mfd_md(indemfile, outflowmfdfile, outflowportionfile,
                          dp0, dp_range, tanb_lb, tanb_ub, min_portion);
 
     return 0;
