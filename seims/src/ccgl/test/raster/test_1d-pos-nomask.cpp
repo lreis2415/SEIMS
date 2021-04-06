@@ -248,7 +248,12 @@ TEST_P(clsRasterDataTestPosNoMask, RasterIO) {
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
         EXPECT_TRUE(FileExists(newfullname4mongo));
+
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
 }
 #ifdef USE_GDAL

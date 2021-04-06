@@ -42,7 +42,7 @@ public:
     InputRasterFiles(const string& rsf, const string& maskf) {
         raster_name = rsf.c_str();
         mask_name = maskf.c_str();
-    };
+    }
     const char* raster_name;
     const char* mask_name;
 };
