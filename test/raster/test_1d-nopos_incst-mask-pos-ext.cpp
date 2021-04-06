@@ -50,7 +50,7 @@ public:
     InputRasterFiles(const string& rsf, const string& maskf) {
         raster_name = rsf.c_str();
         mask_name = maskf.c_str();
-    };
+    }
     const char* raster_name;
     const char* mask_name;
 };
@@ -241,6 +241,8 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
+        string maskfilename = "int_mask";
+        gfs->RemoveFile(maskfilename);
         // Add additional metadata key-values
         map<string, string> opts;
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -250,9 +252,12 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         opts.insert(make_pair("Author", "Liangjun"));
         opts.emplace(make_pair("Grade", "5.0"));
 #endif
+        maskrs_->OutputToMongoDB(maskfilename, gfs);
         rs_->OutputToMongoDB(gfsfilename, gfs, opts);
-        clsRasterData<float, int>* mongors = clsRasterData<float, int>::
-                Init(gfs, gfsfilename.c_str(), false, maskrs_, true, NODATA_VALUE, opts);
+        clsRasterData<int>* mongomask = clsRasterData<int>::Init(gfs, maskfilename.c_str(), true);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(),
+                                                                             false, maskrs_, true,
+                                                                             NODATA_VALUE, opts);
         // test mongors data
         EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(1, mongors->GetLayers());
@@ -264,7 +269,13 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         // output to asc/tif file for comparison
         EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
         EXPECT_TRUE(FileExists(newfullname4mongo));
+
+        delete mongomask;
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
 
     /* Get position data, which will be calculated if not existed,
