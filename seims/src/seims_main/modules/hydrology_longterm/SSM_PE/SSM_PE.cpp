@@ -29,42 +29,42 @@ SSM_PE::~SSM_PE(void) {
 
 bool SSM_PE::CheckInputData(void) {
     if (m_nCells <= 0) {
-        throw ModelException(MID_SSM_PE, "CheckInputData",
+        throw ModelException(M_SSM_PE[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (this->m_kblow == NODATA_VALUE) {
-        throw ModelException(MID_SSM_PE, "CheckInputData",
+        throw ModelException(M_SSM_PE[0], "CheckInputData",
                              "The fraction coefficient of snow blowing into or out of the watershed can not be NULL.");
     }
     if (this->m_Pnet == NULL) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The net precipitation data can not be NULL.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The net precipitation data can not be NULL.");
     }
-    if (this->m_PET == NULL) throw ModelException(MID_SSM_PE, "CheckInputData", "The PET data can not be NULL.");
+    if (this->m_PET == NULL) throw ModelException(M_SSM_PE[0], "CheckInputData", "The PET data can not be NULL.");
     if (this->m_SA == NULL) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The snow accumulation data can not be NULL.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The snow accumulation data can not be NULL.");
     }
     // Currently, no module's outputs have SNRD, this should be on TODO LIST. LJ
-    //if(this->m_SR == NULL)			throw ModelException(MID_SSM_PE,"CheckInputData","The snow redistribution data can not be NULL.");
-    if (this->m_swe == NODATA_VALUE) throw ModelException(MID_SSM_PE, "CheckInputData", "The swe can not be NODATA.");
-    if (this->m_swe0 == NODATA_VALUE) throw ModelException(MID_SSM_PE, "CheckInputData", "The swe0 can not be NODATA.");
+    //if(this->m_SR == NULL)			throw ModelException(M_SSM_PE[0],"CheckInputData","The snow redistribution data can not be NULL.");
+    if (this->m_swe == NODATA_VALUE) throw ModelException(M_SSM_PE[0], "CheckInputData", "The swe can not be NODATA.");
+    if (this->m_swe0 == NODATA_VALUE) throw ModelException(M_SSM_PE[0], "CheckInputData", "The swe0 can not be NODATA.");
     if (this->m_ksubli == NODATA_VALUE) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The k_subli can not be NODATA.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The k_subli can not be NODATA.");
     }
     if (this->m_tMean == NULL) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The mean air temperature data can not be NULL.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The mean air temperature data can not be NULL.");
     }
     if (this->m_t0 == NODATA_VALUE) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The Snowmelt temperature can not be NODATA.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The Snowmelt temperature can not be NODATA.");
     }
     if (this->m_tsnow == NODATA_VALUE) {
-        throw ModelException(MID_SSM_PE, "CheckInputData", "The snow fall temperature can not be NODATA.");
+        throw ModelException(M_SSM_PE[0], "CheckInputData", "The snow fall temperature can not be NODATA.");
     }
     return true;
 }
 
 void SSM_PE:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(MID_SSM_PE, "CheckInputData",
+        throw ModelException(M_SSM_PE[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (m_SE == NULL) {
@@ -132,14 +132,14 @@ int SSM_PE::Execute() {
 
 bool SSM_PE::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_SSM_PE, "CheckInputSize",
+        throw ModelException(M_SSM_PE[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (this->m_nCells != n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
-            throw ModelException(MID_SSM_PE, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_SSM_PE[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -149,14 +149,14 @@ bool SSM_PE::CheckInputSize(const char *key, int n) {
 
 void SSM_PE::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_K_BLOW)) { this->m_kblow = data; }
-    else if (StringMatch(s, VAR_K_SUBLI)) { this->m_ksubli = data; }
-    else if (StringMatch(s, VAR_SWE)) { this->m_swe = data; }
-    else if (StringMatch(s, VAR_SWE0)) { this->m_swe0 = data; }
-    else if (StringMatch(s, VAR_T0)) { this->m_t0 = data; }
-    else if (StringMatch(s, VAR_T_SNOW)) { this->m_tsnow = data; }
+    if (StringMatch(s, VAR_K_BLOW[0])) { this->m_kblow = data; }
+    else if (StringMatch(s, VAR_K_SUBLI[0])) { this->m_ksubli = data; }
+    else if (StringMatch(s, VAR_SWE[0])) { this->m_swe = data; }
+    else if (StringMatch(s, VAR_SWE0[0])) { this->m_swe0 = data; }
+    else if (StringMatch(s, VAR_T0[0])) { this->m_t0 = data; }
+    else if (StringMatch(s, VAR_T_SNOW[0])) { this->m_tsnow = data; }
     else {
-        throw ModelException(MID_SSM_PE, "SetValue", "Parameter " + s
+        throw ModelException(M_SSM_PE[0], "SetValue", "Parameter " + s
             +
                 " does not exist in current module. Please contact the module developer.");
     }
@@ -169,13 +169,13 @@ void SSM_PE::Set1DData(const char *key, int n, float *data) {
 
     this->CheckInputSize(key, n);
 
-    if (StringMatch(s, VAR_PET)) { this->m_PET = data; }
-    else if (StringMatch(s, VAR_NEPR)) { this->m_Pnet = data; }
-    else if (StringMatch(s, VAR_SNAC)) { this->m_SA = data; }
-    else if (StringMatch(s, VAR_SNRD)) { this->m_SR = data; }
-    else if (StringMatch(s, VAR_TMEAN)) { this->m_tMean = data; }
+    if (StringMatch(s, VAR_PET[0])) { this->m_PET = data; }
+    else if (StringMatch(s, VAR_NEPR[0])) { this->m_Pnet = data; }
+    else if (StringMatch(s, VAR_SNAC[0])) { this->m_SA = data; }
+    else if (StringMatch(s, VAR_SNRD[0])) { this->m_SR = data; }
+    else if (StringMatch(s, VAR_TMEAN[0])) { this->m_tMean = data; }
     else {
-        throw ModelException(MID_SSM_PE, "Set1DData", "Parameter " + s +
+        throw ModelException(M_SSM_PE[0], "Set1DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -183,10 +183,10 @@ void SSM_PE::Set1DData(const char *key, int n, float *data) {
 void SSM_PE::Get1DData(const char *key, int *n, float **data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SNSB)) {
+    if (StringMatch(s, VAR_SNSB[0])) {
         *data = this->m_SE;
     } else {
-        throw ModelException(MID_SSM_PE, "Get1DData", "Result " + s +
+        throw ModelException(M_SSM_PE[0], "Get1DData", "Result " + s +
             " does not exist in current module. Please contact the module developer.");
     }
     *n = this->m_nCells;

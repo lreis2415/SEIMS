@@ -12,45 +12,45 @@ AtmosphericDeposition::~AtmosphericDeposition() {
 }
 
 bool AtmosphericDeposition::CheckInputData() {
-    CHECK_POSITIVE(MID_ATMDEP, m_nCells);
-    CHECK_POSITIVE(MID_ATMDEP, m_maxSoilLyrs);
-    CHECK_POSITIVE(MID_ATMDEP, m_rainNO3Conc);
-    CHECK_POSITIVE(MID_ATMDEP, m_rainNH4Conc);
-    CHECK_POSITIVE(MID_ATMDEP, m_dryDepNO3);
-    CHECK_POSITIVE(MID_ATMDEP, m_dryDepNH4);
-    CHECK_POINTER(MID_ATMDEP, m_soilNO3);
-    CHECK_POINTER(MID_ATMDEP, m_soilNH4);
+    CHECK_POSITIVE(M_ATMDEP[0], m_nCells);
+    CHECK_POSITIVE(M_ATMDEP[0], m_maxSoilLyrs);
+    CHECK_POSITIVE(M_ATMDEP[0], m_rainNO3Conc);
+    CHECK_POSITIVE(M_ATMDEP[0], m_rainNH4Conc);
+    CHECK_POSITIVE(M_ATMDEP[0], m_dryDepNO3);
+    CHECK_POSITIVE(M_ATMDEP[0], m_dryDepNH4);
+    CHECK_POINTER(M_ATMDEP[0], m_soilNO3);
+    CHECK_POINTER(M_ATMDEP[0], m_soilNH4);
     return true;
 }
 
 void AtmosphericDeposition::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_ATMDEP, key, n, m_nCells);
+    CheckInputSize(M_ATMDEP[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_PCP)) m_pcp = data;
+    if (StringMatch(sk, VAR_PCP[0])) m_pcp = data;
     else {
-        throw ModelException(MID_ATMDEP, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_ATMDEP[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void AtmosphericDeposition::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_RCN)) m_rainNO3Conc = value;
-    else if (StringMatch(sk, VAR_RCA)) m_rainNH4Conc = value;
-    else if (StringMatch(sk, VAR_DRYDEP_NO3)) m_dryDepNO3 = value;
-    else if (StringMatch(sk, VAR_DRYDEP_NH4)) m_dryDepNH4 = value;
+    if (StringMatch(sk, VAR_RCN[0])) m_rainNO3Conc = value;
+    else if (StringMatch(sk, VAR_RCA[0])) m_rainNH4Conc = value;
+    else if (StringMatch(sk, VAR_DRYDEP_NO3[0])) m_dryDepNO3 = value;
+    else if (StringMatch(sk, VAR_DRYDEP_NH4[0])) m_dryDepNH4 = value;
     else {
-        throw ModelException(MID_ATMDEP, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_ATMDEP[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void AtmosphericDeposition::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(MID_ATMDEP, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_ATMDEP[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     m_maxSoilLyrs = ncols;
-    if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
-    else if (StringMatch(sk, VAR_SOL_NH4)) m_soilNH4 = data;
+    if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_NH4[0])) m_soilNH4 = data;
     else {
-        throw ModelException(MID_ATMDEP, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_ATMDEP[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 

@@ -2,7 +2,7 @@
  * \brief channel flow routing using ikw method
  * \author Junzhi Liu, Liangjun Zhu
  * \date May 2017
- * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM
+ * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM[0]
  *               Algorithm review and code clean
  */
 #ifndef SEIMS_MODULE_IKW_REACH_H

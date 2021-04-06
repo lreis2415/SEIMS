@@ -16,20 +16,20 @@ IUH_OL::~IUH_OL() {
 }
 
 bool IUH_OL::CheckInputData() {
-    CHECK_POSITIVE(MID_IUH_OL, m_date);
-    CHECK_POSITIVE(MID_IUH_OL, m_nSubbsns);
-    CHECK_NONNEGATIVE(MID_IUH_OL, m_inputSubbsnID);
-    CHECK_POSITIVE(MID_IUH_OL, m_nCells);
-    CHECK_POSITIVE(MID_IUH_OL, m_CellWth);
-    CHECK_NONNEGATIVE(MID_IUH_OL, m_TimeStep);
-    CHECK_POINTER(MID_IUH_OL, m_subbsnID);
-    CHECK_POINTER(MID_IUH_OL, m_iuhCell);
-    CHECK_POINTER(MID_IUH_OL, m_surfRf);
+    CHECK_POSITIVE(M_IUH_OL[0], m_date);
+    CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
+    CHECK_NONNEGATIVE(M_IUH_OL[0], m_inputSubbsnID);
+    CHECK_POSITIVE(M_IUH_OL[0], m_nCells);
+    CHECK_POSITIVE(M_IUH_OL[0], m_CellWth);
+    CHECK_NONNEGATIVE(M_IUH_OL[0], m_TimeStep);
+    CHECK_POINTER(M_IUH_OL[0], m_subbsnID);
+    CHECK_POINTER(M_IUH_OL[0], m_iuhCell);
+    CHECK_POINTER(M_IUH_OL[0], m_surfRf);
     return true;
 }
 
 void IUH_OL::InitialOutputs() {
-    CHECK_POSITIVE(MID_IUH_OL, m_nSubbsns);
+    CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
 
     if (m_cellArea <= 0.f) m_cellArea = m_CellWth * m_CellWth;
     if (nullptr == m_Q_SBOF) {
@@ -102,58 +102,58 @@ int IUH_OL::Execute() {
 
 void IUH_OL::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellSize)) m_nCells = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_CellWth = value;
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(sk, Tag_TimeStep[0])) m_TimeStep = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellSize[0])) m_nCells = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_CellWth = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else {
-        throw ModelException(MID_IUH_OL, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IUH_OL[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_IUH_OL, key, n, m_nCells);
+    CheckInputSize(M_IUH_OL[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
-    else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
+    if (StringMatch(sk, VAR_SUBBSN[0])) m_subbsnID = data;
+    else if (StringMatch(sk, VAR_SURU[0])) m_surfRf = data;
     else {
-        throw ModelException(MID_IUH_OL, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IUH_OL[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize2D(MID_IUH_OL, VAR_OL_IUH, nrows, ncols, m_nCells, m_iuhCols);
+    if (StringMatch(sk, VAR_OL_IUH[0])) {
+        CheckInputSize2D(M_IUH_OL[0], VAR_OL_IUH[0], nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
         m_iuhCols = ncols;
     } else {
-        throw ModelException(MID_IUH_OL, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_IUH_OL[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBOF) && m_inputSubbsnID > 0) {
+    if (StringMatch(sk, VAR_SBOF[0]) && m_inputSubbsnID > 0) {
         /// For MPI version to transfer data across subbasins
         *value = m_Q_SBOF[m_inputSubbsnID];
     } else {
-        throw ModelException(MID_IUH_OL, "GetValue", "Result " + sk + " does not exist.");
+        throw ModelException(M_IUH_OL[0], "GetValue", "Result " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBOF)) {
+    if (StringMatch(sk, VAR_SBOF[0])) {
         *data = m_Q_SBOF;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_OLFLOW)) {
+    } else if (StringMatch(sk, VAR_OLFLOW[0])) {
         *data = m_OL_Flow;
         *n = m_nCells;
     } else {
-        throw ModelException(MID_IUH_OL, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_IUH_OL[0], "Get1DData", "Result " + sk + " does not exist.");
     }
 }

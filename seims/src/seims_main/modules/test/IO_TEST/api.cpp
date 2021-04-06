@@ -22,16 +22,16 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    mdi.AddParameter(VAR_CN2, UNIT_NON_DIM, DESC_CN2, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_CONDUCT, UNIT_WTRDLT_MMH, DESC_CONDUCT, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_CN2[0], UNIT_NON_DIM, VAR_CN2[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster2D);
     ///test add scenario data
-    mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
+    mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
     ///test reaches information
-    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
+    mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
     /// set the output variables
-    mdi.AddOutput("CN2_M", UNIT_NON_DIM, DESC_CN2, DT_Raster1D);
-    mdi.AddOutput("K_M", UNIT_WTRDLT_MMH, DESC_CONDUCT, DT_Raster2D);
+    mdi.AddOutput("CN2_M", UNIT_NON_DIM, VAR_CN2[1], DT_Raster1D);
+    mdi.AddOutput("K_M", UNIT_WTRDLT_MMH, VAR_CONDUCT[1], DT_Raster2D);
     /// write out the XML file.
     res = mdi.GetXMLDocument();
 

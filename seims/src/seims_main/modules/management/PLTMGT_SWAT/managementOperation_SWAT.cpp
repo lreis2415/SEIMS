@@ -172,259 +172,259 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
 
 void MGTOpt_SWAT::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_CSWAT)) {
+    if (StringMatch(sk, VAR_CSWAT[0])) {
         m_cbnModel = CVT_INT(value);
-    } else if (StringMatch(sk, Tag_CellWidth)) {
+    } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_cellWth = value;
-    } else if (StringMatch(sk, VAR_SUBBSNID_NUM)) {
+    } else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) {
         m_nSubbsns = CVT_INT(value);
     } else {
-        throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PLTMGT_SWAT[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SBGS)) {
+    if (StringMatch(sk, VAR_SBGS[0])) {
         // TODO, current version, the shalow and deep water depths are regarded the same.
         m_deepWaterDepth = data;
         m_shallowWaterDepth = data;
         return;
     }
-    CheckInputSize(MID_PLTMGT_SWAT, key, n, m_nCells);
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    CheckInputSize(M_PLTMGT_SWAT[0], key, n, m_nCells);
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_LANDUSE)) {
+    } else if (StringMatch(sk, VAR_LANDUSE[0])) {
         m_landUse = data;
-    } else if (StringMatch(sk, VAR_LANDCOVER)) {
+    } else if (StringMatch(sk, VAR_LANDCOVER[0])) {
         m_landCover = data;
-    } else if (StringMatch(sk, VAR_IDC)) {
+    } else if (StringMatch(sk, VAR_IDC[0])) {
         m_landCoverCls = data;
     }
         /// Soil related parameters from MongoDB
-    else if (StringMatch(sk, VAR_SOILLAYERS)) {
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
-    } else if (StringMatch(sk, VAR_SOL_ZMX)) {
+    } else if (StringMatch(sk, VAR_SOL_ZMX[0])) {
         m_soilMaxRootD = data;
-    } else if (StringMatch(sk, VAR_SOL_SUMAWC)) {
+    } else if (StringMatch(sk, VAR_SOL_SUMAWC[0])) {
         m_soilSumFC = data;
-    } else if (StringMatch(sk, VAR_T_BASE)) {
+    } else if (StringMatch(sk, VAR_T_BASE[0])) {
         m_pgTempBase = data;
     }
         ///  Plant operation related parameters
-    else if (StringMatch(sk, VAR_CN2)) {
+    else if (StringMatch(sk, VAR_CN2[0])) {
         m_cn2 = data;
-    } else if (StringMatch(sk, VAR_HVSTI)) {
+    } else if (StringMatch(sk, VAR_HVSTI[0])) {
         m_hvstIdx = data;
-    } else if (StringMatch(sk, VAR_WSYF)) {
+    } else if (StringMatch(sk, VAR_WSYF[0])) {
         m_wtrStrsHvst = data;
-    } else if (StringMatch(sk, VAR_PHUPLT)) {
+    } else if (StringMatch(sk, VAR_PHUPLT[0])) {
         m_phuPlt = data;
-    } else if (StringMatch(sk, VAR_PHUBASE)) {
+    } else if (StringMatch(sk, VAR_PHUBASE[0])) {
         m_phuBase = data;
-    } else if (StringMatch(sk, VAR_IGRO)) {
+    } else if (StringMatch(sk, VAR_IGRO[0])) {
         m_igro = data;
-    } else if (StringMatch(sk, VAR_FR_PHU_ACC)) {
+    } else if (StringMatch(sk, VAR_FR_PHU_ACC[0])) {
         m_phuAccum = data;
-    } else if (StringMatch(sk, VAR_TREEYRS)) {
+    } else if (StringMatch(sk, VAR_TREEYRS[0])) {
         m_curYrMat = data;
-    } else if (StringMatch(sk, VAR_HVSTI_ADJ)) {
+    } else if (StringMatch(sk, VAR_HVSTI_ADJ[0])) {
         m_hvstIdxAdj = data;
-    } else if (StringMatch(sk, VAR_LAIDAY)) {
+    } else if (StringMatch(sk, VAR_LAIDAY[0])) {
         m_lai = data;
-    } else if (StringMatch(sk, VAR_DORMI)) {
+    } else if (StringMatch(sk, VAR_DORMI[0])) {
         m_dormFlag = data;
-    } else if (StringMatch(sk, VAR_LAIMAXFR)) {
+    } else if (StringMatch(sk, VAR_LAIMAXFR[0])) {
         m_laiMaxFr = data;
-    } else if (StringMatch(sk, VAR_OLAI)) {
+    } else if (StringMatch(sk, VAR_OLAI[0])) {
         m_oLai = data;
-    } else if (StringMatch(sk, VAR_PLANT_N)) {
+    } else if (StringMatch(sk, VAR_PLANT_N[0])) {
         m_pltN = data;
-    } else if (StringMatch(sk, VAR_PLANT_P)) {
+    } else if (StringMatch(sk, VAR_PLANT_P[0])) {
         m_pltP = data;
-    } else if (StringMatch(sk, VAR_FR_PLANT_N)) {
+    } else if (StringMatch(sk, VAR_FR_PLANT_N[0])) {
         m_frPltN = data;
-    } else if (StringMatch(sk, VAR_FR_PLANT_P)) {
+    } else if (StringMatch(sk, VAR_FR_PLANT_P[0])) {
         m_frPltP = data;
-    } else if (StringMatch(sk, VAR_PLTET_TOT)) {
+    } else if (StringMatch(sk, VAR_PLTET_TOT[0])) {
         m_totActPltET = data;
-    } else if (StringMatch(sk, VAR_PLTPET_TOT)) {
+    } else if (StringMatch(sk, VAR_PLTPET_TOT[0])) {
         m_totPltPET = data;
-    } else if (StringMatch(sk, VAR_FR_ROOT)) {
+    } else if (StringMatch(sk, VAR_FR_ROOT[0])) {
         m_frRoot = data;
-    } else if (StringMatch(sk, VAR_BIOMASS)) {
+    } else if (StringMatch(sk, VAR_BIOMASS[0])) {
         m_biomass = data;
     }
         //// Harvest and Kill operation
-    else if (StringMatch(sk, VAR_LAST_SOILRD)) {
+    else if (StringMatch(sk, VAR_LAST_SOILRD[0])) {
         m_stoSoilRootD = data;
     }
         /// Irrigation operation
-    else if (StringMatch(sk, VAR_FR_STRSWTR)) {
+    else if (StringMatch(sk, VAR_FR_STRSWTR[0])) {
         m_frStrsWtr = data;
     }
         /// impound/release
-    else if (StringMatch(sk, VAR_POT_VOL)) {
+    else if (StringMatch(sk, VAR_POT_VOL[0])) {
         m_potVol = data;
-    } else if (StringMatch(sk, VAR_POT_SA)) {
+    } else if (StringMatch(sk, VAR_POT_SA[0])) {
         m_potArea = data;
-    } else if (StringMatch(sk, VAR_POT_NO3)) {
+    } else if (StringMatch(sk, VAR_POT_NO3[0])) {
         m_potNo3 = data;
-    } else if (StringMatch(sk, VAR_POT_NH4)) {
+    } else if (StringMatch(sk, VAR_POT_NH4[0])) {
         m_potNH4 = data;
-    } else if (StringMatch(sk, VAR_POT_SOLP)) {
+    } else if (StringMatch(sk, VAR_POT_SOLP[0])) {
         m_potSolP = data;
-    } else if (StringMatch(sk, VAR_SOL_SW)) {
+    } else if (StringMatch(sk, VAR_SOL_SW[0])) {
         m_soilWtrStoPrfl = data;
     } else {
-        throw ModelException(MID_PLTMGT_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PLTMGT_SWAT[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     /// lookup tables
-    if (StringMatch(sk, VAR_LANDUSE_LOOKUP)) {
+    if (StringMatch(sk, VAR_LANDUSE_LOOKUP[0])) {
         m_landuseLookup = data;
         m_landuseNum = n;
         InitializeLanduseLookup();
         if (col != LANDUSE_PARAM_COUNT) {
-            throw ModelException(MID_PLTMGT_SWAT, "ReadLanduseLookup", "The field number " + ValueToString(col) +
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadLanduseLookup", "The field number " + ValueToString(col) +
                                  "is not coincident with LANDUSE_PARAM_COUNT: " +
                                  ValueToString(LANDUSE_PARAM_COUNT));
         }
         return;
     }
-    if (StringMatch(sk, VAR_CROP_LOOKUP)) {
+    if (StringMatch(sk, VAR_CROP_LOOKUP[0])) {
         m_cropLookup = data;
         m_cropNum = n;
         InitializeCropLookup();
         if (col != CROP_PARAM_COUNT) {
-            throw ModelException(MID_PLTMGT_SWAT, "ReadCropLookup", "The field number " + ValueToString(col) +
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadCropLookup", "The field number " + ValueToString(col) +
                                  "is not coincident with CROP_PARAM_COUNT: " +
                                  ValueToString(CROP_PARAM_COUNT));
         }
         return;
     }
-    if (StringMatch(sk, VAR_FERTILIZER_LOOKUP)) {
+    if (StringMatch(sk, VAR_FERTILIZER_LOOKUP[0])) {
         m_fertLookup = data;
         m_fertNum = n;
         InitializeFertilizerLookup();
         if (col != FERTILIZER_PARAM_COUNT) {
-            throw ModelException(MID_PLTMGT_SWAT, "ReadFertilizerLookup", "The field number " + ValueToString(col) +
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadFertilizerLookup", "The field number " + ValueToString(col) +
                                  "is not coincident with FERTILIZER_PARAM_COUNT: " +
                                  ValueToString(FERTILIZER_PARAM_COUNT));
         }
         return;
     }
-    if (StringMatch(sk, VAR_TILLAGE_LOOKUP)) {
+    if (StringMatch(sk, VAR_TILLAGE_LOOKUP[0])) {
         m_tillageLookup = data;
         m_tillageNum = n;
         InitializeTillageLookup();
         if (col != TILLAGE_PARAM_COUNT) {
-            throw ModelException(MID_PLTMGT_SWAT, "ReadTillageLookup", "The field number " + ValueToString(col) +
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadTillageLookup", "The field number " + ValueToString(col) +
                                  "is not coincident with TILLAGE_PARAM_COUNT: " +
                                  ValueToString(TILLAGE_PARAM_COUNT));
         }
         return;
     }
     /// 2D raster data
-    CheckInputSize2D(MID_PLTMGT_SWAT, key, n, col, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_PLTMGT_SWAT[0], key, n, col, m_nCells, m_maxSoilLyrs);
     /// Soil related parameters from MongoDB
-    if (StringMatch(sk, VAR_SOILDEPTH)) {
+    if (StringMatch(sk, VAR_SOILDEPTH[0])) {
         m_soilDepth = data;
-    } else if (StringMatch(sk, VAR_SOILTHICK)) {
+    } else if (StringMatch(sk, VAR_SOILTHICK[0])) {
         m_soilThick = data;
-    } else if (StringMatch(sk, VAR_SOL_BD)) {
+    } else if (StringMatch(sk, VAR_SOL_BD[0])) {
         m_soilBD = data;
-    } else if (StringMatch(sk, VAR_SOL_CBN)) {
+    } else if (StringMatch(sk, VAR_SOL_CBN[0])) {
         m_soilCbn = data;
-    } else if (StringMatch(sk, VAR_SOL_N)) {
+    } else if (StringMatch(sk, VAR_SOL_N[0])) {
         m_soilN = data;
-    } else if (StringMatch(sk, VAR_CLAY)) {
+    } else if (StringMatch(sk, VAR_CLAY[0])) {
         m_soilClay = data;
-    } else if (StringMatch(sk, VAR_SILT)) {
+    } else if (StringMatch(sk, VAR_SILT[0])) {
         m_soilSilt = data;
-    } else if (StringMatch(sk, VAR_SAND)) {
+    } else if (StringMatch(sk, VAR_SAND[0])) {
         m_soilSand = data;
-    } else if (StringMatch(sk, VAR_ROCK)) {
+    } else if (StringMatch(sk, VAR_ROCK[0])) {
         m_soilRock = data;
     }
         /// Soil related parameters --  inputs from other modules
-    else if (StringMatch(sk, VAR_SOL_SORGN)) {
+    else if (StringMatch(sk, VAR_SOL_SORGN[0])) {
         m_soilStabOrgN = data;
-    } else if (StringMatch(sk, VAR_SOL_HORGP)) {
+    } else if (StringMatch(sk, VAR_SOL_HORGP[0])) {
         m_soilHumOrgP = data;
-    } else if (StringMatch(sk, VAR_SOL_SOLP)) {
+    } else if (StringMatch(sk, VAR_SOL_SOLP[0])) {
         m_soilSolP = data;
-    } else if (StringMatch(sk, VAR_SOL_NH4)) {
+    } else if (StringMatch(sk, VAR_SOL_NH4[0])) {
         m_soilNH4 = data;
-    } else if (StringMatch(sk, VAR_SOL_NO3)) {
+    } else if (StringMatch(sk, VAR_SOL_NO3[0])) {
         m_soilNO3 = data;
-    } else if (StringMatch(sk, VAR_SOL_AORGN)) {
+    } else if (StringMatch(sk, VAR_SOL_AORGN[0])) {
         m_soilActvOrgN = data;
-    } else if (StringMatch(sk, VAR_SOL_FORGN)) {
+    } else if (StringMatch(sk, VAR_SOL_FORGN[0])) {
         m_soilFrshOrgN = data;
-    } else if (StringMatch(sk, VAR_SOL_FORGP)) {
+    } else if (StringMatch(sk, VAR_SOL_FORGP[0])) {
         m_soilFrshOrgP = data;
-    } else if (StringMatch(sk, VAR_SOL_ACTP)) {
+    } else if (StringMatch(sk, VAR_SOL_ACTP[0])) {
         m_soilActvMinP = data;
-    } else if (StringMatch(sk, VAR_SOL_STAP)) {
+    } else if (StringMatch(sk, VAR_SOL_STAP[0])) {
         m_soilStabMinP = data;
-    } else if (StringMatch(sk, VAR_SOL_RSD)) {
+    } else if (StringMatch(sk, VAR_SOL_RSD[0])) {
         m_soilRsd = data;
-    } else if (StringMatch(sk, VAR_SOL_AWC)) {
+    } else if (StringMatch(sk, VAR_SOL_AWC[0])) {
         m_soilFC = data;
-    } else if (StringMatch(sk, VAR_SOL_UL)) {
+    } else if (StringMatch(sk, VAR_SOL_UL[0])) {
         m_soilSat = data;
-    } else if (StringMatch(sk, VAR_SOL_ST)) {
+    } else if (StringMatch(sk, VAR_SOL_ST[0])) {
         m_soilWtrSto = data;
     }
         /// inputs for CENTURY C/N cycling model in stated and necessary
-    else if (StringMatch(sk, VAR_SOL_HSN)) {
+    else if (StringMatch(sk, VAR_SOL_HSN[0])) {
         m_soilHSN = data;
-    } else if (StringMatch(sk, VAR_SOL_LM)) {
+    } else if (StringMatch(sk, VAR_SOL_LM[0])) {
         m_soilLM = data;
-    } else if (StringMatch(sk, VAR_SOL_LMC)) {
+    } else if (StringMatch(sk, VAR_SOL_LMC[0])) {
         m_soilLMC = data;
-    } else if (StringMatch(sk, VAR_SOL_LMN)) {
+    } else if (StringMatch(sk, VAR_SOL_LMN[0])) {
         m_soilLMN = data;
-    } else if (StringMatch(sk, VAR_SOL_LSC)) {
+    } else if (StringMatch(sk, VAR_SOL_LSC[0])) {
         m_soilLSC = data;
-    } else if (StringMatch(sk, VAR_SOL_LSN)) {
+    } else if (StringMatch(sk, VAR_SOL_LSN[0])) {
         m_soilLSN = data;
-    } else if (StringMatch(sk, VAR_SOL_LS)) {
+    } else if (StringMatch(sk, VAR_SOL_LS[0])) {
         m_soilLS = data;
-    } else if (StringMatch(sk, VAR_SOL_LSL)) {
+    } else if (StringMatch(sk, VAR_SOL_LSL[0])) {
         m_soilLSL = data;
-    } else if (StringMatch(sk, VAR_SOL_LSLC)) {
+    } else if (StringMatch(sk, VAR_SOL_LSLC[0])) {
         m_soilLSLC = data;
-    } else if (StringMatch(sk, VAR_SOL_LSLNC)) {
+    } else if (StringMatch(sk, VAR_SOL_LSLNC[0])) {
         m_soilLSLNC = data;
     }
-        //else if (StringMatch(sk, VAR_SOL_WON)) m_sol_WON = data;
-        //else if (StringMatch(sk, VAR_SOL_BM)) m_sol_BM = data;
-        //else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
-    else if (StringMatch(sk, VAR_SOL_BMN)) {
+        //else if (StringMatch(sk, VAR_SOL_WON[0])) m_sol_WON = data;
+        //else if (StringMatch(sk, VAR_SOL_BM[0])) m_sol_BM = data;
+        //else if (StringMatch(sk, VAR_SOL_BMC[0])) m_sol_BMC = data;
+    else if (StringMatch(sk, VAR_SOL_BMN[0])) {
         m_soilBMN = data;
     }
-        //else if (StringMatch(sk, VAR_SOL_HP)) m_sol_HP = data;
-        //else if (StringMatch(sk, VAR_SOL_HS)) m_sol_HS = data;
-        //else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
-        //else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
-    else if (StringMatch(sk, VAR_SOL_HPN)) {
+        //else if (StringMatch(sk, VAR_SOL_HP[0])) m_sol_HP = data;
+        //else if (StringMatch(sk, VAR_SOL_HS[0])) m_sol_HS = data;
+        //else if (StringMatch(sk, VAR_SOL_HSC[0])) m_sol_HSC = data;
+        //else if (StringMatch(sk, VAR_SOL_HPC[0])) m_sol_HPC = data;
+    else if (StringMatch(sk, VAR_SOL_HPN[0])) {
         m_soilHPN = data;
     }
-        //else if (StringMatch(sk, VAR_SOL_RNMN)) m_sol_RNMN = data;
-        //else if (StringMatch(sk, VAR_SOL_RSPC)) m_sol_RSPC = data;
+        //else if (StringMatch(sk, VAR_SOL_RNMN[0])) m_sol_RNMN = data;
+        //else if (StringMatch(sk, VAR_SOL_RSPC[0])) m_sol_RSPC = data;
     else {
-        throw ModelException(MID_PLTMGT_SWAT, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PLTMGT_SWAT[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void MGTOpt_SWAT::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
-        throw ModelException(MID_PLTMGT_SWAT, "SetScenario", "The Scenario data can not to be nullptr.");
+        throw ModelException(M_PLTMGT_SWAT[0], "SetScenario", "The Scenario data can not to be nullptr.");
     }
     map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
     if (!m_mgtFactory.empty()) {
@@ -452,7 +452,7 @@ void MGTOpt_SWAT::SetScenario(Scenario* sce) {
 
 void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
     if (nullptr == subbasins) {
-        throw ModelException(MID_PLTMGT_SWAT, "SetSubbasins", "The Subbasins data can not to be nullptr.");
+        throw ModelException(M_PLTMGT_SWAT[0], "SetSubbasins", "The Subbasins data can not to be nullptr.");
     }
     // m_nSub = subbasins->GetSubbasinNumber(); // Set in SetValue()
     if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
@@ -471,75 +471,75 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
 
 bool MGTOpt_SWAT::CheckInputData() {
     // DT_Single
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_cellWth);
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_maxSoilLyrs);
-    CHECK_NONNEGATIVE(MID_PLTMGT_SWAT, m_cbnModel);
+    CHECK_POSITIVE(M_PLTMGT_SWAT[0], m_nCells);
+    CHECK_POSITIVE(M_PLTMGT_SWAT[0], m_cellWth);
+    CHECK_POSITIVE(M_PLTMGT_SWAT[0], m_maxSoilLyrs);
+    CHECK_NONNEGATIVE(M_PLTMGT_SWAT[0], m_cbnModel);
     if (m_cbnModel == 2) {
         /// Check for the CENTURY required initialized variables
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilHSN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLM);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLMC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLMN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLS);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSL);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSLC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSLNC);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilHSN);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLM);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLMC);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLMN);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLSC);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLSN);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLS);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLSL);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLSLC);
+        CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilLSLNC);
     }
     /// DT_Raster
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_subbsnID);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_landUse);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_landCover);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_mgtFields);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_pgTempBase);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_nSoilLyrs);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilMaxRootD);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSumFC);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_cn2);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_igro);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_landCoverCls);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_curYrMat);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_wtrStrsHvst);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_lai);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuBase);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuAccum);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuPlt);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_dormFlag);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_hvstIdx);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_hvstIdxAdj);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_laiMaxFr);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_oLai);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_totActPltET);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_totPltPET);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_frRoot);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_biomass);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_stoSoilRootD);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_deepWaterDepth);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_shallowWaterDepth);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_subbsnID);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_landUse);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_landCover);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_mgtFields);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_pgTempBase);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_nSoilLyrs);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilMaxRootD);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilSumFC);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_cn2);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_igro);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_landCoverCls);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_curYrMat);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_wtrStrsHvst);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_lai);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_phuBase);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_phuAccum);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_phuPlt);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_dormFlag);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_hvstIdx);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_hvstIdxAdj);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_laiMaxFr);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_oLai);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_frPltN);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_frPltP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_totActPltET);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_totPltPET);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_frRoot);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_biomass);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_stoSoilRootD);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_deepWaterDepth);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_shallowWaterDepth);
     /// DT_Raster2D
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilDepth);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilThick);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilBD);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilCbn);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilClay);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSand);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSilt);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilRock);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActvOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFrshOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFrshOrgP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilNO3);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStabOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilHumOrgP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSolP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActvMinP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStabMinP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilRsd);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilDepth);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilThick);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilBD);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilN);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilCbn);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilClay);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilSand);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilSilt);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilRock);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilActvOrgN);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilFrshOrgN);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilFrshOrgP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilNO3);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilStabOrgN);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilHumOrgP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilSolP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilActvMinP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilStabMinP);
+    CHECK_POINTER(M_PLTMGT_SWAT[0], m_soilRsd);
     return true;
 }
 
@@ -597,10 +597,10 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
 void MGTOpt_SWAT::InitializeLanduseLookup() {
     /// Check input data
     if (m_landuseLookup == nullptr) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse lookup array must not be nullptr");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Landuse lookup array must not be nullptr");
     }
     if (m_landuseNum <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse number must be greater than 0");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Landuse number must be greater than 0");
     }
     if (!m_landuseLookupMap.empty()) {
         return;
@@ -617,9 +617,9 @@ void MGTOpt_SWAT::InitializeLanduseLookup() {
 void MGTOpt_SWAT::InitializeCropLookup() {
     /// Check input data
     if (m_cropLookup == nullptr) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop lookup array must not be nullptr");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Crop lookup array must not be nullptr");
     }
-    if (m_cropNum <= 0) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop number must be greater than 0");
+    if (m_cropNum <= 0) throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Crop number must be greater than 0");
 
     if (!m_cropLookupMap.empty()) {
         return;
@@ -636,10 +636,10 @@ void MGTOpt_SWAT::InitializeCropLookup() {
 void MGTOpt_SWAT::InitializeFertilizerLookup() {
     /// Check input data
     if (m_fertLookup == nullptr) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer lookup array must not be nullptr");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Fertilizer lookup array must not be nullptr");
     }
     if (m_fertNum <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer number must be greater than 0");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Fertilizer number must be greater than 0");
     }
     if (!m_fertilizerLookupMap.empty()) {
         return;
@@ -656,10 +656,10 @@ void MGTOpt_SWAT::InitializeFertilizerLookup() {
 void MGTOpt_SWAT::InitializeTillageLookup() {
     /// Check input data
     if (m_tillageLookup == nullptr) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage lookup array must not be nullptr");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Tillage lookup array must not be nullptr");
     }
     if (m_tillageNum <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage number must be greater than 0");
+        throw ModelException(M_PLTMGT_SWAT[0], "CheckInputData", "Tillage number must be greater than 0");
     }
     if (!m_tillageLookupMap.empty()) {
         return;
@@ -695,7 +695,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const 
     m_frRoot[i] = 0.f;
     /// update crop-related parameters in order to calculate phuAcc. by LJ
     if (m_cropLookupMap.find(newPlantID) == m_cropLookupMap.end()) {
-        throw ModelException(MID_PLTMGT_SWAT, "ExecutePlantOperation",
+        throw ModelException(M_PLTMGT_SWAT[0], "ExecutePlantOperation",
                              "The new plant ID: " + ValueToString(newPlantID) +
                              " is not prepared in cropLookup table!");
     }
@@ -711,7 +711,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const 
     m_soilMaxRootD[i] = m_soilDepth[i][CVT_INT(m_nSoilLyrs[i] - 1)];
     /// if the land cover does existed, throw an exception.
     if (m_landuseLookupMap.find(CVT_INT(m_landCover[i])) == m_landuseLookupMap.end()) {
-        throw ModelException(MID_PLTMGT_SWAT, "ExecutePlantOperation",
+        throw ModelException(M_PLTMGT_SWAT[0], "ExecutePlantOperation",
                              "Land use ID: " + ValueToString(CVT_INT(m_landCover[i])) +
                              " does not existed in Landuse lookup table, please check and retry!");
     }
@@ -858,7 +858,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, c
     float fertilizerSurfFrac = curOperation->FertilizerSurfaceFrac();
     /// if the fertilizerID is not existed in lookup table, then throw an exception
     if (m_fertilizerLookupMap.find(fertilizerID) == m_fertilizerLookupMap.end()) {
-        throw ModelException(MID_PLTMGT_SWAT, "ExecuteFertilizerOperation", "Fertilizer ID " +
+        throw ModelException(M_PLTMGT_SWAT[0], "ExecuteFertilizerOperation", "Fertilizer ID " +
                              ValueToString(fertilizerID) +
                              " is not existed in Fertilizer Database!");
     }
@@ -1022,7 +1022,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, 
     float cnop = curOperation->CNOP();
     float wur = 0.f, hiad1 = 0.f;
     if (m_cropLookupMap.find(CVT_INT(m_landCover[i])) == m_cropLookupMap.end()) {
-        throw ModelException(MID_PLTMGT_SWAT, "ExecuteHarvestKillOperation",
+        throw ModelException(M_PLTMGT_SWAT[0], "ExecuteHarvestKillOperation",
                              "The landcover ID " + ValueToString(m_landCover[i])
                              + " is not existed in crop lookup table!");
     }
@@ -1279,7 +1279,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
     int tillID = curOperation->TillageID();
     float cnop = curOperation->CNOP();
     if (m_tillageLookupMap.find(tillID) == m_tillageLookupMap.end()) {
-        throw ModelException(MID_PLTMGT_SWAT, "ExecuteTillageOperation", "The tillage ID " + ValueToString(tillID)
+        throw ModelException(M_PLTMGT_SWAT[0], "ExecuteTillageOperation", "The tillage ID " + ValueToString(tillID)
                              + " is not existed in tillage lookup table!");
     }
     float deptil = m_tillageLookupMap[tillID][TILLAGE_PARAM_DEPTIL_IDX];
@@ -1481,7 +1481,7 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(const int i, const int factoryID, 
     //  float hi_rsd = curOperation->HarvestIndexResidue();
     //  float harveff = curOperation->HarvestEfficiency();
     //  if (m_cropLookupMap.find(CVT_INT(m_landCover[i])) == m_cropLookupMap.end())
-    //throw ModelException(MID_PLTMGT_SWAT, "ExecuteHarvestOnlyOperation", "The landcover ID " + ValueToString(m_landCover[i])
+    //throw ModelException(M_PLTMGT_SWAT[0], "ExecuteHarvestOnlyOperation", "The landcover ID " + ValueToString(m_landCover[i])
     //+ " is not existed in crop lookup table!");
     //  /// Get some parameters of current crop / landcover
     //  float hvsti = m_cropLookupMap[(int) m_landCover[i]][CROP_PARAM_IDX_HVSTI];
@@ -1834,71 +1834,71 @@ void MGTOpt_SWAT::Get1DData(const char* key, int* n, float** data) {
     string sk(key);
     *n = m_nCells;
     /// plant operation
-    if (StringMatch(sk, VAR_HITARG)) {
+    if (StringMatch(sk, VAR_HITARG[0])) {
         *data = m_HvstIdxTrgt;
-    } else if (StringMatch(sk, VAR_BIOTARG)) {
+    } else if (StringMatch(sk, VAR_BIOTARG[0])) {
         *data = m_biomTrgt;
         /// auto irrigation operation
-    } else if (StringMatch(sk, VAR_IRR_FLAG)) {
+    } else if (StringMatch(sk, VAR_IRR_FLAG[0])) {
         *data = m_irrFlag;
-    } else if (StringMatch(sk, VAR_IRR_WTR)) {
+    } else if (StringMatch(sk, VAR_IRR_WTR[0])) {
         *data = m_irrWtrAmt;
-    } else if (StringMatch(sk, VAR_IRR_SURFQ)) {
+    } else if (StringMatch(sk, VAR_IRR_SURFQ[0])) {
         *data = m_irrWtr2SurfqAmt;
-    } else if (StringMatch(sk, VAR_AWTR_STRS_ID)) {
+    } else if (StringMatch(sk, VAR_AWTR_STRS_ID[0])) {
         *data = m_wtrStrsID;
-    } else if (StringMatch(sk, VAR_AWTR_STRS_TRIG)) {
+    } else if (StringMatch(sk, VAR_AWTR_STRS_TRIG[0])) {
         *data = m_autoWtrStrsTrig;
-    } else if (StringMatch(sk, VAR_AIRR_SOURCE)) {
+    } else if (StringMatch(sk, VAR_AIRR_SOURCE[0])) {
         *data = m_autoIrrSrc;
-    } else if (StringMatch(sk, VAR_AIRR_LOCATION)) {
+    } else if (StringMatch(sk, VAR_AIRR_LOCATION[0])) {
         *data = m_autoIrrLocNo;
-    } else if (StringMatch(sk, VAR_AIRR_EFF)) {
+    } else if (StringMatch(sk, VAR_AIRR_EFF[0])) {
         *data = m_autoIrrEff;
-    } else if (StringMatch(sk, VAR_AIRRWTR_DEPTH)) {
+    } else if (StringMatch(sk, VAR_AIRRWTR_DEPTH[0])) {
         *data = m_autoIrrWtrD;
-    } else if (StringMatch(sk, VAR_AIRRSURF_RATIO)) {
+    } else if (StringMatch(sk, VAR_AIRRSURF_RATIO[0])) {
         *data = m_autoIrrWtr2SurfqR;
         /// fertilizer / auto fertilizer operation
-    } else if (StringMatch(sk, VAR_AFERT_ID)) {
+    } else if (StringMatch(sk, VAR_AFERT_ID[0])) {
         *data = m_fertID;
-    } else if (StringMatch(sk, VAR_AFERT_NSTRSID)) {
+    } else if (StringMatch(sk, VAR_AFERT_NSTRSID[0])) {
         *data = m_NStrsMeth;
-    } else if (StringMatch(sk, VAR_AFERT_NSTRS)) {
+    } else if (StringMatch(sk, VAR_AFERT_NSTRS[0])) {
         *data = m_autoNStrsTrig;
-    } else if (StringMatch(sk, VAR_AFERT_MAXN)) {
+    } else if (StringMatch(sk, VAR_AFERT_MAXN[0])) {
         *data = m_autoFertMaxApldN;
-    } else if (StringMatch(sk, VAR_AFERT_AMAXN)) {
+    } else if (StringMatch(sk, VAR_AFERT_AMAXN[0])) {
         *data = m_autoFertMaxAnnApldMinN;
-    } else if (StringMatch(sk, VAR_AFERT_NYLDT)) {
+    } else if (StringMatch(sk, VAR_AFERT_NYLDT[0])) {
         *data = m_autoFertNtrgtMod;
-    } else if (StringMatch(sk, VAR_AFERT_FRTEFF)) {
+    } else if (StringMatch(sk, VAR_AFERT_FRTEFF[0])) {
         *data = m_autoFertEff;
-    } else if (StringMatch(sk, VAR_AFERT_FRTSURF)) {
+    } else if (StringMatch(sk, VAR_AFERT_FRTSURF[0])) {
         *data = m_autoFertSurfFr;
         /// Grazing operation
-    } else if (StringMatch(sk, VAR_GRZ_DAYS)) {
+    } else if (StringMatch(sk, VAR_GRZ_DAYS[0])) {
         *data = m_nGrazDays;
-    } else if (StringMatch(sk, VAR_GRZ_FLAG)) {
+    } else if (StringMatch(sk, VAR_GRZ_FLAG[0])) {
         *data = m_grazFlag;
         /// Impound/Release operation
-    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) {
+    } else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) {
         *data = m_impndTrig;
-    } else if (StringMatch(sk, VAR_POT_VOLMAXMM)) {
+    } else if (StringMatch(sk, VAR_POT_VOLMAXMM[0])) {
         *data = m_potVolMax;
-    } else if (StringMatch(sk, VAR_POT_VOLLOWMM)) {
+    } else if (StringMatch(sk, VAR_POT_VOLLOWMM[0])) {
         *data = m_potVolLow;
         /// tillage operation of CENTURY model
-    } else if (StringMatch(sk, VAR_TILLAGE_DAYS)) {
+    } else if (StringMatch(sk, VAR_TILLAGE_DAYS[0])) {
         *data = m_tillDays;
-    } else if (StringMatch(sk, VAR_TILLAGE_DEPTH)) {
+    } else if (StringMatch(sk, VAR_TILLAGE_DEPTH[0])) {
         *data = m_tillDepth;
-    } else if (StringMatch(sk, VAR_TILLAGE_FACTOR)) {
+    } else if (StringMatch(sk, VAR_TILLAGE_FACTOR[0])) {
         *data = m_tillFactor;
-    } else if (StringMatch(sk, VAR_TILLAGE_SWITCH)) {
+    } else if (StringMatch(sk, VAR_TILLAGE_SWITCH[0])) {
         *data = m_tillSwitch;
     } else {
-        throw ModelException(MID_PLTMGT_SWAT, "Get1DData", "Parameter " + sk + " is not existed!");
+        throw ModelException(M_PLTMGT_SWAT[0], "Get1DData", "Parameter " + sk + " is not existed!");
     }
 }
 
@@ -1908,20 +1908,20 @@ void MGTOpt_SWAT::Get2DData(const char* key, int* nRows, int* nCols, float*** da
     *nRows = m_nCells;
     *nCols = m_maxSoilLyrs;
     /// fertilizer operation
-    if (StringMatch(sk, VAR_SOL_MC)) {
+    if (StringMatch(sk, VAR_SOL_MC[0])) {
         *data = m_soilManC;
-    } else if (StringMatch(sk, VAR_SOL_MN)) {
+    } else if (StringMatch(sk, VAR_SOL_MN[0])) {
         *data = m_soilManN;
-    } else if (StringMatch(sk, VAR_SOL_MP)) {
+    } else if (StringMatch(sk, VAR_SOL_MP[0])) {
         *data = m_soilManP;
     } else {
-        throw ModelException(MID_PLTMGT_SWAT, "Get2DData", "Parameter " + sk + " is not existed!");
+        throw ModelException(M_PLTMGT_SWAT[0], "Get2DData", "Parameter " + sk + " is not existed!");
     }
 }
 
 void MGTOpt_SWAT::InitialOutputs() {
     if (m_initialized) return;
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
+    CHECK_POSITIVE(M_PLTMGT_SWAT[0], m_nCells);
     if (m_cellArea < 0.f) m_cellArea = m_cellWth * m_cellWth * 0.0001f; // unit: ha
     /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ
     vector<int> defined_mgt_codes;

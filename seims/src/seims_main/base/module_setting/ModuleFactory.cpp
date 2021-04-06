@@ -171,18 +171,18 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
         string dllID = id;
         // for ITP modules, the input ids are ITP_T, ITP_P and ITP should be used as ID name
         // The same to TSD_RD.
-        if (id.find(MID_ITP) != string::npos) {
+        if (id.find(M_ITP[0]) != string::npos) {
 #ifdef MSVC
-            dllID = MID_ITP;
+            dllID = M_ITP[0];
 #else
-            dllID = LIBPREFIX + string(MID_ITP);
+            dllID = LIBPREFIX + string(M_ITP[0]);
 #endif /* MSVC */
             dllID += POSTFIX;
-        } else if (id.find(MID_TSD_RD) != string::npos) {
+        } else if (id.find(M_TSD_RD[0]) != string::npos) {
 #ifdef MSVC
-            dllID = MID_TSD_RD;
+            dllID = M_TSD_RD[0];
 #else
-            dllID = LIBPREFIX + string(MID_TSD_RD);
+            dllID = LIBPREFIX + string(M_TSD_RD[0]);
 #endif /* MSVC */
             dllID += POSTFIX;
         }
@@ -379,10 +379,10 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, S
                     if (StringMatch(param->Name, Tag_DataType)) param->Value = setting->dataType();
 
                     //special process for interpolation modules
-                    if (StringMatch(param->Name, Tag_Weight)) {
+                    if (StringMatch(param->Name, Tag_Weight[0])) {
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "ReadParameterSetting",
-                                                 "The parameter " + string(Tag_Weight) +
+                                                 "The parameter " + string(Tag_Weight[0]) +
                                                  " should have corresponding data type in module " + moduleID);
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_MeanTemperature) ||
@@ -415,7 +415,7 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, S
                             param->Name += "_M";
                         }
                     }
-                    if (StringMatch(param->Name, Tag_VerticalInterpolation))  {
+                    if (StringMatch(param->Name, Tag_VerticalInterpolation[0]))  {
                         param->Value = setting->needDoVerticalInterpolation() ? 1.0f : 0.0f; // Do vertical interpolation?
                     }
                 }
@@ -580,12 +580,12 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         if (tokens[0].empty() || tokens.size() < 4) continue;
         // there is something to add so resize the header list to append it
         size_t sz = settings.size(); // get the current number of rows
-        if (tokens[3].find(MID_ITP) != string::npos ||
-            tokens[3].find(MID_TSD_RD) != string::npos) {
+        if (tokens[3].find(M_ITP[0]) != string::npos ||
+            tokens[3].find(M_TSD_RD[0]) != string::npos) {
             settings.resize(sz + 7);
             for (size_t j = 0; j < 7; j++) {
                 vector<string> tokensTemp(tokens);
-                if (tokens[3].find(MID_ITP) != string::npos) {
+                if (tokens[3].find(M_ITP[0]) != string::npos) {
                     bool useVerticalItp = false;  // Default
                     vector<string> ITPProperty = SplitString(tokensTemp[1], '_');
                     if (ITPProperty.size() == 2) {

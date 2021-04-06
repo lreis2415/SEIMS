@@ -31,15 +31,15 @@ KinWavSed_OL::~KinWavSed_OL(void) {
 void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
     *n = m_nCells;
     string s(key);
-    if (StringMatch(s, VAR_OL_DET)) {
+    if (StringMatch(s, VAR_OL_DET[0])) {
         *data = m_DETOverland;
-    } else if (StringMatch(s, VAR_SED_DEP)) {
+    } else if (StringMatch(s, VAR_SED_DEP[0])) {
         *data = m_SedDep;
-    } else if (StringMatch(s, VAR_SED_FLOW)) {
+    } else if (StringMatch(s, VAR_SED_FLOW[0])) {
         *data = m_Sed_kg;
-    } else if (StringMatch(s, VAR_SED_FLUX)) {
+    } else if (StringMatch(s, VAR_SED_FLUX[0])) {
         *data = m_Qsn;
-    } else if (StringMatch(s, VAR_SED_TO_CH)) {
+    } else if (StringMatch(s, VAR_SED_TO_CH[0])) {
         *data = m_SedToChannel;
     }
         //else if(StringMatch(s,"TestV"))
@@ -51,7 +51,7 @@ void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
         //	*data = m_QV;//m_tsetv;
         //}
     else {
-        throw ModelException(MID_KINWAVSED_OL, "Get1DData",
+        throw ModelException(M_KINWAVSED_OL[0], "Get1DData",
                              "Result " + s + " does not exist in current module. Please contact the module developer.");
     }
 
@@ -62,20 +62,20 @@ void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
 
     CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_SLOPE)) { m_Slope = data; }
-    else if (StringMatch(s, VAR_MANNING)) { m_ManningN = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK)) { m_streamLink = data; }
-    else if (StringMatch(s, VAR_USLE_K)) { m_USLE_K = data; }
-    else if (StringMatch(s, VAR_USLE_C)) { m_USLE_C = data; }
-    else if (StringMatch(s, VAR_CHWIDTH)) {
+    if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
+    else if (StringMatch(s, VAR_MANNING[0])) { m_ManningN = data; }
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
+    else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
+    else if (StringMatch(s, VAR_USLE_C[0])) { m_USLE_C = data; }
+    else if (StringMatch(s, VAR_CHWIDTH[0])) {
         m_chWidth = data;
         //else if(StringMatch(s,"D_HTOCH"))		m_whtoCh = data;
-    } else if (StringMatch(s, VAR_SURU)) { m_WH = data; }
+    } else if (StringMatch(s, VAR_SURU[0])) { m_WH = data; }
     else if (StringMatch(s, "D_QOverland")) { m_Qkin = data; }
     else if (StringMatch(s, "D_DETSplash")) { m_DETSplash = data; }
     else if (StringMatch(s, "D_FlowWidth")) { m_FlowWidth = data; }
     else {
-        throw ModelException(MID_KINWAVSED_OL, "Set1DData", "Parameter " + s +
+        throw ModelException(M_KINWAVSED_OL[0], "Set1DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -84,60 +84,60 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_routingLayers = data;
         m_nLayers = nrows;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
         m_flowInIndex = data;
     } else {
-        throw ModelException(MID_KINWAVSED_OL, "Set2DData", "Parameter " + sk
+        throw ModelException(M_KINWAVSED_OL[0], "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }
 
 void KinWavSed_OL::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, Tag_CellWidth)) { m_CellWidth = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO1)) { m_eco1 = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO2)) { m_eco2 = data; }
-    else if (StringMatch(s, VAR_OL_SED_CCOE)) { m_Ccoe = data; }
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWidth = data; }
+    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO1[0])) { m_eco1 = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO2[0])) { m_eco2 = data; }
+    else if (StringMatch(s, VAR_OL_SED_CCOE[0])) { m_Ccoe = data; }
     else {
-        throw ModelException(MID_KINWAVSED_OL, "SetValue", "Parameter " + s +
+        throw ModelException(M_KINWAVSED_OL[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 bool KinWavSed_OL::CheckInputData() {
     if (m_routingLayers == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter: routingLayers has not been set.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter: routingLayers has not been set.");
     }
     if (m_flowInIndex == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter: flow in index has not been set.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter: flow in index has not been set.");
     }
     if (m_date < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the time.");
         return false;
     }
     if (m_CellWidth <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The cell width can not be less than zero.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The cell width can not be less than zero.");
         return false;
     }
     if (m_nCells <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The cell number can not be less than zero.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The cell number can not be less than zero.");
         return false;
     }
     if (m_TimeStep < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the time step.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the time step.");
         return false;
     }
     if (m_eco1 < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the calibration coefficient 1.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the calibration coefficient 1.");
         return false;
     }
     if (m_eco2 < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the calibration coefficient 2.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the calibration coefficient 2.");
         return false;
     }
     if (m_Ccoe < 0) {
@@ -146,51 +146,51 @@ bool KinWavSed_OL::CheckInputData() {
         return false;
     }
     if (m_USLE_K == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the USLE K (Erosion factor).");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the USLE K (Erosion factor).");
         return false;
     }
     if (m_USLE_C == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter of USLE_C can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter of USLE_C can not be NULL.");
         return false;
     }
     if (m_Slope == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The slope��%��can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The slope��%��can not be NULL.");
         return false;
     }
     if (m_DETSplash == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData",
                              "The distribution of splash detachment can not be NULL.");
         return false;
     }
     if (m_chWidth == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "Channel width can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "Channel width can not be NULL.");
         return false;
     }
     if (m_WH == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData",
                              "The depth of the surface water layer can not be NULL.");
         return false;
     }
     //if (m_Runoff == NULL)
     //{
-    //	throw ModelException(MID_KINWAVSED_OL,"CheckInputData","The surface runoff can not be NULL.");
+    //	throw ModelException(M_KINWAVSED_OL[0],"CheckInputData","The surface runoff can not be NULL.");
     //	return false;
     //}
     //if (m_whtoCh == NULL)
     //{
-    //	throw ModelException(MID_KINWAVSED_OL,"CheckInputData","The depth of the channel water layer can not be NULL.");
+    //	throw ModelException(M_KINWAVSED_OL[0],"CheckInputData","The depth of the channel water layer can not be NULL.");
     //	return false;
     //}
     if (m_Qkin == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The kinematic wave flow can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The kinematic wave flow can not be NULL.");
         return false;
     }
     if (m_FlowWidth == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The flow width can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The flow width can not be NULL.");
         return false;
     }
     if (m_ManningN == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The Manning N can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The Manning N can not be NULL.");
         return false;
     }
     return true;
@@ -198,14 +198,14 @@ bool KinWavSed_OL::CheckInputData() {
 
 bool KinWavSed_OL::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputSize",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
-            throw ModelException(MID_KINWAVSED_OL, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_KINWAVSED_OL[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }

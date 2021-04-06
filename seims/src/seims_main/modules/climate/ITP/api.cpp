@@ -12,22 +12,23 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
-    mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
-    mdi.SetDescription(MDESC_ITP);
+    //mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
+    mdi.SetClass(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
+    mdi.SetDescription(M_ITP[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_ITP);
-    mdi.SetName(MID_ITP);
+    mdi.SetID(M_ITP[0]);
+    mdi.SetName(M_ITP[0]);
     mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
     //from parameter database, e.g., Weight_P, Weight_PET, Weight_T.
-    mdi.AddParameter(Tag_Weight, UNIT_NON_DIM, DESC_WEIGHT_ITP, Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array1D);
     // from config.fig, e.g. Interpolation_P_1
-    mdi.AddParameter(Tag_VerticalInterpolation, UNIT_NON_DIM, DESC_VER_ITP, File_Config, DT_Single);
+    mdi.AddParameter(Tag_VerticalInterpolation[0], UNIT_NON_DIM, Tag_VerticalInterpolation[1], File_Config, DT_Single);
     // these three parameters are just read when it will do vertical interpolation
     //  from spatial database
-    mdi.AddParameter(VAR_DEM, UNIT_LEN_M, DESC_DEM, Source_ParameterDB_Optional, DT_Raster1D);
+    mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, VAR_DEM[1], Source_ParameterDB_Optional, DT_Raster1D);
     /// from stations table
     mdi.AddParameter(Tag_StationElevation, UNIT_LEN_M, Tag_StationElevation, Source_HydroClimateDB_Optional, DT_Array1D);
     // TODO, Lapse_rate should be prepared by users according to the study area and imported into HydroClimate database.

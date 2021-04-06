@@ -173,25 +173,25 @@ void IKW_REACH::SetValue(const char *key, float value) {
     //if (StringMatch(sk, VAR_QUPREACH)) {
     //    m_qUpReach = value;
     //} else
-    if (StringMatch(sk, Tag_LayeringMethod)) {
+    if (StringMatch(sk, Tag_LayeringMethod[0])) {
         m_layeringMethod = (LayeringMethod) int(value);
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
         m_dt = int(value);
-    } else if (StringMatch(sk, VAR_EP_CH)) {
+    } else if (StringMatch(sk, VAR_EP_CH[0])) {
         m_Epch = value;
-    } else if (StringMatch(sk, VAR_BNK0)) {
+    } else if (StringMatch(sk, VAR_BNK0[0])) {
         m_Bnk0 = value;
-    } else if (StringMatch(sk, VAR_CHS0)) {
+    } else if (StringMatch(sk, VAR_CHS0[0])) {
         m_Chs0 = value;
-    } else if (StringMatch(sk, VAR_VSEEP0)) {
+    } else if (StringMatch(sk, VAR_VSEEP0[0])) {
         m_Vseep0 = value;
-    } else if (StringMatch(sk, VAR_A_BNK)) {
+    } else if (StringMatch(sk, VAR_A_BNK[0])) {
         m_aBank = value;
-    } else if (StringMatch(sk, VAR_B_BNK)) {
+    } else if (StringMatch(sk, VAR_B_BNK[0])) {
         m_bBank = value;
-    } else if (StringMatch(sk, VAR_MSK_X)) {
+    } else if (StringMatch(sk, VAR_MSK_X[0])) {
         m_x = value;
-    } else if (StringMatch(sk, VAR_MSK_CO1)) {
+    } else if (StringMatch(sk, VAR_MSK_CO1[0])) {
         m_co1 = value;
     } else {
         throw ModelException("IKW_REACH", "SetSingleData", "Parameter " + sk
@@ -203,19 +203,19 @@ void IKW_REACH::SetValue(const char *key, float value) {
 void IKW_REACH::Set1DData(const char *key, int n, float *value) {
     string sk(key);
     //check the input data
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbasin = value;   //m_subbasin
-    } else if (StringMatch(sk, VAR_SBOF)) {
+    } else if (StringMatch(sk, VAR_SBOF[0])) {
         CheckInputSize(key, n);
         m_qsSub = value;
-    } else if (StringMatch(sk, VAR_SBIF)) {
+    } else if (StringMatch(sk, VAR_SBIF[0])) {
         CheckInputSize(key, n);
         m_qiSub = value;
-    } else if (StringMatch(sk, VAR_SBQG)) {
+    } else if (StringMatch(sk, VAR_SBQG[0])) {
         m_qgSub = value;
-    } else if (StringMatch(sk, VAR_SBPET)) {
+    } else if (StringMatch(sk, VAR_SBPET[0])) {
         m_petCh = value;
-    } else if (StringMatch(sk, VAR_SBGS)) {
+    } else if (StringMatch(sk, VAR_SBGS[0])) {
         m_gwStorage = value;
     } else {
         throw ModelException("IKW_REACH", "Set1DData", "Parameter " + sk
@@ -241,28 +241,28 @@ void IKW_REACH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     *n = m_nreach + 1;
     int iOutlet = m_reachLayers.rbegin()->second[0];
-    if (StringMatch(sk, VAR_QRECH)) {
+    if (StringMatch(sk, VAR_QRECH[0])) {
         m_qOut[0] = m_qOut[iOutlet] + m_deepGroudwater;
         *data = m_qOut;
-    } else if (StringMatch(sk, VAR_QS)) {
+    } else if (StringMatch(sk, VAR_QS[0])) {
         m_qsCh[0] = m_qsCh[iOutlet];
         *data = m_qsCh;
-    } else if (StringMatch(sk, VAR_QI)) {
+    } else if (StringMatch(sk, VAR_QI[0])) {
         m_qiCh[0] = m_qiCh[iOutlet];
         *data = m_qiCh;
-    } else if (StringMatch(sk, VAR_QG)) {
+    } else if (StringMatch(sk, VAR_QG[0])) {
         m_qgCh[0] = m_qgCh[iOutlet];
         *data = m_qgCh;
-    } else if (StringMatch(sk, VAR_BKST)) {
+    } else if (StringMatch(sk, VAR_BKST[0])) {
         m_bankStorage[0] = m_bankStorage[iOutlet];
         *data = m_bankStorage;
-    } else if (StringMatch(sk, VAR_CHST)) {
+    } else if (StringMatch(sk, VAR_CHST[0])) {
         m_chStorage[0] = m_chStorage[iOutlet];
         *data = m_chStorage;
-    } else if (StringMatch(sk, VAR_SEEPAGE)) {
+    } else if (StringMatch(sk, VAR_SEEPAGE[0])) {
         m_seepage[0] = m_seepage[iOutlet];
         *data = m_seepage;
-    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) {
+    } else if (StringMatch(sk, VAR_CHWTRDEPTH[0])) {
         m_chWTdepth[0] = m_chWTdepth[iOutlet];
         *data = m_chWTdepth;
     } else {

@@ -15,40 +15,40 @@ SNO_DD::~SNO_DD(void) {
 }
 
 bool SNO_DD::CheckInputData(void) {
-    if (this->m_date <= 0) throw ModelException(MID_SNO_DD, "CheckInputData", "You have not set the time.");
+    if (this->m_date <= 0) throw ModelException(M_SNO_DD[0], "CheckInputData", "You have not set the time.");
     if (this->m_nCells <= 0) {
-        throw ModelException(MID_SNO_DD, "CheckInputData",
+        throw ModelException(M_SNO_DD[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (this->m_Pnet == NULL) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The net precipitation data can not be NULL.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The net precipitation data can not be NULL.");
     }
     if (this->m_tMean == NULL) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The mean air temperature data can not be NULL.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The mean air temperature data can not be NULL.");
     }
-    //if (this->m_swe0 == NODATA) throw ModelException(MID_SNO_DD, "CheckInputData", "The swe0 can not be NODATA.");
+    //if (this->m_swe0 == NODATA) throw ModelException(M_SNO_DD[0], "CheckInputData", "The swe0 can not be NODATA.");
     if (this->m_kblow == NODATA_VALUE) {
-        throw ModelException(MID_SNO_SP, "CheckInputData",
+        throw ModelException(M_SNO_SP[0], "CheckInputData",
                              "The fraction coefficient of precipitation as snow can not be NODATA");
     }
     if (this->m_csnow == NODATA_VALUE) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The temperature impact factor can not be NODATA.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The temperature impact factor can not be NODATA.");
     }
     if (this->m_crain == NODATA_VALUE) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The rainfall impact factor can not be NODATA.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The rainfall impact factor can not be NODATA.");
     }
     if (this->m_t0 == NODATA_VALUE) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The Snow melt temperature can not be NODATA.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The Snow melt temperature can not be NODATA.");
     }
     if (this->m_tsnow == NODATA_VALUE) {
-        throw ModelException(MID_SNO_DD, "CheckInputData", "The snow fall temperature can not be NODATA.");
+        throw ModelException(M_SNO_DD[0], "CheckInputData", "The snow fall temperature can not be NODATA.");
     }
     return true;
 }
 
 void SNO_DD:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(MID_SNO_DD, "CheckInputData",
+        throw ModelException(M_SNO_DD[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (m_SM == NULL) Initialize1DArray(m_nCells, m_SM, 0.f);
@@ -114,14 +114,14 @@ int SNO_DD::Execute() {
 
 bool SNO_DD::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_SNO_DD, "CheckInputSize",
+        throw ModelException(M_SNO_DD[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (this->m_nCells != n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
-            throw ModelException(MID_SNO_DD, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_SNO_DD[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -131,13 +131,13 @@ bool SNO_DD::CheckInputSize(const char *key, int n) {
 
 void SNO_DD::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_K_BLOW)) { this->m_kblow = data; }
-    else if (StringMatch(s, VAR_C_SNOW)) { this->m_csnow = data; }
-    else if (StringMatch(s, VAR_C_RAIN)) { this->m_crain = data; }
-    else if (StringMatch(s, VAR_T0)) { this->m_t0 = data; }
-    else if (StringMatch(s, VAR_T_SNOW)) { this->m_tsnow = data; }
+    if (StringMatch(s, VAR_K_BLOW[0])) { this->m_kblow = data; }
+    else if (StringMatch(s, VAR_C_SNOW[0])) { this->m_csnow = data; }
+    else if (StringMatch(s, VAR_C_RAIN[0])) { this->m_crain = data; }
+    else if (StringMatch(s, VAR_T0[0])) { this->m_t0 = data; }
+    else if (StringMatch(s, VAR_T_SNOW[0])) { this->m_tsnow = data; }
     else {
-        throw ModelException(MID_SNO_DD, "SetValue", "Parameter " + s
+        throw ModelException(M_SNO_DD[0], "SetValue", "Parameter " + s
             + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -146,13 +146,13 @@ void SNO_DD::Set1DData(const char *key, int n, float *data) {
     //check the input data
     string s(key);
     this->CheckInputSize(key, n);
-    if (StringMatch(s, VAR_TMEAN)) { this->m_tMean = data; }
-    else if (StringMatch(s, VAR_NEPR)) {
+    if (StringMatch(s, VAR_TMEAN[0])) { this->m_tMean = data; }
+    else if (StringMatch(s, VAR_NEPR[0])) {
         this->m_Pnet = data;
-        //else if (StringMatch(s, VAR_SNRD)) this->m_SR = data;
-        //else if (StringMatch(s, VAR_SNSB)) this->m_SE = data;
+        //else if (StringMatch(s, VAR_SNRD[0])) this->m_SR = data;
+        //else if (StringMatch(s, VAR_SNSB[0])) this->m_SE = data;
     } else {
-        throw ModelException(MID_SNO_DD, "Set1DData", "Parameter " + s +
+        throw ModelException(M_SNO_DD[0], "Set1DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -160,11 +160,11 @@ void SNO_DD::Set1DData(const char *key, int n, float *data) {
 void SNO_DD::Get1DData(const char *key, int *n, float **data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SNME)) { *data = this->m_SM; }
-    else if (StringMatch(s, VAR_SNAC)) { *data = this->m_SA; }
-    else if (StringMatch(s, VAR_NEPR)) { *data = this->m_Pnet; }
+    if (StringMatch(s, VAR_SNME[0])) { *data = this->m_SM; }
+    else if (StringMatch(s, VAR_SNAC[0])) { *data = this->m_SA; }
+    else if (StringMatch(s, VAR_NEPR[0])) { *data = this->m_Pnet; }
     else {
-        throw ModelException(MID_SNO_DD, "Get1DData",
+        throw ModelException(M_SNO_DD[0], "Get1DData",
                              "Result " + s + " does not exist in current module. Please contact the module developer.");
     }
     *n = this->m_nCells;

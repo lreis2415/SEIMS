@@ -3,7 +3,7 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 1.1
  * \date May 2017
- * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM
+ * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM[0]
  */
 #ifndef SEIMS_MODULE_CH_DW_H
 #define SEIMS_MODULE_CH_DW_H

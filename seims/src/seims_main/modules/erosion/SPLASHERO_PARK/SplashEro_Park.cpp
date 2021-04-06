@@ -16,10 +16,10 @@ SplashEro_Park::~SplashEro_Park(void) {
 void SplashEro_Park::Get1DData(const char *key, int *n, float **data) {
     string s(key);
     *n = m_nCells;
-    if (StringMatch(s, VAR_DETSPLASH)) {
+    if (StringMatch(s, VAR_DETSPLASH[0])) {
         *data = m_DETSplash;
     } else {
-        throw ModelException(MID_SplashEro_Park, "Get1DData",
+        throw ModelException(M_SplashEro_Park[0], "Get1DData",
                              "Result " + s + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -29,109 +29,109 @@ void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
 
     CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_SLOPE)) {
+    if (StringMatch(s, VAR_SLOPE[0])) {
         m_Slope = data;
         //else if(StringMatch(s,"GrassFrac"))		m_GrassFrac = data;
         //else if(StringMatch(s,"CoverFrac"))		m_coverFrac = data;
         //else if(StringMatch(s,"D_SNAC"))		m_SnowCover = data;
         //else if(StringMatch(s,"CHWIDTH"))		m_ChWidth = data;
-    } else if (StringMatch(s, VAR_DPST)) {
+    } else if (StringMatch(s, VAR_DPST[0])) {
         m_depression = data;
-    } else if (StringMatch(s, VAR_SURU)) {
+    } else if (StringMatch(s, VAR_SURU[0])) {
         m_sr = data;    //SURU is wrong
-    } else if (StringMatch(s, VAR_QOVERLAND)) {
+    } else if (StringMatch(s, VAR_QOVERLAND[0])) {
         m_Q = data;
-    } else if (StringMatch(s, VAR_NEPR)) {
+    } else if (StringMatch(s, VAR_NEPR[0])) {
         m_Rain = data;
-    } else if (StringMatch(s, VAR_USLE_K)) {
+    } else if (StringMatch(s, VAR_USLE_K[0])) {
         m_USLE_K = data;
-    } else if (StringMatch(s, VAR_USLE_C)) {
+    } else if (StringMatch(s, VAR_USLE_C[0])) {
         m_USLE_C = data;
     } else {
-        throw ModelException(MID_SplashEro_Park, "SetValue", "Parameter " + s +
+        throw ModelException(M_SplashEro_Park[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void SplashEro_Park::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, Tag_CellWidth)) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_OMEGA)) { m_Omega = data; }
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
+    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_OMEGA[0])) { m_Omega = data; }
     else {
-        throw ModelException(MID_SplashEro_Park, "SetValue", "Parameter " + s +
+        throw ModelException(M_SplashEro_Park[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 bool SplashEro_Park::CheckInputData() {
     if (m_date < 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "You have not set the time.");
     }
 
     if (m_CellWith <= 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The cell width can not be less than zero.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The cell width can not be less than zero.");
     }
 
     if (m_nCells <= 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The cell number can not be less than zero.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The cell number can not be less than zero.");
     }
 
     if (m_TimeStep < 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "You have not set the time step.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "You have not set the time step.");
     }
 
     if (m_Omega < 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData",
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData",
                              "You have not set the calibration coefficient of splash erosion.");
     }
 
     if (m_Slope == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The slope (%) can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The slope (%) can not be NULL.");
     }
 
     /*if (m_GrassFrac == NULL)
     {
-        throw ModelException(MID_SplashEro_Park,"CheckInputData","The fraction of grasstrip in a cell can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0],"CheckInputData","The fraction of grasstrip in a cell can not be NULL.");
         return false;
     }*/
     /*if (m_coverFrac == NULL)
     {
-        throw ModelException(MID_SplashEro_Park,"CheckInputData","The fraction of vegetation canopy cover can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0],"CheckInputData","The fraction of vegetation canopy cover can not be NULL.");
         return false;
     }*/
     /*if (m_ChWidth == NULL)
     {
-    throw ModelException(MID_SplashEro_Park,"CheckInputData","The random roughness can not be NULL.");
+    throw ModelException(M_SplashEro_Park[0],"CheckInputData","The random roughness can not be NULL.");
     return false;
     }*/
     if (m_depression == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The depression storage can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The depression storage can not be NULL.");
     }
     if (m_sr == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The surface runoff can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The surface runoff can not be NULL.");
     }
 
     if (m_Q == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The water flux of cell can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The water flux of cell can not be NULL.");
     }
 
     if (m_Rain == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The amount of rainfall can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The amount of rainfall can not be NULL.");
     }
 
     if (m_USLE_C == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The parameter of USLE_C can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The parameter of USLE_C can not be NULL.");
     }
 
     if (m_USLE_K == NULL) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputData", "The parameter of USLE_K can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The parameter of USLE_K can not be NULL.");
     }
 
     /*if (m_SnowCover == NULL)
     {
-        throw ModelException(MID_SplashEro_Park,"CheckInputData","The snowmelt cover can not be NULL.");
+        throw ModelException(M_SplashEro_Park[0],"CheckInputData","The snowmelt cover can not be NULL.");
         return false;
     }*/
 
@@ -140,14 +140,14 @@ bool SplashEro_Park::CheckInputData() {
 
 bool SplashEro_Park::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_SplashEro_Park, "CheckInputSize",
+        throw ModelException(M_SplashEro_Park[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
-            throw ModelException(MID_SplashEro_Park, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_SplashEro_Park[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }

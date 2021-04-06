@@ -14,32 +14,32 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Hui Wu");
-    mdi.SetClass(MCLS_OL_EROSION, MCLSDESC_OL_EROSION);
-    mdi.SetDescription(MDESC_SplashEro_Park);
+    mdi.SetClass(MCLS_OL_EROSION[0], MCLS_OL_EROSION[1]);
+    mdi.SetDescription(M_SplashEro_Park[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SplashEro_Park);
-    mdi.SetName(MID_SplashEro_Park);
+    mdi.SetID(M_SplashEro_Park[0]);
+    mdi.SetName(M_SplashEro_Park[0]);
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SplashEro_Park.chm");
 
-    mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
-    mdi.AddParameter(VAR_OMEGA, UNIT_NON_DIM, DESC_OMEGA, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_USLE_K, UNIT_NON_DIM, DESC_USLE_K, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_USLE_C, UNIT_NON_DIM, DESC_USLE_C, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(VAR_OMEGA[0], UNIT_NON_DIM, VAR_OMEGA[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_USLE_K[0], UNIT_NON_DIM, VAR_USLE_K[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_USLE_C[0], UNIT_NON_DIM, VAR_USLE_C[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
     //input from other module
-    mdi.AddInput(VAR_DPST, UNIT_DEPTH_MM, DESC_DPST, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_QOVERLAND, UNIT_FLOW_CMS, DESC_QOVERLAND, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D);    //Rain, from interception module
+    mdi.AddInput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);    //Rain, from interception module
     // set the output variables
-    mdi.AddOutput(VAR_DETSPLASH, UNIT_KG, DESC_DETSPLASH, DT_Raster1D);
+    mdi.AddOutput(VAR_DETSPLASH[0], UNIT_KG, VAR_DETSPLASH[1], DT_Raster1D);
 
-    mdi.AddDependency(MCLSDESC_INTERC, MCLSDESC_INTERC);      //for pNet, Leafdrain
-    mdi.AddDependency(MCLS_OL_ROUTING, MCLSDESC_OL_ROUTING);
+    mdi.AddDependency(MCLS_INTERC[1], MCLS_INTERC[1]);      //for pNet, Leafdrain
+    mdi.AddDependency(MCLS_OL_ROUTING[0], MCLS_OL_ROUTING[1]);
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();
