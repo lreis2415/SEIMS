@@ -247,7 +247,10 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
 
         delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
     delete copyrs;
 }

@@ -2161,9 +2161,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     no_data_value_ = static_cast<T>(headers_.at(HEADER_RS_NODATA));
     n_lyrs_ = CVT_INT(headers_.at(HEADER_RS_LAYERS));
 
-    // CAUTION: Currently data stored in MongoDB is always float. lj
-    //  I can not find an elegant way to make it templated.
-    assert(n_cells_ == length / sizeof(float) / n_lyrs_);
+    assert(n_cells_ == length / sizeof(T) / n_lyrs_);
 
     int validcount = -1;
     if (headers_.find(HEADER_RS_CELLSNUM) != headers_.end()) {
@@ -2180,7 +2178,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     }
     // read data directly
     if (n_lyrs_ == 1) {
-        float* tmpdata = reinterpret_cast<float *>(buf);
+        T* tmpdata = reinterpret_cast<T *>(buf);
         Initialize1DArray(n_cells_, raster_, no_data_value_);
 #pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {
@@ -2191,7 +2189,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
         Release1DArray(tmpdata);
         is_2draster = false;
     } else {
-        float* tmpdata = reinterpret_cast<float *>(buf);
+        T* tmpdata = reinterpret_cast<T *>(buf);
         Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, no_data_value_);
 #pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {

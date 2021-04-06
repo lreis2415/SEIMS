@@ -230,8 +230,8 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
         copyrs->OutputToMongoDB(gfsfilename, gfs);
-        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs_,
-                                                                             false);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(),
+                                                                             true, maskrs_, false);
         // test mongors data
         EXPECT_EQ(64, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(3, mongors->GetLayers());
@@ -241,7 +241,10 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
 
         delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
     delete copyrs;
 }
