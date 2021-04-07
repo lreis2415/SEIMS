@@ -7,6 +7,7 @@
  *   - 1. 2016-7-24 - lj - Add support of multi soil layers of each cells.
  *   - 2. 2017-8-23 - lj - Solve inconsistent results when using openmp to reducing
  *                           raster data according to subbasin ID.
+ *   - 3. 2021-04-07 - lj - Support different flow direction algorithms
  *
  * \author Zhiqiang Yu, Junzhi Liu, Liangjun Zhu
  */
@@ -104,26 +105,26 @@ private:
     /// stream link
     float *m_rchID;
 
-    /**
-    *	@brief 2d array of flow in cells
-    *
-    *	The first element in each sub-array is the number of flow in cells in this sub-array
-    */
-    float **m_flowInIdxD8;
+    /*!
+     * \brief 2d array recording indexes of flow in cells
+     *
+     *	The first element in each sub-array is the number of flow in cells in this sub-array
+     */
+    float **m_flowInIdx;
 
-    /**
-    *	@brief percentage of flow out to current cell from each upstream cells, this used for MFD flow direction algorithms
-    *   @TODO Current version have not fully considered MFD algorithms.
-    *	It has the same data structure as m_flowInIndex.
-    */
-    // float **m_flowInPercentage;
+    /*!
+     * \brief Flow fractions of flow in cells to the current cell
+     *
+     * It has the same data structure as m_flowInIndex.
+     */
+    float **m_flowInFrac;
 
-    /**
-    *	@brief Routing layers according to the flow direction
-    *
-    *	There are not flow relationships within each layer.
-    *	The first element in each layer is the number of cells in the layer
-    */
+    /*!
+     * \brief Routing layers according to the flow direction
+     *
+     *  There are not flow relationships within each layer.
+     *  The first element in each layer is the number of cells in the layer
+     */
     float **m_rteLyrs;
     /// number of routing layers
     int m_nRteLyrs;

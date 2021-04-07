@@ -213,6 +213,7 @@ public:
     string GetFileOutFullPath() const { return file_out_file_; }
     string GetFileCfgFullPath() const { return file_cfg_file_; }
     LayeringMethod GetLayeringMethod() const { return lyr_method_; }
+    FlowDirMethod GetFlowDirectionMethod() const { return fdir_method_; }
     int GetSubbasinID() const { return subbasin_id_; }
     int GetScenarioID() const { return scenario_id_; }
     int GetCalibrationID() const { return calibration_id_; }
@@ -260,6 +261,7 @@ protected:
     string file_out_file_;                 ///< file.out full path
     string file_cfg_file_;                 ///< config.fig full path
     const LayeringMethod lyr_method_;      ///< Layering method
+    const FlowDirMethod fdir_method_;      ///< Flow direction method
     const int subbasin_id_;                ///< Subbasin ID
     const int scenario_id_;                ///< Scenario ID
     const int calibration_id_;             ///< Calibration ID
@@ -283,7 +285,7 @@ protected:
     FloatRaster* mask_raster_;             ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D
     map<string, ParamInfo *> init_params_; ///< Store parameters from Database (PARAMETERS collection)
-    map<string, float *> array1d_map_;     ///< 1D array data map, e.g. FLOWOUT_INDEX_D8
+    map<string, float *> array1d_map_;     ///< 1D array data map, e.g. FLOWOUT_INDEX
     map<string, int> array1d_len_map_;     ///< 1D array data length map
     map<string, float **> array2d_map_;    ///< 2D array data map, e.g. ROUTING_LAYERS
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map

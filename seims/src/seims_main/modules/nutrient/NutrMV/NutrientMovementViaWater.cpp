@@ -12,7 +12,7 @@ NutrientMovementViaWater::NutrientMovementViaWater() :
     m_surfRf(nullptr), m_isep_opt(-1), m_drainLyr(nullptr),
     m_soilCrk(nullptr), m_distToRch(nullptr), m_soilSat(nullptr), m_subSurfRf(nullptr),
     m_soilPerco(nullptr), m_soilBD(nullptr),
-    m_soilDepth(nullptr), m_flowOutIdxD8(nullptr),
+    m_soilDepth(nullptr), m_flowOutIdx(nullptr),
     m_rteLyrs(nullptr), m_nRteLyrs(-1),
     m_sedorgn(nullptr), m_meanTemp(nullptr), m_soilCbn(nullptr), m_soilThk(nullptr), m_latNO3(nullptr),
     m_percoN(nullptr), m_percoP(nullptr), m_surfRfNO3(nullptr),
@@ -158,7 +158,7 @@ bool NutrientMovementViaWater::CheckInputData() {
     CHECK_POINTER(M_NUTRMV[0], m_soilCrk);
     CHECK_POINTER(M_NUTRMV[0], m_soilBD);
     CHECK_POINTER(M_NUTRMV[0], m_soilDepth);
-    CHECK_POINTER(M_NUTRMV[0], m_flowOutIdxD8);
+    CHECK_POINTER(M_NUTRMV[0], m_flowOutIdx);
     CHECK_POINTER(M_NUTRMV[0], m_soilThk);
     CHECK_POINTER(M_NUTRMV[0], m_subbasinsInfo);
     if (m_cbnModel == 2)
@@ -212,8 +212,8 @@ void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* da
         m_nSoilLyrs = data;
     } else if (StringMatch(sk, VAR_SEDYLD[0])) {
         m_olWtrEroSed = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
-        m_flowOutIdxD8 = data;
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
     } else if (StringMatch(sk, VAR_SEDORGN[0])) {
         m_sedorgn = data;
     } else if (StringMatch(sk, VAR_TMEAN[0])) {
@@ -353,7 +353,7 @@ void NutrientMovementViaWater::NitrateLoss(const int i) {
         m_latNO3[i] += ssfnlyr;
         // move the lateral no3 flow to the downslope cell (routing considered)
         m_soilNO3[i][k] -= ssfnlyr;
-        int id_downstream = CVT_INT(m_flowOutIdxD8[i]);
+        int id_downstream = CVT_INT(m_flowOutIdx[i]);
         if (id_downstream >= 0) m_soilNO3[id_downstream][k] += m_latNO3[i];
         /// old code: m_soilNO3[idDownSlope][k] += ssfnlyr; /// changed by LJ, 16-10-13
 

@@ -9,9 +9,9 @@ DiffusiveWave::DiffusiveWave() :
     m_chWidth(NULL),
     m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
     m_elevation(NULL),
-    m_flowLen(NULL), m_qi(NULL), m_flowInIndex(nullptr), m_flowOutIndex(nullptr),
+    m_flowLen(NULL), m_qi(NULL), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
     m_streamLink(NULL),
-    m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
+    m_sourceCellIds(NULL), //m_layeringMethod(UP_DOWN),
     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
 }
 
@@ -119,7 +119,7 @@ void DiffusiveWave:: InitialOutputs() {
             int reachId = (int) m_streamLink[iCell];
             while ((int) m_streamLink[iCell] == reachId) {
                 m_reachs[iCh].push_back(iCell);
-                iCell = (int) m_flowOutIndex[iCell];
+                iCell = (int) m_flowOutIdx[iCell];
             }
         }
 
@@ -257,12 +257,9 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
 //! Main execute function
 int DiffusiveWave::Execute() {
-    //check the data
     CheckInputData();
-
     InitialOutputs();
-    //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");
-    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = it->second.size();
@@ -272,7 +269,7 @@ int DiffusiveWave::Execute() {
             int reachIndex = it->second[i]; // index in the array
             vector<int> &vecCells = m_reachs[reachIndex];
             int n = vecCells.size();
-            for (int iCell = 0; iCell < n; ++iCell) {
+            for (int iCell = 0; iCell < n; iCell++) {
                 ChannelFlow(reachIndex, iCell, vecCells[iCell]);
             }
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
@@ -307,8 +304,8 @@ bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
         //this->StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
         return false;
     }
-    if (this->m_chNumber != n) {
-        if (this->m_chNumber <= 0) { this->m_chNumber = n; }
+    if (m_chNumber != n) {
+        if (m_chNumber <= 0) { m_chNumber = n; }
         else {
             //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             return false;
@@ -342,11 +339,11 @@ void DiffusiveWave::SetValue(const char *key, float data) {
         m_nCells = (int) data;
     } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(sk, Tag_LayeringMethod[0])) {
-        m_layeringMethod = (LayeringMethod) int(data);
+    //} else if (StringMatch(sk, Tag_LayeringMethod[0])) {
+    //    m_layeringMethod = (LayeringMethod) int(data);
     } else {
         throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist. Please contact the module developer.");
     }
 }
 
@@ -372,17 +369,17 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
         m_chWidth = data;
     } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
-        m_flowOutIndex = data;
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index
+        m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIndex[i] < 0) {
+            if (m_flowOutIdx[i] < 0) {
                 m_idOutlet = i;
                 break;
             }
         }
     } else {
         throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -418,7 +415,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
         }*/
     else {
         throw ModelException(M_CH_DW[0], "Get1DData", "Output " + sk
-            + " does not exist in the current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -432,7 +429,7 @@ void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***
         *data = m_hCh;
     } else {
         throw ModelException(M_CH_DW[0], "Get2DData", "Output " + sk
-            + " does not exist in the current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -440,10 +437,10 @@ void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***
 //! Set 2D data
 void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
         throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }

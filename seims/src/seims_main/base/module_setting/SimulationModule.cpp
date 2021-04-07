@@ -3,7 +3,7 @@
 using std::string;
 
 SimulationModule::SimulationModule() :
-    m_date(-1), m_yearIdx(-1), m_year(1900), m_month(-1), m_day(-1),
+    m_date(-1), m_yearIdx(-1), m_year(1900), m_month(-1), m_day(-1), m_dayOfYear(-1),
     m_tsCounter(1), m_inputsSetDone(false) {
     // Do nothing
 }

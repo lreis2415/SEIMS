@@ -3,8 +3,12 @@
  * \brief Data center for running SEIMS based on MongoDB.
  *        including configuration, input data, output data, etc.
  *
+ * Changelog:
+ *   - 1. 2017-05-30 - lj - Initial implementation.
+ *   - 2. 2021-04-06 - lj - Compatible with different flow direction algorithms.
+ *
+ *
  * \author Liangjun Zhu
- * \date May 2017
  */
 #ifndef SEIMS_DATA_CENTER_MONGODB_H
 #define SEIMS_DATA_CENTER_MONGODB_H
@@ -15,7 +19,7 @@
  * \ingroup data
  * \class DataCenterMongoDB
  * \brief Class of Data center inherited from DataCenter based on MongoDB
- * \version 1.2
+ * \version 1.3
  */
 class DataCenterMongoDB: public DataCenter {
 public:
@@ -23,6 +27,8 @@ public:
      * \brief Constructor based on MongoDB
      * \param[in] input_args Input arguments of SEIMS
      * \param[in] client MongoDB connection client
+     * \param[in] spatial_gfs_in MongoDB GridFS that stores input data
+     * \param[in] spatial_gfs_out MongoDB GridFS that stores output data
      * \param[in] factory SEIMS modules factory
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */

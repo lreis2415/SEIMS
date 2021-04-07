@@ -74,7 +74,7 @@ private:
     /// reach number (= subbasin number)
     int m_nreach;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    //LayeringMethod m_layeringMethod;
     ///// diversion loss (Vdiv) of the river reach .. m_Vid[id], id is the reach id
     //float *m_Vdiv;
     ///// The point source discharge .. m_Vpoint[id], id is the reach id

@@ -188,8 +188,8 @@ bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
         else {
             //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
+            oss << "Input data for " + string(key) << " is invalid with size: " << n << 
+                    ". The origin size is " << m_nCells << ".\n";
             throw ModelException(M_IKW_IF[0], "CheckInputSize", oss.str());
         }
     }
@@ -209,7 +209,7 @@ void InterFlow_IKW::SetValue(const char *key, float data) {
         m_landuseFactor = data;
     } else {
         throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -242,7 +242,7 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
         m_streamLink = data;
     } else {
         throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -258,8 +258,7 @@ void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {
         *data = m_hReturnFlow;
     } else {
         throw ModelException(M_IKW_IF[0], "Get1DData", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -270,10 +269,10 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
     if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_nLayers = nrows;
         m_routingLayers = data;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
         throw ModelException(M_IKW_IF[0], "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }

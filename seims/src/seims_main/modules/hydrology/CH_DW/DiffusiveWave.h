@@ -64,7 +64,7 @@ private:
     ///< cell width of the grid (m)
     float m_CellWidth;
     ///< layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    //LayeringMethod m_layeringMethod;
     ///< time step (second)
     float m_dt;
     ///< slope (percent)
@@ -97,7 +97,7 @@ private:
     */
     float **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIndex;
+    float *m_flowOutIdx;
 
     /// Water depth in the downslope boundary of channel cells(output)
     float **m_hCh;

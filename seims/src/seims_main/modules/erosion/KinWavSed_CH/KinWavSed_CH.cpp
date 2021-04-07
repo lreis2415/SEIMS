@@ -5,13 +5,13 @@
 
 KinWavSed_CH::KinWavSed_CH() : m_CellWith(-1),
                                    m_nCells(-1),
-                                   m_TimeStep(NODATA_VALUE), m_layeringMethod(UP_DOWN),
+                                   m_TimeStep(NODATA_VALUE), //m_layeringMethod(UP_DOWN),
                                    m_chNumber(-1),
                                    m_Slope(nullptr),
                                    m_chWidth(nullptr),
                                    m_ChannelWH(nullptr),
                                    m_flowInIndex(nullptr),
-                                   m_flowOutIndex(nullptr),
+                                   m_flowOutIdx(nullptr),
                                    m_streamOrder(nullptr),
                                    m_sourceCellIds(nullptr),
                                    m_streamLink(nullptr),
@@ -55,7 +55,7 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
-    else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
+    //else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
     else {
         throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s + " does not exist in current module.\n");
     }
@@ -85,12 +85,12 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
     else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
     else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
-    else if (StringMatch(s, Tag_FLOWOUT_INDEX_D8[0])) { m_flowOutIndex = data; }
+    else if (StringMatch(s, Tag_FLOWOUT_INDEX[0])) { m_flowOutIdx = data; }
     else if (StringMatch(s, VAR_SED_TO_CH[0])) { m_SedToChannel = data; }
 
     else {
         throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
+                             " does not exist.");
     }
 }
 
@@ -115,23 +115,21 @@ void KinWavSed_CH::Get1DData(const char *key, int *n, float **data) {
         *data = m_chanVol;  // this is the problem
     } else {
         throw ModelException(M_KINWAVSED_CH[0], "Get1DData", "Output " + sk
-            +
-                " does not exist in the KinWavSed_CH module. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
 void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else if (StringMatch(sk, VAR_HCH[0])) {
         m_ChannelWH = data;
     } else if (StringMatch(sk, VAR_QRECH[0])) {
         m_ChQkin = data;
-        cout << m_ChQkin << endl;
     } else {
         throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -222,7 +220,7 @@ bool KinWavSed_CH::CheckInputData() {
         throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The stream link can not be NULL.");
         return false;
     }
-    if (nullptr == m_flowOutIndex) {
+    if (nullptr == m_flowOutIdx) {
         throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The flow out index can not be NULL.");
         return false;
     }
@@ -321,7 +319,7 @@ void KinWavSed_CH::initial() {
                 int reachId = (int) m_streamLink[iCell];
                 while ((int) m_streamLink[iCell] == reachId) {
                     m_reachs[iCh].push_back(iCell);
-                    iCell = (int) m_flowOutIndex[iCell];
+                    iCell = (int) m_flowOutIdx[iCell];
                 }
             }
 

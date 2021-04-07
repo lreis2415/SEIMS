@@ -10,7 +10,7 @@ SSR_DA::SSR_DA() :
     m_poreIdx(nullptr),
     m_soilFC(nullptr), m_soilWP(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_chWidth(nullptr),
-    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_rteLyrs(nullptr),
+    m_rchID(nullptr), m_flowInIdx(nullptr), m_flowInFrac(nullptr), m_rteLyrs(nullptr),
     m_nRteLyrs(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
     /// outputs
     m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {
@@ -41,7 +41,7 @@ bool SSR_DA::FlowInSoil(const int id) {
     if (flowWidth <= 0) return true;
     */
     // number of flow-in cells
-    int nUpstream = CVT_INT(m_flowInIdxD8[id][0]);
+    int nUpstream = CVT_INT(m_flowInIdx[id][0]);
     m_soilWtrStoPrfl[id] = 0.f; // update soil storage on profile
     for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
         float smOld = m_soilWtrSto[id][j];
@@ -50,11 +50,11 @@ bool SSR_DA::FlowInSoil(const int id) {
         float qUpVol = 0.f; // m^3
         // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
         for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
-            int flowInID = CVT_INT(m_flowInIdxD8[id][upIndex]);
+            int flowInID = CVT_INT(m_flowInIdx[id][upIndex]);
             // IMPORTANT!!! If the upstream cell is from another subbasin, CONTINUE to next upstream cell. By lj.
             if (CVT_INT(m_subbsnID[flowInID]) != CVT_INT(m_subbsnID[id])) { continue; }
             if (m_subSurfRf[flowInID][j] > 0.f) {
-                qUp += m_subSurfRf[flowInID][j]; // * m_flowInPercentage[id][upIndex]; // TODO: Consider MFD algorithms
+                qUp += m_subSurfRf[flowInID][j] * m_flowInFrac[id][upIndex];
                 qUpVol += m_subSurfRfVol[flowInID][j];
             }
         }
@@ -256,9 +256,12 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, float*
     } else if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         CheckInputSize(M_SSR_DA[0], key, nrows, m_nRteLyrs);
         m_rteLyrs = data;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
-        m_flowInIdxD8 = data;
+        m_flowInIdx = data;
+    } else if (StringMatch(sk, Tag_FLOWIN_FRACTION[0])) {
+        CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
+        m_flowInFrac = data;
     } else {
         throw ModelException(M_SSR_DA[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
@@ -312,7 +315,7 @@ bool SSR_DA::CheckInputData() {
     CHECK_POINTER(M_SSR_DA[0], m_soilTemp);
     CHECK_POINTER(M_SSR_DA[0], m_chWidth);
     CHECK_POINTER(M_SSR_DA[0], m_rchID);
-    CHECK_POINTER(M_SSR_DA[0], m_flowInIdxD8);
+    CHECK_POINTER(M_SSR_DA[0], m_flowInIdx);
     CHECK_POINTER(M_SSR_DA[0], m_rteLyrs);
     return true;
 }

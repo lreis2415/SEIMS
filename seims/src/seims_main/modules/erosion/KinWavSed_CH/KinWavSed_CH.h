@@ -79,7 +79,7 @@ private:
     */
     float **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIndex;
+    float *m_flowOutIdx;
     /// channel width (zero for non-channel cells)
     float *m_chWidth;
     /// stream order
@@ -103,7 +103,7 @@ private:
     /// length of time step (s)
     float m_TimeStep;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    //LayeringMethod m_layeringMethod;
     ///calibration coefficient of transport capacity
     float m_ChTcCo;
     /// calibration coefficient of channel flow detachment

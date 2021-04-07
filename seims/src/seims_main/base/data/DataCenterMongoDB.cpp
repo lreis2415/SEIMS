@@ -27,7 +27,6 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                                      const int subbasin_id /* = 0 */) :
     DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
     mongodb_port_(input_args->port),
-    clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
     spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
     //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));

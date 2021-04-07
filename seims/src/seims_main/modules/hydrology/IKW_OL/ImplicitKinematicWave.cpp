@@ -5,7 +5,7 @@
 
 ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellWidth(-1.0f),
                                                            m_s0(NULL), m_n(NULL), m_flowInIndex(NULL),
-                                                           m_flowOutIndex(NULL), m_direction(NULL),
+                                                           m_flowOutIdx(NULL), m_direction(NULL),
                                                            m_routingLayers(NULL), m_nLayers(-1),
                                                            m_q(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
                                                            m_alpha(NULL), m_streamLink(NULL),
@@ -55,7 +55,7 @@ bool ImplicitKinematicWave_OL::CheckInputData(void) {
     if (m_flowInIndex == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow in index has not been set.");
     }
-    if (m_flowOutIndex == NULL) {
+    if (m_flowOutIdx == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow out index has not been set.");
     }
     if (m_direction == NULL) {
@@ -321,8 +321,8 @@ bool ImplicitKinematicWave_OL::CheckInputSize(const char *key, int n) {
         else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
+            oss << "Input data for " + string(key) << " is invalid with size: " << n << 
+                    ". The origin size is " << m_nCells << ".\n";
             throw ModelException(M_IKW_OL[0], "CheckInputSize", oss.str());
         }
     }
@@ -340,7 +340,7 @@ void ImplicitKinematicWave_OL::SetValue(const char *key, float data) {
         m_nCells = int(data);
     } else {
         throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -357,10 +357,10 @@ void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, float *data) {
         m_direction = data;
     } else if (StringMatch(sk, VAR_SURU[0])) {
         m_sr = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
-        m_flowOutIndex = data;
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIndex[i] < 0) {
+            if (m_flowOutIdx[i] < 0) {
                 m_idOutlet = i;
                 break;
             }
@@ -388,7 +388,7 @@ void ImplicitKinematicWave_OL::GetValue(const char *key, float *data) {
         *data = (float) m_idOutlet;
     } else {
         throw ModelException(M_IKW_OL[0], "GetValue", "Output " + sk
-            + " does not exist in current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -410,7 +410,7 @@ void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) 
         *data = m_chWidth;                 //add by Wu Hui
     } else {
         throw ModelException(M_IKW_OL[0], "Get1DData", "Output " + sk
-            + " does not exist in current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -421,10 +421,10 @@ void ImplicitKinematicWave_OL::Set2DData(const char *key, int nrows, int ncols, 
     if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_routingLayers = data;
         m_nLayers = nrows;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
         throw ModelException(M_IKW_OL[0], "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }

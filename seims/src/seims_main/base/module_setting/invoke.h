@@ -5,6 +5,7 @@
  * Changelog:
  *   - 1. 2018-02-01 - lj - Initial implementation.
  *   - 2. 2018-06-06 - lj - Add parameters related to MPI version, e.g., group method.
+ *   - 3. 2021-04-06 - lj - Add flow direction algorithm as an input argument
  *
  * \author Liangjun Zhu
  */
@@ -29,6 +30,7 @@ public:
      * \param[in] model_path path of the configuration of the Model
      * \param[in] thread_num thread or processor number, which must be greater or equal than 1 (default)
      * \param[in] lyr_mtd can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively
+     * \param[in] fdir_mtd can be 0, 1, and 2, which means D8 (default), Dinf, and MFDmd, respectively
      * \param[in] host the address of MongoDB database, by default, MongoDB IP is 127.0.0.1 (i.e., localhost)
      * \param[in] port port number, default is 27017
      * \param[in] scenario_id the ID of BMPs Scenario which has been defined in BMPs database
@@ -39,12 +41,12 @@ public:
      * \param[in] time_slices (TESTED) should be greater than 1, required when <skd_mtd> is 1
      * \param[in] log_level logging level, the default is Info
      */
-    InputArgs(const string& model_path, int thread_num, LayeringMethod lyr_mtd,
-              const string& host, uint16_t port,
+    InputArgs(string& model_path, int thread_num, LayeringMethod lyr_mtd, FlowDirMethod fdir_mtd,
+              string& host, uint16_t port,
               int scenario_id, int calibration_id,
               int subbasin_id, GroupMethod grp_mtd,
               ScheduleMethod skd_mtd, int time_slices,
-              const string& log_level);
+              string& log_level);
 
     /*!
      * \brief Initializer.
@@ -60,6 +62,7 @@ public:
     string output_path;     ///< output path
     int thread_num;         ///< thread number for OpenMP
     LayeringMethod lyr_mtd; ///< Layering method for sequencing computing, default is 0
+    FlowDirMethod fdir_mtd; ///< Flow direction method for flow routing, default is 0 (D8)
     string host;            ///< Host IP address of MongoDB database
     uint16_t port;          ///< port of MongoDB, 27017 is default
     int scenario_id;        ///< scenario ID defined in Database, -1 for no use.

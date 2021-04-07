@@ -8,13 +8,13 @@ using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
-    lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
+    lyr_method_(input_args->lyr_mtd), fdir_method_(input_args->fdir_mtd), subbasin_id_(subbasin_id),
     scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id), 
     mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),
     use_scenario_(false),
     output_path_(input_args->output_path),
-    model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
+    n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
     reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
     // Nothing to do for now.
@@ -196,14 +196,14 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     if (StringMatch(upper_name, Tag_Weight[0])) {
         /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
         ReadItpWeightData(remote_filename, n, data);
-    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) {
-        /// 2. IF FLOWOUT_INDEX_D8
-        Read1DArrayData(remote_filename, n, data);
-        if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
-            throw ModelException("DataCenter", "LoadAdjustArrayData",
-                                 "The data length derived from LoadAdjustArrayData in " + remote_filename +
-                                 " is not the same as the template.");
-        }
+    //} else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) { // TODO: delete after test. lj
+    //    /// 2. IF FLOWOUT_INDEX_D8
+    //    Read1DArrayData(remote_filename, n, data);
+    //    if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
+    //        throw ModelException("DataCenter", "LoadAdjustArrayData",
+    //                             "The data length derived from LoadAdjustArrayData in " + remote_filename +
+    //                             " is not the same as the template.");
+    //    }
     } else if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
         /// 3. IF Meteorology sites data
         n = clim_station_->NumberOfSites(DataType_Meteorology);
@@ -249,9 +249,9 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
     } else {
-        // Including: Tag_ROUTING_LAYERS[0], Tag_ROUTING_LAYERS_DINF,
-        //            Tag_FLOWIN_INDEX_D8[0], Tag_FLOWIN_INDEX_DINF,
-        //            Tag_FLOWIN_PERCENTAGE_DINF[0], Tag_FLOWOUT_INDEX_DINF[0]
+        // Including: ROUTING_LAYERS,
+        //            FLOWIN_INDEX, FLOWIN_FRACTION,
+        //            FLOWOUT_INDEX, FLOWOUT_FRACTION
         Read2DArrayData(remote_filename, n_rows, n_cols, data);
     }
     if (nullptr != data) {
@@ -373,6 +373,8 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
         param->Value = CVT_FLT(input_->getDtChannel());
     } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = CVT_FLT(lyr_method_);
+    } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
+        param->Value = CVT_FLT(fdir_method_);
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
@@ -408,10 +410,15 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     int n_rows = 0;
     int n_cols = 1;
     float** data = nullptr;
-    /// Get ROUTING_LAYERS real file name
     string real_filename = remote_filename;
     if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
-        real_filename += lyr_method_ == UP_DOWN ? "_UP_DOWN" : "_DOWN_UP";
+        /// Get ROUTING_LAYERS's real file name according to Layering method and flow direction algorithm
+        real_filename.append(LayeringMethodString[lyr_method_]);
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0]) || 
+        StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
+        /// Get FLOWIN/FLOWOUT_INDEX/FRACTION's real file name according to flow direction algorithm
+        real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
         LoadAdjust2DArrayData(para_name, real_filename);

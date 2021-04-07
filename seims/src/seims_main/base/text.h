@@ -24,7 +24,7 @@ CONST_CHARS SEIMS_SITE =                      "https://github.com/lreis2415/SEIM
 
 //! Constant input variables
 CONST_CHARS CONS_IN_ELEV =                          "Elevation";
-CONST_CHARS CONS_IN_LAT =                          "Latitude";
+CONST_CHARS CONS_IN_LAT =                           "Latitude";
 CONST_CHARS CONS_IN_XPR =                           "xpr";
 CONST_CHARS CONS_IN_YPR =                           "ypr";
 
@@ -42,7 +42,7 @@ CONST_CHARS DataType_Prefix_TS =                    "T";             // m_statio
 CONST_CHARS DataType_Prefix_DIS =                   "D";             // Prefix of distributed data
 
 /// Tags of climate related data.
-///                                                                           // VariableNameInModules
+///                                                                            // VariableNameInModules
 CONST_CHARS Tag_DEM =                               "DEM";                     // m_dem
 CONST_CHARS Tag_Elevation_Meteorology =             "StationElevation_M";      // m_hStations
 CONST_CHARS Tag_Elevation_PET =                     "StationElevation_PET";    // m_hStations
@@ -51,8 +51,10 @@ CONST_CHARS Tag_Elevation_Temperature =             "StationElevation_T";      /
 CONST_CHARS Tag_LapseRate =                         "LapseRate";               // m_lapseRate
 CONST_CHARS Tag_Latitude_Meteorology =              "Latitude_M";
 CONST_CHARS Tag_StationElevation =                  "StationElevation";        // m_hStations
-CONST_CHARS_LIST Tag_VerticalInterpolation[] = {"VERTICALINTERPOLATION", "Execute vertical interpolation (1) or not (0), defined in config.fig"};   // m_itpVertical
-CONST_CHARS_LIST Tag_Weight[] = {"WEIGHT", "Weight used for interpolation"};                  // m_itpWeights
+CONST_CHARS_LIST Tag_VerticalInterpolation[] = {"VERTICALINTERPOLATION",
+                                                "Execute vertical interpolation (1) or not (0),"
+                                                "defined in config.fig"};      // m_itpVertical
+CONST_CHARS_LIST Tag_Weight[] = {"WEIGHT", "Weight used for interpolation"};   // m_itpWeights
 CONST_CHARS Tag_DataType =                          "DATATYPE";                // m_dataType
 ///////  define parameter calibration related string constants  ///////
 CONST_CHARS PARAM_CHANGE_VC =                       "VC";  // replace by a value
@@ -133,30 +135,28 @@ CONST_CHARS Tag_ChannelTimeStep =                   "DT_CH";
 CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; /// m_cellWth, the size of a single CELL
 CONST_CHARS_LIST Tag_LayeringMethod[] = {"LayeringMethod", "Routing layering method"};
 
-// D8 Flow model
-CONST_CHARS_LIST Tag_FLOWIN_INDEX_D8[] = {"FLOWIN_INDEX_D8", "The index of flow in (D8) cell in the compressed array, and the first element in each sub-array is the number of flow in cells in this sub-array"}; /// m_flowInIdxD8
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX_D8[] = {"FLOWOUT_INDEX_D8", "The index of flow out (D8) cell of each cells in the compressed array"}; /// m_flowOutIdxD8
-CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers according to the flow direction, there are no flow relationships within each layer, and the first element in each layer is the number of cells in the layer"}; /// m_rteLyrs
+CONST_CHARS_LIST Tag_FlowDirectionMethod[] = { "FlowDirMethod", "Flow direction algorithm" };
+// D8 flow model
+CONST_CHARS_LIST Tag_FLOWIN_INDEX_D8[] = {"FLOWIN_INDEX_D8", "Indexes of flow in cells by D8 algorithm"}; ///< m_flowInIdx
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX_D8[] = {"FLOWOUT_INDEX_D8", "Index of flow out cell by D8 algorithm"}; ///< m_flowOutIdx
+// D-infinity flow model after Tarboton et al.(1997)
+CONST_CHARS_LIST Tag_FLOWIN_INDEX_DINF[] = { "FLOWIN_INDEX_DINF", "Indexes of flow in cells by D-inf algorithm" }; ///< m_flowInIdx
+CONST_CHARS_LIST Tag_FLOWIN_FRACTION_DINF[] = {"FLOWIN_FRACTION_DINF", "Flow fractions of flow in cells by D-inf algorithm"}; ///< m_flowInFrac
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX_DINF[] = {"FLOWOUT_INDEX_DINF", "Indexes of flow out cell by D-inf algorithm"}; ///< m_flowOutIdx
+CONST_CHARS_LIST Tag_FLOWOUT_FRACTION_DINF[] = { "FLOWOUT_FRACTION_DINF", "Flow fractions of flow out by D-inf algorithm" }; ///< m_flowOutFrac
+// MFD-md (md means maximum downslope gradient) flow model after Qin et al.(2007).
+CONST_CHARS_LIST Tag_FLOWIN_INDEX_MFDMD[] = { "FLOWIN_INDEX_MFDMD", "Indexes of flow in cells by MFD-md algorithm" }; ///< m_flowInIdx
+CONST_CHARS_LIST Tag_FLOWIN_FRACTION_MFDMD[] = { "FLOWIN_FRACTION_MFDMD", "Flow fractions of flow in cells by MFD-md algorithm" }; ///< m_flowInFrac
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX_MFDMD[] = { "FLOWOUT_INDEX_MFDMD", "Indexes of flow out cell by MFD-md algorithm" }; ///< m_flowOutIdx
+CONST_CHARS_LIST Tag_FLOWOUT_FRACTION_MFDMD[] = { "FLOWOUT_FRACTION_MFDMD", "Flow fractions of flow out by MFD-md algorithm" }; ///< m_flowOutFrac
 
-// TODO: Dinf, MFD, MFD-md integrated into SEIMS.
-//! D-infinity Flow model after Tarboton et al.(1991)
-CONST_CHARS Tag_FLOWIN_INDEX_DINF =                 "FLOWIN_INDEX_DINF";
-CONST_CHARS_LIST Tag_FLOWIN_PERCENTAGE_DINF[] = {"FLOWIN_PERCENTAGE_DINF", "Percentage of flow in"};
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX_DINF[] = {"FLOWOUT_INDEX_DINF", "The index of flow in cell in the compressed array"};
-CONST_CHARS Tag_FLOWOUT_PERCENTAGE_DINF =           "FLOWOUT_PERCENTAGE_DINF";
-CONST_CHARS Tag_ROUTING_LAYERS_DINF =               "ROUTING_LAYERS_DINF";
-//! Multi-Flow model after Quinn et al.(1991)
-CONST_CHARS Tag_FLOWIN_INDEX_MFD =                  "FLOWIN_INDEX_MFD";
-CONST_CHARS Tag_FLOWIN_PERCENTAGE_MFD =             "FLOWIN_PERCENTAGE_MFD";
-CONST_CHARS Tag_FLOWOUT_INDEX_MFD =                 "FLOWOUT_INDEX_MFD";
-CONST_CHARS Tag_FLOWOUT_PERCENTAGE_MFD =            "FLOWOUT_PERCENTAGE_MFD";
-CONST_CHARS Tag_ROUTING_LAYERS_MFD =                "ROUTING_LAYERS_MFD";
-//! MFD-md flow model after Qin et al.(2007) (md means maximum downslope), TODO.
-CONST_CHARS Tag_FLOWIN_INDEX_MFD_MD =               "FLOWIN_INDEX_MFD_MD";
-CONST_CHARS Tag_FLOWIN_PERCENTAGE_MFD_MD =          "FLOWIN_PERCENTAGE_MFD_MD";
-CONST_CHARS Tag_FLOWOUT_INDEX_MFD_MD =              "FLOWOUT_INDEX_MFD_MD";
-CONST_CHARS Tag_FLOWOUT_PERCENTAGE_MFD_MD =         "FLOWOUT_PERCENTAGE_MFD_MD";
-CONST_CHARS Tag_ROUTING_LAYERS_MFD_MD =             "ROUTING_LAYERS_MFD_MD";
+CONST_CHARS_LIST Tag_FLOWIN_INDEX[] = { "FLOWIN_INDEX", "Indexes of flow in cells" }; ///< m_flowInIdx
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX[] = { "FLOWOUT_INDEX", "Indexes of flow out cells" }; ///< m_flowOutIdx
+CONST_CHARS_LIST Tag_FLOWIN_FRACTION[] = { "FLOWIN_FRACTION", "Flow fractions of flow in cells" }; ///< m_flowInFrac
+CONST_CHARS_LIST Tag_FLOWOUT_FRACTION[] = { "FLOWOUT_FRACTION", "Flow fractions of flow out" }; ///< m_flowOutFrac
+CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers according to the flow directions, "
+                                         "there are no flow relationships within each layer, and the first element in each layer "
+                                         "is the number of cells in the layer"}; ///< m_rteLyrs
 
 /// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 CONST_CHARS_LIST VAR_REACH_PARAM[] = {"ReachParam", "Reach parameters such as stream order, manning's n and downstream subbasin id"};
@@ -994,7 +994,7 @@ CONST_CHARS_LIST VAR_FLDPLN_DEPNEW[] = {"floodplain_depnew", "New deposits on fl
 CONST_CHARS_LIST VAR_FLDPLN_DEPSILT[] = {"floodplain_depsilt", "Deposition silt on floodplain"}; /// m_fldplnDepSilt
 CONST_CHARS_LIST VAR_FLDPLN_DEPCLAY[] = {"floodplain_depclay", "Deposition clay on floodplain"}; /// m_fldplnDepClay
 CONST_CHARS_LIST VAR_RCN[] = {"rcn", "concentration of nitrate in the rain"}; /// m_rainNO3Conc
-CONST_CHARS_LIST VAR_Reinfiltration[] = {"Reinfiltration" }; 
+CONST_CHARS_LIST VAR_Reinfiltration[] = {"Reinfiltration", "Reinfiltration" }; 
 CONST_CHARS_LIST VAR_RETURNFLOW[] = {"ReturnFlow", "water depth of return flow"}; 
 CONST_CHARS_LIST VAR_REVAP[] = {"Revap", "revaporization from groundwater to the last soil layer"}; 
 CONST_CHARS_LIST VAR_RG[] = {"RG", "groundwater runoff"}; 

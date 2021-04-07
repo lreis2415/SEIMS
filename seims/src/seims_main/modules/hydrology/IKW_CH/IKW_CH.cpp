@@ -4,7 +4,7 @@
 //using namespace std;  // Avoid this statement! by lj.
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f),
-                                                           m_CellWidth(-1.0f), m_layeringMethod(UP_DOWN),
+                                                           m_CellWidth(-1.0f), //m_layeringMethod(UP_DOWN),
                                                            m_sRadian(NULL), m_direction(NULL), m_reachDownStream(NULL),
                                                            m_chWidth(NULL),
                                                            m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL),
@@ -152,8 +152,8 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
             }
             int reachId = (int) m_streamLink[i];
             bool isSource = true;
-            for (int k = 1; k <= (int) m_flowInIndex[i][0]; ++k) {
-                int flowInId = (int) m_flowInIndex[i][k];
+            for (int k = 1; k <= (int) m_flowInIdx[i][0]; ++k) {
+                int flowInId = (int) m_flowInIdx[i][k];
                 int flowInReachId = (int) m_streamLink[flowInId];
                 if (flowInReachId == reachId) {
                     isSource = false;
@@ -161,7 +161,7 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
                 }
             }
 
-            if ((int) m_flowInIndex[i][0] == 0) {
+            if ((int) m_flowInIdx[i][0] == 0) {
                 isSource = true;
             }
 
@@ -180,7 +180,7 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
             int reachId = (int) m_streamLink[iCell];
             while ((int) m_streamLink[iCell] == reachId) {
                 m_reachs[iCh].push_back(iCell);
-                iCell = (int) m_flowOutIndex[iCell];
+                iCell = (int) m_flowOutIdx[iCell];
             }
         }
 
@@ -393,11 +393,11 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
         m_dt = data;
     } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(sk, Tag_LayeringMethod[0])) {
-        m_layeringMethod = (LayeringMethod) int(data);
+    //} else if (StringMatch(sk, Tag_LayeringMethod[0])) {
+    //    m_layeringMethod = (LayeringMethod) int(data);
     } else {
         throw ModelException(M_IKW_CH[0], "SetValue", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist. Please contact the module developer.");
     }
 
 }
@@ -427,17 +427,17 @@ void ImplicitKinematicWave_CH::Set1DData(const char *key, int n, float *data) {
         m_chWidth = data;
     } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
-        m_flowOutIndex = data;
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIndex[i] < 0) {
+            if (m_flowOutIdx[i] < 0) {
                 m_idOutlet = i;
                 break;
             }
         }
     } else {
         throw ModelException(M_IKW_CH[0], "Set1DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -449,7 +449,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
     }
     else {
         throw ModelException(M_IKW_CH[0], "Get1DData", "Output " + sk
-            + " does not exist in current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 
 }
@@ -466,17 +466,17 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols
         *data = m_hCh;
     } else {
         throw ModelException(M_IKW_CH[0], "Get2DData", "Output " + sk
-            + " does not exist in current module. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
 void ImplicitKinematicWave_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
-        m_flowInIndex = data;
+    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+        m_flowInIdx = data;
     } else {
         throw ModelException(M_IKW_CH[0], "Set1DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
