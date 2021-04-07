@@ -9,14 +9,14 @@ Interpolate::Interpolate() : m_dataType(0), m_nStatioins(-1),
                              m_itpOutput(nullptr) {
 }
 
-void Interpolate::SetClimateDataType(const float value) {
-    if (FloatEqual(value, 1.0f)) {
+void Interpolate::SetClimateDataType(const int value) {
+    if (value == 1) {
         m_dataType = 0; /// Precipitation
-    } else if (FloatEqual(value, 2.0f) || FloatEqual(value, 3.0f) || FloatEqual(value, 4.0f)) {
+    } else if (value == 2 || value == 3 || value == 4) {
         m_dataType = 1; /// Temperature
-    } else if (FloatEqual(value, 5.0f)) {
+    } else if (value == 5) {
         m_dataType = 2; /// PET
-    } else if (FloatEqual(value, 6.0f) || FloatEqual(value, 7.0f) || FloatEqual(value, 8.0f)) {
+    } else if (value == 6 ||  value == 7 || value == 8.0) {
         m_dataType = 3; /// Meteorology
     }
 }
@@ -56,16 +56,29 @@ int Interpolate::Execute() {
     return true;
 }
 
-void Interpolate::SetValue(const char* key, const float value) {
+void Interpolate::SetValue(const char* key, const int value) {
     string sk(key);
     if (StringMatch(sk, VAR_TSD_DT[0])) {
         SetClimateDataType(value);
-    } else if (StringMatch(sk, Tag_VerticalInterpolation[0])) {
+    }
+    else if (StringMatch(sk, Tag_VerticalInterpolation[0])) {
         m_itpVertical = value > 0;
-    } else {
+    }
+    else {
         throw ModelException(M_ITP[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
+
+//void Interpolate::SetValue(const char* key, const float value) {
+//    string sk(key);
+//    if (StringMatch(sk, VAR_TSD_DT[0])) {
+//        SetClimateDataType(value);
+//    } else if (StringMatch(sk, Tag_VerticalInterpolation[0])) {
+//        m_itpVertical = value > 0;
+//    } else {
+//        throw ModelException(M_ITP[0], "SetValue", "Parameter " + sk + " does not exist.");
+//    }
+//}
 
 void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, float** data) {
     string sk(key);
