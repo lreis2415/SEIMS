@@ -3,7 +3,7 @@ Utility functions and classes of pySEIMS
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2021 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -24,7 +24,7 @@ UTIL_ZERO = 1.e-6
 MINI_SLOPE = 0.0001
 DEFAULT_NODATA = -9999.
 SQ2 = 1.4142135623730951
-PI = 3.141592653589793
+PI = 3.14159265358979323846
 
 from utility.io_plain_text import *
 from utility.parse_config import *
