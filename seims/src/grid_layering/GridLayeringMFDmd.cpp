@@ -1,7 +1,7 @@
 #include "GridLayering.h"
 
 #ifdef USE_MONGODB
-GridLayeringMFDmd::GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_dir) :
+GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -19,8 +19,8 @@ GridLayeringMFDmd::GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_d
 }
 #endif
 
-GridLayeringMFDmd::GridLayeringMFDmd(int id, const char* fd_file, const char* fraction_file, const char* mask_file,
-                                     const char* out_dir) :
+GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const char* fraction_file,
+                                     const char* mask_file, const char* out_dir) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -52,9 +52,10 @@ bool GridLayeringMFDmd::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
-        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(), true, mask_, true);
-        flow_fraction_ = FloatMaskedRaster::Init(gfs_, flowfrac_corename_.c_str(), true, mask_, true);
+        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(), true, mask_, true);
+        flow_fraction_ = FltMaskFltRaster::Init(gfs_, flowfrac_corename_.c_str(),
+                                                true, mask_, true);
 #else
         return false;
 #endif
@@ -66,14 +67,14 @@ bool GridLayeringMFDmd::LoadData() {
             }
         }
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = IntRaster::Init(flowdir_name_, true);
+            flowdir_ = FloatRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = IntRaster::Init(mask_name_, true);
-            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = FloatRaster::Init(mask_name_, true);
+            flowdir_ = FltMaskFltRaster::Init(flowdir_name_, true, mask_, true);
         }
-        flow_fraction_ = FloatMaskedRaster::Init(flowfrac_names_, true, mask_, true);
+        flow_fraction_ = FltMaskFltRaster::Init(flowfrac_names_, true, mask_, true);
     }
     if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
 
@@ -82,7 +83,7 @@ bool GridLayeringMFDmd::LoadData() {
     mask_->GetRasterPositionData(&n_valid_cells_, &pos_rowcol_);
 
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
-    if (flowdir_->GetNoDataValue() != out_nodata_) flowdir_->ReplaceNoData(out_nodata_);
+    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) flowdir_->ReplaceNoData(out_nodata_);
     flowfrac_matrix_ = flow_fraction_->Get2DRasterDataPointer();
     if (flowdir_->GetValidNumber() != flow_fraction_->GetValidNumber()) {
         cout << "The valid cell number must be the same between "
@@ -120,9 +121,9 @@ bool GridLayeringMFDmd::OutputFlowIn() {
                 flowdir_->IsNoData(source_row, source_col))
                 continue;
             int source_index = pos_index_[source_row * n_cols_ + source_col];
-            int source_fdir = flowdir_matrix_[source_index];
+            int source_fdir = CVT_INT(flowdir_matrix_[source_index]);
             vector<int> source_fdirs = uncompress_flow_directions(source_fdir);
-            int srcfout_dir = get_reversed_flow_direction(*it);
+            int srcfout_dir = get_reversed_fdir(*it);
             if (std::find(source_fdirs.begin(), source_fdirs.end(),
                           srcfout_dir) == source_fdirs.end()) {
                 continue;
@@ -162,7 +163,7 @@ bool GridLayeringMFDmd::OutputFlowOut() {
         flowout_fracs_[count++] = CVT_FLT(flow_out_num_[valid_idx]); // maybe 0
         if (flow_out_num_[valid_idx] == 0) continue;
 
-        int flow_dir = flowdir_matrix_[valid_idx];
+        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
         if (flow_dir < 0) continue; // This will not happen, just in case!
 
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);

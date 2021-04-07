@@ -10,7 +10,7 @@ int find_flow_direction_index_ccw(const int fd) {
     return -1;
 }
 
-int get_reversed_flow_direction(const int fd) {
+int get_reversed_fdir(const int fd) {
     int fd_idx = find_flow_direction_index_ccw(fd);
     if (fd_idx < 0) return -1;
     int reversed_fd_idx = fd_idx > 4 ? fd_idx - 4 : fd_idx + 4;
@@ -53,7 +53,7 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
 #ifdef USE_MONGODB
 GridLayering::GridLayering(const int id, MongoGridFs* gfs, const char* out_dir) :
     gfs_(gfs), use_mongo_(true), has_mask_(false), fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
-    n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
+    n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
     n_valid_cells_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
     flow_in_num_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
@@ -63,9 +63,9 @@ GridLayering::GridLayering(const int id, MongoGridFs* gfs, const char* out_dir) 
 }
 #endif
 
-GridLayering::GridLayering(int id, const char* out_dir):
+GridLayering::GridLayering(const int id, const char* out_dir):
     gfs_(nullptr), use_mongo_(false), has_mask_(false), fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
-    n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
+    n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
     n_valid_cells_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
     flow_in_num_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
@@ -108,9 +108,9 @@ void GridLayering::GetReverseDirMatrix() {
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
-        int flow_dir = flowdir_matrix_[valid_idx];
+        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
         if (flowdir_->IsNoData(i, j) || flow_dir < 0) {
-            reverse_dir_[valid_idx] = out_nodata_;
+            reverse_dir_[valid_idx] = CVT_INT(out_nodata_);
             continue;
         }
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
@@ -127,7 +127,7 @@ void GridLayering::GetReverseDirMatrix() {
                 // Boundary cells may be NoData in flowdir_, but they can accept flow in
                 reverse_dir_[dst_idx] = 0;
             }
-            reverse_dir_[dst_idx] += get_reversed_flow_direction(fdccw[fd_idx]);
+            reverse_dir_[dst_idx] += get_reversed_fdir(fdccw[fd_idx]);
         }
     }
 }
@@ -136,7 +136,7 @@ void GridLayering::CountFlowInCells() {
     if (nullptr == flow_in_num_) Initialize1DArray(n_valid_cells_, flow_in_num_, 0);
 #pragma omp parallel for
     for (int i = 0; i < n_valid_cells_; i++) {
-        int reverse_fdir = reverse_dir_[i];
+        int reverse_fdir = CVT_INT(reverse_dir_[i]);
         if (reverse_fdir < 0) {
             continue;
         }
@@ -151,7 +151,7 @@ void GridLayering::CountFlowInCells() {
     flow_in_count_ = total;
 }
 
-int GridLayering::BuildMultiFlowOutArray(int*& compressed_dir,
+int GridLayering::BuildMultiFlowOutArray(float*& compressed_dir,
                                          int*& connect_count, float*& p_output) {
     p_output[0] = CVT_FLT(n_valid_cells_);
     int counter = 1;
@@ -162,7 +162,7 @@ int GridLayering::BuildMultiFlowOutArray(int*& compressed_dir,
         p_output[counter++] = CVT_FLT(connect_count[valid_idx]); // maybe 0
         if (connect_count[valid_idx] == 0) continue;
         /// accumulated flow in directions
-        int acc_flowin_dir = compressed_dir[valid_idx];
+        int acc_flowin_dir = CVT_INT(compressed_dir[valid_idx]);
         vector<int> flow_dirs = uncompress_flow_directions(acc_flowin_dir);
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
@@ -195,7 +195,7 @@ void GridLayering::CountFlowOutCells() {
         int j = pos_rowcol_[index][1]; // col
         if (flowdir_->IsNoData(i, j) || flowdir_matrix_[index] < 0) continue;
 
-        int flow_dir = flowdir_matrix_[index];
+        int flow_dir = CVT_INT(flowdir_matrix_[index]);
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
@@ -310,7 +310,7 @@ bool GridLayering::GridLayeringFromSource() {
     Initialize1DArray(n_valid_cells_, last_layer, out_nodata_);
     int num_last_layer = 0; // number of cells in last layer
 
-    vector<vector<int> > layerCells_updown; // layer number - indexes of cells
+    vector<vector<int> > layer_cells_updown; // layer number - indexes of cells
 
     // 1. find source grids, i.e., the first layer
     for (int i = 0; i < n_valid_cells_; i++) {
@@ -337,7 +337,7 @@ bool GridLayering::GridLayeringFromSource() {
             int i = pos_rowcol_[valid_idx][0]; // row
             int j = pos_rowcol_[valid_idx][1]; // col
 
-            int dir = flowdir_matrix_[valid_idx];
+            int dir = CVT_INT(flowdir_matrix_[valid_idx]);
             vector<int> dirs = uncompress_flow_directions(dir);
             for (vector<int>::iterator it = dirs.begin(); it != dirs.end(); ++it) {
                 int fd_idx = find_flow_direction_index_ccw(*it);
@@ -353,7 +353,7 @@ bool GridLayering::GridLayeringFromSource() {
             }
         }
         vector<int>(lyr_cells).swap(lyr_cells);
-        layerCells_updown.emplace_back(vector<int>(lyr_cells));
+        layer_cells_updown.emplace_back(vector<int>(lyr_cells));
         lyr_cells.clear();
 
         num_last_layer = num_next_layer;
@@ -364,12 +364,12 @@ bool GridLayering::GridLayeringFromSource() {
     Release1DArray(last_layer);
     Release1DArray(next_layer);
 
-    int layer_num = CVT_INT(layerCells_updown.size());
+    int layer_num = CVT_INT(layer_cells_updown.size());
     int length = n_valid_cells_ + layer_num + 1;
     Initialize1DArray(length, layer_cells_updown_, 0.f);
     layer_cells_updown_[0] = CVT_FLT(layer_num);
     valid_idx = 1;
-    for (auto it = layerCells_updown.begin(); it != layerCells_updown.end(); ++it) {
+    for (auto it = layer_cells_updown.begin(); it != layer_cells_updown.end(); ++it) {
         layer_cells_updown_[valid_idx++] = CVT_FLT((*it).size());
         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
             layer_cells_updown_[valid_idx++] = CVT_FLT(*it2);
@@ -421,7 +421,7 @@ bool GridLayering::GridLayeringFromOutlet() {
                     mask_->IsNoData(src_row, src_col))
                     continue;
                 int src_idx = src_row * n_cols_ + src_col;
-                if (!(flowdir_matrix_[pos_index_[src_idx]] & get_reversed_flow_direction(fdccw[ccwidx])))
+                if (!(CVT_INT(flowdir_matrix_[pos_index_[src_idx]]) & get_reversed_fdir(fdccw[ccwidx])))
                     continue;
                 if (--flow_out_num_[pos_index_[src_idx]] == 0) {
                     next_layer[num_next_layer++] = pos_index_[src_idx];
@@ -441,7 +441,7 @@ bool GridLayering::GridLayeringFromOutlet() {
     // 3. reverse the layer number
 #pragma omp parallel for
     for (int i = 0; i < n_valid_cells_; i++) {
-        if (layers_downup_[i] != out_nodata_) {
+        if (!FloatEqual(layers_downup_[i], out_nodata_)) {
             layers_downup_[i] = cur_num - layers_downup_[i] + 1;
         }
     }
@@ -453,7 +453,8 @@ bool GridLayering::GridLayeringFromOutlet() {
     Initialize1DArray(length, layer_cells_downup_, 0.f);
     layer_cells_downup_[0] = CVT_FLT(layer_num);
     int index = 1;
-    for (auto it = layer_cells_downup.rbegin(); it != layer_cells_downup.rend(); ++it) {
+    for (auto it = layer_cells_downup.rbegin(); 
+         it != layer_cells_downup.rend(); ++it) {
         layer_cells_downup_[index++] = CVT_FLT((*it).size());
         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
             layer_cells_downup_[index++] = CVT_FLT(*it2);
@@ -484,9 +485,9 @@ bool GridLayering::OutputToMongodb(const char* name, const int number, char* s) 
 #endif
 
 bool GridLayering::OutputGridLayering(const string& name, const int datalength,
-                                      int* const layer_grid, float* const layer_cells) {
+                                      float* const layer_grid, float* const layer_cells) {
     string outpath = string(output_dir_) + "/" + name + ".tif";
-    IntRaster(flowdir_, layer_grid).OutputFileByGdal(outpath);
+    FloatRaster(mask_, layer_grid).OutputFileByGdal(outpath);
 
     string header = "LayerID\tCellCount\tCellIDs";
     bool done = Output2DimensionArrayTxt(name, header, layer_cells);

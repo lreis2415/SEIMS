@@ -33,19 +33,20 @@ bool GridLayeringD8::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
-        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(), true, mask_, true);
+        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(), 
+                                          true, mask_, true);
 #else
         return false;
 #endif
     } else {
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = IntRaster::Init(flowdir_name_, true);
+            flowdir_ = FloatRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = IntRaster::Init(mask_name_, true);
-            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = FloatRaster::Init(mask_name_, true);
+            flowdir_ = FltMaskFltRaster::Init(flowdir_name_, true, mask_, true);
         }
     }
     if (nullptr == flowdir_ || nullptr == mask_) return false;
@@ -54,6 +55,6 @@ bool GridLayeringD8::LoadData() {
     mask_->GetRasterPositionData(&n_valid_cells_, &pos_rowcol_);
 
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
-    if (flowdir_->GetNoDataValue() != out_nodata_) flowdir_->ReplaceNoData(out_nodata_);
+    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) flowdir_->ReplaceNoData(out_nodata_);
     return true;
 }

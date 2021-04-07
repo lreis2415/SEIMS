@@ -5,6 +5,8 @@
  *          lj - 28-Dec-2017 - Refactor as class.\n
  *          lj -  5-Mar-2018 - Use CCGL, and reformat code style.\n
  *          lj - 31-Mar-2021 - Rewrite most core parts and now support MFD-md algorithm.\n
+ *          lj -  7-Apr-2021 - Since all spatial raster data is stored in float type in MongoDB,
+ *                              for cross-platform compatible, both MongoDB and File mode use FloatRaster.\n
  * \description:
  *               The output list:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
@@ -13,6 +15,9 @@
  *               2. X_ROUTING_LAYERS_UP_DOWN{_METHOD} and X_ROUTING_LAYERS_DOWN_UP{_METHOD}
  *                     in which `_METHOD` represent flow direction method, the empty denotes `D8`, others
  *                        include `_DINF` and `_MFDMD`
+ *               3. X_FLOWOUT_FRACTION_{FD}, X_FLOWIN_FRACTION_{FD}
+ *                     recording flow fractions of flow out and flow in cells,
+ *                     specifically for multiple flow direction algorithms
  *
  */
 
@@ -33,6 +38,9 @@ using namespace data_raster;
 #ifndef FloatMaskedRaster
 #define FloatMaskedRaster clsRasterData<float, int>
 #endif
+#ifndef FltMaskFltRaster
+#define FltMaskFltRaster clsRasterData<float, float>
+#endif
 
 /*!
 * \enum flowDirTypes
@@ -50,7 +58,7 @@ const int dcol[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1};
 
 int find_flow_direction_index_ccw(const int fd);
 
-int get_reversed_flow_direction(const int fd);
+int get_reversed_fdir(const int fd);
 
 vector<int> uncompress_flow_directions(const int compressed_fd);
 
@@ -124,7 +132,7 @@ protected:
     /*!
      * \brief Build multiple flow out array
      */
-    int BuildMultiFlowOutArray(int*& compressed_dir,
+    int BuildMultiFlowOutArray(float*& compressed_dir,
                                int*& connect_count, float*& p_output);
     /*!
      * \brief Ouput 2D array as txt file
@@ -144,7 +152,7 @@ protected:
      * \brief Output grid layering as tiff file and MongoDB-GridFS
      */
     bool OutputGridLayering(const string& name, int datalength,
-                            int* layer_grid, float* layer_cells);
+                            float* layer_grid, float* layer_cells);
 
     MongoGridFs* gfs_; ///< MongoDB-GridFS instance
 #endif
@@ -155,16 +163,16 @@ protected:
     int subbasin_id_;        ///< Subbasin ID, 0 for entire basin
     int n_rows_;             ///< Rows
     int n_cols_;             ///< Cols
-    int out_nodata_;         ///< Nodata value in output
+    float out_nodata_;       ///< Nodata value in output
     int n_valid_cells_;      ///< Valid Cells number
     int* pos_index_;         ///< Valid cell's index
     int** pos_rowcol_;       ///< Positions of valid cells, e.g., (row, col) coordinates
-    IntRaster* mask_;        ///< Mask raster data
-    IntRaster* flowdir_;     ///< Flow direction raster data, e.g., `int` for D8
-    int* flowdir_matrix_;    ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
-    int* reverse_dir_;       ///< Compressed reversed direction
-    int* flow_in_num_;       ///< Flow in cells number
-    int flow_in_count_;      ///< All flow in counts from \a m_flowInNum
+    FloatRaster* mask_;      ///< Mask raster data
+    FltMaskFltRaster* flowdir_; ///< Flow direction raster data, e.g., `int` for D8
+    float* flowdir_matrix_;     ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
+    float* reverse_dir_;        ///< Compressed reversed direction
+    int* flow_in_num_;          ///< Flow in cells number
+    int flow_in_count_;         ///< All flow in counts from \a m_flowInNum
     /*!
      * \brief Stores flow in cells' indexes of each valid cells, which can be
      *          parsed as 2D array. Data length is flow_in_count_ + n_valid_cells_ + 1
@@ -184,8 +192,8 @@ protected:
     int* flow_out_num_;         ///< Flow out cells number
     int flow_out_count_;        ///< Flow out times
     float* flow_out_cells_;     ///< Indexes of each cell's flow out
-    int* layers_updown_;        ///< the value of layering number from source, length is nRows * nCols
-    int* layers_downup_;        ///< the value of layering number from outlet
+    float* layers_updown_;      ///< the value of layering number from source, length is nRows * nCols
+    float* layers_downup_;      ///< the value of layering number from outlet
     float* layer_cells_updown_; ///< store cell indexes in each layers, length is ValidNum + layerNum + 1
     float* layer_cells_downup_; ///< store cell indexes in each layers
     string flowdir_name_;       ///< Flow direction file name
@@ -227,7 +235,7 @@ public:
 
 private:
     string flowfrac_name_;             ///< Flow fraction raster file recording the fraction of first direction
-    FloatMaskedRaster* flow_fraction_; ///< Flow fraction of the first flow out direction
+    FltMaskFltRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
     float* flowfrac_matrix_;           ///< Flow fraction of the first flow out direction (valid cell number)
     float* flowin_fracs_;              ///< Flow in fraction
     float* flowout_fracs_;             ///< Flow fractions of each cell's flow in
@@ -254,7 +262,7 @@ public:
 private:
     string flowfrac_corename_;         ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     vector<string> flowfrac_names_;    ///< Flow fraction raster files recording the fractions of each direction by ccw
-    FloatMaskedRaster* flow_fraction_; ///< Flow fraction of the first flow out direction
+    FltMaskFltRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
     float** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
     float* flowin_fracs_;              ///< Flow in fraction
     float* flowout_fracs_;             ///< Flow fractions of each cell's flow in
