@@ -396,8 +396,7 @@ CONST_CHARS_LIST M_DEP_LINSLEY[] = {"DEP_LINSLEY", "Linsley method to calculate 
 CONST_CHARS_LIST MCLS_SUR_RUNOFF[] = {"Surface runoff", "Infiltration and surface runoff of excess precipitation."};
 CONST_CHARS_LIST M_SUR_MR[] = {"SUR_MR", "Modified rational method to calculate infiltration and excess precipitation."};
 CONST_CHARS_LIST M_SUR_CN[] = {"SUR_CN", "SCS curve number method to calculate infiltration and excess precipitation."};
-// SGA = Green&Ampt method ?
-CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Modified rational method to calculate infiltration and excess precipitation."};
+CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Green Ampt Method to calculate infiltration and excess precipitation."};
 
 // #define MCLS_SUR_RUNOFF                        "Surface runoff"
 // #define MCLSDESC_SUR_RUNOFF                    "Infiltration and surface runoff of excess precipitation."
