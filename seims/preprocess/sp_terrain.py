@@ -312,19 +312,21 @@ class TerrainUtilClass(object):
         # 0.2618 rad/hr and 2/0.2618 = 7.6394
         cell_lat_r = RasterUtilClass.read_raster(lat_file)
         lat_data = cell_lat_r.data
-        # daylmn_data = cell_lat_r.data
-        zero = numpy.zeros((cell_lat_r.nRows, cell_lat_r.nCols))
-        # nodata = numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * cell_lat_r.noDataValue
-        # convert degrees to radians (2pi/360=1/57.296)
-        daylmn_data = 0.4348 * numpy.abs(numpy.tan(lat_data / 57.296))
-        condition = daylmn_data < 1.
-        daylmn_data = numpy.where(condition, numpy.arccos(daylmn_data), zero)
-        # condition2 = lat_data != cell_lat_r.noDataValue
-        daylmn_data *= 7.6394
-        daylmn_data = numpy.where(cell_lat_r.validZone, daylmn_data, lat_data)
+        nodata = cell_lat_r.noDataValue
+        nodatas = numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * nodata
+
+        daylmn_data = numpy.where(cell_lat_r.validZone,
+                                  0.4348 * numpy.abs(numpy.tan(lat_data / 57.296)), nodatas)
+        # Caution: DO NOT use numpy.arccos directly in numpy.where, because
+        #           np.arccos(in) will be computed before np.where, which will cause
+        #           RuntimeWarning: invalid value encountered in arccos
+        #   see https://stackoverflow.com/q/61197560/4837280
+        daylmn_data = numpy.where(cell_lat_r.validZone,
+                                  numpy.arccos(numpy.clip(daylmn_data, -1, 1)), nodatas)
+        daylmn_data = numpy.where(cell_lat_r.validZone, daylmn_data * 7.6394, nodatas)
         RasterUtilClass.write_gtiff_file(min_dayl_file, cell_lat_r.nRows, cell_lat_r.nCols,
                                          daylmn_data, cell_lat_r.geotrans, cell_lat_r.srs,
-                                         cell_lat_r.noDataValue, GDT_Float32)
+                                         nodata, GDT_Float32)
 
         def cal_dorm_hr(lat):
             """calculate day length threshold for dormancy"""
@@ -340,7 +342,6 @@ class TerrainUtilClass(object):
 
         cal_dorm_hr_numpy = numpy.frompyfunc(cal_dorm_hr, 1, 1)
 
-        # dormhr_data = numpy.copy(lat_data)
         if dorm_hr < -UTIL_ZERO:
             dormhr_data = cal_dorm_hr_numpy(lat_data)
         else:
