@@ -461,7 +461,7 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     if (nullptr == databuf) return;
 
-    num = CVT_INT(datalength / 4);
+    num = CVT_INT(datalength / sizeof(float));
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 }
 
