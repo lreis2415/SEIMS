@@ -241,7 +241,7 @@ class FieldNames(object):
 class SpatialNamesUtils(object):
     """predefined raster file names which are ready for importing to database"""
     _MASK_TO_EXT = 'mask.tif'
-    # output to mongoDB file names
+    # output to mongoDB file names after rearrangement according to upstream-downstream
     _SUBBASINOUT = 'subbasin.tif'
     _FLOWDIROUT = 'flow_dir.tif'
     _STREAMLINKOUT = 'stream_link.tif'
@@ -255,6 +255,8 @@ class SpatialNamesUtils(object):
     _DIRCODEDINFM = 'flow_dir_dinf.tif'
     _WEIGHTDINFM = 'weight_dinf.tif'
     _SLOPEDINFM = 'slope_dinf.tif'
+    _DIRCODEMFDMD = 'flow_dir_mfdmd.tif'
+    _FLOWFRACTIONMFDMD = 'flow_fraction_mfdmd.tif'
     _CELLLAT = 'celllat.tif'
     _DAYLMIN = 'dayLenMin.tif'
     _DORMHR = 'dormhr.tif'
@@ -296,6 +298,8 @@ class SpatialNamesUtils(object):
         self.dinf_d8dir = spa_dir + SEP + self._DIRCODEDINFM
         self.dinf_weight = spa_dir + SEP + self._WEIGHTDINFM
         self.dinf_slp = spa_dir + SEP + self._SLOPEDINFM
+        self.mfdmd_d8dir = spa_dir + SEP + self._DIRCODEMFDMD
+        self.mfdmd_fraction = spa_dir + SEP + self._FLOWFRACTIONMFDMD
         self.cell_lat = spa_dir + SEP + self._CELLLAT
         self.dayl_min = spa_dir + SEP + self._DAYLMIN
         self.dorm_hr = spa_dir + SEP + self._DORMHR

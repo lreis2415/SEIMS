@@ -18,7 +18,7 @@ from osgeo.gdal import GDT_Int32, GDT_Float32
 from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
 from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
 from osgeo.osr import SpatialReference as osr_SpatialReference
-from pygeoc.TauDEM import TauDEMWorkflow
+from pygeoc.TauDEM import TauDEMFilesUtils, TauDEM, TauDEMWorkflow
 from pygeoc.postTauDEM import D8Util, StreamnetUtil
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
@@ -61,17 +61,25 @@ class SpatialDelineation(object):
 
     @staticmethod
     def original_delineation(cfg):
-        """Original Delineation by calling TauDEM functions"""
+        """Original watershed delineation by TauDEM functions and
+        other terrain attributes by TauDEM-ext functions"""
         # Check directories
         UtilClass.mkdir(cfg.workspace)
         UtilClass.mkdir(cfg.dirs.log)
         bin_dir = cfg.seims_bin
         mpi_bin = cfg.mpi_bin
         np = cfg.np
+        # Watershed delineation
         TauDEMWorkflow.watershed_delineation(np, cfg.dem, cfg.outlet_file, cfg.d8acc_threshold,
                                              True,
                                              cfg.dirs.taudem, mpi_bin, bin_dir,
                                              cfg.logs.delineation)
+        # MFD-md flow directions
+        # TODO, arguments for calculating MFD-md might be specified in configuration file. lj
+        TauDEM.mfdmdflowdir(np, cfg.taudems.filldem, cfg.taudems.mfdmd_dir, cfg.taudems.mfdmd_frac,
+                            min_portion=0.01, p0=1.1, rng=8.9, lb=0., ub=1.,
+                            workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+                            log_file=cfg.logs.delineation)
 
     @staticmethod
     def mask_raster_cpp(bin_dir, maskfile, originalfiles, outputfiles, default_values, configfile):
@@ -96,20 +104,24 @@ class SpatialDelineation(object):
         UtilClass.mkdir(geodata2dbdir)
         mask_file = cfg.spatials.mask
         RasterUtilClass.get_mask_from_raster(subbasin_tau_file, mask_file)
-        # Total 12 raster files
+        # Total 21 raster files
         original_files = [cfg.taudems.subbsn, cfg.taudems.d8flow, cfg.taudems.stream_raster,
                           cfg.taudems.slp, cfg.taudems.filldem, cfg.taudems.d8acc,
                           cfg.taudems.stream_order, cfg.taudems.dinf, cfg.taudems.dinf_d8dir,
                           cfg.taudems.dinf_slp, cfg.taudems.dinf_weight,
+                          cfg.taudems.mfdmd_dir,
                           cfg.taudems.dist2stream_d8]
+        original_files += [FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
+                           for i in range(1, 9, 1)]
         # output masked files
         output_files = [cfg.taudems.subbsn_m, cfg.taudems.d8flow_m, cfg.taudems.stream_m,
                         cfg.spatials.slope, cfg.spatials.filldem, cfg.spatials.d8acc,
                         cfg.spatials.stream_order, cfg.spatials.dinf, cfg.spatials.dinf_d8dir,
-                        cfg.spatials.dinf_slp, cfg.spatials.dinf_weight,
+                        cfg.spatials.dinf_slp, cfg.spatials.dinf_weight, cfg.spatials.mfdmd_d8dir,
                         cfg.spatials.dist2stream_d8]
+        output_files += [FileClass.add_postfix(cfg.spatials.mfdmd_fraction, '%d' % i)
+                         for i in range(1, 9, 1)]
 
-        default_values = list()
         default_values = [DEFAULT_NODATA] * len(original_files)
 
         # other input rasters need to be masked
