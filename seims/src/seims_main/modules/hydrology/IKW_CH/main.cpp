@@ -4,7 +4,7 @@
 #include <ctime>
 
 #include "IKW_CH.h"
-#include "clsRasterData.h"
+//#include "clsRasterData.h" //cannot find this file? maybe possible to use #include "data_raster.h"?
 
 using namespace std;
 
@@ -25,7 +25,7 @@ void Output(float *a, int n, ofstream &ofs) {
     ofs << endl;
 }
 
-void Test(ImplicitKinematicWave &ikw) {
+void Test(ImplicitKinematicWave_CH &ikw) {
     for (int i = 0; i < 1000; ++i) {
         //cout << i << endl;
         //ikw.SetDate(i+1);
@@ -83,15 +83,15 @@ int main(int argc, const char **argv) {
     }
     fFlowIn.close();
 
-    clsRasterData slope("slope.txt");
-    float *s0 = slope.getRasterDataPointer();
-    for (int i = 0; i < cellsCount; ++i) {
-        if (abs(s0[i]) < 0.01f) {
-            s0[i] = 0.01f;
-        }
-    }
-    //float *s0  = new float[cellsCount];
-    //SetValue(s0, cellsCount, 0.0016f);
+    //clsRasterData<float> slope("slope.txt"); 
+    //float *s0 = slope->getRasterDataPointer(); //results in error "clsRasterData has no member getRasterDataPointer();"
+    //for (int i = 0; i < cellsCount; ++i) {
+        //if (abs(s0[i]) < 0.01f) {
+            //s0[i] = 0.01f;
+        //}
+    //}
+    float *s0  = new float[cellsCount];
+    SetValue(s0, cellsCount, 0.0016f);
 
     float dt = 10;
     float *mn = new float[cellsCount];
@@ -101,7 +101,7 @@ int main(int argc, const char **argv) {
     SetValue(mn, cellsCount, 0.2f);
     SetValue(sr, cellsCount, 5.5556e-6f * dt);
 
-    ImplicitKinematicWave ikw;
+    ImplicitKinematicWave_CH ikw;
 
     ikw.SetDate(1);
 

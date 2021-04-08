@@ -25,14 +25,18 @@ public:
 
     //! Destructor
     ~StormGreenAmpt(void);
+	
+	virtual int Execute(void);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+	virtual void SetValue(const char *key, float data);
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+	virtual void Set1DData(const char *key, int n, float *data);
+	
+	virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
-    virtual void SetValue(const char *key, float value);
+	virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual int Execute(void);
+	virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
 private:
     /**
@@ -63,6 +67,10 @@ private:
     void clearInputs(void);
     
 private:
+	/// number of soil layers of each cell
+	float m_nSoilLyrs;
+	/// max number of soil layers
+	int m_maxSoilLyrs;
 
     /// time step(seconds)
     float m_dt;
@@ -73,11 +81,11 @@ private:
     float *m_pNet;
 
     /// soil porosity
-    float *m_porosity;
+    float **m_porosity;
     /// soil moisture
-    float *m_soilMoisture;
+    float **m_soilMoisture;
     /// root depth
-    float *m_rootDepth;
+    float **m_rootDepth;
 
     /// depression storage -- SD(t-1) from the depression storage module
     float *m_sd;
@@ -102,15 +110,15 @@ private:
 
     /// parameters used in GA method
     /// saturated hydraulic conductivity from parameter database (m/s)
-    float *m_ks;
+    float **m_ks;
     /// percent of clay content from parameter database
-    float *m_clay;
+    float **m_clay;
     /// percent of sand content from parameter database
-    float *m_sand;
+    float **m_sand;
     /// initial soil moisture
-    float *m_initSoilMoisture;
+    float **m_initSoilMoisture;
     /// field capacity
-    float *m_fieldCap;
+    float **m_fieldCap;
     /// surface water depth
     float *m_sr;
 

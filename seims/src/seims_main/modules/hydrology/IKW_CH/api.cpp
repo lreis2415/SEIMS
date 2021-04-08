@@ -1,5 +1,6 @@
 #include "IKW_CH.h"
-
+#include "text.h"
+#include "MetadataInfo.h"
 #include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
@@ -44,7 +45,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // output
     mdi.AddOutput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, DT_Array1D);
-    mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single);
+    //mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single); //doesn't exist in text.h
     mdi.AddOutput(VAR_QTOTAL, UNIT_FLOW_CMS, DESC_QTOTAL, DT_Single);
     mdi.AddOutput(VAR_QSUBBASIN, UNIT_FLOW_CMS, DESC_QSUBBASIN, DT_Array1D);
     mdi.AddOutput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, DT_Array2D);

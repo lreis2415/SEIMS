@@ -51,7 +51,7 @@ private:
     //		return -pow(-a, n);
     //}
 
-    void FlowInSoil(int id);
+    bool FlowInSoil(int id);
 
     void initialOutputs(void);
 
@@ -68,19 +68,19 @@ private:
     /// slope (percent)
     float *m_s0;
     /// root depth (m)  /// mm? LJ
-    float *m_rootDepth;
+    float **m_rootDepth;
     /// soil depth (mm)
-    float *m_soilDepth;
+    //float *m_soilDepth;
     /// conductivity (mm/h)
-    float *m_ks;
+    float **m_ks;
     /// scaling factor depending on land use (Ki)
     float m_landuseFactor;
 
-    float *m_soilMoistrue;
+    float **m_soilMoistrue;
     //float* m_residual;
-    float *m_porosity;
-    float *m_poreIndex;
-    float *m_fieldCapacity;
+    float **m_porosity;
+    float **m_poreIndex;
+    float **m_fieldCapacity;
 
     float *m_streamLink;
     /**
@@ -108,5 +108,8 @@ private:
     float *m_h;
     /// return flow
     float *m_hReturnFlow;
+    /// number of soil layers of each cell
+	float m_nSoilLyrs;
+	int m_maxSoilLyrs;
 };
 
