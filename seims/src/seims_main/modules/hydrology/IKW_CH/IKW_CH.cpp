@@ -131,7 +131,7 @@ bool ImplicitKinematicWave_CH::CheckInputData(void) {
     return true;
 }
 
-void ImplicitKinematicWave_CH:: InitialOutputs() {
+void ImplicitKinematicWave_CH:: initialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(M_IKW_CH[0], "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -384,7 +384,10 @@ void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
         int iLastCell = m_reachs[reachId].size() - 1;
         *value = m_qCh[reachId][iLastCell] + m_qgDeep;
     }
-
+    else {
+		throw ModelException(MID_IKW_CH, "GetValue", "Output " + sk
+			+ " does not exist in current module. Please contact the module developer.");
+	}
 }
 
 void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
@@ -445,8 +448,15 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
     string sk(key);
     *n = m_chNumber;
     if (StringMatch(sk, VAR_QRECH[0])) {
+    //if (StringMatch(sk, VAR_QSUBBASIN)) { //Previously this was QRECH but also need to get QSUBBASIN? clara
         *data = m_qSubbasin;
     }
+    else if (StringMatch(sk, VAR_QRECH)) {
+		auto it = m_reachLayers.end();
+		it--;
+		int reachId = it->second[0];
+		*data = m_qCh[reachId];
+	}
     else {
         throw ModelException(M_IKW_CH[0], "Get1DData", "Output " + sk
                              + " does not exist.");
@@ -455,14 +465,15 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
 }
 
 void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    if (m_hCh == NULL || m_qCh == NULL) {
-        InitialOutputs();
+    if (m_hCh == NULL) { //|| m_qCh == NULL
+        initialOutputs();
     }
     string sk(key);
     *nRows = m_chNumber;
-    if (StringMatch(sk, VAR_QRECH[0])) {  //TODO QRECH is DT_array1D? LJ
-        *data = m_qCh;
-    } else if (StringMatch(sk, VAR_HCH[0])) {
+    //if (StringMatch(sk, VAR_QRECH)) {  //TODO QRECH is DT_array1D? LJ
+        //*data = m_qCh;
+    //}
+    if (StringMatch(sk, VAR_HCH[0])) {
         *data = m_hCh;
     } else {
         throw ModelException(M_IKW_CH[0], "Get2DData", "Output " + sk
