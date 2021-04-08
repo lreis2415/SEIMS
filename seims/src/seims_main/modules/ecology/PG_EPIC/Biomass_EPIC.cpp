@@ -14,7 +14,7 @@ Biomass_EPIC::Biomass_EPIC() :
     m_soilAlb(nullptr), m_soilDepth(nullptr), m_soilThk(nullptr),
     m_soilFC(nullptr), m_soilSumFC(nullptr), m_soilSumSat(nullptr), m_soilWtrSto(nullptr),
     m_soilWtrStoPrfl(nullptr), m_rsdInitSoil(nullptr), m_rsdCovSoil(nullptr),
-    m_soilRsd(nullptr),
+    m_soilRsd(nullptr), m_biomTrgt(nullptr),
     m_igro(nullptr), m_landCoverCls(nullptr), m_minLaiDorm(nullptr),
     m_biomEnrgRatio(nullptr),
     m_biomEnrgRatio2ndPt(nullptr),
@@ -92,25 +92,9 @@ void Biomass_EPIC::SetValue(const char* key, const float value) {
     }
 }
 
-bool Biomass_EPIC::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-        }
-    }
-    return true;
-}
-
 void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PG_EPIC, key, n, m_nCells);
     //// climate
     if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = data;
     else if (StringMatch(sk, VAR_TMIN)) m_minTemp = data;
@@ -131,6 +115,7 @@ void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_PPT)) m_maxPltET = data;
     else if (StringMatch(sk, VAR_SOET)) m_soilET = data;
     else if (StringMatch(sk, VAR_SOL_COV)) m_rsdCovSoil = data;
+    else if (StringMatch(sk, VAR_BIOTARG)) m_biomTrgt = data;
     else if (StringMatch(sk, VAR_SNAC)) m_snowAccum = data;
     else if (StringMatch(sk, VAR_SOL_RSDIN)) m_rsdInitSoil = data;
     else if (StringMatch(sk, VAR_IGRO)) m_igro = data;
@@ -172,26 +157,9 @@ void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool Biomass_EPIC::CheckInputSize2D(const char* key, const int n, const int col) {
-    CheckInputSize(key, n);
-    if (col <= 0) {
-        throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    }
-    if (m_maxSoilLyrs != col) {
-        if (m_maxSoilLyrs <= 0) {
-            m_maxSoilLyrs = col;
-        } else {
-            throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size.");
-        }
-    }
-    return true;
-}
-
-void Biomass_EPIC::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
+void Biomass_EPIC::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(key, nRows, nCols);
+    CheckInputSize2D(MID_PG_EPIC, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_RSD)) m_soilRsd = data;
@@ -290,6 +258,9 @@ void Biomass_EPIC::InitialOutputs() {
         for (int i = 0; i < m_nCells; i++) {
             m_soilRsd[i][0] = m_rsdCovSoil[i];
         }
+    }
+    if (m_biomTrgt == nullptr) {
+        Initialize1DArray(m_nCells, m_biomTrgt, 0.f);
     }
     if (m_lai == nullptr) {
         if (m_initLai != nullptr) {
@@ -425,7 +396,10 @@ void Biomass_EPIC::DistributePlantET(const int i) {
     float xx = 0.f;
     int ir = -1;
     int idc = CVT_INT(m_landCoverCls[i]);
-    if (idc == 1 || idc == 2 || idc == 4 || idc == 5) {
+    if (idc == CROP_IDC_WARM_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_COLD_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_WARM_SEASON_ANNUAL ||
+        idc == CROP_IDC_COLD_SEASON_ANNUAL) {
         m_pltRootD[i] = 2.5f * m_phuAccum[i] * m_soilMaxRootD[i];
         if (m_pltRootD[i] > m_soilMaxRootD[i]) m_pltRootD[i] = m_soilMaxRootD[i];
         if (m_pltRootD[i] < 10.f) m_pltRootD[i] = 10.f; /// minimum root depth is 10mm
@@ -439,7 +413,6 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         return;
     }
     /// initialize variables
-    gx = 0.f;
     ir = 0;
     sump = 0.f;
     xx = 0.f;
@@ -449,8 +422,7 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
     }
     /// compute aeration stress
-    if (m_soilWtrStoPrfl[i] >= m_soilSumFC[i]) // mm
-    {
+    if (m_soilWtrStoPrfl[i] >= m_soilSumFC[i]) {
         float satco = (m_soilWtrStoPrfl[i] - m_soilSumFC[i]) / (m_soilSumSat[i] - m_soilSumFC[i]);
         float pl_aerfac = 0.85f;
         float scparm = 100.f * (satco - pl_aerfac) / (1.0001f - pl_aerfac);
@@ -468,7 +440,6 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         } else {
             gx = m_soilDepth[i][j];
         }
-        sum = 0.f;
         if (m_pltRootD[i] <= 0.01f) {
             sum = m_maxPltET[i] / uobw;
         } else {
@@ -478,7 +449,6 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         m_wuse[i][j] = sum - sump + (sump - xx) * m_epco[i];
         sump = sum;
         /// adjust uptake if sw is less than 25% of plant available water
-        reduc = 0.f;
         if (m_soilWtrSto[i][j] < m_soilFC[i][j] * 0.25f) {
             reduc = exp(5.f * (4.f * m_soilWtrSto[i][j] / m_soilFC[i][j] - 1.f));
         } else {
@@ -523,15 +493,14 @@ void Biomass_EPIC::CalTempStress(const int i) {
 void Biomass_EPIC::AdjustPlantGrowth(const int i) {
     /// Update accumulated heat units for the plant
     float delg = 0.f;
-    if (m_phuPlt[i] > 0.1) {
+    if (m_phuPlt[i] > 0.1f) {
         delg = (m_meanTemp[i] - m_pgTempBase[i]) / m_phuPlt[i];
     }
     if (delg < 0.f) {
         delg = 0.f;
     }
     m_phuAccum[i] += delg;
-    //if(i == 5) cout << m_biomassDelta[i] << ", \n";
-    //if(i == 0) cout << m_frPHUacc[i] << ", \n";
+
     /// If plant hasn't reached maturity
     if (m_phuAccum[i] <= 1.f) {
         ///compute temperature stress - strstmp(j) , tstr.f in SWAT
@@ -557,17 +526,13 @@ void Biomass_EPIC::AdjustPlantGrowth(const int i) {
         }
         /// 3. adjust radiation-use efficiency for vapor pressure deficit
         ///     assumes vapor pressure threshold of 1.0 kPa
-        float ruedecl = 0.f;
-        if (m_vpd[i] > 1.0) {
-            ruedecl = m_vpd[i] - 1.f;
-            beadj -= m_wavp[i] * ruedecl;
+        if (m_vpd[i] > 1.f) {
+            beadj -= m_wavp[i] * (m_vpd[i] - 1.f);
             beadj = Max(beadj, 0.27f * m_biomEnrgRatio[i]);
         }
         m_biomassDelta[i] = Max(0.f, beadj * activeRadiation);
         /// 4. Calculate plant uptake of N and P to make sure no plant N and P uptake under temperature, water and aeration stress
         /// m_frStrsWa and m_frStrsAe are derived from DistributePlantET()
-        //if (i == 2000 && (m_frStrsWa[i] > 0.f || m_frStrsTmp[i] > 0.f || m_frStrsAe[i] > 0.f))
-        //	cout<<"water stress frac: "<<m_frStrsWa[i]<<", tmp: "<<m_frStrsTmp[i]<<", Ae: "<<m_frStrsAe[i]<<endl;
         float reg = Min(Min(m_frStrsWtr[i], m_frStrsTmp[i]), m_frStrsAe[i]);
         if (reg < 0.f) reg = 0.f;
         if (reg > 0.) {
@@ -589,7 +554,9 @@ void Biomass_EPIC::AdjustPlantGrowth(const int i) {
         reg = Min(m_frStrsWtr[i], Min(m_frStrsTmp[i], Min(m_frStrsN[i], m_frStrsP[i])));
         if (reg < 0.f) reg = 0.f;
         if (reg > 1.f) reg = 1.f;
-        //// TODO bio_targ in SWAT is not incorporated in SEIMS.
+        if (m_biomTrgt[i] > 0.01f) {
+            m_biomassDelta[i] *= (m_biomTrgt[i] - m_biomass[i]) / m_biomTrgt[i];
+        }
         m_biomass[i] += m_biomassDelta[i] * reg;
         float rto = 1.f;
         if (idc == CROP_IDC_TREES) {
@@ -709,8 +676,10 @@ void Biomass_EPIC::PlantNitrogenUptake(const int i) {
     }
     if (m_plantUpTkN[i] < 0.f) m_plantUpTkN[i] = 0.f;
     /// If crop is a legume, call nitrogen fixation routine
-    if (FloatEqual(m_landCoverCls[i], 1.f) || FloatEqual(m_landCoverCls[i], 2.f) ||
-        FloatEqual(m_landCoverCls[i], 3.f)) {
+    int idc = CVT_INT(m_landCoverCls[i]);
+    if (idc == CROP_IDC_WARM_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_COLD_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_PERENNIAL_LEGUME) {
         PlantNitrogenFixed(i);
     }
     m_plantUpTkN[i] += m_fixN[i];
@@ -718,8 +687,9 @@ void Biomass_EPIC::PlantNitrogenUptake(const int i) {
     //if (m_plantN[i] > 0.f)
     //	cout<<"cell ID: "<<i<<", plantN: "<<m_plantN[i]<<endl;
     /// compute nitrogen stress
-    if (FloatEqual(m_landCoverCls[i], 1.f) || FloatEqual(m_landCoverCls[i], 2.f) ||
-        FloatEqual(m_landCoverCls[i], 3.f)) {
+    if (idc == CROP_IDC_WARM_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_COLD_SEASON_ANNUAL_LEGUME ||
+        idc == CROP_IDC_PERENNIAL_LEGUME) {
         m_frStrsN[i] = 1.f;
     } else {
         CalPlantStressByLimitedNP(m_pltN[i], un2, &m_frStrsN[i]);
@@ -825,14 +795,15 @@ int Biomass_EPIC::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         /// calculate albedo in current day, albedo.f of SWAT
         float cej = -5.e-5f;
-        float eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+        float eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f)); // eq. 1:1.2.16 in SWAT theory 2009
         if (m_snowAccum[i] < 0.5f) {
-            m_alb[i] = m_soilAlb[i];
+            m_alb[i] = m_soilAlb[i]; // eq. 1:1.2.14
             if (m_lai[i] > 0.f) {
+                // eq. 1:1.2.15, 0.23 is plant albedo set by SWAT
                 m_alb[i] = 0.23f * (1.f - eaj) + m_soilAlb[i] * eaj;
             }
         } else {
-            m_alb[i] = 0.8f;
+            m_alb[i] = 0.8f; // eq. 1:1.2.13
         }
         /// reWrite from plantmod.f of SWAT
         /// calculate residue on soil surface for current day
@@ -842,7 +813,7 @@ int Biomass_EPIC::Execute() {
             DistributePlantET(i); /// swu.f
             if (FloatEqual(m_dormFlag[i], 0.f)) {
                 /// plant will not undergo stress if dormant
-                AdjustPlantGrowth(i); /// plantmod.f
+                AdjustPlantGrowth(i); /// grow.f
             }
             CheckDormantStatus(i); /// dormant.f
         }
@@ -882,11 +853,11 @@ void Biomass_EPIC::Get1DData(const char* key, int* n, float** data) {
     }
 }
 
-void Biomass_EPIC::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void Biomass_EPIC::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    *nRows = m_nCells;
-    *nCols = m_maxSoilLyrs;
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_RSD)) *data = m_soilRsd;
     else {
         throw ModelException(MID_PG_EPIC, "Get2DData", "Result " + sk + " does not exist.");

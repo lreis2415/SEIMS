@@ -14,6 +14,7 @@
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
+ *          2019-11-06 - lj - Allow user specified MongoDB host and port.
  *
  */
 #include "gtest/gtest.h"
@@ -22,12 +23,15 @@
 #ifdef USE_MONGODB
 #include "../../src/db_mongoc.h"
 #endif
+#include "../test_global.h"
 
 using namespace ccgl::data_raster;
 using namespace ccgl::utils_filesystem;
 #ifdef USE_MONGODB
 using namespace ccgl::db_mongoc;
 #endif
+
+extern GlobalEnvironment* GlobalEnv;
 
 namespace {
 using ::testing::TestWithParam;
@@ -46,7 +50,7 @@ public:
     InputRasterFiles(const string& rsf, const string& maskf) {
         raster_name = rsf.c_str();
         mask_name = maskf.c_str();
-    };
+    }
     const char* raster_name;
     const char* mask_name;
 };
@@ -120,7 +124,6 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(25.f, rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs_->GetCellWidth());
     EXPECT_EQ(1, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/
@@ -233,24 +236,46 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
 
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
-    MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
+    MongoClient* conn = MongoClient::Init(GlobalEnv->mongoHost.c_str(), GlobalEnv->mongoPort);
     if (nullptr != conn) {
         string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
-        rs_->OutputToMongoDB(gfsfilename, gfs);
-        clsRasterData<float, int>* mongors = clsRasterData<float, int>::
-                Init(gfs, gfsfilename.c_str(), false, maskrs_, true);
+        string maskfilename = "int_mask";
+        gfs->RemoveFile(maskfilename);
+        // Add additional metadata key-values
+        map<string, string> opts;
+#ifdef HAS_VARIADIC_TEMPLATES
+        opts.emplace("Author", "Liangjun");
+        opts.emplace("Grade", "5.0");
+#else
+        opts.insert(make_pair("Author", "Liangjun"));
+        opts.emplace(make_pair("Grade", "5.0"));
+#endif
+        maskrs_->OutputToMongoDB(maskfilename, gfs);
+        rs_->OutputToMongoDB(gfsfilename, gfs, opts);
+        clsRasterData<int>* mongomask = clsRasterData<int>::Init(gfs, maskfilename.c_str(), true);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(),
+                                                                             false, maskrs_, true,
+                                                                             NODATA_VALUE, opts);
         // test mongors data
         EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(1, mongors->GetLayers());
         EXPECT_EQ(61, mongors->GetValidNumber());
-        EXPECT_EQ(22, rs_->GetPosition(22.05f, 37.95f)); // row 2, col 2
-        EXPECT_FLOAT_EQ(9.95683607f, rs_->GetAverage());
+        EXPECT_EQ(22, mongors->GetPosition(22.05f, 37.95f)); // row 2, col 2
+        EXPECT_FLOAT_EQ(9.95683607f, mongors->GetAverage());
+        EXPECT_EQ("5.0", mongors->GetOption("Grade"));
+        EXPECT_EQ("Liangjun", mongors->GetOption("Author"));
         // output to asc/tif file for comparison
         EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
         EXPECT_TRUE(FileExists(newfullname4mongo));
+
+        delete mongomask;
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
 
     /* Get position data, which will be calculated if not existed,

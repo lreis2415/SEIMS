@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SEIMS_MUSLE_I30_H
+#define SEIMS_MUSLE_I30_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -78,7 +80,7 @@ private:
 
 //!!    ~ ~ ~ PURPOSE ~ ~ ~
 //!!    This function generates random numbers ranging from 0.0 to 1.0.
-//!!    In the process of calculating the random number, the seed (x1) is 
+//!!    In the process of calculating the random number, the seed (x1) is
 //!!    set to a new value.
 //!!    This function implements the prime-modulus generator
 //!!    xi = 16807 xi Mod(2**(31) - 1)
@@ -96,4 +98,4 @@ private:
     float aunif(int *seed);
 
 };
-
+#endif /* SEIMS_MUSLE_I30_H */

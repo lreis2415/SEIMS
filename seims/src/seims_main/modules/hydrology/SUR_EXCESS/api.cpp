@@ -1,6 +1,8 @@
-#include "ExcessRunoff.h"
-
 #include "api.h"
+
+#include "ExcessRunoff.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new ExcessRunoff();

@@ -1,6 +1,8 @@
-#include "ImplicitKinematicWave.h"
-
 #include "api.h"
+
+#include "ImplicitKinematicWave.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new ImplicitKinematicWave_OL();

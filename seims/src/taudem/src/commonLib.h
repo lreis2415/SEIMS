@@ -39,14 +39,19 @@ email:  dtarb@usu.edu
 //  This software is distributed from http://hydrology.usu.edu/taudem/
 #ifndef COMMON_H
 #define COMMON_H
+#include <string>
+#include <cstring>
 #include <cmath>
 #include <cfloat>
 #include <cstdint>
 #include "ogr_api.h"
 #include "mpi.h"
 #include <algorithm>
+#include <iostream>
+
 /// added by liangjun
-#ifdef windows
+#include <queue>  // DGT 5/27/18
+#ifdef WINDOWS
 #define _WINSOCKAPI_    // stops windows.h including winsock.h
 #include <windows.h>
 //#include <winsock2.h>
@@ -62,10 +67,25 @@ email:  dtarb@usu.edu
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
-#endif /* windows */
+#endif /* WINDOWS */
+
 #define MCW MPI_COMM_WORLD
 #define MAX_STRING_LENGTH 255
 #define MAXLN 4096
+
+using std::cout;
+using std::endl;
+using std::nothrow;
+
+using std::queue;
+using std::vector;
+
+using std::ifstream;
+using std::ios;
+
+using std::abs;
+using std::fabs;
+using std::sqrt;
 
 //TODO: revisit these to see if they are used/needed
 //#define ABOVE 1
@@ -77,18 +97,14 @@ email:  dtarb@usu.edu
 #define NOTFINISHED 0
 #define FINISHED 1
 
-#define TDVERSION "5.3.7"
+#define TDVERSION "5.3.9"
 
 enum DATA_TYPE {
     SHORT_TYPE,
     LONG_TYPE,
-    FLOAT_TYPE,
-    DOUBLE_TYPE,
-    UNKNOWN_TYPE,
-    INVALID_DATA_TYPE = -1
+    FLOAT_TYPE
 };
 
-//TODO: revisit this structure to see where it is used
 struct node {
     int x;
     int y;
@@ -98,19 +114,20 @@ inline bool operator==(const node& n1, const node& n2)
     return (n1.x == n2.x) && (n1.y == n2.y);
 }
 const double PI = 3.14159265359;
-const short MISSINGSHORT = -32768;
-
-const long MISSINGLONG = -2147483647;
+const double SQRT2 = 1.4142135623730951;
+const int16_t MISSINGSHORT = -32768;
+const int32_t MISSINGLONG = -2147483647;
 const float MISSINGFLOAT = -1 * FLT_MAX;
 const float MINEPS = 1E-5f;
 
 const float DEFAULTNODATA = -9999.f;  // added by Liangjun Zhu
+const int DEFAULTNODATA_INT = -9999;
 const int OMPTHREADS = 4;
 const float ZERO = 1.0e-12F;
 
 /// for D-8 flow model
-const int d1[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1};
-const int d2[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
+const int d1[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1}; // Col, Y
+const int d2[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1}; // Row, X
 /// for D-inf flow model
 const double e = 0.;
 const double ne = PI * 0.25;
@@ -122,7 +139,7 @@ const double s = PI * 1.5;
 const double se = PI * 1.75;
 const double dinfang[9] = {0., e, ne, n, nw, w, sw, s, se};
 
-
+const int esri_flowdir[9] = {-1, 1, 128, 64, 32, 16, 8, 4, 2};
 
 //  TODO adjust this for different dx and dy
 //const double aref[10] = { -atan2((double)1,(double)1), 0., -aref[0],(double)(0.5*PI),PI-aref[2],(double)PI,
@@ -130,7 +147,9 @@ const double dinfang[9] = {0., e, ne, n, nw, w, sw, s, se};
 
 int nameadd(char *, char *, const char *);
 double prop(float a, int k, double dx1, double dy1);
-char *getLayername(char *inputogrfile);
+//char *getLayername(char *inputogrfile);
+// Chris George Suggestion
+void getLayername(char *inputogrfile, char *layername);
 const char *getOGRdrivername(char *datasrcnew);
 void getlayerfail(OGRDataSourceH hDS1, char *outletsds, int outletslyr);
 int readoutlets(char *outletsds,
@@ -151,10 +170,10 @@ int readoutlets(char *outletsds,
                 double *&y,
                 int *&id);
 
-#include <queue>
-#include "linearpart.h"
+// DGT 5/27/18  #include <queue>
+// DGT 5/27/18 #include "linearpart.h"
 
-bool pointsToMe(long col, long row, long ncol, long nrow, tdpartition *dirData);
+// DGT 5/27/18 bool pointsToMe(long col, long row, long ncol, long nrow, tdpartition *dirData);
 
 /* void initNeighborDinfup(tdpartition* neighbor,tdpartition* flowData,queue<node> *que,
 					  int nx,int ny,int useOutlets, int *outletsX,int *outletsY,long numOutlets);
@@ -162,15 +181,123 @@ void initNeighborD8up(tdpartition* neighbor,tdpartition* flowData,queue<node> *q
 					  int nx,int ny,int useOutlets, int *outletsX,int *outletsY,long numOutlets);  */
 
 /// release 1-D and 2-D arrays, added by Liangjun Zhu
+template<typename T>
+bool Initialize1DArray(int row, T *&data, T initialValue) {
+    if (nullptr != data) {
+        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T[row];
+    if (nullptr == data) {
+        cout << "Bad memory allocated during 1D array initialization!" << endl;
+        return false;
+    }
+    for (int i = 0; i < row; i++) {
+        data[i] = initialValue;
+    }
+    return true;
+}
+
+template<typename T>
+bool Initialize1DArray(int row, T *&data, const T *iniData) {
+    if (nullptr != data) {
+        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T[row];
+    if (nullptr == data) {
+        cout << "Bad memory allocated during 1D array initialization!" << endl;
+        return false;
+    }
+    if (nullptr == iniData) {
+        cout << "The input parameter iniData MUST NOT be nullptr!" << endl;
+        return false;
+    }
+    for (int i = 0; i < row; i++) {
+        data[i] = iniData[i];
+    }
+    return true;
+}
+
+template<typename T>
+bool Initialize2DArray(int row, int col, T **&data, T initialValue) {
+    if (nullptr != data) {
+        cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T *[row];
+    if (nullptr == data) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        return false;
+    }
+    int badAlloc = 0;
+    for (int i = 0; i < row; i++) {
+        data[i] = new(nothrow)T[col];
+        if (nullptr == data[i]) {
+            badAlloc++;
+        }
+        for (int j = 0; j < col; j++) {
+            data[i][j] = initialValue;
+        }
+    }
+    if (badAlloc > 0) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        Release2DArray(row, data);
+        return false;
+    }
+    return true;
+}
+
+template<typename T>
+bool Initialize2DArray(int row, int col, T **&data, const T *const *iniData) {
+    if (nullptr != data) {
+        cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T *[row];
+    if (nullptr == data) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        return false;
+    }
+    int badAlloc = 0;
+    int errorAccess = 0;
+#pragma omp parallel for reduction(+:badAlloc, errorAccess)
+    for (int i = 0; i < row; i++) {
+        data[i] = new(nothrow)T[col];
+        if (nullptr == data[i]) {
+            badAlloc++;
+        }
+        if (nullptr == iniData[i]) {
+            errorAccess++;
+        }
+        else {
+            for (int j = 0; j < col; j++) {
+                data[i][j] = iniData[i][j];
+            }
+        }
+    }
+    if (badAlloc > 0) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        Release2DArray(row, data);
+        return false;
+    }
+    if (errorAccess > 0) {
+        cout << "nullptr pointer existed in iniData during 2D array initialization!" << endl;
+        Release2DArray(row, data);
+        return false;
+    }
+    return true;
+}
 /*!
  * \brief Release DT_Array1D data
  * \param[in] data
  */
 template<typename T>
-void Release1DArray(T *&data)
-{
-    delete[] data;
-    data = NULL;
+void Release1DArray(T *&data) {
+    if (nullptr != data) {
+        delete[] data;
+        data = nullptr;
+    }
 }
 
 /*!
@@ -181,21 +308,23 @@ void Release1DArray(T *&data)
  * \param[in] data
  */
 template<typename T>
-void Release2DArray(int row, T **&data)
-{
-#pragma omp parallel for
-    for (int i = 0; i < row; i++)
-    {
-        if (data[i] != NULL)
+void Release2DArray(int row, T **&data) {
+    if (nullptr == data) {
+        return;
+    }
+    for (int i = 0; i < row; i++) {
+        if (data[i] != nullptr) {
             delete[] data[i];
+            data[i] = nullptr;
+        }
     }
     delete[] data;
-    data = NULL;
+    data = nullptr;
 }
 /*
  * \brief convert string to char*
  */
-char* convertStringToCharPtr(string s);
+char* convertStringToCharPtr(const std::string& s);
 /*
  *\brief Counting time for Cross-platform
  * more precisely than time.clock()

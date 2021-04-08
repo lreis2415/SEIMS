@@ -1,7 +1,7 @@
 #include "ogr_api.h"
 #include "commonLib.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 int readwriteogr(char *datasrc, char *layername, char *datasrcnew, char *layernamenew) {
 
     OGRSFDriverH hDriver, hDriver1;

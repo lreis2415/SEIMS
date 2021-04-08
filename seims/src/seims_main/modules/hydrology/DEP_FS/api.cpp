@@ -1,7 +1,8 @@
-#include "DepressionFS.h"
-#include "MetadataInfo.h" 
-#include "text.h"
 #include "api.h"
+
+#include "DepressionFS.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new DepressionFS();
@@ -9,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
 
     // set the information properties
@@ -38,7 +38,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, DT_Raster1D);
     mdi.AddOutput(VAR_STCAPSURPLUS, UNIT_DEPTH_MM, DESC_STCAPSURPLUS, DT_Raster1D);
 
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
     //return res;
 
     char *tmp = new char[res.size() + 1];

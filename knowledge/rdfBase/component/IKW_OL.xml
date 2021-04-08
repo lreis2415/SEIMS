@@ -17,8 +17,11 @@
         <rdf:li>CHWIDTH</rdf:li>
         <rdf:li>RADIANSLOPE</rdf:li>
         <rdf:li>IOUTLET</rdf:li>
+        <rdf:li>HTOCH</rdf:li>
+        <rdf:li>CELLH</rdf:li>
+        <rdf:li>CELLQ</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-	<hydro:algorithm>Overland flow-One-dimension kinetic wave formula</hydro:algorithm>
+	<hydro:algorithm>Overland Flow-One-dimension kinetic wave formula</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>

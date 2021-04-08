@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract landuse parameters
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 13-01-10  jz - initial implementation
@@ -8,8 +6,9 @@
                 17-07-07  lj - remove SQLite database file as intermediate file
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
+from io import open
 import os
 import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -18,11 +17,10 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from numpy import frompyfunc as np_frompyfunc
 from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
-from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
+from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass, is_string
 
+from utility import status_output, read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
 from preprocess.text import ModelParamDataUtils
-from preprocess.utility import status_output, read_data_items_from_txt, \
-    DEFAULT_NODATA, UTIL_ZERO
 
 
 class LanduseUtilClass(object):
@@ -47,7 +45,7 @@ class LanduseUtilClass(object):
             # print(row)
             value_map = dict()
             for i, p_name in enumerate(property_namelist):
-                if StringClass.string_match(p_name, "USLE_P"):
+                if StringClass.string_match(p_name, 'USLE_P'):
                     # Currently, USLE_P is set as 1 for all landuse.
                     value_map[p_name] = 1
                 else:
@@ -56,7 +54,7 @@ class LanduseUtilClass(object):
                     #     value_map[p_name] = row.get(p_name) * 10
                     # else:
                     v = row.get(p_name)
-                    if isinstance(v, unicode) or isinstance(v, str):
+                    if is_string(v):
                         v = StringClass.extract_numeric_values_from_string(v)[0]
                     value_map[p_name] = v
             count += 1
@@ -65,12 +63,12 @@ class LanduseUtilClass(object):
         n = len(property_map)
         UtilClass.rmmkdir(lookup_dir)
         for propertyName in property_namelist:
-            with open("%s/%s.txt" % (lookup_dir, propertyName,), 'w') as f:
-                f.write("%d\n" % n)
+            with open('%s/%s.txt' % (lookup_dir, propertyName,), 'w', encoding='utf-8') as f:
+                f.write('%d\n' % n)
                 for prop_id in property_map:
-                    s = "%d %f\n" % (int(property_map[prop_id]['LANDUSE_ID']),
+                    s = '%d %f\n' % (int(property_map[prop_id]['LANDUSE_ID']),
                                      property_map[prop_id][propertyName])
-                    f.write(s)
+                    f.write('%s' % s)
 
     @staticmethod
     def reclassify_landuse_parameters(bin_dir, config_file, dst_dir, landuse_file, lookup_dir,
@@ -80,13 +78,13 @@ class LanduseUtilClass(object):
         TODO(LJ): this function should be replaced by replaceByDict() function!
         """
         # prepare reclassify configuration file
-        with open(config_file, 'w') as f_reclass_lu:
-            f_reclass_lu.write("%s\t%d\n" % (landuse_file, default_landuse_id))
-            f_reclass_lu.write("%s\n" % lookup_dir)
+        with open(config_file, 'w', encoding='utf-8') as f_reclass_lu:
+            f_reclass_lu.write('%s\t%d\n' % (landuse_file, default_landuse_id))
+            f_reclass_lu.write('%s\n' % lookup_dir)
             f_reclass_lu.write(dst_dir + "\n")
             n = len(landuse_attr_list)
-            f_reclass_lu.write("%d\n" % n)
-            f_reclass_lu.write("\n".join(landuse_attr_list))
+            f_reclass_lu.write('%d\n' % n)
+            f_reclass_lu.write('\n'.join(landuse_attr_list))
         s = '"%s/reclassify" %s' % (bin_dir, config_file)
         UtilClass.run_command(s)
 
@@ -143,7 +141,7 @@ class LanduseUtilClass(object):
     @staticmethod
     def reclassify_landcover_parameters(landuse_file, landcover_file, landcover_initial_fields_file,
                                         landcover_lookup_file, attr_names, dst_dir):
-        """relassify landcover_init_param parameters"""
+        """reclassify landcover_init_param parameters"""
         land_cover_codes = LanduseUtilClass.initialize_landcover_parameters(
                 landuse_file, landcover_initial_fields_file, dst_dir)
         attr_map = LanduseUtilClass.read_crop_lookup_table(landcover_lookup_file)

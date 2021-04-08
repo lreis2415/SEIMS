@@ -1,8 +1,13 @@
 /*!
+ * \file template.h
  * \brief Brief description of this module
  *        Detail description about the implementation.
  * \author Liangjun Zhu
- * \date last updated 2018-02-07
+ * \date 2018-02-07
+ *
+ * Changelog:
+ *   - 1. 2018-02-07 - lj - Initial implementaition
+ *   - 2. 2019-01-30 - lj - Add (or update) all available APIs
  */
 #ifndef SEIMS_MODULE_TEMPLATE_H
 #define SEIMS_MODULE_TEMPLATE_H
@@ -11,42 +16,50 @@
 
 using namespace std;
 
-class ModulesTest : public SimulationModule {
-private:
-    /// valid cells number
-    int m_nCells;
+class ModuleTemplate: public SimulationModule {
 public:
-    //! Constructor
-    ModulesTest();
+    ModuleTemplate(); //! Constructor
 
-    //! Destructor
-    virtual ~ModulesTest();
+    ~ModuleTemplate(); //! Destructor
 
-    virtual int Execute();
+    ///////////// SetData series functions /////////////
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
 
-    virtual void Set2DData(const char *key, int n, int col, float **data);
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    virtual void Get2DData(const char *key, int *n, int *col, float ***data);
+    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
+
+    void SetReaches(clsReaches* rches) OVERRIDE;
+
+    void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
+
+    void SetScenario(Scenario* sce) OVERRIDE;
+
+    ///////////// CheckInputData and InitialOutputs /////////////
+
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    ///////////// Main control structure of execution code /////////////
+
+    int Execute() OVERRIDE;
+
+    ///////////// GetData series functions /////////////
+
+    TimeStepType GetTimeStepType() OVERRIDE;
+
+    void GetValue(const char* key, float* value) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
 private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
+    int m_nCells; ///< valid cells number
 };
 
+#endif /* SEIMS_MODULE_TEMPLATE_H */

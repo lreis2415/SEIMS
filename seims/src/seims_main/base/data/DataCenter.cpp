@@ -110,11 +110,11 @@ bool DataCenter::GetFileInStringVector() {
 }
 
 void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
-    int n_rows = 12;
-    int n_cols = 5;
-    data = new(nothrow) float *[n_rows];
-    for (int i = 0; i < n_rows; i++) {
-        data[i] = new(nothrow) float[n_cols];
+    rows = 12;
+    cols = 5;
+    data = new(nothrow) float *[rows];
+    for (int i = 0; i < rows; i++) {
+        data[i] = new(nothrow) float[cols];
         data[i][0] = 4.f;    /// element number
         data[i][1] = 0.03f;  // P
         data[i][2] = -0.65f; // T
@@ -574,16 +574,21 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
                             " will not work as expected." << endl;
                     continue;
                 }
+                int count = 0;
                 if (rs_map_[remote_filename]->Is2DRaster()) {
                     int lyr = -1;
                     float** data2d = nullptr;
                     rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
-                    iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits, sel_ids, ludata, suitablelu);
+                    count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
+                                                          sel_ids, ludata, suitablelu);
                 } else {
                     float* data = nullptr;
                     rs_map_[remote_filename]->GetRasterData(&nsize, &data);
-                    iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids, ludata, suitablelu);
+                    count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
+                                                          ludata, suitablelu);
                 }
+                cout << "      A total of "  << count << " has been updated for " <<
+                    remote_filename << endl;
             }
         }
     }

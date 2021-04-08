@@ -1,4 +1,3 @@
-#include "seims.h"
 #include "GWaterReservoir.h"
 #include "text.h"
 
@@ -146,7 +145,7 @@ void GWaterReservoir::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
     } else if (StringMatch(sk, Tag_SubbasinId)) {
-        m_subbasinID = value;
+        m_subbasinID = int(value);
     } else if (StringMatch(sk, VAR_GW_KG)) {
         m_recessionCoefficient = value;
     } else if (StringMatch(sk, VAR_Base_ex)) {

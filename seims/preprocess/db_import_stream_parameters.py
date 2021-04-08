@@ -1,9 +1,7 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Generate parameters of reaches.
 
     This script should be updated with the following files/code simultaneously.\n
-      1. seims/preprocess/database/model_param_ini.txt: Emend initial parameters;\n
+      1. seims/preprocess/database/model_param_ini.csv: Emend initial parameters;\n
       2. seims/src/seims_main/base/data/clsReach.h(.cpp): Update the reading and checking of data.
 
     @author   : Liangjun Zhu, Junzhi Liu
@@ -12,16 +10,17 @@
                 18-02-08  lj - compatible with Python3.\n
                 18-08-13  lj - add erosion related parameters according to readrte.f of SWAT.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import shutil
 import os
 import sys
-
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
+from typing import Union, Dict, AnyStr
 import networkx as nx
 from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTInteger
@@ -30,7 +29,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, FileClass
 from pymongo import ASCENDING
 
-from preprocess.utility import UTIL_ZERO, MINI_SLOPE
+from utility import UTIL_ZERO, MINI_SLOPE
 
 
 class ImportReaches2Mongo(object):
@@ -128,21 +127,22 @@ class ImportReaches2Mongo(object):
     def prepare_node_with_weight_for_metis(graph, weight, wp):
         # construct the METIS input file
         UtilClass.mkdir(wp)
-        metis_input = r'%s/metis.txt' % wp
-        ns = graph.nodes()
-        with open(metis_input, 'w') as f:
-            f.write(str(len(ns)) + '\t' + str(len(graph.edges())) + '\t' + '010\t1\n')
+        metis_input = '%s/metis.txt' % wp
+        ns = list(graph.nodes())
+        ns.sort()
+        with open(metis_input, 'w', encoding='utf-8') as f:
+            f.write('%s\t%s\t010\t1\n' % (repr(len(ns)), repr(len(graph.edges()))))
             for node in ns:
                 if node <= 0:
                     continue
-                f.write(str(weight[node][ImportReaches2Mongo._NUMCELLS]) + '\t')
+                tmp_line = '%s\t' % repr(weight[node][ImportReaches2Mongo._NUMCELLS])
                 for e in graph.out_edges(node):
                     if e[1] > 0:
-                        f.write(str(e[1]) + '\t')
+                        tmp_line += '%s\t' % repr(e[1])
                 for e in graph.in_edges(node):
                     if e[0] > 0:
-                        f.write(str(e[0]) + '\t')
-                f.write('\n')
+                        tmp_line += '%s\t' % repr(e[0])
+                f.write('%s\n' % tmp_line)
         return metis_input
 
     @staticmethod
@@ -185,11 +185,11 @@ class ImportReaches2Mongo(object):
             # kmetis, -ptype=kway, direct k-way partitioning (default)
             str_command = '"%s/gpmetis" %s %d' % (bin_dir, metis_input, n)
             result = UtilClass.run_command(str_command)
-            with open('%s/kmetis/kmetisResult%d.txt' % (wp, n), 'w') as f_metis_output:
-                for line in result:
-                    f_metis_output.write(line)
+            kmetis_file = '%s/kmetis/kmetisResult%d.txt' % (wp, n)
+            with open(kmetis_file, 'w', encoding='utf-8') as f_metis_output:
+                f_metis_output.write('\n'.join(result))
             metis_output = '%s.part.%d' % (metis_input, n)
-            with open(metis_output, 'r') as f:
+            with open(metis_output, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             group_kmetis = [int(item) for item in lines]
             adjust_group_result(weight, group_kmetis, n)
@@ -198,10 +198,10 @@ class ImportReaches2Mongo(object):
             # pmetis, -ptype=rb, recursive bisectioning
             str_command = '"%s/gpmetis" -ptype=rb %s %d' % (bin_dir, metis_input, n)
             result = UtilClass.run_command(str_command)
-            with open('%s/pmetis/pmetisResult%d.txt' % (wp, n), 'w') as f_metis_output:
-                for line in result:
-                    f_metis_output.write(line)
-            with open(metis_output, 'r') as f:
+            pmetis_file = '%s/pmetis/pmetisResult%d.txt' % (wp, n)
+            with open(pmetis_file, 'w', encoding='utf-8') as f_metis_output:
+                f_metis_output.write('\n'.join(result))
+            with open(metis_output, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             group_pmetis = [int(item) for item in lines]
             adjust_group_result(weight, group_pmetis, n)
@@ -215,6 +215,7 @@ class ImportReaches2Mongo(object):
 
     @staticmethod
     def read_reach_downstream_info(reach_shp, is_taudem=True):
+        # type: (AnyStr, bool) -> Dict[int, Dict[AnyStr, Union[int, float]]]
         """Read information of subbasin.
         Args:
             reach_shp: reach ESRI shapefile.
@@ -238,12 +239,12 @@ class ImportReaches2Mongo(object):
             ImportReaches2Mongo._DSLINKNO = 'TO_NODE'
             ImportReaches2Mongo._SLOPE = 'Slo2'  # TauDEM: Slope (tan); ArcSWAT: Slo2 (100*tan)
             ImportReaches2Mongo._LENGTH = 'Len2'  # TauDEM: Length; ArcSWAT: Len2
-        ifrom = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
-        ito = layer_def.GetFieldIndex(ImportReaches2Mongo._DSLINKNO)
-        idph = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
-        islp = layer_def.GetFieldIndex('Slope')
-        iwth = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
-        ilen = layer_def.GetFieldIndex('Length')
+        ifrom = layer_def.GetFieldIndex(str(ImportReaches2Mongo._LINKNO))
+        ito = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DSLINKNO))
+        idph = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DEPTH))
+        islp = layer_def.GetFieldIndex(str('Slope'))
+        iwth = layer_def.GetFieldIndex(str(ImportReaches2Mongo._WIDTH))
+        ilen = layer_def.GetFieldIndex(str('Length'))
 
         ft = layer_reach.GetNextFeature()
         while ft is not None:
@@ -331,19 +332,19 @@ class ImportReaches2Mongo(object):
         ds_reach = ogr_Open(shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
-        icode = layer_def.GetFieldIndex(subbasin_field_name)
-        igrp = layer_def.GetFieldIndex(ImportReaches2Mongo._GROUP)
-        ikgrp = layer_def.GetFieldIndex(ImportReaches2Mongo._KMETIS)
-        ipgrp = layer_def.GetFieldIndex(ImportReaches2Mongo._PMETIS)
+        icode = layer_def.GetFieldIndex(str(subbasin_field_name))
+        igrp = layer_def.GetFieldIndex(str(ImportReaches2Mongo._GROUP))
+        ikgrp = layer_def.GetFieldIndex(str(ImportReaches2Mongo._KMETIS))
+        ipgrp = layer_def.GetFieldIndex(str(ImportReaches2Mongo._PMETIS))
 
         if igrp < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._GROUP, OFTInteger)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._GROUP), OFTInteger)
             layer_reach.CreateField(new_field)
         if ikgrp < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._KMETIS, OFTInteger)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._KMETIS), OFTInteger)
             layer_reach.CreateField(new_field)
         if ipgrp < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._PMETIS, OFTInteger)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._PMETIS), OFTInteger)
             layer_reach.CreateField(new_field)
 
         ftmap = dict()
@@ -357,9 +358,9 @@ class ImportReaches2Mongo(object):
         groups = group_metis_dict[1]['group']
         for i, n in enumerate(groups):
             for node, d in group_metis_dict.items():
-                ftmap[node].SetField(ImportReaches2Mongo._GROUP, n)
-                ftmap[node].SetField(ImportReaches2Mongo._KMETIS, d['kmetis'][i])
-                ftmap[node].SetField(ImportReaches2Mongo._PMETIS, d['pmetis'][i])
+                ftmap[node].SetField(str(ImportReaches2Mongo._GROUP), n)
+                ftmap[node].SetField(str(ImportReaches2Mongo._KMETIS), d['kmetis'][i])
+                ftmap[node].SetField(str(ImportReaches2Mongo._PMETIS), d['pmetis'][i])
                 layer_reach.SetFeature(ftmap[node])
             # copy the reach file to new file
             prefix = os.path.splitext(shp_file)[0]

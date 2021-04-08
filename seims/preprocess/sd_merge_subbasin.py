@@ -1,11 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Merge small subbasins to its downstream subbasin.
+
     @author   : Liangjun Zhu
-    @changelog: 17-06-30  lj - initial version modified from QSWAT 1.4
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-06-30  lj - initial version modified from QSWAT 1.4
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 
 class MergeSubbasins(object):

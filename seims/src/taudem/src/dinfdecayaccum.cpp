@@ -48,7 +48,7 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include "initneighbor.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 
 // The old program was written in column major order.
@@ -302,7 +302,7 @@ int dmarea(char *angfile,
 
         //Create and write TIFF file
         float scaNodata = MISSINGFLOAT;
-        tiffIO dsca(adecfile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO dsca(adecfile, FLOAT_TYPE, scaNodata, ang);
         dsca.write(xstart, ystart, ny, nx, daccum->getGridPointer());
 
         double writet = MPI_Wtime();

@@ -205,24 +205,6 @@ int MUSK_CH::Execute() {
     return 0;
 }
 
-bool MUSK_CH::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_MUSK_CH, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nreach != n - 1) {
-        if (m_nreach <= 0) {
-            m_nreach = n - 1;
-        } else {
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                    m_nreach << ".\n";
-            throw ModelException(MID_MUSK_CH, "CheckInputSize", oss.str());
-        }
-    }
-    return true;
-}
-
 void MUSK_CH::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
@@ -262,19 +244,19 @@ void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_SBPET)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
         m_petSubbsn = data;
     } else if (StringMatch(sk, VAR_SBGS)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
         m_gwSto = data;
     } else if (StringMatch(sk, VAR_SBOF)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
         m_olQ2Rch = data;
     } else if (StringMatch(sk, VAR_SBIF)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
         m_ifluQ2Rch = data;
     } else if (StringMatch(sk, VAR_SBQG)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
         m_gndQ2Rch = data;
     } else {
         throw ModelException(MID_MUSK_CH, "Set1DData", "Parameter " + sk + " does not exist.");

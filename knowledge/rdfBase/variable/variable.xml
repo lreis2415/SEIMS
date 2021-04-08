@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="QCH">
+    <hydro:means>Flux in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="P">
+    <hydro:means>Precipitation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CHWATH">
+    <hydro:means>Water depth in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QSoil">
+    <hydro:means>discharge added to channel flow from interflow</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QSUBBASIN">
+    <hydro:means>discharge at the subbasin outlet</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CHQCH">
+    <hydro:means>Flux in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="HCH">
+    <hydro:means>Water depth in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QOUTLET">
+    <hydro:means>discharge at the watershed outlet</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QOverland">
+    <hydro:means>discharge added to channel flow from overland flow</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBQG">
+    <hydro:means>groundwater flow to channel</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="STCAPSURPLUS">
+    <hydro:means>surplus of storage capacity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DPST">
+    <hydro:means>Distribution of depression storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SURU">
+    <hydro:means>Distribution of surface runoff</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DEET">
+    <hydro:means>Distribution of evaporation from depression storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="PET">
+    <hydro:means>PET calculated from the spatial interpolation module</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INET">
+    <hydro:means>evaporation from the interception storage obtained from the interception module</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="EXCP">
+    <hydro:means>excess precipitation calculated in the infiltration module</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBGS">
+    <hydro:means>ground water storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="PERCOLATION">
+    <hydro:means>Distribution of groundwater recharge (percolation)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="RG">
+    <hydro:means />
+  </rdf:Description>
+  <rdf:Description about="GWNEW">
+    <hydro:means>The volumn of water from the bank storage to the adjacent unsaturated zone and groundwater storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOMO">
+    <hydro:means>Distribution of soil moisture</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="GWWB">
+    <hydro:means />
+  </rdf:Description>
+  <rdf:Description about="GRRE">
+    <hydro:means>the amount of water percolated from the soil water reservoir</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBPET">
+    <hydro:means />
+  </rdf:Description>
+  <rdf:Description about="Revap">
+    <hydro:means />
+  </rdf:Description>
+  <rdf:Description about="SOET">
+    <hydro:means>evaporation from the soil water storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBOF">
+    <hydro:means>Overland flow to streams for each subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOWB">
+    <hydro:means>soil water balance</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBIF">
+    <hydro:means>Interflow to streams for each subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="RadianSlope">
+    <hydro:means>Radian slope</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QRECH">
+    <hydro:means>Flux in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QTotal">
+    <hydro:means>discharge at the watershed outlet</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INFIL">
+    <hydro:means>Infiltration map of watershed</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="FlowWidth">
+    <hydro:means>Flow width of overland plane</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="AccumuInfil">
+    <hydro:means>accumulative infiltration</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="IOUTLET">
+    <hydro:means>index of outlet in the compressed array</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QOverland">
+    <hydro:means>overland runoff</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Reinfiltration">
+    <hydro:means>reinfiltration</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SURU">
+    <hydro:means>Distribution of surface runoff</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INFILCAPSURPLUS">
+    <hydro:means>surplus of infiltration capacity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="ChWidth">
+    <hydro:means>Flow length of overland plane</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="ReturnFlow">
+    <hydro:means>water depth of return flow</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QSoil">
+    <hydro:means>Flux in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  </rdf:Description>
+  <rdf:Description about="SSRU">
+    <hydro:means>The subsurface runoff</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DET">
+    <hydro:means>distribution of channel flow detachment</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CHANV">
+    <hydro:means>distribution of channel flow capacity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEDOUTLET">
+    <hydro:means>sediment concentration at the watershed outlet</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEDSUBBASIN">
+    <hydro:means>sediment yield production of each subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEDTOCH">
+    <hydro:means>distribution of sediment flowing to channel</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QSN">
+    <hydro:means>distribution of channel sediment rate</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CHANVOL">
+    <hydro:means>distribution of channel flow capacity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CAP">
+    <hydro:means>distribution of channel flow capacity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DEP">
+    <hydro:means>distribution of channel sediment deposition</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TestQV">
+    <hydro:means>distribution of sediment content in flow</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEDDEP">
+    <hydro:means>distribution of sediment deposition</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="HTOCH">
+    <hydro:means>Water depth added to channel water depth</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CELLH">
+    <hydro:means>Water depth in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEDTOCH">
+    <hydro:means>distribution of sediment flowing to channel</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TestV">
+    <hydro:means>distribution of sediment content in flow</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DETOverland">
+    <hydro:means>distribution of overland flow detachment</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CELLQ">
+    <hydro:means>Flux in the downslope boundary of cells</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DETSplash">
+    <hydro:means>the distribution of splash detachment</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="FlowWidth">
+    <hydro:means>Flow width of overland plane</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="CHST">
+    <hydro:means>channel storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QG">
+    <hydro:means>Groundwater discharge at each reach outlet and at each time step</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBPET">
+    <hydro:means>the potential evapotranspiration rate of the subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBGS">
+    <hydro:means>Groundwater storage of the subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBQG">
+    <hydro:means>groundwater flow out of the subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="BKST">
+    <hydro:means>bank storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QI">
+    <hydro:means>Interflow at each reach outlet and at each time step</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBOF">
+    <hydro:means>overland flow to streams from each subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="C_WABA">
+    <hydro:means>Channel water balance in a text format for each reach and at each time step</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QS">
+    <hydro:means>Overland discharge at each reach outlet and at each time step</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="QSOUTLET">
+    <hydro:means>discharge at the watershed outlet</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SEEPAGE">
+    <hydro:means>seepage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SBIF">
+    <hydro:means>interflow to streams from each subbasin</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="USLE_LS">
+    <hydro:means>USLE LS factor</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNAC">
+    <hydro:means>snow accumulation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOER">
+    <hydro:means>distribution of soil erosion</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="PERCOLATION">
+    <hydro:means>Distribution of groundwater recharge (percolation)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOTE">
+    <hydro:means>Soil Temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="GRRE">
+    <hydro:means>Distribution of groundwater recharge (percolation)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="WS">
+    <hydro:means>Wind speed (measured at 10 meters above surface)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="RM">
+    <hydro:means>Relative humidity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SR">
+    <hydro:means>Solar radiation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INET">
+    <hydro:means>Evaporation From Interception Storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INLO">
+    <hydro:means>Interception Loss Distribution</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="NEPR">
+    <hydro:means>Net Precipitation Distribution</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOET">
+    <hydro:means>Distribution of soil evapotranspiration for a user defined period.</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="NEPR">
+    <hydro:means>net precipitation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNAC">
+    <hydro:means>distribution of snow accumulation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TMIN">
+    <hydro:means>min temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TMAX">
+    <hydro:means>max temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNME">
+    <hydro:means>distribution of snowmelt</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SWE">
+    <hydro:means>average SA of the watershed</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNSB">
+    <hydro:means>Distribution of snow sublimation (water equivalent) for a user defined period</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNRD">
+    <hydro:means>distribution of snow blowing in or out the cell</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNME">
+    <hydro:means>snow melt</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="WS">
+    <hydro:means>wind speed</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNWB">
+    <hydro:means>snow water balance for selected subbasins</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Revap">
+    <hydro:means>revap</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="RG">
+    <hydro:means>groundwater runoff</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INLO">
+    <hydro:means>Interception Loss Distribution</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DPST">
+    <hydro:means>depression storage</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DETSplash">
+    <hydro:means>distribution of splash detachment</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNRD">
+    <hydro:means>distribution of snow blowing in or out the cell</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SNSB">
+    <hydro:means>Distribution of snow sublimation (water equivalent) for a user defined period</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SSRU">
+    <hydro:means>Distribution of subsurface runoff.</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOTE">
+    <hydro:means>Soil Temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SOMO">
+    <hydro:means>Average soil moisture distribution for a user defined period.</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INFIL">
+    <hydro:means>Infiltratio n map of watershed</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="EXCP">
+    <hydro:means>The excess precipitation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="AccumuInfil">
+    <hydro:means>accumulative infiltration</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="INFILCAPSURPLUS">
+    <hydro:means>surplus of infiltration capacity</hydro:means>
+  </rdf:Description>
+</rdf:RDF>

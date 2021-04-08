@@ -4,7 +4,7 @@
 
 IMP_SWAT::IMP_SWAT() :
     m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE), m_timestep(-1),
-    m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_subbasin(nullptr), m_nSubbasins(-1),
+    m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1), m_subbasin(nullptr), m_nSubbasins(-1),
     m_rteLyrs(nullptr), m_nRteLyrs(-1),
     m_evLAI(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr),
     m_soilThick(nullptr),
@@ -52,45 +52,10 @@ IMP_SWAT::~IMP_SWAT() {
     if (m_potEvap != nullptr) Release1DArray(m_potEvap);
 }
 
-bool IMP_SWAT::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_IMP_SWAT, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_IMP_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
-bool IMP_SWAT::CheckInputSize2D(const char* key, const int n, const int col) {
-    CheckInputSize(key, n);
-    if (col <= 0) {
-        throw ModelException(MID_IMP_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    }
-    if (m_nMaxSoilLayers != col) {
-        if (m_nMaxSoilLayers <= 0) {
-            m_nMaxSoilLayers = col;
-        } else {
-            throw ModelException(MID_IMP_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size of " +
-                                 ValueToString(m_nMaxSoilLayers) + " instead of " +
-                                 ValueToString(col) + ".");
-        }
-    }
-    return true;
-}
-
 bool IMP_SWAT::CheckInputData() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
     CHECK_POSITIVE(MID_IMP_SWAT, m_cellWidth);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nMaxSoilLayers);
+    CHECK_POSITIVE(MID_IMP_SWAT, m_maxSoilLyrs);
     CHECK_POSITIVE(MID_IMP_SWAT, m_nRteLyrs);
     CHECK_POSITIVE(MID_IMP_SWAT, m_evLAI);
     CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potTilemm);
@@ -162,9 +127,9 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
         m_nSubbasins = n - 1;
         return;
     }
-    CheckInputSize(key, n);
+    CheckInputSize(MID_IMP_SWAT, key, n, m_nCells);
     if (StringMatch(sk, VAR_SLOPE)) m_slope = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_soilLayers = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_SUBBSN)) m_subbasin = data;
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) m_sol_sumfc = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
@@ -202,7 +167,7 @@ void IMP_SWAT::Set2DData(const char* key, const int n, const int col, float** da
         m_rteLyrs = data;
         return;
     }
-    CheckInputSize2D(key, n, col);
+    CheckInputSize2D(MID_IMP_SWAT, key, n, col, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThick = data;
     else if (StringMatch(sk, VAR_POROST)) m_sol_por = data;

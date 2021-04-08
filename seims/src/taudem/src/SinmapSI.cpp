@@ -151,7 +151,7 @@ int sindexcombined(char *slopefile,
         FILE *fp;
         int i, j, mter, err, filetype, index, rno, nx, ny;
         float ndva, ndvs;
-        short *ndvter;
+        short ndvter;
         int nor;
         double X1, X2, cellsat, dx, dy;
         float rs, rw, g;
@@ -237,11 +237,11 @@ int sindexcombined(char *slopefile,
         dy = slp.getdyA();
 
         if (rank == 0) {
-            float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         tiffIO sca(scaterrainfile, FLOAT_TYPE);
@@ -299,7 +299,7 @@ int sindexcombined(char *slopefile,
         slpData = CreateNewPartition(slp.getDatatype(), totalX, totalY, dx, dy, slp.getNodata());
         nx = slpData->getnx();
         ny = slpData->getny();
-        ndvs = *(float *) slp.getNodata();
+        ndvs = (float)slp.getNodata();
         int xstart, ystart;
         slpData->localToGlobal(0, 0, xstart, ystart);
         // TODO: put similar comments for the other savedxdyc() function used in this function
@@ -311,12 +311,12 @@ int sindexcombined(char *slopefile,
 
         //Create partition and read data from clibration grid file
         tdpartition *calData;
-        calData = CreateNewPartition(cal.getDatatype(), totalX, totalY, dx, dy, -1);
+        calData = CreateNewPartition(cal.getDatatype(), totalX, totalY, dx, dy, cal.getNodata());
         calData->localToGlobal(0, 0, xstart, ystart);
         calData->savedxdyc(cal);
         cal.read(xstart, ystart, ny, nx, calData->getGridPointer());
 
-        ndvter = (short *) cal.getNodata();
+        ndvter = (short)cal.getNodata();
 
         //Create partition and read data from sca grid file
         tdpartition *scaData;
@@ -387,7 +387,7 @@ int sindexcombined(char *slopefile,
                     scaMaxData->getData(i, j, sca_max_cell_value);
                 }
 
-                region_index = findRegIndex(cal_cell_value, nor, *ndvter);
+                region_index = findRegIndex(cal_cell_value, nor, ndvter);
 
                 //  DGT 12/31/14.  Changed the logic below from region_index < *ndvter to region_index < 0 to allow for *ndvter to be positive
                 if (region_index < 0 || sca_cell_value < 0 || sca_min_cell_value < 0 || sca_max_cell_value < 0
@@ -435,10 +435,10 @@ int sindexcombined(char *slopefile,
 
         //Create and write to the csi TIFF file
         float aNodata = -1.0f;
-        tiffIO csi(sincombinedfile, FLOAT_TYPE, &aNodata, slp);
+        tiffIO csi(sincombinedfile, FLOAT_TYPE, aNodata, slp);
         csi.write(xstart, ystart, ny, nx, csiData->getGridPointer());
         //Create and write to the sat TIFF file
-        tiffIO sat(satfile, FLOAT_TYPE, &aNodata, slp);
+        tiffIO sat(satfile, FLOAT_TYPE, aNodata, slp);
         sat.write(xstart, ystart, ny, nx, satData->getGridPointer());
 
         double writetime = MPI_Wtime() - end;

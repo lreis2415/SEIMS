@@ -1,16 +1,17 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Extract spatial soil parameters
+
     @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen
-    @changelog: 13-01-10  jz - initial implementation
-                16-07-22  lj - Names and units of soil physical parameter are referred to
-                               readsol.f, soil_par.f, and soil_phys.f in SWAT
-                             - Data validation checking is also conducted.
-                16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 13-01-10  jz - initial implementation
+    - 16-07-22  lj - Names and units of soil physical parameter are referred to
+                     readsol.f, soil_par.f, and soil_phys.f in SWAT.
+                     Data validation checking is also conducted.
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import math
 import os
@@ -23,8 +24,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from preprocess.utility import status_output, read_data_items_from_txt
+from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -517,13 +518,17 @@ class SoilProperty(object):
         """Calculate USLE_K factor according to EPIC (Erosion Productivity Impact Calculator).
 
         References:
-            1. Williams, J.R. 1995. The EPIC model. In "Computer models of watershed hydrology".
-                 V.P. Singh, 909-1000. Highlands Ranch, CO, USA: Water Resources Publications.
+            1. Sharply, A. N., & Williams, J. R. (1990).
+               EPIC-erosion/productivity impact calculator I, Model documentation.
+               U.S. Department of Agriculture Technical Bulletin, No. 1768, page 26, Eq. 2.96.
             2. Equation. 4:1.1.5 - 4:1.1.9 in SWAT Theory 2009.
+               Note that one number is wrong, i.e., 0.0256 rather than 0.256 in SWAT theory doc.
+
+        TODO: Add more improved algorithms such as Wang et al. (2016, ISWCR)
         """
         cbn = om * 0.58
         sn = 1. - sand * 0.01
-        a = (0.2 + 0.3 * math.exp(-0.256 * sand * (1. - silt * 0.01)))
+        a = (0.2 + 0.3 * math.exp(-0.0256 * sand * (1. - silt * 0.01)))
         b = math.pow(silt / (clay + silt), 0.3)
         c = (1. - 0.25 * cbn / (cbn + math.exp(3.72 - 2.95 * cbn)))
         d = (1. - 0.7 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))
@@ -574,7 +579,7 @@ class SoilUtilClass(object):
         based on the soil texture triangle developed by USDA.
         The unit is percentage, silt + sand + clay [+ Rock] = 100.
             The corresponding default soil parameters (e.g. Ks, porosity) are stored in
-        `seims/database/SoilLookup.txt`.
+        `seims/database/SoilLookup.csv`.
         Args:
             clay: clay content percentage
             silt: silt content percentage

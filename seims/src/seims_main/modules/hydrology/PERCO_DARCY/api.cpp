@@ -1,7 +1,8 @@
-#include "Percolation.h"
-#include "MetadataInfo.h"
-#include "text.h"
 #include "api.h"
+
+#include "Percolation.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new Percolation_DARCY();

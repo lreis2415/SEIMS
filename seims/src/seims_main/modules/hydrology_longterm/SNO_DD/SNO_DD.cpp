@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "SNO_DD.h"
-
+#include "text.h"
 
 SNO_DD::SNO_DD(void) : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE),
                        m_tsnow(NODATA_VALUE), m_crain(NODATA_VALUE), m_csnow(NODATA_VALUE),

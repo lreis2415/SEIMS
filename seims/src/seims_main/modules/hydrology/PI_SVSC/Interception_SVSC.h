@@ -4,9 +4,11 @@
  *        This module is STORM_MODE and LONGTERM_MODE compatibility.
  * \author Alex Storey, Junzhi Liu, Liangjun Zhu
  * \date Apr 2017
- * 
+ *
  */
-#pragma once
+#ifndef SEIMS_PI_SVSC_H
+#define SEIMS_PI_SVSC_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -19,7 +21,7 @@ using namespace std;
  * \class clsPI_SVSC
  * \ingroup PI_SVSC
  * \brief Class for Precipitation Interception module by Seasonal Variation of Storage Capacity method.
- *        1. Lookup for max. and min. interception storage capacity corresponding to summer and winter 
+ *        1. Lookup for max. and min. interception storage capacity corresponding to summer and winter
  *           extremes for different vegetation types.
  *        2. A simple sine-shaped variation curve is used to interpolate for continuous storage capacity.
  *        3. Hourly interception storage capacity is assumed to be constant.
@@ -108,5 +110,6 @@ private:
     /*!
      * \brief Initialize output variables for the first run of the entire simulation
      */
-    void initialOutputs(void);
+    void InitialOutputs(void);
 };
+#endif /* SEIMS_PI_SVSC_H */

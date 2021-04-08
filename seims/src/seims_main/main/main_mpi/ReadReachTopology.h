@@ -46,18 +46,18 @@ public:
     int transfer_count;     ///< count of transferred values
     float* transfer_values; ///< transferred values
 
-    SubbasinStruct* down_stream;         ///< down stream subbasin \sa SubbasinStruct
+    SubbasinStruct* down_stream;         ///< down stream subbasin, SubbasinStruct
     vector<SubbasinStruct *> up_streams; ///< up stream subbasins
 };
 
 /*!
  * \brief Read reach table from MongoDB and create reach topology for task allocation.
  * \ingroup seims_mpi
- * \param[in] client \sa MongoClient
+ * \param[in] client MongoClient
  * \param[in] dbname database name which stored the reach collection
- * \param[in] group_method \sa GroupMethod
- * \param[in] group_size \sa number of parallel tasks, i.e., number of processes
- * \param[out] subbasins Map of subbasin data struct, \sa SubbasinStruct
+ * \param[in] group_method GroupMethod
+ * \param[in] group_size number of parallel tasks, i.e., number of processes
+ * \param[out] subbasins Map of subbasin data struct, SubbasinStruct
  * \param[out] group_set Group ID set, e.g., 1, 2, 3, 4
  */
 int CreateReachTopology(MongoClient* client, const string& dbname,

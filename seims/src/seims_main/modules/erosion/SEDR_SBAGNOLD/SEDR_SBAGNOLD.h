@@ -19,7 +19,7 @@
  *   - 6. 2018-06-28 - lj -
  *        -# The initialization of m_sedSto should be done in Set1DData after m_chSto.
  *        -# Bug fixed about code related to the IN/OUTPUT variables.
- *   - 7. 2018-08-15 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
+ *   - 7. 2018-08-15 - lj - Update from rtsed.f to rtsed_bagnold.f of SWAT.
  *
  * \author Liangjun Zhu, Hui Wu, Junzhi Liu
  */
@@ -45,30 +45,29 @@ public:
 
     ~SEDR_SBAGNOLD();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
+    void InitialOutputs() OVERRIDE;
 
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
+
+    int Execute() OVERRIDE;
 
     TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
-private:
-    void InitialOutputs();
 
+    void GetValue(const char* key, float* value) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+private:
     void PointSourceLoading();
 
     void SedChannelRouting(int i);
@@ -85,7 +84,6 @@ private:
     float m_peakRateAdj;    ///< the peak rate adjustment factor
     float m_sedTransEqCoef; ///< Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqExp;  ///< Exponent in sediment transport equation, spexp in SWAT
-    float m_critVelSedDep;  ///< critical velocity for sediment deposition
     float m_initChSto;      ///< initial channel storage per meter of reach length (m^3/m)
 
     float* m_reachDownStream; ///< downstream id (The value is 0 if there if no downstream reach)
@@ -103,7 +101,7 @@ private:
     float* m_chBnkErod;   ///< channel bank erodibility factor, cm^3/N/s
     float* m_chBedErod;   ///< channel bed erodibility factor, cm^3/N/s
     float* m_chBnkTc;     ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBedTc;     ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBedTc;     ///< Critical shear stress of channel bed, N/m^2
     float* m_chBnkSand;   ///< Fraction of sand in channel bank sediment
     float* m_chBnkSilt;   ///< Fraction of silt in channel bank sediment
     float* m_chBnkClay;   ///< Fraction of clay in channel bank sediment

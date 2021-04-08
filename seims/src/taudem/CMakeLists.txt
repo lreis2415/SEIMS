@@ -4,15 +4,19 @@
 #     Please from the off-tree build directory, invoke:
 #       $ cmake <path/to/TauDEM_ext>
 #
+#       Optional cmake options:
+#         -DINSTALL_PREFIX=<path/to/install>
+#         -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /usr/local/opt/llvm
+#
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2010/2013, MSMPI-v8, GDAL-1.11.4
-#     2. Windows 10 with mingw64 (GCC-4.9.3), MSMPI-v8, GDAL-1.11.5
+#     1. Windows 10 with Visual Studio 2010/2013/2015, MSMPI-v8.1, GDAL-1.11.4
+#     2. Windows 10 with msys2/mingw64 (GCC-9.1.0), MSMPI-v8.1, GDAL-3.0
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, MPICH-3.1.4, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, Intel MPI 4.0.3, GDAL-1.11.5
-#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), OpenMPI-1.10.4, GDAL-1.11.4 (Framework)
+#     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 4, 2018
+#  Latest updated: Jul. 21, 2019
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -22,7 +26,37 @@ FATAL: In-source builds are not allowed.
 )
 ENDIF()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
+
+if(POLICY CMP0015)
+  cmake_policy(SET CMP0015 NEW)
+endif()
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+# Set initial project name with coding languages
 PROJECT(TauDEM_ext CXX C)
+### TauDEM_ext compilation version.
+SET(PRJNAME "TauDEM_ext")
+### Build Postfix
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
+SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "Default RelWithDebInfo postfix")
+SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "Default MinSizeRel postfix")
+IF (CMAKE_BUILD_TYPE MATCHES "Release")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELEASE_POSTFIX}")
+ELSEIF (CMAKE_BUILD_TYPE MATCHES "MinSizeRel")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_MINSIZEREL_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELWITHDEBINFO_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+ELSE()
+  SET(CMAKE_BUILD_POSTFIX "")
+ENDIF()
 
 ### Set cmake find path
 set(CMAKE_MODULE_PATH
@@ -33,7 +67,7 @@ set(CMAKE_MODULE_PATH
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
   SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
-ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+ELSE()
   SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
@@ -42,7 +76,8 @@ SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
   SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
-### Allow project folders in MSVC.
+
+### Allow project folders in MSVC and Xcode.
 IF(MSVC OR XCODE)
   SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
@@ -68,18 +103,40 @@ INCLUDE(AddFindPaths)
 FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
   SET(WITH_MPI 1)
+  SET(PRJNAME ${PRJNAME}_MPI)
   MESSAGE(STATUS "Compiling with MPI...")
 ELSE()
   MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
 ENDIF()
 
 ### Find OMP which is optional
-FIND_PACKAGE(OpenMP)
+IF(XCODE)
+  # To use OpenMP in Xcode built by CMake, the recommended way is to 
+  #   install llvm by 'brew install llvm', which has builtin 'libomp'
+  IF (NOT LLVM_ROOT_DIR)
+    SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
+  ENDIF ()
+  FIND_PACKAGE(LLVM)
+  IF(LLVM_FOUND)
+    geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
+	SET(OpenMP_CXX_FLAGS "-fopenmp")
+    SET(OpenMP_C_FLAGS "-fopenmp")
+	FIND_LIBRARY(OpenMP_LIBRARY
+		NAMES "omp"
+		HINTS ${LLVM_LIBRARY_DIRS}) 
+    SET(OPENMP_FOUND 1)
+  ENDIF ()
+ELSE ()  
+  FIND_PACKAGE(OpenMP)
+ENDIF ()
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
+  SET(PRJNAME ${PRJNAME}_OMP)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
   MESSAGE(STATUS "Compiling with OpenMP...")
 ENDIF()
+
+PROJECT(${PRJNAME})
 
 ### Find GDAL which is required.
 FIND_PACKAGE(GDAL REQUIRED)
@@ -100,15 +157,24 @@ IF(MSVC)
 ENDIF(MSVC)
 ### OS platform.
 if (WIN32)
-  add_definitions(-Dwindows)
+  add_definitions(-DWINDOWS)
   if (MSVC)
     add_definitions(-DMSVC)
   endif ()
 elseif (APPLE)
-  add_definitions(-Dmacos)
+  add_definitions(-DMACOSX)
 else ()
-  add_definitions(-Dlinux)
+  add_definitions(-DLINUX)
 endif ()
+
+### Assume built-in pthreads on macOS X
+IF(APPLE)
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
 
 SET(TAUDEM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 SET(TAUDEM_EXT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src_ext)

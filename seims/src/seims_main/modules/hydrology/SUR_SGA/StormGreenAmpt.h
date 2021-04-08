@@ -3,7 +3,9 @@
  * \author Junzhi Liu
  * \date Oct. 2011
  */
-#pragma once
+#ifndef SEIMS_SUR_SGA_H
+#define SEIMS_SUR_SGA_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -65,7 +67,7 @@ private:
     //bool CheckOutputData(float* output1, float* output2);
 
     void clearInputs(void);
-    
+
 private:
 	/// number of soil layers of each cell
 	float m_nSoilLyrs;
@@ -142,6 +144,7 @@ private:
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
 };
+#endif /* SEIMS_SUR_SGA_H */

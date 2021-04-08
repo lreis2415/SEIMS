@@ -1,31 +1,32 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base class of calibration.
+
     @author   : Liangjun Zhu
-    @changelog: 18-01-22  lj - design and implement.\n
-                18-01-25  lj - redesign the individual class, add 95PPU, etc.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-07-10  lj - Update accordingly.\n
+
+    @changelog:
+    - 18-01-22  - lj - design and implement.
+    - 18-01-25  - lj - redesign the individual class, add 95PPU, etc.
+    - 18-02-09  - lj - compatible with Python3.
+    - 20-07-22  - lj - update to use global MongoClient object.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import time
 from collections import OrderedDict
 import os
 import sys
-import shutil
 from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from typing import Optional
 from pygeoc.utils import FileClass
 
-from preprocess.db_mongodb import ConnectMongoDB
+from utility import read_data_items_from_txt
+import global_mongoclient as MongoDBObj
 from preprocess.text import DBTableNames
-from preprocess.utility import read_data_items_from_txt
 from run_seims import MainSEIMS
-from calibration.config import CaliConfig, get_cali_config
+from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
 
 
@@ -71,9 +72,11 @@ class ObsSimData(object):
                 concate += '\t'
             else:
                 if name.upper() == 'PBIAS':
-                    concate += '%s-abs(PBIAS)\t' % prefix
-                else:
+                    tmpvar = '%s-abs(PBIAS)' % varname
+                if prefix != '':
                     concate += '%s-%s\t' % (prefix, tmpvar)
+                else:
+                    concate += '%s\t' % tmpvar
         return concate
 
     def output_efficiency(self, varname, effnames):
@@ -96,6 +99,7 @@ class Calibration(object):
     """
 
     def __init__(self, cali_cfg, id=-1):
+        # type: (CaliConfig, Optional[int]) -> None
         """Initialize."""
         self.cfg = cali_cfg
         self.model = cali_cfg.model
@@ -127,8 +131,7 @@ class Calibration(object):
         if self.param_defs:
             return self.param_defs
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
 
@@ -155,16 +158,14 @@ class Calibration(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
-        conn = client.get_conn()
+        conn = MongoDBObj.client
         db = conn[self.cfg.model.db_name]
-        stime_str = self.cfg.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.cfg.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.cfg.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
-        client.close()
 
     def initialize(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
@@ -204,6 +205,7 @@ def calibration_objectives(cali_obj, ind):
     model_obj.SetOutletObservations(ind.obs.vars, ind.obs.data)
 
     # Execute model
+    model_obj.SetMongoClient()
     model_obj.run()
     time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
 
@@ -212,6 +214,8 @@ def calibration_objectives(cali_obj, ind):
         ind.sim.vars = model_obj.sim_vars[:]
         ind.sim.data = deepcopy(model_obj.sim_value)
     else:
+        model_obj.clean(calibration_id=ind.id)
+        model_obj.UnsetMongoClient()
         return ind
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
     ind.cali.vars, ind.cali.data = model_obj.ExtractSimData(cali_obj.cfg.cali_stime,
@@ -244,12 +248,13 @@ def calibration_objectives(cali_obj, ind):
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
 
     # delete model output directory for saving storage
-    shutil.rmtree(model_obj.output_dir)
+    model_obj.clean(calibration_id=ind.id)
+    model_obj.UnsetMongoClient()
     return ind
 
 
 if __name__ == '__main__':
-    cf, method = get_cali_config()
+    cf, method = get_optimization_config()
     cfg = CaliConfig(cf, method=method)
 
     caliobj = Calibration(cfg)

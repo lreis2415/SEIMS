@@ -3,7 +3,8 @@
  * \author
  * \date
  */
-#pragma once
+#ifndef SEIMS_SSM_PE_H
+#define SEIMS_SSM_PE_H
 
 #include "SimulationModule.h"
 
@@ -20,7 +21,7 @@ using namespace std;
  * \class SSM_PE
  * \ingroup SSM_PE
  * \brief Calculate distribution of snow sublimation
- * 
+ *
  */
 class SSM_PE : public SimulationModule {
 public:
@@ -65,6 +66,6 @@ private:
 
     bool m_isInitial;
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 };
-
+#endif /* SEIMS_SSM_PE_H */

@@ -104,22 +104,6 @@ int SNO_SP::Execute() {
     return 0;
 }
 
-bool SNO_SP::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SNO_SP, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SNO_SP, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void SNO_SP::SetValue(const char* key, const float value) {
     string s(key);
     if (StringMatch(s, VAR_K_BLOW)) m_kblow = value;
@@ -136,7 +120,7 @@ void SNO_SP::SetValue(const char* key, const float value) {
 }
 
 void SNO_SP::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SNO_SP, key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_TMEAN)) m_meanTemp = data;
     else if (StringMatch(s, VAR_TMAX)) m_maxTemp = data;

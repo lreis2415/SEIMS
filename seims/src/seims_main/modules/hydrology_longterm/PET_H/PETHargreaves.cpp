@@ -5,9 +5,9 @@
 #include "text.h"
 
 PETHargreaves::PETHargreaves() :
-    m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
-    m_rhd(nullptr), m_cellLat(nullptr), m_phuAnn(nullptr),
     m_nCells(-1), m_HCoef_pet(0.0023f), m_petFactor(1.f),
+    m_cellLat(nullptr), m_phuAnn(nullptr),
+    m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr), m_rhd(nullptr),
     m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
@@ -24,12 +24,12 @@ void PETHargreaves::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_PET_HCOEF)) m_HCoef_pet = value;
     else {
         throw ModelException(MID_PET_H, "SetValue", "Parameter " + sk +
-                             " does not exist in current module. Please contact the module developer.");
+                             " does not exist in current module.");
     }
 }
 
 void PETHargreaves::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PET_H, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
     else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;
@@ -39,8 +39,20 @@ void PETHargreaves::Set1DData(const char* key, const int n, float* value) {
     else if (StringMatch(sk, VAR_PHUTOT)) m_phuAnn = value;
     else {
         throw ModelException(MID_PET_H, "Set1DData", "Parameter " + sk +
-                             " does not exist in current module. Please contact the module developer.");
+                             " does not exist in current module.");
     }
+}
+
+bool PETHargreaves::CheckInputData() {
+    CHECK_POSITIVE(MID_PET_H, m_date);
+    CHECK_POSITIVE(MID_PET_H, m_nCells);
+    CHECK_POINTER(MID_PET_H, m_maxTemp);
+    CHECK_POINTER(MID_PET_H, m_meanTemp);
+    CHECK_POINTER(MID_PET_H, m_minTemp);
+    CHECK_POINTER(MID_PET_H, m_rhd);
+    CHECK_POINTER(MID_PET_H, m_cellLat);
+    CHECK_POINTER(MID_PET_H, m_phuAnn);
+    return true;
 }
 
 void PETHargreaves::InitialOutputs() {
@@ -105,32 +117,4 @@ void PETHargreaves::Get1DData(const char* key, int* n, float** data) {
     else {
         throw ModelException(MID_PET_H, "Get1DData", "Parameter " + sk + " does not exist.");
     }
-}
-
-bool PETHargreaves::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PET_H, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PET_H, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
-bool PETHargreaves::CheckInputData() {
-    CHECK_POSITIVE(MID_PET_H, m_date);
-    CHECK_POSITIVE(MID_PET_H, m_nCells);
-    CHECK_POINTER(MID_PET_H, m_maxTemp);
-    CHECK_POINTER(MID_PET_H, m_meanTemp);
-    CHECK_POINTER(MID_PET_H, m_minTemp);
-    CHECK_POINTER(MID_PET_H, m_rhd);
-    CHECK_POINTER(MID_PET_H, m_cellLat);
-    CHECK_POINTER(MID_PET_H, m_phuAnn);
-    return true;
 }

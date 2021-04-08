@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "SplashEro_Park.h"
-
+#include "text.h"
 
 using namespace std;
 

@@ -1,4 +1,3 @@
-#include "seims.h"
 #include "IKW_CH.h"
 #include "text.h"
 
@@ -371,13 +370,13 @@ bool ImplicitKinematicWave_CH::CheckInputSizeChannel(const char *key, int n) {
 
 void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
     string sk(key);
-    //if (StringMatch(sk, VAR_QOUTLET)) {
-        //auto it = m_reachLayers.end();
-        //it--;
-        //int reachId = it->second[0];
-        //int iLastCell = m_reachs[reachId].size() - 1;
-        //*value = m_qCh[reachId][iLastCell];
-    //} 
+    //if (StringMatch(sk, VAR_QOUTLET)) { // TODO: clean up.
+    //    auto it = m_reachLayers.end();
+    //    it--;
+    //    int reachId = it->second[0];
+    //    int iLastCell = m_reachs[reachId].size() - 1;
+    //    *value = m_qCh[reachId][iLastCell];
+    //} else
     if (StringMatch(sk, VAR_QTOTAL)) {
         auto it = m_reachLayers.end();
         it--;
@@ -472,7 +471,7 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols
     *nRows = m_chNumber;
     //if (StringMatch(sk, VAR_QRECH)) {  //TODO QRECH is DT_array1D? LJ
         //*data = m_qCh;
-    //} 
+    //}
     if (StringMatch(sk, VAR_HCH)) {
         *data = m_hCh;
     } else {

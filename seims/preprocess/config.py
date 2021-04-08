@@ -1,13 +1,14 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Configuration of SEIMS project.
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                17-12-18  lj - add field partition parameters
-                18-02-08  lj - combine serial and cluster versions and compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 17-12-18  lj - add field partition parameters
+    - 18-02-08  lj - combine serial and cluster versions and compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import json
 import os
@@ -16,19 +17,16 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
+from configparser import ConfigParser
 
 from pygeoc.TauDEM import TauDEMFilesUtils
-from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
 from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
-class SEIMSConfig(object):
+class PreprocessConfig(object):
     """Parse SEIMS project configuration."""
 
     def __init__(self, cf):
@@ -54,19 +52,14 @@ class SEIMSConfig(object):
         self.climate_db = ''
         self.bmp_scenario_db = ''
         self.spatial_db = ''
-        # 3. Switch for building SEIMS. These switches should be removed! By lj.
-        # self.gen_cn = True
-        # self.gen_runoff_coef = True
-        # self.gen_crop = True
-        # self.gen_iuh = True
-        # 4. Climate inputs
+        # 3. Climate inputs
         self.hydro_climate_vars = None
         self.prec_sites = None
         self.prec_data = None
         self.Meteo_sites = None
         self.Meteo_data = None
         self.thiessen_field = 'ID'
-        # 5. Spatial inputs
+        # 4. Spatial inputs
         self.prec_sites_thiessen = None
         self.meteo_sites_thiessen = None
         self.dem = None
@@ -78,7 +71,7 @@ class SEIMSConfig(object):
         self.fields_partition = False
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
-        # 6. Option parameters
+        # 5. Option parameters
         self.d8acc_threshold = 0
         self.np = 4
         self.d8down_method = 's'
@@ -118,8 +111,7 @@ class SEIMSConfig(object):
                 # os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
-                print('WARNING: Make WORKING_DIR failed: %s. '
-                      'Use the default: %s' % (exc.message, self.workspace))
+                print('WARNING: Make WORKING_DIR failed! Use the default: %s' % self.workspace)
                 if not os.path.exists(self.workspace):
                     UtilClass.mkdir(self.workspace)
 
@@ -162,18 +154,7 @@ class SEIMSConfig(object):
         if not StringClass.is_valid_ip_addr(self.hostname):
             raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
 
-        # 3. Model related switch. The SWITCH section should be removed! By lj.
-        # by default, OpenMP version and daily (longterm) mode will be built
-        # if 'SWITCH' in cf.sections():
-        #     self.gen_cn = cf.getboolean('SWITCH', 'gencn')
-        #     self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
-        #     self.gen_crop = cf.getboolean('SWITCH', 'gencrop')
-        #
-        # if self.storm_mode:
-        #     self.gen_iuh = False
-        #     self.climate_db = ModelNameUtils.standardize_climate_dbname(self.climate_db)
-
-        # 4. Climate Input
+        # 3. Climate Input
         if 'CLIMATE' in cf.sections():
             self.hydro_climate_vars = self.clim_dir + os.path.sep + cf.get('CLIMATE',
                                                                            'hydroclimatevarfile')
@@ -185,7 +166,7 @@ class SEIMSConfig(object):
         else:
             raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')
 
-        # 5. Spatial Input
+        # 4. Spatial Input
         if 'SPATIAL' in cf.sections():
             self.prec_sites_thiessen = self.spatial_dir + os.path.sep + cf.get('SPATIAL',
                                                                                'precsitesthiessen')
@@ -203,7 +184,7 @@ class SEIMSConfig(object):
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = cf.get('SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)
-                tmpdict = {str(k): (str(v) if isinstance(v, str) else v) for k, v in
+                tmpdict = {str(k): (str(v) if is_string(v) else v) for k, v in
                            list(tmpdict.items())}
                 for k, v in list(tmpdict.items()):
                     # Existence check has been moved to mask_origin_delineated_data()
@@ -219,7 +200,7 @@ class SEIMSConfig(object):
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
-        # 6. Option parameters
+        # 5. Optional parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():
             self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
@@ -235,7 +216,7 @@ class SEIMSConfig(object):
             else:
                 self.d8down_method = self.d8down_method.lower()
                 if self.d8down_method not in ['s', 'h', 'p', 'v']:
-                    self.d8down_method = 'h'
+                    self.d8down_method = 's'
             self.dorm_hr = cf.getfloat('OPTIONAL_PARAMETERS', 'dorm_hr')
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',
@@ -249,7 +230,7 @@ def parse_ini_configuration():
     cf = ConfigParser()
     ini_file = get_config_file()
     cf.read(ini_file)
-    return SEIMSConfig(cf)
+    return PreprocessConfig(cf)
 
 
 if __name__ == '__main__':

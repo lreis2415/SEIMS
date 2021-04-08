@@ -1,0 +1,28 @@
+# 1. Please download the proper compiled version of numpy, gdal, and matplotlib
+#     from https://www.lfd.uci.edu/~gohlke/pythonlibs/
+# numpy>=1.10
+# matplotlib>=1.5.0
+# gdal>=1.9.0
+# Shapely>=1.5.0
+# 2. Please install pygeoc from the github repo for the latest version
+#      https://github.com/lreis2415/PyGeoC
+# pygeoc>0.3
+
+pymongo>=3.0
+networkx>=1.10,<=2.2;python_version<'3.5'
+networkx>=1.10;python_version>='3.5'
+pathlib2>=2.0.0
+future
+six
+typing
+
+# Python 2.7.x only
+configparser;python_version<'3'
+
+scoop>=0.7.1.1
+# If any errors caused by DEAP occurred, please (re)install the latest version of DEAP by:
+# pip install git+https://github.com/DEAP/deap@master
+deap>=1.2.2
+SALib>=1.2;python_version>'3'
+# SALib uses PyScaffold which is not compatible with Py27 since version 3. So, I decided to use SALib 1.2 for Py27.
+SALib<1.3;python_version<'3'

@@ -47,7 +47,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int depgrd(char *angfile, char *dgfile, char *depfile) {
 
@@ -240,7 +240,7 @@ int depgrd(char *angfile, char *dgfile, char *depfile) {
         double computet = MPI_Wtime();
 
         //Create and write TIFF file
-        tiffIO ddep(depfile, FLOAT_TYPE, &depNodata, ang);
+        tiffIO ddep(depfile, FLOAT_TYPE, depNodata, ang);
         ddep.write(xstart, ystart, ny, nx, dep->getGridPointer());
 
         double writet = MPI_Wtime();

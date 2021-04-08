@@ -1,15 +1,17 @@
 /*!
  * \brief Park Equation for splash erosion, and Foster Equation for overland flow soil detachment
  *           use the USLE_C, USLE_K in the calculation of splash erosion.
- *           PARK S, MITCHELL J, BUBENZER G,. Rainfall characteristics and their relation to splash erosion[J]. 
+ *           PARK S, MITCHELL J, BUBENZER G,. Rainfall characteristics and their relation to splash erosion[J].
  *                 Trans. ASAE, 1983, 26(3): 795¨C804.
  * \author Hui Wu
  * \date Feb. 2012
  * \revised Liang-Jun Zhu
  * \date Mar. 2017
- * \description:  1. 
+ * \description:  1.
  */
-#pragma once
+#ifndef SEIMS_SPLASHERO_PARK_H
+#define SEIMS_SPLASHERO_PARK_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -61,7 +63,7 @@ private:
 
     //static string toString(float value);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
 private:
     //Parameters
@@ -108,3 +110,4 @@ private:
 };
 ///parameter calibration coefficient of splash erosion (-)  /// NOT USED, deleted? LJ
 //float m_Ccoe;
+#endif /* SEIMS_SPLASHERO_PARK_H */

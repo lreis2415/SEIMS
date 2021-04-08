@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "KinWavSed_OL.h"
-
+#include "text.h"
 
 using namespace std;
 

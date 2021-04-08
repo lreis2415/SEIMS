@@ -13,6 +13,7 @@
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
+ *          2019-11-06 - lj - Allow user specified MongoDB host and port.
  *
  */
 #include "gtest/gtest.h"
@@ -22,12 +23,15 @@
 #ifdef USE_MONGODB
 #include "../../src/db_mongoc.h"
 #endif
+#include "../test_global.h"
 
 using namespace ccgl::data_raster;
 using namespace ccgl::utils_filesystem;
 #ifdef USE_MONGODB
 using namespace ccgl::db_mongoc;
 #endif
+
+extern GlobalEnvironment* GlobalEnv;
 
 namespace {
 
@@ -83,7 +87,6 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(1.f, rs->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs->GetCellWidth());
     EXPECT_EQ(3, rs->GetLayers());
-    EXPECT_STREQ("", rs->GetSrs());
     EXPECT_EQ("", rs->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap2D **/
@@ -260,7 +263,7 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
 
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
-    MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
+    MongoClient* conn = MongoClient::Init(GlobalEnv->mongoHost.c_str(), GlobalEnv->mongoPort);
     if (nullptr != conn) {
         string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
@@ -286,7 +289,14 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
         EXPECT_FLOAT_EQ(1.42141729f, rs->GetStd(3));
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
+
+    delete rs;
 }
 } /* namespace */

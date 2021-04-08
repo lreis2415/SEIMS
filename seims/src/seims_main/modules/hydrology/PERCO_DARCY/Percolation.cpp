@@ -1,4 +1,3 @@
-#include "seims.h"
 #include "Percolation.h"
 #include "text.h"
 

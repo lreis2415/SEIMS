@@ -42,7 +42,7 @@ public:
     InputRasterFiles(const string& rsf, const string& maskf) {
         raster_name = rsf.c_str();
         mask_name = maskf.c_str();
-    };
+    }
     const char* raster_name;
     const char* mask_name;
 };
@@ -117,7 +117,6 @@ TEST_P(clsRasterDataTestNoPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(25., rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2., rs_->GetCellWidth());
     EXPECT_EQ(1, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/

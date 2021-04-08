@@ -47,12 +47,12 @@ public:
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
 
-    //! Adjust 1D Raster, \ref Adjust1DArray()
+    //! Adjust 1D Raster, \sa Adjust1DArray()
     void Adjust1DRaster(int n, float* data);
 
     //! Adjust 1D Raster on selected area
-    void Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
-                        const float* lu, const vector<int>& sellu);
+    int Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
+                       const float* lu, const vector<int>& sellu);
 
     //! Adjust 2D array
     void Adjust2DArray(int n, float** data);
@@ -61,8 +61,8 @@ public:
     void Adjust2DRaster(int n, int lyrs, float** data);
 
     //! Adjust 1D Raster on selected area
-    void Adjust2DRaster(int n, int lyrs, float** data, float* units, const vector<int>& selunits,
-                        float* lu, const vector<int>& sellu);
+    int Adjust2DRaster(int n, int lyrs, float** data, float* units, const vector<int>& selunits,
+                       float* lu, const vector<int>& sellu);
 
     //! Name
     string Name;

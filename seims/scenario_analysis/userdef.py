@@ -1,15 +1,24 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base classes of user defined tools for NSAG-II.
+
     @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-11-08  hr - initial implementation.\n
-                17-08-18  lj - move the original code to slpposunits.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+
+    - 16-11-08  - hr - initial implementation.
+    - 17-08-18  - lj - move the original code to spatialunits module.
+    - 18-02-09  - lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 
 # Initial tool functions supplemented to DEAP.tools
+
+def initRepeatWithCfgFromList(container, func, cf, inlist):
+    return container(func(cf, l) for l in inlist)
+
+
+def initIterateWithCfgWithInput(container, generator, cf, input_genes):
+    return container(generator(cf, input_genes))
 
 
 def initRepeatWithCfg(container, func, cf, n=2):
@@ -51,4 +60,3 @@ def initIterateWithCfg(container, generator, cf=None):
         return container(generator())
     else:
         return container(generator(cf))
-

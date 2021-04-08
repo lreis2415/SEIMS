@@ -54,38 +54,19 @@ public:
 
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void SetSubbasins(clsSubbasins*) OVERRIDE;
+    void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
+
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
+    void Get1DData(const char* key, int* nrows, float** data) OVERRIDE;
 
-    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
-
-private:
-
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key: The key of the input data
-    *	@param n: The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
-    /*
-     * \brief initial outputs as default values
-     */
-    void InitialOutputs();
+    TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
 
 private:
     //inputs
@@ -97,7 +78,7 @@ private:
     //! cell size of the grid (m)
     float m_cellWth;
     //! maximum soil layers number
-    int m_nMaxSoilLayers;
+    int m_maxSoilLyrs;
     //! soil layers number of each cell
     float* m_nSoilLyrs;
     //! soil thickness of each layer
@@ -161,7 +142,7 @@ private:
     int m_inputSubbsnID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    //! All subbasins information,\ref clsSubbasins, \ref Subbasin
+    //! All subbasins information
     clsSubbasins* m_subbasinsInfo;
 
 };

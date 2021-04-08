@@ -2,9 +2,11 @@
  * \brief Interflow routing using implicit finite difference method
  *        1D kinematic wave method in LISEM model
  * \author Junzhi Liu
- * \date Feb. 2011 
+ * \date Feb. 2011
  */
-#pragma once
+#ifndef SEIMS_IKW_IF_H
+#define SEIMS_IKW_IF_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -53,7 +55,7 @@ private:
 
     bool FlowInSoil(int id);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
     /// size
     int m_nCells;
@@ -112,4 +114,4 @@ private:
 	float m_nSoilLyrs;
 	int m_maxSoilLyrs;
 };
-
+#endif /* SEIMS_IKW_IF_H */

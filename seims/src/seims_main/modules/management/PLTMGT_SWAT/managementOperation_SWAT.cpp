@@ -20,7 +20,7 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
     /// Plant operation related parameters
     m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_cn2(nullptr),
     m_igro(nullptr),
-    m_landCoverCls(nullptr), m_HvstIdxTrgt(nullptr), m_BiomTrgt(nullptr),
+    m_landCoverCls(nullptr), m_HvstIdxTrgt(nullptr), m_biomTrgt(nullptr),
     m_curYrMat(nullptr), m_wtrStrsHvst(nullptr), m_lai(nullptr), m_phuBase(nullptr),
     m_phuAccum(nullptr),
     m_phuPlt(nullptr), m_dormFlag(nullptr), m_hvstIdx(nullptr),
@@ -134,7 +134,7 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     /// release output parameters
     /// plant operation
     if (m_HvstIdxTrgt != nullptr) Release1DArray(m_HvstIdxTrgt);
-    if (m_BiomTrgt != nullptr) Release1DArray(m_BiomTrgt);
+    if (m_biomTrgt != nullptr) Release1DArray(m_biomTrgt);
     /// auto irrigation operation
     if (m_irrFlag != nullptr) Release1DArray(m_irrFlag);
     if (m_irrWtrAmt != nullptr) Release1DArray(m_irrWtrAmt);
@@ -183,22 +183,6 @@ void MGTOpt_SWAT::SetValue(const char* key, const float value) {
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-        }
-    }
-    return true;
-}
-
 void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBGS)) {
@@ -207,7 +191,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
         m_shallowWaterDepth = data;
         return;
     }
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PLTMGT_SWAT, key, n, m_nCells);
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_LANDUSE)) {
@@ -297,25 +281,6 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize2D(const char* key, const int n, const int col) {
-    CheckInputSize(key, n);
-    if (col <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    }
-    if (m_maxSoilLyrs != col) {
-        if (m_maxSoilLyrs <= 0) {
-            m_maxSoilLyrs = col;
-        } else {
-            throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size of " +
-                                 ValueToString(m_maxSoilLyrs) + " instead of " +
-                                 ValueToString(col) + ".");
-        }
-    }
-    return true;
-}
-
 void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     /// lookup tables
@@ -364,7 +329,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float**
         return;
     }
     /// 2D raster data
-    CheckInputSize2D(key, n, col);
+    CheckInputSize2D(MID_PLTMGT_SWAT, key, n, col, m_nCells, m_maxSoilLyrs);
     /// Soil related parameters from MongoDB
     if (StringMatch(sk, VAR_SOILDEPTH)) {
         m_soilDepth = data;
@@ -713,7 +678,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const 
     /// initialize parameters
     m_igro[i] = 1.f;
     m_HvstIdxTrgt[i] = curOperation->HITarg();
-    m_BiomTrgt[i] = curOperation->BIOTarg(); /// kg/ha
+    m_biomTrgt[i] = curOperation->BIOTarg(); /// kg/ha
     m_curYrMat[i] = curOperation->CurYearMaturity();
     int newPlantID = curOperation->PlantID();
     m_landCover[i] = CVT_FLT(newPlantID);
@@ -1872,7 +1837,7 @@ void MGTOpt_SWAT::Get1DData(const char* key, int* n, float** data) {
     if (StringMatch(sk, VAR_HITARG)) {
         *data = m_HvstIdxTrgt;
     } else if (StringMatch(sk, VAR_BIOTARG)) {
-        *data = m_BiomTrgt;
+        *data = m_biomTrgt;
         /// auto irrigation operation
     } else if (StringMatch(sk, VAR_IRR_FLAG)) {
         *data = m_irrFlag;
@@ -1974,7 +1939,7 @@ void MGTOpt_SWAT::InitialOutputs() {
     /// plant operation
     if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Plant) != defined_mgt_codes.end()) {
         if (m_HvstIdxTrgt == nullptr) Initialize1DArray(m_nCells, m_HvstIdxTrgt, 0.f);
-        if (m_BiomTrgt == nullptr) Initialize1DArray(m_nCells, m_BiomTrgt, 0.f);
+        if (m_biomTrgt == nullptr) Initialize1DArray(m_nCells, m_biomTrgt, 0.f);
     }
     /// irrigation / auto irrigation operations
     if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Irrigation) != defined_mgt_codes.end() ||

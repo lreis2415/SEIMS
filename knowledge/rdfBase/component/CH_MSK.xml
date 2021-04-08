@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="CH_MSK">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <!-- <rdf:li>SBQG</rdf:li> -->
+        <!-- <rdf:li>QSOIL</rdf:li> -->
+        <rdf:li>QOVERLAND</rdf:li>
+        <rdf:li>P</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>QSOIL</rdf:li>
+       <rdf:li>SBQG</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>QCH</rdf:li>
+        <rdf:li>QOUTLET</rdf:li>
+        <rdf:li>QSUBBASIN</rdf:li>
+        <rdf:li>HCH</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+    <hydro:algorithm>Channel Flow-Hourly Muskingum</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>

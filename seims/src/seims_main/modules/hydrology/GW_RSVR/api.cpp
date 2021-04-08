@@ -1,7 +1,8 @@
-#include "GWaterReservoir.h"
-#include "MetadataInfo.h"
-#include "text.h"
 #include "api.h"
+
+#include "GWaterReservoir.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new GWaterReservoir();
@@ -9,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
@@ -39,10 +39,9 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_SBQG, UNIT_FLOW_CMS, DESC_SBQG, DT_Array1D);
     mdi.AddOutput(VAR_SBGS, UNIT_DEPTH_MM, DESC_SBGS, DT_Array1D);
 
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-	

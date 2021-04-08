@@ -3,7 +3,9 @@
  * \author Junzhi Liu
  * \date May 2013
  */
-#pragma once
+#ifndef SEIMS_PERCO_DARCY_H
+#define SEIMS_PERCO_DARCY_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -76,4 +78,4 @@ private:
     bool CheckInputSize(const char *, int);
 
 };
-
+#endif /* SEIMS_PERCO_DARCY_H */

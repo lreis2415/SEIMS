@@ -1,31 +1,33 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Import measurement data, such as discharge, sediment yield, and nutrient export etc.
+
     @author   : Liangjun Zhu, Fang Shen
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reorganize according to pylint and google style
-                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
-                17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
-                TODO: Check the location of observed stations and add subbasinID field.
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-06-26  - lj - reorganize according to pylint and google style
+    - 17-07-05  - lj - Using bulk operation interface to improve MongoDB efficiency.
+    - 17-08-05  - lj - Add Timezone preprocessor statement in the first line of data file.
+    - 18-02-08  - lj - compatible with Python3.
+
+    @TODO:
+    - Check the location of observed stations and add subbasinID field.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from datetime import timedelta
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
-
-import time
-from datetime import timedelta
 
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil, MongoQuery
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from preprocess.utility import read_data_items_from_txt
 
 
 class ImportObservedData(object):
@@ -87,6 +89,8 @@ class ImportObservedData(object):
             site_flds = site_data_items[0]
             for i in range(1, len(site_data_items)):
                 dic = dict()
+                types = list()
+                units = list()
                 for j, v in enumerate(site_data_items[i]):
                     if StringClass.string_match(site_flds[j], StationFields.id):
                         dic[StationFields.id] = int(v)
@@ -104,7 +108,7 @@ class ImportObservedData(object):
                     elif StringClass.string_match(site_flds[j], StationFields.y):
                         dic[StationFields.y] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.unit):
-                        dic[StationFields.unit] = v.strip()
+                        units = StringClass.split_string(v.strip(), '-')
                     elif StringClass.string_match(site_flds[j], StationFields.elev):
                         dic[StationFields.elev] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.outlet):
@@ -119,6 +123,7 @@ class ImportObservedData(object):
                     site_dic[StationFields.lon] = dic[StationFields.lon]
                     site_dic[StationFields.x] = dic[StationFields.x]
                     site_dic[StationFields.y] = dic[StationFields.y]
+                    site_dic[StationFields.unit] = units[j]
                     site_dic[StationFields.elev] = dic[StationFields.elev]
                     site_dic[StationFields.outlet] = dic[StationFields.outlet]
                     # Add SubbasinID field
@@ -126,11 +131,11 @@ class ImportObservedData(object):
                                                                           maindb)
                     if not matched:
                         break
-                    cur_subbsn_id_str = ''
                     if len(cur_sids) == 1:  # if only one subbasin ID, store integer
                         cur_subbsn_id_str = cur_sids[0]
                     else:
-                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cur_sids is None)
+                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids
+                                                     if cur_sids is None)
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
@@ -140,7 +145,7 @@ class ImportObservedData(object):
 
                     var_dic = dict()
                     var_dic[StationFields.type] = types[j]
-                    var_dic[StationFields.unit] = dic[StationFields.unit]
+                    var_dic[StationFields.unit] = units[j]
                     if var_dic not in variable_lists:
                         variable_lists.append(var_dic)
         site_ids = list(set(site_ids))
@@ -151,8 +156,6 @@ class ImportObservedData(object):
             # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
-            if tsysin == 'UTCTIME':
-                tzonein = time.timezone / -3600
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == [] or len(obs_data_items) == 1:
@@ -180,7 +183,7 @@ class ImportObservedData(object):
                 utc_t = HydroClimateUtilClass.get_utcdatetime_from_field_values(obs_flds,
                                                                                 cur_obs_data_item,
                                                                                 tsysin, tzonein)
-                dic[DataValueFields.local_time] = utc_t + timedelta(minutes=tzonein * 60)
+                dic[DataValueFields.local_time] = utc_t - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_t
                 # curfilter = {StationFields.id: dic[StationFields.id],
@@ -197,7 +200,7 @@ class ImportObservedData(object):
             MongoUtil.run_bulk(bulk)
         # 3. Add measurement data with unit converted
         # loop variables list
-        added_dics = []
+        added_dics = list()
         for curVar in variable_lists:
             # print(curVar)
             # if the unit is mg/L, then change the Type name with the suffix 'Conc',
@@ -218,7 +221,7 @@ class ImportObservedData(object):
 
                 if cur_unit == 'mg/L' or cur_unit == 'g/L':
                     # update the Type name
-                    dic[StationFields.type] = cur_type + 'Conc'
+                    dic[StationFields.type] = '%sConc' % cur_type
                     curfilter = {StationFields.id: dic[StationFields.id],
                                  DataValueFields.type: cur_type,
                                  DataValueFields.utc: dic[DataValueFields.utc]}
@@ -232,24 +235,22 @@ class ImportObservedData(object):
                               StationFields.id: dic[StationFields.id]}
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
 
-                q = -9999.
                 if q_dic is not None:
                     q = q_dic[DataValueFields.value]
                 else:
                     continue
                 if cur_unit == 'mg/L':
                     # convert mg/L to kg
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] * q * 86400. / 1000., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value] *
+                                                       q * 86400. / 1000., 2)
                 elif cur_unit == 'g/L':
                     # convert g/L to kg
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] * q * 86400., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value] * q * 86400., 2)
                 elif cur_unit == 'kg':
-                    dic[StationFields.type] = cur_type + 'Conc'
+                    dic[StationFields.type] = '%sConc' % cur_type
                     # convert kg to mg/L
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] / q * 1000. / 86400., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value]
+                                                       / q * 1000. / 86400., 2)
                 # add new data item
                 added_dics.append(dic)
         # import to MongoDB
@@ -263,7 +264,7 @@ class ImportObservedData(object):
     def workflow(cfg, maindb, climdb):
         """
         This function mainly to import measurement data to MongoDB
-        data type may include Q (discharge, m3/s), SED (mg/L), tn (mg/L), tp (mg/L), etc.
+        data type may include Q (discharge, m3/s), SED (mg/L), TN (mg/L), TP (mg/L), etc.
         the required parameters that defined in configuration file (*.ini)
         """
         if not cfg.use_observed:
@@ -278,9 +279,9 @@ class ImportObservedData(object):
         if not StringClass.string_in_list(DBTableNames.var_desc, c_list):
             climdb.create_collection(DBTableNames.var_desc)
 
-        file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt'])
-        meas_file_list = []
-        site_loc = []
+        file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt', '.csv'])
+        meas_file_list = list()
+        site_loc = list()
         for fl in file_list:
             if StringClass.is_substring('observed_', fl):
                 meas_file_list.append(fl)

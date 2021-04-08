@@ -47,7 +47,8 @@ email:  dtarb@usu.edu
 #include <math.h>
 #include "Node.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::max;
 
 //double fact[9];
 double **fact;
@@ -220,7 +221,7 @@ int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int us
 
             //Stop timer
             computeSlopet = MPI_Wtime();
-            tiffIO slopeIO(slopefile, FLOAT_TYPE, &slopeNodata, dem);
+            tiffIO slopeIO(slopefile, FLOAT_TYPE, slopeNodata, dem);
             slopeIO.write(xstart, ystart, ny, nx, slope->getGridPointer());
         }  // This bracket intended to destruct slope partition and release memory
 
@@ -252,7 +253,7 @@ int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int us
         double computeFlatt = MPI_Wtime();
 //	printf("Before angwrite rank: %d\n",rank);
         float flowDirNodata = MISSINGFLOAT;
-        tiffIO flowIO(angfile, FLOAT_TYPE, &flowDirNodata, dem);
+        tiffIO flowIO(angfile, FLOAT_TYPE, flowDirNodata, dem);
         flowIO.write(xstart, ystart, ny, nx, flowDir->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -301,7 +302,7 @@ int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int us
     return 0;
 }
 void VSLOPE(float E0, float E1, float E2,
-            float D1, float D2, float DD,
+            double D1, double D2, double DD,
             float *S, float *A) {
     //SUBROUTINE TO RETURN THE SLOPE AND ANGLE ASSOCIATED WITH A DEM PANEL
     float S1, S2, AD;
@@ -330,7 +331,7 @@ void VSLOPE(float E0, float E1, float E2,
 // Sets only flowDir only where there is a positive slope
 // Returns number of cells which are flat
 
-void SET2(int I, int J, float *DXX, float DD, tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slope) {
+void SET2(int I, int J, double *DXX, double DD, tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slope) {
     double dxA = elevDEM->getdxA();
     double dyA = elevDEM->getdyA();
     float SK[9];
@@ -381,8 +382,8 @@ void SET2(int I, int J, float *DXX, float DD, tdpartition *elevDEM, tdpartition 
 //Overloaded SET2 for use in resolve flats when slope is no longer recorded.  Also uses artificial elevations and actual elevations
 void SET2(int I,
           int J,
-          float *DXX,
-          float DD,
+	      double *DXX,
+	      double DD,
           tdpartition *elevDEM,
           tdpartition *elev2,
           tdpartition *flowDir,
@@ -438,8 +439,8 @@ void SET2(int I,
                 }
             }
 
-        } else if (tempShort1 <= 0 && tempShort2
-            > 0) {//E1 is outside of the flat and E2 is inside the flat. Use DEM elevations. tempShort2/E2 is in the artificial grid
+        } else if (tempShort1 <= 0 && tempShort2 > 0) {
+            //E1 is outside of the flat and E2 is inside the flat. Use DEM elevations. tempShort2/E2 is in the artificial grid
             float a = elevDEM->getData(J, I, tempFloat);
             float b = elevDEM->getData(J + J1[K], I + I1[K], tempFloat);
 
@@ -526,8 +527,7 @@ void SET2(int I,
         flowDir->setData(J, I, tempFloat);
     }
 
-    if (KD > 0)//We have a flow direction.  Calculate the Angle and save/write it.
-    {
+    if (KD > 0) {//We have a flow direction.  Calculate the Angle and save/write it.
         tempFloat = (float) (ANGC[KD] * (PI / 2) + ANGF[KD] * ANGLE[KD]);//Calculate the Angle
         if (tempFloat >= 0.0) {//Make sure the angle is positive
             flowDir->setData(J, I, tempFloat);
@@ -550,15 +550,9 @@ long setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slop
     //	fact[k] = (double) (1./sqrt(d1[k]*dx*d1[k]*dx + d2[k]*d2[k]*dy*dy));
     //}
 
-
-
-
-
     tempFloat = 0;
     for (j = 0; j < ny; j++) {
         for (i = 0; i < nx; i++) {
-
-
             //FlowDir is nodata if it is on the border OR elevDEM has no data
             if (elevDEM->isNodata(i, j) || !elevDEM->hasAccess(i - 1, j) || !elevDEM->hasAccess(i + 1, j) ||
                 !elevDEM->hasAccess(i, j - 1) || !elevDEM->hasAccess(i, j + 1)) {
@@ -580,8 +574,8 @@ long setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slop
                     flowDir->setData(i, j, tempFloat);//set to -1
                     elevDEM->getdxdyc(j, tempdxc, tempdyc);
 
-                    float DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
-                    float DD = sqrt((float)tempdxc * (float)tempdxc + (float)tempdyc * (float)tempdyc);//tardemlib.cpp ln 1293
+					double DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
+					double DD = sqrt((float)tempdxc * (float)tempdxc + (float)tempdyc * (float)tempdyc);//tardemlib.cpp ln 1293
                     SET2(j,
                          i,
                          DXX,
@@ -631,10 +625,10 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
 
     //create and initialize temporary storage for Garbrecht and Martz
     tdpartition *elev2, *dn, *s;
-    elev2 = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 1);
+    elev2 = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)1);
     //  The assumption here is that resolving a flat does not increment a cell value
     //  more than fits in a short
-    dn = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 0);
+    dn = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)0);
 
     node temp;
     long nflat = 0, iflat;
@@ -758,7 +752,7 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         //	done = true;
     }
     //  DGT moved from above - write directly into elev2
-    s = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 0);  //  Use 0 as no data to avoid need to initialize
+    s = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)0); //  Use 0 as no data to avoid need to initialize
 
     //incrise - drain away from higher ground
     done = false;
@@ -838,8 +832,8 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         //  direction based on the artificial elevations
 
         elevDEM->getdxdyc(j, tempdxc, tempdyc);
-        float DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
-        float DD = sqrt((float)(tempdxc * tempdxc + tempdyc * tempdyc));//tardemlib.cpp ln 1293
+		double DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
+		double DD = sqrt((float)(tempdxc * tempdxc + tempdyc * tempdyc));//tardemlib.cpp ln 1293
 
         SET2((int)j, (int)i, DXX, DD, elevDEM, elev2, flowDir, dn);    //use new elevations to calculate flowDir.
         if (!flowDir->isNodata(i, j) && flowDir->getData(i, j, tempFloat) < 0.) //this is still a flat

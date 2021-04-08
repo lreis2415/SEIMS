@@ -1,7 +1,8 @@
+#include "api.h"
+
 #include "StormGreenAmpt.h"
 #include "text.h"
 #include "MetadataInfo.h"
-#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new StormGreenAmpt();
@@ -9,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
 
     // set the information properties
@@ -42,7 +42,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_INFILCAPSURPLUS, UNIT_DEPTH_MM, DESC_INFILCAPSURPLUS, DT_Raster1D);
     mdi.AddOutput(VAR_ACC_INFIL, UNIT_DEPTH_MM, DESC_ACC_INFIL, DT_Raster1D);
 
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

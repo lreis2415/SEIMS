@@ -47,7 +47,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int slopearea(char *slopefile, char *scafile, char *safile, float *p) {
     MPI_Init(NULL, NULL);
@@ -142,7 +142,7 @@ int slopearea(char *slopefile, char *scafile, char *safile, float *p) {
 
         //Create and write TIFF file
         float aNodata = -1.0f;
-        tiffIO saa(safile, FLOAT_TYPE, &aNodata, slp);
+        tiffIO saa(safile, FLOAT_TYPE, aNodata, slp);
         saa.write(xstart, ystart, ny, nx, sa->getGridPointer());
 
         //Brackets force MPI-dependent objects to go out of scope before Finalize is called

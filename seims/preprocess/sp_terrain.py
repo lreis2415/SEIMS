@@ -1,21 +1,24 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Terrain related spatial parameters extraction
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-07-06  lj - Code optimization by numpy
-                16-12-07  lj - rewrite for version 2.0
-                17-06-27  lj - reorganize as basic class other than Global variables
-    @TODO: 1. for depression_capacity() function
-              1.1. Add stream order modification, according to depression.ave of WetSpa.
-              1.2. Add another depressional storage method according to SWAT, depstor.f
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-07-06  lj - Code optimization by numpy
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-27  lj - reorganize as basic class other than Global variables
+    - 18-02-08  lj - compatible with Python3.
+
+    @TODO:
+    - 1. for depression_capacity() function
+      - 1.1. Add stream order modification, according to depression.ave of WetSpa.
+      - 1.2. Add another depressional storage method according to SWAT, depstor.f
+
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from math import exp, sqrt
 import os
 import sys
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -27,8 +30,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
+from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -430,14 +433,14 @@ class TerrainUtilClass(object):
         ds_reach = ogr_Open(reach_shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
-        i_link = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
-        i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
-        i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
+        i_link = layer_def.GetFieldIndex(str(ImportReaches2Mongo._LINKNO))
+        i_width = layer_def.GetFieldIndex(str(ImportReaches2Mongo._WIDTH))
+        i_depth = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DEPTH))
         if i_width < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._WIDTH, OFTReal)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._WIDTH), OFTReal)
             layer_reach.CreateField(new_field)
         if i_depth < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._DEPTH, OFTReal)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._DEPTH), OFTReal)
             layer_reach.CreateField(new_field)
 
         layer_reach.ResetReading()
@@ -450,8 +453,8 @@ class TerrainUtilClass(object):
                 w = ch_width_dic[tmpid]
             if tmpid in ch_depth_dic:
                 d = ch_depth_dic[tmpid]
-            ft.SetField(ImportReaches2Mongo._WIDTH, w)
-            ft.SetField(ImportReaches2Mongo._DEPTH, d)
+            ft.SetField(str(ImportReaches2Mongo._WIDTH), w)
+            ft.SetField(str(ImportReaches2Mongo._DEPTH), d)
             layer_reach.SetFeature(ft)
             ft = layer_reach.GetNextFeature()
 

@@ -44,6 +44,7 @@ email:  dtarb@usu.edu
 #include <string.h>
 #include "commonLib.h"
 #include "ogr_api.h"
+#include <ogr_spatialref.h>
 
 int readoutlets(char *outletsds,
                 char *lyrname,
@@ -160,13 +161,28 @@ int readoutlets(char *outletsds,
             idfld = OGR_F_GetFieldIndex(hFeature1, "POINTID"); // try "pointid" again, ZhuLJ, 2015/9/22
         }
         if (idfld >= 0) {
-
             hFieldDefn1 = OGR_FD_GetFieldDefn(hFDefn1, idfld); // get field definiton based on index
-            if (OGR_Fld_GetType(hFieldDefn1) == OFTInteger) {
-                id[nxy] = OGR_F_GetFieldAsInteger(hFeature1, idfld);
-            } // get id value
+            OGRFieldType idtype = OGR_Fld_GetType(hFieldDefn1);
+            if (idtype == OFTInteger) {
+                id[nxy] = OGR_F_GetFieldAsInteger(hFeature1, idfld); // get id value 
+            }
+#if GDAL_VERSION_MAJOR >= 2 && GDAL_VERSION_MINOR >= 2
+            else if (idtype == OFTInteger64) {
+                id[nxy] = (int)OGR_F_GetFieldAsInteger64(hFeature1, idfld);
+            }
+#endif
+            else if (idtype == OFTReal) {
+                id[nxy] = (int)OGR_F_GetFieldAsDouble(hFeature1, idfld);
+            }
+            else if (idtype == OFTString) {
+                const char * val = OGR_F_GetFieldAsString(hFeature1, idfld);
+                sscanf(val, "%d", &id[nxy]);
+            }
+            else {  // Here unable to coerce field value from whatever the type is so just count
+                id[nxy] = nxy + 1;
+            }
         } else {
-            id[nxy] = 1;// if there is no id field
+            id[nxy] = nxy +  1;// if there is no id field
         }
         nxy++; // count number of outlets point
         OGR_F_Destroy(hFeature1); // destroy feature

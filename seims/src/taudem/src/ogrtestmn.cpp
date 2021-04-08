@@ -1,7 +1,7 @@
 #include "ogr_api.h"
 #include "commonLib.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 int readwriteogr(char *datasrc, char *layername, char *datasrcnew, char *layernamenew);
 int main(int argc, char **argv) {
     char datasrc[MAXLN], layername[MAXLN], datasrcnew[MAXLN], layernamenew[MAXLN];

@@ -45,7 +45,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int twigrid(char *slopefile, char *areafile, char *twifile) {
     MPI_Init(NULL, NULL);
@@ -144,7 +144,7 @@ int twigrid(char *slopefile, char *areafile, char *twifile) {
         //Create and write TIFF file
         float aNodata = -1.0f;
         char prefix[5] = "twi";
-        tiffIO sarr(twifile, FLOAT_TYPE, &aNodata, slp);
+        tiffIO sarr(twifile, FLOAT_TYPE, aNodata, slp);
         sarr.write(xstart, ystart, ny, nx, sar->getGridPointer());
 
         //Brackets force MPI-dependent objects to go out of scope before Finalize is called

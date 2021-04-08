@@ -93,17 +93,17 @@ void SOL_WB::SetValueToSubbasins() {
     }
 }
 
-void SOL_WB::Set1DData(const char* key, const int nRows, float* data) {
+void SOL_WB::Set1DData(const char* key, const int nrows, float* data) {
     string s(key);
     if (StringMatch(s, VAR_RG)) {
         m_RG = data;
-        if (m_nSubbsns != nRows - 1) {
+        if (m_nSubbsns != nrows - 1) {
             throw ModelException(MID_SOL_WB, "Set1DData",
                                  "The size of groundwater runoff should be equal to (subbasin number + 1)!");
         }
         return;
     }
-    CheckInputSize(key, nRows);
+    CheckInputSize(MID_SOL_WB, key, nrows, m_nCells);
     if (StringMatch(s, VAR_SOILLAYERS)) {
         m_nSoilLyrs = data;
     } else if (StringMatch(s, VAR_SOL_ZMX)) {
@@ -140,9 +140,8 @@ void SOL_WB::Set1DData(const char* key, const int nRows, float* data) {
 }
 
 void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize(key, nrows);
+    CheckInputSize2D(MID_SOL_WB, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
-    m_maxSoilLyrs = ncols;
     if (StringMatch(s, VAR_PERCO)) {
         m_soilPerco = data;
     } else if (StringMatch(s, VAR_SSRU)) {
@@ -177,7 +176,7 @@ void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     }
 }
 
-void SOL_WB::CheckInputData() {
+bool SOL_WB::CheckInputData() {
     CHECK_POSITIVE(MID_SOL_WB, m_nCells);
     CHECK_POSITIVE(MID_SOL_WB, m_nSubbsns);
     CHECK_POINTER(MID_SOL_WB, m_nSoilLyrs);
@@ -200,20 +199,5 @@ void SOL_WB::CheckInputData() {
     CHECK_POINTER(MID_SOL_WB, m_meanTemp);
     CHECK_POINTER(MID_SOL_WB, m_soilTemp);
     CHECK_POINTER(MID_SOL_WB, m_subbasinsInfo);
-}
-
-bool SOL_WB::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SOL_WB, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SOL_WB, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }

@@ -17,7 +17,7 @@ using namespace std;
  * \class HS_WB
  * \ingroup HS_WB
  *
- * \brief 
+ * \brief
  *
  */
 class HS_WB : public SimulationModule {
@@ -94,15 +94,9 @@ public:
 
     virtual int Execute(void);
 
-private:
-    void initialOutputs(void);
-
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
     bool CheckInputData(void);
+
+    void InitialOutputs(void);
 
     /**
     *	@brief check the input size. Make sure all the input data have same dimension.

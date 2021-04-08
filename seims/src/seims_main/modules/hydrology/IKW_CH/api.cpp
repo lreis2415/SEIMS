@@ -1,7 +1,8 @@
+#include "api.h"
+
 #include "IKW_CH.h"
 #include "text.h"
 #include "MetadataInfo.h"
-#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new ImplicitKinematicWave_CH();
@@ -25,7 +26,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    
+
     mdi.AddParameter(VAR_FLOWDIR, UNIT_NON_DIM, DESC_FLOWDIR, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);
     // reach information
@@ -45,7 +46,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // output
     mdi.AddOutput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, DT_Array1D);
-    //mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single); //doesn't exist in text.h
     mdi.AddOutput(VAR_QTOTAL, UNIT_FLOW_CMS, DESC_QTOTAL, DT_Single);
     mdi.AddOutput(VAR_QSUBBASIN, UNIT_FLOW_CMS, DESC_QSUBBASIN, DT_Array1D);
     mdi.AddOutput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, DT_Array2D);

@@ -1,26 +1,30 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Interpolate hydro-climate data from not regular observed data to desired time interval.
-   This script is not intended to be integrated into SEIMS preprocess workflow.
+
+This script is not intended to be integrated into SEIMS preprocess workflow.
    This function can be integrated into HydroClimateUtilClass in the future.
+
     @author   : Liangjun Zhu
-    @changelog: 17-07-25  lj - initial implementation
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-07-25  - lj - initial implementation
+    - 18-02-08  - lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import time
 from collections import OrderedDict
 from datetime import timedelta
+from io import open
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import FileClass, StringClass, MathClass
 
+from utility import read_data_items_from_txt
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
-from preprocess.utility import read_data_items_from_txt
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,
@@ -28,6 +32,9 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                                                   time_sys_output='UTCTIME', day_divided_hour=0):
     """
     Interpolate not regular observed data to regular time interval data.
+
+    Todo: Not tested yet!
+
     Args:
         in_file: input data file, the basic format is as follows:
                  line 1: #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
@@ -57,7 +64,8 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     Returns:
         The output data files are located in the same directory with the input file.
         The nomenclature is: <field name>_<time system>_<time interval>_<nonzero>, e.g.,
-        pcp_utctime_1440_nonzero.txt, flow_localtime_60.txt
+        pcp_utctime_1440_nonzero.csv, flow_localtime_60.csv.
+        Note that `.txt` format is also supported.
     """
     FileClass.check_file_exists(in_file)
     time_sys_input, time_zone_input = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
@@ -84,11 +92,11 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         return support_flag
 
     ord_data = OrderedDict()
-    time_zone_output = time.timezone / -3600
+    time_zone_output = time.timezone // 3600
     if time_sys_output.lower().find('local') >= 0:
         tmpstrs = StringClass.split_string(time_sys_output, [' '])
         if len(tmpstrs) == 2 and MathClass.isnumerical(tmpstrs[1]):
-            time_zone_output = int(tmpstrs[1])
+            time_zone_output = -1 * int(tmpstrs[1])
         time_sys_output = 'LOCALTIME'
     else:
         time_sys_output = 'UTCTIME'
@@ -96,10 +104,9 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     for item in data_items:
         org_datetime = StringClass.get_datetime(item[date_idx])
         if time_sys_input == 'LOCALTIME':
-            org_datetime -= timedelta(hours=time_zone_input)
-        # now, org_datetime is UTC time.
+            org_datetime += timedelta(hours=time_zone_input)  # now, org_datetime is UTC time.
         if time_sys_output == 'LOCALTIME':
-            org_datetime += timedelta(hours=time_zone_output)
+            org_datetime -= timedelta(hours=time_zone_output)
         # now, org_datetime is consistent with the output time system
         ord_data[org_datetime] = list()
         for i, v in enumerate(item):
@@ -207,14 +214,15 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         file_name = fld + '_' + time_sys_output + '_' + str(time_interval)
         if eliminate_zero:
             file_name += '_nonzero'
-        file_name += '.txt'
+        file_name += '.csv'
         out_file = work_path + os.path.sep + file_name
-        with open(out_file, 'w') as f:
-            f.write(header_str + '\n')
-            f.write('DATETIME,' + fld + '\n')
+        with open(out_file, 'w', encoding='utf-8') as f:
+            f.write('%s\n' % header_str)
+            f.write('DATETIME,%s\n' % fld)
             for i, v in list(itp_data.items()):
                 cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
-                f.write(cur_line)
+                f.write('%s' % cur_line)
+
 
 def main():
     """TEST CODE"""

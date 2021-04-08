@@ -83,9 +83,11 @@ void ParamInfo::Adjust1DRaster(const int n, float* data) {
     Adjust1DArray(n, data);
 }
 
-void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
-                               const float* lu, const vector<int>& sellu) {
-#pragma omp parallel for
+int ParamInfo::Adjust1DRaster(const int n, float* data, const float* units,
+                              const vector<int>& selunits,
+                              const float* lu, const vector<int>& sellu) {
+    int count = 0;
+#pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
         if (FloatEqual(data[i], NODATA_VALUE)) {
             /// Do not change NoData value
@@ -100,7 +102,9 @@ void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, const vec
             continue;
         }
         data[i] = GetAdjustedValue(data[i]);
+        count += 1;
     }
+    return count;
 }
 
 void ParamInfo::Adjust2DArray(const int n, float** data) {
@@ -118,10 +122,23 @@ void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
     }
 }
 
-void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
+int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
                                const vector<int>& selunits, float* lu, const vector<int>& sellu) {
-#pragma omp parallel for
+    int count = 0;
+#pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
-        Adjust1DRaster(lyrs, data[i], units, selunits, lu, sellu);
+        int curunit = CVT_INT(units[i]);
+        int curlu = CVT_INT(lu[i]);
+        if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
+            continue;
+        }
+        if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
+            continue;
+        }
+        for (int j = 0; j < lyrs; j++) {
+            data[i][j] = GetAdjustedValue(data[i][j]);
+        }
+        count += 1;
     }
+    return count;
 }

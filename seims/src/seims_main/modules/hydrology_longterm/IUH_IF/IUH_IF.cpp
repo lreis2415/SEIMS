@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "IUH_IF.h"
-
+#include "text.h"
 
 using namespace std;
 

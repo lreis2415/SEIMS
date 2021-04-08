@@ -1,12 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Extract landuse parameters
+"""Extract landuse parameters (extend to field version of SEIMS)
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 13-01-10  jz - initial implementation
-                16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                17-07-07  lj - remove SQLite database file as intermediate file
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+
 """
 from __future__ import absolute_import
 

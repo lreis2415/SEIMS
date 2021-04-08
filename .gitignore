@@ -72,10 +72,16 @@ seims/nogit
 seims/nogit/*
 
 # temp folders when running demo data
-data/dianbu2/workspace
+data/*/workspace
 **OUTPUT
 OUTPUT/*
 OUTPUT*/
+CALI_*/
+PSA_*/
+SA_*/
+
+# ignore configuration files of demo watershed which should be created during preprocessing
+data/*/*/connected_field_units_updown*.json
 
 # VSCode configuration folder
 .vscode
@@ -86,3 +92,6 @@ OUTPUT*/
 # gitbook related
 _book
 node_modules
+
+# debug doxygen locally
+@CMAKE_CURRENT_BINARY_DIR@

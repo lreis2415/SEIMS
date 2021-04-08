@@ -1,10 +1,6 @@
-#pragma once
+#ifndef SEIMS_UNSAT_FLOW_H
+#define SEIMS_UNSAT_FLOW_H
 
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
@@ -62,4 +58,4 @@ private:
 
     static string toString(float value);
 };
-
+#endif /* SEIMS_UNSAT_FLOW_H */

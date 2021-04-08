@@ -1,0 +1,223 @@
+# ALL INITIAL MODEL PARAMETERS.
+# Table title (columns are split by COMMA and each element should not contain COMMA!)
+# Last updated: 2018-8-21
+TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
+Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
+Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0
+Climate,CO2HI,Elevated CO2 atmospheric concentration,ppmv,ALL,660,1,AC,1000,300
+Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
+Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
+Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
+Climate,K_pet,Correction factor for PET,none,ALL,1,0,AC,1.3,0.7
+Climate,Weight_P,Weight Coefficient of Precipitation,none,ALL,-9999,0,NC,-9999,-9999
+Climate,Weight_PET,Weight Coefficient of Potential Evapotranspiration,none,ALL,-9999,0,NC,-9999,-9999
+Climate,Weight_T,Weight Coefficient of Temperature,none,ALL,-9999,0,NC,-9999,-9999
+Discharge,a_bnk,bank flow recession constant,none,ALL,0.2,0,AC,1,0
+Discharge,b_bnk,bank storage loss coefficient,none,ALL,0.05,0,AC,0.2,0.02
+Discharge,Base_ex,Baseflow exponent,none,GW_RSVR,1,0,AC,4,1
+Discharge,bnk0,Initial bank storage,m3/m,ALL,0,0,AC,1,0
+Discharge,chs0,initial channel storage,m3/m,All,0,0,AC,100,0
+Discharge,chs0_perc,initial percentage of channel depth,none,ALL,0.05,0,AC,1,0
+Discharge,df_coef,Deep percolation coefficient,mm,GW_RSVR,0,0,AC,1,0
+Discharge,ep_ch,reach evaporation adjustment factor,none,ALL,1,0,AC,1,0
+Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,50000,1
+Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,50000,1
+Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001
+Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0
+Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001
+Discharge,MSK_co1,Calibration coefficient used to control impact of the storage time constant for normal flow,none,ChannelRouting,0.75,0,AC,1,0
+Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.3,0
+Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0
+Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
+Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0
+InstreamWQ,algae,Algal biomass concentration in reach on the first day,mg alg/L,ChannelRouting,0,0,AC,200,0
+InstreamWQ,cbod,Carbonaceous bideg Chemical oxygen demand in reach on the first day,mg O2/L,ChannelRouting,0,0,AC,1,0
+InstreamWQ,chlora,ChlorophyII-a concentration in reach on the first day,mg chla/L,ChannelRouting,0,0,AC,200,0
+InstreamWQ,diso2,Dissolved oxygen concentration in reach on the first day,mg O2/L,ChannelRouting,0,1,RC,1,0
+InstreamWQ,disp,Dissolved P concentration in reach on the first day,mg P/L,ChannelRouting,0,0,AC,25,0
+InstreamWQ,k_l,Half saturation coefficient for light,kJ/(m2*min),ChannelRouting,0.75,1,RC,1.135,0.223
+InstreamWQ,k_n,Michaelis-mention half-saturation constant for nitrogen,mg N/L,ChannelRouting,0.02,1,RC,0.03,0.01
+InstreamWQ,k_p,Michaelis-mention half-saturation constant for P,mg P/L,ChannelRouting,0.025,1,RC,0.05,0.001
+InstreamWQ,nh3,Ammonia concentration in reach on the first day,mg N/L,ChannelRouting,0,0,AC,50,0
+InstreamWQ,no2,NO2-N concentration in reach on the first day,mg N/L,ChannelRouting,0,0,AC,10,0
+InstreamWQ,no3,NO3-N concentration in reach on the first day,mg N/L,ChannelRouting,0,0,AC,30,0
+InstreamWQ,orgn,Organic N concentration in reach on the first day,mg N/L,ChannelRouting,0,1,RC,100,0
+InstreamWQ,orgp,Organic P concentration in reach on the first day,mg P/L,ChannelRouting,0,1,RC,5,0
+Interception,CoverFrac,vegetation cover fraction,none,All,-9999,1,RC,1,0
+Interception,Init_IS,Initial interception storage,mm,ALL,0,0,AC,1,0
+Interception,Interc_max,Maximum Interception Capacity,mm,ALL,-9999,1,RC,100,0
+Interception,Interc_min,Minimum Interception Capacity,mm,ALL,-9999,1,RC,100,0
+Interception,Pi_b,Interception Storage Capacity Exponent,none,ALL,1.35,0,AC,1.5,0.5
+Nutrient,OM,Organic matter,%,ALL,-9999,1,RC,60,0.08
+Nutrient,SOL_CBN,Organic carbon content,%,ALL,-9999,1,RC,60,0.08
+Nutrient,ai0,Ratio of chlorophyll-a to algal biomass,ug/mg,NutCHRout,50,0,AC,100,10
+Nutrient,ai1,Fraction of algal biomass that is nigrogen,mg/mg,NutCHRout,0.08,1,RC,0.09,0.07
+Nutrient,ai2,Fraction of algal biomass that is phosphorus,mg/mg,NutCHRout,0.015,1,RC,0.02,0.01
+Nutrient,ai3,Rate of oxygen production per unit algal photosynthesis,mg/mg,NutCHRout,1.6,0,AC,1.8,1.4
+Nutrient,ai4,Rate of oxygen uptake per unit algal respiration,mg/mg,NutCHRout,2,0,AC,2.3,1.6
+Nutrient,ai5,Rate of oxygen uptake per unit NH3-N oxidation,mg/mg,NutCHRout,3.5,0,AC,4,3
+Nutrient,ai6,Rate of oxygen uptake per unit NO2-N oxidation,mg/mg,NutCHRout,1.07,1,RC,1.14,1
+Nutrient,bc1,Rate constant for biological oxidation of NH4 to NO2 in the reach at 20 deg C,1/day,NutCHRout,0.55,1,RC,1,0.1
+Nutrient,bc2,Rate constant for biological oxidation of NO2 to NO3 in the reach at 20 deg C,1/day,NutCHRout,1.1,1,RC,2,0.2
+Nutrient,bc3,Rate constant for hydrolysis of organic N to NH4 in the reach at 20 deg C,1/day,NutCHRout,0.21,1,RC,0.4,0.2
+Nutrient,bc4,Rate constant for mineralization of organic P to dissolved P in the reach at 20 deg C,1/day,NutCHRout,0.35,1,RC,0.7,0.01
+Nutrient,cdn,rate coefficient for denitrification,none,NMINRL,1,0,AC,3,0
+Nutrient,ch_onco,Channel organic nitrogen concentration in basin,mg/kg,NUTR_QUAL2E,0,0,AC,100,0
+Nutrient,ch_opco,Channel organic phosphorus concentration in basin,mg/kg,NUTR_QUAL2E,0,0,AC,100,0
+Nutrient,cmn,Rate coefficient for mineralization of the humus active organic nutrients,none,NMINRL,0.002,0,AC,0.003,0.001
+Nutrient,cod_k,Reaction coefficient,None,NUTRMV,0.7,0,AC,0.7,0.1
+Nutrient,cod_n,COD conversion factor,None,NUTRMV,6.5,0,AC,6.5,1
+Nutrient,ConRainAmm,Concentration of ammonia in rainfall,mg N/L,ATMDEP,0,0,AC,15,0
+Nutrient,ConRainNitra,concentration of nitrate in the rain,mg N/L,ATMDEP,0,0,AC,15,0
+Nutrient,drydep_nh4,Atmospheric dry deposition of ammonium,kg/ha/yr,ATMDEP,1,1,RC,1,0
+Nutrient,drydep_no3,Atmospheric dry deposition of nitrates,kg/ha/yr,ATMDEP,5,1,RC,7,0
+Nutrient,igropt,Qual2E algae growth limiting option,none,NutCHRout,2,0,AC,3,1
+Nutrient,InitConc_NH4,Initial average concentration of NH4 in the soil,kg/kg,All,0.001,1,RC,0.001,1.00E-05
+Nutrient,InitConc_NO3,Initial average concentration of NO3 in the soil,kg/kg,All,0.001,1,RC,0.001,1.00E-05
+Nutrient,InitConc_P,Initial average concentration of P in the soil,kg/kg,All,0.001,1,RC,0.001,1.00E-05
+Nutrient,isep_opt,initial septic operational condition,none,NutrMV,0,0,AC,2,0
+Nutrient,kn_paddy,nitrification rate constant in impounded water body,/day,IMP_SWAT,0.5,0,AC,2,0.02
+Nutrient,kv_paddy,volatilization rate constant in impounded water body,/day,IMP_SWAT,0.4,0,AC,0.8,0.043
+Nutrient,lambda0,Non-algal portion of hte light extinction coefficient,1/m,NutCHRout,1,0,AC,10,0
+Nutrient,lambda1,Linear algal self-shading coefficient,(1/m)1/(ug chla/L),NutCHRout,0.03,1,RC,0.065,0.0065
+Nutrient,lambda2,Nonlinear alga self-shading coefficient,(1/m)(ug chla/L)^(-2/3),NutCHRout,0.0541,1,RC,1,0
+Nutrient,mumax,Maximum specific algal growth rate at 20 deg C,1/day,NutCHRout,2,1,RC,3,1
+Nutrient,nactfr,nitrogen active pool fraction,none,NMINRL,0.02,1,RC,1,0
+Nutrient,nperco,Nitrogen percolation coefficient,none,NutrMV,0.5,1,RC,1,0
+Nutrient,p_n,Algal preference factor for ammonia,mg/L,NutCHRout,0.5,1,RC,1,0
+Nutrient,phoskd,Phosphorus soil partitioning coefficient,m^3/Mg,NutrMV,175,0,AC,200,100
+Nutrient,pperco,Phosphorus percolation coefficient,none,NutrMV,10,0,AC,17.5,10
+Nutrient,psp,nitrogen active pool fraction,none,NMINRL,0.4,1,RC,0.7,0.01
+Nutrient,rca,Atmospheric deposition of ammonium,mg/L,ATMDEP,2,1,RC,2,0
+Nutrient,rcn,Atmospheric deposition of nitrate,mg/L,ATMDEP,1,1,RC,1,0
+Nutrient,rhoq,Algal respiration rate at 20 deg C,1/day,NutCHRout,0.3,1,RC,0.05,0.5
+Nutrient,rk1,Carbonaceous biological oxygen demand deoxygenation rate coefficient in the reach at 20 deg C,1/day,NutCHRout,1.71,1,RC,3.4,0.02
+Nutrient,rk2,Oxygen reaeration rate in accordance with Fickian diffusion in the reach at 20 deg C,1/day,NutCHRout,50,0,AC,100,0
+Nutrient,rk3,Rate of loss of carbonaceous biological oxygen demand due to settling in the reach at 20 deg C,1/day,NutCHRout,0.36,1,RC,0.36,-0.36
+Nutrient,rk4,Benthic oxygen demand rate in the reach at 20 deg C,(m**2)*day),NutCHRout,2,1,RC,100,0
+Nutrient,rnum1,Fraction of overland flow,none,NutCHRout,0.05,1,RC,1,0
+Nutrient,rs1,Ldeg Cal algal settling rate in the reach at 20 deg C,m/day,NutCHRout,1,1,RC,1.82,0.15
+Nutrient,rs2,Benthic (sediment) source rate for dissolved phosphorus in the reach at 20 deg C,mg disP-P)/((m**2)*day,NutCHRout,0.05,1,RC,0.1,0.001
+Nutrient,rs3,Benthic source rate for NH4-N in the reach at 20 deg C,mg NH4-N)/((m**2)*day,NutCHRout,0.5,1,RC,1,0
+Nutrient,rs4,Rate coefficient for organic N settling in the reach at 20 deg C,1/day,NutCHRout,0.05,1,RC,0.1,0.001
+Nutrient,rs5,Organic phosphorus settling rate in the reach at 20 deg C,1/day,NutCHRout,0.05,1,RC,0.1,0.001
+Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1,1,RC,1,0
+Nutrient,tfact,Fraction of solar radiation that is photosynthetically active,none,NutCHRout,0.3,1,RC,1,0
+PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,2,0,AC,2,0
+PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,PG_EPIC,-9999,0,AC,24,0
+PlantGrowth,epco,plant water uptake compensation factor,None,PG_EPIC,1,1,RC,1,0.01
+PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
+PlantGrowth,nfixco,Nitrogen fixation coefficient,None,PG_EPIC,0.5,1,RC,1,0
+PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,PG_EPIC,20,1,RC,20,1
+PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
+PlantGrowth,BIO_E,Biomass/Energy Ratio,(kg/ha)/(MJ/m**2),PG_EPIC,-9999,1,RC,90,15
+PlantGrowth,BLAI,Maximum leaf area index,None,PG_EPIC,-9999,1,RC,12,0.5
+PlantGrowth,DLAI,fraction of growing season(PHU) when senescence becomes dominant,None,PG_EPIC,-9999,1,RC,1,0.15
+PlantGrowth,ALAI_MIN,Minimum leaf area index for plant during dormant period,None,PG_EPIC,-9999,1,RC,0.99,0
+PlantGrowth,LAI_INIT,Initial leaf area index,None,PG_EPIC,-9999,1,RC,100,0
+PlantGrowth,rsdin,Initial residue cover,kg/ha,PG_EPIC,-9999,1,RC,10000,0
+Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,0,AC,10,0
+Pothole,evpot,Pothole evaporation coefficient,None,IMP_SWAT,0.5,0,AC,2,0
+Pothole,pot_no3l,Nitrate decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
+Pothole,pot_solpl,Soluble phosphorus decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
+Pothole,pot_tile,Average daily outflow to main channel from tile flow if drainage tiles are installed in the pothole.,mm,IMP_SWAT,0,0,AC,100,0
+Sediment,adj_pkr,peak rate adjustment factor,none,MUSLE_I30,1,0,AC,1,0.1
+Sediment,ccoe,calibration coefficient of overland flow detachment erosion,none,KinWavSed_OL,0.05,1,RC,100,0.001
+Sediment,ChDetCo,calibration coefficient of channel flow detachment,none,KinWavSed_CH,0.001,1,RC,1,0.0001
+Sediment,ChTcCo,calibration coefficient of transport capacity calculation,none,KinWavSed_CH,0.8,1,RC,100000,0.001
+Sediment,downcut, whether do the channel downcutting and widening,none,ChannelRouting,1,0,AC,1,0
+Sediment,eco1,calibration coefficient-1 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
+Sediment,eco2,calibration coefficient-2 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
+Sediment,acc,the number of flow accumulation cells of each cell,none,ALL,-9999,0,RC,-9999,-9999
+Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashEro_Park,0.02,1,RC,10,0.0001
+Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
+Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
+Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
+Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
+Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
+Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
+Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1
+Sediment,Spl_delratio,Splash delivery ratio,none,SplashEro_KinEen,0.1,1,RC,1,0
+Sediment,T0_s,time of concentration,hr,ALL,-9999,0,NC,-9999,-9999
+Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
+Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
+Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
+Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
+Crop,gsi,Max stomatal conductance (in drough condition),m/s,PET,-9999,1,RC,5,0
+Crop,vpdfr,Vapor pressure deficit corresponding to the fraction maximum stomatal conductance defined by FRGMAX,kPa,PET,-9999,1,RC,6,1.5
+Crop,frgmax,Fraction of maximum stomatla conductance that is achievable at a high vapor pressure deficit,none,PET,-9999,1,RC,1,0
+Snow,c_rain,Rainfall impact factor,mm/mm/deg C/delta_t,SNO_DD,0.04,0,AC,1,0
+Snow,c_snow,temperature impact factor,mm/deg C/delta_t,SNO_DD,3,0,AC,6,0
+Snow,c_snow12,Melt factor on December 21,mm/deg C/day,SNO_SP,6.5,0,AC,9,6
+Snow,c_snow6,Melt factor on June 21,mm/deg C/day,SNO_SP,2.5,0,AC,4,1
+Snow,curva_wind,Curvature along wind direction,%,SRD_MB,-9999,0,NC,-9999,-9999
+Snow,D_snow,Snow redistribution coefficient,none,SNO_DD,-9999,1,RC,1.5,0.5
+Snow,k_blow,fraction of precipitation as snow,None,SNO_SP,1,1,RC,1,0
+Snow,k_curvature,Curvature coefficient in wind direction,none,SRD_MB,145,0,AC,500,0
+Snow,K_rain,Rainfall impact factor,mm/mm/deg C/day,SNO_DD,0,0,AC,1,0
+Snow,k_slope,Slope coefficient in wind direction,none,SRD_MB,60,0,AC,100,0
+Snow,K_snow,Degree day coefficient,mm/deg C/day,SNO_DD,2,0,AC,5,0.5
+Snow,k_subli,Praction of PET for sublimation,none,SSM_PE,1,0,AC,5,0
+Snow,lag_snow,Snow temperature lag factor,none,SNO_SP,0.8,0,AC,1,0
+Snow,shc,Snow holding capacity,m,SRD_MB,-9999,1,RC,3,0.5
+Snow,shc_crop,snow holding capacity of cropland,mm,SRD_MB,50,0,NC,0.1,0
+Snow,slope_wind,Slope along wind direction,%,SRD_MB,-9999,0,NC,0,0
+Snow,SNO50COV,Fraction of snow water equivalent that corresponds to 50% snow cover.,None,SNO_SP,0.5,1,RC,1,0
+Snow,SNOCOVMX,Minimum snow water content that corresponds to 100% snow cover.,mm,SNO_SP,1,0,AC,500,0
+Snow,subbasin,subbasin identity,none,ALL,-9999,0,NC,100,0
+Snow,swe0,Initial snow water equivalent,mm,ALL,10,0,AC,300,0
+Snow,T_snow,Snowfall temperature,deg C,ALL,0,0,AC,2,-2
+Snow,T_wind,temperature at which wind transport of snow is most favorable,deg C,SRD_MB,-27.27,0,NC,-20,-35
+Snow,T0,Snowmelt temperature,deg C,ALL,1,0,AC,3,-1
+Snow,U0,Wind speed over Ut at which WWi=1,m/s,SRD_MB,10,0,AC,1,0.2
+Snow,Ut0,Threshold wind speed at -27 degree,m/s,SRD_MB,6.98,0,AC,10,4
+WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1.0,0
+WaterBalance,CN2,Curve number in condition II,none,ALL,-9999,1,RC,1.3,0.7
+WaterBalance,Conductivity,Saturated hydraulic conductivity,mm/hr,ALL,-9999,1,RC,2000,0
+WaterBalance,Density,Soil bulk density,mg/cm3,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Depre_in,Initial depression storage coefficient,none,ALL,0.2,0,AC,1,0
+WaterBalance,Depression,Depression storage capacity,mm,ALL,-9999,1,RC,5,0.5
+WaterBalance,K_run,Runoff exponent for a near zero rainfall intensity,none,SUR_MR,2.5,0,AC,5,0
+WaterBalance,k_soil10,ratio between soil temperature at 10 cm and the mean,none,STP_FP,1,0,AC,3,0
+WaterBalance,P_max,Rainfall intensity corresponding to a surface runoff exponent of 1,mm,SUR_MR,30,0,AC,1000,10
+WaterBalance,Poreindex,Pore size distribution index,none,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,0.8,0.2
+WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,100,0.01
+WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
+WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
+WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0
+WaterBalance,s_frozen,Frozen moisture relative to porosity with no infiltration,none,ALL,0.5,0,AC,1,0.1
+WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1.0,0.0
+WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,-9999,0
+WaterBalance,soil_t10,soil temperature relative to short grass cover,deg C,STP_FP,-9999,1,RC,2,0
+WaterBalance,soil_ta0,Empirical coefficient for estimating soil temperature,deg C,STP_FP,4.768,0,AC,10,0
+WaterBalance,soil_ta1,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.174,0,AC,1,0
+WaterBalance,soil_ta2,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.163,0,AC,1,0
+WaterBalance,soil_ta3,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.223,0,AC,1,0
+WaterBalance,soil_tb1,Empirical coefficient for estimating soil temperature,deg C,STP_FP,-1.361,0,AC,0,-5
+WaterBalance,soil_tb2,Empirical coefficient for estimating soil temperature,deg C,STP_FP,-3.762,0,AC,0,-5
+WaterBalance,soil_td1,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.057,0,AC,1,0
+WaterBalance,soil_td2,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.339,0,AC,1,0
+WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8
+WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15
+WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
+WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05
+WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
+WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint,none,ALL,-9999,1,RC,1000,0.01
+Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0.5
+Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,50,0.15
+Routing,ch_len,Length of main channel,m,ChannelRouting,-9999,1,RC,-9999,0.15
+Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
+Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,-9999,1,RC,5,0.001
+Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0.0001
+Routing,ch_bnk_k,channel bank hydraulic conductivity,mm/hr,ChannelRouting,-9999,1,RC,150,0
+Routing,ch_bed_k,channel bed hydraulic conductivity,mm/hr,ChannelRouting,-9999,1,RC,150,0
+Routing,ch_bnk_bd,channel bank bulk density,g/cm3,ChannelRouting,-9999,1,RC,1.9,1.1
+Routing,ch_bed_bd,channel bed bulk density,g/cm3,ChannelRouting,-9999,1,RC,1.9,1.1
+Routing,ch_bnk_cov,Channel bank cover factor,none,ChannelRouting,-9999,1,RC,1,0.001
+Routing,ch_bed_cov,Channel bed cover factor,none,ChannelRouting,-9999,1,RC,1,0.001
+Routing,ch_bnk_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001
+Routing,ch_bed_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001
+Routing,ch_bnk_d50,D50(median) particle size diameter of channel bank sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001
+Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001

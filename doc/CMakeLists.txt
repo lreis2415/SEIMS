@@ -3,13 +3,10 @@ find_package(Doxygen)
 IF(NOT DOXYGEN_FOUND)
     MESSAGE(STATUS "No Doxygen found. Documentation won't be built")
 ELSE()
-    file(GLOB SOURCES ${CMAKE_CURRENT_LIST_DIR}/../seims/src/ccgl/src/*
-                      ${CMAKE_CURRENT_LIST_DIR}/../seims/src/seims_main/base/*
-                      ${CMAKE_CURRENT_LIST_DIR}/../seims/src/seims_main/main/main_omp/*
-                      ${CMAKE_CURRENT_LIST_DIR}/../seims/src/seims_main/main/main_mpi/*
+    file(GLOB SOURCES ${CMAKE_CURRENT_LIST_DIR}/../seims/*
                       )
-    file(GLOB MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../doc/en/doc/*.md
-                           ${CMAKE_CURRENT_LIST_DIR}/../doc/zh-cn/doc/*.md
+    file(GLOB MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../doc/en/*.md
+                           ${CMAKE_CURRENT_LIST_DIR}/../doc/zh-cn/*.md
                            ${CMAKE_CURRENT_LIST_DIR}/../doc/common/*.md)
     # list(APPEND MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../README.md)
 

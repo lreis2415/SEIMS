@@ -9,8 +9,7 @@
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_dt(-1), m_inputSubbsnID(-1),
     m_nreach(-1), m_vcd(false), m_peakRateAdj(NODATA_VALUE),
-    m_sedTransEqCoef(NODATA_VALUE), m_sedTransEqExp(NODATA_VALUE),
-    m_critVelSedDep(NODATA_VALUE), m_initChSto(NODATA_VALUE),
+    m_sedTransEqCoef(NODATA_VALUE), m_sedTransEqExp(NODATA_VALUE), m_initChSto(NODATA_VALUE),
     m_reachDownStream(nullptr), m_chOrder(nullptr), m_chWth(nullptr),
     m_chDepth(nullptr), m_chWthDepthRt(nullptr), m_chLen(nullptr),
     m_chSlope(nullptr), m_chSideSlope(nullptr),
@@ -91,7 +90,6 @@ bool SEDR_SBAGNOLD::CheckInputData() {
     CHECK_NODATA(MID_SEDR_SBAGNOLD, m_peakRateAdj);
     CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqCoef);
     CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqExp);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_critVelSedDep);
     CHECK_NODATA(MID_SEDR_SBAGNOLD, m_initChSto);
 
     CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sedtoCh);
@@ -211,21 +209,6 @@ int SEDR_SBAGNOLD::Execute() {
     return 0;
 }
 
-bool SEDR_SBAGNOLD::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) return false;
-    if (m_nreach != n - 1) {
-        if (m_nreach <= 0) {
-            m_nreach = n - 1;
-        } else {
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
-                    ". The origin size is " << m_nreach + 1 << ".\n";
-            throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputSize", oss.str());
-        }
-    }
-    return true;
-}
-
 void SEDR_SBAGNOLD::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
@@ -254,7 +237,6 @@ void SEDR_SBAGNOLD::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_P_RF)) m_peakRateAdj = value;
     else if (StringMatch(sk, VAR_SPCON)) m_sedTransEqCoef = value;
     else if (StringMatch(sk, VAR_SPEXP)) m_sedTransEqExp = value;
-    else if (StringMatch(sk, VAR_VCRIT)) m_critVelSedDep = value;
     else if (StringMatch(sk, VAR_CHS0)) m_initChSto = value;
     else if (StringMatch(sk, VAR_VCD)) m_vcd = FloatEqual(value, 1.f);
     else {
@@ -283,7 +265,7 @@ void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const floa
 
 void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SEDR_SBAGNOLD, key, n - 1, m_nreach);
     if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh = data; // for longterm model
     else if (StringMatch(sk, VAR_SAND_TO_CH)) m_sandtoCh = data;
     else if (StringMatch(sk, VAR_SILT_TO_CH)) m_silttoCh = data;

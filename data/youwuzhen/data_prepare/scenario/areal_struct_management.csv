@@ -1,0 +1,28 @@
+## This file define areal structural BMPs parameters.
+## Latest update: 2018-11-1
+## 1. fengjin: CM (closing measures)
+## 2. shengtailincao: ABHMP (arbor-bush-herb mixed plantation)
+## 3. dixiaolingaizao: LQFI (low-quality forest improvement)
+## 4. jingjilinguo: OI (orchard improvement)
+# SUBSCENARIO: BMP unique ID
+# NAME: BMP Name
+# DESC: BMP Description
+# REFERENCE: Literature reference
+# LANDUSE: Suitable landuse ID, if not sure, please fill in 'ALL', separated by '-', such as '2-4'
+# SLPPOS: Suitable slope position, if not sure, please fill in 'ALL', such as '4-16'
+# PARAMETERS: Spatial parameters that the BMP affects, the format MUST be:
+#             NAME1:DESC1:CHANGE1:IMPACT1-NAME2:DESC2:CHANGE2:IMPACT2-...
+#             where, NAME is the parameter's ID, which will be one of the GridFS file in SPATIAL.files
+#                    DESC is the corresponding description
+#                    CHANGE is the change method, which can be VC,RC,AC. VC: replace, RC: multiply, AC: add.
+#                    IMPACT is the impact value.
+# EFFECTIVENESS: Effectiveness grade represents the degree of improvement in the area, range from 1 to 5, with
+#                higher-numbered grades representing better effectiveness.
+# CAPEX: capital expenditures  1e+4 RMBY/km2
+# OPEX: operation expenses  1e+4 RMBY/km2/year
+# INCOME: additional income  1e+4 RMBY/km2/year
+SUBSCENARIO,NAME,DESC,REFERENCE,LANDUSE,SLPPOS,PARAMETERS,EFFECTIVENESS,CAPEX,OPEX,INCOME
+1,fengjin,fengjin,fengjin,8-6,1-4,OM:Organic matter:RC:1.22-Density:bulk density:RC:0.98-Porosity:Total porosity:RC:1.02-USLE_K:USLE soil erodibility:RC:1.01-Conductivity:Soil hydraulic conductivity:RC:0.81-FieldCap:Soil field capacity:RC:1.02-Wiltingpoint:Wiltingpoint:RC:1.02-SOL_AWC:Soil available water:RC:1.02-SOL_UL:Soil saturated water:RC:1.02-SOL_CBN:Soil carbon content:RC:1.22-USLE_P:USLE practice factor:RC:0.9,3,15.5,1.5,2.0
+2,shengtailincao,shengtailincao,shengtailincao,4-8-6,1-4-16,OM:Organic matter:RC:1.45-Density:bulk density:RC:0.93-Porosity:Total porosity:RC:1.07-USLE_K:USLE soil erodibility:RC:0.82-Conductivity:Soil hydraulic conductivity:RC:1.81-FieldCap:Soil field capacity:RC:1.07-Wiltingpoint:Wiltingpoint:RC:1.07-SOL_AWC:Soil available water:RC:1.07-SOL_UL:Soil saturated water:RC:1.07-SOL_CBN:Soil carbon content:RC:1.45-USLE_P:USLE practice factor:RC:0.5,5,87.5,1.5,6.9
+3,dixiaolingaizao,dixiaolingaizao,dixiaolingaizao,8-6,4,OM:Organic matter:RC:1.05-Density:bulk density:RC:0.87-Porosity:Total porosity:RC:1.13-USLE_K:USLE soil erodibility:RC:0.81-Conductivity:Soil hydraulic conductivity:RC:1.71-FieldCap:Soil field capacity:RC:1.13-Wiltingpoint:Wiltingpoint:RC:1.13-SOL_AWC:Soil available water:RC:1.13-SOL_UL:Soil saturated water:RC:1.13-SOL_CBN:Soil carbon content:RC:1.05-USLE_P:USLE practice factor:RC:0.75,4,45.5,1.5,3.9
+4,jingjilinguo,jingjilinguo,jingjilinguo,4-8-6,16,OM:Organic matter:RC:2.05-Density:bulk density:RC:0.96-Porosity:Total porosity:RC:1.03-USLE_K:USLE soil erodibility:RC:0.88-Conductivity:Soil hydraulic conductivity:RC:1.63-FieldCap:Soil field capacity:RC:1.03-Wiltingpoint:Wiltingpoint:RC:1.03-SOL_AWC:Soil available water:RC:1.03-SOL_UL:Soil saturated water:RC:1.03-SOL_CBN:Soil carbon content:RC:2.05-USLE_P:USLE practice factor:RC:0.5,4,420,20,60.3

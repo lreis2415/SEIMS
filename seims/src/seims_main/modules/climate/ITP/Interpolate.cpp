@@ -72,7 +72,7 @@ void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols,
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
             int n_month = 12;
-            CheckInputSize(sk, n_rows, n_month);
+            CheckInputSize(MID_ITP, key, n_rows, n_month);
             m_lapseRate = data;
         }
     } else {
@@ -84,22 +84,22 @@ void Interpolate::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, Tag_DEM)) {
         if (m_itpVertical) {
-            CheckInputSize(sk, n, m_nCells);
+            CheckInputSize(MID_ITP, key, n, m_nCells);
             m_dem = data;
         }
     } else if (StringMatch(sk, Tag_Weight)) {
-        CheckInputSize(sk, n, m_nCells);
+        CheckInputSize(MID_ITP, key, n, m_nCells);
         m_itpWeights = data;
     } else if (StringMatch(sk, Tag_Elevation_Precipitation) || StringMatch(sk, Tag_Elevation_Meteorology)
         || StringMatch(sk, Tag_Elevation_Temperature) || StringMatch(sk, Tag_Elevation_PET)) {
         if (m_itpVertical) {
-            CheckInputSize(sk, n, m_nStatioins);
+            CheckInputSize(MID_ITP, key, n, m_nStatioins);
             m_hStations = data;
         }
     } else {
         string prefix = sk.substr(0, 1);
         if (StringMatch(prefix, DataType_Prefix_TS)) {
-            CheckInputSize(sk, n, m_nStatioins);
+            CheckInputSize(MID_ITP, key, n, m_nStatioins);
             m_stationData = data;
         } else {
             throw ModelException(MID_ITP, "Set1DData", "Parameter " + sk + " does not exist.");
@@ -107,25 +107,7 @@ void Interpolate::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool Interpolate::CheckInputSize(string& key, const int n, int& m_n) {
-    if (n <= 0) {
-        throw ModelException(MID_ITP, "CheckInputSize", "Input data for " + key
-                             + " is invalid. The size could not be less than zero.");
-    }
-    if (n != m_n) {
-        if (m_n <= 0) {
-            m_n = n;
-        } else {
-            throw ModelException(MID_ITP, "CheckInputSize",
-                                 "Input data for " + key + " is invalid." + " The size of input data is " +
-                                 ValueToString(n) +
-                                 ". The number of columns in weight file and the number of stations should be same.");
-        }
-    }
-    return true;
-}
-
-void Interpolate::CheckInputData() {
+bool Interpolate::CheckInputData() {
     CHECK_NONNEGATIVE(MID_ITP, m_dataType);
     CHECK_NONNEGATIVE(MID_ITP, m_month);
     CHECK_POINTER(MID_ITP, m_itpWeights);
@@ -135,6 +117,7 @@ void Interpolate::CheckInputData() {
         CHECK_POINTER(MID_ITP, m_hStations);
     }
     CHECK_POINTER(MID_ITP, m_stationData);
+    return true;
 }
 
 void Interpolate::Get1DData(const char* key, int* n, float** data) {

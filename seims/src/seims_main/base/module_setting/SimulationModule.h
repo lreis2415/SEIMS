@@ -33,7 +33,6 @@ using namespace bmps;
 enum TimeStepType {
     TIMESTEP_HILLSLOPE, ///< Hillslope scale
     TIMESTEP_CHANNEL,   ///< Channel scale
-    TIMESTEP_ECOLOGY,   ///< Ecology scale, currently not necessary?
     TIMESTEP_SIMULATION ///< Whole simulation scale
 };
 
@@ -45,25 +44,13 @@ enum TimeStepType {
 class SimulationModule: Interface {
 public:
     //! Constructor
-    SimulationModule(): m_date(-1), m_yearIdx(-1), m_year(1900), m_month(-1), m_day(-1),
-                        m_tsCounter(1), m_inputsSetDone(false) {
-    }
+    SimulationModule();
 
-    //! Execute the simulation
+    //! Execute the simulation. Return 0 for success.
     virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
-    virtual void SetDate(const time_t t, const int year_idx) {
-        m_date = t;
-        m_yearIdx = year_idx;
-        struct tm* date_info = new tm();
-        LocalTime(m_date, date_info);
-        m_year = date_info->tm_year + 1900;
-        m_month = date_info->tm_mon + 1;
-        m_day = date_info->tm_mday;
-        m_dayOfYear = date_info->tm_yday + 1;
-        delete date_info;
-    }
+    virtual void SetDate(const time_t t, const int year_idx);
 
     //! Set thread number for OpenMP
     virtual void SetTheadNumber(const int thread_num) {
@@ -98,19 +85,6 @@ public:
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    /* Seems to be useless, should be removed in the near future. By lj.
-    //! Set 1D array data, DT_Array1D
-    virtual void Set1DArrayData(const char* key, int n, float* data) {
-        throw ModelException("SimulationModule", "Set1DArrayData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
-    }
-
-    //! Set 2D array data, by default, DT_Array2D
-    virtual void Set2DArrayData(const char* key, int nrows, int ncols, float** data) {
-        throw ModelException("SimulationModule", "Set2DArrayData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
-    }
-    */
     //! Get value, DT_Single
     virtual void GetValue(const char* key, float* value) {
         throw ModelException("SimulationModule", "GetValue",
@@ -129,19 +103,6 @@ public:
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
 
-    /* Seems to be useless, should be removed in the near future. By lj.
-    //! Get 1D Array data, by default, DT_Array1D
-    virtual void Get1DArrayData(const char* key, int* n, float** data) {
-        throw ModelException("SimulationModule", "Get1DArrayData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
-    }
-
-    //! Get 2D Array data, by default, DT_Array2D
-    virtual void Get2DArrayData(const char* key, int* nRows, int* nCols, float*** data) {
-        throw ModelException("SimulationModule", "Get2DArrayData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
-    }
-    */
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
     virtual void SetScenario(Scenario* sce) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
@@ -156,6 +117,44 @@ public:
     virtual void SetSubbasins(clsSubbasins* subbsns) {
         throw ModelException("SimulationModule", "SetSubbasins", "Set subbasins function is not implemented.");
     }
+
+    /*!
+     * \brief Check the input data. Make sure all the input data is available.
+     *
+     *        This function is optional to be overridden.
+     *
+     * \return bool The validity of the input data.
+     */
+    virtual bool CheckInputData() { return true; }
+
+    /*!
+     * \brief Check data length of the first dimension (i.e., nRows) of the input array-based data
+     *
+     * \param[in] module_id Module ID used to print exception message
+     * \param[in] key the key to identify the requested data
+     * \param[in] nrows size of the first dimension
+     * \param[out] m_nrows the expected size, if m_nrows less or equal to 0, then m_nrows = mrows
+     */
+    virtual bool CheckInputSize(const char* module_id, const char* key, int nrows, int& m_nrows);
+
+    /*!
+     * \brief Check data length of the two dimensions (i.e., nRows and nCols) of the input array-based data
+     *
+     * \param[in] module_id Module ID used to print exception message
+     * \param[in] key the key to identify the requested data
+     * \param[in] nrows size of the first dimension
+     * \param[in] ncols size of the second dimension
+     * \param[out] m_nrows the expected rows size, if m_nrows less or equal to 0, then m_nrows = mrows
+     * \param[out] m_ncols the expected cols size, if m_ncols less or equal to 0, then m_ncols = ncols
+     */
+    virtual bool CheckInputSize2D(const char* module_id, const char* key, int nrows, int ncols, int& m_nrows, int& m_ncols);
+
+    /*!
+     * \brief Initialize output variables.
+     *
+     *        This function is optional to be overridden.
+     */
+    virtual void InitialOutputs() {}
 
     /*!
      * \brief Get time step type, default is hillslope process.
@@ -222,4 +221,5 @@ protected:
 //! CHECK_NODATA is used for single value that must not be NODATA_VALUE
 #define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(CVT_FLT(param), NODATA_VALUE)) \
                      throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be NODATA_VALUE!"))
+
 #endif /* SIMULATION_MOUDULE_BASE */

@@ -40,22 +40,19 @@ public:
 
     ~SERO_MUSLE();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputData();
-
-private:
-    void InitialOutputs();
 
 private:
     //! valid cell number
@@ -63,7 +60,7 @@ private:
     //! cell width (m)
     float m_cellWth;
     //! soil layer number
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
 
     // grid from parameter
 
@@ -93,7 +90,7 @@ private:
     //! large aggregate fraction
     float* m_detLgAgg;
 
-    //! C-factor calculation using Cmin (0) or new method from RUSLE (1, default)
+    //! C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
     int m_iCfac;
     //! Average annual USLE C factor for the land cover, or log(aveAnnUsleC) when m_soilRsd is available.
     float* m_aveAnnUsleC;

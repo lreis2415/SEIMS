@@ -11,7 +11,7 @@ using std::endl;
 namespace ccgl {
 namespace utils_time {
 double TimeCounting() {
-#ifdef windows
+#ifdef WINDOWS
     LARGE_INTEGER li;
     if (QueryPerformanceFrequency(&li)) {
         /// CPU supported
@@ -24,7 +24,7 @@ double TimeCounting() {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     return CVT_DBL(tv.tv_sec) + CVT_DBL(tv.tv_usec) / 1000000.;
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 string ConvertToString(const time_t date, const bool utc_time /* = true */) {
@@ -101,7 +101,7 @@ time_t ConvertToTime(const string& str_date, string const& format, const bool in
         time_info->tm_sec = sec;
         time_info->tm_isdst = false;
         if (utc_time) {
-#ifdef windows
+#ifdef WINDOWS
             t = _mkgmtime(time_info);
 #else
             t = timegm(time_info);
@@ -126,7 +126,7 @@ time_t ConvertYMDToTime(int& year, int& month, int& day, const bool utc_time /* 
         time_info->tm_mday = day;
         time_info->tm_isdst = false;
         if (utc_time) {
-#ifdef windows
+#ifdef WINDOWS
             t = _mkgmtime(time_info);
 #else
             t = timegm(time_info);
@@ -158,19 +158,19 @@ int GetDateInfoFromTimet(const time_t t, int* year, int* month, int* day, const 
 }
 
 void LocalTime(time_t date, struct tm* t) {
-#ifdef windows
+#ifdef WINDOWS
     localtime_s(t, &date);
 #else
     localtime_r(&date, t);
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 void UTCTime(const time_t date, struct tm* t) {
-#ifdef windows
+#ifdef WINDOWS
     gmtime_s(t, &date);
 #else
     gmtime_r(&date, t);
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 void GetDateTime(const time_t date, struct tm* t, const bool utc_time /* = true */) {
@@ -268,7 +268,7 @@ SYSTEMTIME DateTimeToSystemTime(const DateTime& date_time) {
     FileTimeToSystemTime(&file_time, &sys_time);
     return sys_time;
 }
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
 
 /*!
  * \brief Convert Turkmenistan Time (Standard Time) to DateTime
@@ -290,6 +290,7 @@ DateTime ConvertTMToDateTime(tm* time_info, vint milliseconds) {
     dt.milliseconds = milliseconds;
     dt.filetime = CVT_VUINT64(timer * 1000 + milliseconds);
     dt.total_milliseconds = CVT_VUINT64(timer * 1000 + milliseconds);
+    delete time_info;
     return dt;
 }
 
@@ -305,10 +306,14 @@ DateTime DateTime::LocalTime() {
     SYSTEMTIME sys_time;
     GetLocalTime(&sys_time);
     return SystemTimeToDateTime(sys_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = time(nullptr);
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
 }
@@ -318,10 +323,14 @@ DateTime DateTime::UTCTime() {
     SYSTEMTIME utc_time;
     GetSystemTime(&utc_time);
     return SystemTimeToDateTime(utc_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = time(nullptr);
     struct tm* time_info = new tm();
+#if defined MINGW
+    gmtime_s(time_info, &timer);
+#else
     gmtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
 }
@@ -343,7 +352,7 @@ DateTime DateTime::FromDateTime(const int iyear, const int imonth, const int ida
     SystemTimeToFileTime(&sys_time, &file_time);
     FileTimeToSystemTime(&file_time, &sys_time);
     return SystemTimeToDateTime(sys_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     tm time_info;
     memset(&time_info, 0, sizeof(time_info));
     time_info.tm_year = iyear - 1900;
@@ -369,10 +378,14 @@ DateTime DateTime::FromFileTime(const vuint64_t ifiletime) {
     SYSTEMTIME sys_time;
     FileTimeToSystemTime(&file_time, &sys_time);
     return SystemTimeToDateTime(sys_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = static_cast<time_t>(ifiletime / 1000);
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, ifiletime % 1000);
 #endif
 }
@@ -390,13 +403,16 @@ DateTime DateTime::ToLocalTime() {
     SYSTEMTIME local_time;
     SystemTimeToTzSpecificLocalTime(nullptr, &utc_time, &local_time);
     return SystemTimeToDateTime(local_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t local_timer = time(nullptr);
     time_t utc_timer = mktime(gmtime(&local_timer));
     time_t timer = static_cast<time_t>(filetime / 1000) + local_timer - utc_timer;
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
-
+#endif
     return ConvertTMToDateTime(time_info, milliseconds);
 #endif
 }
@@ -407,10 +423,14 @@ DateTime DateTime::ToUTCTime() {
     SYSTEMTIME utc_time;
     TzSpecificLocalTimeToSystemTime(nullptr, &local_time, &utc_time);
     return SystemTimeToDateTime(utc_time);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = static_cast<time_t>(filetime / 1000);
     struct tm* time_info = new tm();
+#if defined MINGW
+    gmtime_s(time_info, &timer);
+#else
     gmtime_r(&timer, time_info);
+#endif
 
     return ConvertTMToDateTime(time_info, milliseconds);
 #endif
@@ -419,7 +439,7 @@ DateTime DateTime::ToUTCTime() {
 DateTime DateTime::Forward(const int imilliseconds) {
 #if defined CPP_MSVC
     return FromFileTime(filetime + milliseconds * 10000);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     return FromFileTime(filetime + milliseconds);
 #endif
 }
@@ -427,7 +447,7 @@ DateTime DateTime::Forward(const int imilliseconds) {
 DateTime DateTime::Backward(const int imilliseconds) {
 #if defined CPP_MSVC
     return FromFileTime(filetime - milliseconds * 10000);
-#elif defined CPP_GCC
+#elif (defined CPP_GCC) || (defined CPP_ICC)
     return FromFileTime(filetime - milliseconds);
 #endif
 }

@@ -3,14 +3,14 @@
 #include "text.h"
 
 SERO_MUSLE::SERO_MUSLE() :
-    m_nCells(-1), m_cellWth(-1.f), m_nSoilLayers(-1), m_soilRock(nullptr),
+    m_nCells(-1), m_cellWth(-1.f), m_maxSoilLyrs(-1), m_soilRock(nullptr),
     m_usleK(nullptr), m_usleP(nullptr),
     m_flowAccm(nullptr), m_slope(nullptr), m_slpLen(nullptr),
     m_rchID(nullptr), m_detSand(nullptr), m_detSilt(nullptr), m_detClay(nullptr),
     m_detSmAgg(nullptr), m_detLgAgg(nullptr), m_iCfac(1),
     m_aveAnnUsleC(nullptr), m_landCover(nullptr), m_rsdCovSoil(nullptr),
     m_rsdCovCoef(NODATA_VALUE), m_canHgt(nullptr), m_lai(nullptr), m_surfRf(nullptr),
-    m_snowAccum(nullptr),m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
+    m_snowAccum(nullptr), m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
     m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE), m_slopeForPq(nullptr),
     m_usleL(nullptr), m_usleS(nullptr), m_usleC(nullptr),
     m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
@@ -135,9 +135,11 @@ void SERO_MUSLE::InitialOutputs() {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             if (m_rchID[i] > 0) {
-                m_usleC[i] = 1.f;
+                m_usleC[i] = 0.f;
                 continue;
             }
+            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+
             if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
                 m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
             }
@@ -145,8 +147,6 @@ void SERO_MUSLE::InitialOutputs() {
                 // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
                 //  the minimum value of the USLE_C for the land cover
                 m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
-            } else {
-                m_usleC[i] = m_aveAnnUsleC[i];
             }
         }
     }
@@ -167,32 +167,37 @@ int SERO_MUSLE::Execute() {
             continue;
         }
         // Update C factor
-        if (m_iCfac == 0) {
+        if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (nullptr != m_rsdCovSoil) {
-                if (m_landCover[i] > 0) {
-                    // ln(0.8) = -0.2231435513142097
-                    m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
-                                     exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            if (m_landCover[i] > 0.f && m_landCover[i] != 18) {
+                // exclude WATER
+                // ln(0.8) = -0.2231435513142097
+                m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
+                                 exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            } else {
+                if (m_rsdCovSoil[i] > 1.e-4f) {
+                    m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
                 } else {
-                    if (m_rsdCovSoil[i] > 1.e-4) {
-                        m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
-                    } else {
-                        m_usleC[i] = 0.8f;
-                    }
+                    m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
-            // new calculation method from RUSLE with the minimum C factor value
-            //! fraction of cover by residue
-            float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);
-            //! fraction of cover by biomass as function of lai
-            float grcov_fr = m_lai[i] / (m_lai[i] + exp(1.748f - 1.748f * m_lai[i]));
-            //! fraction of cover by biomass - adjusted for canopy height
-            float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
-            m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
+            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) {
+                // exclude WATER
+                // new calculation method from RUSLE with the minimum C factor value
+                //! fraction of cover by residue
+                float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);
+                //! fraction of cover by biomass as function of lai
+                float grcov_fr = m_lai[i] / (m_lai[i] + exp(1.748f - 1.748f * m_lai[i]));
+                //! fraction of cover by biomass - adjusted for canopy height
+                float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
+                m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
+            } else {
+                m_usleC[i] = 0.f;
+            }
         }
         if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
+        if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);
@@ -214,22 +219,6 @@ int SERO_MUSLE::Execute() {
     return 0;
 }
 
-bool SERO_MUSLE::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SERO_MUSLE, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SERO_MUSLE, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void SERO_MUSLE::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth)) {
@@ -244,7 +233,7 @@ void SERO_MUSLE::SetValue(const char* key, const float value) {
 }
 
 void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SERO_MUSLE, key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_USLE_C)) m_aveAnnUsleC = data;
     else if (StringMatch(s, VAR_LANDCOVER)) m_landCover = data;
@@ -268,10 +257,10 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-void SERO_MUSLE::Set2DData(const char* key, int nRows, int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_SERO_MUSLE, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
-    m_nSoilLayers = nCols;
+    m_maxSoilLyrs = ncols;
     if (StringMatch(s, VAR_USLE_K)) m_usleK = data;
     else if (StringMatch(s, VAR_ROCK)) m_soilRock = data;
     else {

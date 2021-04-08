@@ -1,12 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Constant strings used in SEIMS, both in preprocessing and SEIMS modules (C++)
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class other than Global variables
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-06-23  - lj - reorganize as basic class other than Global variables
+    - 18-02-08  - lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
 
@@ -71,16 +72,16 @@ class DirNameUtils(object):
 class ModelParamDataUtils(object):
     """Model parameters data file related.
     """
-    _INIT_PARAM_NAME = 'model_param_ini.txt'
-    _INIT_OUTPUTS_NAME = 'AvailableOutputs.txt'
+    _INIT_PARAM_NAME = 'model_param_ini.csv'
+    _INIT_OUTPUTS_NAME = 'AvailableOutputs.csv'
     Tag_Params = 'param'
     Tag_Lookup = 'lookup'
-    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.txt',
-                    'LanduseLookup': 'LanduseLookup.txt',
-                    'TillageLookup': 'TillageLookup.txt',
-                    'UrbanLookup': 'UrbanLookup.txt',
-                    'CropLookup': 'CropLookup.txt',
-                    'FertilizerLookup': 'FertilizerLookup.txt'}
+    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.csv',
+                    'LanduseLookup': 'LanduseLookup.csv',
+                    'TillageLookup': 'TillageLookup.csv',
+                    'UrbanLookup': 'UrbanLookup.csv',
+                    'CropLookup': 'CropLookup.csv',
+                    'FertilizerLookup': 'FertilizerLookup.csv'}
 
     # CROP, LANDUSE attributes(fields)
     # Match to the new lookup table of SWAT 2012 rev.637. lj
@@ -384,6 +385,7 @@ class DBTableNames(object):
     """Predefined MongoDB database collection names."""
     # Main model database
     gridfs_spatial = 'SPATIAL'
+    gridfs_output = 'OUTPUT'
     main_sitelist = 'SITELIST'
     main_parameter = 'PARAMETERS'
     main_filein = 'FILE_IN'
@@ -395,3 +397,5 @@ class DBTableNames(object):
     observes = 'MEASUREMENT'
     var_desc = 'VARIABLES'
     sites = 'SITES'
+    # BMPs scenario database
+    scenarios = 'BMP_SCENARIOS'

@@ -100,22 +100,6 @@ int IUH_OL::Execute() {
     return 0;
 }
 
-bool IUH_OL::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_IUH_OL, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_IUH_OL, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void IUH_OL::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
@@ -129,7 +113,7 @@ void IUH_OL::SetValue(const char* key, const float value) {
 }
 
 void IUH_OL::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_IUH_OL, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
@@ -138,12 +122,12 @@ void IUH_OL::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-void IUH_OL::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
+void IUH_OL::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize(VAR_OL_IUH, nRows);
+        CheckInputSize2D(MID_IUH_OL, VAR_OL_IUH, nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
-        m_iuhCols = nCols;
+        m_iuhCols = ncols;
     } else {
         throw ModelException(MID_IUH_OL, "Set2DData", "Parameter " + sk + " does not exist.");
     }

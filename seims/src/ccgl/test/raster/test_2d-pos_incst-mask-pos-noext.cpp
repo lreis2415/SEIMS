@@ -17,6 +17,7 @@
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
+ *          2019-11-06 - lj - Allow user specified MongoDB host and port.
  *
  */
 #include "gtest/gtest.h"
@@ -27,6 +28,7 @@
 #ifdef USE_MONGODB
 #include "../../src/db_mongoc.h"
 #endif
+#include "../test_global.h"
 
 using namespace ccgl::data_raster;
 using namespace ccgl::utils_filesystem;
@@ -34,6 +36,8 @@ using std::vector;
 #ifdef USE_MONGODB
 using namespace ccgl::db_mongoc;
 #endif
+
+extern GlobalEnvironment* GlobalEnv;
 
 namespace {
 using ::testing::TestWithParam;
@@ -141,7 +145,6 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
     EXPECT_FLOAT_EQ(25.f, rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs_->GetCellWidth());
     EXPECT_EQ(3, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap2D **/
@@ -221,14 +224,14 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
 
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
-    MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
+    MongoClient* conn = MongoClient::Init(GlobalEnv->mongoHost.c_str(), GlobalEnv->mongoPort);
     if (nullptr != conn) {
         string gfsfilename = GetCoreFileName(newfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
         copyrs->OutputToMongoDB(gfsfilename, gfs);
-        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs_,
-                                                                             false);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(),
+                                                                             true, maskrs_, false);
         // test mongors data
         EXPECT_EQ(64, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(3, mongors->GetLayers());
@@ -236,7 +239,12 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
         EXPECT_FLOAT_EQ(8.43900000f, mongors->GetAverage(3));
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
     delete copyrs;
 }

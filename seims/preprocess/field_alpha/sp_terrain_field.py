@@ -1,14 +1,9 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Terrain related spatial parameters extraction
+"""Terrain related spatial parameters extraction (extend to field version of SEIMS)
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-07-06  lj - Code optimization by numpy
-                16-12-07  lj - rewrite for version 2.0
-                17-06-27  lj - reorganize as basic class other than Global variables
-    @TODO: 1. for depression_capacity() function
-              1.1. Add stream order modification, according to depression.ave of WetSpa.
-              1.2. Add another depressional storage method according to SWAT, depstor.f
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+
 """
 from __future__ import absolute_import
 

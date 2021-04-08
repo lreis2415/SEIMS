@@ -22,7 +22,7 @@ using namespace std;
  * \class IKW_REACH
  * \ingroup IKW_REACH
  * \brief Overland routing using 4-point implicit finite difference method
- * 
+ *
  */
 struct MuskWeights {
     float c1;
@@ -43,7 +43,7 @@ public:
 
     virtual void SetValue(const char *key, float data);
 
-    virtual void GetValue(const char *key, float *value);
+    // virtual void GetValue(const char *key, float *value);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -60,6 +60,8 @@ public:
     // bool CheckInputSizeChannel(const char *key, int n);
 
     bool CheckInputData();
+
+    void  InitialOutputs();
 
     virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_CHANNEL;
@@ -153,7 +155,6 @@ private:
 
     map<int, vector<int> > m_reachLayers;
 
-    void  InitialOutputs();
 
     void ChannelFlow(int i);
 

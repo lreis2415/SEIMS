@@ -2,6 +2,7 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "BMPText.h"
 
 using namespace utils_time;
 
@@ -9,12 +10,15 @@ using namespace utils_time;
 ///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem() : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
-                                 m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
-                                 SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
-                                 StartTime(""), m_startTime(0),
-                                 EndTime(""), m_endTime(0), Suffix(""), Corename(""),
-                                 Filename(""), m_Counter(-1), m_AggregationType(AT_Unknown) {
+PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+    : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
+      m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
+      SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
+      StartTime(""), m_startTime(0),
+      EndTime(""), m_endTime(0), Suffix(""), Corename(""),
+      Filename(""),
+      m_scenarioID(scenario_id), m_calibrationID(calibration_id),
+      m_Counter(-1), m_AggregationType(AT_Unknown) {
     TimeSeriesData.clear();
     TimeSeriesDataForSubbasin.clear();
 }
@@ -53,22 +57,50 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
+void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
+    /*   Currently, I cannot find a way to store GridFS files with the same filename but with
+    *        different metadata information by mongo-c-driver, which can be done by pymongo.
+    *        So, temporarily, I decided to append scenario ID and calibration ID to the filename.
+    *
+    *        The format of filename of OUPUT by SEIMS MPI version is:
+    *
+    *        <SubbasinID>_CoreFileName_ScenarioID_CalibrationID
+    *
+    *        If no ScenarioID or CalibrationID, i.e., with a value of -1, just left blank. e.g.,
+    *        - 1_SED_OL_SUM_1_ means ScenarioID is 1 and Calibration ID is -1
+    *        - 1_SED_OL_SUM__ means ScenarioID is -1 and Calibration ID is -1
+    *        - 1_SED_OL_SUM_0_2 means ScenarioID is 0 and Calibration ID is 2
+    */
     // For OMP version, Output to tiff file directly.
-    bool outToMongoDB = false;                   /// added by LJ.
-    if (SubbasinID != 0 && SubbasinID != 9999 && // Not the while basin, Not the field-version
+
+    bool outToMongoDB = false; // By default, not output to MongoDB.
+    // Additional metadata information
+    map<string, string> opts;
+    if (SubbasinID != 0 && SubbasinID != 9999 && // Not the whole basin, Not the field-version
         (m_1DData != nullptr || m_2DData != nullptr)) {
         // Spatial outputs
         outToMongoDB = true;
         // Add subbasin ID as prefix
-        Filename = ValueToString(SubbasinID) + "_" + Corename;
+        Filename = itoa(SubbasinID) + "_" + Corename;
+#ifdef HAS_VARIADIC_TEMPLATES
+        opts.emplace("SCENARIO_ID", itoa(m_scenarioID));
+        opts.emplace("CALIBRATION_ID", itoa(m_calibrationID));
+#else
+        opts.insert(make_pair("SCENARIO_ID", itoa(m_scenarioID)));
+        opts.insert(make_pair("CALIBRATION_ID", itoa(m_calibrationID)));
+#endif
     }
     /// Filename should appended by AggregateType to avoiding the same names. By LJ, 2016-7-12
     if (!StringMatch(AggType, "")) {
         Filename += "_" + AggType;
         Corename += "_" + AggType;
     }
+    // Concatenate GridFS filename for SEIMS MPI version.
+    string gfs_name = Filename + "_";
+    if (m_scenarioID >= 0) gfs_name += itoa(m_scenarioID);
+    gfs_name += "_";
+    if (m_calibrationID >= 0) gfs_name += itoa(m_calibrationID);
     StatusMessage(("Creating output file " + Filename + "...").c_str());
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
     if (m_AggregationType == AT_SpecificCells) {
@@ -134,8 +166,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         }
         if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
             if (outToMongoDB) {
-                gfs->RemoveFile(Filename);
-                FloatRaster(templateRaster, m_1DData).OutputToMongoDB(Filename, gfs);
+                gfs->RemoveFile(gfs_name);
+                FloatRaster(templateRaster, m_1DData).OutputToMongoDB(gfs_name, gfs, opts);
             } else {
                 FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
             }
@@ -164,8 +196,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
             /// Multi-Layers raster data
             if (outToMongoDB) {
-                gfs->RemoveFile(Filename);
-                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(Filename, gfs);
+                gfs->RemoveFile(gfs_name);
+                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(gfs_name, gfs, opts);
             } else {
                 FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
             }
@@ -467,8 +499,9 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 ///////////PrintInfo Class////////////////
 //////////////////////////////////////////
 
-PrintInfo::PrintInfo()
-    : m_Interval(0), m_IntervalUnits(""), m_moduleIndex(-1), m_OutputID(""),
+PrintInfo::PrintInfo(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+    : m_scenarioID(scenario_id), m_calibrationID(calibration_id),
+      m_Interval(0), m_IntervalUnits(""), m_moduleIndex(-1), m_OutputID(""),
       m_param(nullptr), m_subbasinSelectedArray(nullptr) {
     m_PrintItems.clear();
 }
@@ -589,7 +622,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
 
 void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& sufi) {
     // create a new object instance
-    PrintInfoItem* itm = new PrintInfoItem();
+    PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
     // set its properties
     itm->SiteID = -1;
@@ -608,7 +641,7 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
 void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi,
                              int subbasinID /* = 0 */) {
     // create a new object instance
-    PrintInfoItem* itm = new PrintInfoItem();
+    PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
     // set its properties
     itm->SiteID = -1;
@@ -636,7 +669,7 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
 
 void PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename,
                              string& sufi, bool isSubbasin) {
-    PrintInfoItem* itm = new PrintInfoItem();
+    PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
     char* strend = nullptr;
     errno = 0;
     if (!isSubbasin) {

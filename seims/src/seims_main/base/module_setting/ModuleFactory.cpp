@@ -1,6 +1,6 @@
 #include "ModuleFactory.h"
 
-#ifndef windows
+#ifndef WINDOWS
 #include <dlfcn.h> // dlopen()
 #endif
 
@@ -295,7 +295,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
     }
     //load library
-#ifdef windows
+#ifdef WINDOWS
     // MSVC or MinGW64 in Windows
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
     if (handle == nullptr) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
@@ -309,7 +309,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     }
     instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
-#endif /* windows */
+#endif /* WINDOWS */
     dllHandles.emplace_back(handle);
     if (instanceFuncs[id] == nullptr) {
         throw ModelException("ModuleFactory", "ReadDLL",
@@ -585,19 +585,29 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
             settings.resize(sz + 7);
             for (size_t j = 0; j < 7; j++) {
                 vector<string> tokensTemp(tokens);
-                tokensTemp[1] += "_" + T_variables[j];
                 if (tokens[3].find(MID_ITP) != string::npos) {
-                    vector<string> ITPProperty = SplitString(*iter, '_');
+                    bool useVerticalItp = false;  // Default
+                    vector<string> ITPProperty = SplitString(tokensTemp[1], '_');
                     if (ITPProperty.size() == 2) {
                         char* strend = nullptr;
                         errno = 0;
-                        int isVertical = strtol(ITPProperty[1].c_str(), &strend, 10);
-                        if (isVertical) {
-                            tokensTemp[1] += "_1";
-                        } else {
-                            tokensTemp[1] += "_0";
-                        }
+                        useVerticalItp = strtol(ITPProperty[1].c_str(), &strend, 10) > 0;
                     }
+                    // For interpolation modules, e.g.:
+                    //   0 | Interpolation_0 | Thiessen | ITP
+                    // will be updated as:
+                    //  0 | Interpolation_P_0 | Thiessen | ITP, etc.
+                    if (useVerticalItp) {
+                        tokensTemp[1] = ITPProperty[0] + "_" + T_variables[j] + "_1";
+                    } else {
+                        tokensTemp[1] = ITPProperty[0] + "_" + T_variables[j] + "_0";
+                    }
+                } else {
+                    // For time series data reading modules, e.g.:
+                    //   0 | TimeSeries | | TSD_RD
+                    // will be updated as:
+                    //   0 | TimeSeries_P | | TSD_RD, etc.
+                    tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
             }
@@ -616,6 +626,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
     try {
         for (size_t i = 0; i < settings.size(); i++) {
             if (settings[i].size() > 3) {
+                // PROCESS NAME with suffix, e.g., Interpolation_P_0 and TimeSeries_M
                 string settingString = settings[i][1];
                 string module = GetUpper(settings[i][3]);
 #ifndef MSVC
@@ -626,7 +637,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                 SEIMSModuleSetting* moduleSetting = new SEIMSModuleSetting(module, settingString);
                 if (moduleSetting->dataTypeString().length() > 0) {
                     module += "_" + moduleSetting->dataTypeString();
-                } // make the module id unique
+                } // make the module ID unique for TimeSeries read module and interpolation module
 #ifdef HAS_VARIADIC_TEMPLATES
                 if (!moduleSettings.emplace(module, moduleSetting).second) {
 #else
