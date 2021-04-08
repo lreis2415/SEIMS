@@ -13,37 +13,36 @@ using namespace utils_math;
 #define IUHZERO 0.000000001
 #endif
 
-SubbasinIUHCalculator::SubbasinIUHCalculator(int t, clsRasterData<int>& rsMask, clsRasterData<float>& rsLanduse,
-                                             clsRasterData<float>& rsTime, clsRasterData<float>& rsDelta,
+SubbasinIUHCalculator::SubbasinIUHCalculator(const int t, FloatRaster* rsMask,
+                                             FltMaskFltRaster* rsLanduse,
+                                             FltMaskFltRaster* rsTime, 
+                                             FltMaskFltRaster* rsDelta,
                                              MongoGridFs* grdfs)
-    : dt(t), gfs(grdfs), mt(30) {
-    nRows = rsMask.GetRows();
-    nCols = rsMask.GetCols();
-    mask = rsMask.GetRasterDataPointer();
-    landcover = rsLanduse.GetRasterDataPointer();
-    noDataValue = rsMask.GetNoDataValue();
-    nCells = rsMask.GetValidNumber();
+    : dt(t), gfs(grdfs), mt(30), maxtSub(0) {
+    nRows = rsMask->GetRows();
+    nCols = rsMask->GetCols();
+    mask = rsMask->GetRasterDataPointer();
+    landcover = rsLanduse->GetRasterDataPointer();
+    noDataValue = rsMask->GetNoDataValue();
+    nCells = rsMask->GetValidNumber();
 
     uhCell.resize(nCells);
     uh1.resize(nCells);
     for (int i = 0; i < nCells; i++) {
-        //uhCell[i].resize(mt+1);
         uhCell[i].resize(301);
         uh1[i].resize(mt + 1);
         for (int j = 0; j <= mt; j++) {
-            //uhCell[i][j] = 0.0;
             uh1[i][j] = 0.0;
         }
         for (int j = 0; j <= 300; j++) {
             uhCell[i][j] = 0.0;
         }
     }
-
-    t0 = rsTime.GetRasterDataPointer();
-    delta = rsDelta.GetRasterDataPointer();
+    t0 = rsTime->GetRasterDataPointer();
+    delta = rsDelta->GetRasterDataPointer();
 }
 
-int SubbasinIUHCalculator::calCell(int id) {
+int SubbasinIUHCalculator::calCell(const int id) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", id);
     const char* type = "OL_IUH";
@@ -336,8 +335,7 @@ double SubbasinIUHCalculator::IUHti(double delta0, double t00, double ti) {
 }
 
 void SubbasinIUHCalculator::adjustRiceField(int& mint0, int& maxt0, vector<double>& iuhRow) {
-    if (maxt0 - mint0 == 0) // if water will flow to channel within one day
-    {
+    if (maxt0 - mint0 == 0) { // if water will flow to channel within one day
         maxt0 = 1;
         iuhRow[0] = 0.6f; //0.6 and 0.4 are calibrated for youwuzhen, 2013-2015, daily. by lj
         iuhRow[1] = 0.4f; //must make sure m_iuhCell has at least 4 columns in the readin codes
