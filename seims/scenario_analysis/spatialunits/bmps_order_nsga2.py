@@ -75,13 +75,16 @@ toolbox.register('mutate', mutate_with_bmps_order)
 toolbox.register('select', tools.selNSGA2)
 
 
-def run_base_scenario(sceobj):
-    """Run base scenario to get the environment effectiveness value."""
-    base_ind = creator.Individual(initialize_scenario(sceobj.cfg))
-    for i in list(range(len(base_ind))):
-        base_ind[i] = 0
-    base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
-    sceobj.cfg.eval_info['BASE_ENV'] = base_ind.fitness.values[1]
+def run_benchmark_scenario(sceobj):
+    """ Base scenario: Set the gene values of the current scenario to 1.
+    This means that all BMPs are implemented in the first year.
+    Then run base scenario to get the environment effectiveness value."""
+    # base_ind = creator.Individual(initialize_scenario(sceobj.cfg))
+    # for i in list(range(len(base_ind))):
+    #     base_ind[i] = 0
+    # base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
+    # sceobj.cfg.eval_info['BASE_ENV'] = base_ind.fitness.values[1]
+    pass
 
 
 def main(scenario_obj, indv_obj_benchmark):
@@ -89,7 +92,7 @@ def main(scenario_obj, indv_obj_benchmark):
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
     # The Base scenario maintains the same evaluation method as the original one.
     if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-        run_base_scenario(scenario_obj)
+        run_benchmark_scenario(scenario_obj)
         print('The environment effectiveness value of the '
               'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
