@@ -561,6 +561,9 @@ class SUScenario(Scenario):
                       'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
                 self.environment = self.worst_env
 
+    def calculate_environment_bmps_order(self):
+        pass
+
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None
         """Export scenario to GTiff.

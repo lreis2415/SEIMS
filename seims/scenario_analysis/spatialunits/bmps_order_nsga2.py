@@ -79,12 +79,17 @@ def run_benchmark_scenario(sceobj):
     """ Base scenario: Set the gene values of the current scenario to 1.
     This means that all BMPs are implemented in the first year.
     Then run base scenario to get the environment effectiveness value."""
-    # base_ind = creator.Individual(initialize_scenario(sceobj.cfg))
-    # for i in list(range(len(base_ind))):
-    #     base_ind[i] = 0
-    # base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
-    # sceobj.cfg.eval_info['BASE_ENV'] = base_ind.fitness.values[1]
-    pass
+    new_gene_values = []
+    for v in sceobj.gene_values:
+        if numpy.isclose(v,0.0):
+            new_v = v
+        else:
+            new_v = int('{0}1'.format(int(v)))
+        new_gene_values.append(new_v)
+
+    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(sceobj.cfg,new_gene_values,True))
+    benchmark_indv = scenario_effectiveness_with_bmps_order(sceobj.cfg, benchmark_indv)
+    sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
 
 
 def main(scenario_obj, indv_obj_benchmark):
