@@ -410,8 +410,8 @@ if __name__ == "__main__":
 
     with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
         pareto_pop = pickle.load(fp)
-        print(type(pareto_pop))
-        print(pareto_pop)
+        # print(type(pareto_pop))
+        # print(pareto_pop)
     sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
@@ -424,8 +424,8 @@ if __name__ == "__main__":
             selected_indv = indv
             break
 
-    print('The ID of the scenario that provided spatial configuration: ' + str(selected_indv.id))
-    print('The genes of the scenario: ' + str(selected_indv.tolist()))
+    print('The ID of the selected scenario that provided spatial configuration: ' + str(selected_indv.id))
+    print('The genes of the selected scenario: ' + str(selected_indv.tolist()))
     sce.set_unique_id(selected_indv.id)
     sce.gene_values = selected_indv.tolist()
     sce.economy = selected_indv.fitness.values[0]

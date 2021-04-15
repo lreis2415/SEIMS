@@ -428,7 +428,7 @@ class SUScenario(Scenario):
             subscenario, year = [int(x) for x in str(int(gene_v))]
             if subscenario not in bmp_units:
                 bmp_units[subscenario] = list()
-            bmp_units[subscenario].append('{0}/{1}'.format(unit_id, year))
+            bmp_units[subscenario].append('{0}|{1}'.format(unit_id, year))
 
         sce_item_count = 0
         for k, v in viewitems(bmp_units):
@@ -488,6 +488,7 @@ class SUScenario(Scenario):
         # self.economy = capex
         # self.economy = capex + opex
         self.economy = capex + opex - income
+        # print('economy: capex {}, income {}, opex {}'.format(capex, income, opex))
         return self.economy
 
     def calculate_economy_bmps_order(self):
@@ -506,7 +507,8 @@ class SUScenario(Scenario):
                     unit_lu = spunits[unit_id]['landuse']
                     break
             subscenario, impl_in_period = [int(x) for x in str(int(gene_v))]
-            actual_impl_period = total_impl_period - impl_in_period
+            # include benefits in the year of BMP implementation
+            actual_impl_period = total_impl_period - impl_in_period + 1
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
@@ -514,6 +516,7 @@ class SUScenario(Scenario):
                     income += luarea * bmpparam['INCOME'] * actual_impl_period
 
         self.economy = capex - income
+        # print('economy: capex {}, income {}'.format(capex,income))
         return self.economy
 
     def calculate_environment(self):
@@ -562,7 +565,49 @@ class SUScenario(Scenario):
                 self.environment = self.worst_env
 
     def calculate_environment_bmps_order(self):
-        pass
+        """Calculate environment benefit based on the output and base values predefined in
+                configuration file.
+                """
+        if not self.modelrun:  # no evaluate done
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            return
+        rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
+
+        if not FileClass.is_file_exists(rfile):
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+        if not FileClass.is_file_exists(rfile):
+            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
+                  ' cannot be found!' % rfile)
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            # model clean
+            self.model.SetMongoClient()
+            self.model.clean(delete_scenario=True)
+            self.model.UnsetMongoClient()
+            return
+
+        base_amount = self.eval_info['BASE_ENV']
+        if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
+            rr = RasterUtilClass.read_raster(rfile)
+            sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment
+        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
+            sed_sum = read_simulation_from_txt(self.modelout_dir,
+                                               ['SED'], self.model.OutletID,
+                                               self.cfg.eval_stime, self.cfg.eval_etime)
+        else:
+            raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+
+        if base_amount < 0:  # indicates a base scenario
+            self.environment = sed_sum
+        else:
+            # reduction rate of soil erosion
+            self.environment = (base_amount - sed_sum) / base_amount
+            # print exception values
+            if self.environment > 1. or self.environment is numpy.nan:
+                print('Exception Information: Scenario ID: %d, '
+                      'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                self.environment = self.worst_env
 
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None
@@ -852,8 +897,7 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
         # 5. calculate scenario effectiveness and delete intermediate data
         sce.calculate_economy_bmps_order()
-        sce.calculate_timeext_environment()
-        sce.environment *= 100.0
+        sce.calculate_environment_bmps_order()
     else:
         # worst conditions
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
@@ -973,7 +1017,7 @@ def main_manual_bmps_order(sceid, gene_values):
     if sce.satisfy_investment_constraints():
         sce.execute_seims_model()
         sce.calculate_economy_bmps_order()
-        sce.calculate_environment()
+        sce.calculate_environment_bmps_order()
         sce.export_sce_tif = True
         sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
         sce.export_sce_txt = True
@@ -1027,22 +1071,22 @@ def test_func():
     # main_manual(sid, gvalues)
 
     # Base scenario
-    sid = 156278373
-    gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
-               0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
-               0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
-               0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
-    main_manual(sid, gvalues)
+    # sid = 156278373
+    # gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
+    #            0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
+    #            0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
+    #            0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
-    # sid = 156278373
-    # gvalues = [0.0, 20.0, 0.0, 0.0, 0.0, 0.0, 20.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0,
-    #            0.0, 0.0, 20.0, 0.0, 20.0, 0.0, 20.0, 20.0, 0.0, 20.0, 0.0, 0.0, 20.0, 20.0, 0.0, 20.0, 20.0, 0.0, 10.0, 30.0, 0.0,
-    #            0.0, 20.0, 20.0, 0.0, 20.0, 0.0, 20.0, 20.0, 0.0, 10.0, 30.0, 0.0, 0.0, 10.0, 0.0, 20.0, 0.0, 0.0, 0.0, 20.0, 0.0,
-    #            0.0, 10.0, 0.0, 20.0, 0.0, 0.0, 20.0, 20.0, 0.0, 10.0, 20.0, 0.0, 10.0, 30.0, 40.0, 20.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 20.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 20.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
+    sid = 156278373
+    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
+               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0,
+               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0,
+               0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual_bmps_order(sid, gvalues)
 
     # generate_giff_txt(sid, gvalues)
 
