@@ -582,9 +582,9 @@ class SUScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             # model clean
-            self.model.SetMongoClient()
-            self.model.clean(delete_scenario=True)
-            self.model.UnsetMongoClient()
+            # self.model.SetMongoClient()
+            # self.model.clean(delete_scenario=True)
+            # self.model.UnsetMongoClient()
             return
 
         base_amount = self.eval_info['BASE_ENV']
@@ -600,9 +600,11 @@ class SUScenario(Scenario):
 
         if base_amount < 0:  # indicates a base scenario
             self.environment = sed_sum
+            self.sed_sum = sed_sum
         else:
-            # reduction rate of soil erosion
-            self.environment = (base_amount - sed_sum) / base_amount
+            # reduction rate of soil erosion (in percent)
+            self.environment = (base_amount - sed_sum) * 100 / base_amount
+            self.sed_sum = sed_sum
             # print exception values
             if self.environment > 1. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
@@ -905,11 +907,12 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
         sce.environment = sce.worst_env
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
-    # sce.export_scenario_to_gtiff()
+    sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
+    ind.sed_sum = sce.sed_sum
 
     return ind
 

@@ -90,6 +90,9 @@ def run_benchmark_scenario(sceobj):
     benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(sceobj.cfg,new_gene_values,True))
     benchmark_indv = scenario_effectiveness_with_bmps_order(sceobj.cfg, benchmark_indv)
     sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
+    scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f '% (benchmark_indv.fitness.values[0],
+                                                                               benchmark_indv.fitness.values[1],
+                                                                               benchmark_indv.sed_sum))
 
 
 def main(scenario_obj, indv_obj_benchmark):
@@ -178,6 +181,7 @@ def main(scenario_obj, indv_obj_benchmark):
         new_ind.comp_time = 0.
         new_ind.simu_time = 0.
         new_ind.runtime = 0.
+        new_ind.sed_sum = 0.
 
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
@@ -340,10 +344,10 @@ def main(scenario_obj, indv_obj_benchmark):
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'generation\tscenario\teconomy\tenvironment\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tsem_sum\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                                                    indi.fitness.values[1], str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                                                    indi.fitness.values[1], indi.sed_sum, str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
         pklfile_str = 'gen%d.pickle' % (gen,)

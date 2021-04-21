@@ -71,6 +71,7 @@ class Scenario(object):
         self.eval_timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
+        self.sed_sum = 0.
         self.worst_econ = cfg.worst_econ
         self.worst_env = cfg.worst_env
 
@@ -195,8 +196,9 @@ class Scenario(object):
                 for obj, item in viewitems(self.bmp_items):
                     outfile.write('\t'.join(str(v) for v in list(item.values())))
                     outfile.write('\n')
-            outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
-                                                                                  self.environment))
+            outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (self.economy,
+                                                                                                 self.environment,
+                                                                                                 self.sed_sum))
 
     def export_scenario_to_gtiff(self):
         """Export the areal BMPs to gtiff for further analysis.
