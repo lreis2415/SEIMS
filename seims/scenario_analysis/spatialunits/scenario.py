@@ -698,8 +698,8 @@ class SUScenario(Scenario):
                     income = luarea * bmpparam['INCOME']
                     bmp_costs_by_period[impl_period - 1] += capex
                     # every period has income after impl
-                    for _ in range(impl_period, self.cfg.change_times + 1):  # closed interval
-                        bmp_income_by_period[impl_period - 1] += income
+                    for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
+                        bmp_income_by_period[prd - 1] += income
         return bmp_costs_by_period, bmp_income_by_period
 
     def satisfy_investment_constraints(self):
@@ -710,10 +710,18 @@ class SUScenario(Scenario):
             if self.cfg.investment_each_period is None:
                 return False
             bmp_costs_by_period, bmp_income_by_period = self.calculate_profits_by_period()
-            for invst, cost, income in zip(self.cfg.investment_each_period, bmp_costs_by_period, bmp_income_by_period):
-                if cost - income > invst:
-                    return False
-            return True
+            invest = numpy.array(self.cfg.investment_each_period)
+            costs = numpy.array(bmp_costs_by_period)
+            income = numpy.array(bmp_income_by_period)
+            if _DEBUG:
+                print('investment: ', invest)
+                print('costs: ', costs)
+                print('income: ', income)
+                print('diff: ', invest-(costs-income))
+            if numpy.all(numpy.greater(invest, costs-income)):
+                return True
+            else:
+                return False
 
 
 def select_potential_bmps(unitid,  # type: int

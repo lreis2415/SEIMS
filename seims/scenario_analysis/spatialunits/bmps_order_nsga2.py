@@ -12,6 +12,7 @@ import sys
 import random
 import time
 import pickle
+import copy
 from io import open
 
 import matplotlib
@@ -87,8 +88,11 @@ def run_benchmark_scenario(sceobj):
             new_v = int('{0}1'.format(int(v)))
         new_gene_values.append(new_v)
 
-    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(sceobj.cfg,new_gene_values,True))
-    benchmark_indv = scenario_effectiveness_with_bmps_order(sceobj.cfg, benchmark_indv)
+    copyed_sceobj = copy.deepcopy(sceobj)
+    # benchmark scenario donot consider investment quota
+    copyed_sceobj.cfg.enable_investment_quota = False
+    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(copyed_sceobj.cfg,new_gene_values,True))
+    benchmark_indv = scenario_effectiveness_with_bmps_order(copyed_sceobj.cfg, benchmark_indv)
     sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
     scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f '% (benchmark_indv.fitness.values[0],
                                                                                benchmark_indv.fitness.values[1],
