@@ -82,7 +82,7 @@ def run_benchmark_scenario(sceobj):
     Then run base scenario to get the environment effectiveness value."""
     new_gene_values = []
     for v in sceobj.gene_values:
-        if numpy.isclose(v,0.0):
+        if numpy.isclose(v, 0.0):
             new_v = v
         else:
             new_v = int('{0}1'.format(int(v)))
@@ -91,22 +91,22 @@ def run_benchmark_scenario(sceobj):
     copyed_sceobj = copy.deepcopy(sceobj)
     # benchmark scenario donot consider investment quota
     copyed_sceobj.cfg.enable_investment_quota = False
-    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(copyed_sceobj.cfg,new_gene_values,True))
+    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(copyed_sceobj.cfg, new_gene_values, True))
     benchmark_indv = scenario_effectiveness_with_bmps_order(copyed_sceobj.cfg, benchmark_indv)
     sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
-    scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f '% (benchmark_indv.fitness.values[0],
-                                                                               benchmark_indv.fitness.values[1],
-                                                                               benchmark_indv.sed_sum))
+    scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f, sed_per_period: %s ' %
+              (benchmark_indv.fitness.values[0], benchmark_indv.fitness.values[1], benchmark_indv.sed_sum,
+               benchmark_indv.sed_per_period))
 
 
 def main(scenario_obj, indv_obj_benchmark):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
     # The Base scenario maintains the same evaluation method as the original one.
-    if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-        run_benchmark_scenario(scenario_obj)
-        print('The environment effectiveness value of the '
-              'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
+    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+    #     run_benchmark_scenario(scenario_obj)
+    #     print('The environment effectiveness value of the '
+    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 
@@ -186,6 +186,7 @@ def main(scenario_obj, indv_obj_benchmark):
         new_ind.simu_time = 0.
         new_ind.runtime = 0.
         new_ind.sed_sum = 0.
+        new_ind.sed_per_period = list()
 
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
@@ -350,8 +351,9 @@ def main(scenario_obj, indv_obj_benchmark):
         # save in file
         output_str += 'generation\tscenario\teconomy\tenvironment\tsem_sum\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%d\t%f\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                                                    indi.fitness.values[1], indi.sed_sum, str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                                                            indi.fitness.values[1], indi.sed_sum,
+                                                            str(indi.sed_per_period), str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
         pklfile_str = 'gen%d.pickle' % (gen,)
@@ -426,7 +428,7 @@ if __name__ == "__main__":
     startT = time.time()
 
     # Select an individual from the pareto front as the benchmark scenario
-    target_indv_id = 156278373 # modify to an input parameter later
+    target_indv_id = 156278373  # modify to an input parameter later
     for indv in pareto_pop:
         if indv.id == target_indv_id:
             selected_indv = indv
@@ -452,7 +454,3 @@ if __name__ == "__main__":
 
     endT = time.time()
     scoop_log('Running time: %.2fs' % (endT - startT))
-
-
-
-

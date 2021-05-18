@@ -22,7 +22,6 @@ from struct import unpack
 from typing import Union, Dict, List, Tuple, Optional, Any, AnyStr
 import numpy
 from gridfs import GridFS
-from osgeo import osr
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser, is_string
 from pymongo.errors import NetworkTimeout
@@ -537,9 +536,9 @@ class SUScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             # model clean
-            self.model.SetMongoClient()
-            self.model.clean(delete_scenario=True)
-            self.model.UnsetMongoClient()
+            # self.model.SetMongoClient()
+            # self.model.clean(delete_scenario=True)
+            # self.model.UnsetMongoClient()
             return
 
         base_amount = self.eval_info['BASE_ENV']
@@ -555,9 +554,11 @@ class SUScenario(Scenario):
 
         if base_amount < 0:  # indicates a base scenario
             self.environment = sed_sum
+            self.sed_sum = sed_sum
         else:
             # reduction rate of soil erosion
             self.environment = (base_amount - sed_sum) / base_amount
+            self.sed_sum = sed_sum
             # print exception values
             if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
@@ -591,6 +592,7 @@ class SUScenario(Scenario):
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             rr = RasterUtilClass.read_raster(rfile)
             sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment
+
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
@@ -650,6 +652,7 @@ class SUScenario(Scenario):
             srs = slpposf['metadata'][RasterMetadata.srs]
             if is_string(srs):
                 srs = str(srs)
+            from osgeo import osr
             srs = osr.GetUserInputAsWKT(srs)
             geotransform = [0] * 6
             geotransform[0] = xll - 0.5 * cellsize
@@ -717,8 +720,8 @@ class SUScenario(Scenario):
                 print('investment: ', invest)
                 print('costs: ', costs)
                 print('income: ', income)
-                print('diff: ', invest-(costs-income))
-            if numpy.all(numpy.greater(invest, costs-income)):
+                print('diff: ', invest - (costs - income))
+            if numpy.all(numpy.greater(invest, costs - income)):
                 return True
             else:
                 return False
@@ -880,7 +883,7 @@ def scenario_effectiveness(cf, ind):
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
 
@@ -917,7 +920,7 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
     ind.sed_sum = sce.sed_sum
@@ -1003,9 +1006,10 @@ def main_manual(sceid, gene_values):
     sce.calculate_environment()
 
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+        sce.economy, sce.environment, sce.sed_sum))
 
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 def main_manual_bmps_order(sceid, gene_values):
@@ -1035,9 +1039,10 @@ def main_manual_bmps_order(sceid, gene_values):
         sce.export_scenario_to_txt()
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+            sce.economy, sce.environment, sce.sed_sum))
 
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 def generate_giff_txt(sceid, gene_values):
@@ -1069,7 +1074,43 @@ def generate_giff_txt(sceid, gene_values):
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # Not responsible for deleting
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+# if the the scenario has run and folder exists, just generate giff and txt files
+def generate_giff_txt_with_bmps_order(sceid, gene_values):
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding()
+    sce.export_to_mongodb()
+    # indicate the model has run
+    sce.modelrun = True
+    sce.modelout_dir = sce.model.output_dir
+    sce.calculate_economy_bmps_order()
+    sce.calculate_environment_bmps_order()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+        sce.economy, sce.environment, sce.sed_sum))
+
+    # Not responsible for deleting
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 def test_func():
@@ -1091,29 +1132,26 @@ def test_func():
     # main_manual(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
-    sid = 156278373
-    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
-               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0,
-               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0,
-               0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    # sid = 156278373
+    # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
+    #            0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0,
+    #            0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0,
+    #            0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    sid = 229353850
+    gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               21.0, 0.0, 0.0, 23.0, 0.0, 22.0, 0.0, 23.0, 22.0, 0.0, 23.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
+               11.0, 33.0, 0.0, 0.0, 21.0, 22.0, 0.0, 23.0, 0.0, 22.0, 23.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 22.0,
+               0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 21.0, 0.0, 13.0, 22.0, 0.0, 12.0, 32.0,
+               43.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 23.0, 21.0, 0.0, 0.0, 0.0, 0.0]
     main_manual_bmps_order(sid, gvalues)
 
+    # Generate TXT files and gif files for the models that have been run.
     # generate_giff_txt(sid, gvalues)
-
-    # sid = 229353850
-    # gvalues = [0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 11.0, 0.0, 24.0, 0.0, 0.0, 22.0, 24.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
-    #            21.0, 21.0, 0.0,
-    #            21.0, 21.0, 0.0, 33.0, 43.0, 0.0, 13.0, 43.0, 0.0, 32.0, 0.0, 0.0, 21.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 21.0,
-    #            0.0, 0.0, 23.0, 0.0, 11.0, 0.0, 43.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 31.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 32.0, 0.0, 0.0, 32.0, 42.0, 22.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0,
-    #            12.0, 0.0, 0.0,
-    #            21.0, 0.0, 0.0, 0.0, 43.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 22.0, 0.0, 0.0, 31.0, 0.0]
-
-    # main_manual(sid, gvalues)
-    # main_manual_bmps_order(sid, gvalues)
+    # generate_giff_txt_with_bmps_order(sid, gvalues)
 
 
 if __name__ == '__main__':
