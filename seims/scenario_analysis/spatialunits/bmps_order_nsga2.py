@@ -187,6 +187,7 @@ def main(scenario_obj, indv_obj_benchmark):
         new_ind.runtime = 0.
         new_ind.sed_sum = 0.
         new_ind.sed_per_period = list()
+        new_ind.net_costs_per_period = list()
 
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
@@ -351,9 +352,8 @@ def main(scenario_obj, indv_obj_benchmark):
         # save in file
         output_str += 'generation\tscenario\teconomy\tenvironment\tsem_sum\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                                                            indi.fitness.values[1], indi.sed_sum,
-                                                            str(indi.sed_per_period), str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period), str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
         pklfile_str = 'gen%d.pickle' % (gen,)

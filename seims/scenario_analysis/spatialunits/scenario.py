@@ -492,29 +492,31 @@ class SUScenario(Scenario):
 
     def calculate_economy_bmps_order(self):
         """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
-        self.economy = 0.
-        capex = 0.
-        income = 0.
-        total_impl_period = self.cfg.change_times
-        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
-            gene_v = self.gene_values[gene_idx]
-            if gene_v == 0:
-                continue
-            unit_lu = dict()
-            for spname, spunits in self.cfg.units_infos.items():
-                if unit_id in spunits:
-                    unit_lu = spunits[unit_id]['landuse']
-                    break
-            subscenario, impl_in_period = [int(x) for x in str(int(gene_v))]
-            # include benefits in the year of BMP implementation
-            actual_impl_period = total_impl_period - impl_in_period + 1
-            bmpparam = self.bmps_params[subscenario]
-            for luid, luarea in unit_lu.items():
-                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
-                    capex += luarea * bmpparam['CAPEX']
-                    income += luarea * bmpparam['INCOME'] * actual_impl_period
+        # self.economy = 0.
+        # capex = 0.
+        # income = 0.
+        # total_impl_period = self.cfg.change_times
+        # for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+        #     gene_v = self.gene_values[gene_idx]
+        #     if gene_v == 0:
+        #         continue
+        #     unit_lu = dict()
+        #     for spname, spunits in self.cfg.units_infos.items():
+        #         if unit_id in spunits:
+        #             unit_lu = spunits[unit_id]['landuse']
+        #             break
+        #     subscenario, impl_in_period = [int(x) for x in str(int(gene_v))]
+        #     # include benefits in the year of BMP implementation
+        #     actual_impl_period = total_impl_period - impl_in_period + 1
+        #     bmpparam = self.bmps_params[subscenario]
+        #     for luid, luarea in unit_lu.items():
+        #         if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+        #             capex += luarea * bmpparam['CAPEX']
+        #             income += luarea * bmpparam['INCOME'] * actual_impl_period
+        # self.economy = capex - income
 
-        self.economy = capex - income
+        # has already calculated in constraints
+        self.economy = numpy.sum(self.net_costs_per_period)
         # print('economy: capex {}, income {}'.format(capex,income))
         return self.economy
 
@@ -589,10 +591,13 @@ class SUScenario(Scenario):
             return
 
         base_amount = self.eval_info['BASE_ENV']
+        sed_per_period = list()
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             rr = RasterUtilClass.read_raster(rfile)
             sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment
-
+            for i in range(self.cfg.change_times):
+                filename = str(i+1) + '_' + self.eval_info['ENVEVAL']
+                sed_per_period.append(RasterUtilClass.read_raster(filename).get_sum())
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
@@ -603,14 +608,16 @@ class SUScenario(Scenario):
         if base_amount < 0:  # indicates a base scenario
             self.environment = sed_sum
             self.sed_sum = sed_sum
+            self.sed_per_period = sed_per_period
         else:
             # reduction rate of soil erosion (in percent)
             self.environment = (base_amount - sed_sum) * 100 / base_amount
             self.sed_sum = sed_sum
+            self.sed_per_period = sed_per_period
             # print exception values
             if self.environment > 1. or self.environment is numpy.nan:
-                print('Exception Information: Scenario ID: %d, '
-                      'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                print('Exception Information: Scenario ID: %d, SUM(%s): %s, per period: %s'
+                      % (self.ID, rfile, repr(sed_sum), sed_per_period))
                 self.environment = self.worst_env
 
     def export_scenario_to_gtiff(self, outpath=None):
@@ -722,6 +729,7 @@ class SUScenario(Scenario):
                 print('income: ', income)
                 print('diff: ', invest - (costs - income))
             if numpy.all(numpy.greater(invest, costs - income)):
+                self.net_costs_per_period = costs - income
                 return True
             else:
                 return False
@@ -924,6 +932,8 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
     ind.sed_sum = sce.sed_sum
+    ind.sed_per_period = sce.sed_per_period
+    ind.net_costs_per_period = sce.net_costs_per_period
 
     return ind
 
@@ -1039,8 +1049,8 @@ def main_manual_bmps_order(sceid, gene_values):
         sce.export_scenario_to_txt()
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
-            sce.economy, sce.environment, sce.sed_sum))
+        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s' %
+              (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period)))
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
@@ -1132,22 +1142,22 @@ def test_func():
     # main_manual(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
-    # sid = 156278373
-    # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
-    #            0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0,
-    #            0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0,
-    #            0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
-
-    sid = 229353850
-    gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               21.0, 0.0, 0.0, 23.0, 0.0, 22.0, 0.0, 23.0, 22.0, 0.0, 23.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
-               11.0, 33.0, 0.0, 0.0, 21.0, 22.0, 0.0, 23.0, 0.0, 22.0, 23.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 22.0,
-               0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 21.0, 0.0, 13.0, 22.0, 0.0, 12.0, 32.0,
-               43.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 23.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    sid = 156278373
+    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0,
+               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0,
+               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0,
+               0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0, 0.0]
     main_manual_bmps_order(sid, gvalues)
+
+    # sid = 229353850
+    # gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            21.0, 0.0, 0.0, 23.0, 0.0, 22.0, 0.0, 23.0, 22.0, 0.0, 23.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
+    #            11.0, 33.0, 0.0, 0.0, 21.0, 22.0, 0.0, 23.0, 0.0, 22.0, 23.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 22.0,
+    #            0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 21.0, 0.0, 13.0, 22.0, 0.0, 12.0, 32.0,
+    #            43.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 23.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual_bmps_order(sid, gvalues)
 
     # Generate TXT files and gif files for the models that have been run.
     # generate_giff_txt(sid, gvalues)

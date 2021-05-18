@@ -71,6 +71,7 @@ class Scenario(object):
         self.eval_timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
+        self.net_costs_per_period = list()
         self.sed_sum = 0.
         self.sed_per_period = list()
         self.worst_econ = cfg.worst_econ
