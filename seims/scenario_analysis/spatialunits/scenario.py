@@ -624,7 +624,7 @@ class SUScenario(Scenario):
             self.sed_sum = sed_sum
             self.sed_per_period = sed_per_period
             # print exception values
-            if self.environment > 1. or self.environment is numpy.nan:
+            if self.environment > 100. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, SUM(%s): %s, per period: %s'
                       % (self.ID, rfile, repr(sed_sum), sed_per_period))
                 self.environment = self.worst_env
@@ -723,8 +723,7 @@ class SUScenario(Scenario):
 
     def satisfy_investment_constraints(self):
         # not consider investment quota
-        # if not self.cfg.enable_investment_quota:
-        if False:
+        if not self.cfg.enable_investment_quota:
             return True
         else:
             if self.cfg.investment_each_period is None:
@@ -739,10 +738,9 @@ class SUScenario(Scenario):
             print('diff: ', invest - (costs - income))
             if numpy.all(numpy.greater(invest, costs - income)):
                 self.net_costs_per_period = costs - income
-            return True
-            #     return True
-            # else:
-            #     return False
+                return True
+            else:
+                return False
 
 
 def select_potential_bmps(unitid,  # type: int
@@ -1138,19 +1136,19 @@ def test_func():
     # main_single()
     # main_multiple(4)
 
-    # run base
-    sid = 0
-    gvalues = [0.0] * 105
-    main_manual(sid, gvalues)
-
-    # Base scenario
-    sid = 156278373
-    gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
-               0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
-               0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
-               0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
-    main_manual(sid, gvalues)
+    # # run base
+    # sid = 0
+    # gvalues = [0.0] * 105
+    # main_manual(sid, gvalues)
+    #
+    # # Base scenario
+    # sid = 156278373
+    # gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
+    #            0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
+    #            0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
+    #            0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
     # sid = 156278373
@@ -1166,14 +1164,9 @@ def test_func():
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
 
-    # sid = 229353850
-    # gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            21.0, 0.0, 0.0, 23.0, 0.0, 22.0, 0.0, 23.0, 22.0, 0.0, 23.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
-    #            11.0, 33.0, 0.0, 0.0, 21.0, 22.0, 0.0, 23.0, 0.0, 22.0, 23.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 22.0,
-    #            0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 21.0, 0.0, 13.0, 22.0, 0.0, 12.0, 32.0,
-    #            43.0, 21.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 23.0, 21.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
+    sid = 229353850
+    gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 22.0, 0.0, 22.0, 0.0, 21.0, 23.0, 0.0, 21.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0, 12.0, 33.0, 0.0, 0.0, 22.0, 21.0, 0.0, 22.0, 0.0, 22.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 22.0, 0.0, 11.0, 21.0, 0.0, 12.0, 32.0, 43.0, 23.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 22.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual_bmps_order(sid, gvalues)
 
     # Generate TXT files and gif files for the models that have been run.
     # generate_giff_txt(sid, gvalues)

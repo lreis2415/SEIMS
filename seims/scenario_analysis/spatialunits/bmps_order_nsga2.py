@@ -350,7 +350,7 @@ def main(scenario_obj, indv_obj_benchmark):
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'generation\tscenario\teconomy\tenvironment\tsem_sum\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tsed_sum\tsed_pp\tnet_cost_pp\tgene_values\n'
         for indi in pop:
             output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
                 indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period), str(indi))

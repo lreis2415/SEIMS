@@ -11,6 +11,21 @@ def calc_sed_sum(sceid, impl_period):
     sed_sum = rr.get_sum() / impl_period
     print(sed_sum)
 
+    raster_file = '%s/OUTPUT%d/1_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum() / impl_period
+    print(sed_sum)
+
+    raster_file = '%s/OUTPUT%d/2_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum() / impl_period
+    print(sed_sum)
+
+    raster_file = '%s/OUTPUT%d/3_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum() / impl_period
+    print(sed_sum)
+
 
 if __name__ == '__main__':
     sceid = 0
