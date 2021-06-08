@@ -636,8 +636,11 @@ void DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 
             // update condition: long enough
             time_t needUpdateTime = -1;
-            if (lastUpdateTime == -1) //first time
-                needUpdateTime = input_->getStartTime() + changeFrequency;
+            if (lastUpdateTime == -1) {//first time
+                //Add a configuration item later!
+                time_t warmUpPeriod = 31536000;// 1 year
+                needUpdateTime = input_->getStartTime() + warmUpPeriod + changeFrequency;
+            }
             else
                 needUpdateTime = lastUpdateTime + changeFrequency;
 
