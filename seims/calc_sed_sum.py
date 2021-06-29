@@ -7,40 +7,57 @@ MODEL_PATH = 'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model'
 
 
 def calc_sed_sum(sceid, impl_period):
+    seds = []
     raster_file = '%s/OUTPUT%d/SED_OL_SUM.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
+    seds.append(sed_sum)
     print('13-15年总产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/SED_OL_AVE.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
+    seds.append(sed_sum)
     print('日平均产沙量：%f' % (sed_sum,))
+
+    raster_file = '%s/OUTPUT%d/4_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('12年产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/1_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
+    seds.append(sed_sum)
     print('13年产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/2_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
+    seds.append(sed_sum)
     print('14年产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/3_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
+    seds.append(sed_sum)
     print('15年产沙量：%f' % (sed_sum,))
 
-    raster_file = '%s/OUTPUT%d/4_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
-    rr = RasterUtilClass.read_raster(raster_file)
-    sed_sum = rr.get_sum()
-    print('12年产沙量：%f' % (sed_sum,))
-
+    return seds
 
 if __name__ == '__main__':
     sceid = 0
     impl_period = 3
-    calc_sed_sum(sceid, impl_period)
-    sceid = 156278373
-    calc_sed_sum(sceid, impl_period)
+    print('-----Base 情景：-----')
+    seds_base = calc_sed_sum(sceid, impl_period)
+    sceid = 2
+    print('-----情景 %d-----'%(sceid,))
+    seds_sce = calc_sed_sum(sceid, impl_period)
+    print('-----对比-----')
+    print('总削减率：%f'%((seds_base[0]-seds_sce[0])/seds_base[0]))
+    print('日均削减率：%f'%((seds_base[1]-seds_sce[1])/seds_base[1]))
+    print('12年削减率：%f'%((seds_base[2]-seds_sce[2])/seds_base[2]))
+    print('13年削减率：%f'%((seds_base[3]-seds_sce[3])/seds_base[3]))
+    print('14年削减率：%f'%((seds_base[4]-seds_sce[4])/seds_base[4]))
+    print('15年削减率：%f'%((seds_base[5]-seds_sce[5])/seds_base[5]))
