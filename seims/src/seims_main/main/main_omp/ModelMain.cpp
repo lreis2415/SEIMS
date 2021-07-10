@@ -91,7 +91,7 @@ void ModelMain::StepHillSlope(const time_t t, const int year_idx, const int sub_
         double sub_t2 = TimeCounting();
         m_executeTime[*it] += sub_t2 - sub_t1;
     }
-    m_firstRunOverland = false;
+    if (m_firstRunOverland) m_firstRunOverland = false;
 }
 
 void ModelMain::StepChannel(const time_t t, const int year_idx) {
@@ -110,7 +110,7 @@ void ModelMain::StepChannel(const time_t t, const int year_idx) {
         double sub_t2 = TimeCounting();
         m_executeTime[*it] += sub_t2 - sub_t1;
     }
-    m_firstRunChannel = false;
+    if (m_firstRunChannel) m_firstRunChannel = false;
 }
 
 void ModelMain::StepOverall(time_t start_t, time_t end_t) {
@@ -134,10 +134,29 @@ void ModelMain::Execute() {
     int startYear = GetYear(startTime);
     int nHs = CVT_INT(m_dtCh / m_dtHs);
     int preYearIdx = -1;
+    //bool updated = false;
+
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
+        //if (yearIdx == 1 && updated == false) {
+        //    m_dataCenter->UpdateScenarioParametersStable(m_dataCenter->GetSubbasinID());
+        //    updated = true;
+        //    for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();
+        //        it != m_simulationModules.end(); ++it) {
+        //        (*it)->SetReCalIntermediateParams(true);
+        //    }
+        //}
+
+        // update bmp parameters with variable effectiveness
+        if (m_dataCenter->UpdateScenarioParametersDynamic(m_dataCenter->GetSubbasinID(), t)){
+            for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();
+                it != m_simulationModules.end(); ++it) {
+                (*it)->SetReCalIntermediateParams(true);
+            }
+        }
+
         if (preYearIdx != yearIdx) {
             LOG(DEBUG) << "Simulation year: " << startYear + yearIdx;
         }

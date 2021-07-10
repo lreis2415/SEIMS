@@ -45,18 +45,23 @@ void SUR_MR::InitialOutputs() {
         Initialize1DArray(m_nCells, m_infil, 0.f);
         Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.f);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
+    }
+}
+
+void SUR_MR::InitializeIntermediateVariables(){
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f && m_soilFC[i][j] >= 0.f) {
-                    m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
-                } else {
-                    m_soilWtrSto[i][j] = 0.f;
-                }
-                m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
+    for (int i = 0; i < m_nCells; i++) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+            if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f && m_soilFC[i][j] >= 0.f) {
+                m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
             }
+            else {
+                m_soilWtrSto[i][j] = 0.f;
+            }
+            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
         }
     }
+
     /// update (sol_sumul) amount of water held in soil profile at saturation
     if (nullptr == m_soilSumSat && m_soilSat != nullptr) {
         m_soilSumSat = new(nothrow) float[m_nCells];
@@ -68,11 +73,14 @@ void SUR_MR::InitialOutputs() {
             }
         }
     }
+
+    m_needReCalIntermediateParams = false;
 }
 
 int SUR_MR::Execute() {
     CheckInputData();
     InitialOutputs();
+    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
     m_maxPcpRf *= m_dt * 1.1574074074074073e-05f; /// 1. / 86400. = 1.1574074074074073e-05;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {

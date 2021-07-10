@@ -206,7 +206,7 @@ public:
     */
     void UpdateScenarioParametersStable(int subbsn_id);
 
-    void UpdateScenarioParametersDynamic(int subbsn_id, time_t t);
+    bool UpdateScenarioParametersDynamic(int subbsn_id, time_t t);
 
     /**** Accessors: Set and Get *****/
 

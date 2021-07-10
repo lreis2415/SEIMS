@@ -73,7 +73,7 @@ public:
 
     bool IsEffectivenessChangeable(){ return m_effectivenessChangeable; }
     time_t GetChangeFrequency(){ return m_changeFrequency; }
-    int GetVariableTimes(){ return m_variableTimes; }
+    int GetChangeTimes(){ return m_changeTimes; }
 
 protected:
     const int m_scenarioId; ///< Scenario ID
@@ -89,7 +89,7 @@ protected:
     const string m_location; ///< Define where the BMP will be applied
     const bool m_effectivenessChangeable;
     const time_t m_changeFrequency;
-    const int m_variableTimes;
+    const int m_changeTimes;
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

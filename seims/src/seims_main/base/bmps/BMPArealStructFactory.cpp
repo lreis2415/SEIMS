@@ -38,23 +38,28 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
 			vector<string> impactsStrings = SplitString(tmp_param_items[3],'|');
             float lastImpact;
-            for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
-                lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
-                p->ImpactSeries.push_back(lastImpact);
-            }
+
+            // use absolute value directly
+            //for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
+            //    lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+            //    p->ImpactSeries.push_back(lastImpact);
+            //}
+
             // convert absolute impact value to relative impact value
-			//for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
-   //             if (impactStrIt == impactsStrings.begin()) {
-   //                 lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
-   //                 p->ImpactSeries.push_back(lastImpact);
-   //             }
-   //             else{
-   //                 float temp = CVT_FLT(ToDouble((*impactStrIt).c_str()));
-   //                 p->ImpactSeries.push_back(temp/lastImpact);
-   //                 lastImpact = temp;
-   //             }
-			//}
-            p->Impact = p->ImpactSeries.back();//For compatibility with previous versions
+			for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
+
+                if (impactStrIt == impactsStrings.begin()) {
+                    lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+                    p->ImpactSeries.push_back(lastImpact);
+                }
+                else{
+                    float temp = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+                    p->ImpactSeries.push_back(temp/lastImpact);
+                    lastImpact = temp;
+                }
+			}
+            p->Impact = p->ImpactSeries[0];//For compatibility with previous versions
+            cout << "BMPID: " << m_id << ", param_name: " << tmp_param_items[0] << ",value: " <<p->Impact<< endl;
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
 #else
@@ -82,11 +87,11 @@ BMPArealStruct::~BMPArealStruct() {
 
 BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
                                              const int bmpType, const int bmpPriority, vector<string>& distribution,
-                                             const string& collection, const string& location, bool effectivenessVariable,
+                                             const string& collection, const string& location, bool effectivenessChangeable,
                                              time_t changeFrequency, int variableTimes) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessVariable, 
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessChangeable, 
     changeFrequency, variableTimes),
-    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_variableTimes),m_seriesIndex(0) {
+    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_changeTimes),m_unitUpdateTimes(m_changeTimes),m_seriesIndex(0) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     } else {
@@ -102,9 +107,10 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
             SplitStringForValues(*it, '|', temp);
             int loc = temp[0];
             int time = temp[1]-1; // year index start from 0
-            for (int t = time; t < m_variableTimes; t++)
+            for (int t = time; t < m_changeTimes; t++)
             {
                 m_unitIDsSeries[t].push_back(loc);
+                m_unitUpdateTimes[t].insert(std::make_pair(loc,t-time));
             }
         }
     }

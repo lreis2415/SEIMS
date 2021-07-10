@@ -154,8 +154,15 @@ public:
      * \brief Initialize output variables.
      *
      *        This function is optional to be overridden.
+     *        Only allocate memory address and initialize outputs.
      */
     virtual void InitialOutputs() {}
+
+    /*!
+     * \brief InitializeIntermediateVariables
+     *
+     */
+    virtual void InitializeIntermediateVariables() {}
 
     /*!
      * \brief Get time step type, default is hillslope process.
@@ -178,6 +185,9 @@ public:
     //! Change the status of setting inputs parameters
     void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
+    //! set whether intermediate parameters need to recalculated
+    void SetReCalIntermediateParams(const bool recal) { m_needReCalIntermediateParams = recal; }
+
 protected:
     /// date time
     time_t m_date;
@@ -195,6 +205,8 @@ protected:
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
+    /// need to recalculate intermediate parameters?
+    bool m_needReCalIntermediateParams;
 };
 
 /*!

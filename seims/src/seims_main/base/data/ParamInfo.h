@@ -18,6 +18,7 @@
 
 using namespace ccgl;
 using std::vector;
+using std::map;
 
 /*!
 * \ingroup data
@@ -57,9 +58,9 @@ public:
     int Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
 		const float* lu, const vector<int>& sellu);
 
-    //! 
+    //! Adjust 1D Raster on selected area, using impact index version
     int Adjust1DRasterWithImpactIndexes(const int n, float* data, const float* units,
-        const vector<int>& selunits, const float* lu, const vector<int>& sellu);
+        const vector<int>& selunits, const map<int, int>& impactIndexes, const float* lu, const vector<int>& sellu);
 
     //! Adjust 2D array
     void Adjust2DArray(int n, float** data);
@@ -73,7 +74,7 @@ public:
 
 
     int Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, float** data, float* units,
-        const vector<int>& selunits, float* lu, const vector<int>& sellu);
+        const vector<int>& selunits, const map<int, int>& impactIndexes, float* lu, const vector<int>& sellu);
 
     //! Name
     string Name;
@@ -115,8 +116,7 @@ public:
     bool initialized;
 	//! If the BMP effectiveness is variable, set the values of impacts 
 	vector<float> ImpactSeries;
-	//! current impact Index used by impact series, same size with data in rs_map_
-	vector<int> CurrentImpactIndexes;
+
 };
 
 #endif /* SEIMS_PARAMETER_INFO_H */

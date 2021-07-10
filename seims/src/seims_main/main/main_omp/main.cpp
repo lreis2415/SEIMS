@@ -64,7 +64,7 @@ int main(const int argc, const char** argv) {
         mongo_client->Destroy();
         delete mongo_client;
         delete input_args;
-        /// Mannually to flush all log files for all levels
+        /// Manually to flush all log files for all levels
         el::Loggers::flushAll();
     } catch (ModelException& e) {
         LOG(ERROR) << e.ToString();

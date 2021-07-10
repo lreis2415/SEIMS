@@ -178,12 +178,6 @@ void NutrientTransportSediment::InitialOutputs() {
     /// initialize m_soilMass
     if (m_soilMass == nullptr) {
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilMass, 0.f);
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
-                m_soilMass[i][k] = 10000.f * m_soilThk[i][k] * m_soilBD[i][k] * (1.f - m_soilRock[i][k] * 0.01f);
-            }
-        }
     }
     // allocate the output variables
     if (nullptr == m_surfRfSedOrgN) {
@@ -207,6 +201,17 @@ void NutrientTransportSediment::InitialOutputs() {
     }
 }
 
+void NutrientTransportSediment::InitializeIntermediateVariables() {
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+            m_soilMass[i][k] = 10000.f * m_soilThk[i][k] * m_soilBD[i][k] * (1.f - m_soilRock[i][k] * 0.01f);
+        }
+    }
+
+    m_needReCalIntermediateParams = false;
+}
+
 void NutrientTransportSediment::SetSubbasins(clsSubbasins* subbasins) {
     if (nullptr == m_subbasinsInfo) {
         m_subbasinsInfo = subbasins;
@@ -224,6 +229,7 @@ int NutrientTransportSediment::Execute() {
         if (!CheckInputDataCenturyModel()) return false;
     }
     InitialOutputs();
+    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
     // initial nutrient to channel for each day
     for (int i = 0; i < m_nSubbsns + 1; i++) {
         m_surfRfSedOrgNToCh[i] = 0.f;

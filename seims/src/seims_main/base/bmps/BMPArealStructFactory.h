@@ -77,7 +77,7 @@ public:
     /// Constructor
     BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
                           int bmpType, int bmpPriority, vector<string>& distribution,
-                          const string& collection, const string& location, bool effectivenessVariable = 0,
+                          const string& collection, const string& location, bool effectivenessChangeable = 0,
                           time_t changeFrequency = -1, int variableTimes = -1);
 
     /// Destructor
@@ -95,6 +95,7 @@ public:
     //! Get effect unit IDs
     const vector<int>& getUnitIDs() const { return m_unitIDs; }
     const vector<int>& getUnitIDsByIndex(){ return m_unitIDsSeries[m_seriesIndex]; }
+    const map<int, int>& getUpdateTimesByIndex(){ return m_unitUpdateTimes[m_seriesIndex]; }
     void increaseSeriesIndex(){ m_seriesIndex++; }
     int getSeriesIndex() { return m_seriesIndex; }
 
@@ -111,8 +112,10 @@ private:
     float* m_mgtFieldsRs;
     //! locations
     vector<int> m_unitIDs;
-    //! 
+    //! Store the spatial unit IDs that need to update every year
     vector< vector<int> > m_unitIDsSeries;
+    //! How many times are the above spatial units updated respectively
+    vector< map<int,int> > m_unitUpdateTimes;
     int m_seriesIndex;
     /*!
      *\key The unique areal BMP ID

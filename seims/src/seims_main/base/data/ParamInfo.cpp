@@ -14,7 +14,7 @@ ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dim
                          Transfer(TF_None), Source(""), Value(0.f), Impact(0.f), Change(""),
                          Maximum(0.f), Minimun(0.f), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
-						 BasicName(""), initialized(false), ImpactSeries(), CurrentImpactIndexes(){
+						 BasicName(""), initialized(false), ImpactSeries(){
 }
 
 ParamInfo::ParamInfo(const ParamInfo& another) {
@@ -38,7 +38,6 @@ ParamInfo::ParamInfo(const ParamInfo& another) {
     BasicName = another.BasicName;
     initialized = another.initialized;
 	ImpactSeries = another.ImpactSeries;
-	CurrentImpactIndexes = another.CurrentImpactIndexes;
 }
 
 ParamInfo::~ParamInfo() {
@@ -148,12 +147,7 @@ int ParamInfo::Adjust1DRaster(const int n, float* data, const float* units,
 }
 
 int ParamInfo::Adjust1DRasterWithImpactIndexes(const int n, float* data, const float* units,
-    const vector<int>& selunits, const float* lu, const vector<int>& sellu) {
-    //initialize the indexes array with -1 if they are not created yet 
-    if (CurrentImpactIndexes.empty()){
-        CurrentImpactIndexes = vector<int>(n, -1);
-    }
-
+    const vector<int>& selunits,  const map<int, int>& impactIndexes,const float* lu, const vector<int>& sellu) {
     int count = 0;
 #pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
@@ -168,22 +162,18 @@ int ParamInfo::Adjust1DRasterWithImpactIndexes(const int n, float* data, const f
         if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
             continue;
         }
-        else{//if find, update impact indexes
-            CurrentImpactIndexes[i]++;
-        }
 
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
 
-        data[i] = GetAdjustedValueWithImpactIndexes(data[i], CurrentImpactIndexes[i]);
+        map<int, int>::const_iterator it = impactIndexes.find(curunit);
+        if (it == impactIndexes.end())
+        {
+            continue;
+        }
 
-//#ifdef _DEBUG
-//        //only output fengjin
-//        if (find(selunits.begin(), selunits.end(), 20) != selunits.end()){
-//            CLOG(INFO, LOG_DEFAULT) << i << '\t' << CurrentImpactIndexes[i] << '\t' << data[i];
-//        }
-//#endif
+        data[i] = GetAdjustedValueWithImpactIndexes(data[i], it->second);
 
         count += 1;
     }
@@ -208,7 +198,7 @@ void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
 int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
 	const vector<int>& selunits, float* lu, const vector<int>& sellu) {
     int count = 0;
-#pragma omp parallel for reduction(+:count)
+//#pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
         int curunit = CVT_INT(units[i]);
         int curlu = CVT_INT(lu[i]);
@@ -218,23 +208,21 @@ int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* 
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
+        //cout << i << ",";
         for (int j = 0; j < lyrs; j++) {
             data[i][j] = GetAdjustedValue(data[i][j]);
         }
         count += 1;
     }
+    //cout << endl << endl;
     return count;
 }
 
 int ParamInfo::Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, float** data, float* units,
-    const vector<int>& selunits, float* lu, const vector<int>& sellu) {
-    //initialize the indexes array with -1 if they are not created yet 
-    if (CurrentImpactIndexes.empty()){
-        CurrentImpactIndexes = vector<int>(n, -1);
-    }
+    const vector<int>& selunits, const map<int,int>& impactIndexes, float* lu, const vector<int>& sellu) {
 
     int count = 0;
-//#pragma omp parallel for reduction(+:count)
+#pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
         int curunit = CVT_INT(units[i]);
         int curlu = CVT_INT(lu[i]);
@@ -243,23 +231,21 @@ int ParamInfo::Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, floa
         if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
             continue;
         }
-        else{//if find, update impact indexes
-            CurrentImpactIndexes[i]++;
-        }
 
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
 
-        for (int j = 0; j < lyrs; j++) {
-            data[i][j] = GetAdjustedValueWithImpactIndexes(data[i][j], CurrentImpactIndexes[i]);
+        map<int, int>::const_iterator it = impactIndexes.find(curunit);
+        if (it == impactIndexes.end())
+        {
+            continue;
         }
-//#ifdef _DEBUG
-//        //only output fengjin
-//        if (find(selunits.begin(), selunits.end(), 20) != selunits.end()){
-//            CLOG(INFO, LOG_DEFAULT) << i << '\t' << CurrentImpactIndexes[i] << '\t' << data[i][0];
-//        }
-//#endif
+
+        for (int j = 0; j < lyrs; j++) {
+            data[i][j] = GetAdjustedValueWithImpactIndexes(data[i][j], it->second);
+        }
+
         count += 1;
     }
     return count;
