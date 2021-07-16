@@ -44,7 +44,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
     m_readFileTime = m_dataCenter->LoadDataForModules(m_simulationModules);
     int n = CVT_INT(m_simulationModules.size());
-    m_executeTime.resize(n, 0.f);
+    m_executeTime.resize(n, 0.);
     for (int i = 0; i < n; i++) {
         SimulationModule* p_module = m_simulationModules[i];
         switch (p_module->GetTimeStepType()) {

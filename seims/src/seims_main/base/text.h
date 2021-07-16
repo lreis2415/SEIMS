@@ -2,9 +2,9 @@
  * \file text.h
  * \brief Predefined string constants used in the code
  *        BE CAUTION, constant value must be aligned by SPACE, not TAB!
- * \author Junzhi Liu, LiangJun Zhu, Huiran Gao
- * \version 1.3
- * \date Jun.2010, Apr.2016, Apr.2018, Mar. 2021
+ * \author Junzhi Liu, LiangJun Zhu, Huiran Gao, Tong Wu
+ * \version 2.0
+ * \date Jun.2010, Apr.2016, Apr.2018, Jul. 2021
  *
  * Changelog:
  *   - 1. 2021-03-13 - lj - Instead of using a macro to store a constant, use a const variable.
@@ -13,8 +13,8 @@
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
-#define CONST_CHARS static const char*
-#define CONST_CHARS_LIST static const char* const
+#define CONST_CHARS static const char* ///< const string
+#define CONST_CHARS_LIST static const char* const ///< list of const strings
 
 CONST_CHARS MODEL_NAME =                      "SEIMS";
 CONST_CHARS MODEL_FULLNAME =                  "Spatially Explicit Integrated Modeling System";
@@ -22,58 +22,58 @@ CONST_CHARS MODEL_VERSION =                   "2021";
 CONST_CHARS SEIMS_EMAIL =                     "zlj@lreis.ac.cn";
 CONST_CHARS SEIMS_SITE =                      "https://github.com/lreis2415/SEIMS";
 
-//! Constant input variables
+//! Constant input variables. But do these tags actually used?
 CONST_CHARS CONS_IN_ELEV =                          "Elevation";
 CONST_CHARS CONS_IN_LAT =                           "Latitude";
-CONST_CHARS CONS_IN_XPR =                           "xpr";
-CONST_CHARS CONS_IN_YPR =                           "ypr";
+CONST_CHARS CONS_IN_XPR =                           "xpr"; // ?
+CONST_CHARS CONS_IN_YPR =                           "ypr"; // ?
 
-//! Climate data type
-CONST_CHARS DataType_Precipitation =                "P";             //1, Suffix of precipitation data
-CONST_CHARS DataType_MeanTemperature =              "TMEAN";         //2       /// m_meanTemp
-CONST_CHARS DataType_MinimumTemperature =           "TMIN";          //3       /// m_minTemp
-CONST_CHARS DataType_MaximumTemperature =           "TMAX";          //4       /// m_maxTemp
-CONST_CHARS DataType_PotentialEvapotranspiration =  "PET";           //5
-CONST_CHARS DataType_SolarRadiation =               "SR";            //6       /// m_sr
-CONST_CHARS DataType_WindSpeed =                    "WS";            //7       /// m_ws
-CONST_CHARS DataType_RelativeAirMoisture =          "RM";            //8       /// m_rhd
-CONST_CHARS DataType_Meteorology =                  "M";             // Suffix of meteorology data
-CONST_CHARS DataType_Prefix_TS =                    "T";             // m_stationData, Prefix of time series data
-CONST_CHARS DataType_Prefix_DIS =                   "D";             // Prefix of distributed data
+// Climate data type, used as suffix
+CONST_CHARS DataType_Precipitation =                "P";             ///< 1, m_pcp
+CONST_CHARS DataType_MeanTemperature =              "TMEAN";         ///< 2, m_meanTemp
+CONST_CHARS DataType_MinimumTemperature =           "TMIN";          ///< 3, m_minTemp
+CONST_CHARS DataType_MaximumTemperature =           "TMAX";          ///< 4, m_maxTemp
+CONST_CHARS DataType_PotentialEvapotranspiration =  "PET";           ///< 5, m_pet
+CONST_CHARS DataType_SolarRadiation =               "SR";            ///< 6, m_sr
+CONST_CHARS DataType_WindSpeed =                    "WS";            ///< 7, m_ws
+CONST_CHARS DataType_RelativeAirMoisture =          "RM";            ///< 8, m_rhd
+CONST_CHARS DataType_Meteorology =                  "M";             ///< 9
 
-/// Tags of climate related data.
-///                                                                            // VariableNameInModules
-CONST_CHARS Tag_DEM =                               "DEM";                     // m_dem
-CONST_CHARS Tag_Elevation_Meteorology =             "StationElevation_M";      // m_hStations
-CONST_CHARS Tag_Elevation_PET =                     "StationElevation_PET";    // m_hStations
-CONST_CHARS Tag_Elevation_Precipitation =           "StationElevation_P";      // m_hStations
-CONST_CHARS Tag_Elevation_Temperature =             "StationElevation_T";      // m_hStations
-CONST_CHARS Tag_LapseRate =                         "LapseRate";               // m_lapseRate
-CONST_CHARS Tag_Latitude_Meteorology =              "Latitude_M";
-CONST_CHARS Tag_StationElevation =                  "StationElevation";        // m_hStations
+// Prefix tags of time series and spatial distributed data used in interploate module
+CONST_CHARS DataType_Prefix_TS =                    "T";             ///< m_stationData
+CONST_CHARS DataType_Prefix_DIS =                   "D";             ///< m_itpOutput
+
+// Tags of climate related data
+CONST_CHARS Tag_StationElevation =                  "StationElevation";        ///< m_hStations
+CONST_CHARS Tag_Elevation_Meteorology =             "StationElevation_M";      ///< m_hStations
+CONST_CHARS Tag_Elevation_PET =                     "StationElevation_PET";    ///< m_hStations
+CONST_CHARS Tag_Elevation_Precipitation =           "StationElevation_P";      ///< m_hStations
+CONST_CHARS Tag_Elevation_Temperature =             "StationElevation_T";      ///< m_hStations
+CONST_CHARS Tag_Latitude_Meteorology =              "Latitude_M";              ///< 
+CONST_CHARS Tag_LapseRate =                         "LapseRate";               ///< m_lapseRate
 CONST_CHARS_LIST Tag_VerticalInterpolation[] = {"VERTICALINTERPOLATION",
                                                 "Execute vertical interpolation (1) or not (0),"
-                                                "defined in config.fig"};      // m_itpVertical
-CONST_CHARS_LIST Tag_Weight[] = {"WEIGHT", "Weight used for interpolation"};   // m_itpWeights
-CONST_CHARS Tag_DataType =                          "DATATYPE";                // m_dataType
+                                                "defined in config.fig"};      ///< m_itpVertical
+CONST_CHARS_LIST Tag_Weight[] = {"WEIGHT", "Weight used for interpolation"};   ///< m_itpWeights
+CONST_CHARS Tag_DataType =                          "DATATYPE";                ///< m_dataType
 ///////  define parameter calibration related string constants  ///////
-CONST_CHARS PARAM_CHANGE_VC =                       "VC";  // replace by a value
-CONST_CHARS PARAM_CHANGE_RC =                       "RC";  // multiply a ratio, which is diff from SWAT: * (1+ratio)
-CONST_CHARS PARAM_CHANGE_AC =                       "AC";  // add a value
-CONST_CHARS PARAM_CHANGE_NC =                       "NC";  // no change
-CONST_CHARS PARAM_FLD_NAME =                        "NAME";
-CONST_CHARS PARAM_FLD_DESC =                        "DESCRIPTION";
-CONST_CHARS PARAM_FLD_UNIT =                        "UNIT";
-CONST_CHARS PARAM_FLD_MIDS =                        "MODULE";
-CONST_CHARS PARAM_FLD_VALUE =                       "VALUE";
-CONST_CHARS PARAM_FLD_IMPACT =                      "IMPACT";
-CONST_CHARS PARAM_FLD_CHANGE =                      "CHANGE";
-CONST_CHARS PARAM_FLD_MAX =                         "MAX";
-CONST_CHARS PARAM_FLD_MIN =                         "MIN";
-CONST_CHARS PARAM_FLD_USE =                         "USE";
-CONST_CHARS PARAM_USE_Y =                           "Y";
-CONST_CHARS PARAM_USE_N =                           "N";
-CONST_CHARS PARAM_CALI_VALUES =                     "CALI_VALUES";  /// for calibration
+CONST_CHARS PARAM_CHANGE_VC =                       "VC";  ///< replace by a value
+CONST_CHARS PARAM_CHANGE_RC =                       "RC";  ///< multiply a ratio, which is diff from SWAT: * (1+ratio)
+CONST_CHARS PARAM_CHANGE_AC =                       "AC";  ///< add a value
+CONST_CHARS PARAM_CHANGE_NC =                       "NC";  ///< no change
+CONST_CHARS PARAM_FLD_NAME =                        "NAME"; ///< unique name
+CONST_CHARS PARAM_FLD_DESC =                        "DESCRIPTION"; ///< description
+CONST_CHARS PARAM_FLD_UNIT =                        "UNIT"; ///< unit
+CONST_CHARS PARAM_FLD_MIDS =                        "MODULE"; ///< associated module
+CONST_CHARS PARAM_FLD_VALUE =                       "VALUE"; ///< actual parameter value
+CONST_CHARS PARAM_FLD_IMPACT =                      "IMPACT"; ///< impact value for change
+CONST_CHARS PARAM_FLD_CHANGE =                      "CHANGE"; ///< change type, used with IMPACT
+CONST_CHARS PARAM_FLD_MAX =                         "MAX"; ///< maximum allowed actual VALUE
+CONST_CHARS PARAM_FLD_MIN =                         "MIN"; ///< minimum allowed actual VALUE
+CONST_CHARS PARAM_FLD_USE =                         "USE"; ///< use or not
+CONST_CHARS PARAM_USE_Y =                           "Y"; ///< 
+CONST_CHARS PARAM_USE_N =                           "N"; ///< 
+CONST_CHARS PARAM_CALI_VALUES =                     "CALI_VALUES"; ///< replace Impact for model calibration
 
 ////////////  Input and Output Tags   ///////////////
 // Fields in Model Configuration Collections //
@@ -107,111 +107,90 @@ CONST_CHARS Tag_Count =                             "COUNT";
 //// Output data aggregation type //////
 CONST_CHARS Tag_Unknown =                           "UNKNOWN";
 CONST_CHARS Tag_Sum =                               "SUM";
-CONST_CHARS Tag_Average =                           "AVERAGE";
-CONST_CHARS Tag_Average2 =                          "AVE";
-CONST_CHARS Tag_Average3 =                          "MEAN";
+CONST_CHARS Tag_Average =                           "AVE";
 CONST_CHARS Tag_Minimum =                           "MIN";
 CONST_CHARS Tag_Maximum =                           "MAX";
 CONST_CHARS Tag_SpecificCells =                     "SPECIFIC";
 
-CONST_CHARS TAG_OUT_QOUTLET =                       "QOUTLET";
-CONST_CHARS TAG_OUT_QTOTAL =                        "QTotal";
-CONST_CHARS TAG_OUT_SEDOUTLET =                     "SEDOUTLET";
 CONST_CHARS TAG_OUT_OL_IUH =                        "OL_IUH";
-CONST_CHARS Tag_DisPOutlet =                        "DissovePOutlet";
-CONST_CHARS Tag_AmmoOutlet =                        "AmmoniumOutlet";
-CONST_CHARS Tag_NitrOutlet =                        "NitrateOutlet";
+//CONST_CHARS TAG_OUT_QOUTLET =                       "QOUTLET"; // currently not used, check if needed?
+//CONST_CHARS TAG_OUT_QTOTAL =                        "QTotal";
+//CONST_CHARS TAG_OUT_SEDOUTLET =                     "SEDOUTLET";
+//CONST_CHARS Tag_DisPOutlet =                        "DissovePOutlet";
+//CONST_CHARS Tag_AmmoOutlet =                        "AmmoniumOutlet";
+//CONST_CHARS Tag_NitrOutlet =                        "NitrateOutlet";
 
-CONST_CHARS Tag_SubbasinCount =                     "SUBBASINCOUNT";
+//CONST_CHARS Tag_SubbasinCount =                     "SUBBASINCOUNT";
 CONST_CHARS Tag_SubbasinId =                        "SUBBASINID"; /// m_inputSubbsnID
-CONST_CHARS Tag_ReservoirCount =                    "RESERVOIRCOUNT";
-CONST_CHARS Tag_ReservoirId =                       "RESERVOIRID";
-CONST_CHARS_LIST Tag_SubbasinSelected[] = {"subbasinSelected", "The subbasion IDs listed in file.out"};
+//CONST_CHARS Tag_ReservoirCount =                    "RESERVOIRCOUNT";
+//CONST_CHARS Tag_ReservoirId =                       "RESERVOIRID";
+//CONST_CHARS_LIST Tag_SubbasinSelected[] = {"subbasinSelected", "The subbasion IDs listed in file.out"};
 CONST_CHARS_LIST Tag_CellSize[] = {"CELLSIZE", "numble of valid cells, i.e., excluding NODATA"};
-CONST_CHARS_LIST Tag_Mask[] = {"MASK", "Array containing the row and column numbers for valid cells"};
-CONST_CHARS_LIST Tag_TimeStep[] = {"TIMESTEP", "time step"}; /// m_dt
-CONST_CHARS_LIST Tag_HillSlopeTimeStep[] = {"DT_HS", "Time step of the simulation"};
-CONST_CHARS Tag_ChannelTimeStep =                   "DT_CH";
-CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; /// m_cellWth, the size of a single CELL
+CONST_CHARS_LIST Tag_Mask[] = {"MASK", "MASK raster data indicating valid cells"};
+CONST_CHARS_LIST Tag_TimeStep[] = {"TIMESTEP", "time step of simulation"}; ///< m_dt
+CONST_CHARS_LIST Tag_HillSlopeTimeStep[] = {"DT_HS", "Time step of hillslope related processes"}; ///< m_dt
+CONST_CHARS_LIST Tag_ChannelTimeStep[] = { "DT_CH", "Time step of channel routing related processes" }; ///< m_chdt
+CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; ///< m_cellWth, the size of a single CELL
+
 CONST_CHARS_LIST Tag_LayeringMethod[] = {"LayeringMethod", "Routing layering method"};
-
 CONST_CHARS_LIST Tag_FlowDirectionMethod[] = { "FlowDirMethod", "Flow direction algorithm" };
-// D8 flow model
-CONST_CHARS_LIST Tag_FLOWIN_INDEX_D8[] = {"FLOWIN_INDEX_D8", "Indexes of flow in cells by D8 algorithm"}; ///< m_flowInIdx
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX_D8[] = {"FLOWOUT_INDEX_D8", "Index of flow out cell by D8 algorithm"}; ///< m_flowOutIdx
-// D-infinity flow model after Tarboton et al.(1997)
-CONST_CHARS_LIST Tag_FLOWIN_INDEX_DINF[] = { "FLOWIN_INDEX_DINF", "Indexes of flow in cells by D-inf algorithm" }; ///< m_flowInIdx
-CONST_CHARS_LIST Tag_FLOWIN_FRACTION_DINF[] = {"FLOWIN_FRACTION_DINF", "Flow fractions of flow in cells by D-inf algorithm"}; ///< m_flowInFrac
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX_DINF[] = {"FLOWOUT_INDEX_DINF", "Indexes of flow out cell by D-inf algorithm"}; ///< m_flowOutIdx
-CONST_CHARS_LIST Tag_FLOWOUT_FRACTION_DINF[] = { "FLOWOUT_FRACTION_DINF", "Flow fractions of flow out by D-inf algorithm" }; ///< m_flowOutFrac
-// MFD-md (md means maximum downslope gradient) flow model after Qin et al.(2007).
-CONST_CHARS_LIST Tag_FLOWIN_INDEX_MFDMD[] = { "FLOWIN_INDEX_MFDMD", "Indexes of flow in cells by MFD-md algorithm" }; ///< m_flowInIdx
-CONST_CHARS_LIST Tag_FLOWIN_FRACTION_MFDMD[] = { "FLOWIN_FRACTION_MFDMD", "Flow fractions of flow in cells by MFD-md algorithm" }; ///< m_flowInFrac
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX_MFDMD[] = { "FLOWOUT_INDEX_MFDMD", "Indexes of flow out cell by MFD-md algorithm" }; ///< m_flowOutIdx
-CONST_CHARS_LIST Tag_FLOWOUT_FRACTION_MFDMD[] = { "FLOWOUT_FRACTION_MFDMD", "Flow fractions of flow out by MFD-md algorithm" }; ///< m_flowOutFrac
-
-CONST_CHARS_LIST Tag_FLOWIN_INDEX[] = { "FLOWIN_INDEX", "Indexes of flow in cells" }; ///< m_flowInIdx
-CONST_CHARS_LIST Tag_FLOWOUT_INDEX[] = { "FLOWOUT_INDEX", "Indexes of flow out cells" }; ///< m_flowOutIdx
-CONST_CHARS_LIST Tag_FLOWIN_FRACTION[] = { "FLOWIN_FRACTION", "Flow fractions of flow in cells" }; ///< m_flowInFrac
-CONST_CHARS_LIST Tag_FLOWOUT_FRACTION[] = { "FLOWOUT_FRACTION", "Flow fractions of flow out" }; ///< m_flowOutFrac
-CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers according to the flow directions, "
+CONST_CHARS_LIST Tag_FLOWIN_INDEX[] = { "FLOWIN_INDEX", "Indexes of flow in units" }; ///< m_flowInIdx
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX[] = { "FLOWOUT_INDEX", "Indexes of flow out units" }; ///< m_flowOutIdx
+CONST_CHARS_LIST Tag_FLOWIN_FRACTION[] = { "FLOWIN_FRACTION", "Flow in fractions from upstream units" }; ///< m_flowInFrac
+CONST_CHARS_LIST Tag_FLOWOUT_FRACTION[] = { "FLOWOUT_FRACTION", "Flow out fractions to downstream units" }; ///< m_flowOutFrac
+CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers according to flow directions, "
                                          "there are no flow relationships within each layer, and the first element in each layer "
-                                         "is the number of cells in the layer"}; ///< m_rteLyrs
+                                         "is the number of compute units in current layer"}; ///< m_rteLyrs
 
 /// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 CONST_CHARS_LIST VAR_REACH_PARAM[] = {"ReachParam", "Reach parameters such as stream order, manning's n and downstream subbasin id"};
 /// Add Subbasins as AddParameters for modules
 CONST_CHARS_LIST VAR_SUBBASIN_PARAM[] = {"SubbasinParam", "Statistics of subbasin related parameters"};
-/// Files or database constant strings
-//#define ASCIIExtension                       ".asc"  /// defined in clsRasterData.h
-//#define GTiffExtension                       ".tif"
-CONST_CHARS TextExtension =                         "txt";
 
-CONST_CHARS File_Config =                           "config.fig";
-CONST_CHARS File_Input =                            "file.in";
-CONST_CHARS File_Output =                           "file.out";
-CONST_CHARS Source_HydroClimateDB =                 "HydroClimateDB";
-CONST_CHARS Source_HydroClimateDB_Optional =        "HydroClimateDB_Optional";
-CONST_CHARS Source_ParameterDB =                    "ParameterDB";
-CONST_CHARS Source_ParameterDB_Optional =           "ParameterDB_Optional";
-CONST_CHARS Source_Module =                         "Module";
-CONST_CHARS Source_Module_Optional =                "Module_Optional";
+// Files or database constant strings
+CONST_CHARS TextExtension =                         "txt"; ///< plain text format
+CONST_CHARS File_Config =                           "config.fig"; ///< modules list
+CONST_CHARS File_Input =                            "file.in"; ///< simulation period, timestep, etc.
+CONST_CHARS File_Output =                           "file.out"; ///< define output variables
+CONST_CHARS Source_HydroClimateDB =                 "HydroClimateDB"; ///< hydro and climate database
+CONST_CHARS Source_HydroClimateDB_Optional =        "HydroClimateDB_Optional"; ///< optional hydroclimate
+CONST_CHARS Source_ParameterDB =                    "ParameterDB"; ///< model parameters database
+CONST_CHARS Source_ParameterDB_Optional =           "ParameterDB_Optional"; ///< optional model parameter
+CONST_CHARS Source_Module =                         "Module"; ///< inputs from other modules
+CONST_CHARS Source_Module_Optional =                "Module_Optional"; ///< optional inputs
 
 ///////// Table Names required in MongoDB /////////
-const char DB_TAB_PARAMETERS[] =                      "PARAMETERS";
-const char DB_TAB_SITELIST[] =                        "SITELIST";
-const char DB_TAB_SCENARIO[] =                        "BMPDATABASE";
-const char DB_TAB_REACH[] =                           "REACHES";
-const char DB_TAB_SPATIAL[] =                         "SPATIAL"; // i.e., SPATIAL.files
-const char DB_TAB_SITES[] =                           "SITES";
-const char DB_TAB_DATAVALUES[] =                      "DATA_VALUES"; // hydroClimate data values
-const char DB_TAB_MEASUREMENT[] =                     "MEASUREMENT";
-const char DB_TAB_ANNSTAT[] =                         "ANNUAL_STATS";
-const char DB_TAB_OUT_SPATIAL[] =                     "OUTPUT"; // i.e., OUTPUT.files
-const char DB_TAB_FILE_IN[] =                         "FILE_IN";
-const char DB_TAB_FILE_OUT[] =                        "FILE_OUT";
-/// Fields in DB_TAB_REACH ///
-const char REACH_SUBBASIN[] =                         "SUBBASINID";
-const char REACH_NUMCELLS[] =                         "NUM_CELLS";
-const char REACH_GROUP[] =                            "GROUP";
-const char REACH_KMETIS[] =                           "KMETIS";
-const char REACH_PMETIS[] =                           "PMETIS";
-const char REACH_DOWNSTREAM[] =                       "DOWNSTREAM";
-const char REACH_UPDOWN_ORDER[] =                     "UP_DOWN_ORDER";
-const char REACH_DOWNUP_ORDER[] =                     "DOWN_UP_ORDER";
-const char REACH_WIDTH[] =                            "CH_WIDTH";
-const char REACH_LENGTH[] =                           "CH_LEN";
-const char REACH_DEPTH[] =                            "CH_DEPTH";
-const char REACH_WDRATIO[] =                          "CH_WDRATIO";
-const char REACH_AREA[] =                             "CH_AREA";
-const char REACH_SIDESLP[] =                          "CH_SSLP";
-const char REACH_SLOPE[] =                            "CH_SLP";
+CONST_CHARS DB_TAB_FILE_IN =                           "FILE_IN"; ///< based on file.in
+CONST_CHARS DB_TAB_FILE_OUT =                          "FILE_OUT"; ///< based on file.out
+CONST_CHARS DB_TAB_PARAMETERS =                        "PARAMETERS"; ///< model parameters table
+CONST_CHARS DB_TAB_SITELIST =                          "SITELIST"; ///< meteorology and precipitation sites
+CONST_CHARS DB_TAB_SCENARIO =                          "BMPDATABASE"; ///< scenario database name
+CONST_CHARS DB_TAB_REACH =                             "REACHES"; ///< parameters of reaches (channels)
+CONST_CHARS DB_TAB_SPATIAL =                           "SPATIAL"; ///< spatial data in GridFS format
+CONST_CHARS DB_TAB_OUT_SPATIAL =                       "OUTPUT"; ///< output data in GridFS format
+CONST_CHARS DB_TAB_SITES =                             "SITES"; ///< hydro and climate sites in HydroClimateDB
+CONST_CHARS DB_TAB_DATAVALUES =                        "DATA_VALUES"; ///< data values
+CONST_CHARS DB_TAB_MEASUREMENT =                       "MEASUREMENT"; ///< observed hydro data
+CONST_CHARS DB_TAB_ANNSTAT =                           "ANNUAL_STATS"; ///< annaul statistics based on DATA_VALUES 
+/// Fields in DB_TAB_REACH, the orders and names should be consistent with db_import_stream_parameters.py and clsReach.cpp! ///
+CONST_CHARS REACH_SUBBASIN =                           "SUBBASINID"; ///< reach ID is consistent with the subbasin ID
+CONST_CHARS REACH_NUMCELLS =                           "NUM_CELLS"; ///< cells number of the corresponding subbasin
+CONST_CHARS REACH_DOWNSTREAM =                         "DOWNSTREAM"; ///< downstream reach ID
+CONST_CHARS REACH_UPDOWN_ORDER =                       "UP_DOWN_ORDER";
+CONST_CHARS REACH_DOWNUP_ORDER =                       "DOWN_UP_ORDER";
+CONST_CHARS REACH_WIDTH =                              "CH_WIDTH";
+CONST_CHARS REACH_LENGTH =                             "CH_LEN";
+CONST_CHARS REACH_DEPTH =                              "CH_DEPTH";
+CONST_CHARS REACH_WDRATIO =                            "CH_WDRATIO";
+CONST_CHARS REACH_AREA =                               "CH_AREA";
+CONST_CHARS REACH_SIDESLP =                            "CH_SSLP";
+CONST_CHARS REACH_SLOPE =                              "CH_SLP";
 // Hydrological related parameters
 CONST_CHARS REACH_MANNING =                         "CH_N"; // Manning's "n" value
 CONST_CHARS REACH_BEDK =                            "CH_BED_K"; /// hydraulic conductivity of the channel bed
 CONST_CHARS REACH_BNKK =                            "CH_BNK_K"; /// hydraulic conductivity of the channel bank
 // Erosion related parameters
-CONST_CHARS REACH_BEDBD =                          "CH_BED_BD"; // Bulk density of channel bed sediment
+CONST_CHARS REACH_BEDBD =                           "CH_BED_BD"; // Bulk density of channel bed sediment
 CONST_CHARS REACH_BNKBD =                           "CH_BNK_BD"; // Bulk density of channel bed sediment
 CONST_CHARS REACH_BEDCOV =                          "CH_BED_COV"; // Channel bed cover factor, ch_cov2 in SWAT
 CONST_CHARS REACH_BNKCOV =                          "CH_BNK_COV"; // Channel bank cover factor, ch_cov1 in SWAT
@@ -224,15 +203,15 @@ CONST_CHARS REACH_BC1 =                             "BC1";
 CONST_CHARS REACH_BC2 =                             "BC2";
 CONST_CHARS REACH_BC3 =                             "BC3";
 CONST_CHARS REACH_BC4 =                             "BC4";
+CONST_CHARS REACH_RK1 =                             "RK1";
+CONST_CHARS REACH_RK2 =                             "RK2";
+CONST_CHARS REACH_RK3 =                             "RK3";
+CONST_CHARS REACH_RK4 =                             "RK4";
 CONST_CHARS REACH_RS1 =                             "RS1";
 CONST_CHARS REACH_RS2 =                             "RS2";
 CONST_CHARS REACH_RS3 =                             "RS3";
 CONST_CHARS REACH_RS4 =                             "RS4";
 CONST_CHARS REACH_RS5 =                             "RS5";
-CONST_CHARS REACH_RK1 =                             "RK1";
-CONST_CHARS REACH_RK2 =                             "RK2";
-CONST_CHARS REACH_RK3 =                             "RK3";
-CONST_CHARS REACH_RK4 =                             "RK4";
 CONST_CHARS REACH_DISOX =                           "DISOX";
 CONST_CHARS REACH_BOD =                             "BOD";
 CONST_CHARS REACH_ALGAE =                           "ALGAE";
@@ -245,7 +224,7 @@ CONST_CHARS REACH_SOLP =                            "SOLP";
 // Groundwater nutrient related parameters
 CONST_CHARS REACH_GWNO3 =                           "GWNO3";
 CONST_CHARS REACH_GWSOLP =                          "GWSOLP";
-/// Derived parameters according to the input parameters of Reach, which may also be provided in database.
+// Derived parameters according to the input parameters of Reach, which may also be provided in database.
 CONST_CHARS REACH_BEDTC =                           "CH_BED_TC"; // Critical shear stress of channel bed
 CONST_CHARS REACH_BNKTC =                           "CH_BNK_TC"; // Critical shear stress of channel bank
 CONST_CHARS REACH_BNKSAND =                         "CH_BNK_SAND"; // Fraction of sand in channel bank sediment
@@ -256,12 +235,18 @@ CONST_CHARS REACH_BEDSAND =                         "CH_BED_SAND"; // Fraction o
 CONST_CHARS REACH_BEDSILT =                         "CH_BED_SILT"; // Fraction of silt in channel bed sediment
 CONST_CHARS REACH_BEDCLAY =                         "CH_BED_CLAY"; // Fraction of clay in channel bed sediment
 CONST_CHARS REACH_BEDGRAVEL =                       "CH_BED_GRAVEL"; // Fraction of gravel in channel bed sediment
+// Grouping related
+CONST_CHARS REACH_GROUP =                              "GROUP";
+CONST_CHARS REACH_KMETIS =                             "KMETIS";
+CONST_CHARS REACH_PMETIS =                             "PMETIS";
+// Coordinates
+CONST_CHARS REACH_COORX =                              "CH_COORX"; ///< X coordinates (not cols!)
+CONST_CHARS REACH_COORY =                              "CH_COORY"; ///< Y coordinates (not rows!)
 
 /// these four are defined in DB_TAB_SITELIST in Source_ParameterDB
 CONST_CHARS SITELIST_TABLE_M =                      "SITELISTM";
 CONST_CHARS SITELIST_TABLE_P =                      "SITELISTP";
 CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET";
-CONST_CHARS SITELIST_TABLE_STORM =                  "STORMSITELIST";
 
 //! define string constants used in the code, also used in the mongoDB.SiteList table's header
 CONST_CHARS Tag_Mode =                              "MODE";
@@ -674,12 +659,12 @@ CONST_CHARS_LIST VAR_AIRRWTR_DEPTH[] = {"airrwtr_depth", "amount of irrigation w
 CONST_CHARS_LIST VAR_ALAIMIN[] = {"alai_min", "minimum LAI during winter dormant period"}; /// m_minLaiDorm
 CONST_CHARS_LIST VAR_ALBDAY[] = {"ALBDAY", "Albedo of the current day"}; /// m_alb
 CONST_CHARS_LIST VAR_CH_ALGAE[] = {"ch_algae", "algal biomass in reach"}; 
-CONST_CHARS_LIST VAR_CH_ALGAEConc[] = {"ch_algaeConc" }; 
+CONST_CHARS_LIST VAR_CH_ALGAEConc[] = {"ch_algaeConc", ""}; 
 CONST_CHARS_LIST VAR_CH_ONCO[] = {"ch_onco", "Channel organic nitrogen concentration in basin"}; 
 CONST_CHARS_LIST VAR_CH_OPCO[] = {"ch_opco", "Channel organic phosphorus concentration in basin"}; 
 CONST_CHARS_LIST VAR_AMMO_CH[] = {"ammoToCh", "amount of ammonium transported with lateral flow"}; 
 CONST_CHARS_LIST VAR_CH_NH4[] = {"ch_nh4", "ammonia nitrogen in reach"}; 
-CONST_CHARS_LIST VAR_CH_NH4Conc[] = {"ch_nh4Conc" }; 
+CONST_CHARS_LIST VAR_CH_NH4Conc[] = {"ch_nh4Conc", ""}; 
 CONST_CHARS_LIST VAR_ANION_EXCL[] = {"anion_excl", "fraction of porosity from which anions are excluded"}; /// m_anionExclFr
 CONST_CHARS_LIST VAR_AWTR_STRS_ID[] = {"awtr_strsID", "Water stress identifier, 1 plant water demand, 2 soil water content"}; /// m_wtrStrsID
 CONST_CHARS_LIST VAR_AWTR_STRS_TRIG[] = {"awtr_strsTrig", "Water stress threshold that triggers irrigation"}; /// m_autoWtrStrsTrig
@@ -719,7 +704,7 @@ CONST_CHARS_LIST VAR_CH_TCCO[] = {"ChTcCo", "Calibration coefficient of transpor
 CONST_CHARS_LIST VAR_CH_V[] = {"CHANV", "flow velocity"}; 
 CONST_CHARS_LIST VAR_CH_VOL[] = {"CHANVOL", "water volume"}; 
 CONST_CHARS_LIST VAR_CH_CHLORA[] = {"CH_chlora", "chlorophyll-a in reach"}; 
-CONST_CHARS_LIST VAR_CH_CHLORAConc[] = {"CH_chloraConc" }; 
+CONST_CHARS_LIST VAR_CH_CHLORAConc[] = {"CH_chloraConc", ""}; 
 CONST_CHARS_LIST VAR_CHL_A[] = {"chl_a", "chlorophyll-a concentration in water yield"}; /// m_surfRfChlA
 CONST_CHARS_LIST VAR_CHS0[] = {"Chs0", "initial channel storage per meter of reach length"}; /// m_initChStorage
 CONST_CHARS_LIST VAR_CHS0_PERC[] = {"chs0_perc", "initial percentage of channel volume"}; ///
@@ -753,7 +738,7 @@ CONST_CHARS_LIST VAR_DAYLEN[] = {"daylength", "day length"}; /// m_dayLen
 CONST_CHARS_LIST VAR_DAYLEN_MIN[] = {"daylenmin", "minimum day length"}; /// m_dayLenMin
 CONST_CHARS_LIST VAR_DEEPST[] = {"deepst", "depth of water in deep aquifer"}; 
 CONST_CHARS_LIST VAR_DEET[] = {"DEET", "evaporation from depression storage"}; /// m_deprStoET
-CONST_CHARS_LIST VAR_DEM[] = {"DEM", "Digital Elevation Model"}; /// m_dem
+CONST_CHARS_LIST VAR_DEM[] = {"DEM", "Digital Elevation Model in meters"}; /// m_dem
 CONST_CHARS_LIST VAR_DEPREIN[] = {"Depre_in", "initial depression storage coefficient"}; 
 CONST_CHARS_LIST VAR_DEPRESSION[] = {"Depression", "Depression storage capacity"}; 
 CONST_CHARS_LIST VAR_DETSPLASH[] = {"DETSplash", "distribution of splash detachment"}; 
@@ -769,7 +754,7 @@ CONST_CHARS_LIST VAR_SAGYLD[] = {"sag_yld", "small aggeregate yield amout"}; ///
 CONST_CHARS_LIST VAR_LAGYLD[] = {"lag_yld", "large aggregate yield amout"}; /// m_eroLgAgg
 CONST_CHARS_LIST VAR_DF_COEF[] = {"df_coef", "Deep percolation coefficient"}; 
 CONST_CHARS_LIST VAR_CH_SOLP[] = {"CH_SOLP", "dissolved phosphorus in reach"}; 
-CONST_CHARS_LIST VAR_CH_SOLPConc[] = {"CH_SOLPConc" }; 
+CONST_CHARS_LIST VAR_CH_SOLPConc[] = {"CH_SOLPConc", ""}; 
 CONST_CHARS_LIST VAR_DLAI[] = {"DLAI", "the fraction of growing season(PHU) when senescence becomes dominant"}; /// m_dormPHUFr
 CONST_CHARS_LIST VAR_DORMHR[] = {"dormhr", "time threshold used to define dormant period for plant"}; /// m_dormHr
 CONST_CHARS_LIST VAR_DORMI[] = {"dormi", "dormancy status code, 0 for land cover growing and 1 for dormant"}; /// m_dormFlag
@@ -798,7 +783,7 @@ CONST_CHARS_LIST VAR_FR_STRSWTR[] = {"frStrsWtr", "fraction of potential plant g
 CONST_CHARS_LIST VAR_FRGMAX[] = {"frgmax", "fraction of maximum stomatal conductance corresponding to the second point on the stomatal conductance curve"}; 
 CONST_CHARS_LIST VAR_FRGRW1[] = {"FRGRW1", "fraction of total potential heat units corresponding to the 1st point on the optimal leaf area development curve"}; /// m_frGrow1stPt
 CONST_CHARS_LIST VAR_FRGRW2[] = {"FRGRW2", "fraction of total potential heat units corresponding to the 2nd point on the optimal leaf area development curve"}; /// m_frGrow2ndPt
-CONST_CHARS_LIST VAR_GRRE[] = {"GRRE" }; 
+CONST_CHARS_LIST VAR_GRRE[] = {"GRRE", ""}; 
 CONST_CHARS_LIST VAR_GRZ_DAYS[] = {"grz_days", "number of days cell has been grazed"}; /// m_nGrazDays
 CONST_CHARS_LIST VAR_GRZ_FLAG[] = {"grz_flag", "grazing flag for cell"}; /// m_grazFlag
 CONST_CHARS_LIST VAR_GSI[] = {"gsi", "maximum stomatal conductance at high solar radiation and low vpd"}; 
@@ -888,10 +873,10 @@ CONST_CHARS_LIST VAR_NFIXCO[] = {"nfixco", "Nitrogen fixation coefficient"}; ///
 CONST_CHARS_LIST VAR_NFIXMX[] = {"nfixmx", "Maximum daily-N fixation (kg/ha)"}; /// m_NFixMax
 CONST_CHARS_LIST VAR_CH_NO3[] = {"CH_NO3", "nitrate in reach"}; 
 CONST_CHARS DESC_NITRITE_CH = "amount of nitrite transported with lateral flow";
-CONST_CHARS_LIST VAR_CH_NO3Conc[] = {"CH_NO3Conc" }; 
-CONST_CHARS_LIST VAR_NO2_TOCH[] = {"nitriteToCh" }; /// m_no2ToCh
+CONST_CHARS_LIST VAR_CH_NO3Conc[] = {"CH_NO3Conc", ""}; 
+CONST_CHARS_LIST VAR_NO2_TOCH[] = {"nitriteToCh", ""}; /// m_no2ToCh
 CONST_CHARS_LIST VAR_CH_NO2[] = {"CH_NO2", "nitrite in reach"}; 
-CONST_CHARS_LIST VAR_CH_NO2Conc[] = {"CH_NO2Conc" }; 
+CONST_CHARS_LIST VAR_CH_NO2Conc[] = {"CH_NO2Conc", ""}; 
 CONST_CHARS_LIST VAR_DISTSTREAM[] = {"dist2stream", "distance to the stream"}; /// m_distToRch
 CONST_CHARS_LIST VAR_NO3GW[] = {"no3gw", "nitrate loading to reach in groundwater"}; 
 CONST_CHARS_LIST VAR_NO3GW_TOCH[] = {"no3gwToCh", "nitrate in groundwater to channel"}; /// m_gwNO3ToCh
@@ -906,12 +891,12 @@ CONST_CHARS_LIST VAR_OL_SED_ECO2[] = {"eco2", "calibration coefficient 2 of tran
 CONST_CHARS_LIST VAR_OLAI[] = {"olai", "DO NOT KNOW MEANING"}; /// m_oLai
 CONST_CHARS_LIST VAR_OMEGA[] = {"Omega", "calibration coefficient of splash erosion"}; 
 CONST_CHARS_LIST VAR_CH_ORGN[] = {"CH_ORGN", "organic nitrogen in reach"}; 
-CONST_CHARS_LIST VAR_CH_ORGNConc[] = {"CH_ORGNConc" }; 
+CONST_CHARS_LIST VAR_CH_ORGNConc[] = {"CH_ORGNConc", ""}; 
 CONST_CHARS_LIST VAR_CH_ORGP[] = {"CH_ORGP", "organic phosphorus in reach"}; 
-CONST_CHARS_LIST VAR_CH_ORGPConc[] = {"CH_ORGPConc" }; 
-CONST_CHARS_LIST VAR_CH_TN[] = {"CH_TN", " total N amount in reach"}; 
+CONST_CHARS_LIST VAR_CH_ORGPConc[] = {"CH_ORGPConc", ""}; 
+CONST_CHARS_LIST VAR_CH_TN[] = {"CH_TN", "total N amount in reach"}; 
 CONST_CHARS_LIST VAR_CH_TNConc[] = {"CH_TNConc", "total N concentration in reach"}; 
-CONST_CHARS_LIST VAR_CH_TP[] = {"CH_TP", " total P amount in reach"}; 
+CONST_CHARS_LIST VAR_CH_TP[] = {"CH_TP", "total P amount in reach"}; 
 CONST_CHARS_LIST VAR_CH_TPConc[] = {"CH_TPConc", "total P concentration in reach"}; 
 CONST_CHARS_LIST VAR_CHSTR_NO3[] = {"CHSTR_NO3", "NO3-N stored in channel"}; 
 CONST_CHARS_LIST VAR_CHSTR_NH4[] = {"CHSTR_NH4", "NH4-N stored in channel"}; 
@@ -924,7 +909,7 @@ CONST_CHARS_LIST VAR_P_RF[] = {"p_rf", "Peak rate adjustment factor"}; /// m_pea
 CONST_CHARS_LIST VAR_PERCO_N_GW[] = {"perco_n_gw", "amount of nitrate percolating past bottom of soil profile"}; /// m_percoNGw
 CONST_CHARS_LIST VAR_PERCO_P_GW[] = {"perco_p_gw", "amount of soluble P percolating past bottom of soil profile"}; /// m_percoPGw
 CONST_CHARS_LIST VAR_PERCO[] = {"Perco", "the amount of water percolated from the soil water reservoir, i.e., groundwater recharge"}; /// m_soilPerco
-CONST_CHARS_LIST VAR_PERDE[] = {"perde" }; 
+CONST_CHARS_LIST VAR_PERDE[] = {"perde", ""}; 
 CONST_CHARS_LIST VAR_PET[] = {"PET", "Potential Evapotranspiration of day"}; /// m_pet
 CONST_CHARS_LIST VAR_PET_HCOEF[] = {"HCoef_pet", "Coefficient related to radiation used in Hargreaves method"}; 
 CONST_CHARS_LIST VAR_PHOSKD[] = {"phoskd", "Phosphorus soil partitioning coefficient"}; 
@@ -932,8 +917,8 @@ CONST_CHARS_LIST VAR_PHUBASE[] = {"PHUBASE", "base zero total heat units (used w
 CONST_CHARS_LIST VAR_PHUPLT[] = {"PHU_PLT", "total number of heat unites (hours) needed to bring plant to maturity"}; /// m_phuPlt
 CONST_CHARS_LIST VAR_PHUTOT[] = {"PHU0", "annual average total potential heat units (used when no crop is growing)"}; /// m_phuAnn
 CONST_CHARS_LIST VAR_PI_B[] = {"Pi_b", "Interception Storage Capacity Exponent"}; /// m_intcpStoCapExp
-CONST_CHARS_LIST VAR_PCP2CANFR_PR[] = {"pcp2canfr_pr" }; /// m_pcp2CanalFr
-CONST_CHARS_LIST VAR_EMBNKFR_PR[] = {"embnkfr_pr" }; /// m_embnkFr
+CONST_CHARS_LIST VAR_PCP2CANFR_PR[] = {"pcp2canfr_pr", "fraction of precipitation falling down to canal"}; /// m_pcp2CanalFr
+CONST_CHARS_LIST VAR_EMBNKFR_PR[] = {"embnkfr_pr", ""}; /// m_embnkFr
 CONST_CHARS_LIST VAR_PL_RSDCO[] = {"rsdco_pl", "Plant residue decomposition coefficient"}; /// m_pltRsdDecCoef
 CONST_CHARS_LIST VAR_PLANT_N[] = {"plant_N", "amount of nitrogen in plant biomass (kg/ha), plantn in SWAT"}; /// m_pltN
 CONST_CHARS_LIST VAR_PLANT_P[] = {"plant_P", "amount of phosphorus in plant biomass (kg/ha), plantp in SWAT"}; /// m_pltP
@@ -976,16 +961,16 @@ CONST_CHARS_LIST VAR_QTOTAL[] = {"QTotal", "discharge at the watershed outlet"};
 CONST_CHARS_LIST VAR_RadianSlope[] = {"RadianSlope", "radian slope"}; 
 CONST_CHARS_LIST VAR_RCA[] = {"rca", "concentration of ammonia in the rain"}; /// m_rainNH4Conc
 CONST_CHARS_LIST VAR_CH_COD[] = {"CH_COD", "carbonaceous oxygen demand in reach"}; 
-CONST_CHARS_LIST VAR_CH_CODConc[] = {"CH_CODConc" }; 
+CONST_CHARS_LIST VAR_CH_CODConc[] = {"CH_CODConc", ""}; 
 CONST_CHARS_LIST VAR_CH_DOX[] = {"ch_dox", "dissolved oxygen in reach"}; 
-CONST_CHARS_LIST VAR_CH_DOXConc[] = {"ch_doxConc" }; 
+CONST_CHARS_LIST VAR_CH_DOXConc[] = {"ch_doxConc", "" };
 CONST_CHARS_LIST VAR_RCH_BANKERO[] = {"rch_bank_ero", "reach bank erosion"}; /// m_rchBankEro
 CONST_CHARS_LIST VAR_RCH_DEG[] = {"rch_deg", "reach degradation"}; /// m_rchDeg
 CONST_CHARS_LIST VAR_RCH_DEP[] = {"rch_dep", "reach deposition"}; /// m_rchDep
 CONST_CHARS_LIST VAR_RCH_DEPNEW[] = {"rch_depnew", "Channel new deposition"}; /// m_dltRchDep
 CONST_CHARS_LIST VAR_RCH_DEPSAND[] = {"rch_depsand", "Sand deposition in channel"}; /// m_rchDepSand
 CONST_CHARS_LIST VAR_RCH_DEPSILT[] = {"rch_depsilt", "Silt deposition in channel"}; /// m_rchDepSilt
-CONST_CHARS_LIST VAR_RCH_DEPCLAY[] = {"rch_depclay" }; /// m_rchDepClay
+CONST_CHARS_LIST VAR_RCH_DEPCLAY[] = {"rch_depclay", "Clay deposition in channel" }; /// m_rchDepClay
 CONST_CHARS_LIST VAR_RCH_DEPSAG[] = {"rch_depsag", "Small aggregate deposition in channel"}; /// m_rchDepSag
 CONST_CHARS_LIST VAR_RCH_DEPLAG[] = {"rch_deplag", "Large aggregate deposition in channel"}; /// m_rchDepLag
 CONST_CHARS_LIST VAR_RCH_DEPGRAVEL[] = {"rch_depgravel", "Gravel deposition in channel"}; /// m_rchDepGravel
@@ -1024,7 +1009,7 @@ CONST_CHARS_LIST VAR_SED_DEP[] = {"SEDDEP", "distribution of sediment deposition
 CONST_CHARS_LIST VAR_SED_FLOW[] = {"sed_flow", "sediment in flow"}; 
 CONST_CHARS_LIST VAR_SED_FLUX[] = {"sed_flux", "outgoing sediment flux"}; 
 CONST_CHARS_LIST VAR_SED_RECH[] = {"SEDRECH", "Sediment output at reach outlet"}; /// m_sedRchOut
-CONST_CHARS_LIST VAR_SED_RECHConc[] = {"SEDRECHConc" }; /// m_sedConcRchOut
+CONST_CHARS_LIST VAR_SED_RECHConc[] = {"SEDRECHConc", ""}; /// m_sedConcRchOut
 CONST_CHARS_LIST VAR_SAND_RECH[] = {"SandRchOut", "Sand output at reach outlet"}; /// m_sandRchOut
 CONST_CHARS_LIST VAR_SILT_RECH[] = {"SiltRchOut", "Silt output at reach outlet"}; /// m_siltRchOut
 CONST_CHARS_LIST VAR_CLAY_RECH[] = {"ClayRchOut", "Clay output at reach outlet"}; /// m_clayRchOut
@@ -1185,8 +1170,8 @@ CONST_CHARS_LIST VAR_ANCRF[] = {"ancrf", "Amount of N in crop till flowering"};
 CONST_CHARS_LIST VAR_POND[] = {"pond", "pond id"}; 
 CONST_CHARS_LIST VAR_POND_VOL[] = {"pond_vol", "pond volumn"}; 
 CONST_CHARS_LIST VAR_POND_SA[] = {"pondSurfaceArea", "pond surface area"}; 
-CONST_CHARS_LIST VAR_IRRDEPTH[] = {"irrDepth" }; 
-CONST_CHARS_LIST VAR_POND_SOLPDECAY[] = {"pond_solpl" }; 
+CONST_CHARS_LIST VAR_IRRDEPTH[] = {"irrDepth", ""}; 
+CONST_CHARS_LIST VAR_POND_SOLPDECAY[] = {"pond_solpl", ""}; 
 
 /// CENTURY model for C/N cycling
 CONST_CHARS_LIST VAR_SOL_BMC[] = {"sol_BMC", "NEED to figure out"}; 
@@ -1250,12 +1235,12 @@ CONST_CHARS_LIST VAR_SW_CAP[] = {"sw_cap", "amount of water capacity in soil lay
 CONST_CHARS_LIST VAR_SOTE[] = {"SOTE", "soil Temperature"}; /// m_soilTemp
 CONST_CHARS_LIST VAR_SOWB[] = {"SOWB", "soil water balance"}; /// m_soilWtrBal
 CONST_CHARS_LIST VAR_SOXY[] = {"soxy", "saturation concentration of dissolved oxygen"}; 
-CONST_CHARS_LIST VAR_SOXYConc[] = {"soxyConc" }; 
+CONST_CHARS_LIST VAR_SOXYConc[] = {"soxyConc", ""}; 
 CONST_CHARS_LIST VAR_SPCON[] = {"spcon", "Coefficient in sediment transport equation"}; /// m_sedTransEqCoef
 CONST_CHARS_LIST VAR_SPEXP[] = {"spexp", "Exponent in sediment transport equation"}; /// m_sedTransEqExp
 CONST_CHARS DESC_SR = "Solar radiation";
 CONST_CHARS_LIST VAR_SR_MAX[] = {"srMax", "Max solar radiation"}; 
-CONST_CHARS_LIST VAR_SRA[] = {"sra", " solar radiation for the day"}; 
+CONST_CHARS_LIST VAR_SRA[] = {"sra", "solar radiation for the day"}; 
 CONST_CHARS_LIST VAR_SSRU[] = {"SSRU", "Subsurface runoff"}; /// m_subSurfRf
 CONST_CHARS_LIST VAR_SSRUVOL[] = {"SSRUVOL", "Subsurface runoff volume (m3)."}; /// m_subSurfRfVol
 CONST_CHARS_LIST VAR_STCAPSURPLUS[] = {"STCAPSURPLUS", "surplus of storage capacity"}; 
