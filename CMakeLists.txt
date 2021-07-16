@@ -25,8 +25,8 @@
 #     6. Windows 10 with Visual Studio 2013+Intel C++ Compiler 17.0, mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Aug. 18, 2019
-#  Copyright (C) 2017-2019 Lreis, IGSNRR, CAS
+#  Latest updated: Jul. 15, 2021
+#  Copyright (C) 2017-2021 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF (" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -194,11 +194,11 @@ IF(XCODE)
   FIND_PACKAGE(LLVM)
   IF(LLVM_FOUND)
     geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
-	SET(OpenMP_CXX_FLAGS "-fopenmp")
+    SET(OpenMP_CXX_FLAGS "-fopenmp")
     SET(OpenMP_C_FLAGS "-fopenmp")
-	FIND_LIBRARY(OpenMP_LIBRARY
-		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS})
+    FIND_LIBRARY(OpenMP_LIBRARY
+        NAMES "omp"
+        HINTS ${LLVM_LIBRARY_DIRS})
     SET(OPENMP_FOUND 1)
   ENDIF ()
 ELSE ()
@@ -214,9 +214,9 @@ ENDIF()
 ### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
 IF(XCODE AND LLVM_FOUND)
     TARGET_LINK_LIBRARIES(${CCGLNAME} ${OpenMP_LIBRARY})
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
+    SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
+    SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
+    SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
 ENDIF()
 
 ### Find GDAL which is optional.
