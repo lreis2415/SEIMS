@@ -7,17 +7,14 @@
  *          lj - 31-Mar-2021 - Rewrite most core parts and now support MFD-md algorithm.\n
  *          lj -  7-Apr-2021 - Since all spatial raster data is stored in float type in MongoDB,
  *                              for cross-platform compatible, both MongoDB and File mode use FloatRaster.\n
+ *          lj - 18-May-2021 - Force each stream grid flow into one downstream grid.\n
  * \description:
- *               The output list:
+ *               Output lists of both local files and MongoDB GridFS:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
- *                     in which X is subbasinID (0 for the whole basin)
- *                              `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`
- *               2. X_ROUTING_LAYERS_UP_DOWN{_METHOD} and X_ROUTING_LAYERS_DOWN_UP{_METHOD}
- *                     in which `_METHOD` represent flow direction method, the empty denotes `D8`, others
- *                        include `_DINF` and `_MFDMD`
- *               3. X_FLOWOUT_FRACTION_{FD}, X_FLOWIN_FRACTION_{FD}
- *                     recording flow fractions of flow out and flow in cells,
- *                     specifically for multiple flow direction algorithms
+ *               2. X_ROUTING_LAYERS_UP_DOWN{_FD} and X_ROUTING_LAYERS_DOWN_UP{_FD}
+ *               3. X_FLOWIN_FRACTION_{FD}, X_FLOWOUT_FRACTION_{FD}. For `DINF` and `MFDMD`.
+ *               Where, `X` is subbasinID (0 for the whole basin)
+ *                      `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`.
  *
  */
 
@@ -56,11 +53,18 @@ const int fdccw[9] = {0, 1, 128, 64, 32, 16, 8, 4, 2};
 const int drow[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
 const int dcol[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1};
 
-int find_flow_direction_index_ccw(const int fd);
+int find_flow_direction_index_ccw(int fd);
 
-int get_reversed_fdir(const int fd);
+int find_flow_direction_index_ccw(int delta_row, int delta_col);
 
-vector<int> uncompress_flow_directions(const int compressed_fd);
+int get_reversed_fdir(int fd);
+
+vector<int> uncompress_flow_directions(int compressed_fd);
+
+bool read_stream_vertexes_as_rowcol(string stream_file, FloatRaster* mask,
+                                    vector<vector<ROW_COL> >& stream_rc);
+
+void print_flow_fractions_mfdmd(FltMaskFltRaster* ffrac, int row, int col);
 
 class GridLayering: Interface {
 public:
@@ -147,7 +151,7 @@ protected:
     /*!
     * \brief Ouput 2D array as MongoDB-GridFS
     */
-    bool OutputArrayAsGfs(const string& name, float* matrix);
+    bool OutputArrayAsGfs(const string& name, int length, float* matrix);
     /*!
      * \brief Output grid layering as tiff file and MongoDB-GridFS
      */
@@ -198,6 +202,7 @@ protected:
     float* layer_cells_downup_; ///< store cell indexes in each layers
     string flowdir_name_;       ///< Flow direction file name
     string mask_name_;          ///< Mask raster file name
+    string stream_file_;        ///< Stream shapefile name
 
     /** Output file names **/
     string flowin_index_name_;    ///< Flow in index
@@ -222,10 +227,11 @@ public:
 class GridLayeringDinf: public GridLayering {
 public:
 #ifdef USE_MONGODB
-    GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir);
+    GridLayeringDinf(int id, MongoGridFs* gfs, const char* stream_file, const char* out_dir);
 #endif
     GridLayeringDinf(int id, const char* fd_file, const char* fraction_file,
-                     const char* mask_file, const char* out_dir);
+                     const char* mask_file, const char* stream_file,
+                     const char* out_dir);
 
     ~GridLayeringDinf();
 
@@ -248,10 +254,10 @@ private:
 class GridLayeringMFDmd: public GridLayering {
 public:
 #ifdef USE_MONGODB
-    GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_dir);
+    GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* stream_file, const char* out_dir);
 #endif
     GridLayeringMFDmd(int id, const char* fd_file, const char* fraction_file,
-                      const char* mask_file, const char* out_dir);
+                      const char* mask_file, const char* stream_file, const char* out_dir);
 
     ~GridLayeringMFDmd();
 

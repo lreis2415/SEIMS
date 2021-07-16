@@ -8,8 +8,8 @@ GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_d
     mask_name_ = prefix + "_MASK";
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_D8";
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_D8";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP";
+    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_D8";
+    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_D8";
 }
 #endif
 
@@ -20,8 +20,8 @@ GridLayeringD8::GridLayeringD8(const int id, const char* in_file, const char* ma
     string prefix = ValueToString(subbasin_id_);
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_D8";
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_D8";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP";
+    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_D8";
+    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_D8";
 }
 
 GridLayeringD8::~GridLayeringD8() {

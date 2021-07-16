@@ -11,6 +11,7 @@
 *               29-Dec-2017  Refactor to make code more clearly
 *                5-Mar-2018  Use CCGL, and reformat code style
 *               31-Mar-2021  Rewrite most core parts and now support MFD-md algorithm
+*               18-May-2021  Force each stream grid flow into one downstream grid
 *---------------------------------------------------------------------*/
 
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
@@ -26,14 +27,18 @@ void Usage(const string& error_msg = "") {
     if (!error_msg.empty()) {
         cout << "FAILURE: " << error_msg << endl << endl;
     }
-    cout << " Usage: grid_layering -alg <flow_direction_algorithm> -outdir <output_dir> [-mask <mask_raster>] "
+    cout << " Usage: grid_layering -alg <flow_direction_algorithm> -outdir <output_dir> "
+            "[-mask <mask_raster>] [-stream <stream_shp>]"
             "[-file <input_dir> <corenames> <nsubbasin>] "
             "[-mongo <ip> <port> <database_name> <gridfs_name> <nsubbasin>] " << endl << endl;
     cout << "Available flow direction algorithms include d8, dinf, and mfdmd." << endl;
-    cout << "Example.1. grid_layering -alg d8 -outdir d:/tmp -file d:/test/fd_rasters flow_dir.tif 0" << endl;
-    cout << "Example.2. grid_layering -alg dinf -outdir d:/tmp -mask d:/tmp/mask.tif -file "
+    cout << "Ex.1. grid_layering -alg d8 -outdir d:/tmp -file d:/test/fd_rasters flow_dir.tif 0" << endl;
+    cout << "Ex.2. grid_layering -alg dinf -outdir d:/tmp -mask d:/tmp/mask.tif -file "
             "d:/test/fd_rasters flow_dir_dinf.tif,flow_dir_angle_dinf.tif" << endl;
-    cout << "Example.3. grid_layering -alg dinf -outdir d:/tmp -mongo 127.0.0.1 27017 model_dianbu2_30m_demo SPATIAL 15"
+    cout << "Ex.3. grid_layering -alg dinf -outdir d:/tmp -mongo 127.0.0.1 27017 "
+            "model_dianbu2_30m_demo SPATIAL 15" << endl;
+    cout << "Ex.4. grid_layering -alg mfdmd -outdir d:/tmp -mask d:/test/mask.tif "
+            "-stream d:/test/stream.shp -file d:/test/fd_rasters mfdmd.tif,mfdfraction.tif 0"
             << endl << endl;
     exit(1);
 }
@@ -55,6 +60,7 @@ int main(int argc, char** argv) {
     const char* out_dir = nullptr;
     bool from_file = false;
     string mask_file;
+    string stream_file;
     string input_dir;
     string core_names;
 
@@ -98,6 +104,14 @@ int main(int argc, char** argv) {
             } else {
                 Usage("No argument followed '-mask'!");
             }
+        } else if (StringMatch(argv[i], "-stream")) {
+            i++;
+            if (argc > i) {
+                stream_file = argv[i];
+                i++;
+            } else {
+                Usage("No argument followed '-stream'!");
+            }
         } else if (StringMatch(argv[i], "-file")) {
             if (argc < i + 3) {
                 Usage("Three arguments are required followed '-file'!");
@@ -105,7 +119,7 @@ int main(int argc, char** argv) {
             from_file = true;
             input_dir = argv[i + 1];
             core_names = argv[i + 2];
-            n_subbasins = ToInt(argv[i + 3]);
+            n_subbasins = CVT_INT(ToInt(argv[i + 3]));
             i += 4;
         } else if (StringMatch(argv[i], "-mongo")) {
             if (argc < i + 5) {
@@ -120,7 +134,7 @@ int main(int argc, char** argv) {
             port = static_cast<vuint16_t>(ToInt(argv[i + 2]));
             db_name = argv[i + 3];
             gridfs_name = argv[i + 4];
-            n_subbasins = ToInt(argv[i + 5]);
+            n_subbasins = CVT_INT(ToInt(argv[i + 5]));
             i += 6;
         } else {
             cout << argv[i] << endl;
@@ -141,7 +155,8 @@ int main(int argc, char** argv) {
         if (fdtype == FD_D8) {
             string in_file = input_dir + SEP + core_names;
             if (mask_file.empty()) mask_file = in_file;
-            GridLayeringD8* grid_lyr_d8 = new GridLayeringD8(n_subbasins, in_file.c_str(), mask_file.c_str(), out_dir);
+            GridLayeringD8* grid_lyr_d8 = new GridLayeringD8(n_subbasins, in_file.c_str(),
+                                                             mask_file.c_str(), out_dir);
             grid_lyr_d8->Execute();
             delete grid_lyr_d8;
         } else if (fdtype == FD_Dinf) {
@@ -151,7 +166,8 @@ int main(int argc, char** argv) {
             string ffrac_file = input_dir + SEP + in_files[1];
             if (mask_file.empty()) mask_file = cfdir_file;
             GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(n_subbasins, cfdir_file.c_str(),
-                                                                   ffrac_file.c_str(), mask_file.c_str(), out_dir);
+                                                                   ffrac_file.c_str(), mask_file.c_str(),
+                                                                   stream_file.c_str(), out_dir);
             grid_lyr_dinf->Execute();
             delete grid_lyr_dinf;
         } else if (fdtype == FD_MFDmd) {
@@ -161,7 +177,8 @@ int main(int argc, char** argv) {
             string ffrac_file = input_dir + SEP + in_files[1];
             if (mask_file.empty()) mask_file = cfdir_file;
             GridLayeringMFDmd* grid_lyr_mfdmd = new GridLayeringMFDmd(n_subbasins, cfdir_file.c_str(),
-                                                                      ffrac_file.c_str(), mask_file.c_str(), out_dir);
+                                                                      ffrac_file.c_str(), mask_file.c_str(),
+                                                                      stream_file.c_str(), out_dir);
             grid_lyr_mfdmd->Execute();
             delete grid_lyr_mfdmd;
         } else Usage("Unsupported flow direction algorithm!");
@@ -179,11 +196,11 @@ int main(int argc, char** argv) {
                 grid_lyr_d8->Execute();
                 delete grid_lyr_d8;
             } else if (fdtype == FD_Dinf) {
-                GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(idx, gfs, out_dir);
+                GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(idx, gfs, stream_file.c_str(), out_dir);
                 grid_lyr_dinf->Execute();
                 delete grid_lyr_dinf;
             } else if (fdtype == FD_MFDmd) {
-                GridLayeringMFDmd* grid_lyr_mfdmd = new GridLayeringMFDmd(idx, gfs, out_dir);
+                GridLayeringMFDmd* grid_lyr_mfdmd = new GridLayeringMFDmd(idx, gfs, stream_file.c_str(), out_dir);
                 grid_lyr_mfdmd->Execute();
                 delete grid_lyr_mfdmd;
             } else Usage("Unsupported flow direction algorithm!");

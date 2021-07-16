@@ -1,7 +1,7 @@
 #include "GridLayering.h"
 
 #ifdef USE_MONGODB
-GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir) :
+GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* stream_file, const char* out_dir) :
     GridLayering(id, gfs, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -9,6 +9,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     flowdir_name_ = prefix + "_FLOW_DIR_MFDMD";
     flowfrac_corename_ = prefix + "_FLOW_FRACTION_MFDMD";
     mask_name_ = prefix + "_MASK";
+    stream_file_ = stream_file;
     // outputs
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_MFDMD";
@@ -20,7 +21,8 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
 #endif
 
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const char* fraction_file,
-                                     const char* mask_file, const char* out_dir) :
+                                     const char* mask_file, const char* stream_file, 
+                                     const char* out_dir) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -33,6 +35,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const ch
         flowfrac_names_.emplace_back(abspath + cname + "_" + ValueToString(i) + "." + suffix);
     }
     mask_name_ = mask_file;
+    stream_file_ = stream_file;
     // outputs
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_MFDMD";
@@ -90,6 +93,49 @@ bool GridLayeringMFDmd::LoadData() {
                 "MFD-md flow direction and flow fraction raster data!" << endl;
         return false;
     }
+
+    // Force stream grid to flow into single downstream cell
+    if (stream_file_.empty())
+        return true;
+
+    vector<vector<ROW_COL> > stream_rc;
+    bool flag = read_stream_vertexes_as_rowcol(stream_file_, mask_, stream_rc);
+    if (!flag) return false;
+
+    for (vector<vector<ROW_COL> >::iterator it = stream_rc.begin(); it != stream_rc.end(); ++it) {
+        if (it->size() < 2) continue; // A line should have at least two points!
+        for (vector<ROW_COL>::reverse_iterator it2 = it->rbegin(); it2 != it->rend() - 1; ++it2) {
+            // FOR TEST ONLY
+            // cout << "(" << it2->first << ", " << it2->second << "), ";
+            // XY_COOR xy = mask_->GetCoordinateByRowCol(it2->first, it2->second);
+            // printf("(%.1f, %.1f), ", xy.first, xy.second);
+            // cout << "(" << it2->first << ", " << it2->second << ") -> (" << (it2+1)->first << ", " << (it2+1)->second << "), ";
+            int delta_row = (it2 + 1)->first - it2->first;
+            int delta_col = (it2 + 1)->second - it2->second;
+            int fd_index = find_flow_direction_index_ccw(delta_row, delta_col);
+            //cout << flowdir_->GetValue(it2->first, it2->second) << ": ";
+            //print_flow_fractions_mfdmd(flow_fraction_, it2->first, it2->second);
+            if (fd_index < 0) {
+                flowdir_->SetValue(it2->first, it2->second, -1.f);
+                for (int i = 1; i <= 8; i++) {
+                    flow_fraction_->SetValue(it2->first, it2->second,
+                                             flow_fraction_->GetNoDataValue(), i);
+                }
+            }
+            else {
+                flowdir_->SetValue(it2->first, it2->second, CVT_FLT(fdccw[fd_index]));
+                for (int i = 1; i <= 8; i++) {
+                    flow_fraction_->SetValue(it2->first, it2->second, -1.f, i);
+                }
+                flow_fraction_->SetValue(it2->first, it2->second, 1.f, fd_index);
+            }
+            //cout << " --> " << flowdir_->GetValue(it2->first, it2->second) << ": ";
+            //print_flow_fractions_mfdmd(flow_fraction_, it2->first, it2->second);
+            //cout << endl;
+        }
+        // cout << endl;
+    }
+
     return true;
 }
 
@@ -108,7 +154,7 @@ bool GridLayeringMFDmd::OutputFlowIn() {
         flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
         if (flow_in_num_[valid_idx] == 0) continue;
 
-        int reversed_fdir = reverse_dir_[valid_idx];
+        int reversed_fdir = CVT_INT(reverse_dir_[valid_idx]);
         if (reversed_fdir < 0) continue; // This will not happen, just in case!
 
         vector<int> reversed_fdirs = uncompress_flow_directions(reversed_fdir);
@@ -143,8 +189,8 @@ bool GridLayeringMFDmd::OutputFlowIn() {
     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_, flow_in_cells_) &&
-                OutputArrayAsGfs(flowin_frac_name_, flowin_fracs_);
+        done = done && OutputArrayAsGfs(flowin_index_name_, flow_in_count_ + n_valid_cells_ + 1, flow_in_cells_) &&
+                OutputArrayAsGfs(flowin_frac_name_, flow_in_count_ + n_valid_cells_ + 1, flowin_fracs_);
 #endif
     }
     return done;
@@ -200,8 +246,8 @@ bool GridLayeringMFDmd::OutputFlowOut() {
     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = OutputArrayAsGfs(flowout_index_name_, flow_out_cells_) &&
-                OutputArrayAsGfs(flowout_frac_name_, flowout_fracs_);
+        done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1, flow_out_cells_) &&
+                OutputArrayAsGfs(flowout_frac_name_, flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_);
 #endif
     }
     return done;
