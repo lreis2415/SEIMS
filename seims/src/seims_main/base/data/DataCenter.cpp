@@ -9,7 +9,7 @@ using namespace utils_time;
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
     lyr_method_(input_args->lyr_mtd), fdir_method_(input_args->fdir_mtd), subbasin_id_(subbasin_id),
-    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id), 
+    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
     mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),
     use_scenario_(false),
@@ -348,7 +348,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         default: break;
     }
     double timeconsume = TimeCounting() - stime;
-    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename << 
+    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename <<
     " done, TIMESPAN " << timeconsume << " sec.";
 }
 
@@ -369,7 +369,7 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
         param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtHillslope());
-    } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
+    } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtChannel());
     } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = CVT_FLT(lyr_method_);
@@ -415,9 +415,12 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
         /// Get ROUTING_LAYERS's real file name according to Layering method and flow direction algorithm
         real_filename.append(LayeringMethodString[lyr_method_]);
         real_filename.append(FlowDirMethodString[fdir_method_]);
-    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0]) || 
-        StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
-        /// Get FLOWIN/FLOWOUT_INDEX/FRACTION's real file name according to flow direction algorithm
+    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0])) {
+        /// Get FLOWIN/FLOWOUT_INDEX's real file name according to flow direction algorithm
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    } else if (StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
+        /// Get FLOWIN/FLOWOUT_FRACTION's real file name according to flow direction algorithm except D8
+        if (fdir_method_ == D8) { return; }
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {

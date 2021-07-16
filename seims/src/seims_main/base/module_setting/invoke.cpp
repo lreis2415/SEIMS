@@ -56,7 +56,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
     LayeringMethod layering_method = UP_DOWN;
     FlowDirMethod flowdir_method = D8;
     string mongodb_ip = "127.0.0.1";
-    int port = 27017;
+    vuint16_t port = 27017;
     int scenario_id = -1;    /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int calibration_id = -1; /// By default, no calibration ID is needed.
     /// MPI version specific arguments
@@ -82,7 +82,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         if (argc >= 4) layering_method = static_cast<LayeringMethod>(strtol(argv[3], &strend, 10));
         if (argc >= 5) flowdir_method = static_cast<FlowDirMethod>(strtol(argv[4], &strend, 10));
         if (argc >= 6) mongodb_ip = argv[5];
-        if (argc >= 7) port = strtol(argv[6], &strend, 10);
+        if (argc >= 7) port = static_cast<vuint16_t>(strtol(argv[6], &strend, 10));
         if (argc >= 8) scenario_id = strtol(argv[7], &strend, 10);
         if (argc >= 9) calibration_id = strtol(argv[8], &strend, 10);
         if (argc >= 10) subbasin_id = strtol(argv[9], &strend, 10);
@@ -143,7 +143,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         } else if (StringMatch(argv[i], "-port")) {
             i++;
             if (argc > i) {
-                port = strtol(argv[i], &strend, 10);
+                port = static_cast<vuint16_t>(strtol(argv[i], &strend, 10));
                 i++;
             } else {
                 Usage(argv[0]);
@@ -227,10 +227,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         Usage(argv[0], "MongoDB Hostname " + mongodb_ip + " is not a valid IP address!");
         return nullptr;
     }
-    if (port < 0) {
-        Usage(argv[0], "Port number must greater than 0.");
-        return nullptr;
-    }
+
     return new InputArgs(model_path, num_thread, layering_method, flowdir_method, mongodb_ip, port,
                          scenario_id, calibration_id,
                          subbasin_id, group_method, schedule_method, time_slices, log_level);

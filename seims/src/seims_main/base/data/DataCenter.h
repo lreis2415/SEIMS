@@ -7,9 +7,9 @@
  * Changelog:
  *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from ModuleFactory class.
  *   - 2. 2018-09-19 - lj - Separate load data from SetData. Compatible with optional parameters.
+ *   - 3. 2021-04-06 - lj - Add fdir_method_ to handle different flow direction algorithms.
  *
  * \author Liangjun Zhu
- * \date May 2017
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
@@ -285,9 +285,9 @@ protected:
     FloatRaster* mask_raster_;             ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D
     map<string, ParamInfo *> init_params_; ///< Store parameters from Database (PARAMETERS collection)
-    map<string, float *> array1d_map_;     ///< 1D array data map, e.g. FLOWOUT_INDEX
+    map<string, float *> array1d_map_;     ///< 1D array data map
     map<string, int> array1d_len_map_;     ///< 1D array data length map
-    map<string, float **> array2d_map_;    ///< 2D array data map, e.g. ROUTING_LAYERS
+    map<string, float **> array2d_map_;    ///< 2D array data map, e.g. FLOWIN_INDEX, FLOWOUT_INDEX, ROUTING_LAYERS
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map
     map<string, int> array2d_cols_map_;    ///< Col number of 2D array data map
                                            ///<   CAUTION that nCols may not same for all rows
