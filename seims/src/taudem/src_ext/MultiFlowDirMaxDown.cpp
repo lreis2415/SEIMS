@@ -31,15 +31,18 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         int nx = src->getnx();
         int ny = src->getny();
         int xstart, ystart;
-        src->localToGlobal(0, 0, xstart, ystart); // calculate current partition's first cell's position
-        srcf.read(xstart, ystart, ny, nx, src->getGridPointer()); // get the current partition's pointer
+        // calculate current partition's first cell's position
+        src->localToGlobal(0, 0, xstart, ystart);
+        // get the current partition's pointer
+        srcf.read(xstart, ystart, ny, nx, src->getGridPointer()); 
 
         double readt = MPI_Wtime(); // record reading time
 
-        // create empty partition to store new result
-        tdpartition* dest;
-        dest = CreateNewPartition(SHORT_TYPE, totalX, totalY, dx, dy, static_cast<short>(DEFAULTNODATA_INT));
-
+        // create empty partitions to store two types of results
+        tdpartition* dest; // 1. compound flow direction according to ArcGIS directions
+        dest = CreateNewPartition(SHORT_TYPE, totalX, totalY, dx, dy, 
+                                  static_cast<short>(DEFAULTNODATA_INT));
+        // 2. flow fractions in 8-directions from east anticlockwise
         linearpart<float> *flowfractions = new linearpart<float>[8];
         for (lyr = 1; lyr <= 8; lyr++) {
             flowfractions[lyr - 1].init(totalX, totalY, dx, dy, MPI_FLOAT, DEFAULTNODATA);
@@ -55,8 +58,6 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         double b = p0 - p_range * tanb_lb / (tanb_ub - tanb_lb);
         float dem_values[9];
         double downslp[9];
-        //int idx = 0;
-        //double* portion = new double[ny * nx * 8];
 
         for (j = 0; j < ny; j++) { // rows
             for (i = 0; i < nx; i++) { // cols
@@ -65,7 +66,6 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
                     for (lyr = 1; lyr <= 8; lyr++) {
                         flowfractions[lyr - 1].setToNodata(i, j);
                     }
-                    // portion[idx++] = static_cast<double>(DEFAULTNODATA); // Only output valid data
                     continue;
                 }
 
@@ -143,7 +143,6 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
                 }
                 // save the final compound flow direction
                 dest->setData(i, j, compounddir);
-
             }
         }
         // END COMPUTING CODE BLOCK
@@ -160,7 +159,8 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
             std::string intstr = oss.str();
             nameadd(ffracfile, fportion, intstr.c_str());
             tiffIO ffractTIFF(ffracfile, FLOAT_TYPE, static_cast<double>(DEFAULTNODATA), srcf);
-            ffractTIFF.write(xstart, ystart, ny, nx, flowfractions[lyr - 1].getGridPointer());
+            ffractTIFF.write(xstart, ystart, ny, nx, 
+                             flowfractions[lyr - 1].getGridPointer());
         }
         double writet = MPI_Wtime(); // record writing time
 
