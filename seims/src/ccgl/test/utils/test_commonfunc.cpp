@@ -14,7 +14,7 @@ TEST(Testutils, isIPAddress) {
 
 TEST(TestModelException, throwException) {
     EXPECT_THROW(throw ModelException("ModuleName", "FunctionName", "ExceptionDescription"),
-        ModelException);
+                 ModelException);
     string modelname = "ModuleName";
     string funcname = "FunctionName";
     string spec = "Specific information";
