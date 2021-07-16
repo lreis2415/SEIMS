@@ -6,44 +6,55 @@
 
 #include "text.h"
 #include "ParamInfo.h"
+// TODO, EasyLogging++ cannot be used currently in data lib, which is invoked in modules and main progs.
 //#include "Logging.h"
 
 using namespace utils_array;
 using namespace utils_string;
 using namespace utils_math;
 
-const int REACH_PARAM_NUM = 48; /// Numerical parameters, except GROUP related
+/// IMPORTANT: Note that these parameters need to be updated synchronously with the preprocessing code,
+///           i.e., ImportReaches2Mongo in preprocessing/db_import_stream_parameters.py
 const char* REACH_PARAM_NAME[] = {
-    REACH_SUBBASIN, REACH_NUMCELLS,                           // 0-1
-    REACH_DOWNSTREAM, REACH_UPDOWN_ORDER, REACH_DOWNUP_ORDER, // 2-4
-    REACH_WIDTH, REACH_LENGTH, REACH_DEPTH, REACH_AREA,       // 5-8
-    REACH_SIDESLP, REACH_SLOPE,                               // 9-10
-    REACH_MANNING, REACH_BEDK, REACH_BNKK,                    // 11-13
-    REACH_BEDBD, REACH_BNKBD, REACH_BEDCOV, REACH_BNKCOV,     // 14-17
-    REACH_BEDEROD, REACH_BNKEROD, REACH_BEDD50, REACH_BNKD50, // 18-21
-    REACH_BC1, REACH_BC2, REACH_BC3, REACH_BC4,               // 22-25
-    REACH_RS1, REACH_RS2, REACH_RS3, REACH_RS4, REACH_RS5,    // 26-30
-    REACH_RK1, REACH_RK2, REACH_RK3, REACH_RK4,               // 31-34
-    REACH_DISOX, REACH_BOD, REACH_ALGAE,                      // 35-37
-    REACH_ORGN, REACH_NH4, REACH_NO2, REACH_NO3,              // 38-41
-    REACH_ORGP, REACH_SOLP, REACH_GWNO3, REACH_GWSOLP,        // 42-45
-    REACH_BEDTC, REACH_BNKTC                                  // 46-47
+    REACH_SUBBASIN, REACH_NUMCELLS,
+    REACH_DOWNSTREAM, REACH_UPDOWN_ORDER, REACH_DOWNUP_ORDER,
+    REACH_WIDTH, REACH_LENGTH, REACH_DEPTH, REACH_WDRATIO,
+    REACH_AREA, REACH_SIDESLP, REACH_SLOPE,
+    REACH_MANNING, REACH_BEDK, REACH_BNKK,
+    REACH_BEDBD, REACH_BNKBD, REACH_BEDCOV, REACH_BNKCOV,
+    REACH_BEDEROD, REACH_BNKEROD, REACH_BEDD50, REACH_BNKD50,
+    REACH_BC1, REACH_BC2, REACH_BC3, REACH_BC4,
+    REACH_RK1, REACH_RK2, REACH_RK3, REACH_RK4,
+    REACH_RS1, REACH_RS2, REACH_RS3, REACH_RS4, REACH_RS5,
+    REACH_DISOX, REACH_BOD, REACH_ALGAE,
+    REACH_ORGN, REACH_NH4, REACH_NO2, REACH_NO3,
+    REACH_ORGP, REACH_SOLP,
+    REACH_GWNO3, REACH_GWSOLP,
+    REACH_BEDTC, REACH_BNKTC,
+    REACH_BNKSAND, REACH_BNKSILT, REACH_BNKCLAY, REACH_BNKGRAVEL,
+    REACH_BEDSAND, REACH_BEDSILT, REACH_BEDCLAY, REACH_BEDGRAVEL,
+    "" // DO NOT REMOVE THIS EMPTY STRING!!! So, the exact number (REACH_PARAM_NUM) is not required! By lj.
+    // Refers to https://stackoverflow.com/a/22238833/4837280 and https://stackoverflow.com/a/12856903/4837280
 };
-const int REACH_GROUP_METHOD_NUM = 2; /// Group methods
-const char* REACH_GROUP_NAME[] = {REACH_KMETIS, REACH_PMETIS};
+//const int REACH_PARAM_NUM = 48; /// Numerical parameters, except GROUP related // remove in next revision!
+//const int REACH_GROUP_METHOD_NUM = 2; /// Group methods // remove in next revision! By lj.
+const char* REACH_GROUP_NAME[] = {REACH_KMETIS, REACH_PMETIS, ""};
 
-clsReach::clsReach(const bson_t*& bson_table) {
+clsReach::clsReach(const bson_t*& bson_table):
+    cells_num_(-9999), positions_(nullptr) {
     bson_iter_t iterator;
     // Read numerical parameters and set default values if not exists.
     // Note: The check of maximum and minimum values will be done in `clsReaches::Update`.
-    for (int i = 0; i < REACH_PARAM_NUM; i++) {
+    int i = 0;
+    while(*REACH_PARAM_NAME[i] != '\0') {
         float tmp_param;
         if (bson_iter_init_find(&iterator, bson_table, REACH_PARAM_NAME[i]) &&
             GetNumericFromBsonIterator(&iterator, tmp_param)) {
             // Existed in database and is numerical value
+            // specific parameters that should be handled
             if (StringMatch(REACH_PARAM_NAME[i], REACH_BOD) && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
         } else {
-            // Not existed in database, the set default values
+            // Not existed in database, then set default values
             if (StringMatch(REACH_PARAM_NAME[i], REACH_BEDTC)) tmp_param = 0.f;
             if (StringMatch(REACH_PARAM_NAME[i], REACH_BNKTC)) tmp_param = 0.f;
         }
@@ -52,6 +63,18 @@ clsReach::clsReach(const bson_t*& bson_table) {
 #else
         param_map_.insert(make_pair(REACH_PARAM_NAME[i], tmp_param));
 #endif
+        i++;
+    }
+    // read coordinates of reaches
+    if (bson_iter_init_find(&iterator, bson_table, REACH_COORX) && 
+        SplitStringForValues(GetStringFromBsonIterator(&iterator), ',', coor_x_) &&
+        bson_iter_init_find(&iterator, bson_table, REACH_COORY) &&
+        SplitStringForValues(GetStringFromBsonIterator(&iterator), ',', coor_y_) &&
+        coor_x_.size() == coor_y_.size()) {
+        cells_num_ = CVT_INT(coor_x_.size());
+    } else {
+        cout << "No Coordinate fields found, or split for coordinate values failed, or "
+                "length mismathched between x and y coordinates!" << endl;
     }
     // read group informations, DO NOT THROW EXCEPTION!
     if (!bson_iter_init_find(&iterator, bson_table, REACH_GROUP)) {
@@ -62,7 +85,8 @@ clsReach::clsReach(const bson_t*& bson_table) {
         cout << "Split for group numbers failed!" << endl;
         return;
     }
-    for (int i = 0; i < REACH_GROUP_METHOD_NUM; i++) {
+    i = 0;
+    while (*REACH_GROUP_NAME[i] != '\0') {
         if (!bson_iter_init_find(&iterator, bson_table, REACH_GROUP_NAME[i])) continue;
         vector<int> g_idx;
         if (!SplitStringForValues(GetStringFromBsonIterator(&iterator), ',', g_idx)) {
@@ -87,6 +111,7 @@ clsReach::clsReach(const bson_t*& bson_table) {
 #else
         group_index_.insert(make_pair(REACH_GROUP_NAME[i], group_index));
 #endif
+        i++;
     }
 }
 
@@ -116,6 +141,14 @@ void clsReach::Set(const string& key, const float value) {
 #else
         param_map_.insert(make_pair(key, NODATA_VALUE));
 #endif
+    }
+}
+
+void clsReach::SetPositions(FloatRaster* mask_raster) {
+    if (coor_x_.empty() || coor_y_.empty() || cells_num_ <= 0 || nullptr != positions_) return;
+    Initialize1DArray(cells_num_, positions_, -9999);
+    for (int i = 0; i < cells_num_; i++) {
+        positions_[i] = mask_raster->GetPosition(coor_x_[i], coor_y_[i]);
     }
 }
 
@@ -201,7 +234,7 @@ void clsReach::DerivedParameters() {
     }
     if (kd <= UTIL_ZERO) {
         if (tc <= UTIL_ZERO) {
-            kd = 0.2;
+            kd = 0.2f;
         } else {
             kd = 0.2f / sqrt(tc);
         }
@@ -287,7 +320,7 @@ void clsReach::DerivedParameters() {
     }
     if (kd <= UTIL_ZERO) {
         if (tc <= UTIL_ZERO) {
-            kd = 0.2;
+            kd = 0.2f;
         } else {
             kd = 0.2f / sqrt(tc);
         }
@@ -318,7 +351,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     bson_destroy(child2);
 
     std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(db_name, collection_name)));
-    reach_num_ = collection->QueryRecordsCount();
+    reach_num_ = CVT_INT(collection->QueryRecordsCount());
     if (reach_num_ < 0) {
         bson_destroy(b);
         // TODO, No exception should be thrown during constructing a class, considering Init function. lj.
@@ -392,6 +425,13 @@ clsReaches::~clsReaches() {
     }
 }
 
+clsReach* clsReaches::GetReachByID(const int id) {
+    if (reaches_obj_.find(id) != reaches_obj_.end()) {
+        return reaches_obj_.at(id);
+    }
+    return nullptr;
+}
+
 void clsReaches::GetReachesSingleProperty(const string& key, float** data) {
     auto iter = reaches_properties_.find(key);
     if (iter == reaches_properties_.end()) {
@@ -407,27 +447,22 @@ void clsReaches::GetReachesSingleProperty(const string& key, float** data) {
     }
 }
 
-void clsReaches::Update(map<string, ParamInfo *>& caliparams_map) {
-    for (int i = 0; i < REACH_PARAM_NUM; i++) {
+void clsReaches::Update(map<string, ParamInfo *>& caliparams_map, FloatRaster* mask_raster) {
+    int i = 0;
+    while (*REACH_PARAM_NAME[i] != '\0') {
         auto it = caliparams_map.find(REACH_PARAM_NAME[i]);
         if (it != caliparams_map.end()) {
-            // There is no need to check the CHANGE types, since the `GetAdjustedValue` will cover this!
-            //ParamInfo* tmp_param = it->second;
-            //if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f)) ||
-            //    (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f)) ||
-            //    (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
-            //    StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
-            //    continue;
-            //}
             for (auto it2 = reaches_obj_.begin(); it2 != reaches_obj_.end(); ++it2) {
                 float pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
                 if (FloatEqual(pre_value, NODATA_VALUE)) continue;
                 it2->second->Set(REACH_PARAM_NAME[i], it->second->GetAdjustedValue(pre_value));
             }
         }
+        i++;
     }
     // Calculate derived parameters, and some specifications
     for (auto itrch = reaches_obj_.begin(); itrch != reaches_obj_.end(); ++itrch) {
+        // Update derived parameters
         itrch->second->DerivedParameters();
         // Update width-depth-ratio according to reach width and reach depth.
         if (itrch->second->Get(REACH_DEPTH) <= UTIL_ZERO) {
@@ -439,5 +474,7 @@ void clsReaches::Update(map<string, ParamInfo *>& caliparams_map) {
             itrch->second->Set(REACH_WIDTH, 5.f);
         }
         itrch->second->Set(REACH_WDRATIO, itrch->second->Get(REACH_WIDTH) / itrch->second->Get(REACH_DEPTH));
+        // Update positions of each reach
+        itrch->second->SetPositions(mask_raster);
     }
 }
