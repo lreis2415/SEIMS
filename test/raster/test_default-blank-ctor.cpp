@@ -1,18 +1,21 @@
 /*!
  * \brief Test clsRasterData of blank constructor to make sure no exception thrown.
  *
- * \version 1.1
+ * \version 1.2
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
+ *          2021-07-20 - lj - Update after changes of GetValue and GetValueByIndex.
  *
  */
 #include "gtest/gtest.h"
 
 #include "../../src/data_raster.h"
 #include "../../src/utils_filesystem.h"
+#include "../../src/utils_array.h"
 
 using namespace ccgl::data_raster;
+using namespace ccgl::utils_array;
 
 namespace {
 TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
@@ -91,13 +94,12 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(-1, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(541, 2));
 
-    int tmp_lyr;
-    float* tmp_values;
-    rs->GetValueByIndex(-1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    int tmp_lyr = rs->GetLayers();
+    float* tmp_values = nullptr;
+    Initialize1DArray(tmp_lyr, tmp_values, -9999.f);
+    rs->GetValueByIndex(-1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValueByIndex(0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValueByIndex(0, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
 
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValue(-1, 0));
@@ -109,18 +111,16 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValue(2, 4));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValue(2, 4, 1));
 
-    rs->GetValue(-1, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(-1, 0, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValue(0, -1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(0, -1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValue(0, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(0, 0, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValue(0, 1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(0, 1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
+
+    Release1DArray(tmp_values);
 
     // Get position
     EXPECT_EQ(-2, rs->GetPosition(4.05f, 37.95f));

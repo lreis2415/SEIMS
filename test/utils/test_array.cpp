@@ -28,8 +28,21 @@ TEST(TestutilsArray, Handle2DArray) {
     for (int i = 0; i < r; i++) {
         for (int j = 0; j < c; j++) {
             EXPECT_FLOAT_EQ(inif, float_2d[i][j]);
+            float_2d[i][j] += CVT_FLT(i * c + j);
         }
     }
+    
+    float** float_2d_copy = nullptr;
+    Initialize2DArray(r, c, float_2d_copy, float_2d);
+    EXPECT_NE(nullptr, float_2d);
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            EXPECT_FLOAT_EQ(float_2d[i][j], float_2d_copy[i][j]);
+        }
+    }
+
     Release2DArray(r, float_2d);
     EXPECT_EQ(nullptr, float_2d);
+    Release2DArray(r, float_2d_copy);
+    EXPECT_EQ(nullptr, float_2d_copy);
 }
