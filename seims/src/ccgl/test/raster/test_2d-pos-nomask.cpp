@@ -9,17 +9,19 @@
  *
  *        Since the core code is irrelevant with the format of raster data, we take tiff
  *        as example here.
- * \version 1.1
+ * \version 1.2
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
  *          2019-11-06 - lj - Allow user specified MongoDB host and port.
+ *          2021-07-20 - lj - Update after changes of GetValue and GetValueByIndex.
  *
  */
 #include "gtest/gtest.h"
 
 #include "../../src/data_raster.h"
 #include "../../src/utils_filesystem.h"
+#include "../../src/utils_array.h"
 #ifdef USE_MONGODB
 #include "../../src/db_mongoc.h"
 #endif
@@ -27,6 +29,7 @@
 
 using namespace ccgl::data_raster;
 using namespace ccgl::utils_filesystem;
+using namespace ccgl::utils_array;
 #ifdef USE_MONGODB
 using namespace ccgl::db_mongoc;
 #endif
@@ -169,13 +172,12 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(27.14f, rs->GetValueByIndex(4, 2));  // layer 2
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(4, 3)); // layer 3
 
-    int tmp_lyr;
-    float* tmp_values;
-    rs->GetValueByIndex(-1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    int tmp_lyr = rs->GetLayers();
+    float* tmp_values = nullptr;
+    Initialize1DArray(tmp_lyr, tmp_values, -9999.f);
+    rs->GetValueByIndex(-1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValueByIndex(4, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(3, tmp_lyr);
+    rs->GetValueByIndex(4, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(7.14f, tmp_values[0]);
     EXPECT_FLOAT_EQ(27.14f, tmp_values[1]);
@@ -194,24 +196,22 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(8.06f, rs->GetValue(2, 4, 2));
     EXPECT_FLOAT_EQ(8.06f, rs->GetValue(2, 4, 3));
 
-    rs->GetValue(-1, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(-1, 0, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValue(0, -1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs->GetValue(0, -1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs->GetValue(0, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(3, tmp_lyr);
+    rs->GetValue(0, 0, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[1]);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[2]);
-    rs->GetValue(0, 1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(3, tmp_lyr);
+    rs->GetValue(0, 1, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(9.9f, tmp_values[0]);
     EXPECT_FLOAT_EQ(9.9f, tmp_values[1]);
     EXPECT_FLOAT_EQ(1.9f, tmp_values[2]);
+
+    Release1DArray(tmp_values);
 
     // Get position
     EXPECT_EQ(29, rs->GetPosition(4.05f, 37.95f));
