@@ -356,6 +356,7 @@ class MainSEIMS(object):
             self.cmd += ['-cali', str(self.calibration_id)]
         if self.subbasin_id >= 0:
             self.cmd += ['-id', str(self.subbasin_id)]
+        # self.cmd += ['-ll Debug']
         return self.cmd
 
     @property
