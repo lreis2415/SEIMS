@@ -1,6 +1,20 @@
 #include "template.h"
 #include "text.h"
 
+// #include "Logging.h"
+
+// DLL export not working with easyloggingpp?
+// https://github.com/amrayn/easyloggingpp/issues/386
+// INITIALIZE_NULL_EASYLOGGINGPP
+//
+// After a long time digging, I decided to not using
+//   Easyloggingpp in the modulues (dynamic/shared libs)
+//   and some classes (e.g., clsReach and clsSubbasin)
+//   that defined in base libs (e.g., the data lib) and
+//   invoked in several modules.
+//   
+//   Hope to get this issue solved in the future. -LJ.
+
 ModuleTemplate::ModuleTemplate() :
     m_nCells(-1) {
 }

@@ -6,6 +6,7 @@
  *   - 1. 2010-07-31 - jz - Initial implementation.
  *   - 2. 2016-06-14 - lj - Add SetScenario etc. functions.
  *   - 3. 2018-03-03 - lj - Add CHECK_XXX series macros for data checking.
+ *   - 4. 2020-09-18 - lj - Using Easyloggingpp
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -153,8 +154,15 @@ public:
      * \brief Initialize output variables.
      *
      *        This function is optional to be overridden.
+     *        Only allocate memory address and initialize outputs.
      */
     virtual void InitialOutputs() {}
+
+    /*!
+     * \brief InitializeIntermediateVariables
+     *
+     */
+    virtual void InitializeIntermediateVariables() {}
 
     /*!
      * \brief Get time step type, default is hillslope process.
@@ -177,6 +185,9 @@ public:
     //! Change the status of setting inputs parameters
     void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
+    //! set whether intermediate parameters need to recalculated
+    void SetReCalIntermediateParams(const bool recal) { m_needReCalIntermediateParams = recal; }
+
 protected:
     /// date time
     time_t m_date;
@@ -194,6 +205,8 @@ protected:
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
+    /// need to recalculate intermediate parameters?
+    bool m_needReCalIntermediateParams;
 };
 
 /*!

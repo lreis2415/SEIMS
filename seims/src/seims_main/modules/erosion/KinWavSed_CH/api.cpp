@@ -15,50 +15,50 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Hui Wu");
-    mdi.SetClass(MCLS_CH_EROSION, MCLSDESC_CH_EROSION);
-    mdi.SetDescription(MDESC_KINWAVSED_CH);
+    mdi.SetClass(MCLS_CH_EROSION[0], MCLS_CH_EROSION[1]);
+    mdi.SetDescription(M_KINWAVSED_CH[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_KINWAVSED_CH);
-    mdi.SetName(MID_KINWAVSED_CH);
+    mdi.SetID(M_KINWAVSED_CH[0]);
+    mdi.SetName(M_KINWAVSED_CH[0]);
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("KinWavSed_CH.chm");
 
-    mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_DT_HS, File_Input, DT_Single);
-    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
-    mdi.AddParameter(VAR_CH_TCCO, UNIT_NON_DIM, DESC_CH_TCCO, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_CH_DETCO, UNIT_NON_DIM, DESC_CH_DETCO, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_LayeringMethod[0], UNIT_NON_DIM, Tag_LayeringMethod[1], File_Input, DT_Single);
+    mdi.AddParameter(VAR_CH_TCCO[0], UNIT_NON_DIM, VAR_CH_TCCO[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CH_DETCO[0], UNIT_NON_DIM, VAR_CH_DETCO[1], Source_ParameterDB, DT_Single);
 
-    mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_USLE_K, UNIT_NON_DIM, DESC_USLE_K, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CHWIDTH[0], UNIT_LEN_M, VAR_CHWIDTH[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_USLE_K[0], UNIT_NON_DIM, VAR_USLE_K[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddParameter(Tag_FLOWOUT_INDEX_D8, UNIT_NON_DIM, DESC_FLOWOUT_INDEX_D8, Source_ParameterDB, DT_Array1D);
-    mdi.AddParameter(Tag_FLOWIN_INDEX_D8, UNIT_NON_DIM, DESC_FLOWIN_INDEX_D8, Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(Tag_FLOWOUT_INDEX_D8[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX_D8[1], Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_FLOWIN_INDEX_D8[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX_D8[1], Source_ParameterDB, DT_Array2D);
     // add reach information
-    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
+    mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
     // input from other module
-    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, Source_Module, DT_Array2D);
-    //mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module,DT_Array2D);
+    mdi.AddInput(VAR_SED_TO_CH[0], UNIT_KG, VAR_SED_TO_CH[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], Source_Module, DT_Array2D);
+    //mdi.AddInput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], Source_Module,DT_Array2D);
     // from which module? By LJ
     mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module", DT_Array2D);
     /// set the output variables
 
     //mdi.AddOutput(VAR_SED_OUTLET, UNIT_KGM3, DESC_SED_OUTLET, DT_Single);
-    mdi.AddOutput(VAR_CH_DEP, UNIT_KG, DESC_CH_DEP, DT_Raster1D);
-    mdi.AddOutput(VAR_CH_DET, UNIT_KG, DESC_CH_DET, DT_Raster1D);
-    mdi.AddOutput(VAR_CH_SEDRATE, UNIT_KG_S, DESC_CH_SEDRATE, DT_Raster1D);
-    mdi.AddOutput(VAR_CH_FLOWCAP, UNIT_KG, DESC_CH_FLOWCAP, DT_Raster1D);
-    mdi.AddOutput(VAR_CH_VOL, UNIT_VOL_M3, DESC_CH_VOL, DT_Raster1D);
-    mdi.AddOutput(VAR_CH_V, UNIT_SPEED_MS, DESC_CH_V, DT_Raster1D);
+    mdi.AddOutput(VAR_CH_DEP[0], UNIT_KG, VAR_CH_DEP[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CH_DET[0], UNIT_KG, VAR_CH_DET[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CH_SEDRATE[0], UNIT_KG_S, VAR_CH_SEDRATE[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CH_FLOWCAP[0], UNIT_KG, VAR_CH_FLOWCAP[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CH_VOL[0], UNIT_VOL_M3, VAR_CH_VOL[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CH_V[0], UNIT_SPEED_MS, VAR_CH_V[1], DT_Raster1D);
 
-    mdi.AddDependency(MCLS_OL_EROSION, MCLSDESC_OL_EROSION);
-    mdi.AddDependency(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
+    mdi.AddDependency(MCLS_OL_EROSION[0], MCLS_OL_EROSION[1]);
+    mdi.AddDependency(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();

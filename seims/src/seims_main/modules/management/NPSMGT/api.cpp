@@ -13,23 +13,23 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res;
 
     mdi.SetAuthor("Liangjun Zhu");
-    mdi.SetClass(MCLS_MGT, MCLSDESC_MGT);
-    mdi.SetDescription(MDESC_NPSMGT);
-    mdi.SetID(MID_NPSMGT);
-    mdi.SetName(MID_NPSMGT);
+    mdi.SetClass(MCLS_MGT[0], MCLS_MGT[1]);
+    mdi.SetDescription(M_NPSMGT[1]);
+    mdi.SetID(M_NPSMGT[0]);
+    mdi.SetName(M_NPSMGT[0]);
     mdi.SetVersion("1.0");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
-    mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
+    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, Tag_TimeStep[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
     /// set input from other modules, all set to be optional
-    mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_NH4, UNIT_CONT_KGHA, DESC_SOL_NH4, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_NO3, UNIT_CONT_KGHA, DESC_SOL_NO3, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_SOLP, UNIT_CONT_KGHA, DESC_SOL_SOLP, Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_NH4[0], UNIT_CONT_KGHA, VAR_SOL_NH4[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_NO3[0], UNIT_CONT_KGHA, VAR_SOL_NO3[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_SOLP[0], UNIT_CONT_KGHA, VAR_SOL_SOLP[1], Source_Module_Optional, DT_Raster2D);
     /// outputs
 
     /// write out the XML file.

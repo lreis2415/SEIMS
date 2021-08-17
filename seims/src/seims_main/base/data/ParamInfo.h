@@ -18,6 +18,8 @@
 
 using namespace ccgl;
 using std::vector;
+using std::map;
+
 
 /*!
 * \ingroup data
@@ -44,6 +46,9 @@ public:
      */
     float GetAdjustedValue(float pre_value = NODATA_VALUE);
 
+    //! 
+    float GetAdjustedValueWithChangeFunction(float pre_value, int opYrIndex);
+
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
 
@@ -63,6 +68,15 @@ public:
     //! Adjust 1D Raster on selected area
     int Adjust2DRaster(int n, int lyrs, float** data, float* units, const vector<int>& selunits,
                        float* lu, const vector<int>& sellu);
+
+
+    //!
+    //!
+    int Adjust1DRasterWithOperatingYearIndexes(const int n, float* data, const float* units,
+        const vector<int>& selunits, const int yearIdx, const float* lu, const vector<int>& sellu);
+    int Adjust2DRasterWithOperatingYearIndexes(const int n, const int lyrs, float** data, float* units,
+        const vector<int>& selunits, const int yearIdx, float* lu, const vector<int>& sellu);
+
 
     //! Name
     string Name;
@@ -102,6 +116,13 @@ public:
     string BasicName;
     //! whether is initialized
     bool initialized;
+
+    //!
+    //! store changefunction and operating year index
+    string changeFunctionType;  //LIN, LOG or EXP
+    float changeFunctionPara1;
+    float changeFunctionPara2;  //should be updated future for param list not only 2 parameters
+
 };
 
 #endif /* SEIMS_PARAMETER_INFO_H */

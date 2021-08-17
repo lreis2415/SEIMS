@@ -2,9 +2,12 @@
 
 #include "text.h"
 #include "ChannelRoutingCommon.h"
+//#include "Logging.h"
 //#ifndef PRINT_DEBUG
 //#define PRINT_DEBUG
 //#endif
+
+//INITIALIZE_NULL_EASYLOGGINGPP
 
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_dt(-1), m_inputSubbsnID(-1),
@@ -83,35 +86,35 @@ SEDR_SBAGNOLD::~SEDR_SBAGNOLD() {
 }
 
 bool SEDR_SBAGNOLD::CheckInputData() {
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_dt);
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
-    CHECK_NONNEGATIVE(MID_SEDR_SBAGNOLD, m_inputSubbsnID);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_dt);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_nreach);
+    CHECK_NONNEGATIVE(M_SEDR_SBAGNOLD[0], m_inputSubbsnID);
 
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_peakRateAdj);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqCoef);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqExp);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_initChSto);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_peakRateAdj);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_sedTransEqCoef);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_sedTransEqExp);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_initChSto);
 
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sedtoCh);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sedtoCh);
     // Do not check the optional input variables from other modules
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sandtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_silttoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_claytoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sagtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_lagtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_graveltoCh);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_qRchOut);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chSto);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_rteWtrOut);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWtrDepth);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWtrWth);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sandtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_silttoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_claytoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sagtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_lagtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_graveltoCh);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_qRchOut);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chSto);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_rteWtrOut);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chWtrDepth);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chWtrWth);
     return true;
 }
 
 void SEDR_SBAGNOLD::InitialOutputs() {
     // Do not perform repeatedly
     if (m_sedRchOut != nullptr) return;
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_nreach);
     // Note: reach/channel related parameters will be initialized and released by `clsReaches` class.
     //initial channel storage
     Initialize1DArray(m_nreach + 1, m_sedRchOut, 0.f);
@@ -213,16 +216,16 @@ void SEDR_SBAGNOLD::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
     // Get value for transferring across subbasins
-    if (StringMatch(sk, VAR_SED_RECH)) *value = m_sedRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SED_RECHConc)) *value = m_sedConcRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SAND_RECH)) *value = m_sandRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SILT_RECH)) *value = m_siltRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_CLAY_RECH)) *value = m_clayRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SAG_RECH)) *value = m_sagRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_LAG_RECH)) *value = m_lagRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) *value = m_gravelRchOut[m_inputSubbsnID];
+    if (StringMatch(sk, VAR_SED_RECH[0])) *value = m_sedRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) *value = m_sedConcRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) *value = m_sandRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) *value = m_siltRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) *value = m_clayRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) *value = m_sagRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) *value = m_lagRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) *value = m_gravelRchOut[m_inputSubbsnID];
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -232,15 +235,15 @@ void SEDR_SBAGNOLD::SetValue(const char* key, const float value) {
 #ifdef STORM_MODE
     else if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
 #else
-    else if (StringMatch(sk, Tag_TimeStep)) m_dt = CVT_INT(value);
+    else if (StringMatch(sk, Tag_TimeStep[0])) m_dt = CVT_INT(value);
 #endif /* STORM_MODE */
-    else if (StringMatch(sk, VAR_P_RF)) m_peakRateAdj = value;
-    else if (StringMatch(sk, VAR_SPCON)) m_sedTransEqCoef = value;
-    else if (StringMatch(sk, VAR_SPEXP)) m_sedTransEqExp = value;
-    else if (StringMatch(sk, VAR_CHS0)) m_initChSto = value;
-    else if (StringMatch(sk, VAR_VCD)) m_vcd = FloatEqual(value, 1.f);
+    else if (StringMatch(sk, VAR_P_RF[0])) m_peakRateAdj = value;
+    else if (StringMatch(sk, VAR_SPCON[0])) m_sedTransEqCoef = value;
+    else if (StringMatch(sk, VAR_SPEXP[0])) m_sedTransEqExp = value;
+    else if (StringMatch(sk, VAR_CHS0[0])) m_initChSto = value;
+    else if (StringMatch(sk, VAR_VCD[0])) m_vcd = FloatEqual(value, 1.f);
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -250,38 +253,38 @@ void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const floa
     if (nullptr == m_sedRchOut) InitialOutputs();
     string sk(key);
     // transferred single value in MPI version IN/OUTPUT variables
-    if (StringMatch(sk, VAR_SED_RECH)) m_sedRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SED_RECHConc)) m_sedConcRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SAND_RECH)) m_sandRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SILT_RECH)) m_siltRchOut[index] = value;
-    else if (StringMatch(sk, VAR_CLAY_RECH)) m_clayRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SAG_RECH)) m_sagRchOut[index] = value;
-    else if (StringMatch(sk, VAR_LAG_RECH)) m_lagRchOut[index] = value;
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) m_gravelRchOut[index] = value;
+    if (StringMatch(sk, VAR_SED_RECH[0])) m_sedRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) m_sedConcRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) m_sandRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) m_siltRchOut[index] = value;
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) m_clayRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) m_sagRchOut[index] = value;
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) m_lagRchOut[index] = value;
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) m_gravelRchOut[index] = value;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetValueByIndex", "Parameter " + sk + " does not exist");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetValueByIndex", "Parameter " + sk + " does not exist");
     }
 }
 
 void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    CheckInputSize(MID_SEDR_SBAGNOLD, key, n - 1, m_nreach);
-    if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh = data; // for longterm model
-    else if (StringMatch(sk, VAR_SAND_TO_CH)) m_sandtoCh = data;
-    else if (StringMatch(sk, VAR_SILT_TO_CH)) m_silttoCh = data;
-    else if (StringMatch(sk, VAR_CLAY_TO_CH)) m_claytoCh = data;
-    else if (StringMatch(sk, VAR_SAG_TO_CH)) m_sagtoCh = data;
-    else if (StringMatch(sk, VAR_LAG_TO_CH)) m_lagtoCh = data;
-    else if (StringMatch(sk, VAR_GRAVEL_TO_CH)) m_graveltoCh = data;
+    CheckInputSize(M_SEDR_SBAGNOLD[0], key, n - 1, m_nreach);
+    if (StringMatch(sk, VAR_SED_TO_CH[0])) m_sedtoCh = data; // for longterm model
+    else if (StringMatch(sk, VAR_SAND_TO_CH[0])) m_sandtoCh = data;
+    else if (StringMatch(sk, VAR_SILT_TO_CH[0])) m_silttoCh = data;
+    else if (StringMatch(sk, VAR_CLAY_TO_CH[0])) m_claytoCh = data;
+    else if (StringMatch(sk, VAR_SAG_TO_CH[0])) m_sagtoCh = data;
+    else if (StringMatch(sk, VAR_LAG_TO_CH[0])) m_lagtoCh = data;
+    else if (StringMatch(sk, VAR_GRAVEL_TO_CH[0])) m_graveltoCh = data;
 
-    else if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
-    else if (StringMatch(sk, VAR_CHST)) m_chSto = data;
-    else if (StringMatch(sk, VAR_RTE_WTROUT)) m_rteWtrOut = data;
-    else if (StringMatch(sk, VAR_CHBTMWIDTH)) m_chBtmWth = data;
-    else if (StringMatch(sk, VAR_CHWTRDEPTH)) m_chWtrDepth = data;
-    else if (StringMatch(sk, VAR_CHWTRWIDTH)) m_chWtrWth = data;
+    else if (StringMatch(sk, VAR_QRECH[0])) m_qRchOut = data;
+    else if (StringMatch(sk, VAR_CHST[0])) m_chSto = data;
+    else if (StringMatch(sk, VAR_RTE_WTROUT[0])) m_rteWtrOut = data;
+    else if (StringMatch(sk, VAR_CHBTMWIDTH[0])) m_chBtmWth = data;
+    else if (StringMatch(sk, VAR_CHWTRDEPTH[0])) m_chWtrDepth = data;
+    else if (StringMatch(sk, VAR_CHWTRWIDTH[0])) m_chWtrWth = data;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "Set1DData", "Parameter " + sk + " does not exist");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "Set1DData", "Parameter " + sk + " does not exist");
     }
 }
 
@@ -289,47 +292,47 @@ void SEDR_SBAGNOLD::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
-    if (StringMatch(sk, VAR_SED_RECH)) *data = m_sedRchOut;
-    else if (StringMatch(sk, VAR_SED_RECHConc)) *data = m_sedConcRchOut;
-    else if (StringMatch(sk, VAR_SAND_RECH)) *data = m_sandRchOut;
-    else if (StringMatch(sk, VAR_SILT_RECH)) *data = m_siltRchOut;
-    else if (StringMatch(sk, VAR_CLAY_RECH)) *data = m_clayRchOut;
-    else if (StringMatch(sk, VAR_SAG_RECH)) *data = m_sagRchOut;
-    else if (StringMatch(sk, VAR_LAG_RECH)) *data = m_lagRchOut;
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) *data = m_gravelRchOut;
+    if (StringMatch(sk, VAR_SED_RECH[0])) *data = m_sedRchOut;
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) *data = m_sedConcRchOut;
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) *data = m_sandRchOut;
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) *data = m_siltRchOut;
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) *data = m_clayRchOut;
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) *data = m_sagRchOut;
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) *data = m_lagRchOut;
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) *data = m_gravelRchOut;
 
-    else if (StringMatch(sk, VAR_RCH_BANKERO)) *data = m_rchBnkEro;
-    else if (StringMatch(sk, VAR_RCH_DEG)) *data = m_rchDeg;
+    else if (StringMatch(sk, VAR_RCH_BANKERO[0])) *data = m_rchBnkEro;
+    else if (StringMatch(sk, VAR_RCH_DEG[0])) *data = m_rchDeg;
 
-    else if (StringMatch(sk, VAR_RCH_DEP)) *data = m_rchDep;
-    else if (StringMatch(sk, VAR_RCH_DEPNEW)) *data = m_dltRchDep;
-    else if (StringMatch(sk, VAR_RCH_DEPSAND)) *data = m_rchDepSand;
-    else if (StringMatch(sk, VAR_RCH_DEPSILT)) *data = m_rchDepSilt;
-    else if (StringMatch(sk, VAR_RCH_DEPCLAY)) *data = m_rchDepClay;
-    else if (StringMatch(sk, VAR_RCH_DEPSAG)) *data = m_rchDepSag;
-    else if (StringMatch(sk, VAR_RCH_DEPLAG)) *data = m_rchDepLag;
-    else if (StringMatch(sk, VAR_RCH_DEPGRAVEL)) *data = m_rchDepGravel;
+    else if (StringMatch(sk, VAR_RCH_DEP[0])) *data = m_rchDep;
+    else if (StringMatch(sk, VAR_RCH_DEPNEW[0])) *data = m_dltRchDep;
+    else if (StringMatch(sk, VAR_RCH_DEPSAND[0])) *data = m_rchDepSand;
+    else if (StringMatch(sk, VAR_RCH_DEPSILT[0])) *data = m_rchDepSilt;
+    else if (StringMatch(sk, VAR_RCH_DEPCLAY[0])) *data = m_rchDepClay;
+    else if (StringMatch(sk, VAR_RCH_DEPSAG[0])) *data = m_rchDepSag;
+    else if (StringMatch(sk, VAR_RCH_DEPLAG[0])) *data = m_rchDepLag;
+    else if (StringMatch(sk, VAR_RCH_DEPGRAVEL[0])) *data = m_rchDepGravel;
 
-    else if (StringMatch(sk, VAR_FLDPLN_DEP)) *data = m_fldplnDep;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPNEW)) *data = m_dltFldplnDep;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPSILT)) *data = m_fldplnDepSilt;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPCLAY)) *data = m_fldplnDepClay;
+    else if (StringMatch(sk, VAR_FLDPLN_DEP[0])) *data = m_fldplnDep;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPNEW[0])) *data = m_dltFldplnDep;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPSILT[0])) *data = m_fldplnDepSilt;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPCLAY[0])) *data = m_fldplnDepClay;
 
-    else if (StringMatch(sk, VAR_SEDSTO_CH)) *data = m_sedSto;
-    else if (StringMatch(sk, VAR_SANDSTO_CH)) *data = m_sandSto;
-    else if (StringMatch(sk, VAR_SILTSTO_CH)) *data = m_siltSto;
-    else if (StringMatch(sk, VAR_CLAYSTO_CH)) *data = m_claySto;
-    else if (StringMatch(sk, VAR_SAGSTO_CH)) *data = m_sagSto;
-    else if (StringMatch(sk, VAR_LAGSTO_CH)) *data = m_lagSto;
-    else if (StringMatch(sk, VAR_GRAVELSTO_CH)) *data = m_gravelSto;
+    else if (StringMatch(sk, VAR_SEDSTO_CH[0])) *data = m_sedSto;
+    else if (StringMatch(sk, VAR_SANDSTO_CH[0])) *data = m_sandSto;
+    else if (StringMatch(sk, VAR_SILTSTO_CH[0])) *data = m_siltSto;
+    else if (StringMatch(sk, VAR_CLAYSTO_CH[0])) *data = m_claySto;
+    else if (StringMatch(sk, VAR_SAGSTO_CH[0])) *data = m_sagSto;
+    else if (StringMatch(sk, VAR_LAGSTO_CH[0])) *data = m_lagSto;
+    else if (StringMatch(sk, VAR_GRAVELSTO_CH[0])) *data = m_gravelSto;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "Get1DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "Get1DData", "Output " + sk + " does not exist.");
     }
 }
 
 void SEDR_SBAGNOLD::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetScenario", "The scenario can not to be NULL.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetScenario", "The scenario can not to be NULL.");
     }
     map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
     for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
@@ -345,7 +348,7 @@ void SEDR_SBAGNOLD::SetScenario(Scenario* sce) {
 
 void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nreach = reaches->GetReachNumber();
 

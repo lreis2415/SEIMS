@@ -1,6 +1,7 @@
 #include "clsSubbasin.h"
 
 #include "text.h"
+// #include "Logging.h"
 
 Subbasin::Subbasin(const int id) :
     subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
@@ -67,7 +68,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     float cell_width = NODATA_VALUE;
 
     std::ostringstream oss;
-    oss << prefix_id << "_" << VAR_SUBBSN;
+    oss << prefix_id << "_" << VAR_SUBBSN[0];
     rs_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &subbasin_data);
 
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
@@ -105,7 +106,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     /// Set required parameters, e.g., slope
     float* slope_data = nullptr;
     oss.str("");
-    oss << prefix_id << "_" << VAR_SLOPE;
+    oss << prefix_id << "_" << VAR_SLOPE[0];
     rs_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &slope_data);
     SetSlopeCoefficient(slope_data);
 }
@@ -114,7 +115,7 @@ clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int pr
     /// Mask raster data is prerequisite.
     vector<string> rs_names;
     std::ostringstream oss;
-    oss << prefix_id << "_" << Tag_Mask;
+    oss << prefix_id << "_" << Tag_Mask[0];
     string mask_file_name = GetUpper(oss.str());
     if (rs_map.find(mask_file_name) == rs_map.end()) {
         cout << "MASK data has not been loaded yet!" << endl;
@@ -122,10 +123,10 @@ clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int pr
     }
     /// Required rasters to initialize clsSubbasins.
     oss.str("");
-    oss << prefix_id << "_" << VAR_SUBBSN;
+    oss << prefix_id << "_" << VAR_SUBBSN[0];
     rs_names.emplace_back(GetUpper(oss.str()));
     oss.str("");
-    oss << prefix_id << "_" << VAR_SLOPE;
+    oss << prefix_id << "_" << VAR_SLOPE[0];
     rs_names.emplace_back(GetUpper(oss.str()));
 
     for (auto it = rs_names.begin(); it != rs_names.end(); ++it) {
@@ -138,6 +139,7 @@ clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int pr
 }
 
 clsSubbasins::~clsSubbasins() {
+    // CLOG(TRACE, LOG_RELEASE) << "Release subbasin class ...";
     StatusMessage("Release subbasin class ...");
     if (!subbasin_objs_.empty()) {
         for (auto iter = subbasin_objs_.begin(); iter != subbasin_objs_.end();) {
@@ -158,30 +160,30 @@ float clsSubbasins::Subbasin2Basin(const string& key) {
     for (auto it = subbasin_ids_.begin(); it != subbasin_ids_.end(); ++it) {
         sub = subbasin_objs_[*it];
         int n_count = sub->GetCellCount();
-        if (StringMatch(key, VAR_SLOPE)) {
+        if (StringMatch(key, VAR_SLOPE[0])) {
             temp += atan(sub->GetSlope()) * n_count;
-        } else if (StringMatch(key, VAR_PET)) {
+        } else if (StringMatch(key, VAR_PET[0])) {
             temp += sub->GetPet() * n_count;
-        } else if (StringMatch(key, VAR_PERCO)) {
+        } else if (StringMatch(key, VAR_PERCO[0])) {
             temp += sub->GetPerco() * n_count;
-        } else if (StringMatch(key, VAR_REVAP)) {
+        } else if (StringMatch(key, VAR_REVAP[0])) {
             temp += sub->GetEg() * n_count;
-        } else if (StringMatch(key, VAR_PERDE)) {
+        } else if (StringMatch(key, VAR_PERDE[0])) {
             temp += sub->GetPerde() * n_count;
-        } else if (StringMatch(key, VAR_RG)) {
+        } else if (StringMatch(key, VAR_RG[0])) {
             temp += sub->GetRg() * n_count;
-        } else if (StringMatch(key, VAR_QG)) {
+        } else if (StringMatch(key, VAR_QG[0])) {
             temp += sub->GetQg();
-        } else if (StringMatch(key, VAR_GW_Q)) {
+        } else if (StringMatch(key, VAR_GW_Q[0])) {
             temp += sub->GetGw() * n_count;
         }
 
         total_count += n_count;
     }
-    if (StringMatch(key, VAR_QG)) {
+    if (StringMatch(key, VAR_QG[0])) {
         return temp;
     } // basin sum
-    if (StringMatch(key, VAR_SLOPE))
+    if (StringMatch(key, VAR_SLOPE[0]))
         return tan(temp / total_count);
     return temp / total_count; // basin average
 }
@@ -192,7 +194,7 @@ void clsSubbasins::SetSlopeCoefficient(float* rs_slope) {
             it->second->SetSlope(rs_slope);
         }
     }
-    float basin_slope = Subbasin2Basin(VAR_SLOPE);
+    float basin_slope = Subbasin2Basin(VAR_SLOPE[0]);
     for (auto it = subbasin_objs_.begin(); it != subbasin_objs_.end(); ++it) {
         if (basin_slope <= 0.f) {
             cout << "WARNING: Mean slope of the whole basin is absent, the Groundwater modules"

@@ -1,20 +1,20 @@
 #include "DiffusiveWave.h"
 
 #include "text.h"
+//using namespace std;  // Avoid this statement! by lj.
 
-using namespace std;
-
-//! Constructor
-DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
-                                     m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_chWidth(NULL),
-                                     m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
-                                     m_elevation(NULL),
-                                     m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL),
-                                     m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
-                                     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
+DiffusiveWave::DiffusiveWave() :
+    m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
+    m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_reachN(nullptr),
+    m_chWidth(NULL),
+    m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
+    m_elevation(NULL),
+    m_flowLen(NULL), m_qi(NULL), m_flowInIndex(nullptr), m_flowOutIndex(nullptr),
+    m_streamLink(NULL),
+    m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
+    m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
 }
 
-//! Destructor
 DiffusiveWave::~DiffusiveWave(void) {
     //Release1DArray(m_reachId);
     //Release1DArray(m_streamOrder);
@@ -31,43 +31,43 @@ DiffusiveWave::~DiffusiveWave(void) {
 //! Check input data
 bool DiffusiveWave::CheckInputData(void) {
     if (this->m_date <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the Date variable.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the Date variable.");
         return false;
     }
 
     if (this->m_nCells <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
     if (this->m_dt <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the TimeStep variable.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the TimeStep variable.");
         return false;
     }
 
     if (this->m_CellWidth <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the CellWidth variable.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the CellWidth variable.");
         return false;
     }
     if (m_s0 == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: slope has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: slope has not been set.");
     }
     if (m_direction == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: flow direction has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: flow direction has not been set.");
     }
 
     if (m_chWidth == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: CHWIDTH has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: CHWIDTH has not been set.");
     }
     if (m_streamLink == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: STREAM_LINK has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: STREAM_LINK has not been set.");
     }
 
     if (m_prec == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
     }
     if (m_elevation == NULL) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: Elevation has not been set.");
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: Elevation has not been set.");
     }
 
     return true;
@@ -76,7 +76,7 @@ bool DiffusiveWave::CheckInputData(void) {
 //! Initial outputs
 void DiffusiveWave:: InitialOutputs() {
     if (this->m_nCells <= 0) {
-        throw ModelException(MID_CH_DW, "initialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(M_CH_DW[0], "initialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     if (m_hCh == NULL) {
@@ -280,7 +280,7 @@ int DiffusiveWave::Execute() {
     }
     return 0;
 }
-
+/*
 //! Check input size
 bool DiffusiveWave::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
@@ -294,13 +294,13 @@ bool DiffusiveWave::CheckInputSize(const char *key, int n) {
             ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
-            throw ModelException(MID_CH_DW, "CheckInputSize", oss.str());
+            throw ModelException(M_CH_DW[0], "CheckInputSize", oss.str());
         }
     }
 
     return true;
 }
-
+*/
 //! Check input size channel
 bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
     if (n <= 0) {
@@ -336,16 +336,16 @@ bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
 //! Set value
 void DiffusiveWave::SetValue(const char *key, float data) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = data;
-    } else if (StringMatch(sk, Tag_CellSize)) {
+    } else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = (int) data;
-    } else if (StringMatch(sk, Tag_CellWidth)) {
+    } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(sk, Tag_LayeringMethod)) {
+    } else if (StringMatch(sk, Tag_LayeringMethod[0])) {
         m_layeringMethod = (LayeringMethod) int(data);
     } else {
-        throw ModelException(MID_CH_DW, "SetValue", "Parameter " + sk
+        throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }
@@ -354,25 +354,25 @@ void DiffusiveWave::SetValue(const char *key, float data) {
 void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     //check the input data
-    CheckInputSize(key, n);
+    CheckInputSize(M_CH_DW[0], key, n, m_nCells);
 
-    if (StringMatch(sk, VAR_SLOPE)) {
+    if (StringMatch(sk, VAR_SLOPE[0])) {
         m_s0 = data;
-    } else if (StringMatch(sk, VAR_DEM)) {
+    } else if (StringMatch(sk, VAR_DEM[0])) {
         m_elevation = data;
-    } else if (StringMatch(sk, VAR_FLOWDIR)) {
+    } else if (StringMatch(sk, VAR_FLOWDIR[0])) {
         m_direction = data;
-    } else if (StringMatch(sk, VAR_PCP)) {
+    } else if (StringMatch(sk, VAR_PCP[0])) {
         m_prec = data;
-    } else if (StringMatch(sk, VAR_QSOIL)) {
+    } else if (StringMatch(sk, VAR_QSOIL[0])) {
         m_qi = data;
-    } else if (StringMatch(sk, VAR_QOVERLAND)) {
+    } else if (StringMatch(sk, VAR_QOVERLAND[0])) {
         m_qs = data;
-    } else if (StringMatch(sk, VAR_CHWIDTH)) {
+    } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
-    } else if (StringMatch(sk, VAR_STREAM_LINK)) {
+    } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
         m_flowOutIndex = data;
         for (int i = 0; i < m_nCells; i++) {
             if (m_flowOutIndex[i] < 0) {
@@ -381,14 +381,14 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
             }
         }
     } else {
-        throw ModelException(MID_CH_DW, "Set1DData", "Parameter " + sk
+        throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }
 
 void DiffusiveWave::SetReaches(clsReaches *reaches) {
     if (nullptr == reaches) {
-        throw ModelException(MID_CH_DW, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_CH_DW[0], "SetReaches", "The reaches input can not to be NULL.");
     }
     m_chNumber = reaches->GetReachNumber();
 
@@ -405,7 +405,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     //*n = m_nCells;
     *n = m_chNumber;
-    if (StringMatch(sk, VAR_QSUBBASIN)) {
+    if (StringMatch(sk, VAR_QSUBBASIN[0])) {
         *data = m_qSubbasin;
     }
         /*else if (StringMatch(sk, "CHWATH"))
@@ -417,7 +417,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
         *data = m_chwath;
         }*/
     else {
-        throw ModelException(MID_CH_DW, "Get1DData", "Output " + sk
+        throw ModelException(M_CH_DW[0], "Get1DData", "Output " + sk
             + " does not exist in the current module. Please contact the module developer.");
     }
 }
@@ -426,12 +426,12 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
 void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     string sk(key);
     *nRows = m_chNumber;
-    if (StringMatch(sk, VAR_QCH)) {
+    if (StringMatch(sk, VAR_QCH[0])) {
         *data = m_qCh;
-    } else if (StringMatch(sk, VAR_HCH)) {
+    } else if (StringMatch(sk, VAR_HCH[0])) {
         *data = m_hCh;
     } else {
-        throw ModelException(MID_CH_DW, "Get2DData", "Output " + sk
+        throw ModelException(M_CH_DW[0], "Get2DData", "Output " + sk
             + " does not exist in the current module. Please contact the module developer.");
     }
 
@@ -440,10 +440,10 @@ void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***
 //! Set 2D data
 void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
         m_flowInIndex = data;
     } else {
-        throw ModelException(MID_CH_DW, "Set1DData", "Parameter " + sk
+        throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }

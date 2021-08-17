@@ -10,6 +10,7 @@
 #ifndef SEIMS_SCENARIO_H
 #define SEIMS_SCENARIO_H
 
+#include "utils_time.h"
 #include "basic.h"
 #include "db_mongoc.h"
 #include "BMPText.h"
@@ -44,7 +45,8 @@ namespace bmps {
 class Scenario: Interface {
 public:
     //! Constructor according to BMP database name and scenario ID
-    Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0);
+    Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0,
+             time_t startTime = -1, time_t endTime = -1);
 
     //! Destructor
     ~Scenario();
@@ -110,6 +112,12 @@ private:
     string m_name;
     //! Subbasin ID, 0 for the entire basin
     int m_subbsnID;
+
+    //!
+    //! the start time of scenario simulation
+    time_t m_startTime;
+    //! the start time of scenario simulation
+    time_t m_endTime;
 };
 
 } /* MainBMP */

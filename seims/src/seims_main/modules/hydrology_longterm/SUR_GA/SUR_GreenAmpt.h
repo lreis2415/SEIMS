@@ -41,7 +41,7 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 /*!
  * \defgroup SUR_GA

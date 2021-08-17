@@ -10,7 +10,6 @@ NutrientinGroundwater::NutrientinGroundwater() :
     m_soilSolP(nullptr), m_maxSoilLyrs(-1),
     m_nSoilLyrs(nullptr), m_gwNO3ToCh(nullptr), m_gwSolPToCh(nullptr), m_nSubbsns(-1),
     m_subbsnID(nullptr), m_subbasinsInfo(nullptr) {
-
 }
 
 NutrientinGroundwater::~NutrientinGroundwater() {
@@ -28,55 +27,55 @@ void NutrientinGroundwater::SetSubbasins(clsSubbasins* subbasins) {
 }
 
 bool NutrientinGroundwater::CheckInputData() {
-    CHECK_POSITIVE(MID_NUTRGW, m_nCells);
-    CHECK_POSITIVE(MID_NUTRGW, m_TimeStep);
-    CHECK_POSITIVE(MID_NUTRGW, m_cellWth);
-    CHECK_POSITIVE(MID_NUTRGW, m_gw0);
-    CHECK_POINTER(MID_NUTRGW, m_gw_q);
-    CHECK_POINTER(MID_NUTRGW, m_gwStor);
-    CHECK_POINTER(MID_NUTRGW, m_perco_no3_gw);
-    CHECK_POINTER(MID_NUTRGW, m_perco_solp_gw);
-    CHECK_POINTER(MID_NUTRGW, m_nSoilLyrs);
-    CHECK_POINTER(MID_NUTRGW, m_soilNO3);
+    CHECK_POSITIVE(M_NUTRGW[0], m_nCells);
+    CHECK_POSITIVE(M_NUTRGW[0], m_TimeStep);
+    CHECK_POSITIVE(M_NUTRGW[0], m_cellWth);
+    CHECK_POSITIVE(M_NUTRGW[0], m_gw0);
+    CHECK_POINTER(M_NUTRGW[0], m_gw_q);
+    CHECK_POINTER(M_NUTRGW[0], m_gwStor);
+    CHECK_POINTER(M_NUTRGW[0], m_perco_no3_gw);
+    CHECK_POINTER(M_NUTRGW[0], m_perco_solp_gw);
+    CHECK_POINTER(M_NUTRGW[0], m_nSoilLyrs);
+    CHECK_POINTER(M_NUTRGW[0], m_soilNO3);
     return true;
 }
 
 void NutrientinGroundwater::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
-    else if (StringMatch(sk, VAR_GW0)) m_gw0 = value;
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(sk, Tag_TimeStep[0])) m_TimeStep = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
+    else if (StringMatch(sk, VAR_GW0[0])) m_gw0 = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else {
-        throw ModelException(MID_NUTRGW, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRGW[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientinGroundwater::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) {
-        CheckInputSize(MID_NUTRGW, key, n, m_nCells);
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
+        CheckInputSize(M_NUTRGW[0], key, n, m_nCells);
         m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_SBQG)) m_gw_q = data;
-    else if (StringMatch(sk, VAR_SBGS)) m_gwStor = data;
-    else if (StringMatch(sk, VAR_PERCO_N_GW)) m_perco_no3_gw = data;
-    else if (StringMatch(sk, VAR_PERCO_P_GW)) m_perco_solp_gw = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        CheckInputSize(MID_NUTRGW, key, n, m_nCells);
+    } else if (StringMatch(sk, VAR_SBQG[0])) m_gw_q = data;
+    else if (StringMatch(sk, VAR_SBGS[0])) m_gwStor = data;
+    else if (StringMatch(sk, VAR_PERCO_N_GW[0])) m_perco_no3_gw = data;
+    else if (StringMatch(sk, VAR_PERCO_P_GW[0])) m_perco_solp_gw = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
+        CheckInputSize(M_NUTRGW[0], key, n, m_nCells);
         m_nSoilLyrs = data;
     } else {
-        throw ModelException(MID_NUTRGW, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRGW[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientinGroundwater::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(MID_NUTRGW, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_NUTRGW[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
-    else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
+    if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_SOLP[0])) m_soilSolP = data;
     else {
-        throw ModelException(MID_NUTRGW, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRGW[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -86,12 +85,12 @@ void NutrientinGroundwater::SetReaches(clsReaches* reaches) {
         if (nullptr == m_gwNO3Conc) reaches->GetReachesSingleProperty(REACH_GWNO3, &m_gwNO3Conc);
         if (nullptr == m_gwSolPConc) reaches->GetReachesSingleProperty(REACH_GWSOLP, &m_gwSolPConc);
     } else {
-        throw ModelException(MID_NUTRGW, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_NUTRGW[0], "SetReaches", "The reaches input can not to be NULL.");
     }
 }
 
 void NutrientinGroundwater::InitialOutputs() {
-    CHECK_POSITIVE(MID_NUTRGW, m_nCells);
+    CHECK_POSITIVE(M_NUTRGW[0], m_nCells);
     // allocate the output variables
     if (nullptr == m_gwNO3ToCh) {
         Initialize1DArray(m_nSubbsns + 1, m_gwNO3ToCh, 0.f);
@@ -157,19 +156,19 @@ void NutrientinGroundwater::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nSubbsns + 1;
-    if (StringMatch(sk, VAR_NO3GW_TOCH)) {
+    if (StringMatch(sk, VAR_NO3GW_TOCH[0])) {
         *data = m_gwNO3ToCh;
-    } else if (StringMatch(sk, VAR_MINPGW_TOCH)) {
+    } else if (StringMatch(sk, VAR_MINPGW_TOCH[0])) {
         *data = m_gwSolPToCh;
-    } else if (StringMatch(sk, VAR_GWNO3_CONC)) {
+    } else if (StringMatch(sk, VAR_GWNO3_CONC[0])) {
         *data = m_gwNO3Conc;
-    } else if (StringMatch(sk, VAR_GWSOLP_CONC)) {
+    } else if (StringMatch(sk, VAR_GWSOLP_CONC[0])) {
         *data = m_gwSolPConc;
-    } else if (StringMatch(sk, VAR_GWNO3)) {
+    } else if (StringMatch(sk, VAR_GWNO3[0])) {
         *data = m_gwNO3;
-    } else if (StringMatch(sk, VAR_GWSOLP)) {
+    } else if (StringMatch(sk, VAR_GWSOLP[0])) {
         *data = m_gwSolP;
     } else {
-        throw ModelException(MID_NUTRGW, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRGW[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }

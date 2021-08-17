@@ -11,7 +11,7 @@ SEIMSModuleSetting::SEIMSModuleSetting(string& module_id, string& setting) :
 }
 
 float SEIMSModuleSetting::dataType() {
-    if (m_moduleId.find(MID_ITP) == string::npos && m_moduleId.find(MID_TSD_RD) == string::npos) {
+    if (m_moduleId.find(M_ITP[0]) == string::npos && m_moduleId.find(M_TSD_RD[0]) == string::npos) {
         return -1.0f;
     }
     if (m_settings.size() < 2) {
@@ -28,7 +28,7 @@ float SEIMSModuleSetting::dataType() {
 }
 
 bool SEIMSModuleSetting::needDoVerticalInterpolation() {
-    if (m_moduleId.find(MID_ITP) == string::npos) {
+    if (m_moduleId.find(M_ITP[0]) == string::npos) {
         return false;
     }
     if (m_settings.size() < 3) {

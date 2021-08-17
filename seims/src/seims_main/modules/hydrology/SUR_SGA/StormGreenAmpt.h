@@ -8,7 +8,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
  * \brief  Green-Ampt Method to calculate infiltration and excess precipitation

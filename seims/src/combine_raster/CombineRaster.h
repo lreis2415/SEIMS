@@ -66,8 +66,9 @@ void CombineRasterResults(const string& folder, const string& s_var,
  * \param[in] folder Optional. If specified, the combined raster will be outputed as file simultaneously.
  * \param[in] scenario_id Scenario ID stored in metadata, 0 by default
  * \param[in] calibration_id Calibration ID stored in metadata, -1 by default
+ * \return True if succeed. Do not exit directly or throw exceptions! -LJ.
  */
-void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
                                int n_subbasins, const string& folder = "",
                                int scenario_id = 0, int calibration_id = -1);
 #endif /* USE_MONGODB */

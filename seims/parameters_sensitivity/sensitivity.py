@@ -48,7 +48,7 @@ from run_seims import MainSEIMS
 from preprocess.text import DBTableNames
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
-from run_seims import create_run_model
+from run_seims import ParseSEIMSConfig, create_run_model
 
 
 class Sensitivity(object):
@@ -60,8 +60,8 @@ class Sensitivity(object):
         Args:
             psa_cfg: PSAConfig object.
         """
-        self.cfg = psa_cfg
-        self.model = psa_cfg.model
+        self.cfg = psa_cfg  # type: PSAConfig
+        self.model = psa_cfg.model  # type: ParseSEIMSConfig
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
@@ -226,12 +226,33 @@ class Sensitivity(object):
 
         # model configurations
         model_cfg_dict = self.model.ConfigDict
+        # model_cfg_dict.setdefault('do_execute', True)  # By default, the model will be executed
 
         # Parameters to be evaluated
         input_eva_vars = self.cfg.evaluate_params
 
-        # split tasks if needed
-        task_num = self.run_count // 100  # TODO: Find a more proper way to divide tasks
+        # Computing resources
+        # Recommend: n / N * c = cores of one node (taking the args of Slurm as an example)
+        # For example, we want to submit the job on 6 nodes, each node has 36 cores,
+        #              each SEIMS-based model require 4 processes and each process
+        #              with 2 threads (i.e., mpiexec -n 4 seims_mpi -thread 2 ...),
+        #              then N = 6, n = 108 (6*36//2), c = 2.
+        #              This means, a total of 108//4=27 models can be executed simultaneously.
+        arg_N = self.cfg.resource.nnodes
+        arg_c = self.model.nthread
+        arg_n = -1
+        if arg_N >= 1 and self.cfg.resource.ncores_pernode >= 1:
+            arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
+
+        # split tasks
+        #   1. If workload of sensitivity analysis is slurm or scoop,
+        #      pnum_task equals n // nprocess of SEIMS-model
+        #   2. Otherwise, pnum_task equals 100
+        pnum_task = 100
+        if self.cfg.resource.workload.lower() == 'slurm' or \
+            self.cfg.resource.workload.lower() == 'scoop':
+            pnum_task = arg_n // self.cfg.model.nprocess
+        task_num = self.run_count // pnum_task
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -250,11 +271,61 @@ class Sensitivity(object):
                 tmpcfg = deepcopy(model_cfg_dict)
                 tmpcfg['calibration_id'] = caliid
                 model_cfg_dict_list.append(tmpcfg)
-            try:  # parallel on multiprocessor or clusters using SCOOP
-                from scoop import futures
-                output_models = list(futures.map(create_run_model, model_cfg_dict_list))  # type: List[MainSEIMS]
-            except ImportError or ImportWarning:  # serial
-                output_models = list(map(create_run_model, model_cfg_dict_list))  # type: List[MainSEIMS]
+
+            if self.cfg.resource.workload.lower() == 'slurm' or \
+                    self.cfg.resource.workload.lower() == 'bash':
+                from utility.slurmpy import Slurm
+                output_models = list()
+                model_cmd_list = list()
+                for ii_model_cfg in model_cfg_dict_list:
+                    output_models.append(create_run_model(ii_model_cfg, do_execute=False))
+                for ii_model in output_models:
+                    model_cmd_list.append(ii_model.CommandString)
+
+                slurmjob = Slurm('sensitivity_%d' % idx,  # Job name
+                                 {
+                                     'W': '',  # -W, --wait. Do not exit until all jobs terminate
+                                     'partition': self.cfg.resource.partition,
+                                     'N': arg_N,  # -N, --nodes. Request N nodes to the job
+                                 },
+                                 scripts_dir=self.cfg.outfiles.psa_scripts_dir,
+                                 log_dir=self.cfg.outfiles.psa_logs_dir,
+                                 bash_strict=False if self.cfg.resource.workload.lower() == 'slurm'
+                                 else True)
+                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list)
+                             if self.cfg.resource.workload.lower() == 'slurm'
+                             else '%s\nwait' % '\n'.join(model_cmd_list),
+                             _cmd='sbatch' if self.cfg.resource.workload.lower() == 'slurm'
+                             else 'bash',
+                             name_addition='psa')
+                print('Slurm job index %d done!' % idx)
+
+                # Postprocess the models that executed by Slurm job
+                for iii in range(len(output_models)):
+                    output_models[iii].executed = True
+                    output_models[iii].ParseTimespan()
+            elif self.cfg.resource.workload.lower() == 'cmd' and (
+                    self.model.workload.lower() == 'mpi' or self.model.workload == ''):
+                # For function testing on Windows
+                output_models = list()
+                model_cmd_list = list()
+                for ii_model_cfg in model_cfg_dict_list:
+                    output_models.append(create_run_model(ii_model_cfg, do_execute=False))
+                for ii_model in output_models:
+                    model_cmd_list.append(ii_model.CommandString)
+                # Run model sequentially
+                for iii in range(len(output_models)):
+                    UtilClass.run_command(model_cmd_list[iii])
+                    output_models[iii].executed = True
+                    output_models[iii].ParseTimespan()
+            else:
+                try:  # parallel on multiprocessor or clusters using SCOOP
+                    from scoop import futures
+                    output_models = list(futures.map(create_run_model,
+                                                     model_cfg_dict_list))  # type: List[MainSEIMS]
+                except ImportError or ImportWarning:  # serial
+                    output_models = list(map(create_run_model,
+                                             model_cfg_dict_list))  # type: List[MainSEIMS]
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
             # Read observation data from MongoDB only once
             if len(output_models) < 1:  # Although this is not gonna happen, just for insurance.
@@ -456,7 +527,7 @@ class Sensitivity(object):
 
 
 if __name__ == '__main__':
-    from config import get_psa_config
+    from parameters_sensitivity.config import get_psa_config
 
     cf, method = get_psa_config()
     cfg = PSAConfig(cf, method=method)

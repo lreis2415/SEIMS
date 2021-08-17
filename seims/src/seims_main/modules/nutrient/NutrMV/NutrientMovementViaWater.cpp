@@ -134,35 +134,35 @@ void NutrientMovementViaWater::SumBySubbasin() {
 }
 
 bool NutrientMovementViaWater::CheckInputData() {
-    CHECK_POSITIVE(MID_NUTRMV, m_nSubbsns);
-    CHECK_POSITIVE(MID_NUTRMV, m_nCells);
-    CHECK_POSITIVE(MID_NUTRMV, m_cellWth);
-    CHECK_POSITIVE(MID_NUTRMV, m_maxSoilLyrs);
-    CHECK_POINTER(MID_NUTRMV, m_nSoilLyrs);
-    CHECK_POINTER(MID_NUTRMV, m_olWtrEroSed);
-    CHECK_POINTER(MID_NUTRMV, m_soilCbn);
-    CHECK_POINTER(MID_NUTRMV, m_anionExclFr);
+    CHECK_POSITIVE(M_NUTRMV[0], m_nSubbsns);
+    CHECK_POSITIVE(M_NUTRMV[0], m_nCells);
+    CHECK_POSITIVE(M_NUTRMV[0], m_cellWth);
+    CHECK_POSITIVE(M_NUTRMV[0], m_maxSoilLyrs);
+    CHECK_POINTER(M_NUTRMV[0], m_nSoilLyrs);
+    CHECK_POINTER(M_NUTRMV[0], m_olWtrEroSed);
+    CHECK_POINTER(M_NUTRMV[0], m_soilCbn);
+    CHECK_POINTER(M_NUTRMV[0], m_anionExclFr);
 
-    CHECK_NONNEGATIVE(MID_NUTRMV, m_isep_opt);
-    CHECK_POINTER(MID_NUTRMV, m_distToRch);
-    CHECK_POINTER(MID_NUTRMV, m_surfRf);
-    CHECK_POSITIVE(MID_NUTRMV, m_nperco);
-    CHECK_POSITIVE(MID_NUTRMV, m_cod_n);
-    CHECK_POSITIVE(MID_NUTRMV, m_cod_k);
-    CHECK_POINTER(MID_NUTRMV, m_subSurfRf);
-    CHECK_POINTER(MID_NUTRMV, m_soilPerco);
-    CHECK_POINTER(MID_NUTRMV, m_soilSat);
-    CHECK_POSITIVE(MID_NUTRMV, m_phoskd);
-    CHECK_POSITIVE(MID_NUTRMV, m_pperco);
-    CHECK_POINTER(MID_NUTRMV, m_soilThk);
-    CHECK_POINTER(MID_NUTRMV, m_soilCrk);
-    CHECK_POINTER(MID_NUTRMV, m_soilBD);
-    CHECK_POINTER(MID_NUTRMV, m_soilDepth);
-    CHECK_POINTER(MID_NUTRMV, m_flowOutIdxD8);
-    CHECK_POINTER(MID_NUTRMV, m_soilThk);
-    CHECK_POINTER(MID_NUTRMV, m_subbasinsInfo);
+    CHECK_NONNEGATIVE(M_NUTRMV[0], m_isep_opt);
+    CHECK_POINTER(M_NUTRMV[0], m_distToRch);
+    CHECK_POINTER(M_NUTRMV[0], m_surfRf);
+    CHECK_POSITIVE(M_NUTRMV[0], m_nperco);
+    CHECK_POSITIVE(M_NUTRMV[0], m_cod_n);
+    CHECK_POSITIVE(M_NUTRMV[0], m_cod_k);
+    CHECK_POINTER(M_NUTRMV[0], m_subSurfRf);
+    CHECK_POINTER(M_NUTRMV[0], m_soilPerco);
+    CHECK_POINTER(M_NUTRMV[0], m_soilSat);
+    CHECK_POSITIVE(M_NUTRMV[0], m_phoskd);
+    CHECK_POSITIVE(M_NUTRMV[0], m_pperco);
+    CHECK_POINTER(M_NUTRMV[0], m_soilThk);
+    CHECK_POINTER(M_NUTRMV[0], m_soilCrk);
+    CHECK_POINTER(M_NUTRMV[0], m_soilBD);
+    CHECK_POINTER(M_NUTRMV[0], m_soilDepth);
+    CHECK_POINTER(M_NUTRMV[0], m_flowOutIdxD8);
+    CHECK_POINTER(M_NUTRMV[0], m_soilThk);
+    CHECK_POINTER(M_NUTRMV[0], m_subbasinsInfo);
     if (m_cbnModel == 2)
-        CHECK_POINTER(MID_NUTRMV, m_sedLossCbn);
+        CHECK_POINTER(M_NUTRMV[0], m_sedLossCbn);
     return true;
 }
 
@@ -176,83 +176,83 @@ void NutrientMovementViaWater::SetSubbasins(clsSubbasins* subbasins) {
 
 void NutrientMovementViaWater::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
-    else if (StringMatch(sk, VAR_QTILE)) m_qtile = value;
-    else if (StringMatch(sk, VAR_NPERCO)) m_nperco = value;
-    else if (StringMatch(sk, VAR_PPERCO)) m_pperco = value;
-    else if (StringMatch(sk, VAR_PHOSKD)) m_phoskd = value;
-    else if (StringMatch(sk, VAR_ISEP_OPT)) m_isep_opt = value;
-    else if (StringMatch(sk, VAR_COD_N)) m_cod_n = value;
-    else if (StringMatch(sk, VAR_COD_K)) m_cod_k = value;
-    else if (StringMatch(sk, VAR_CSWAT)) m_cbnModel = CVT_INT(value);
+    if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
+    else if (StringMatch(sk, VAR_QTILE[0])) m_qtile = value;
+    else if (StringMatch(sk, VAR_NPERCO[0])) m_nperco = value;
+    else if (StringMatch(sk, VAR_PPERCO[0])) m_pperco = value;
+    else if (StringMatch(sk, VAR_PHOSKD[0])) m_phoskd = value;
+    else if (StringMatch(sk, VAR_ISEP_OPT[0])) m_isep_opt = value;
+    else if (StringMatch(sk, VAR_COD_N[0])) m_cod_n = value;
+    else if (StringMatch(sk, VAR_COD_K[0])) m_cod_k = value;
+    else if (StringMatch(sk, VAR_CSWAT[0])) m_cbnModel = CVT_INT(value);
     else {
-        throw ModelException(MID_NUTRMV, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRMV[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* data) {
-    if (!CheckInputSize(MID_NUTRMV, key, n, m_nCells)) return;
+    if (!CheckInputSize(M_NUTRMV[0], key, n, m_nCells)) return;
     string sk(key);
-    if (StringMatch(sk, VAR_OLFLOW)) {
+    if (StringMatch(sk, VAR_OLFLOW[0])) {
         m_surfRf = data;
-    } else if (StringMatch(sk, VAR_SUBBSN)) {
+    } else if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_STREAM_LINK)) {
+    } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_rchID = data;
-    } else if (StringMatch(sk, VAR_ANION_EXCL)) {
+    } else if (StringMatch(sk, VAR_ANION_EXCL[0])) {
         m_anionExclFr = data;
-    } else if (StringMatch(sk, VAR_LDRAIN)) {
+    } else if (StringMatch(sk, VAR_LDRAIN[0])) {
         m_drainLyr = data;
-    } else if (StringMatch(sk, VAR_DISTSTREAM)) {
+    } else if (StringMatch(sk, VAR_DISTSTREAM[0])) {
         m_distToRch = data;
-    } else if (StringMatch(sk, VAR_SOL_CRK)) {
+    } else if (StringMatch(sk, VAR_SOL_CRK[0])) {
         m_soilCrk = data;
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) {
+    } else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
-    } else if (StringMatch(sk, VAR_SEDYLD)) {
+    } else if (StringMatch(sk, VAR_SEDYLD[0])) {
         m_olWtrEroSed = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
+    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
         m_flowOutIdxD8 = data;
-    } else if (StringMatch(sk, VAR_SEDORGN)) {
+    } else if (StringMatch(sk, VAR_SEDORGN[0])) {
         m_sedorgn = data;
-    } else if (StringMatch(sk, VAR_TMEAN)) {
+    } else if (StringMatch(sk, VAR_TMEAN[0])) {
         m_meanTemp = data;
-    } else if (StringMatch(sk, VAR_SEDLOSS_C)) {
+    } else if (StringMatch(sk, VAR_SEDLOSS_C[0])) {
         m_sedLossCbn = data;
     } else {
-        throw ModelException(MID_NUTRMV, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRMV[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_nRteLyrs = nrows;
         m_rteLyrs = data;
         return;
     }
-    if (!CheckInputSize2D(MID_NUTRMV, key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
+    if (!CheckInputSize2D(M_NUTRMV[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
 
-    if (StringMatch(sk, VAR_SSRU)) m_subSurfRf = data;
-    else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
-    else if (StringMatch(sk, VAR_SOL_BD)) m_soilBD = data;
-    else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
-    else if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
-    else if (StringMatch(sk, VAR_PERCO)) m_soilPerco = data;
-    else if (StringMatch(sk, VAR_SOL_CBN)) m_soilCbn = data;
-    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
-    else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
-    else if (StringMatch(sk, VAR_CONV_WT)) m_cvtWt = data;
+    if (StringMatch(sk, VAR_SSRU[0])) m_subSurfRf = data;
+    else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_BD[0])) m_soilBD = data;
+    else if (StringMatch(sk, VAR_SOL_SOLP[0])) m_soilSolP = data;
+    else if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
+    else if (StringMatch(sk, VAR_PERCO[0])) m_soilPerco = data;
+    else if (StringMatch(sk, VAR_SOL_CBN[0])) m_soilCbn = data;
+    else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
+    else if (StringMatch(sk, VAR_CONV_WT[0])) m_cvtWt = data;
     else {
-        throw ModelException(MID_NUTRMV, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRMV[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::InitialOutputs() {
-    CHECK_POSITIVE(MID_NUTRMV, m_nSubbsns);
-    CHECK_POSITIVE(MID_NUTRMV, m_nCells);
-    CHECK_POSITIVE(MID_NUTRMV, m_maxSoilLyrs);
+    CHECK_POSITIVE(M_NUTRMV[0], m_nSubbsns);
+    CHECK_POSITIVE(M_NUTRMV[0], m_nCells);
+    CHECK_POSITIVE(M_NUTRMV[0], m_maxSoilLyrs);
     if (m_cellArea < 0.f) m_cellArea = m_cellWth * m_cellWth * 0.0001f; /// unit: ha
     // allocate the output variables
     if (nullptr == m_latNO3) Initialize1DArray(m_nCells, m_latNO3, 0.f);
@@ -453,55 +453,55 @@ void NutrientMovementViaWater::SubbasinWaterQuality(const int i) {
 
 void NutrientMovementViaWater::GetValue(const char* key, float* value) {
     string sk(key);
-    if (StringMatch(sk, VAR_WSHD_PLCH)) *value = m_wshdLchP;
+    if (StringMatch(sk, VAR_WSHD_PLCH[0])) *value = m_wshdLchP;
     else {
-        throw ModelException(MID_NUTRMV, "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRMV[0], "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_LATNO3)) {
+    if (StringMatch(sk, VAR_LATNO3[0])) {
         *data = m_latNO3;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_PERCO_N_GW)) {
+    } else if (StringMatch(sk, VAR_PERCO_N_GW[0])) {
         *data = m_percoNGw;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_PERCO_P_GW)) {
+    } else if (StringMatch(sk, VAR_PERCO_P_GW[0])) {
         *data = m_percoPGw;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SUR_NO3)) {
+    } else if (StringMatch(sk, VAR_SUR_NO3[0])) {
         *data = m_surfRfNO3;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SUR_NH4)) {
+    } else if (StringMatch(sk, VAR_SUR_NH4[0])) {
         *data = m_surfRfNH4;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SUR_SOLP)) {
+    } else if (StringMatch(sk, VAR_SUR_SOLP[0])) {
         *data = m_surfRfSolP;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SUR_COD)) {
+    } else if (StringMatch(sk, VAR_SUR_COD[0])) {
         *data = m_surfRfCod;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_CHL_A)) {
+    } else if (StringMatch(sk, VAR_CHL_A[0])) {
         *data = m_surfRfChlA;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_LATNO3_TOCH)) {
+    } else if (StringMatch(sk, VAR_LATNO3_TOCH[0])) {
         *data = m_latNO3ToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SUR_NO3_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_NO3_TOCH[0])) {
         *data = m_surfRfNO3ToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SUR_NH4_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_NH4_TOCH[0])) {
         *data = m_surfRfNH4ToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH[0])) {
         *data = m_surfRfSolPToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SUR_COD_TOCH)) {
+    } else if (StringMatch(sk, VAR_SUR_COD_TOCH[0])) {
         *data = m_surfRfCodToCh;
         *n = m_nSubbsns + 1;
     } else {
-        throw ModelException(MID_NUTRMV, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRMV[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }

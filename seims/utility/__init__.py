@@ -3,7 +3,7 @@ Utility functions and classes of pySEIMS
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -30,3 +30,4 @@ from utility.io_plain_text import *
 from utility.parse_config import *
 from utility.timeseries_data import *
 from utility.plot import *
+from utility.slurmpy import Slurm

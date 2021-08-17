@@ -12,8 +12,8 @@ import argparse
 from configparser import ConfigParser
 from datetime import datetime
 
-from typing import Optional, AnyStr
-from pygeoc.utils import FileClass, StringClass, UtilClass
+from typing import Optional, List, AnyStr
+from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, is_integer
 
 
 def get_optimization_config(desc='The help information is supposed not be empty.'):
@@ -42,6 +42,42 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     return cf, psa_mtd
 
 
+def get_option_value_exactly(cf, secname, optname, valtyp=str):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
+    if valtyp == int:
+        return cf.getint(secname, optname)
+    elif valtyp == float:
+        return cf.getfloat(secname, optname)
+    elif valtyp == bool:
+        return cf.getboolean(secname, optname)
+    else:
+        return cf.get(secname, optname)
+
+
+def get_option_value(cf, secname, optnames, valtyp=str, defvalue=''):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
+    if type(optnames) is not list:
+        optnames = [optnames]
+
+    value = ''
+    found = False
+    for optname in optnames:  # For backward compatibility
+        if secname in cf.sections() and cf.has_option(secname, optname):
+            value = get_option_value_exactly(cf, secname, optname, valtyp=valtyp)
+            found = True
+            break
+        elif cf.has_option('', optname):  # May be in [DEFAULT] section
+            value = get_option_value_exactly(cf, '', optname, valtyp=valtyp)
+            found = True
+            break
+
+    if not found:
+        if valtyp == int and defvalue == '':  # int type and not set default value
+            defvalue = -9999
+        value = defvalue
+    return value
+
+
 def check_config_option(cf, section_name, option_name, print_warn=False):
     # type: (ConfigParser, AnyStr, AnyStr, bool) -> bool
     if not isinstance(cf, ConfigParser):
@@ -57,11 +93,11 @@ def check_config_option(cf, section_name, option_name, print_warn=False):
 
 
 def parse_datetime_from_ini(cf, section_name, option_name):
-    # type: (ConfigParser, AnyStr, AnyStr) -> Optional[datetime]
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]]) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
-    if not check_config_option(cf, section_name, option_name):
+    time_str = get_option_value(cf, section_name, option_name)
+    if not time_str:
         return None
-    time_str = cf.get(section_name, option_name)
     try:  # UTCTIME
         return StringClass.get_datetime(time_str)
     except ValueError:
@@ -107,3 +143,27 @@ class ParseNSGA2Config(object):
         self.logbookfile = self.out_dir + os.path.sep + 'logbook.txt'
         self.simdata_dir = self.out_dir + os.path.sep + 'simulated_data'
         UtilClass.rmmkdir(self.simdata_dir)
+
+
+class ParseResourceConfig(object):
+    """Configuration of computing resources for model-level parallel computing."""
+
+    def __init__(self, cf=None):
+        # type: (Optional[ConfigParser]) -> None
+        """Get parameters from ConfigParser object."""
+        self.workload = 'scoop'  # type: AnyStr # available: scoop, slurm
+        self.partition = ''  # type: AnyStr
+        self.nnodes = -1  # type: int  # computing nodes required
+        self.ntasks_pernode = -1  # type: int  # maximum tasks (process of mpi or task of scoop)
+        self.ncores_pernode = -1  # type: int  # maximum cores/processors of each node
+
+        res_sec = 'Computing_Resources'
+        self.workload = get_option_value(cf, res_sec, 'workload')
+        if self.workload is '':
+            self.workload = 'scoop'
+        self.partition = get_option_value(cf, res_sec, 'partition')
+        self.nnodes = get_option_value(cf, res_sec, 'nnodes', valtyp=int)
+        self.ntasks_pernode = get_option_value(cf, res_sec, 'ntasks_pernode', valtyp=int)
+        self.ncores_pernode = get_option_value(cf, res_sec, 'ncores_pernode', valtyp=int)
+
+

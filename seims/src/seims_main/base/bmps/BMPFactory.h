@@ -35,7 +35,8 @@ public:
     /// Constructor
     BMPFactory(int scenario_id, int bmp_id, int sub_scenario, int bmp_type,
                int bmp_priority, vector<string>& distribution, const string& collection,
-               const string& location);
+               const string& location, bool effectivenessChangeable = false,
+        int changeFrequency = 1, int variableTimes = -1);
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -70,6 +71,11 @@ public:
     /// Output
     virtual void Dump(std::ostream* fs) = 0;
 
+    //!
+    bool IsEffectivenessChangeable() { return m_effectivenessChangeable; }
+    int GetChangeFrequency() { return m_changeFrequency; }
+    int GetChangeTimes() { return m_changeTimes; }
+
 protected:
     const int m_scenarioId; ///< Scenario ID
     const int m_bmpId; ///< BMP ID
@@ -82,6 +88,11 @@ protected:
     vector<string> m_distribution;
     const string m_bmpCollection; ///< Collection name
     const string m_location; ///< Define where the BMP will be applied
+
+    //!
+    const bool m_effectivenessChangeable;
+    const int m_changeFrequency;
+    const int m_changeTimes;
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

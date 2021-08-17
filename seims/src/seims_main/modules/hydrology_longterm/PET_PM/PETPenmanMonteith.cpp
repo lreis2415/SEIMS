@@ -89,19 +89,26 @@ void PETPenmanMonteith::InitialOutputs() {
     if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
     if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.f);
     if (nullptr == m_vpd2) m_vpd2 = new(nothrow) float[m_nCells];
+}
+
+void PETPenmanMonteith::InitializeIntermediateVariables(){
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_frgmax[i] > 0.f && m_vpdfr[i] > 0.f) {
             m_vpd2[i] = (1.f - m_frgmax[i]) / (m_vpdfr[i] - 1.f);
-        } else {
+        }
+        else {
             m_vpd2[i] = 0.f;
         }
     }
+
+    m_needReCalIntermediateParams = false;
 }
 
 int PETPenmanMonteith::Execute() {
     CheckInputData();
     InitialOutputs();
+    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
     //do the execute
 #pragma omp parallel for
     for (int j = 0; j < m_nCells; j++) {

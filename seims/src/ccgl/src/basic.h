@@ -77,13 +77,13 @@ using std::string;
 #define stringcat strcat_s
 #define stringcpy strcpy_s
 #define strprintf sprintf_s
-#define strtok strtok_s
+#define stringtoken strtok_s
 #define stringscanf sscanf_s
 #else
 #define stringcat strcat
 #define stringcpy strcpy
 #define strprintf snprintf
-#define strtok strtok_r
+#define stringtoken strtok_r
 #define stringscanf sscanf
 #endif /* CPP_MSVC */
 
@@ -327,7 +327,7 @@ typedef vint64_t pos_t;
 /*! Convert to 8-byte (64-bit) unsigned integer `vuint64_t` */
 #define CVT_VUINT64(param) static_cast<vuint64_t>((param))
 
-
+/*! Map of string key and string value */
 typedef std::map<string, string> STRING_MAP;
 
 #ifdef CPP_64

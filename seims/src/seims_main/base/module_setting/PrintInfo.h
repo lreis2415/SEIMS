@@ -78,8 +78,8 @@ public:
     ///< The subbasin index
     int SubbasinIndex;
 
-    //! Start time string
-    string StartTime;
+    ////! Start time string
+    //string StartTime;
     //! Start time \a time_t
     time_t m_startTime;
 
@@ -89,8 +89,8 @@ public:
     //! set start time \a time_t
     void setStartTime(time_t& st) { m_startTime = st; }
 
-    //! End time string
-    string EndTime;
+    ////! End time string
+    //string EndTime;
     //! End time  \a time_t
     time_t m_endTime;
 
@@ -110,7 +110,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header);
+    void Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, const string& header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -211,13 +211,13 @@ public:
     string getIntervalUnits() const { return m_IntervalUnits; };
 
     //! Add an output item with the given start time, end time and file name
-    void AddPrintItem(string& start, string& end, string& file, string& sufi);
+    void AddPrintItem(time_t start, time_t end, string& file, string& sufi);
 
     //! Add an output item with the given aggregate type, start time, end time, file name and subbasin ID
-    void AddPrintItem(string& type, string& start, string& end, string& file, string& sufi, int subbasinID = 0);
+    void AddPrintItem(string& type, time_t start, time_t end, string& file, string& sufi, int subbasinID = 0);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
-    void AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin);
+    void AddPrintItem(time_t start, time_t end, string& file, string sitename, string& sufi, bool isSubbasin);
 
     //! Get a reference to the output item located at the given index position
     PrintInfoItem* getPrintInfoItem(int index);

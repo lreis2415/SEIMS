@@ -3,6 +3,7 @@
 
 #include "text.h"
 #include "clsReach.h"
+#include "Logging.h"
 
 SubbasinStruct::SubbasinStruct(const int sid, const int gidx) :
     id(sid), group(gidx),
@@ -52,29 +53,28 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
             subbasins[to]->up_streams.emplace_back(subbasins[id]);
         }
     }
-#ifdef _DEBUG
-    StatusMessage("---CreateReachTopology done---");
-    cout << "Group set: ";
+    CLOG(TRACE, LOG_INIT) << "---CreateReachTopology done---";
+    std::ostringstream oss;
+    oss << "Group set: ";
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
-        cout << *it << " ";
+        oss << *it << " ";
     }
-    cout << endl;
-    cout << "Subbasin size: " << subbasins.size() << endl;
-    cout << "SubbasinStruct Map: " << endl;
+    CLOG(TRACE, LOG_INIT) << oss.str();
+    CLOG(TRACE, LOG_INIT) << "Subbasin size: " << subbasins.size();
+    CLOG(TRACE, LOG_INIT) << "SubbasinStruct Map: ";
     for (auto it = subbasins.begin(); it != subbasins.end(); ++it) {
-        cout << "  Subbasin ID: " << it->first;
-        cout << ", Group index: " << it->second->group;
-        cout << ", Updown order: " << it->second->updown_order;
-        cout << ", Downup order: " << it->second->updown_order;
+        std::ostringstream oss2;
+        oss2 << "  Subbasin ID: " << it->first << ", Group index: " << it->second->group
+                << ", Updown order: " << it->second->updown_order
+                << ", Downup order: " << it->second->updown_order;
         if (nullptr == it->second->down_stream) {
-            cout << ", Downstream ID: None";
+            oss2 << ", Downstream ID: None";
         } else {
-            cout << ", Downstream ID: " << it->second->down_stream->id;
+            oss2 << ", Downstream ID: " << it->second->down_stream->id;
         }
-        cout << endl;
+        CLOG(TRACE, LOG_INIT) << oss2.str();
     }
-    cout << endl;
-#endif /* _DEBUG */
+
     delete reaches;
     return 0;
 }

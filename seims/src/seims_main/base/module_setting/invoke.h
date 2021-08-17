@@ -37,12 +37,14 @@ public:
      * \param[in] grp_mtd can be 0 and 1, which means KMETIS (default) and PMETIS, respectively
      * \param[in] skd_mtd (TESTED) can be 0 and 1, which means SPATIAL (default) and TEMPOROSPATIAL, respectively
      * \param[in] time_slices (TESTED) should be greater than 1, required when <skd_mtd> is 1
+     * \param[in] log_level logging level, the default is Info
      */
     InputArgs(const string& model_path, int thread_num, LayeringMethod lyr_mtd,
               const string& host, uint16_t port,
               int scenario_id, int calibration_id,
               int subbasin_id, GroupMethod grp_mtd,
-              ScheduleMethod skd_mtd, int time_slices);
+              ScheduleMethod skd_mtd, int time_slices,
+              const string& log_level);
 
     /*!
      * \brief Initializer.
@@ -54,6 +56,8 @@ public:
 public:
     string model_path;      ///< file path which contains the model input files
     string model_name;      ///< model_name
+    string output_scene;    ///< output scenario identifier, e.g. output1 means scenario 1
+    string output_path;     ///< output path
     int thread_num;         ///< thread number for OpenMP
     LayeringMethod lyr_mtd; ///< Layering method for sequencing computing, default is 0
     string host;            ///< Host IP address of MongoDB database
@@ -64,6 +68,7 @@ public:
     GroupMethod grp_mtd;    ///< Group method for parallel task scheduling, default is 0
     ScheduleMethod skd_mtd; ///< Parallel task scheduling strategy at subbasin level by MPI
     int time_slices;        ///< Time slices for Temporal-Spatial discretization method, Wang et al. (2013)
+    string log_level;       ///< logging level, i.e., Trace, Debug, Info (default), Warning, Error, and Fatal
 };
 
 #endif /* SEIMS_INPUT_ARGUMENTS_H */

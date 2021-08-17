@@ -10,7 +10,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /*! \defgroup KinWavSed_CH
  * \ingroup Erosion
  * \brief Kinematic wave method for channel flow erosion and deposition

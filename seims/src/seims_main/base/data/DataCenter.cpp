@@ -2,76 +2,67 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
     lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
-    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
+    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id), 
+    mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),
-    use_scenario_(false), output_scene_(DB_TAB_OUT_SPATIAL),
-    output_path_(""),
+    use_scenario_(false),
+    output_path_(input_args->output_path),
     model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
     reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
-    /// Clean output folder
-    if (scenario_id_ >= 0) {
-        // -1 means no BMPs scenario will be simulated
-        output_scene_ += ValueToString(scenario_id_);
-        /// Be aware, m_useScenario will be updated in checkModelPreparedData().
-    }
-    if (calibration_id_ >= 0) {
-        // -1 means no calibration setting will be used.
-        output_scene_ += "-" + ValueToString(calibration_id_);
-    }
-    output_path_ = model_path_ + SEP + output_scene_ + SEP;
-    if (subbasin_id_ <= 1) CleanDirectory(output_path_); // avoid repeat operation in mpi version
+    // Nothing to do for now.
 }
 
 DataCenter::~DataCenter() {
-    StatusMessage("Release DataCenter...");
+    CLOG(TRACE, LOG_RELEASE) << "Release DataCenter...";
     if (nullptr != input_) {
-        StatusMessage("---release setting input data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release setting input data ...";
         delete input_;
         input_ = nullptr;
     }
     if (nullptr != output_) {
-        StatusMessage("---release setting output data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release setting output data ...";
         delete output_;
         output_ = nullptr;
     }
     if (nullptr != clim_station_) {
-        StatusMessage("---release climate station data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release climate station data ...";
         delete clim_station_;
         clim_station_ = nullptr;
     }
     if (nullptr != scenario_) {
-        StatusMessage("---release bmps scenario data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release bmps scenario data ...";
         delete scenario_;
         scenario_ = nullptr;
     }
     if (nullptr != reaches_) {
-        StatusMessage("---release reaches data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release reaches data ...";
         delete reaches_;
         reaches_ = nullptr;
     }
     if (nullptr != subbasins_) {
-        StatusMessage("---release subbasins data ...");
+        CLOG(TRACE, LOG_RELEASE) << "---release subbasins data ...";
         delete subbasins_;
         subbasins_ = nullptr;
     }
-    StatusMessage("---release map of all 1D and 2D raster data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of all 1D and 2D raster data ...";
     for (auto it = rs_map_.begin(); it != rs_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
         rs_map_.erase(it++);
     }
     rs_map_.clear();
-    StatusMessage("---release map of parameters in MongoDB ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in MongoDB ...";
     for (auto it = init_params_.begin(); it != init_params_.end();) {
         if (nullptr != it->second) {
             delete it->second;
@@ -80,19 +71,19 @@ DataCenter::~DataCenter() {
         init_params_.erase(it++);
     }
     init_params_.clear();
-    StatusMessage("---release map of 1D array data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of 1D array data ...";
     for (auto it = array1d_map_.begin(); it != array1d_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             Release1DArray(it->second);
         }
         array1d_map_.erase(it++);
     }
     array1d_map_.clear();
-    StatusMessage("---release map of 2D array data ...");
+    CLOG(TRACE, LOG_RELEASE) << "---release map of 2D array data ...";
     for (auto it = array2d_map_.begin(); it != array2d_map_.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             Release2DArray(array2d_rows_map_[it->first], it->second);
         }
         array2d_map_.erase(it++);
@@ -169,7 +160,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
     FloatRaster* raster = ReadRasterData(remote_filename);
     if (nullptr == raster) {
         if (is_optional) return;
-        throw ModelException("DataCenter", "LoadRasterData", "Load " + remote_filename + " failed!");
+        throw ModelException("DataCenter", "LoadAdjustRasterData", "Load " + remote_filename + " failed!");
     }
     string upper_name = GetUpper(para_name);
     if (!CheckAdjustment(upper_name)) return;
@@ -202,10 +193,10 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     int n;
     float* data = nullptr;
     string upper_name = GetUpper(para_name);
-    if (StringMatch(upper_name, Tag_Weight)) {
+    if (StringMatch(upper_name, Tag_Weight[0])) {
         /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
         ReadItpWeightData(remote_filename, n, data);
-    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8)) {
+    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) {
         /// 2. IF FLOWOUT_INDEX_D8
         Read1DArrayData(remote_filename, n, data);
         if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
@@ -258,9 +249,9 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
     } else {
-        // Including: Tag_ROUTING_LAYERS, Tag_ROUTING_LAYERS_DINF,
-        //            Tag_FLOWIN_INDEX_D8, Tag_FLOWIN_INDEX_DINF,
-        //            Tag_FLOWIN_PERCENTAGE_DINF, Tag_FLOWOUT_INDEX_DINF
+        // Including: Tag_ROUTING_LAYERS[0], Tag_ROUTING_LAYERS_DINF,
+        //            Tag_FLOWIN_INDEX_D8[0], Tag_FLOWIN_INDEX_DINF,
+        //            Tag_FLOWIN_PERCENTAGE_DINF[0], Tag_FLOWOUT_INDEX_DINF[0]
         Read2DArrayData(remote_filename, n_rows, n_cols, data);
     }
     if (nullptr != data) {
@@ -291,7 +282,7 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
         vector<ParamInfo*>& parameters = module_parameters[id];
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo* param = parameters[j];
-            if (StringMatch(param->Name, Tag_VerticalInterpolation)) {
+            if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) {
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
@@ -299,15 +290,13 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
         }
     }
     double timeconsume = TimeCounting() - t1;
-    StatusMessage(("Loading data for modules, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
+    CLOG(TRACE, LOG_INIT) << "Loading data for modules, TIMESPAN " << timeconsume << " sec.";
     return timeconsume;
 }
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
                          SimulationModule* p_module) {
-#ifdef _DEBUG
     double stime = TimeCounting();
-#endif
     string name = param->BasicName;
     if (setting->dataTypeString().empty()
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
@@ -323,7 +312,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
     } else {
         oss << name;
     }
-    if (StringMatch(name, Tag_Weight)) {
+    if (StringMatch(name, Tag_Weight[0])) {
         if (setting->dataTypeString() == DataType_Precipitation) {
             oss << "_P";
         } else {
@@ -344,7 +333,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt);
             break;
-        case DT_Array1DDateValue: break;
+        case DT_Array1DDateValue:
+            break;
         case DT_Raster1D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
         case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);
@@ -357,11 +347,9 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         default: break;
     }
-#ifdef _DEBUG
     double timeconsume = TimeCounting() - stime;
-    StatusMessage(("Set " + name + ": " + remote_filename + " done, TIMESPAN " +
-                      ValueToString(timeconsume) + " sec.").c_str());
-#endif
+    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename << 
+    " done, TIMESPAN " << timeconsume << " sec.";
 }
 
 void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
@@ -371,19 +359,19 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
     }
     if (StringMatch(param->Name, Tag_SubbasinId)) {
         param->Value = CVT_FLT(subbasin_id_);
-    } else if (StringMatch(param->Name, Tag_CellSize)) {
+    } else if (StringMatch(param->Name, Tag_CellSize[0])) {
         // valid cells number, do not be confused with Tag_CellWidth
         param->Value = CVT_FLT(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
-    } else if (StringMatch(param->Name, Tag_CellWidth)) {
+    } else if (StringMatch(param->Name, Tag_CellWidth[0])) {
         //cell size
         param->Value = CVT_FLT(mask_raster_->GetCellWidth());
-    } else if (StringMatch(param->Name, Tag_TimeStep)) {
+    } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
-    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep)) {
+    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
         param->Value = CVT_FLT(input_->getDtChannel());
-    } else if (StringMatch(param->Name, Tag_LayeringMethod)) {
+    } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = CVT_FLT(lyr_method_);
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
@@ -422,7 +410,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     float** data = nullptr;
     /// Get ROUTING_LAYERS real file name
     string real_filename = remote_filename;
-    if (StringMatch(para_name, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
         real_filename += lyr_method_ == UP_DOWN ? "_UP_DOWN" : "_DOWN_UP";
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
@@ -489,6 +477,26 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
     p_module->SetSubbasins(subbasins_);
 }
 
+void DataCenter::UpdateOutputDate(time_t start_time, time_t end_time) {
+    for (auto it = origin_out_items_.begin(); it < origin_out_items_.end(); ++it) {
+        if ((*it).sTimet < start_time || (*it).sTimet >= end_time) {
+            CLOG(TRACE, LOG_INIT) << "The start time of output " << (*it).outFileName
+            << " will be changed to " << ConvertToString2(start_time);
+            (*it).sTimet = start_time;
+        }
+        if ((*it).eTimet > end_time || (*it).eTimet <= start_time) {
+            (*it).eTimet = end_time;
+            CLOG(TRACE, LOG_INIT) << "The end time of output " << (*it).outFileName
+            << " will be changed to " << ConvertToString2(end_time);
+            (*it).eTimet = end_time;
+        }
+        CLOG(TRACE, LOG_INIT) << "Output Info of subbasin: " << subbasin_id_ << ": "
+        << (*it).outputID << ": " << (*it).aggType << ", "
+        << ConvertToString((*it).sTimet) << " -- " << ConvertToString2((*it).eTimet)
+        << ", " << (*it).subBsn;
+    }
+}
+
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
@@ -515,7 +523,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                 clim_station_->GetTimeSeriesData(t, data_type, &datalen, &data);
                 if (StringMatch(param->Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int i_data = 0; i_data < datalen; i_data++) {
-                        data[i_data] *= init_params_[VAR_K_PET]->GetAdjustedValue();
+                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue();
                     }
                 }
                 p_module->Set1DData(DataType_Prefix_TS, datalen, data);
@@ -524,7 +532,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     }
 }
 
-void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
+void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
     if (nullptr == scenario_) {
         return;
     }
@@ -534,13 +542,18 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
         if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) {
             continue;
         }
-        cout << "Update parameters by Scenario settings." << endl;
+        //!
+        //!
+        // only update BMP without variable parameters
+        if (iter->second->IsEffectivenessChangeable()) continue;
+        cout << "Update by Scenario parameters stable" << endl;
+
         BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
         map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
         float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
         vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
         /// Get landuse data of current subbasin ("0_" for the whole basin)
-        string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
+        string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE[0]);
         int nsize = -1;
         float* ludata = nullptr;
         rs_map_[lur]->GetRasterData(&nsize, &ludata);
@@ -549,6 +562,7 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
             cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                     << iter2->second->getBMPName() << endl;
             vector<int>& suitablelu = iter2->second->getSuitableLanduse();
+           
             map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
             for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
                 string paraname = iter3->second->Name;
@@ -592,4 +606,157 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
             }
         }
     }
+}
+
+
+//!
+//! Update Scenario by time
+bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, int yearIdx) {
+    bool hasUpdated = false;
+    if (nullptr == scenario_) {
+        return hasUpdated;
+    }
+
+    map<int, BMPFactory*> bmp_factories = scenario_->GetBMPFactories();
+    for (auto iter = bmp_factories.begin(); iter != bmp_factories.end(); ++iter) {
+        //Only for Area Struct BMP
+        /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
+        if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) continue;
+
+        //!
+        // only update BMP with variable parameters
+        if (!iter->second->IsEffectivenessChangeable()) continue;
+                
+        BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory*>(iter->second);
+        map<int, BMPArealStruct*> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
+        for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
+            if (tmp_bmp_areal_struct_factory->getSeriesIndex() == tmp_bmp_areal_struct_factory->GetChangeTimes()) {
+                continue;
+            }
+
+            int lastUpdateIndex = iter2->second->getLastUpdateIndex();
+            int changeFrequency = iter->second->GetChangeFrequency();
+
+            //!
+            //! Use year index instead of calculating time, since in modelmain GetYear function has been executed to find start/end year
+            // update condition: long enough
+            int needUpdateIndex = -1;
+            if (lastUpdateIndex == -1) {//first time
+                //Add a configuration item later!
+                int warmUpPeriod = 1;// 1 year
+                needUpdateIndex = warmUpPeriod + changeFrequency -1;   //must not exceed year index (current year - start year)
+       
+            }
+            else {
+                needUpdateIndex = lastUpdateIndex + changeFrequency;
+                
+            }
+
+            if (yearIdx >= needUpdateIndex) {
+                cout << "Update scenario parameters dynamically." << endl;
+                float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
+                vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDsByIndex();
+                map<int, int> unitUpdateTimes = tmp_bmp_areal_struct_factory->getUpdateTimesByIndex();
+                // some spatial units need to update
+                if (!sel_ids.empty()) {
+                    /// Get landuse data of current subbasin ("0_" for the whole basin)
+                    string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
+                    int nsize = -1;
+                    float* ludata = nullptr;
+                    rs_map_[lur]->GetRasterData(&nsize, &ludata);
+
+                    cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
+                        << iter2->second->getBMPName() << endl;
+                    vector<int>& suitablelu = iter2->second->getSuitableLanduse();
+
+                    //!
+                    //! add predefined simulation start year index to current year index
+                    int simStartIdx = iter2->second->getSimStartIndex();
+                    int maxOpIdx = iter2->second->getMaxOperatingIndex();
+                    int simIdx = simStartIdx + yearIdx;
+                    if (simIdx > maxOpIdx) {
+                        simIdx = maxOpIdx;
+                    }       //if current index larger than max (designed) year of BMP, set to max
+                    
+
+                    map<string, ParamInfo*>& updateparams = iter2->second->getParameters();
+                    for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
+                        string paraname = iter3->second->Name;
+                        
+                        cout << "   -- Parameter ID: " << paraname << endl;
+                        /// Check whether the parameter is existed in m_parametersInDB.
+                        ///   If existed, update the missing values, otherwise, print warning message and continue.
+                        if (init_params_.find(paraname) == init_params_.end()) {
+                            cout << "      Warning: the parameter is not defined in PARAMETER table, and "
+                                " will not work as expected." << endl;
+                            continue;
+                        }
+                        ParamInfo* tmpparam = init_params_[paraname];
+                        if (iter3->second->Change.empty()) {
+                            iter3->second->Change = tmpparam->Change;
+                        }
+                        iter3->second->Maximum = tmpparam->Maximum;
+                        iter3->second->Minimun = tmpparam->Minimun;
+
+                        // Perform update
+                        string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
+                        if (rs_map_.find(remote_filename) == rs_map_.end()) {
+                            cout << "      Warning: the parameter name: " << remote_filename <<
+                                " is not loaded as 1D or 2D raster, and "
+                                " will not work as expected." << endl;
+                            continue;
+                        }
+#ifdef _DEBUG
+                        // DEBUG: output the modified data
+                        CLOG(INFO, LOG_OUTPUT) << simIdx << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
+                            << iter2->second->getBMPName() << " param: " << remote_filename;
+                        vector<string> output_params{ "0_CONDUCTIVITY" };//"0_DENSITY", "0_CONDUCTIVITY"
+#endif // _DEBUG
+                        int count = 0;
+                        if (rs_map_[remote_filename]->Is2DRaster()) {
+                            int lyr = -1;
+                            float** data2d = nullptr;
+                            rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
+                            count = iter3->second->Adjust2DRasterWithOperatingYearIndexes(nsize, lyr, data2d, mgtunits,
+                                sel_ids, simIdx, ludata, suitablelu);
+                            //#ifdef _DEBUG
+                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+                            //                            {
+                            //                                std::stringstream ss;
+                            //                                for (int x = 0; x < nsize; x++)
+                            //                                {
+                            //                                    ss << data2d[x][0] << ' ';
+                            //                                }
+                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str();
+                            //                            }
+                            //#endif
+                        }
+                        else {
+                            float* data = nullptr;
+                            rs_map_[remote_filename]->GetRasterData(&nsize, &data);
+                            count = iter3->second->Adjust1DRasterWithOperatingYearIndexes(nsize, data, mgtunits, sel_ids,
+                                simIdx, ludata, suitablelu);
+                            //#ifdef _DEBUG
+                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+                            //                            {
+                            //                                std::stringstream ss;
+                            //                                for (int x = 0; x < nsize; x++)
+                            //                                {
+                            //                                    ss << data[x] << ' ';
+                            //                                }
+                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
+                            //                            }
+                            //#endif
+                        }
+                        cout << "      A total of " << count << " has been updated for " <<
+                            remote_filename << endl;
+                    }
+                }
+                tmp_bmp_areal_struct_factory->increaseSeriesIndex();//use next location array
+                iter2->second->setLastUpdateIndex(yearIdx); //update to current year index
+                hasUpdated = true;
+            }
+        }
+    }
+    return hasUpdated;
 }

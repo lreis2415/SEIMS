@@ -56,6 +56,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_USLE_L, UNIT_NON_DIM, DESC_USLE_L, DT_Raster1D);
     mdi.AddOutput(VAR_USLE_S, UNIT_NON_DIM, DESC_USLE_S, DT_Raster1D);
     mdi.AddOutput(VAR_USLE_C, UNIT_NON_DIM, DESC_USLE_C, DT_Raster1D);
+    mdi.AddOutput(VAR_USLE_K, UNIT_NON_DIM, DESC_USLE_K, DT_Raster2D);
 
     mdi.AddOutput(VAR_SOER, UNIT_KG, DESC_SOER, DT_Raster1D);
     mdi.AddOutput(VAR_SANDYLD, UNIT_KG, DESC_SANDYLD, DT_Raster1D);

@@ -51,11 +51,14 @@ public:
                   map<string, vector<ParamInfo *> >& moduleInputs,
                   map<string, vector<ParamInfo *> >& moduleOutputs,
                   map<string, vector<ParamInfo *> >& moduleInOutputs,
-                  vector<ParamInfo *>& tfValueInputs);
+                  vector<ParamInfo *>& tfValueInputs,
+                  int mpi_rank = 0, int mpi_size = -1);
     /*!
      * \brief Initialization for exception-safe constructor
      */
-    static ModuleFactory* Init(const string& module_path, InputArgs* input_args);
+    static ModuleFactory* Init(const string& module_path, InputArgs* input_args,
+                               int mpi_rank = 0, int mpi_size = -1);
+
     //! Destructor
     ~ModuleFactory();
 
@@ -167,6 +170,11 @@ public:
     static ParamInfo* FindDependentParam(ParamInfo* paramInfo, vector<string>& moduleIDs,
                                          map<string, vector<ParamInfo *> >& moduleOutputs);
 
+public:
+    //! Rank ID for MPI, starts from 0 to mpi_size_ - 1
+    int m_mpi_rank;                   
+    //! Rank size for MPI
+    int m_mpi_size;
 private:
     //! Database name of the simulation model
     string m_dbName;

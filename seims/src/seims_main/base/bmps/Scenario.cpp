@@ -1,16 +1,20 @@
 #include "Scenario.h"
+#include "Logging.h"
+
+//! calculate year
+#include "utils_time.h"
 
 namespace bmps {
 Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
-                   int scenarioID /* = 0 */) :
-    m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID) {
+                   int scenarioID /* = 0 */, time_t startTime/* = -1 */, time_t endTime/* = -1 */) :
+    m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID), m_startTime(startTime), m_endTime(endTime) {
     assert(m_sceneID >= 0);
     assert(m_subbsnID >= 0);
     loadScenario();
 }
 
 Scenario::~Scenario() {
-    StatusMessage("Releasing Scenario...");
+    CLOG(TRACE, LOG_RELEASE) << "Releasing Scenario...";
     for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end();) {
         if (nullptr != it->second) {
             delete it->second;
@@ -39,10 +43,10 @@ void Scenario::loadScenarioName() {
     /// Find the unique scenario name
     bson_t *query = bson_new(), *reply = bson_new();
     query = BCON_NEW("distinct", BCON_UTF8(TAB_BMP_SCENARIO), "key", FLD_SCENARIO_NAME,
-        "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
+                     "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
     bson_iter_t iter, sub_iter;
-    bson_error_t* err = NULL;
-    if (mongoc_collection_command_simple(sceCollection, query, NULL, reply, err)) {
+    bson_error_t err;
+    if (mongoc_collection_command_simple(sceCollection, query, NULL, reply, &err)) {
         //cout<<bson_as_json(reply,NULL)<<endl;
         if (bson_iter_init_find(&iter, reply, "values") &&
             (BSON_ITER_HOLDS_DOCUMENT(&iter) || BSON_ITER_HOLDS_ARRAY(&iter)) &&
@@ -78,8 +82,8 @@ void Scenario::loadBMPs() {
     std::unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
-    bson_error_t* err = NULL;
-    if (mongoc_cursor_error(cursor, err)) {
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
         throw ModelException("BMP Scenario", "loadBMPs",
                              "There are no record with scenario ID: " + ValueToString(m_sceneID));
     }
@@ -92,11 +96,32 @@ void Scenario::loadBMPs() {
         string distribution = "";
         string collectionName = "";
         string location = "";
+
+        //!
+        bool effectivenessChangeable = false;
+        int tempEffectivenessChangeable = -1;
+        int changeFrequency = 1;    //! default: 1 year
+        int changeTimes = 0;
+
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) GetNumericFromBsonIterator(&iter, BMPID);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) GetNumericFromBsonIterator(&iter, subScenario);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_TABLE)) collectionName = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, FLD_SCENARIO_LOCATION)) location = GetStringFromBsonIterator(&iter);
+
+        //!
+        //! 
+        if (bson_iter_init_find(&iter, info, FLD_SCENARIO_EFFECTIVENESSVARIABLE)) GetNumericFromBsonIterator(&iter, tempEffectivenessChangeable);
+        effectivenessChangeable = tempEffectivenessChangeable == 1 ? true : false;
+        if (effectivenessChangeable) {
+            if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
+            // !!! MUST MODIFY. Or read from database later!
+            int warmUpPeriod = 1;// 1 year
+            //! Need to verify GetYear()
+            //! convert to year
+            //! changeTimes = (m_endTime - m_startTime - warmUpPeriod) / changeFrequency / 31536000;//(m_endTime - m_startTime - warmUpPeriod) / changeFrequency;
+            changeTimes = (int)(GetYear(m_endTime) - GetYear(m_startTime) + 1 - warmUpPeriod) / changeFrequency;
+        }
 
         /// check if raster data is need for the current BMP
         vector<string> dist = SplitString(distribution, '|');
@@ -119,7 +144,7 @@ void Scenario::loadBMPs() {
 
         mongoc_cursor_t* cursor2 = collbmpidx->ExecuteQuery(queryBMP);
 
-        if (mongoc_cursor_error(cursor2, err)) {
+        if (mongoc_cursor_error(cursor2, &err)) {
             throw ModelException("BMP Scenario", "loadBMPs",
                                  "There are no record with BMP ID: " + ValueToString(BMPID));
         }
@@ -162,7 +187,8 @@ void Scenario::loadBMPs() {
                 m_bmpFactories.emplace(uniqueBMPID,
                                        new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
                                                                  BMPType, BMPPriority, dist,
-                                                                 collectionName, location));
+                                                                 collectionName, location, effectivenessChangeable,
+                                                                 changeFrequency, changeTimes));
             }
 #else
             if (BMPID == BMP_TYPE_POINTSOURCE) {

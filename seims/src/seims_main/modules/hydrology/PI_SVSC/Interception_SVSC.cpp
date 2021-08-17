@@ -5,6 +5,7 @@
 
 clsPI_SVSC::clsPI_SVSC(void) : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
                              m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
+    
 #ifndef STORM_MODE
     m_evaporationLoss = NULL;
 #else
@@ -26,49 +27,49 @@ void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
     this->CheckInputSize(key, nRows);
 
     string s(key);
-    if (StringMatch(s, VAR_PCP)) {
+    if (StringMatch(s, VAR_PCP[0])) {
         m_P = data;
     }
-    else if (StringMatch(s, VAR_PET)) {
+    else if (StringMatch(s, VAR_PET[0])) {
 #ifndef STORM_MODE
         m_PET = data;
 #endif
-    } else if (StringMatch(s, VAR_INTERC_MAX)) {
+    } else if (StringMatch(s, VAR_INTERC_MAX[0])) {
         m_maxSt = data;
-    } else if (StringMatch(s, VAR_INTERC_MIN)) {
+    } else if (StringMatch(s, VAR_INTERC_MIN[0])) {
         m_minSt = data;
     } else {
-        throw ModelException(MID_PI_SVSC, "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(M_PI_SVSC[0], "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
 
 void clsPI_SVSC::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_PI_B)) { m_Pi_b = data; }
-    else if (StringMatch(s, VAR_INIT_IS)) { m_Init_IS = data; }
+    if (StringMatch(s, VAR_PI_B[0])) { m_Pi_b = data; }
+    else if (StringMatch(s, VAR_INIT_IS[0])) { m_Init_IS = data; }
 #ifdef STORM_MODE
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_hilldt = data; }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_hilldt = data; }
 #endif // STORM_MODE
     else {
-        throw ModelException(MID_PI_SVSC, "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(M_PI_SVSC[0], "SetValue", "Parameter " + s + " does not exist.");
     }
 }
 
 void clsPI_SVSC::Get1DData(const char *key, int *nRows, float **data) {
     InitialOutputs();
     string s = key;
-    if (StringMatch(s, VAR_INLO)) {
+    if (StringMatch(s, VAR_INLO[0])) {
         *data = m_interceptionLoss;
-    } else if (StringMatch(s, VAR_INET)) {
+    } else if (StringMatch(s, VAR_INET[0])) {
 #ifndef STORM_MODE
         *data = m_evaporationLoss;
 #endif
-    } else if (StringMatch(s, VAR_CANSTOR)) {
+    } else if (StringMatch(s, VAR_CANSTOR[0])) {
         *data = m_st;
-    } else if (StringMatch(s, VAR_NEPR)) {
+    } else if (StringMatch(s, VAR_NEPR[0])) {
         *data = m_netPrecipitation;
     } else {
-        throw ModelException(MID_PI_SVSC, "Get1DData", "Result " + s + " does not exist.");
+        throw ModelException(M_PI_SVSC[0], "Get1DData", "Result " + s + " does not exist.");
     }
     *nRows = this->m_nCells;
 }
@@ -145,46 +146,46 @@ int clsPI_SVSC::Execute() {
 
 bool clsPI_SVSC::CheckInputData() {
     if (this->m_date < 0) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_PI_SVSC[0], "CheckInputData", "You have not set the time.");
     }
 
     if (m_nCells <= 0) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData",
+        throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
 
     if (this->m_P == NULL) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData", "The precipitation data can not be NULL.");
+        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The precipitation data can not be NULL.");
     }
 #ifndef STORM_MODE
     if (this->m_PET == NULL) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData", "The PET data can not be NULL.");
+        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The PET data can not be NULL.");
     }
 #else
     if (this->m_slope == NULL) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData", "The slope gradient can not be NULL.");
+        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The slope gradient can not be NULL.");
     }
     if (this->m_hilldt < 0) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData", "The Hillslope scale time step must greater than 0.");
+        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The Hillslope scale time step must greater than 0.");
     }
 #endif
     if (this->m_maxSt == NULL) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData",
+        throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The maximum interception storage capacity can not be NULL.");
     }
 
     if (this->m_minSt == NULL) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData",
+        throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The minimum interception storage capacity can not be NULL.");
     }
 
     if (this->m_Pi_b > 1.5f || this->m_Pi_b < 0.5f) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData",
+        throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The interception storage capacity exponent can not be " + ValueToString(this->m_Pi_b) +
                                  ". It should between 0.5 and 1.5.");
     }
     if (this->m_Init_IS > 1.f || this->m_Init_IS < 0.f) {
-        throw ModelException(MID_PI_SVSC, "CheckInputData",
+        throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The Initial interception storage can not be " + ValueToString(this->m_Init_IS) +
                                  ". It should between 0 and 1.");
     }
@@ -193,13 +194,13 @@ bool clsPI_SVSC::CheckInputData() {
 
 bool clsPI_SVSC::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_PI_SVSC, "CheckInputSize",
+        throw ModelException(M_PI_SVSC[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
     if (this->m_nCells != n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
-            throw ModelException(MID_PI_SVSC, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_PI_SVSC[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
         }
     }

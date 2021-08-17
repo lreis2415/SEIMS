@@ -13,174 +13,174 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res;
 
     mdi.SetAuthor("Liangjun Zhu");
-    mdi.SetClass(MCLS_MGT, MCLSDESC_MGT);
-    mdi.SetDescription(MDESC_PLTMGT_SWAT);
-    mdi.SetID(MID_PLTMGT_SWAT);
-    mdi.SetName(MID_PLTMGT_SWAT);
+    mdi.SetClass(MCLS_MGT[0], MCLS_MGT[1]);
+    mdi.SetDescription(M_PLTMGT_SWAT[1]);
+    mdi.SetID(M_PLTMGT_SWAT[0]);
+    mdi.SetName(M_PLTMGT_SWAT[0]);
     mdi.SetVersion("1.3");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
-    mdi.AddParameter(VAR_SUBBSNID_NUM, UNIT_NON_DIM, DESC_SUBBSNID_NUM, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);
-    //mdi.AddParameter(VAR_BACT_SWF, UNIT_NON_DIM, DESC_BACT_SWF, Source_ParameterDB, DT_Single); ///TODO
-    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CSWAT[0], UNIT_NON_DIM, VAR_CSWAT[1], Source_ParameterDB, DT_Single);
+    //mdi.AddParameter(VAR_BACT_SWF[0], UNIT_NON_DIM, VAR_BACT_SWF[1], Source_ParameterDB, DT_Single); ///TODO
+    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     /// basic parameters
-    mdi.AddParameter(VAR_SUBBASIN_PARAM, UNIT_NON_DIM, DESC_SUBBASIN_PARAM, Source_ParameterDB, DT_Subbasin);
-    mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SUBBASIN_PARAM[0], UNIT_NON_DIM, VAR_SUBBASIN_PARAM[1], Source_ParameterDB, DT_Subbasin);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
     /// soil
-    mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOL_ZMX, UNIT_DEPTH_MM, DESC_SOL_ZMX, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOL_SUMAWC, UNIT_DEPTH_MM, DESC_SOL_SUMAWC, Source_ParameterDB, DT_Raster1D); /// m_soilSumFC
-    mdi.AddParameter(VAR_SOILDEPTH, UNIT_DEPTH_MM, DESC_SOILDEPTH, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_BD, UNIT_DENSITY, DESC_SOL_BD, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_CBN, UNIT_PERCENT, DESC_SOL_CBN, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOL_ZMX[0], UNIT_DEPTH_MM, VAR_SOL_ZMX[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOL_SUMAWC[0], UNIT_DEPTH_MM, VAR_SOL_SUMAWC[1], Source_ParameterDB, DT_Raster1D); /// m_soilSumFC
+    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_BD[0], UNIT_DENSITY, VAR_SOL_BD[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_CBN[0], UNIT_PERCENT, VAR_SOL_CBN[1], Source_ParameterDB, DT_Raster2D);
     /// for 1-C-FARM on carbon pool model
-    mdi.AddParameter(VAR_SOL_N, UNIT_CONT_KGHA, DESC_SOL_N, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_N[0], UNIT_CONT_KGHA, VAR_SOL_N[1], Source_ParameterDB, DT_Raster2D);
 
-    mdi.AddParameter(VAR_CLAY, UNIT_PERCENT, DESC_CLAY, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SILT, UNIT_PERCENT, DESC_SILT, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SAND, UNIT_PERCENT, DESC_SAND, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_ROCK, UNIT_PERCENT, DESC_ROCK, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_CLAY[0], UNIT_PERCENT, VAR_CLAY[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SILT[0], UNIT_PERCENT, VAR_SILT[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SAND[0], UNIT_PERCENT, VAR_SAND[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_ROCK[0], UNIT_PERCENT, VAR_ROCK[1], Source_ParameterDB, DT_Raster2D);
     /// landuse/landcover
-    mdi.AddParameter(VAR_IDC, UNIT_NON_DIM, DESC_IDC, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDUSE, UNIT_NON_DIM, DESC_LANDUSE, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDCOVER, UNIT_NON_DIM, DESC_LANDCOVER, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_CN2, UNIT_NON_DIM, DESC_CN2, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_HVSTI, UNIT_CONT_RATIO, DESC_HVSTI, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_WSYF, UNIT_CONT_RATIO, DESC_WSYF, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_PHUPLT, UNIT_HEAT_UNIT, DESC_PHUPLT, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_T_BASE, UNIT_TEMP_DEG, DESC_T_BASE, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_IDC[0], UNIT_NON_DIM, VAR_IDC[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CN2[0], UNIT_NON_DIM, VAR_CN2[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_HVSTI[0], UNIT_CONT_RATIO, VAR_HVSTI[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_WSYF[0], UNIT_CONT_RATIO, VAR_WSYF[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_PHUPLT[0], UNIT_HEAT_UNIT, VAR_PHUPLT[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_T_BASE[0], UNIT_TEMP_DEG, VAR_T_BASE[1], Source_ParameterDB, DT_Raster1D);
     /// lookup table as 2D array, such as crop, management, landuse, tillage, etc.
-    mdi.AddParameter(VAR_LANDUSE_LOOKUP, UNIT_NON_DIM, DESC_LANDUSE_LOOKUP, Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_CROP_LOOKUP, UNIT_NON_DIM, DESC_CROP_LOOKUP, Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_TILLAGE_LOOKUP, UNIT_NON_DIM, DESC_TILLAGE_LOOKUP, Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_FERTILIZER_LOOKUP, UNIT_NON_DIM, DESC_FERTILIZER_LOOKUP, Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_LANDUSE_LOOKUP[0], UNIT_NON_DIM, VAR_LANDUSE_LOOKUP[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_CROP_LOOKUP[0], UNIT_NON_DIM, VAR_CROP_LOOKUP[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_TILLAGE_LOOKUP[0], UNIT_NON_DIM, VAR_TILLAGE_LOOKUP[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_FERTILIZER_LOOKUP[0], UNIT_NON_DIM, VAR_FERTILIZER_LOOKUP[1], Source_ParameterDB, DT_Array2D);
 
     /// set scenario data
-    mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
+    mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
 
-    mdi.AddParameter(VAR_SOL_SORGN, UNIT_CONT_KGHA, DESC_SOL_SORGN, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_HORGP, UNIT_CONT_KGHA, DESC_SOL_HORGP, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_SOLP, UNIT_CONT_KGHA, DESC_SOL_SOLP, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_NH4, UNIT_CONT_KGHA, DESC_SOL_NH4, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_NO3, UNIT_CONT_KGHA, DESC_SOL_NO3, Source_Module, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_AWC, UNIT_DEPTH_MM, DESC_SOL_AWC, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOL_UL, UNIT_DEPTH_MM, DESC_SOL_UL, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_SORGN[0], UNIT_CONT_KGHA, VAR_SOL_SORGN[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_HORGP[0], UNIT_CONT_KGHA, VAR_SOL_HORGP[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_SOLP[0], UNIT_CONT_KGHA, VAR_SOL_SOLP[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_NH4[0], UNIT_CONT_KGHA, VAR_SOL_NH4[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_NO3[0], UNIT_CONT_KGHA, VAR_SOL_NO3[1], Source_Module, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_UL[0], UNIT_DEPTH_MM, VAR_SOL_UL[1], Source_ParameterDB, DT_Raster2D);
     /// set input from other modules
     /// soil properties
-    mdi.AddInput(VAR_SOL_AORGN, UNIT_CONT_KGHA, DESC_SOL_AORGN, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_FORGN, UNIT_CONT_KGHA, DESC_SOL_FORGN, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_FORGP, UNIT_CONT_KGHA, DESC_SOL_FORGP, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_ACTP, UNIT_CONT_KGHA, DESC_SOL_ACTP, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_STAP, UNIT_CONT_KGHA, DESC_SOL_STAP, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_RSD, UNIT_CONT_KGHA, DESC_SOL_RSD, Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_AORGN[0], UNIT_CONT_KGHA, VAR_SOL_AORGN[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_FORGN[0], UNIT_CONT_KGHA, VAR_SOL_FORGN[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_FORGP[0], UNIT_CONT_KGHA, VAR_SOL_FORGP[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_ACTP[0], UNIT_CONT_KGHA, VAR_SOL_ACTP[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_STAP[0], UNIT_CONT_KGHA, VAR_SOL_STAP[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_RSD[0], UNIT_CONT_KGHA, VAR_SOL_RSD[1], Source_Module, DT_Raster2D);
 
     /// landuse/landcover
-    mdi.AddInput(VAR_PHUBASE, UNIT_HEAT_UNIT, DESC_PHUBASE, Source_Module, DT_Raster1D);       /// PET modules
-    mdi.AddInput(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, Source_Module, DT_Raster1D);               /// PG_EPIC module
-    mdi.AddInput(VAR_FR_PHU_ACC, UNIT_HEAT_UNIT, DESC_FR_PHU_ACC, Source_Module, DT_Raster1D); /// PG_EPIC module
-    mdi.AddParameter(VAR_TREEYRS, UNIT_YEAR, DESC_TREEYRS, Source_ParameterDB, DT_Raster1D);
+    mdi.AddInput(VAR_PHUBASE[0], UNIT_HEAT_UNIT, VAR_PHUBASE[1], Source_Module, DT_Raster1D);       /// PET modules
+    mdi.AddInput(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_Module, DT_Raster1D);               /// PG_EPIC module
+    mdi.AddInput(VAR_FR_PHU_ACC[0], UNIT_HEAT_UNIT, VAR_FR_PHU_ACC[1], Source_Module, DT_Raster1D); /// PG_EPIC module
+    mdi.AddParameter(VAR_TREEYRS[0], UNIT_YEAR, VAR_TREEYRS[1], Source_ParameterDB, DT_Raster1D);
     /// m_curYearMat, from ParameterDB
-    mdi.AddInput(VAR_HVSTI_ADJ, UNIT_CONT_RATIO, DESC_HVSTI_ADJ, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_DORMI, UNIT_NON_DIM, DESC_DORMI, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_LAIMAXFR, UNIT_NON_DIM, DESC_LAIMAXFR, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_OLAI, UNIT_AREA_RATIO, DESC_OLAI, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PLANT_N, UNIT_CONT_KGHA, DESC_PLANT_N, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PLANT_P, UNIT_CONT_KGHA, DESC_PLANT_P, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_FR_PLANT_N, UNIT_NON_DIM, DESC_FR_PLANT_N, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_FR_PLANT_P, UNIT_NON_DIM, DESC_FR_PLANT_P, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PLTET_TOT, UNIT_DEPTH_MM, DESC_PLTET_TOT, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PLTPET_TOT, UNIT_DEPTH_MM, DESC_PLTPET_TOT, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_FR_ROOT, UNIT_NON_DIM, DESC_FR_ROOT, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_BIOMASS, UNIT_CONT_KGHA, DESC_BIOMASS, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_LAST_SOILRD, UNIT_DEPTH_MM, DESC_LAST_SOILRD, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_FR_STRSWTR, UNIT_NON_DIM, DESC_FR_STRSWTR, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_HVSTI_ADJ[0], UNIT_CONT_RATIO, VAR_HVSTI_ADJ[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_LAIDAY[0], UNIT_AREA_RATIO, VAR_LAIDAY[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_LAIMAXFR[0], UNIT_NON_DIM, VAR_LAIMAXFR[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_OLAI[0], UNIT_AREA_RATIO, VAR_OLAI[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PLANT_N[0], UNIT_CONT_KGHA, VAR_PLANT_N[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PLANT_P[0], UNIT_CONT_KGHA, VAR_PLANT_P[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_FR_PLANT_N[0], UNIT_NON_DIM, VAR_FR_PLANT_N[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_FR_PLANT_P[0], UNIT_NON_DIM, VAR_FR_PLANT_P[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PLTET_TOT[0], UNIT_DEPTH_MM, VAR_PLTET_TOT[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PLTPET_TOT[0], UNIT_DEPTH_MM, VAR_PLTPET_TOT[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_FR_ROOT[0], UNIT_NON_DIM, VAR_FR_ROOT[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_BIOMASS[0], UNIT_CONT_KGHA, VAR_BIOMASS[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_LAST_SOILRD[0], UNIT_DEPTH_MM, VAR_LAST_SOILRD[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_FR_STRSWTR[0], UNIT_NON_DIM, VAR_FR_STRSWTR[1], Source_Module, DT_Raster1D);
 
     /// groundwater table, currently, shallow and deep aquifer are not distinguished
-    //mdi.AddInput(VAR_DEEPST, UNIT_DEPTH_MM, DESC_DEEPST, Source_Module, DT_Raster1D);
-    //mdi.AddInput(VAR_SHALLST, UNIT_DEPTH_MM, DESC_SHALLST, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SBGS, UNIT_DEPTH_MM, DESC_SBGS, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_POT_VOL, UNIT_DEPTH_MM, DESC_POT_VOL, Source_Module_Optional, DT_Raster1D); /// IMP_SWAT
-    mdi.AddInput(VAR_POT_NO3, UNIT_KG, DESC_POT_NO3, Source_Module_Optional, DT_Raster1D);
-    mdi.AddInput(VAR_POT_NH4, UNIT_KG, DESC_POT_NH4, Source_Module_Optional, DT_Raster1D);
-    mdi.AddInput(VAR_POT_SOLP, UNIT_PER_DAY, DESC_POT_SOLP, Source_Module_Optional, DT_Raster1D);
+    //mdi.AddInput(VAR_DEEPST[0], UNIT_DEPTH_MM, VAR_DEEPST[1], Source_Module, DT_Raster1D);
+    //mdi.AddInput(VAR_SHALLST[0], UNIT_DEPTH_MM, VAR_SHALLST[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SBGS[0], UNIT_DEPTH_MM, VAR_SBGS[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_POT_VOL[0], UNIT_DEPTH_MM, VAR_POT_VOL[1], Source_Module_Optional, DT_Raster1D); /// IMP_SWAT
+    mdi.AddInput(VAR_POT_NO3[0], UNIT_KG, VAR_POT_NO3[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_POT_NH4[0], UNIT_KG, VAR_POT_NH4[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_POT_SOLP[0], UNIT_PER_DAY, VAR_POT_SOLP[1], Source_Module_Optional, DT_Raster1D);
 
-    mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_SW, UNIT_DEPTH_MM, DESC_SOL_SW, Source_Module, DT_Raster1D); /// sol_sw in SWAT
+    mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_SW[0], UNIT_DEPTH_MM, VAR_SOL_SW[1], Source_Module, DT_Raster1D); /// sol_sw in SWAT
 
     /**** set inputs for CENTURY C/N cycling model derived from NUTR_TF module, if CSWAT = 2. As optional inputs. ****/
     /// for fertilizer operation
-    mdi.AddInput(VAR_SOL_HSN, UNIT_CONT_KGHA, DESC_SOL_HSN, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LM, UNIT_CONT_KGHA, DESC_SOL_LM, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LMC, UNIT_CONT_KGHA, DESC_SOL_LMC, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LMN, UNIT_CONT_KGHA, DESC_SOL_LMN, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LSC, UNIT_CONT_KGHA, DESC_SOL_LSC, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LSN, UNIT_CONT_KGHA, DESC_SOL_LSN, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LS, UNIT_CONT_KGHA, DESC_SOL_LS, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LSL, UNIT_CONT_KGHA, DESC_SOL_LSL, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LSLC, UNIT_CONT_KGHA, DESC_SOL_LSLC, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_LSLNC, UNIT_CONT_KGHA, DESC_SOL_LSLNC, Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_HSN[0], UNIT_CONT_KGHA, VAR_SOL_HSN[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LM[0], UNIT_CONT_KGHA, VAR_SOL_LM[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LMC[0], UNIT_CONT_KGHA, VAR_SOL_LMC[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LMN[0], UNIT_CONT_KGHA, VAR_SOL_LMN[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LSC[0], UNIT_CONT_KGHA, VAR_SOL_LSC[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LSN[0], UNIT_CONT_KGHA, VAR_SOL_LSN[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LS[0], UNIT_CONT_KGHA, VAR_SOL_LS[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LSL[0], UNIT_CONT_KGHA, VAR_SOL_LSL[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LSLC[0], UNIT_CONT_KGHA, VAR_SOL_LSLC[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_LSLNC[0], UNIT_CONT_KGHA, VAR_SOL_LSLNC[1], Source_Module_Optional, DT_Raster2D);
 
-    //mdi.AddInput(VAR_SOL_WON, UNIT_CONT_KGHA, DESC_SOL_WON, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_BM, UNIT_CONT_KGHA, DESC_SOL_BM, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_BMC, UNIT_CONT_KGHA, DESC_SOL_BMC, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_BMN, UNIT_CONT_KGHA, DESC_SOL_BMN, Source_Module, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_HP, UNIT_CONT_KGHA, DESC_SOL_HP, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_HS, UNIT_CONT_KGHA, DESC_SOL_HS, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_HSC, UNIT_CONT_KGHA, DESC_SOL_HSC, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_HPC, UNIT_CONT_KGHA, DESC_SOL_HPC, Source_Module_Optional, DT_Raster2D);
-    mdi.AddInput(VAR_SOL_HPN, UNIT_CONT_KGHA, DESC_SOL_HPN, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_RNMN, UNIT_CONT_KGHA, DESC_SOL_RNMN, Source_Module_Optional, DT_Raster2D);
-    //mdi.AddInput(VAR_SOL_RSPC, UNIT_CONT_KGHA, DESC_SOL_RSPC, Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_WON[0], UNIT_CONT_KGHA, VAR_SOL_WON[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_BM[0], UNIT_CONT_KGHA, VAR_SOL_BM[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_BMC[0], UNIT_CONT_KGHA, VAR_SOL_BMC[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_BMN[0], UNIT_CONT_KGHA, VAR_SOL_BMN[1], Source_Module, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_HP[0], UNIT_CONT_KGHA, VAR_SOL_HP[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_HS[0], UNIT_CONT_KGHA, VAR_SOL_HS[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_HSC[0], UNIT_CONT_KGHA, VAR_SOL_HSC[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_HPC[0], UNIT_CONT_KGHA, VAR_SOL_HPC[1], Source_Module_Optional, DT_Raster2D);
+    mdi.AddInput(VAR_SOL_HPN[0], UNIT_CONT_KGHA, VAR_SOL_HPN[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_RNMN[0], UNIT_CONT_KGHA, VAR_SOL_RNMN[1], Source_Module_Optional, DT_Raster2D);
+    //mdi.AddInput(VAR_SOL_RSPC[0], UNIT_CONT_KGHA, VAR_SOL_RSPC[1], Source_Module_Optional, DT_Raster2D);
 
-    mdi.AddInput(VAR_POT_SA, UNIT_AREA_HA, DESC_POT_SA, Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_POT_SA[0], UNIT_AREA_HA, VAR_POT_SA[1], Source_Module_Optional, DT_Raster1D);
 
     /// set the output variables
 
     ///// outputs of plant operation.
-    mdi.AddOutput(VAR_BIOTARG, UNIT_CONT_KGHA, DESC_BIOTARG, DT_Raster1D);
-    mdi.AddOutput(VAR_HVSTI_TARG, UNIT_NON_DIM, DESC_HVSTI_TARG, DT_Raster1D);
+    mdi.AddOutput(VAR_BIOTARG[0], UNIT_CONT_KGHA, VAR_BIOTARG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_HVSTI_TARG[0], UNIT_NON_DIM, VAR_HVSTI_TARG[1], DT_Raster1D);
     ///// outputs of irrigation / autoIrrigation operation
-    mdi.AddOutput(VAR_IRR_FLAG, UNIT_NON_DIM, DESC_IRR_FLAG, DT_Raster1D);
-    mdi.AddOutput(VAR_IRR_WTR, UNIT_DEPTH_MM, DESC_IRR_WTR, DT_Raster1D);
-    mdi.AddOutput(VAR_IRR_SURFQ, UNIT_DEPTH_MM, DESC_IRR_SURFQ, DT_Raster1D);
+    mdi.AddOutput(VAR_IRR_FLAG[0], UNIT_NON_DIM, VAR_IRR_FLAG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_IRR_WTR[0], UNIT_DEPTH_MM, VAR_IRR_WTR[1], DT_Raster1D);
+    mdi.AddOutput(VAR_IRR_SURFQ[0], UNIT_DEPTH_MM, VAR_IRR_SURFQ[1], DT_Raster1D);
     /// defined in auto irrigation operation
-    mdi.AddOutput(VAR_AWTR_STRS_ID, UNIT_NON_DIM, DESC_AWTR_STRS_ID, DT_Raster1D);
-    mdi.AddOutput(VAR_AWTR_STRS_TRIG, UNIT_NON_DIM, DESC_AWTR_STRS_TRIG, DT_Raster1D);
-    mdi.AddOutput(VAR_AIRR_SOURCE, UNIT_NON_DIM, DESC_AIRR_SOURCE, DT_Raster1D);
-    mdi.AddOutput(VAR_AIRR_LOCATION, UNIT_NON_DIM, DESC_AIRR_LOCATION, DT_Raster1D);
-    mdi.AddOutput(VAR_AIRR_EFF, UNIT_NON_DIM, DESC_AIRR_EFF, DT_Raster1D);
-    mdi.AddOutput(VAR_AIRRWTR_DEPTH, UNIT_DEPTH_MM, DESC_AIRRWTR_DEPTH, DT_Raster1D);
-    mdi.AddOutput(VAR_AIRRSURF_RATIO, UNIT_NON_DIM, DESC_AIRRSURF_RATIO, DT_Raster1D);
+    mdi.AddOutput(VAR_AWTR_STRS_ID[0], UNIT_NON_DIM, VAR_AWTR_STRS_ID[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AWTR_STRS_TRIG[0], UNIT_NON_DIM, VAR_AWTR_STRS_TRIG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRR_SOURCE[0], UNIT_NON_DIM, VAR_AIRR_SOURCE[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRR_LOCATION[0], UNIT_NON_DIM, VAR_AIRR_LOCATION[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRR_EFF[0], UNIT_NON_DIM, VAR_AIRR_EFF[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRRWTR_DEPTH[0], UNIT_DEPTH_MM, VAR_AIRRWTR_DEPTH[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRRSURF_RATIO[0], UNIT_NON_DIM, VAR_AIRRSURF_RATIO[1], DT_Raster1D);
     /// outputs of fertilizer / auto fertilizer operations
-    mdi.AddOutput(VAR_AFERT_ID, UNIT_NON_DIM, DESC_AFERT_ID, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_NSTRSID, UNIT_NON_DIM, DESC_AFERT_NSTRSID, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_NSTRS, UNIT_NON_DIM, DESC_AFERT_NSTRS, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_MAXN, UNIT_CONT_KGHA, DESC_AFERT_MAXN, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_AMAXN, UNIT_CONT_KGHA, DESC_AFERT_AMAXN, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_NYLDT, UNIT_NON_DIM, DESC_AFERT_NYLDT, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_FRTEFF, UNIT_NON_DIM, DESC_AFERT_FRTEFF, DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_FRTSURF, UNIT_NON_DIM, DESC_AFERT_FRTSURF, DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_ID[0], UNIT_NON_DIM, VAR_AFERT_ID[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_NSTRSID[0], UNIT_NON_DIM, VAR_AFERT_NSTRSID[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_NSTRS[0], UNIT_NON_DIM, VAR_AFERT_NSTRS[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_MAXN[0], UNIT_CONT_KGHA, VAR_AFERT_MAXN[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_AMAXN[0], UNIT_CONT_KGHA, VAR_AFERT_AMAXN[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_NYLDT[0], UNIT_NON_DIM, VAR_AFERT_NYLDT[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_FRTEFF[0], UNIT_NON_DIM, VAR_AFERT_FRTEFF[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_FRTSURF[0], UNIT_NON_DIM, VAR_AFERT_FRTSURF[1], DT_Raster1D);
     /// for 1-C-FARM on carbon pool model
-    mdi.AddOutput(VAR_SOL_MC, UNIT_CONT_KGHA, DESC_SOL_MC, DT_Raster2D);
-    mdi.AddOutput(VAR_SOL_MN, UNIT_CONT_KGHA, DESC_SOL_MN, DT_Raster2D);
-    mdi.AddOutput(VAR_SOL_MP, UNIT_CONT_KGHA, DESC_SOL_MP, DT_Raster2D);
+    mdi.AddOutput(VAR_SOL_MC[0], UNIT_CONT_KGHA, VAR_SOL_MC[1], DT_Raster2D);
+    mdi.AddOutput(VAR_SOL_MN[0], UNIT_CONT_KGHA, VAR_SOL_MN[1], DT_Raster2D);
+    mdi.AddOutput(VAR_SOL_MP[0], UNIT_CONT_KGHA, VAR_SOL_MP[1], DT_Raster2D);
     //// outputs of grazing operation
-    mdi.AddOutput(VAR_GRZ_DAYS, UNIT_NON_DIM, DESC_GRZ_DAYS, DT_Raster1D);
-    mdi.AddOutput(VAR_GRZ_FLAG, UNIT_NON_DIM, DESC_GRZ_FLAG, DT_Raster1D);
+    mdi.AddOutput(VAR_GRZ_DAYS[0], UNIT_NON_DIM, VAR_GRZ_DAYS[1], DT_Raster1D);
+    mdi.AddOutput(VAR_GRZ_FLAG[0], UNIT_NON_DIM, VAR_GRZ_FLAG[1], DT_Raster1D);
     //// output of impound/release operation
-    mdi.AddOutput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, DT_Raster1D);
-    mdi.AddOutput(VAR_POT_VOLMAXMM, UNIT_DEPTH_MM, DESC_POT_VOLMAXMM, DT_Raster1D);
-    mdi.AddOutput(VAR_POT_VOLLOWMM, UNIT_DEPTH_MM, DESC_POT_VOLLOWMM, DT_Raster1D);
+    mdi.AddOutput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_POT_VOLMAXMM[0], UNIT_DEPTH_MM, VAR_POT_VOLMAXMM[1], DT_Raster1D);
+    mdi.AddOutput(VAR_POT_VOLLOWMM[0], UNIT_DEPTH_MM, VAR_POT_VOLLOWMM[1], DT_Raster1D);
     /// outputs of tillage operation during CENTURY model
-    mdi.AddOutput(VAR_TILLAGE_DAYS, UNIT_DAY, DESC_TILLAGE_DAYS, DT_Raster1D);
-    mdi.AddOutput(VAR_TILLAGE_DEPTH, UNIT_DAY, DESC_TILLAGE_DEPTH, DT_Raster1D);
-    mdi.AddOutput(VAR_TILLAGE_SWITCH, UNIT_DAY, DESC_TILLAGE_SWITCH, DT_Raster1D);
-    mdi.AddOutput(VAR_TILLAGE_FACTOR, UNIT_DAY, DESC_TILLAGE_FACTOR, DT_Raster1D);
+    mdi.AddOutput(VAR_TILLAGE_DAYS[0], UNIT_DAY, VAR_TILLAGE_DAYS[1], DT_Raster1D);
+    mdi.AddOutput(VAR_TILLAGE_DEPTH[0], UNIT_DAY, VAR_TILLAGE_DEPTH[1], DT_Raster1D);
+    mdi.AddOutput(VAR_TILLAGE_SWITCH[0], UNIT_DAY, VAR_TILLAGE_SWITCH[1], DT_Raster1D);
+    mdi.AddOutput(VAR_TILLAGE_FACTOR[0], UNIT_DAY, VAR_TILLAGE_FACTOR[1], DT_Raster1D);
 
     /// write out the XML file.
     res = mdi.GetXMLDocument();

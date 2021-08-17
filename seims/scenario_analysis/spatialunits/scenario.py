@@ -10,7 +10,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from future.utils import viewitems
 
-
 import array
 from collections import OrderedDict
 from copy import deepcopy
@@ -23,7 +22,6 @@ from struct import unpack
 from typing import Union, Dict, List, Tuple, Optional, Any, AnyStr
 import numpy
 from gridfs import GridFS
-from osgeo import osr
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser, is_string
 from pymongo.errors import NetworkTimeout
@@ -169,6 +167,24 @@ class SUScenario(Scenario):
             raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
                                ' class, especially the overwritten rule_based_config and'
                                ' random_based_config!')
+
+    def initialize_with_bmps_order(self, opt_genes, input_genes=False):
+        # type: (List, Optional[List]) -> List
+        """Initialize a scenario with bmps order.
+
+        Returns:
+            A list contains BMPs identifier of each gene location.
+        """
+        if input_genes:
+            self.gene_values = opt_genes
+        else:
+            for idx, gene in enumerate(opt_genes):
+                if numpy.isclose(gene, 0.):
+                    self.gene_values[idx] = 0
+                else:
+                    rand_bit = random.randint(1, self.cfg.change_times)
+                    self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
+        return self.gene_values
 
     def rule_based_config(self, method, conf_rate=0.5):
         # type: (float, AnyStr) -> None
@@ -397,6 +413,48 @@ class SUScenario(Scenario):
                 self.bmp_items[sce_item_count] = curd
                 sce_item_count += 1
 
+    def decoding_with_bmps_order(self):
+        """Decode gene values to Scenario item, i.e., `self.bmp_items`."""
+        if self.ID < 0:
+            self.set_unique_id()
+        if self.bmp_items:
+            self.bmp_items.clear()
+        bmp_units = dict()  # type: Dict[int, List[str]] # {BMPs_ID: [units list]}
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            subscenario, year = [int(x) for x in str(int(gene_v))]
+            if subscenario not in bmp_units:
+                bmp_units[subscenario] = list()
+            bmp_units[subscenario].append('{0}|{1}'.format(unit_id, year))
+
+        sce_item_count = 0
+        for k, v in viewitems(bmp_units):
+            curd = dict()
+            curd['BMPID'] = self.cfg.bmpid
+            curd['NAME'] = 'S%d' % self.ID
+            curd['COLLECTION'] = self.bmps_info[self.cfg.bmpid]['COLLECTION']
+            curd['DISTRIBUTION'] = self.bmps_info[self.cfg.bmpid]['DISTRIBUTION']
+            curd['LOCATION'] = '-'.join(v)
+            curd['SUBSCENARIO'] = k
+            curd['ID'] = self.ID
+            curd['EFFECTIVENESSVARIABLE'] = 1 if self.cfg.effectiveness_changeable else 0
+            curd['CHANGEFREQUENCY'] = self.cfg.change_frequency * 365 * 24 * 60 * 60  # convert to seconds
+            self.bmp_items[sce_item_count] = curd
+            sce_item_count += 1
+        # if BMPs_retain is not empty, append it.
+        if len(self.bmps_retain) > 0:
+            for k, v in viewitems(self.bmps_retain):
+                curd = deepcopy(v)
+                curd['BMPID'] = k
+                curd['NAME'] = 'S%d' % self.ID
+                curd['ID'] = self.ID
+                curd['EFFECTIVENESSVARIABLE'] = 0
+                curd['CHANGEFREQUENCY'] = -1
+                self.bmp_items[sce_item_count] = curd
+                sce_item_count += 1
+
     def import_from_mongodb(self, sid):
         pass
 
@@ -429,6 +487,46 @@ class SUScenario(Scenario):
         # self.economy = capex
         # self.economy = capex + opex
         self.economy = capex + opex - income
+        # print('economy: capex {}, income {}, opex {}'.format(capex, income, opex))
+        return self.economy
+
+    def calculate_economy_bmps_order(self):
+        """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
+        self.economy = 0.
+        # capex = 0.
+        # income = 0.
+        costs = numpy.array([0.] * self.cfg.change_times)
+        incomes = numpy.array([0.] * self.cfg.change_times)
+        total_impl_period = self.cfg.change_times
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            subscenario, impl_period = [int(x) for x in str(int(gene_v))]
+            # include benefits in the year of BMP implementation
+            bmpparam = self.bmps_params[subscenario]
+            for luid, luarea in unit_lu.items():
+                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                    capex = luarea * bmpparam['CAPEX']
+                    income = luarea * bmpparam['INCOME']
+                    costs[impl_period - 1] += capex
+                    # every period has income after impl
+                    for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
+                        incomes[prd - 1] += income
+
+        self.net_costs_per_period = (costs - incomes).tolist()
+        self.economy = sum(self.net_costs_per_period)
+        print('economy:{}, capex {}, income {}'.format(self.economy, costs, incomes))
+        # self.economy = capex - income
+
+        # has already calculated in constraints
+        # self.economy = numpy.sum(self.net_costs_per_period)
+        # print('economy: capex {}, income {}'.format(capex,income))
         return self.economy
 
     def calculate_environment(self):
@@ -449,9 +547,9 @@ class SUScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             # model clean
-            self.model.SetMongoClient()
-            self.model.clean(delete_scenario=True)
-            self.model.UnsetMongoClient()
+            # self.model.SetMongoClient()
+            # self.model.clean(delete_scenario=True)
+            # self.model.UnsetMongoClient()
             return
 
         base_amount = self.eval_info['BASE_ENV']
@@ -467,13 +565,68 @@ class SUScenario(Scenario):
 
         if base_amount < 0:  # indicates a base scenario
             self.environment = sed_sum
+            self.sed_sum = sed_sum
         else:
             # reduction rate of soil erosion
             self.environment = (base_amount - sed_sum) / base_amount
+            self.sed_sum = sed_sum
             # print exception values
             if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
                       'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                self.environment = self.worst_env
+
+    def calculate_environment_bmps_order(self):
+        """Calculate environment benefit based on the output and base values predefined in
+                configuration file.
+                """
+        if not self.modelrun:  # no evaluate done
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            return
+        rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
+
+        if not FileClass.is_file_exists(rfile):
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+        if not FileClass.is_file_exists(rfile):
+            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
+                  ' cannot be found!' % rfile)
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            # model clean
+            # self.model.SetMongoClient()
+            # self.model.clean(delete_scenario=True)
+            # self.model.UnsetMongoClient()
+            return
+
+        base_amount = self.eval_info['BASE_ENV']
+        sed_per_period = list()
+        if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
+            rr = RasterUtilClass.read_raster(rfile)
+            sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment
+            for i in range(self.cfg.change_times):
+                filename = self.modelout_dir + os.path.sep + str(i + 1) + '_' + self.eval_info['ENVEVAL']
+                sed_per_period.append(RasterUtilClass.read_raster(filename).get_sum())
+        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
+            sed_sum = read_simulation_from_txt(self.modelout_dir,
+                                               ['SED'], self.model.OutletID,
+                                               self.cfg.eval_stime, self.cfg.eval_etime)
+        else:
+            raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+
+        if base_amount < 0:  # indicates a base scenario
+            self.environment = sed_sum
+            self.sed_sum = sed_sum
+            self.sed_per_period = sed_per_period
+        else:
+            # reduction rate of soil erosion (in percent)
+            self.environment = (base_amount - sed_sum) * 100 / base_amount
+            self.sed_sum = sed_sum
+            self.sed_per_period = sed_per_period
+            # print exception values
+            if self.environment > 100. or self.environment is numpy.nan:
+                print('Exception Information: Scenario ID: %d, SUM(%s): %s, per period: %s'
+                      % (self.ID, rfile, repr(sed_sum), sed_per_period))
                 self.environment = self.worst_env
 
     def export_scenario_to_gtiff(self, outpath=None):
@@ -515,6 +668,7 @@ class SUScenario(Scenario):
             srs = slpposf['metadata'][RasterMetadata.srs]
             if is_string(srs):
                 srs = str(srs)
+            from osgeo import osr
             srs = osr.GetUserInputAsWKT(srs)
             geotransform = [0] * 6
             geotransform[0] = xll - 0.5 * cellsize
@@ -542,6 +696,51 @@ class SUScenario(Scenario):
             RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
                                              srs, nodata_value)
             # client.close()
+
+    def calculate_profits_by_period(self):
+        bmp_costs_by_period = [0.] * self.cfg.change_times
+        bmp_income_by_period = [0.] * self.cfg.change_times
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            subscenario, impl_period = [int(x) for x in str(int(gene_v))]
+            bmpparam = self.bmps_params[subscenario]
+            for luid, luarea in unit_lu.items():
+                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                    capex = luarea * bmpparam['CAPEX']
+                    income = luarea * bmpparam['INCOME']
+                    bmp_costs_by_period[impl_period - 1] += capex
+                    # every period has income after impl
+                    for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
+                        bmp_income_by_period[prd - 1] += income
+        return bmp_costs_by_period, bmp_income_by_period
+
+    def satisfy_investment_constraints(self):
+        # not consider investment quota
+        if not self.cfg.enable_investment_quota:
+            return True
+        else:
+            if self.cfg.investment_each_period is None:
+                return False
+            bmp_costs_by_period, bmp_income_by_period = self.calculate_profits_by_period()
+            invest = numpy.array(self.cfg.investment_each_period)
+            costs = numpy.array(bmp_costs_by_period)
+            income = numpy.array(bmp_income_by_period)
+            print('investment: ', invest)
+            print('costs: ', costs)
+            print('income: ', income)
+            print('diff: ', invest - (costs - income))
+            if numpy.all(numpy.greater(invest, costs - income)):
+                self.net_costs_per_period = costs - income
+                return True
+            else:
+                return False
 
 
 def select_potential_bmps(unitid,  # type: int
@@ -670,6 +869,13 @@ def initialize_scenario(cf, input_genes=None):
     return sce.initialize(input_genes=input_genes)
 
 
+def initialize_scenario_with_bmps_order(cf, opt_genes, input_genes=False):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
+    """Initialize gene values"""
+    sce = SUScenario(cf)
+    return sce.initialize_with_bmps_order(opt_genes, input_genes=input_genes)
+
+
 def scenario_effectiveness(cf, ind):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
     """Run SEIMS-based model and calculate economic and environmental effectiveness."""
@@ -693,9 +899,49 @@ def scenario_effectiveness(cf, ind):
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
+
+    return ind
+
+
+def scenario_effectiveness_with_bmps_order(cf, ind):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
+    """Run SEIMS-based model and calculate time extended economic and environmental effectiveness."""
+    # 1. instantiate the inherited Scenario class.
+    sce = SUScenario(cf)
+    ind.id = sce.set_unique_id()
+    setattr(sce, 'gene_values', ind)
+
+    # 2. decode gene values to BMP items and exporting to MongoDB.
+    sce.decoding_with_bmps_order()
+    sce.export_to_mongodb()
+
+    # 3. first evaluate economic investment to exclude scenarios that don't satisfy the constraints
+    # if that don't satisfy the constraints, don't execute the time-consuming simulation process
+    if sce.satisfy_investment_constraints():  # sce.check_custom_constraints():
+        # 4. execute the SEIMS-based watershed model and get the timespan
+        sce.execute_seims_model()
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        # 5. calculate scenario effectiveness and delete intermediate data
+        sce.calculate_economy_bmps_order()
+        sce.calculate_environment_bmps_order()
+    else:
+        # worst conditions
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
+        sce.economy = sce.worst_econ
+        sce.environment = sce.worst_env
+    # 6. Export scenarios information
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
+    # 7. Clean the intermediate data of current scenario
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 8. Assign fitness values
+    ind.fitness.values = [sce.economy, sce.environment]
+    ind.sed_sum = sce.sed_sum
+    ind.sed_per_period = sce.sed_per_period
+    ind.net_costs_per_period = sce.net_costs_per_period
 
     return ind
 
@@ -724,7 +970,7 @@ def main_multiple(eval_num):
     print(max(cost), min(cost), sum(cost) / len(cost))
 
 
-def main_single():
+def main_single(sceid, gene_values):
     """Test of single evaluation of scenario."""
     cf = get_config_parser()
     base_cfg = SAConfig(cf)  # type: SAConfig
@@ -737,13 +983,14 @@ def main_single():
     cfg.construct_indexes_units_gene()
 
     sce = SUScenario(cfg)
-    sce.initialize()
+    sce.initialize(input_genes=gene_values)
     sce.boundary_adjustment()
-    sceid = sce.set_unique_id()
-    print(sceid, sce.gene_values.__str__())
+    sce.set_unique_id(sceid)
+    # print(sceid, sce.gene_values.__str__())
     sce.decoding()
     sce.export_to_mongodb()
     sce.execute_seims_model()
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.calculate_economy()
     sce.calculate_environment()
 
@@ -772,55 +1019,253 @@ def main_manual(sceid, gene_values):
     sce.export_to_mongodb()
     sce.execute_seims_model()
     sce.export_sce_tif = True
-    sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.calculate_economy()
     sce.calculate_environment()
 
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+        sce.economy, sce.environment, sce.sed_sum))
+
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+def main_manual_bmps_order(sceid, gene_values):
+    """Test of set scenario manually."""
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding_with_bmps_order()
+    sce.export_to_mongodb()
+    if sce.satisfy_investment_constraints():
+        sce.execute_seims_model()
+        sce.calculate_economy_bmps_order()
+        sce.calculate_environment_bmps_order()
+        sce.export_sce_tif = True
+        sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+        sce.export_sce_txt = True
+        sce.export_scenario_to_txt()
+
+        print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+        print(
+                'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s' %
+                (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period)))
+
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+def generate_giff_txt(sceid, gene_values):
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding()
+    sce.export_to_mongodb()
+    # indicate the model has run
+    sce.modelrun = True
+    sce.modelout_dir = sce.model.output_dir
+    sce.calculate_economy()
+    sce.calculate_environment()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # Not responsible for deleting
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+# if the the scenario has run and folder exists, just generate giff and txt files
+def generate_giff_txt_with_bmps_order(sceid, gene_values):
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding()
+    sce.export_to_mongodb()
+    # indicate the model has run
+    sce.modelrun = True
+    sce.modelout_dir = sce.model.output_dir
+    sce.calculate_economy_bmps_order()
+    sce.calculate_environment_bmps_order()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+        sce.economy, sce.environment, sce.sed_sum))
+
+    # Not responsible for deleting
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 def test_func():
     # main_single()
     # main_multiple(4)
 
-    sid = 210213956
-    gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
-               2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-               -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
-               0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
-               0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
-               0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
-    # sid = 10000000
-    # gvalues = [0.] * 175
-
+    # run base
+    sid = 0
+    gvalues = [0.0] * 105
     main_manual(sid, gvalues)
+
+    # selected scenario
+    sid = 10
+    gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
+               0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
+               0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
+               0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual(sid, gvalues)
+
+    # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
+    sid = 105
+    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               21.0,
+               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0,
+               31.0, 0.0,
+               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               21.0, 0.0,
+               0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
+
+    # # BMP 1 are implemented in the first year
+    # sid = 101
+    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            23.0,
+    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0,
+    #            33.0, 0.0,
+    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0, 33.0, 0.0, 0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+    #            23.0, 0.0,
+    #            0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 11.0, 23.0, 0.0, 11.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 23.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # BMP 2 are implemented in the first year
+    # sid = 102
+    # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            21.0,
+    #            0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0,
+    #            33.0, 0.0,
+    #            0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+    #            21.0, 0.0,
+    #            0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 13.0, 21.0, 0.0, 13.0, 33.0, 43.0, 21.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 21.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # # BMP 3 are implemented in the first year
+    # sid = 103
+    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            23.0,
+    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
+    #            31.0, 0.0,
+    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+    #            23.0, 0.0,
+    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 31.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+    #
+    # # BMP 4 are implemented in the first year
+    # sid = 104
+    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            23.0,
+    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
+    #            33.0, 0.0,
+    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+    #            23.0, 0.0,
+    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 41.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # sid = 229353850
+    # gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            22.0, 0.0, 0.0, 22.0, 0.0, 22.0, 0.0, 21.0, 23.0, 0.0, 21.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
+    #            12.0, 33.0, 0.0, 0.0, 22.0, 21.0, 0.0, 22.0, 0.0, 22.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 21.0,
+    #            0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 22.0, 0.0, 11.0, 21.0, 0.0, 12.0, 32.0,
+    #            43.0, 23.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 22.0, 21.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # do nothing scenario:
+    # sid = 100
+    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            23.0,
+    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
+    #            33.0, 0.0,
+    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+    #            23.0, 0.0,
+    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # Generate TXT files and gif files for the models that have been run.
+    # generate_giff_txt(sid, gvalues)
+    # generate_giff_txt_with_bmps_order(sid, gvalues)
 
 
 if __name__ == '__main__':
-    cf = get_config_parser()
-    # cfg = SAConfig(cf)  # type: SAConfig
-    cfg = SAConnFieldConfig(cf)
-    sceobj = SUScenario(cfg)  # type: Scenario
-
-    # test the picklable of Scenario class.
-    import pickle
-
-    s = pickle.dumps(sceobj)
-    # print(s)
-    new_cfg = pickle.loads(s)  # type: Scenario
-    print(new_cfg.modelcfg.ConfigDict)
-    print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                         new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
-    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
-                                                                 new_cfg.ID))
-    new_cfg.set_unique_id()
-    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
-                                                                 new_cfg.ID))
+    test_func()
+# cf = get_config_parser()
+# # cfg = SAConfig(cf)  # type: SAConfig
+# cfg = SAConnFieldConfig(cf)
+# sceobj = SUScenario(cfg)  # type: Scenario
+#
+# # test the picklable of Scenario class.
+# import pickle
+#
+# s = pickle.dumps(sceobj)
+# # print(s)
+# new_cfg = pickle.loads(s)  # type: Scenario
+# print(new_cfg.modelcfg.ConfigDict)
+# print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+#                                      new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
+# print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+#                                                              new_cfg.ID))
+# new_cfg.set_unique_id()
+# print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+#                                                              new_cfg.ID))

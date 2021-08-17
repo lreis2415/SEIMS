@@ -3,7 +3,7 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 class UnsaturatedFlow : public SimulationModule {
 private:

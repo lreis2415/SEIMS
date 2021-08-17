@@ -10,7 +10,6 @@ SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NU
                        m_T0(NODATA_VALUE), m_SM(NULL),
                        m_SA(NULL), m_TS(NULL), m_mask(NULL), m_INFIL(NULL), m_PE(NULL), m_date(-1), m_w1(NULL),
                        m_w2(NULL), m_sMax(NULL), m_wfmp(NULL) {
-
 }
 
 SUR_GreenAmpt::~SUR_GreenAmpt(void) {
@@ -319,7 +318,7 @@ int SUR_GreenAmpt::Execute() {
         // check the output data
         if (m_INFIL[iCell] > 10000.0f || m_INFIL[iCell] < 0.0f) {
             //string datestr = getDate(&m_date);
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Cell(Row:" << m_mask[iCell][0] << ", Col:" << m_mask[iCell][1] << "\n Infiltration =" <<
                 m_INFIL[iCell]
                 << "\n Precipitation(mm) = " << pNet << "\n InfiltrationRate(m/h) = " << rateinf << "\n";
@@ -478,7 +477,7 @@ void SUR_GreenAmpt::initalW1W2() {
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
         c1 = cnn - 20.f * c2 / (c2 + exp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
-        c1 = max(c1, 0.4f * cnn);
+        c1 = Max(c1, 0.4f * cnn);
         c3 = cnn * exp(0.006729f * c2);                                //CN3  2:1.1.5
 
         //calculate maximum retention parameter value

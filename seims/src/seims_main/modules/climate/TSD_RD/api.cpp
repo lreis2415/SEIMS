@@ -11,16 +11,16 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Zhiqiang Yu");
-    mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
-    mdi.SetDescription(MDESC_TSD_RD);
-    mdi.SetID(MID_TSD_RD);
-    mdi.SetName(MID_TSD_RD);
+    mdi.SetClass(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
+    mdi.SetDescription(M_TSD_RD[1]);
+    mdi.SetID(M_TSD_RD[0]);
+    mdi.SetName(M_TSD_RD[0]);
     mdi.SetVersion("1.0");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    mdi.AddParameter(VAR_TSD_DT, UNIT_NON_DIM, DESC_TSD_DT, File_Config, DT_Single);
+    mdi.AddParameter(VAR_TSD_DT[0], UNIT_NON_DIM, VAR_TSD_DT[1], File_Config, DT_Single);
 
     /// set the input variables (time series), and T means time series. D means distribution.
     mdi.AddInput(DataType_Prefix_TS, UNIT_NON_DIM, DESC_TSD_CLIMATE, Source_HydroClimateDB, DT_Array1D);

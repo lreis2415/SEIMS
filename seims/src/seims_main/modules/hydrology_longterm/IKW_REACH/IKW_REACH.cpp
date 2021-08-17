@@ -1,18 +1,18 @@
 #include "IKW_REACH.h"
 #include "text.h"
 
-using namespace std;
+//using namespace std;  // Avoid this statement! by lj.
 
 IKW_REACH::IKW_REACH() : m_dt(-1), m_layeringMethod(UP_DOWN), m_nreach(-1), m_Kchb(nullptr),
-                             m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
-                             m_aBank(NODATA_VALUE),
-                             m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
-                             m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr), m_gwStorage(nullptr), m_area(nullptr),
-                             m_Vseep0(0.f), m_chManning(nullptr), m_chSlope(nullptr),m_chWTdepth(nullptr),
-                             m_bankStorage(nullptr), m_seepage(nullptr),
-                             m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
-                             m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
-                             m_qUpReach(0.f), m_deepGroudwater(0.f) {
+                         m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
+                         m_aBank(NODATA_VALUE),
+                         m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
+                         m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr), m_gwStorage(nullptr), m_area(nullptr),
+                         m_Vseep0(0.f), m_chManning(nullptr), m_chSlope(nullptr),m_chWTdepth(nullptr),
+                         m_bankStorage(nullptr), m_seepage(nullptr),
+                         m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
+                         m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
+                         m_qUpReach(0.f), m_deepGroudwater(0.f) {
 }
 
 IKW_REACH::~IKW_REACH() {
@@ -157,7 +157,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             m_nreach = n - 1;
         } else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nreach << ".\n";
             throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
@@ -343,17 +343,17 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
         return (0);
     }
 
-    Qkx = max(Qkx, MIN_FLUX);
+    Qkx = Max(Qkx, MIN_FLUX);
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * Power(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * Power(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
-        Qkx = max(Qkx, MIN_FLUX);
+        Qkx = Max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (fabs(fQkx) > _epsilon && count < MAX_ITERS_KW);
+    } while (Abs(fQkx) > _epsilon && count < MAX_ITERS_KW);
 
     if (Qkx != Qkx) {
         throw ModelException("IKW_OL", "GetNewQ", "Error in iteration!");

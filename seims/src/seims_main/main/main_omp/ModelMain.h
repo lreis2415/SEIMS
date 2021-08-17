@@ -25,7 +25,6 @@
 /// include data related
 #ifdef USE_MONGODB
 #include "DataCenterMongoDB.h"
-
 #endif /* USE_MONGODB */
 #include "SettingsInput.h"
 #include "SettingsOutput.h"
