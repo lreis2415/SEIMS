@@ -12,7 +12,7 @@ def calc_sed_sum(sceid, impl_period):
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
     seds.append(sed_sum)
-    print('12-15年总产沙量：%f' % (sed_sum,))
+    print('13-15年总产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/SED_OL_AVE.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
