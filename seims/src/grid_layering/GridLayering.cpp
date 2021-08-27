@@ -3,6 +3,11 @@
 #include "omp.h"
 #endif
 #include <ogrsf_frmts.h>
+#include <queue>
+#include <set>
+
+using std::queue;
+using std::set;
 
 int find_flow_direction_index_ccw(const int fd) {
     for (int i = 1; i <= 8; i++) {
@@ -18,7 +23,6 @@ int find_flow_direction_index_ccw(const int delta_row, const int delta_col) {
     return -1;
 }
 
-
 int get_reversed_fdir(const int fd) {
     int fd_idx = find_flow_direction_index_ccw(fd);
     if (fd_idx < 0) return -1;
@@ -27,7 +31,9 @@ int get_reversed_fdir(const int fd) {
 }
 
 vector<int> uncompress_flow_directions(const int compressed_fd) {
+    // When invoke this function, the compressed_fd MUST be guaranteed to be POSITIVE!
     vector<int> flow_dirs; // record multiple flow directions by counter-clockwise
+    if (compressed_fd <= 0) return flow_dirs;
     if (compressed_fd & 1) {
         flow_dirs.emplace_back(1);
     }
@@ -52,6 +58,7 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
     if (compressed_fd & 2) {
         flow_dirs.emplace_back(2);
     }
+    // Specific situation: {east, southeast} should be changed to {southeast, east} based on CCW
     if (flow_dirs.size() >= 2 && flow_dirs[0] == 1 && flow_dirs.back() == 2) {
         flow_dirs[0] = 2;
         flow_dirs.back() = 1;
@@ -60,10 +67,15 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
 }
 
 bool read_stream_vertexes_as_rowcol(string stream_file, FloatRaster* mask, vector<vector<ROW_COL> >& stream_rc) {
+#if GDAL_VERSION_MAJOR >= 2
     GDALDataset *stream_ds = nullptr;
     stream_ds = static_cast<GDALDataset*>(GDALOpenEx(stream_file.c_str(),
                                                      GA_ReadOnly | GDAL_OF_VECTOR,
                                                      nullptr, nullptr, nullptr));
+#else
+    OGRRegisterAll();
+    OGRDataSource* stream_ds = OGRSFDriverRegistrar::Open(stream_file.c_str(), FALSE);
+#endif
     if (nullptr == stream_ds) {
         cout << "Read stream shapefile failed!" << endl;
         return false;
@@ -97,10 +109,15 @@ bool read_stream_vertexes_as_rowcol(string stream_file, FloatRaster* mask, vecto
         OGRFeature::DestroyFeature(ft);
     }
     if (stream_rc.empty()) return false;
+#if GDAL_VERSION_MAJOR >= 2
+    GDALClose(stream_ds);
+#else
+    OGRDataSource::DestroyDataSource(stream_ds);
+#endif
     return true;
 }
 
-void print_flow_fractions_mfdmd(clsRasterData<float>* ffrac, int row, int col) {
+void print_flow_fractions_mfdmd(FltMaskFltRaster* ffrac, int row, int col) {
     for (int i = 1; i <= 8; i++) {
         cout << ffrac->GetValue(row, col, i) << ",";
     }
@@ -111,24 +128,24 @@ void print_flow_fractions_mfdmd(clsRasterData<float>* ffrac, int row, int col) {
 GridLayering::GridLayering(const int id, MongoGridFs* gfs, const char* out_dir) :
     gfs_(gfs), use_mongo_(true), has_mask_(false), fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
-    n_valid_cells_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
+    n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
-    flow_in_num_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
-    flow_out_num_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr),
-    layers_updown_(nullptr), layers_downup_(nullptr),
-    layer_cells_updown_(nullptr), layer_cells_downup_(nullptr) {
+    flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
+    flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr),
+    layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
+    layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
 #endif
 
 GridLayering::GridLayering(const int id, const char* out_dir):
     gfs_(nullptr), use_mongo_(false), has_mask_(false), fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
-    n_valid_cells_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
+    n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
-    flow_in_num_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
-    flow_out_num_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr),
-    layers_updown_(nullptr), layers_downup_(nullptr),
-    layer_cells_updown_(nullptr), layer_cells_downup_(nullptr) {
+    flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
+    flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr),
+    layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
+    layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
 
 GridLayering::~GridLayering() {
@@ -137,19 +154,24 @@ GridLayering::~GridLayering() {
     if (nullptr != pos_index_) Release1DArray(pos_index_);
     if (nullptr != reverse_dir_) Release1DArray(reverse_dir_);
     if (nullptr != flow_in_num_) Release1DArray(flow_in_num_);
+    if (nullptr != flow_in_acc_) Release1DArray(flow_in_acc_);
     if (nullptr != flow_in_cells_) Release1DArray(flow_in_cells_);
     if (nullptr != flow_out_num_) Release1DArray(flow_out_num_);
+    if (nullptr != flow_out_acc_) Release1DArray(flow_out_acc_);
     if (nullptr != flow_out_cells_) Release1DArray(flow_out_cells_);
     if (nullptr != layers_updown_) Release1DArray(layers_updown_);
     if (nullptr != layers_downup_) Release1DArray(layers_downup_);
+    if (nullptr != layers_evenly_) Release1DArray(layers_evenly_);
     if (nullptr != layer_cells_updown_) Release1DArray(layer_cells_updown_);
     if (nullptr != layer_cells_downup_) Release1DArray(layer_cells_downup_);
+    if (nullptr != layer_cells_evenly_) Release1DArray(layer_cells_evenly_);
 }
 
 bool GridLayering::Execute() {
     if (!LoadData()) return false;
     CalPositionIndex();
-    return OutputFlowOut() && OutputFlowIn() && GridLayeringFromSource() && GridLayeringFromOutlet();
+    return OutputFlowOut() && OutputFlowIn() && 
+            GridLayeringFromSource() && GridLayeringFromOutlet() && GridLayeringEvenly();
 }
 
 void GridLayering::CalPositionIndex() {
@@ -161,13 +183,18 @@ void GridLayering::CalPositionIndex() {
 }
 
 void GridLayering::GetReverseDirMatrix() {
-    if (nullptr == reverse_dir_) Initialize1DArray(n_valid_cells_, reverse_dir_, 0);
+    if (nullptr == reverse_dir_) Initialize1DArray(n_valid_cells_, reverse_dir_, 0.f);
+    if (nullptr == flow_in_num_) Initialize1DArray(n_valid_cells_, flow_in_num_, 0);
+    if (nullptr == flow_in_acc_) Initialize1DArray(n_valid_cells_, flow_in_acc_, 0);
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
         int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
-        if (flowdir_->IsNoData(i, j) || flow_dir < 0) {
-            reverse_dir_[valid_idx] = out_nodata_;
+        if (flowdir_->IsNoData(i, j) || flow_dir <= 0) {
+            // Avoid repeatedly change to nodata, since such cells can accept flow in
+            if (FloatEqual(reverse_dir_[valid_idx], 0.f)) {
+                reverse_dir_[valid_idx] = out_nodata_;
+            }
             continue;
         }
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
@@ -185,27 +212,15 @@ void GridLayering::GetReverseDirMatrix() {
                 reverse_dir_[dst_idx] = 0;
             }
             reverse_dir_[dst_idx] += CVT_FLT(get_reversed_fdir(fdccw[fd_idx]));
+            flow_in_num_[dst_idx] += 1;
         }
     }
-}
-
-void GridLayering::CountFlowInCells() {
-    if (nullptr == flow_in_num_) Initialize1DArray(n_valid_cells_, flow_in_num_, 0);
-#pragma omp parallel for
-    for (int i = 0; i < n_valid_cells_; i++) {
-        int reverse_fdir = CVT_INT(reverse_dir_[i]);
-        if (reverse_fdir < 0) {
-            continue;
-        }
-        vector<int> reverse_fdirs = uncompress_flow_directions(reverse_fdir);
-        flow_in_num_[i] = CVT_INT(reverse_fdirs.size());
+    flow_in_acc_[0] = flow_in_num_[0];
+    flow_in_count_ = flow_in_num_[0];
+    for (int idx = 1; idx < n_valid_cells_; idx++) {
+        flow_in_count_ += flow_in_num_[idx];
+        flow_in_acc_[idx] = flow_in_num_[idx] + flow_in_acc_[idx - 1];
     }
-    int total = 0;
-#pragma omp parallel for reduction(+:total)
-    for (int index = 0; index < n_valid_cells_; index++) {
-        total += flow_in_num_[index];
-    }
-    flow_in_count_ = total;
 }
 
 int GridLayering::BuildMultiFlowOutArray(float*& compressed_dir,
@@ -215,12 +230,11 @@ int GridLayering::BuildMultiFlowOutArray(float*& compressed_dir,
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
-        /// flow out cell's number
+        /// count of flow out cells
         p_output[counter++] = CVT_FLT(connect_count[valid_idx]); // maybe 0
         if (connect_count[valid_idx] == 0) continue;
-        /// accumulated flow in directions
-        int acc_flowin_dir = CVT_INT(compressed_dir[valid_idx]);
-        vector<int> flow_dirs = uncompress_flow_directions(acc_flowin_dir);
+        /// loop flow out directions
+        vector<int> flow_dirs = uncompress_flow_directions(CVT_INT(compressed_dir[valid_idx]));
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
             if (!mask_->ValidateRowCol(i + drow[fd_idx], j + dcol[fd_idx]) ||
@@ -246,11 +260,12 @@ bool GridLayering::BuildFlowInCellsArray() {
 
 void GridLayering::CountFlowOutCells() {
     if (nullptr == flow_out_num_) Initialize1DArray(n_valid_cells_, flow_out_num_, 0);
+    if (nullptr == flow_out_acc_) Initialize1DArray(n_valid_cells_, flow_out_acc_, 0);
 #pragma omp parallel for
     for (int index = 0; index < n_valid_cells_; index++) {
         int i = pos_rowcol_[index][0]; // row
         int j = pos_rowcol_[index][1]; // col
-        if (flowdir_->IsNoData(i, j) || flowdir_matrix_[index] < 0) continue;
+        if (flowdir_->IsNoData(i, j) || flowdir_matrix_[index] <= 0) continue;
 
         int flow_dir = CVT_INT(flowdir_matrix_[index]);
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
@@ -262,18 +277,19 @@ void GridLayering::CountFlowOutCells() {
             }
         }
     }
-    int total = 0;
-#pragma omp parallel for reduction(+:total)
-    for (int index = 0; index < n_valid_cells_; index++) {
-        total += flow_out_num_[index];
+    flow_out_acc_[0] = flow_out_num_[0];
+    flow_out_count_ = flow_out_num_[0];
+    for (int idx = 1; idx < n_valid_cells_; idx++) {
+        flow_out_count_ += flow_out_num_[idx];
+        flow_out_acc_[idx] = flow_out_num_[idx] + flow_out_acc_[idx - 1];
     }
-    flow_out_count_ = total;
 }
 
 bool GridLayering::BuildFlowOutCellsArray() {
     int n_output = flow_out_count_ + n_valid_cells_ + 1;
     if (nullptr == flow_out_cells_) Initialize1DArray(n_output, flow_out_cells_, 0.f);
-    int n_output2 = BuildMultiFlowOutArray(flowdir_matrix_, flow_out_num_, flow_out_cells_);
+    int n_output2 = BuildMultiFlowOutArray(flowdir_matrix_, flow_out_num_,
+                                           flow_out_cells_);
     if (n_output2 != n_output) {
         cout << "BuildFlowOutCellsArray failed!" << endl;
         return false;
@@ -334,7 +350,7 @@ bool GridLayering::OutputArrayAsGfs(const string& name, const int length, float*
 
 bool GridLayering::OutputFlowIn() {
     GetReverseDirMatrix();
-    CountFlowInCells();
+    // CountFlowInCells();
     if (!BuildFlowInCellsArray()) return false;
     string header = "ID\tUpstreamCount\tUpstreamID";
     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_);
@@ -365,25 +381,27 @@ bool GridLayering::OutputFlowOut() {
 
 bool GridLayering::GridLayeringFromSource() {
     Initialize1DArray(n_valid_cells_, layers_updown_, out_nodata_);
-
-    int* last_layer = nullptr; // indexes of cells in last layer, the length is cell numbers of last layer
+    int* flow_in_num_copy = nullptr;
+    Initialize1DArray(n_valid_cells_, flow_in_num_copy, flow_in_num_);
+    // indexes of cells in last layer
+    int* last_layer = nullptr;
     Initialize1DArray(n_valid_cells_, last_layer, out_nodata_);
     int num_last_layer = 0; // number of cells in last layer
 
-    vector<vector<int> > layer_cells_updown; // layer number - indexes of cells
-
     // 1. find source grids, i.e., the first layer
     for (int i = 0; i < n_valid_cells_; i++) {
-        if (flow_in_num_[i] == 0 && flowdir_matrix_[i] > 0) {
+        if (flow_in_num_copy[i] == 0 && flowdir_matrix_[i] > 0) {
             last_layer[num_last_layer++] = i;
         }
     }
-    // 2. loop and layer
+    // 2. loop layer-by-layer
     int num_next_layer = 0;
-    int cur_num = 0; //the layering number of the current layer. In the end, it is the total number of layers.
+    // layering number of the current layer, at last, it's the total number of layers
+    int cur_num = 0;
+    // cell indexes in next layer
     int* next_layer = nullptr;
     Initialize1DArray(n_valid_cells_, next_layer, out_nodata_);
-    int* tmp = nullptr;
+    int* tmp = nullptr; // swap variable
     int valid_idx = 0;
     vector<int> lyr_cells;
     while (num_last_layer > 0) {
@@ -393,27 +411,21 @@ bool GridLayering::GridLayeringFromSource() {
             valid_idx = last_layer[i_in_layer];
             lyr_cells.emplace_back(valid_idx);
             layers_updown_[valid_idx] = CVT_FLT(cur_num);
-
-            int i = pos_rowcol_[valid_idx][0]; // row
-            int j = pos_rowcol_[valid_idx][1]; // col
-
             int dir = CVT_INT(flowdir_matrix_[valid_idx]);
-            vector<int> dirs = uncompress_flow_directions(dir);
-            for (vector<int>::iterator it = dirs.begin(); it != dirs.end(); ++it) {
-                int fd_idx = find_flow_direction_index_ccw(*it);
-                int dst_row = i + drow[fd_idx];
-                int dst_col = j + dcol[fd_idx];
-                if (!mask_->ValidateRowCol(dst_row, dst_col) ||
-                    mask_->IsNoData(dst_row, dst_col))
-                    continue;
-                int dst_index = dst_row * n_cols_ + dst_col;
-                if (--flow_in_num_[pos_index_[dst_index]] == 0) {
-                    next_layer[num_next_layer++] = pos_index_[dst_index];
+            if (dir <= 0) {
+                continue;
+            }
+            for (int out_idx = 0; out_idx < flow_out_num_[valid_idx]; out_idx++) {
+                int out_cellidx = 1 + valid_idx + 1 + out_idx;
+                if (valid_idx > 0) out_cellidx += flow_out_acc_[valid_idx - 1];
+                int dst_posidx = CVT_INT(flow_out_cells_[out_cellidx]);
+                if (--flow_in_num_copy[dst_posidx] == 0) {
+                    next_layer[num_next_layer++] = dst_posidx;
                 }
             }
         }
         vector<int>(lyr_cells).swap(lyr_cells);
-        layer_cells_updown.emplace_back(vector<int>(lyr_cells));
+        n_layer_cells_updown_.emplace_back(vector<int>(lyr_cells));
         lyr_cells.clear();
 
         num_last_layer = num_next_layer;
@@ -424,39 +436,38 @@ bool GridLayering::GridLayeringFromSource() {
     Release1DArray(last_layer);
     Release1DArray(next_layer);
 
-    int layer_num = CVT_INT(layer_cells_updown.size());
-    int length = n_valid_cells_ + layer_num + 1;
+    n_layer_count_ = CVT_INT(n_layer_cells_updown_.size());
+    int length = n_valid_cells_ + n_layer_count_ + 1;
     Initialize1DArray(length, layer_cells_updown_, 0.f);
-    layer_cells_updown_[0] = CVT_FLT(layer_num);
+    layer_cells_updown_[0] = CVT_FLT(n_layer_count_);
     valid_idx = 1;
-    for (auto it = layer_cells_updown.begin(); it != layer_cells_updown.end(); ++it) {
+    for (auto it = n_layer_cells_updown_.begin();
+         it != n_layer_cells_updown_.end(); ++it) {
         layer_cells_updown_[valid_idx++] = CVT_FLT((*it).size());
         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
             layer_cells_updown_[valid_idx++] = CVT_FLT(*it2);
         }
     }
+    Release1DArray(flow_in_num_copy);
     return OutputGridLayering(layering_updown_name_, length,
                               layers_updown_, layer_cells_updown_);
 }
 
 bool GridLayering::GridLayeringFromOutlet() {
     Initialize1DArray(n_valid_cells_, layers_downup_, out_nodata_);
-
-    int* last_layer = nullptr; // indexes of cells in last layer, the length is cell numbers of last layer
+    int* flow_out_num_copy = nullptr;
+    Initialize1DArray(n_valid_cells_, flow_out_num_copy, flow_out_num_);
+    // indexes of cells in last layer
+    int* last_layer = nullptr;
     Initialize1DArray(n_valid_cells_, last_layer, out_nodata_);
     int num_last_layer = 0; // number of cells in last layer
-
-    vector<vector<int> > layer_cells_downup; // layer number - indexes of cells
-
-    // 1. find outlet grids
+    // 1. find outlet cells
     for (int i = 0; i < n_valid_cells_; i++) {
-        int irow = pos_rowcol_[i][0]; // row
-        int icol = pos_rowcol_[i][1]; // col
-        if (!flowdir_->IsNoData(irow, icol) && flow_out_num_[i] == 0) {
+        if (flow_out_num_[i] == 0) {
             last_layer[num_last_layer++] = i;
         }
     }
-    // 2. loop and layer
+    // 2. loop layer-by-layer
     int num_next_layer = 0;
     int* next_layer = nullptr;
     Initialize1DArray(n_valid_cells_, next_layer, out_nodata_);
@@ -470,26 +481,17 @@ bool GridLayering::GridLayeringFromOutlet() {
             int valid_idx = last_layer[i_in_layer];
             lyr_cells.emplace_back(valid_idx);
             layers_downup_[valid_idx] = CVT_FLT(cur_num);
-
-            int jrow = pos_rowcol_[valid_idx][0]; // row
-            int jcol = pos_rowcol_[valid_idx][1]; // col
-
-            for (int ccwidx = 1; ccwidx <= 8; ccwidx++) {
-                int src_row = jrow + drow[ccwidx];
-                int src_col = jcol + dcol[ccwidx];
-                if (!mask_->ValidateRowCol(src_row, src_col) ||
-                    mask_->IsNoData(src_row, src_col))
-                    continue;
-                int src_idx = src_row * n_cols_ + src_col;
-                if (!(CVT_INT(flowdir_matrix_[pos_index_[src_idx]]) & get_reversed_fdir(fdccw[ccwidx])))
-                    continue;
-                if (--flow_out_num_[pos_index_[src_idx]] == 0) {
-                    next_layer[num_next_layer++] = pos_index_[src_idx];
+            for (int in_idx = 0; in_idx < flow_in_num_[valid_idx]; in_idx++) {
+                int in_cellidx = 1 + valid_idx + 1 + in_idx;
+                if (valid_idx > 0) in_cellidx += flow_in_acc_[valid_idx - 1];
+                int src_posidx = CVT_INT(flow_in_cells_[in_cellidx]);
+                if (--flow_out_num_copy[src_posidx] == 0) {
+                    next_layer[num_next_layer++] = src_posidx;
                 }
             }
         }
         vector<int>(lyr_cells).swap(lyr_cells);
-        layer_cells_downup.emplace_back(vector<int>(lyr_cells));
+        n_layer_cells_downup_.emplace_back(vector<int>(lyr_cells));
         lyr_cells.clear();
 
         num_last_layer = num_next_layer;
@@ -508,20 +510,222 @@ bool GridLayering::GridLayeringFromOutlet() {
     Release1DArray(last_layer);
     Release1DArray(next_layer);
 
-    int layer_num = CVT_INT(layer_cells_downup.size());
-    int length = n_valid_cells_ + layer_num + 1;
+    n_layer_count_ = CVT_INT(n_layer_cells_downup_.size());
+    int length = n_valid_cells_ + n_layer_count_ + 1;
     Initialize1DArray(length, layer_cells_downup_, 0.f);
-    layer_cells_downup_[0] = CVT_FLT(layer_num);
+    layer_cells_downup_[0] = CVT_FLT(n_layer_count_);
     int index = 1;
-    for (auto it = layer_cells_downup.rbegin(); 
-         it != layer_cells_downup.rend(); ++it) {
+    for (auto it = n_layer_cells_downup_.rbegin();
+         it != n_layer_cells_downup_.rend(); ++it) {
         layer_cells_downup_[index++] = CVT_FLT((*it).size());
         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
             layer_cells_downup_[index++] = CVT_FLT(*it2);
         }
     }
+    Release1DArray(flow_out_num_copy);
     return OutputGridLayering(layering_downup_name_, length,
                               layers_downup_, layer_cells_downup_);
+}
+
+bool GridLayering::GridLayeringEvenly() {
+    Initialize1DArray(n_valid_cells_, layers_evenly_, out_nodata_);
+    // layers count should be the same!
+    assert(n_layer_cells_updown_.size() == n_layer_cells_downup_.size());
+
+    // Original implementation:
+    //   However, directly use the average count of layers will move many cells to
+    //   their downstream layers, result in relative large amount in middle layers.
+    //   The STD of layer cells' count only reduce about 5% compared to DOWN_UP method.
+    // Ideal average cells' count
+    // lyr_n_ave = (n_valid_cells_ - 1) / (n_layer_count_ - 1)
+    // Instead of using ceil(), refers to https://stackoverflow.com/a/2745086/4837280
+    //
+    // int lyr_n_ave = 1 + (n_valid_cells_ - 2) / (n_layer_count_ - 1);
+    //
+    // Improved implementation according to DOWN_UP layers:
+    //                   accumulative_95% - accumulative_5%
+    //   lyr_n_ave = -----------------------------------------
+    //               lyr_num_DOWN_UP_95% - lyr_num_DOWN_UP_95%
+    //
+    int lyr_95 = -1;
+    int lyr_5 = -1;
+    int count_95 = ceil(n_valid_cells_ * 0.95f);
+    int count_5 = ceil(n_valid_cells_ * 0.05f);
+    int act_count_95 = 0;
+    int act_count_5 = 0;
+    int acc_count = 0;
+    for (auto it = n_layer_cells_downup_.rbegin();
+         it != n_layer_cells_downup_.rend(); ++it) {
+        acc_count += it->size();
+        if (lyr_5 < 0 && acc_count >= count_5) {
+            lyr_5 = it - n_layer_cells_downup_.rbegin() + 1;
+            act_count_5 = acc_count;
+        }
+        if (lyr_95 < 0 && acc_count >= count_95) {
+            lyr_95 = it - n_layer_cells_downup_.rbegin();
+            act_count_95 = acc_count;
+            break;
+        }
+    }
+    int lyr_n_ave = 1 + (act_count_95 - act_count_5 - 2) / (lyr_95 - lyr_5 + 1);
+    int max_loop = n_layer_count_ * 10; // this max loop should be sufficient enough
+    int cur_loop = 1;
+    bool has_changes = true;
+    // Store layer number difference between DOWN_UP and UP_DOWN order
+    //   Note that, the DOWN_UP layer number MUST >= UP_DOWN layer number!
+    int* layer_diff = nullptr;
+    Initialize1DArray(n_valid_cells_, layer_diff, out_nodata_);
+    // Take n_layer_cells_updown_ as reference to build evenly layers
+    //   So, deepcopy n_layer_cells_updown_ to n_layer_cells_evenly_
+    for (auto itcopy = n_layer_cells_updown_.begin();
+         itcopy != n_layer_cells_updown_.end(); ++itcopy) {
+        n_layer_cells_evenly_.emplace_back(vector<int>(itcopy->size()));
+        for (auto itvalue = itcopy->begin(); 
+             itvalue != itcopy->end(); ++itvalue) {
+            n_layer_cells_evenly_[itcopy - n_layer_cells_updown_.begin()][itvalue - itcopy->begin()] = *itvalue;
+        }
+    }
+
+    // Cells corresponding to layer diffs
+    map<int, vector<int> > lyrdiff_cells;
+    for (int il = 0; il < n_layer_count_; il++) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        lyrdiff_cells.emplace(il, vector<int>());
+#else
+        lyrdiff_cells.insert(make_pair(il, vector<int>()));
+#endif
+    }
+
+    while (cur_loop <= max_loop && has_changes) {
+        has_changes = false;
+        // Update layer differences between DOWN_UP and UP_DOWN orders
+        //   Note that, layers_downup_ and layers_updown_ may be changed in following code
+#pragma omp parallel for
+        for (int i = 0; i < n_valid_cells_; i++) {
+            layer_diff[i] = CVT_INT(layers_downup_[i]) - CVT_INT(layers_updown_[i]) + 1;
+        }
+
+        for (auto it_ilyr = n_layer_cells_evenly_.begin();
+             it_ilyr != n_layer_cells_evenly_.end(); ++it_ilyr) {
+            int ilyr = it_ilyr - n_layer_cells_evenly_.begin();
+            // Clear lydiff_cells to accept new data
+            for (auto it_lyrdiff = lyrdiff_cells.begin();
+                 it_lyrdiff != lyrdiff_cells.end(); ++it_lyrdiff) {
+                it_lyrdiff->second.clear();
+            }
+            // If cells' number less or equal to average count,
+            //   all cells in the current layer will not be moved.
+            int ilyr_cell_count = CVT_INT(n_layer_cells_evenly_[ilyr].size());
+            if (ilyr_cell_count <= lyr_n_ave) {
+                continue;
+            }
+            // Else, record cells with layer difference >= 2, and reserve others
+            int reserve_count = 0;
+            int max_lyrdiff = -1;
+            for (auto it = it_ilyr->begin(); it != it_ilyr->end(); ++it) {
+                int cur_cell = CVT_INT(*it);
+                int cur_lyrdiff = layer_diff[cur_cell];
+                if (cur_lyrdiff != 1 && CVT_INT(layers_downup_[cur_cell]) != ilyr) {
+                    lyrdiff_cells[cur_lyrdiff].emplace_back(cur_cell);
+                    if (cur_lyrdiff > max_lyrdiff) max_lyrdiff = cur_lyrdiff;
+                } else {
+                    reserve_count++;
+                }
+            }
+            // If all cells are reserved, just continue to next ilyr
+            if (ilyr_cell_count == reserve_count) {
+                continue;
+            }
+            // max count allowed to be moved, MUST > 0
+            int max_change = ilyr_cell_count - lyr_n_ave;
+            if (max_change < 0) { // the fixed positions have satisfied lyr_n_ave
+                max_change = 0; // this will not happen, just in case
+                continue;
+            }
+            // only move cells to downstream layers with max_lyrdiff once!
+            int maxdiff_count = CVT_INT(lyrdiff_cells[max_lyrdiff].size());
+            set<int> first_tobechanged;
+            if (max_change >= maxdiff_count) { 
+                max_change = maxdiff_count;
+                for (int i = 0; i < max_change; i++) {
+                    first_tobechanged.insert(i);
+                }
+            } else { // randomly selected max_change count
+                srand((unsigned int)time(NULL)); //seed
+                while (first_tobechanged.size() < max_change) {
+                    first_tobechanged.insert(rand() % maxdiff_count);
+                }
+            }
+            queue<int> tobechanged;
+            vector<int> changed;
+            vector<int>& max_lyrdiff_cells = lyrdiff_cells[max_lyrdiff];
+            // Other cells will be moved to the next layer, and their lyrdiff be updated (minus 1)
+            for (set<int>::iterator it_change = first_tobechanged.begin(); 
+                 it_change != first_tobechanged.end(); ++it_change) {
+                int ichange_cell = max_lyrdiff_cells[*it_change];
+                if (find(changed.begin(), changed.end(), ichange_cell) == changed.end()) {
+                    tobechanged.push(ichange_cell);
+                    changed.emplace_back(ichange_cell);
+                }
+            }
+            while (!tobechanged.empty()) {
+                int cur_cell = tobechanged.front();
+                tobechanged.pop();
+                // get old layer number and update it if necessary
+                int cur_cell_lyr = CVT_INT(layers_updown_[cur_cell]);
+                if (layer_diff[cur_cell] <= 1 || CVT_INT(layers_downup_[cur_cell]) == cur_cell_lyr) {
+                    //lyr_cells.emplace_back(cur_cell);
+                    continue; // no need to move to downstream layer
+                }
+                cur_cell_lyr -= 1;                             // Note, number to index
+                layers_updown_[cur_cell] = cur_cell_lyr + 2.f; // Note, index to number and then plus 1
+                // remove current cell from old layer to downstream layer
+                vector<int>& cur_lyr_cells = n_layer_cells_evenly_[cur_cell_lyr];
+                // Erasing using iterator from 'find' or 'remove'?
+                // Refers to https://stackoverflow.com/a/24011727/4837280
+                vector<int>::iterator it_erase = find(cur_lyr_cells.begin(), 
+                                                      cur_lyr_cells.end(), cur_cell);
+                if (it_erase != cur_lyr_cells.end()) {
+                    *it_erase = std::move(cur_lyr_cells.back());
+                    cur_lyr_cells.pop_back();
+                }
+                n_layer_cells_evenly_[cur_cell_lyr + 1].emplace_back(cur_cell);
+                // update lyr_diff
+                layer_diff[cur_cell] -= 1;
+                // once has one cell's layer number changed
+                has_changes = true;
+
+                // add downstream cells of current cell to the queue
+                for (int idown = 0; idown < flow_out_num_[cur_cell]; idown++) {
+                    int down_cell_idx = 1 + cur_cell + 1 + idown;
+                    if (cur_cell > 0) down_cell_idx += flow_out_acc_[cur_cell - 1];
+                    int down_cell = CVT_INT(flow_out_cells_[down_cell_idx]);
+                    if (std::find(changed.begin(), changed.end(), down_cell) != changed.end() ||
+                        layer_diff[down_cell] == 1) {
+                        continue;
+                    }
+                    tobechanged.push(down_cell);
+                    changed.emplace_back(down_cell);
+                }
+            }
+        }
+        if (!has_changes) continue;
+        cur_loop++;
+    }
+    // create output variables based on n_layer_cells_evenly_
+    Initialize1DArray(n_valid_cells_ + n_layer_count_ + 1, layer_cells_evenly_, 0.f);
+    layer_cells_evenly_[0] = CVT_FLT(n_layer_count_);
+    int valid_idx = 1;
+    for (auto it = n_layer_cells_evenly_.begin();
+         it != n_layer_cells_evenly_.end(); ++it) {
+        layer_cells_evenly_[valid_idx++] = CVT_FLT((*it).size());
+        for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
+            layer_cells_evenly_[valid_idx++] = CVT_FLT(*it2);
+            layers_evenly_[*it2] = it - n_layer_cells_evenly_.begin() + 1;
+        }
+    }
+    return OutputGridLayering(layering_evenly_name_, n_valid_cells_ + n_layer_count_ + 1,
+                              layers_evenly_, layer_cells_evenly_);
 }
 
 #ifdef USE_MONGODB

@@ -12,6 +12,7 @@
 *                5-Mar-2018  Use CCGL, and reformat code style
 *               31-Mar-2021  Rewrite most core parts and now support MFD-md algorithm
 *               18-May-2021  Force each stream grid flow into one downstream grid
+*               27-Aug-2021  Add new layering method named _EVEN to balance computation amount
 *---------------------------------------------------------------------*/
 
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)

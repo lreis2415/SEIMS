@@ -8,10 +8,11 @@
  *          lj -  7-Apr-2021 - Since all spatial raster data is stored in float type in MongoDB,
  *                              for cross-platform compatible, both MongoDB and File mode use FloatRaster.\n
  *          lj - 18-May-2021 - Force each stream grid flow into one downstream grid.\n
+ *          lj - 30-Jul-2021 - Add new layering method named _EVEN.\n
  * \description:
  *               Output lists of both local files and MongoDB GridFS:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
- *               2. X_ROUTING_LAYERS_UP_DOWN{_FD} and X_ROUTING_LAYERS_DOWN_UP{_FD}
+ *               2. X_ROUTING_LAYERS_UP_DOWN{_FD}, X_ROUTING_LAYERS_DOWN_UP{_FD}, and X_ROUTING_LAYERS_EVEN{_FD}
  *               3. X_FLOWIN_FRACTION_{FD}, X_FLOWOUT_FRACTION_{FD}. For `DINF` and `MFDMD`.
  *               Where, `X` is subbasinID (0 for the whole basin)
  *                      `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`.
@@ -48,6 +49,11 @@ enum flowDirTypes {
     FD_Dinf = 1, /**< Dinf (Tarboton, 1997) */
     FD_MFDmd = 2 /**< MFD-md (Qin et al., 2007) */
 };
+
+// flow direction coding system in ArcGIS
+// 32  64 128
+// 64       1
+//  8   4   2
 
 const int fdccw[9] = {0, 1, 128, 64, 32, 16, 8, 4, 2};
 const int drow[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
@@ -93,17 +99,21 @@ public:
      */
     void CalPositionIndex();
     /*!
-     * \brief Get compressed reverse flow direction matrix, i.e., accumulate each cell's upstream direction
-     *        e.g. cell (i, j) has three upstream source: (i, j+1), (i-1, j), (i+1, j)
-     *             then the compressed reverse direction of cell (i, j) is 1 + 64 + 4 = 69
+     * \brief Get reverse flow direction of each cell, accumulate each cell's upstream cells,
+     *          and count upstream number.
+     *          The core algorithm is based on bitwise AND operator.
+     *            e.g. cell (i, j) has a compressed reversed direction value of 69,
+     *            which is stored as 1000101, 1000101 & 1 is True, and so as to 100, 1000000.
+     *            So the upstream cells are (i, j+1), (i-1, j), (i+1, j), the number is 3.
      */
     void GetReverseDirMatrix();
-    /*!
-     * \brief Count each cell's upstream number by bitwise AND operator
-     *        e.g. cell (i, j) has a reversed direction value of 69, which stored as 1000101
-     *        1000101 & 1 is True, and so as to 100, 1000000. So the upstream cell number is 3.
-     */
-    void CountFlowInCells();
+    ///*!
+    // * \brief Count each cell's upstream number by bitwise AND operator
+    // *        e.g. cell (i, j) has a reversed direction value of 69, which stored as 1000101
+    // *        1000101 & 1 is True, and so as to 100, 1000000. So the upstream cell number is 3.
+    // * \deprecated Moved to GetReverseDirMatrix(). Delete in next version.
+    // */
+    //void CountFlowInCells();
     /*!
      * \brief Construct flow in indexes of each cells
      */
@@ -132,6 +142,10 @@ public:
      * \brief Build grid layers in Down-Up order from outlet
      */
     bool GridLayeringFromOutlet();
+    /*!
+     * \brief Build grid layers evenly based on Up-Down and Down-Up orders
+     */
+    bool GridLayeringEvenly();
 protected:
     /*!
      * \brief Build multiple flow out array
@@ -169,14 +183,16 @@ protected:
     int n_cols_;             ///< Cols
     float out_nodata_;       ///< Nodata value in output
     int n_valid_cells_;      ///< Valid Cells number
+    int n_layer_count_;      ///< Layer count, MUST be the same for all layering methods
     int* pos_index_;         ///< Valid cell's index
     int** pos_rowcol_;       ///< Positions of valid cells, e.g., (row, col) coordinates
     FloatRaster* mask_;      ///< Mask raster data
     FltMaskFltRaster* flowdir_; ///< Flow direction raster data, e.g., `int` for D8
     float* flowdir_matrix_;     ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
     float* reverse_dir_;        ///< Compressed reversed direction
-    int* flow_in_num_;          ///< Flow in cells number
-    int flow_in_count_;         ///< All flow in counts from \a m_flowInNum
+    int* flow_in_num_;          ///< Count of flow in cells
+    int* flow_in_acc_;          ///< Accumulative count of flow in cells
+    int flow_in_count_;         ///< All flow in times
     /*!
      * \brief Stores flow in cells' indexes of each valid cells, which can be
      *          parsed as 2D array. Data length is flow_in_count_ + n_valid_cells_ + 1
@@ -193,13 +209,19 @@ protected:
      *       to keep consistent in data IO of MongoDB.
      */
     float* flow_in_cells_;
-    int* flow_out_num_;         ///< Flow out cells number
-    int flow_out_count_;        ///< Flow out times
+    int* flow_out_num_;         ///< Count of flow out cells
+    int* flow_out_acc_;         ///< Accumulative count of flow out cells
+    int flow_out_count_;        ///< All flow out times
     float* flow_out_cells_;     ///< Indexes of each cell's flow out
-    float* layers_updown_;      ///< the value of layering number from source, length is nRows * nCols
-    float* layers_downup_;      ///< the value of layering number from outlet
-    float* layer_cells_updown_; ///< store cell indexes in each layers, length is ValidNum + layerNum + 1
-    float* layer_cells_downup_; ///< store cell indexes in each layers
+    vector<vector<int> > n_layer_cells_updown_; ///< layer index (not number) - indexes of cells in Up-Down order
+    vector<vector<int> > n_layer_cells_downup_; ///< layer index (not number) - indexes of cells in Down-Up order
+    vector<vector<int> > n_layer_cells_evenly_; ///< layer index (not number) - indexes of cells in Evenly order
+    float* layers_updown_;      ///< layer numbers from source (Up-Down order) with a length of n_valid_cells_
+    float* layers_downup_;      ///< layer numbers from outlet (Down-Up order) with a length of n_valid_cells_
+    float* layers_evenly_;      ///< layer numbers based on evenly method with a length of n_valid_cells_
+    float* layer_cells_updown_; ///< cell indexes of each layer in Up-Down order with a length of n_valid_cells_ + n_layer_count_ + 1
+    float* layer_cells_downup_; ///< cell indexes of each layer in Down-Up order with a length of n_valid_cells_ + n_layer_count_ + 1
+    float* layer_cells_evenly_; ///< cell indexes of each layer in Evenly order with a length of n_valid_cells_ + n_layer_count_ + 1
     string flowdir_name_;       ///< Flow direction file name
     string mask_name_;          ///< Mask raster file name
     string stream_file_;        ///< Stream shapefile name
@@ -209,6 +231,7 @@ protected:
     string flowout_index_name_;   ///< Flow out index
     string layering_updown_name_; ///< Routing layers from sources
     string layering_downup_name_; ///< Routing layers from outlet
+    string layering_evenly_name_; ///< Routing layers evenly
 };
 
 class GridLayeringD8: public GridLayering {

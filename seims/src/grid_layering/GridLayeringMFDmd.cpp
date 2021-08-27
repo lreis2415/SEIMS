@@ -17,6 +17,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_MFDMD";
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_MFDMD";
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_MFDMD";
+    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_MFDMD";
 }
 #endif
 
@@ -43,6 +44,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const ch
     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_MFDMD";
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_MFDMD";
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_MFDMD";
+    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_MFDMD";
 }
 
 GridLayeringMFDmd::~GridLayeringMFDmd() {
@@ -56,7 +58,8 @@ bool GridLayeringMFDmd::LoadData() {
 #ifdef USE_MONGODB
         has_mask_ = true;
         mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
-        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(), true, mask_, true);
+        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(),
+                                          true, mask_, true);
         flow_fraction_ = FltMaskFltRaster::Init(gfs_, flowfrac_corename_.c_str(),
                                                 true, mask_, true);
 #else
@@ -94,7 +97,7 @@ bool GridLayeringMFDmd::LoadData() {
         return false;
     }
 
-    // Force stream grid to flow into single downstream cell
+    // Force stream grid to flow into a single downstream cell
     if (stream_file_.empty())
         return true;
 
@@ -105,35 +108,23 @@ bool GridLayeringMFDmd::LoadData() {
     for (vector<vector<ROW_COL> >::iterator it = stream_rc.begin(); it != stream_rc.end(); ++it) {
         if (it->size() < 2) continue; // A line should have at least two points!
         for (vector<ROW_COL>::reverse_iterator it2 = it->rbegin(); it2 != it->rend() - 1; ++it2) {
-            // FOR TEST ONLY
-            // cout << "(" << it2->first << ", " << it2->second << "), ";
-            // XY_COOR xy = mask_->GetCoordinateByRowCol(it2->first, it2->second);
-            // printf("(%.1f, %.1f), ", xy.first, xy.second);
-            // cout << "(" << it2->first << ", " << it2->second << ") -> (" << (it2+1)->first << ", " << (it2+1)->second << "), ";
             int delta_row = (it2 + 1)->first - it2->first;
             int delta_col = (it2 + 1)->second - it2->second;
             int fd_index = find_flow_direction_index_ccw(delta_row, delta_col);
-            //cout << flowdir_->GetValue(it2->first, it2->second) << ": ";
-            //print_flow_fractions_mfdmd(flow_fraction_, it2->first, it2->second);
             if (fd_index < 0) {
                 flowdir_->SetValue(it2->first, it2->second, -1.f);
                 for (int i = 1; i <= 8; i++) {
                     flow_fraction_->SetValue(it2->first, it2->second,
                                              flow_fraction_->GetNoDataValue(), i);
                 }
-            }
-            else {
+            } else {
                 flowdir_->SetValue(it2->first, it2->second, CVT_FLT(fdccw[fd_index]));
                 for (int i = 1; i <= 8; i++) {
                     flow_fraction_->SetValue(it2->first, it2->second, -1.f, i);
                 }
                 flow_fraction_->SetValue(it2->first, it2->second, 1.f, fd_index);
             }
-            //cout << " --> " << flowdir_->GetValue(it2->first, it2->second) << ": ";
-            //print_flow_fractions_mfdmd(flow_fraction_, it2->first, it2->second);
-            //cout << endl;
         }
-        // cout << endl;
     }
 
     return true;
@@ -141,7 +132,6 @@ bool GridLayeringMFDmd::LoadData() {
 
 bool GridLayeringMFDmd::OutputFlowIn() {
     GetReverseDirMatrix();
-    CountFlowInCells();
     if (!BuildFlowInCellsArray()) return false;
 
     int datalength = n_valid_cells_ + flow_in_count_ + 1;
@@ -149,34 +139,18 @@ bool GridLayeringMFDmd::OutputFlowIn() {
     flowin_fracs_[0] = CVT_FLT(n_valid_cells_);
     int count = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        int i = pos_rowcol_[valid_idx][0]; // row
-        int j = pos_rowcol_[valid_idx][1]; // col
         flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
         if (flow_in_num_[valid_idx] == 0) continue;
+        for (int iin = 0; iin < flow_in_num_[valid_idx]; iin++) {
+            int in_cell_idx = 1 + valid_idx + 1 + iin;
+            if (valid_idx > 0) in_cell_idx += flow_in_acc_[valid_idx - 1];
+            int source_index = CVT_INT(flow_in_cells_[in_cell_idx]);
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[valid_idx][0] - pos_rowcol_[source_index][0],
+                                                       pos_rowcol_[valid_idx][1] - pos_rowcol_[source_index][1]);
 
-        int reversed_fdir = CVT_INT(reverse_dir_[valid_idx]);
-        if (reversed_fdir < 0) continue; // This will not happen, just in case!
-
-        vector<int> reversed_fdirs = uncompress_flow_directions(reversed_fdir);
-        for (vector<int>::iterator it = reversed_fdirs.begin(); it != reversed_fdirs.end(); ++it) {
-            int rfd_idx = find_flow_direction_index_ccw(*it);
-            int source_row = i + drow[rfd_idx];
-            int source_col = j + dcol[rfd_idx];
-            if (!mask_->ValidateRowCol(source_row, source_col) ||
-                mask_->IsNoData(source_row, source_col) ||
-                flowdir_->IsNoData(source_row, source_col))
-                continue;
-            int source_index = pos_index_[source_row * n_cols_ + source_col];
-            int source_fdir = CVT_INT(flowdir_matrix_[source_index]);
-            vector<int> source_fdirs = uncompress_flow_directions(source_fdir);
-            int srcfout_dir = get_reversed_fdir(*it);
-            if (std::find(source_fdirs.begin(), source_fdirs.end(),
-                          srcfout_dir) == source_fdirs.end()) {
-                continue;
-            }
-            int srcfout_idx = find_flow_direction_index_ccw(srcfout_dir);
-            if (flowfrac_matrix_[source_index][srcfout_idx - 1] < 0) continue;
-            flowin_fracs_[count++] = flowfrac_matrix_[source_index][srcfout_idx - 1];
+            float flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
+            if (flowfrac < 0) continue;
+            flowin_fracs_[count++] = flowfrac;
         }
     }
 
@@ -200,28 +174,20 @@ bool GridLayeringMFDmd::OutputFlowOut() {
     CountFlowOutCells();
     if (!BuildFlowOutCellsArray()) return false;
 
-    if (nullptr == flowout_fracs_) Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+    if (nullptr == flowout_fracs_) {
+        Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+    }
     flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
     int count = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        int i = pos_rowcol_[valid_idx][0];                           // row
-        int j = pos_rowcol_[valid_idx][1];                           // col
         flowout_fracs_[count++] = CVT_FLT(flow_out_num_[valid_idx]); // maybe 0
         if (flow_out_num_[valid_idx] == 0) continue;
-
-        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
-        if (flow_dir < 0) continue; // This will not happen, just in case!
-
-        vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
-        if (flow_dirs.empty()) continue;
-
-        int cur_fdir_count = 0;
-        for (vector<int>::iterator it_fdir = flow_dirs.begin(); it_fdir != flow_dirs.end(); ++it_fdir) {
-            int fd_idx = find_flow_direction_index_ccw(*it_fdir);
-            if (!mask_->ValidateRowCol(i + drow[fd_idx], j + dcol[fd_idx]) ||
-                mask_->IsNoData(i + drow[fd_idx], j + dcol[fd_idx])) {
-                continue;
-            }
+        for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
+            int down_cell_idx = 1 + valid_idx + 1 + iout;
+            if (valid_idx > 0) down_cell_idx += flow_out_acc_[valid_idx - 1];
+            int down_cell = CVT_INT(flow_out_cells_[down_cell_idx]);
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - pos_rowcol_[valid_idx][0],
+                                                       pos_rowcol_[down_cell][1] - pos_rowcol_[valid_idx][1]);
             float curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
             if (curfract < 0) {
                 cout << "No flow fraction found in the flow direction, "
@@ -233,7 +199,7 @@ bool GridLayeringMFDmd::OutputFlowOut() {
                 return false;
             }
             flowout_fracs_[count++] = curfract;
-            cur_fdir_count++;
+            //cur_fdir_count++;
         }
     }
 

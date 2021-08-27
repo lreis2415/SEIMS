@@ -21,6 +21,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs,
     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_DINF";
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_DINF";
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_DINF";
+    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_DINF";
 }
 #endif
 
@@ -41,6 +42,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* fd_file, const char
     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_DINF";
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_DINF";
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_DINF";
+    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_DINF";
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
@@ -95,7 +97,7 @@ bool GridLayeringDinf::LoadData() {
 
     for(vector<vector<ROW_COL> >::iterator it = stream_rc.begin(); it != stream_rc.end(); ++it) {
         if (it->size() < 2) continue; // A line should have at least two points!
-        cout << it->size() << endl;
+        // cout << it->size() << endl;
         for (vector<ROW_COL>::reverse_iterator it2 = it->rbegin(); it2 != it->rend() - 1; ++it2) {
             // FOR TEST ONLY
             // cout << "(" << it2->first << ", " << it2->second << "), ";
@@ -125,7 +127,7 @@ bool GridLayeringDinf::LoadData() {
 
 bool GridLayeringDinf::OutputFlowIn() {
     GetReverseDirMatrix();
-    CountFlowInCells();
+    // CountFlowInCells();
     if (!BuildFlowInCellsArray()) return false;
 
     int datalength = n_valid_cells_ + flow_in_count_ + 1;
@@ -136,7 +138,9 @@ bool GridLayeringDinf::OutputFlowIn() {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
         flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
-        if (flow_in_num_[valid_idx] == 0) continue;
+        if (flow_in_num_[valid_idx] == 0) {
+            continue;
+        }
 
         int reversed_fdir = CVT_INT(reverse_dir_[valid_idx]);
         if (reversed_fdir < 0) continue; // This will not happen, just in case!
@@ -165,7 +169,6 @@ bool GridLayeringDinf::OutputFlowIn() {
             }
         }
     }
-
     if (count != datalength) {
         cout << "Build flow in fraction array failed!" << endl;
         return false;
@@ -175,7 +178,7 @@ bool GridLayeringDinf::OutputFlowIn() {
     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_, flow_in_count_ + n_valid_cells_ + 1, flow_in_cells_) && 
+        done = done && OutputArrayAsGfs(flowin_index_name_, flow_in_count_ + n_valid_cells_ + 1, flow_in_cells_) &&
                 OutputArrayAsGfs(flowin_frac_name_, flow_in_count_ + n_valid_cells_ + 1, flowin_fracs_);
 #endif
     }
@@ -186,7 +189,9 @@ bool GridLayeringDinf::OutputFlowOut() {
     CountFlowOutCells();
     if (!BuildFlowOutCellsArray()) return false;
 
-    if (nullptr == flowout_fracs_) Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+    if (nullptr == flowout_fracs_) {
+        Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+    }
     flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
     int count = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
@@ -225,7 +230,7 @@ bool GridLayeringDinf::OutputFlowOut() {
     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1, flow_out_cells_) && 
+        done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1, flow_out_cells_) &&
                 OutputArrayAsGfs(flowout_frac_name_, flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_);
 #endif
     }
