@@ -490,43 +490,40 @@ class SUScenario(Scenario):
         # print('economy: capex {}, income {}, opex {}'.format(capex, income, opex))
         return self.economy
 
-    def calculate_economy_bmps_order(self):
+    def calculate_economy_bmps_order(self, costs, maintains):
         """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
-        self.economy = 0.
-        # capex = 0.
-        # income = 0.
-        costs = numpy.array([0.] * self.cfg.change_times)
-        incomes = numpy.array([0.] * self.cfg.change_times)
-        total_impl_period = self.cfg.change_times
-        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
-            gene_v = self.gene_values[gene_idx]
-            if gene_v == 0:
-                continue
-            unit_lu = dict()
-            for spname, spunits in self.cfg.units_infos.items():
-                if unit_id in spunits:
-                    unit_lu = spunits[unit_id]['landuse']
-                    break
-            subscenario, impl_period = [int(x) for x in str(int(gene_v))]
-            # include benefits in the year of BMP implementation
-            bmpparam = self.bmps_params[subscenario]
-            for luid, luarea in unit_lu.items():
-                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
-                    capex = luarea * bmpparam['CAPEX']
-                    income = luarea * bmpparam['INCOME']
-                    costs[impl_period - 1] += capex
-                    # every period has income after impl
-                    for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
-                        incomes[prd - 1] += income
+        # self.economy = 0.
+        # # capex = 0.
+        # # income = 0.
+        # costs = numpy.array([0.] * self.cfg.change_times)
+        # incomes = numpy.array([0.] * self.cfg.change_times)
+        # total_impl_period = self.cfg.change_times
+        # for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+        #     gene_v = self.gene_values[gene_idx]
+        #     if gene_v == 0:
+        #         continue
+        #     unit_lu = dict()
+        #     for spname, spunits in self.cfg.units_infos.items():
+        #         if unit_id in spunits:
+        #             unit_lu = spunits[unit_id]['landuse']
+        #             break
+        #     subscenario, impl_period = [int(x) for x in str(int(gene_v))]
+        #     # include benefits in the year of BMP implementation
+        #     bmpparam = self.bmps_params[subscenario]
+        #     for luid, luarea in unit_lu.items():
+        #         if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+        #             capex = luarea * bmpparam['CAPEX']
+        #             income = luarea * bmpparam['INCOME']
+        #             costs[impl_period - 1] += capex
+        #             # every period has income after impl
+        #             for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
+        #                 incomes[prd - 1] += income
 
-        self.net_costs_per_period = (costs - incomes).tolist()
+        # self.net_costs_per_period = (costs - incomes).tolist()
+        self.net_costs_per_period = (costs + maintains).tolist()
         self.economy = sum(self.net_costs_per_period)
-        print('economy:{}, capex {}, income {}'.format(self.economy, costs, incomes))
-        # self.economy = capex - income
-
-        # has already calculated in constraints
-        # self.economy = numpy.sum(self.net_costs_per_period)
-        # print('economy: capex {}, income {}'.format(capex,income))
+        # print('economy:{}, capex {}, income {}'.format(self.economy, costs, incomes))
+        print('economy:{}, capex {}, maintain {}'.format(self.economy, costs, maintains))
         return self.economy
 
     def calculate_environment(self):
@@ -701,7 +698,8 @@ class SUScenario(Scenario):
 
     def calculate_profits_by_period(self):
         bmp_costs_by_period = [0.] * self.cfg.change_times
-        bmp_income_by_period = [0.] * self.cfg.change_times
+        bmp_maintain_by_period = [0.] * self.cfg.change_times
+        # bmp_income_by_period = [0.] * self.cfg.change_times
         for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
             gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
@@ -716,33 +714,45 @@ class SUScenario(Scenario):
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex = luarea * bmpparam['CAPEX']
-                    income = luarea * bmpparam['INCOME']
+                    opex = luarea * bmpparam['OPEX']
+                    # income = luarea * bmpparam['INCOME']
                     bmp_costs_by_period[impl_period - 1] += capex
                     # every period has income after impl
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
-                        bmp_income_by_period[prd - 1] += income
-        return bmp_costs_by_period, bmp_income_by_period
+                        bmp_maintain_by_period[prd - 1] += opex
+                        # bmp_income_by_period[prd - 1] += income
+        return bmp_costs_by_period, bmp_maintain_by_period  # , bmp_income_by_period
 
     def satisfy_investment_constraints(self):
+        # compute economy
+        # bmp_costs_by_period, bmp_income_by_period = self.calculate_profits_by_period()
+        bmp_costs_by_period, bmp_maintain_by_period = self.calculate_profits_by_period()
+        invest = numpy.array(self.cfg.investment_each_period)
+        costs = numpy.array(bmp_costs_by_period)
+        maintain = numpy.array(bmp_maintain_by_period)
+        # income = numpy.array(bmp_income_by_period)
+        print('investment: ', invest)
+        print('costs: ', costs)
+        print('maintain: ', maintain)
+        # print('income: ', income)
+        # print('diff: ', invest - (costs - income))
+        print('diff: ', invest - (costs + maintain))
+
         # not consider investment quota
         if not self.cfg.enable_investment_quota:
-            return True
+            return True, [costs, maintain]
         else:
             if self.cfg.investment_each_period is None:
-                return False
-            bmp_costs_by_period, bmp_income_by_period = self.calculate_profits_by_period()
-            invest = numpy.array(self.cfg.investment_each_period)
-            costs = numpy.array(bmp_costs_by_period)
-            income = numpy.array(bmp_income_by_period)
-            print('investment: ', invest)
-            print('costs: ', costs)
-            print('income: ', income)
-            print('diff: ', invest - (costs - income))
-            if numpy.all(numpy.greater(invest, costs - income)):
-                self.net_costs_per_period = costs - income
-                return True
+                return False, [None, None]
+
+            # if numpy.all(numpy.greater(invest, costs - income)):
+            # self.net_costs_per_period = costs - income
+            # satisfy economic constraint
+            if numpy.all(numpy.greater(invest, costs + maintain)):
+                self.net_costs_per_period = costs + maintain
+                return True, [costs, maintain]
             else:
-                return False
+                return False, [None, None]
 
 
 def select_potential_bmps(unitid,  # type: int
@@ -922,12 +932,13 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
 
     # 3. first evaluate economic investment to exclude scenarios that don't satisfy the constraints
     # if that don't satisfy the constraints, don't execute the time-consuming simulation process
-    if sce.satisfy_investment_constraints():  # sce.check_custom_constraints():
+    satisfied, [costs, maintains] = sce.satisfy_investment_constraints()  # sce.check_custom_constraints():
+    if satisfied:
         # 4. execute the SEIMS-based watershed model and get the timespan
         sce.execute_seims_model()
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
         # 5. calculate scenario effectiveness and delete intermediate data
-        sce.calculate_economy_bmps_order()
+        sce.calculate_economy_bmps_order(costs, maintains)
         sce.calculate_environment_bmps_order()
     else:
         # worst conditions
@@ -1049,9 +1060,10 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.initialize(input_genes=gene_values)
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
-    if sce.satisfy_investment_constraints():
+    satisfied, [costs, maintains] = sce.satisfy_investment_constraints()
+    if satisfied:
         sce.execute_seims_model()
-        sce.calculate_economy_bmps_order()
+        sce.calculate_economy_bmps_order(costs, maintains)
         sce.calculate_environment_bmps_order()
         sce.export_sce_tif = True
         sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
@@ -1060,8 +1072,8 @@ def main_manual_bmps_order(sceid, gene_values):
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
         print(
-                'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s' %
-                (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period)))
+            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s' %
+            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period)))
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
@@ -1100,7 +1112,7 @@ def generate_giff_txt(sceid, gene_values):
 
 
 # if the the scenario has run and folder exists, just generate giff and txt files
-def generate_giff_txt_with_bmps_order(sceid, gene_values):
+def generate_giff_txt_with_bmps_order(sceid, gene_values, export_txt, export_tif, output_tif):
     cf = get_config_parser()
     base_cfg = SAConfig(cf)  # type: SAConfig
     if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
@@ -1119,19 +1131,40 @@ def generate_giff_txt_with_bmps_order(sceid, gene_values):
     # indicate the model has run
     sce.modelrun = True
     sce.modelout_dir = sce.model.output_dir
-    sce.calculate_economy_bmps_order()
-    sce.calculate_environment_bmps_order()
-    sce.export_sce_tif = True
-    sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
-    sce.export_sce_txt = True
-    sce.export_scenario_to_txt()
+    # sce.calculate_economy_bmps_order()
+    # sce.calculate_environment_bmps_order()
+    if export_tif:
+        sce.export_sce_tif = True
+        sce.export_scenario_to_gtiff(output_tif)
+    if export_txt:
+        sce.export_sce_txt = True
+        sce.export_scenario_to_txt()
 
-    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
-        sce.economy, sce.environment, sce.sed_sum))
+    # print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    # print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
+    #     sce.economy, sce.environment, sce.sed_sum))
 
     # Not responsible for deleting
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+def gen_tif_for_last_generation(model_path, opt_dir, last_gen):
+    import ast
+    # read runtime.log
+    log_filename = model_path + '/' + opt_dir + '/' + 'runtime.log'
+    last_gen_str = 'Generation: {}'.format(last_gen)
+    with open(log_filename) as logfp:
+        for line in logfp:
+            if last_gen_str not in line:
+                continue
+            next(logfp)  # title line
+            for target_line in logfp:
+                items = target_line.split('\t')
+                sceid = int(items[1])
+                print('output %d' % (sceid,))
+                gene_values = ast.literal_eval(items[7][11:-2])
+                output_tif = '{}/{}/Scenarios/Scenario_{}.tif'.format(model_path, opt_dir, sceid)
+                generate_giff_txt_with_bmps_order(sceid, gene_values, False, True, output_tif)
 
 
 def test_func():
@@ -1139,9 +1172,9 @@ def test_func():
     # main_multiple(4)
 
     # run base
-    sid = 0
-    gvalues = [0.0] * 105
-    main_manual(sid, gvalues)
+    # sid = 0
+    # gvalues = [0.0] * 105
+    # main_manual(sid, gvalues)
 
     # # selected scenario
     # sid = 10
@@ -1152,7 +1185,7 @@ def test_func():
     #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual(sid, gvalues)
 
-    # # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
+    # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
     # sid = 105
     # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     #            21.0,
@@ -1167,60 +1200,60 @@ def test_func():
     # main_manual_bmps_order(sid, gvalues)
 
     # BMP 1 are implemented in the first year
-    # sid = 101
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0,
-    #            33.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0, 33.0, 0.0, 0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 11.0, 23.0, 0.0, 11.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 23.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0]
-    # main_manual_bmps_order(sid, gvalues)
-    #
-    # # BMP 2 are implemented in the first year
-    # sid = 102
-    # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            21.0,
-    #            0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0,
-    #            33.0, 0.0,
-    #            0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 0.0,
-    #            21.0, 0.0,
-    #            0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 13.0, 21.0, 0.0, 13.0, 33.0, 43.0, 21.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 21.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
-    #            0.0]
-    # main_manual_bmps_order(sid, gvalues)
-    #
-    # # BMP 3 are implemented in the first year
-    # sid = 103
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
-    #            31.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 31.0, 43.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0]
-    # main_manual_bmps_order(sid, gvalues)
-    #
-    # # BMP 4 are implemented in the first year
-    # sid = 104
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
-    #            33.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 41.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0]
-    # main_manual_bmps_order(sid, gvalues)
+    sid = 101
+    gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               23.0,
+               0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0,
+               33.0, 0.0,
+               0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0, 33.0, 0.0, 0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+               23.0, 0.0,
+               0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 11.0, 23.0, 0.0, 11.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 23.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
+
+    # BMP 2 are implemented in the first year
+    sid = 102
+    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               21.0,
+               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0,
+               33.0, 0.0,
+               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 0.0,
+               21.0, 0.0,
+               0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 13.0, 21.0, 0.0, 13.0, 33.0, 43.0, 21.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 21.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
+
+    # BMP 3 are implemented in the first year
+    sid = 103
+    gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               23.0,
+               0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
+               31.0, 0.0,
+               0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+               23.0, 0.0,
+               0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 31.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
+
+    # BMP 4 are implemented in the first year
+    sid = 104
+    gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               23.0,
+               0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
+               33.0, 0.0,
+               0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
+               23.0, 0.0,
+               0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 41.0, 23.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
 
     # sid = 229353850
     # gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -1252,6 +1285,10 @@ def test_func():
 
 if __name__ == '__main__':
     test_func()
+
+    # gen_tif_for_last_generation('D:/Data/1.1 SA_NSGA2_SLPPOS_HILLSLP_Gen_50_Pop_72-20210823181624',
+    #                             'SA_NSGA2_SLPPOS_HILLSLP_Gen_50_Pop_72', 50)
+
 # cf = get_config_parser()
 # # cfg = SAConfig(cf)  # type: SAConfig
 # cfg = SAConnFieldConfig(cf)

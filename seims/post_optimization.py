@@ -7,7 +7,7 @@ MODEL_PATH = 'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model'
 OPTI_GEN = 50
 OPTI_POP = 72
 OPTI_FOLDER = 'SA_NSGA2_SLPPOS_HILLSLP_Gen_{}_Pop_{}'.format(OPTI_GEN,OPTI_POP)
-
+ACTUAL_GEN = 37 # can be different
 
 def zipdir(path, ziph):
     # ziph is zipfile handle
@@ -28,7 +28,7 @@ def zipit(dir_list, zip_name):
 if __name__ == '__main__':
     # read runtime.log
     log_filename = MODEL_PATH + '/' + OPTI_FOLDER + '/' + 'runtime.log'
-    last_gen_str = 'Generation: {}'.format(OPTI_GEN)
+    last_gen_str = 'Generation: {}'.format(ACTUAL_GEN)
     zip_dirs = []
     zip_dirs.append(MODEL_PATH + '/' + OPTI_FOLDER)# add SA* folder
     with open(log_filename) as logfp:
