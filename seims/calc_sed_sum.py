@@ -12,7 +12,7 @@ def calc_sed_sum(sceid, impl_period):
     rr = RasterUtilClass.read_raster(raster_file)
     sed_sum = rr.get_sum()
     seds.append(sed_sum)
-    print('13-15年总产沙量：%f' % (sed_sum,))
+    print('13-17年总产沙量：%f' % (sed_sum,))
 
     raster_file = '%s/OUTPUT%d/SED_OL_AVE.tif' % (MODEL_PATH, sceid)
     rr = RasterUtilClass.read_raster(raster_file)
@@ -49,6 +49,18 @@ def calc_sed_sum(sceid, impl_period):
     sed_sum = rr.get_sum()
     seds.append(sed_sum)
     print('15年产沙量：%f' % (sed_sum,))
+
+    raster_file = '%s/OUTPUT%d/6_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('16年产沙量：%f' % (sed_sum,))
+
+    raster_file = '%s/OUTPUT%d/7_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('17年产沙量：%f' % (sed_sum,))
 
     return seds
 

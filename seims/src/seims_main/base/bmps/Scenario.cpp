@@ -109,7 +109,7 @@ void Scenario::loadBMPs() {
             if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
             // !!! MUST MODIFY. Or read from database later!
             time_t warmUpPeriod = 31536000;// 1 year
-            changeTimes = 3;//(m_endTime - m_startTime - warmUpPeriod) / changeFrequency;
+            changeTimes = 5;//(m_endTime - m_startTime - warmUpPeriod) / changeFrequency;
         }
 
         /// check if raster data is need for the current BMP
