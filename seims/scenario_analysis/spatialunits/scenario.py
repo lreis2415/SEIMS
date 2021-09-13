@@ -181,12 +181,14 @@ class SUScenario(Scenario):
         if input_genes:
             self.gene_values = opt_genes
         else:
+            # gene index and BMP type
             for idx, gene in enumerate(opt_genes):
                 if numpy.isclose(gene, 0.):
                     self.gene_values[idx] = 0
                 else:
                     rand_bit = random.randint(1, self.cfg.change_times)
-                    self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
+                    # self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
+                    self.gene_values[idx] = int(gene)*1000+rand_bit
         return self.gene_values
 
     def rule_based_config(self, method, conf_rate=0.5):
@@ -712,7 +714,7 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            subscenario, impl_period = int(gene_v)/100, int(gene_v)%100
+            subscenario, impl_period = int(gene_v)/1000, int(gene_v)%1000
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:

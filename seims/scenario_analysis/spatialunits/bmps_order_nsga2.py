@@ -262,8 +262,8 @@ def main(scenario_obj, indv_obj_benchmark):
                 if random.random() <= cx_rate:
                     toolbox.crossover(ind1, ind2)
 
-                toolbox.mutate(ind1, 1, scenario_obj.cfg.change_times, mut_rate)
-                toolbox.mutate(ind2, 1, scenario_obj.cfg.change_times, mut_rate)
+                toolbox.mutate(ind1, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+                toolbox.mutate(ind2, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
 
                 if check_individual_diff(old_ind1, ind1):
                     delete_fitness(ind1)  # delete fitness, valid will be false

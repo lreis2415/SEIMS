@@ -17,6 +17,7 @@ from collections import OrderedDict
 import os
 import sys
 import random
+import math
 
 from pygeoc.utils import get_config_parser, MathClass
 from typing import List, Tuple, Dict, Union, Any, Optional, AnyStr
@@ -423,7 +424,26 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
     return individual
 
 
-def mutate_with_bmps_order(indv, low, up, indpb):
+def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
+    mut_num = random.randint(1, int(len(indv) * max_perc))
+    mpoint = random.randint(0, len(indv) - 1)
+
+    # first half
+    counter = mpoint
+    while counter > math.floor(mut_num/2) and counter > 0:
+        if indv[counter] == 0:
+            continue
+        if random.random() < indpb:# mutate
+            val = int(indv[counter])
+            bmp_type, impl_year = val / 1000, val % 1000
+            new_year = random.randint(low, up)
+            new_val = bmp_type*1000+new_year
+            indv[counter] = new_val
+        counter-=1
+
+    # second half
+
+
     for i, bit in enumerate(indv):
         bit = int(bit)  # float -> int
         if bit == 0:
