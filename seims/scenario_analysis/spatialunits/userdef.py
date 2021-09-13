@@ -439,21 +439,21 @@ def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
             new_year = random.randint(low, up)
             new_val = bmp_type*1000+new_year
             indv[counter] = new_val
-        counter-=1
+        counter -= 1
 
     # second half
-
-
-    for i, bit in enumerate(indv):
-        bit = int(bit)  # float -> int
-        if bit == 0:
-            continue  # the bit which doesn't configure bmp will not mutate
+    counter = mpoint + 1
+    while counter < math.ceil(mut_num/2) and counter < len(indv):
+        if indv[counter] == 0:
+            continue
         if random.random() < indpb:
-            ints = list(map(int, str(bit)))
-            # modify the last bit to a random integer between [low,up]
-            ints[len(ints) - 1] = random.randint(low, up)
-            # list -> str -> float
-            indv[i] = float(''.join(map(str, ints)))
+            val = int(indv[counter])
+            bmp_type, impl_year = val / 1000, val % 1000
+            new_year = random.randint(low, up)
+            new_val = bmp_type*1000+new_year
+            indv[counter] = new_val
+        counter += 1
+
     return indv
 
 

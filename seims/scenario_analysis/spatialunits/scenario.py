@@ -429,7 +429,8 @@ class SUScenario(Scenario):
             gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
                 continue
-            subscenario, year = [int(x) for x in str(int(gene_v))]
+            # subscenario, year = [int(x) for x in str(int(gene_v))]
+            subscenario, year = int(gene_v)/1000, int(gene_v)%1000
             if subscenario not in bmp_units:
                 bmp_units[subscenario] = list()
             bmp_units[subscenario].append('{0}|{1}'.format(unit_id, year))
