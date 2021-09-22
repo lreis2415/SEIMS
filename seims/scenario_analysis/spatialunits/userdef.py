@@ -429,30 +429,40 @@ def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
     mpoint = random.randint(0, len(indv) - 1)
 
     # first half
-    counter = mpoint
-    while counter > math.floor(mut_num/2) and counter > 0:
-        if indv[counter] == 0:
+    index = mpoint
+    counter = 0 # the NO of modified
+    while counter < math.floor(mut_num/2) and index >= 0:
+        if indv[index] == 0:
+            index -= 1
             continue
         if random.random() < indpb:# mutate
-            val = int(indv[counter])
-            bmp_type, impl_year = val / 1000, val % 1000
-            new_year = random.randint(low, up)
-            new_val = bmp_type*1000+new_year
-            indv[counter] = new_val
-        counter -= 1
+            val = int(indv[index])
+            bmp_type, impl_year = divmod(val,1000)
+            new_impl_year = random.randint(low, up)
+            while impl_year == new_impl_year:
+                new_impl_year = random.randint(low, up)
+            new_val = bmp_type*1000+new_impl_year
+            indv[index] = new_val
+        counter += 1
+        index -= 1
 
     # second half
-    counter = mpoint + 1
-    while counter < math.ceil(mut_num/2) and counter < len(indv):
-        if indv[counter] == 0:
+    index = mpoint + 1
+    counter = 0
+    while counter < math.ceil(mut_num/2) and index < len(indv):
+        if indv[index] == 0:
+            index += 1
             continue
         if random.random() < indpb:
-            val = int(indv[counter])
-            bmp_type, impl_year = val / 1000, val % 1000
-            new_year = random.randint(low, up)
-            new_val = bmp_type*1000+new_year
-            indv[counter] = new_val
+            val = int(indv[index])
+            bmp_type, impl_year = divmod(val,1000)
+            new_impl_year = random.randint(low, up)
+            while impl_year == new_impl_year:
+                new_impl_year = random.randint(low, up)
+            new_val = bmp_type * 1000 + new_impl_year
+            indv[index] = new_val
         counter += 1
+        index += 1
 
     return indv
 
@@ -567,5 +577,47 @@ def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
                                                         mutcost1, mutcost2))
 
 
+def mutate_test(mut_perc, mut_rate):
+    # type: (int, float, float, float) -> None
+    """Test mutate function."""
+    from deap import base
+    from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
+    from scenario_analysis.config import SAConfig
+    from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
+        SACommUnitConfig
+    from scenario_analysis.spatialunits.scenario import SUScenario
+    cf = get_config_parser()
+
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+
+    gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
+               0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
+               0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
+               0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+
+    # Initialize gene values for individual 1 and 2
+    sce1 = SUScenario(cfg)
+    ind1 = sce1.initialize_with_bmps_order(gvalues)
+    sceid1 = sce1.set_unique_id()
+    print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid1, ind1.__str__()))
+    sce2 = SUScenario(cfg)
+    ind2 = sce2.initialize_with_bmps_order(gvalues)
+    sceid2 = sce2.set_unique_id()
+    print('Scenario2-ID: %d\n  Initial genes: %s' % (sceid2, ind2.__str__()))
+
+    mutate_with_bmps_order(ind1, 1,5,mut_rate,mut_perc)
+    print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid1, ind1.__str__()))
+    mutate_with_bmps_order(ind2, 1,5,mut_rate,mut_perc)
+    print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid2, ind2.__str__()))
+
 if __name__ == '__main__':
-    main_test_crossover_mutate(100, 0.8, 0.2, 0.1)
+    # main_test_crossover_mutate(100, 0.8, 0.2, 0.1)
+    mutate_test(0.2,0.1)

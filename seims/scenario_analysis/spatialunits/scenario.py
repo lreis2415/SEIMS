@@ -430,7 +430,7 @@ class SUScenario(Scenario):
             if gene_v == 0:
                 continue
             # subscenario, year = [int(x) for x in str(int(gene_v))]
-            subscenario, year = int(gene_v)/1000, int(gene_v)%1000
+            subscenario, year = divmod(int(gene_v),1000)
             if subscenario not in bmp_units:
                 bmp_units[subscenario] = list()
             bmp_units[subscenario].append('{0}|{1}'.format(unit_id, year))
@@ -488,7 +488,7 @@ class SUScenario(Scenario):
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * actual_years
-                    income += luarea * bmpparam['INCOME'] * actual_years
+                    income += luarea * bmpparam['INCOME'][-1] * actual_years
 
         # self.economy = capex
         # self.economy = capex + opex
@@ -496,7 +496,7 @@ class SUScenario(Scenario):
         # print('economy: capex {}, income {}, opex {}'.format(capex, income, opex))
         return self.economy
 
-    def calculate_economy_bmps_order(self, costs, maintains):
+    def calculate_economy_bmps_order(self, costs, maintains, incomes):
         """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
         # self.economy = 0.
         # # capex = 0.
@@ -525,11 +525,9 @@ class SUScenario(Scenario):
         #             for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
         #                 incomes[prd - 1] += income
 
-        # self.net_costs_per_period = (costs - incomes).tolist()
-        self.net_costs_per_period = (costs + maintains).tolist()
+        self.net_costs_per_period = (costs + maintains - incomes).tolist()
         self.economy = sum(self.net_costs_per_period)
-        # print('economy:{}, capex {}, income {}'.format(self.economy, costs, incomes))
-        print('economy:{}, capex {}, maintain {}'.format(self.economy, costs, maintains))
+        print('economy:{}, capex {}, maintain {}, income {}'.format(self.economy, costs, maintains, incomes))
         return self.economy
 
     def calculate_environment(self):
@@ -715,18 +713,18 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            subscenario, impl_period = int(gene_v)/1000, int(gene_v)%1000
+            subscenario, impl_period = divmod(int(gene_v),1000)
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex = luarea * bmpparam['CAPEX']
-                    opex = luarea * bmpparam['OPEX']
-                    income = luarea * bmpparam['INCOME']
+                    opex = bmpparam['OPEX']
+                    income = bmpparam['INCOME']
                     bmp_costs_by_period[impl_period - 1] += capex
                     # every period has income after impl
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
-                        bmp_maintain_by_period[prd - 1] += opex
-                        bmp_income_by_period[prd - 1] += income[prd - 1] # each year has different benefit
+                        bmp_maintain_by_period[prd - 1] += luarea * opex
+                        bmp_income_by_period[prd - 1] += luarea * income[prd - 1] # each year has different benefit
         return bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period
 
     def satisfy_investment_constraints(self):
@@ -752,9 +750,9 @@ class SUScenario(Scenario):
             # satisfy economic constraint
             if numpy.all(numpy.greater(invest, costs + maintain - income)):
                 self.net_costs_per_period = costs + maintain - income
-                return True, [costs, maintain]
+                return True, [costs, maintain, income]
             else:
-                return False, [None, None]
+                return False, [None, None, None]
 
 
 def select_potential_bmps(unitid,  # type: int
@@ -934,13 +932,13 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
 
     # 3. first evaluate economic investment to exclude scenarios that don't satisfy the constraints
     # if that don't satisfy the constraints, don't execute the time-consuming simulation process
-    satisfied, [costs, maintains] = sce.satisfy_investment_constraints()  # sce.check_custom_constraints():
+    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()  # sce.check_custom_constraints():
     if satisfied:
         # 4. execute the SEIMS-based watershed model and get the timespan
         sce.execute_seims_model()
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
         # 5. calculate scenario effectiveness and delete intermediate data
-        sce.calculate_economy_bmps_order(costs, maintains)
+        sce.calculate_economy_bmps_order(costs, maintains, incomes)
         sce.calculate_environment_bmps_order()
     else:
         # worst conditions
@@ -1062,10 +1060,10 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.initialize(input_genes=gene_values)
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
-    satisfied, [costs, maintains] = sce.satisfy_investment_constraints()
+    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()
     if satisfied:
         sce.execute_seims_model()
-        sce.calculate_economy_bmps_order(costs, maintains)
+        sce.calculate_economy_bmps_order(costs, maintains, incomes)
         sce.calculate_environment_bmps_order()
         sce.export_sce_tif = True
         sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
@@ -1174,11 +1172,11 @@ def test_func():
     # main_multiple(4)
 
     # run base
-    # sid = 0
-    # gvalues = [0.0] * 105
-    # main_manual(sid, gvalues)
+    sid = 0
+    gvalues = [0.0] * 105
+    main_manual(sid, gvalues)
 
-    # # selected scenario
+    # selected scenario
     # sid = 10
     # gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
     #            0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
@@ -1188,72 +1186,72 @@ def test_func():
     # main_manual(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
-    sid = 105
-    gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               21.0,
-               0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0,
-               31.0, 0.0,
-               0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 11.0, 31.0, 0.0, 0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 0.0,
-               21.0, 0.0,
-               0.0, 11.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 11.0, 21.0, 0.0, 11.0, 31.0, 41.0, 21.0, 0.0, 0.0, 0.0,
-               0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 21.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
-               0.0]
-    main_manual_bmps_order(sid, gvalues)
+    # sid = 105
+    # gvalues = [0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2001.0,
+    #            0.0, 0.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0,
+    #            3001.0, 0.0,
+    #            0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 3001.0, 0.0, 0.0, 1001.0, 0.0, 2001.0, 0.0, 0.0, 0.0,
+    #            2001.0, 0.0,
+    #            0.0, 1001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 1001.0, 3001.0, 4001.0, 2001.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
 
     # BMP 1 are implemented in the first year
     # sid = 101
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0,
-    #            33.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 11.0, 33.0, 0.0, 0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 11.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 11.0, 23.0, 0.0, 11.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+    # gvalues = [0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2003.0,
+    #            0.0, 0.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1001.0,
+    #            3003.0, 0.0,
+    #            0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1001.0, 3003.0, 0.0, 0.0, 1001.0, 0.0, 2003.0, 0.0, 0.0, 0.0,
+    #            2003.0, 0.0,
+    #            0.0, 1001.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1001.0, 2003.0, 0.0, 1001.0, 3003.0, 4003.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 23.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2003.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
-    #
+
     # # BMP 2 are implemented in the first year
     # sid = 102
-    # gvalues = [0.0, 21.0, 0.0, 0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            21.0,
-    #            0.0, 0.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0,
-    #            33.0, 0.0,
-    #            0.0, 21.0, 21.0, 0.0, 21.0, 0.0, 21.0, 21.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 0.0,
-    #            21.0, 0.0,
-    #            0.0, 13.0, 0.0, 21.0, 0.0, 0.0, 21.0, 21.0, 0.0, 13.0, 21.0, 0.0, 13.0, 33.0, 43.0, 21.0, 0.0, 0.0, 0.0,
+    # gvalues = [0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2001.0,
+    #            0.0, 0.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1003.0,
+    #            3003.0, 0.0,
+    #            0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1003.0, 3003.0, 0.0, 0.0, 1003.0, 0.0, 2001.0, 0.0, 0.0, 0.0,
+    #            2001.0, 0.0,
+    #            0.0, 1003.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1003.0, 2001.0, 0.0, 1003.0, 3003.0, 4003.0, 2001.0, 0.0, 0.0, 0.0,
     #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 21.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 21.0, 21.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2001.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 0.0,
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
-    #
-    # # BMP 3 are implemented in the first year
+
+    # BMP 3 are implemented in the first year
     # sid = 103
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
-    #            31.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 31.0, 43.0, 23.0, 0.0, 0.0, 0.0,
+    # gvalues = [0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2003.0,
+    #            0.0, 0.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0,
+    #            3001.0, 0.0,
+    #            0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 3001.0, 0.0, 0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 0.0,
+    #            2003.0, 0.0,
+    #            0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 3001.0, 4003.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
     #
     # # BMP 4 are implemented in the first year
     # sid = 104
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
-    #            33.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 41.0, 23.0, 0.0, 0.0, 0.0,
+    # gvalues = [0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2003.0,
+    #            0.0, 0.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0,
+    #            3003.0, 0.0,
+    #            0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 3003.0, 0.0, 0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 0.0,
+    #            2003.0, 0.0,
+    #            0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 3003.0, 4001.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0,
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
 
