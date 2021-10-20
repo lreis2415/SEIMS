@@ -57,6 +57,7 @@ class SAConfig(object):
         self.change_times = int(self.implementation_period/self.change_frequency)
         self.enable_investment_quota = cf.getboolean('Scenario_Common', 'enable_investment_quota')
         self.investment_each_period = eval(cf.get('Scenario_Common', 'investment_each_period'))
+        self.discount_rate = cf.getfloat('Scenario_Common', 'discount_rate')
         if cf.has_option('Scenario_Common', 'export_scenario_txt'):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):

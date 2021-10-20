@@ -526,7 +526,12 @@ class SUScenario(Scenario):
         #                 incomes[prd - 1] += income
 
         self.net_costs_per_period = (costs + maintains - incomes).tolist()
-        self.economy = sum(self.net_costs_per_period)
+        # self.economy = sum(self.net_costs_per_period)
+        # use net present value
+        net_present_value = 0.
+        for index, net_cost in enumerate(self.net_costs_per_period):
+            net_present_value += net_cost/numpy.power(1.0+self.cfg.discount_rate, index+1)
+        self.economy = net_present_value
         print('economy:{}, capex {}, maintain {}, income {}'.format(self.economy, costs, maintains, incomes))
         return self.economy
 
@@ -603,13 +608,14 @@ class SUScenario(Scenario):
         base_amount = self.eval_info['BASE_ENV']
         sed_per_period = list()
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
-            # sum of 2013-2015
+            # sum of 2013-2017
             rr = RasterUtilClass.read_raster(rfile)
-            sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment
+            # sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment 13-17
             for i in range(self.cfg.change_times):
-                # 2013,2014,2015
+                # 2013-2017
                 filename = self.modelout_dir + os.path.sep + str(i + 3) + '_' + self.eval_info['ENVEVAL']
                 sed_per_period.append(RasterUtilClass.read_raster(filename).get_sum())
+            sed_sum = sed_per_period[-1] # 2017 sed sum
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
@@ -734,7 +740,7 @@ class SUScenario(Scenario):
         costs = numpy.array(bmp_costs_by_period)
         maintain = numpy.array(bmp_maintain_by_period)
         income = numpy.array(bmp_income_by_period)
-        print('investment: ', invest)
+        print('investment constraints: ', invest)
         print('costs: ', costs)
         print('maintain: ', maintain)
         print('income: ', income)
@@ -1172,9 +1178,9 @@ def test_func():
     # main_multiple(4)
 
     # run base
-    sid = 0
-    gvalues = [0.0] * 105
-    main_manual(sid, gvalues)
+    # sid = 0
+    # gvalues = [0.0] * 105
+    # main_manual(sid, gvalues)
 
     # selected scenario
     # sid = 10
@@ -1185,8 +1191,8 @@ def test_func():
     #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual(sid, gvalues)
 
-    # benchmark scenario: all BMPs are implemented in the first year and not consider BMPs long-term effectiveness and investment
-    # sid = 105
+    # benchmark scenario: all BMPs are implemented in the first year
+    # sid = 1051
     # gvalues = [0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     #            2001.0,
     #            0.0, 0.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0,
@@ -1198,6 +1204,32 @@ def test_func():
     #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 0.0,
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
+
+    # sid = 1052
+    # gvalues = [0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 1002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2002.0,
+    #            0.0, 0.0, 2002.0, 0.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 2002.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0,
+    #            3002.0, 0.0,
+    #            0.0, 2002.0, 2002.0, 0.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0, 3002.0, 0.0, 0.0, 1002.0, 0.0, 2002.0, 0.0, 0.0, 0.0,
+    #            2002.0, 0.0,
+    #            0.0, 1002.0, 0.0, 2002.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0, 2002.0, 0.0, 1002.0, 3002.0, 4002.0, 2002.0, 0.0, 0.0, 0.0,
+    #            0.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1002.0, 2002.0, 0.0, 1002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 0.0, 0.0,
+    #            0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    sid = 1053
+    gvalues = [0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               2003.0,
+               0.0, 0.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0,
+               3003.0, 0.0,
+               0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 3003.0, 0.0, 0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 0.0,
+               2003.0, 0.0,
+               0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 3003.0, 4003.0, 2003.0, 0.0, 0.0, 0.0,
+               0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0,
+               0.0]
+    main_manual_bmps_order(sid, gvalues)
 
     # BMP 1 are implemented in the first year
     # sid = 101

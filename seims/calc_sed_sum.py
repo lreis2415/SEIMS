@@ -69,9 +69,9 @@ if __name__ == '__main__':
     print('-----Base 情景：-----')
     seds_base = calc_sed_sum(sceid)
 
-    sceid = 10
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
+    # sceid = 10
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
 
     # print('-----对比-----')
     # print('总削减率：%f'%((seds_base[0]-seds_sce[0])/seds_base[0]))
@@ -81,22 +81,29 @@ if __name__ == '__main__':
     # print('13年削减率：%f'%((seds_base[4]-seds_sce[4])/seds_base[4]))
     # print('14年削减率：%f'%((seds_base[5]-seds_sce[5])/seds_base[5]))
     # print('15年削减率：%f'%((seds_base[6]-seds_sce[6])/seds_base[6]))
+    # sceid = 1052
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
 
-    sceid = 101
+    sceid = 1053
     print('-----情景 %d-----'%(sceid,))
     seds_sce = calc_sed_sum(sceid)
-    sceid = 102
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
-    sceid = 103
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
-    sceid = 104
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
-    sceid = 105
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
+
+    # sceid = 101
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
+    # sceid = 102
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
+    # sceid = 103
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
+    # sceid = 104
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
+    # sceid = 105
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
     # print('-----对比-----')
     # print('总削减率：%f'%((seds_base[0]-seds_sce[0])/seds_base[0]))
     # print('日均削减率：%f'%((seds_base[1]-seds_sce[1])/seds_base[1]))
