@@ -740,11 +740,11 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                         cout << "      A total of " << count << " has been updated for " <<
                             remote_filename << endl;
                     }
-                    hasUpdated = true;
                 }
                 tmp_bmp_areal_struct_factory->increaseSeriesIndex();//use next location array
 				iter2->second->setLastUpdateTime(t);
-			}
+                hasUpdated = true;
+            }
 		}
     }
     return hasUpdated;
