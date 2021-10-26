@@ -62,6 +62,24 @@ def calc_sed_sum(sceid):
     seds.append(sed_sum)
     print('17年产沙量：%f' % (sed_sum,))
 
+    raster_file = '%s/OUTPUT%d/8_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('18年产沙量：%f' % (sed_sum,))
+
+    raster_file = '%s/OUTPUT%d/9_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('19年产沙量：%f' % (sed_sum,))
+
+    raster_file = '%s/OUTPUT%d/10_SED_OL_SUM.tif' % (MODEL_PATH, sceid)
+    rr = RasterUtilClass.read_raster(raster_file)
+    sed_sum = rr.get_sum()
+    seds.append(sed_sum)
+    print('20年产沙量：%f' % (sed_sum,))
+
     return seds
 
 if __name__ == '__main__':
@@ -85,9 +103,9 @@ if __name__ == '__main__':
     # print('-----情景 %d-----'%(sceid,))
     # seds_sce = calc_sed_sum(sceid)
 
-    sceid = 1053
-    print('-----情景 %d-----'%(sceid,))
-    seds_sce = calc_sed_sum(sceid)
+    # sceid = 10513
+    # print('-----情景 %d-----'%(sceid,))
+    # seds_sce = calc_sed_sum(sceid)
 
     # sceid = 101
     # print('-----情景 %d-----'%(sceid,))
