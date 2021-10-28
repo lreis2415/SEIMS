@@ -49,7 +49,7 @@ class ModelCfgUtils(object):
 class DirNameUtils(object):
     """Names for folders in output workspace for Spatial data preprocessing"""
     _Log = 'runtime_log'
-    _TauDEM = 'taudem_delineated'
+    _Delineation = 'watershed delineation'
     _GeoData2DB = 'spatial_raster'
     _GeoShp = 'spatial_shp'
     _LayerInfo = 'layering_info'
@@ -60,7 +60,7 @@ class DirNameUtils(object):
     def __init__(self, pre_dir):
         """prepare output directories"""
         self.log = pre_dir + SEP + DirNameUtils._Log
-        self.taudem = pre_dir + SEP + DirNameUtils._TauDEM
+        self.taudem = pre_dir + SEP + DirNameUtils._Delineation
         self.geodata2db = pre_dir + SEP + DirNameUtils._GeoData2DB
         self.geoshp = pre_dir + SEP + DirNameUtils._GeoShp
         self.layerinfo = pre_dir + SEP + DirNameUtils._LayerInfo
@@ -252,15 +252,17 @@ class SpatialNamesUtils(object):
     _ACCM = 'acc.tif'
     _STREAMORDERM = 'stream_order.tif'
     _FLOWDIRDINFM = 'flow_dir_angle_dinf.tif'
+    _SLOPEDINFM = 'slope_dinf.tif'
     _DIRCODEDINFM = 'flow_dir_dinf.tif'
     _WEIGHTDINFM = 'weight_dinf.tif'
-    _SLOPEDINFM = 'slope_dinf.tif'
+    _FLOWDIRDINFMUPD = 'flow_dir_angle_dinf_upd.tif'
     _DIRCODEMFDMD = 'flow_dir_mfdmd.tif'
     _FLOWFRACTIONMFDMD = 'flow_fraction_mfdmd.tif'
     _CELLLAT = 'celllat.tif'
     _DAYLMIN = 'dayLenMin.tif'
     _DORMHR = 'dormhr.tif'
     _DIST2STREAMD8M = 'dist2Stream.tif'
+    _DIST2STREAMDINFM = 'dist2Stream_dinf.tif'
     _CHWIDTH = 'ch_width.tif'
     _CHDEPTH = 'ch_depth.tif'
     _LANDUSEMFILE = 'landuse.tif'
@@ -295,15 +297,17 @@ class SpatialNamesUtils(object):
         self.d8acc = spa_dir + SEP + self._ACCM
         self.stream_order = spa_dir + SEP + self._STREAMORDERM
         self.dinf = spa_dir + SEP + self._FLOWDIRDINFM
+        self.dinf_slp = spa_dir + SEP + self._SLOPEDINFM
         self.dinf_d8dir = spa_dir + SEP + self._DIRCODEDINFM
         self.dinf_weight = spa_dir + SEP + self._WEIGHTDINFM
-        self.dinf_slp = spa_dir + SEP + self._SLOPEDINFM
+        self.dinf_upd = spa_dir + SEP + self._FLOWDIRDINFMUPD
         self.mfdmd_d8dir = spa_dir + SEP + self._DIRCODEMFDMD
         self.mfdmd_fraction = spa_dir + SEP + self._FLOWFRACTIONMFDMD
         self.cell_lat = spa_dir + SEP + self._CELLLAT
         self.dayl_min = spa_dir + SEP + self._DAYLMIN
         self.dorm_hr = spa_dir + SEP + self._DORMHR
         self.dist2stream_d8 = spa_dir + SEP + self._DIST2STREAMD8M
+        self.dist2stream_dinf = spa_dir + SEP + self._DIST2STREAMDINFM
         self.chwidth = spa_dir + SEP + self._CHWIDTH
         self.chdepth = spa_dir + SEP + self._CHDEPTH
         self.landuse = spa_dir + SEP + self._LANDUSEMFILE
