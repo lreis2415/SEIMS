@@ -72,9 +72,9 @@ class PreprocessConfig(object):
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
         # 5. Option parameters
-        self.d8acc_threshold = 0
+        self.acc_thresh = 0
         self.np = 4
-        self.d8down_method = 's'
+        self.distdown_method = 's'
         self.dorm_hr = -1.
         self.temp_base = 0.
         self.imper_perc_in_urban = 0.
@@ -202,21 +202,24 @@ class PreprocessConfig(object):
 
         # 5. Optional parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():
-            self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
-            self.d8down_method = cf.get('OPTIONAL_PARAMETERS', 'd8downmethod')
-            if StringClass.string_match(self.d8down_method, 'surface'):
-                self.d8down_method = 's'
-            elif StringClass.string_match(self.d8down_method, 'horizontal'):
-                self.d8down_method = 'h'
-            elif StringClass.string_match(self.d8down_method, 'pythagoras'):
-                self.d8down_method = 'p'
-            elif StringClass.string_match(self.d8down_method, 'vertical'):
-                self.d8down_method = 'v'
+            self.acc_thresh = cf.getfloat('OPTIONAL_PARAMETERS', 'accthreshold')
+            self.min_flowfrac = 0.01  # default min. flow fraction to downstream
+            if cf.has_option('OPTIONAL_PARAMETERS', 'minflowfraction'):
+                self.min_flowfrac = cf.getfloat('OPTIONAL_PARAMETERS', 'minflowfraction')
+            self.distdown_method = cf.get('OPTIONAL_PARAMETERS', 'distancedownmethod')
+            if StringClass.string_match(self.distdown_method, 'surface'):
+                self.distdown_method = 's'
+            elif StringClass.string_match(self.distdown_method, 'horizontal'):
+                self.distdown_method = 'h'
+            elif StringClass.string_match(self.distdown_method, 'pythagoras'):
+                self.distdown_method = 'p'
+            elif StringClass.string_match(self.distdown_method, 'vertical'):
+                self.distdown_method = 'v'
             else:
-                self.d8down_method = self.d8down_method.lower()
-                if self.d8down_method not in ['s', 'h', 'p', 'v']:
-                    self.d8down_method = 's'
+                self.distdown_method = self.distdown_method.lower()
+                if self.distdown_method not in ['s', 'h', 'p', 'v']:
+                    self.distdown_method = 's'
             self.dorm_hr = cf.getfloat('OPTIONAL_PARAMETERS', 'dorm_hr')
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',
