@@ -1,6 +1,9 @@
 #include "PlantGrowthCommon.h"
 
+#include "utils_math.h"
 #include <cmath>
+
+using namespace ccgl::utils_math;
 
 void GetNPShapeParameter(const float fr1, const float fr2, const float fr3, float* shape1, float* shape2) {
     float tmpfr2 = fr2;
@@ -41,7 +44,7 @@ float GetNormalization(const float distribution) {
 
 float DoHeatUnitAccumulation(const float potential_heat_unit, const float t_min,
                              const float t_max, const float t_base) {
-    if (potential_heat_unit <= 0.1) {
+    if (potential_heat_unit <= 0.1f) {
         return 0.f;
     }
     float fr_accumulated_heat_unit = 0.f;

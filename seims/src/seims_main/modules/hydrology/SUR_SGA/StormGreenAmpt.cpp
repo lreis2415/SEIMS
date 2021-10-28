@@ -3,12 +3,12 @@
 #include "text.h"
 
 StormGreenAmpt::StormGreenAmpt() :
-    m_dt(-1), m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_porosity(NULL),
-    m_soilMoisture(NULL), m_rootDepth(NULL), m_tSnow(0.0f), m_t0(1.0f), m_pNet(NULL),
-    m_sd(NULL), m_tMax(NULL),
-    m_tMin(NULL), m_snowMelt(NULL), m_snowAccu(NULL), m_tSoilFrozen(-5.0f),
-    m_sFrozen(0.5f), m_soilTemp(NULL), m_ks(NULL), m_clay(NULL),
-    m_sand(NULL), m_initSoilMoisture(NULL), m_fieldCap(NULL),
+    m_dt(-1), m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_rootDepth(NULL),
+    m_porosity(NULL), m_soilMoisture(NULL), m_clay(NULL), m_sand(NULL), m_ks(NULL),
+    m_initSoilMoisture(NULL), m_fieldCap(NULL),
+    m_tSnow(0.0f), m_t0(1.0f), m_tSoilFrozen(-5.0f), m_sFrozen(0.5f),
+    m_pNet(NULL), m_sd(NULL), m_tMax(NULL), m_tMin(NULL),
+    m_soilTemp(NULL), m_snowMelt(NULL), m_snowAccu(NULL),
     m_sr(NULL), m_capillarySuction(NULL), m_accumuDepth(NULL), m_infil(NULL), m_infilCapacitySurplus(nullptr) {
 
 }
@@ -30,13 +30,13 @@ void StormGreenAmpt:: InitialOutputs() {
         m_infilCapacitySurplus = new float[m_nCells];
         m_soilMoisture = new float*[m_nCells];
 #pragma omp parallel for
-		for (int i = 0; i < m_nCells; i++) {
-			for (int j = 0; j < m_nSoilLyrs; j++) {
-				m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i][j];
-				m_soilMoisture[i][j] = m_initSoilMoisture[i];
-			}
-		}
-	}
+        for (int i = 0; i < m_nCells; i++) {
+            for (int j = 0; j < m_nSoilLyrs; j++) {
+                m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i][j];
+                m_soilMoisture[i][j] = m_initSoilMoisture[i];
+            }
+        }
+    }
 }
 
 void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
@@ -56,24 +56,25 @@ void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
         //*data = m_soilMoisture;
     //}
     else {
-        throw ModelException(MID_SUR_SGA, "Get1DData",
+        throw ModelException(M_SUR_SGA[0], "Get1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
 
     }
 }
 
 void StormGreenAmpt::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
-	InitialOutputs();
-	string sk(key);
-	*nRows = m_nCells;
-	*nCols = m_maxSoilLyrs;
+    InitialOutputs();
+    string sk(key);
+    *nRows = m_nCells;
+    *nCols = m_maxSoilLyrs;
 
-	if (StringMatch(sk, VAR_SOL_ST)) {
-		*data = m_soilMoisture;
-	}
-	else {
-		throw ModelException("MID_SUR_SGA", "Get2DData", "Output " + sk + " does not exist.");
-	}
+    if (StringMatch(sk, VAR_SOL_ST[0])) {
+        *data = m_soilMoisture;
+    }
+    else {
+        throw ModelException("MID_SUR_SGA", "Get2DData", 
+                             "Output " + sk + " does not exist.");
+    }
 }
 
 bool StormGreenAmpt::CheckInputData() {
@@ -376,44 +377,44 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         //m_sand = data;
     //}
     else {
-        throw ModelException(MID_SUR_SGA, "SetValue",
+        throw ModelException(M_SUR_SGA[0], "SetValue",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 }
 
 void StormGreenAmpt::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
 	string sk(key);
-	if (StringMatch(sk, VAR_CONDUCT)) {
+	if (StringMatch(sk, VAR_CONDUCT[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_ks = data;
 	}
-	else if (StringMatch(sk, VAR_CLAY)) {
+	else if (StringMatch(sk, VAR_CLAY[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_clay = data;
 	}
-	else if (StringMatch(sk, VAR_SAND)) {
+	else if (StringMatch(sk, VAR_SAND[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_sand = data;
 	}
-	else if (StringMatch(sk, VAR_FIELDCAP)) {
+	else if (StringMatch(sk, VAR_FIELDCAP[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_fieldCap = data;
 	}
-	else if (StringMatch(sk, VAR_POROST)) {
+	else if (StringMatch(sk, VAR_POROST[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_porosity = data;
 	}
-	else if (StringMatch(sk, VAR_SOILDEPTH)) {
+	else if (StringMatch(sk, VAR_SOILDEPTH[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_rootDepth = data;
 	}
 	else {
-		throw ModelException(MID_SUR_SGA, "Set2DData", "Parameter " + sk + " does not exist in setting 2D.");
+		throw ModelException(M_SUR_SGA[0], "Set2DData", "Parameter " + sk + " does not exist in setting 2D.");
 	}
 }

@@ -207,7 +207,7 @@ int MUSK_CH::Execute() {
 
 void MUSK_CH::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
+    if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = CVT_INT(value);
     else if (StringMatch(sk, VAR_EP_CH[0])) m_Epch = value;
@@ -335,7 +335,7 @@ void MUSK_CH::SetScenario(Scenario* sce) {
             }
         }
     } else {
-        throw ModelException(M_MUSK_CH[0], "SetScenario", "The scenario can not to be NULL.");
+        // throw ModelException(M_MUSK_CH[0], "SetScenario", "The scenario can not to be NULL.");
     }
 }
 

@@ -13,17 +13,17 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Junzhi Liu");
+    mdi.SetAuthor("Junzhi Liu, Liang-Jun Zhu");
     mdi.SetClass(MCLS_SUR_RUNOFF[0], MCLS_SUR_RUNOFF[1]);
     mdi.SetDescription(M_SUR_SGA[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("");
     mdi.SetID(M_SUR_SGA[0]);
     mdi.SetName(M_SUR_SGA[0]);
-    mdi.SetVersion("0.1");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_Single);
 
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_MOIST_IN[0], UNIT_VOL_FRA_M3M3, VAR_MOIST_IN[1], Source_ParameterDB, DT_Raster1D);

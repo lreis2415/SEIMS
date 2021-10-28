@@ -12,7 +12,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     mdi.SetAuthor("Zhiqiang Yu; Junzhi Liu; Liangjun Zhu");
-    mdi.SetClass(MCLS_SUBSURFACE[0], MCLS_SUBSURFACE[1]);
+    mdi.SetClass(MCLS_INTERFLOW[0], MCLS_INTERFLOW[1]);
     mdi.SetDescription(M_SSR_DA[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_SSR_DA[0]);
@@ -39,7 +39,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_CHWIDTH[0], UNIT_LEN_M, VAR_CHWIDTH[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(Tag_FLOWIN_FRACTION[0], UNIT_NON_DIM, Tag_FLOWIN_FRACTION[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(Tag_FLOWIN_FRACTION[0], UNIT_NON_DIM, Tag_FLOWIN_FRACTION[1], Source_ParameterDB_Optional, DT_Array2D);
     mdi.AddParameter(Tag_ROUTING_LAYERS[0], UNIT_NON_DIM, Tag_ROUTING_LAYERS[1], Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
 

@@ -225,7 +225,7 @@ bool NutrCH_QUAL2E::CheckInputData() {
 void NutrCH_QUAL2E::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-    else if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
+    else if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = CVT_INT(value);
     else if (StringMatch(sk, VAR_RNUM1[0])) m_rnum1 = value;
     else if (StringMatch(sk, VAR_IGROPT[0])) igropt = CVT_INT(value);
     else if (StringMatch(sk, VAR_COD_N[0])) m_cod_n = value;

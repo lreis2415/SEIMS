@@ -48,10 +48,10 @@ public:
 
 private:
 
-    /// Calculated the wetting front matric potential
+    // Calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
-    /// Parameters from database
+    // Parameters from database
     float m_dt;             ///< time step (seconds)
     int m_nCells;           ///< valid cells number
     int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
@@ -69,7 +69,7 @@ private:
     float m_tSoilFrozen;    ///< threshold soil freezing temperature
     float m_sFrozen;        ///< frozen soil moisture above which no infiltration occurs (m3/m3)
 
-    /// Inputs from other modules
+    // Inputs from other modules
     float* m_pNet;     ///< net precipitation
     float* m_sd;       ///< depression storage
     float* m_tMax;     ///< maximum temperature
@@ -79,12 +79,12 @@ private:
     float* m_snowAccu; ///< snow accumulation (mm)
     float* m_sr;       ///< surface water depth
 
-    /// intermediate variables
+    // intermediate variables
 
     float* m_capillarySuction; ///< Soil Capillary Suction Head (m)
     float* m_accumuDepth;      ///< cumulative infiltration depth (m)
 
-    /// Outputs
+    // Outputs
     float* m_infil; ///< infiltration
     float* m_infilCapacitySurplus; ///< surplus of infiltration capacity
 };

@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
-    mdi.SetClass(MCLS_NutRemv[0], MCLS_NutRemv[1]);
+    mdi.SetClass(MCLS_NUTRCYC[0], MCLS_NUTRCYC[1]);
     mdi.SetDescription(M_NUTRMV[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_NUTRMV[0]);
@@ -40,7 +40,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DISTSTREAM[0], UNIT_LEN_M, VAR_DISTSTREAM[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(Tag_FLOWOUT_FRACTION[0], UNIT_NON_DIM, Tag_FLOWOUT_FRACTION[1], Source_ParameterDB_Optional, DT_Array2D);
 
     mdi.AddParameter(VAR_SOL_NO3[0], UNIT_CONT_KGHA, VAR_SOL_NO3[1], Source_Module, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_SOLP[0], UNIT_CONT_KGHA, VAR_SOL_SOLP[1], Source_Module, DT_Raster2D);

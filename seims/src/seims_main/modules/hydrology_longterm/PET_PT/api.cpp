@@ -25,7 +25,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_T_SNOW[0], UNIT_TEMP_DEG, VAR_T_SNOW[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_K_PET[0], UNIT_NON_DIM, VAR_K_PET[1], Source_ParameterDB, DT_Single);
 
-    mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, CONS_IN_ELEV, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, VAR_DEM[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CELL_LAT[0], UNIT_LONLAT_DEG, VAR_CELL_LAT[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PHUTOT[0], UNIT_HOUR, VAR_PHUTOT[1], Source_ParameterDB, DT_Raster1D);
 

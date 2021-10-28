@@ -18,22 +18,22 @@ InterFlow_IKW::~InterFlow_IKW(void) {
 }
 
 bool InterFlow_IKW::CheckInputData(void) {
-    if (this->m_date <= 0) {
+    if (m_date <= 0) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the Date variable.");
         return false;
     }
 
-    if (this->m_nCells <= 0) {
+    if (m_nCells <= 0) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
-    if (this->m_dt <= 0) {
+    if (m_dt <= 0) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the TimeStep variable.");
         return false;
     }
 
-    if (this->m_CellWidth <= 0) {
+    if (m_CellWidth <= 0) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the CellWidth variable.");
         return false;
     }
@@ -59,32 +59,32 @@ bool InterFlow_IKW::CheckInputData(void) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: Conductivity has not been set.");
     }
 
-    if (this->m_porosity == NULL) {
+    if (m_porosity == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The porosity can not be NULL.");
     }
-    if (this->m_poreIndex == NULL) {
+    if (m_poreIndex == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The pore index can not be NULL.");
     }
-    if (this->m_fieldCapacity == NULL) {
+    if (m_fieldCapacity == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The field capacity can not be NULL.");
     }
-    if (this->m_soilMoistrue == NULL) {
+    if (m_soilMoistrue == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil moistrue can not be NULL.");
     }
-    if (this->m_streamLink == NULL) {
+    if (m_streamLink == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The STREAM_LINK can not be NULL.");
     }
 
-    if (this->m_sr == NULL) {
+    if (m_sr == NULL) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter D_SURU is not set.");
     }
 
     return true;
 }
 
-void InterFlow_IKW:: initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(M_IKW_IF[0], "initialOutputs", "The cell number of the input can not be less than zero.");
+void InterFlow_IKW:: InitialOutputs() {
+    if (m_nCells <= 0) {
+        throw ModelException(M_IKW_IF[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     if (m_q == NULL) {
@@ -166,7 +166,7 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
 int InterFlow_IKW::Execute() {
 
-    initialOutputs();
+    InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -189,13 +189,13 @@ int InterFlow_IKW::Execute() {
 
 bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        //this->StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
+        //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
         return false;
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
-            //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
+            //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n <<
                     ". The origin size is " << m_nCells << ".\n";
@@ -232,17 +232,17 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
     // } else if (StringMatch(s, VAR_SOILDEPTH[0])) {
     //     m_soilDepth = data;
     // } else if (StringMatch(s, VAR_FIELDCAP[0])) {
-    //     this->m_fieldCapacity = data;
+    //     m_fieldCapacity = data;
     // } else if (StringMatch(s, VAR_SOILDEPTH[0])) {
-    //     this->m_rootDepth = data;
+    //     m_rootDepth = data;
     // } else if (StringMatch(s, VAR_CONDUCT[0])) {
-    //     this->m_ks = data;
+    //     m_ks = data;
     // } else if (StringMatch(s, VAR_POROST[0])) {
-    //     this->m_porosity = data;
+    //     m_porosity = data;
     // } else if (StringMatch(s, VAR_POREIDX[0])) {
-    //     this->m_poreIndex = data;
+    //     m_poreIndex = data;
     // } else if (StringMatch(s, VAR_SOL_ST[0])) {
-    //     this->m_soilMoistrue = data;
+    //     m_soilMoistrue = data;
     } else if (StringMatch(s, VAR_CHWIDTH[0])) {
         m_chWidth = data;
     } else if (StringMatch(s, VAR_SURU[0])) {
@@ -282,38 +282,38 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
 		CheckInputSize(key, nrows);
 		m_flowInIndex = data;
 	}
-	else if (StringMatch(sk, VAR_SOILDEPTH)) {
+	else if (StringMatch(sk, VAR_SOILDEPTH[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_rootDepth = data;
     }
-	else if (StringMatch(sk, VAR_SOL_ST)) {
+	else if (StringMatch(sk, VAR_SOL_ST[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_soilMoisture = data;
 	}
-	else if (StringMatch(sk, VAR_FIELDCAP)) {
+	else if (StringMatch(sk, VAR_FIELDCAP[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_fieldCapacity = data;
 	}
-	else if (StringMatch(sk, VAR_POROST)) {
+	else if (StringMatch(sk, VAR_POROST[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_porosity = data;
 	}
-	else if (StringMatch(sk, VAR_POREIDX)) {
+	else if (StringMatch(sk, VAR_POREIDX[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_poreIndex = data;
 	}
-	else if (StringMatch(sk, VAR_CONDUCT)) {
+	else if (StringMatch(sk, VAR_CONDUCT[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_ks = data;
 	}
 	else {
-        throw ModelException(MID_IKW_IF, "Set2DData", "Parameter " + sk
+        throw ModelException(M_IKW_IF[0], "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }

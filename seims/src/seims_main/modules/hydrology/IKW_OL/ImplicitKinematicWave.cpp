@@ -77,7 +77,7 @@ bool ImplicitKinematicWave_OL::CheckInputData(void) {
 
 void ImplicitKinematicWave_OL:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(M_IKW_OL[0], "initialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(M_IKW_OL[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     if (m_q == NULL) {

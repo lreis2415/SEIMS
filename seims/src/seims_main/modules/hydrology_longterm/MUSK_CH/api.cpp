@@ -23,7 +23,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_Single);
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_OUTLETID[0], UNIT_NON_DIM, VAR_OUTLETID[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_EP_CH[0], UNIT_WTRDLT_MMH, VAR_EP_CH[1], Source_ParameterDB, DT_Single);
@@ -37,7 +37,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
     // add BMPs management operations, such as point source discharge
-    mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
+    // mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
 
     // Inputs from other modules
     mdi.AddInput(VAR_SBPET[0], UNIT_DEPTH_MM, VAR_SBPET[1], Source_Module, DT_Array1D);
