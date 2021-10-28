@@ -176,7 +176,7 @@ void IKW_REACH::SetValue(const char *key, float value) {
     //if (StringMatch(sk, Tag_LayeringMethod[0])) {
     //    m_layeringMethod = (LayeringMethod) int(value);
     //} else 
-    if (StringMatch(sk, Tag_ChannelTimeStep)) {
+    if (StringMatch(sk, Tag_ChannelTimeStep[0])) {
         m_dt = int(value);
     } else if (StringMatch(sk, VAR_EP_CH[0])) {
         m_Epch = value;
@@ -348,8 +348,8 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * Power(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * Power(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
         Qkx = Max(Qkx, MIN_FLUX);
         count++;
