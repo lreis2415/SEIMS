@@ -473,4 +473,6 @@ int main(int argc, char** argv) {
     mongoc_gridfs_destroy(gfs);
     delete client;
     delete rs_subbasin;
+
+    return 0;
 }

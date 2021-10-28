@@ -22,7 +22,7 @@ CONST_CHARS MODEL_VERSION =                   "2021";
 CONST_CHARS SEIMS_EMAIL =                     "zlj@lreis.ac.cn";
 CONST_CHARS SEIMS_SITE =                      "https://github.com/lreis2415/SEIMS";
 
-//! Constant input variables. But do these tags actually used?
+// Constant input variables. But do these tags actually used?
 CONST_CHARS CONS_IN_ELEV =                          "Elevation";
 CONST_CHARS CONS_IN_LAT =                           "Latitude";
 CONST_CHARS CONS_IN_XPR =                           "xpr"; // ?
@@ -56,6 +56,7 @@ CONST_CHARS_LIST Tag_VerticalInterpolation[] = {"VERTICALINTERPOLATION",
                                                 "defined in config.fig"};      ///< m_itpVertical
 CONST_CHARS_LIST Tag_Weight[] = {"WEIGHT", "Weight used for interpolation"};   ///< m_itpWeights
 CONST_CHARS Tag_DataType =                          "DATATYPE";                ///< m_dataType
+
 ///////  define parameter calibration related string constants  ///////
 CONST_CHARS PARAM_CHANGE_VC =                       "VC";  ///< replace by a value
 CONST_CHARS PARAM_CHANGE_RC =                       "RC";  ///< multiply a ratio, which is diff from SWAT: * (1+ratio)
@@ -77,11 +78,11 @@ CONST_CHARS PARAM_CALI_VALUES =                     "CALI_VALUES"; ///< replace 
 
 ////////////  Input and Output Tags   ///////////////
 // Fields in Model Configuration Collections //
-//// Tags in file.in
+// Tags in file.in
 CONST_CHARS Tag_ConfTag =                           "TAG";
 CONST_CHARS Tag_ConfValue =                         "VALUE";
 CONST_CHARS Tag_MODCLS =                            "MODULE_CLASS";
-//// Tags in file.out
+// Tags in file.out
 CONST_CHARS Tag_OutputUSE =                         "USE";
 CONST_CHARS Tag_OutputID =                          "OUTPUTID";
 CONST_CHARS Tag_OutputDESC =                        "DESCRIPTION";
@@ -94,7 +95,7 @@ CONST_CHARS Tag_OutputSubbsn =                      "SUBBASIN";
 CONST_CHARS Tag_Interval =                          "INTERVAL";
 CONST_CHARS Tag_IntervalUnit =                      "INTERVAL_UNIT";
 
-/// Available values of Tag_outputSubbsn
+// Available values of Tag_outputSubbsn
 CONST_CHARS Tag_AllSubbsn =                         "ALL";
 CONST_CHARS Tag_Outlet =                            "OUTLET";
 
@@ -121,19 +122,19 @@ CONST_CHARS TAG_OUT_OL_IUH =                        "OL_IUH";
 //CONST_CHARS Tag_NitrOutlet =                        "NitrateOutlet";
 
 //CONST_CHARS Tag_SubbasinCount =                     "SUBBASINCOUNT";
-CONST_CHARS Tag_SubbasinId =                        "SUBBASINID"; /// m_inputSubbsnID
+CONST_CHARS Tag_SubbasinId =                        "SUBBASINID"; ///< m_inputSubbsnID
 //CONST_CHARS Tag_ReservoirCount =                    "RESERVOIRCOUNT";
 //CONST_CHARS Tag_ReservoirId =                       "RESERVOIRID";
 //CONST_CHARS_LIST Tag_SubbasinSelected[] = {"subbasinSelected", "The subbasion IDs listed in file.out"};
-CONST_CHARS_LIST Tag_CellSize[] = {"CELLSIZE", "numble of valid cells, i.e., excluding NODATA"};
-CONST_CHARS_LIST Tag_Mask[] = {"MASK", "MASK raster data indicating valid cells"};
+CONST_CHARS_LIST Tag_CellSize[] = {"CELLSIZE", "numble of valid cells, i.e., excluding NODATA"}; ///< 
+CONST_CHARS_LIST Tag_Mask[] = {"MASK", "MASK raster data indicating valid cells"}; ///< 
 CONST_CHARS_LIST Tag_TimeStep[] = {"TIMESTEP", "time step of simulation"}; ///< m_dt
 CONST_CHARS_LIST Tag_HillSlopeTimeStep[] = {"DT_HS", "Time step of hillslope related processes"}; ///< m_dt
 CONST_CHARS_LIST Tag_ChannelTimeStep[] = { "DT_CH", "Time step of channel routing related processes" }; ///< m_chdt
-CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; ///< m_cellWth, the size of a single CELL
+CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; ///< m_cellWth
 
-CONST_CHARS_LIST Tag_LayeringMethod[] = {"LayeringMethod", "Routing layering method"};
-CONST_CHARS_LIST Tag_FlowDirectionMethod[] = { "FlowDirMethod", "Flow direction algorithm" };
+CONST_CHARS_LIST Tag_LayeringMethod[] = {"LayeringMethod", "Routing layering method"}; ///< 
+CONST_CHARS_LIST Tag_FlowDirectionMethod[] = { "FlowDirMethod", "Flow direction algorithm" }; ///< 
 CONST_CHARS_LIST Tag_FLOWIN_INDEX[] = { "FLOWIN_INDEX", "Indexes of flow in units" }; ///< m_flowInIdx
 CONST_CHARS_LIST Tag_FLOWOUT_INDEX[] = { "FLOWOUT_INDEX", "Indexes of flow out units" }; ///< m_flowOutIdx
 CONST_CHARS_LIST Tag_FLOWIN_FRACTION[] = { "FLOWIN_FRACTION", "Flow in fractions from upstream units" }; ///< m_flowInFrac
@@ -142,10 +143,11 @@ CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers accor
                                          "there are no flow relationships within each layer, and the first element in each layer "
                                          "is the number of compute units in current layer"}; ///< m_rteLyrs
 
-/// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
-CONST_CHARS_LIST VAR_REACH_PARAM[] = {"ReachParam", "Reach parameters such as stream order, manning's n and downstream subbasin id"};
-/// Add Subbasins as AddParameters for modules
-CONST_CHARS_LIST VAR_SUBBASIN_PARAM[] = {"SubbasinParam", "Statistics of subbasin related parameters"};
+// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
+CONST_CHARS_LIST VAR_REACH_PARAM[] = {"ReachParam", "Reach parameters such as stream order, "
+                                      "manning's n and downstream subbasin id"}; ///< 
+// Add Subbasins as AddParameters for modules
+CONST_CHARS_LIST VAR_SUBBASIN_PARAM[] = {"SubbasinParam", "Statistics of subbasin related parameters"}; ///< 
 
 // Files or database constant strings
 CONST_CHARS TextExtension =                         "txt"; ///< plain text format
@@ -172,19 +174,19 @@ CONST_CHARS DB_TAB_SITES =                             "SITES"; ///< hydro and c
 CONST_CHARS DB_TAB_DATAVALUES =                        "DATA_VALUES"; ///< data values
 CONST_CHARS DB_TAB_MEASUREMENT =                       "MEASUREMENT"; ///< observed hydro data
 CONST_CHARS DB_TAB_ANNSTAT =                           "ANNUAL_STATS"; ///< annaul statistics based on DATA_VALUES 
-/// Fields in DB_TAB_REACH, the orders and names should be consistent with db_import_stream_parameters.py and clsReach.cpp! ///
+// Fields in DB_TAB_REACH, the orders and names should be consistent with db_import_stream_parameters.py and clsReach.cpp!
 CONST_CHARS REACH_SUBBASIN =                           "SUBBASINID"; ///< reach ID is consistent with the subbasin ID
 CONST_CHARS REACH_NUMCELLS =                           "NUM_CELLS"; ///< cells number of the corresponding subbasin
 CONST_CHARS REACH_DOWNSTREAM =                         "DOWNSTREAM"; ///< downstream reach ID
-CONST_CHARS REACH_UPDOWN_ORDER =                       "UP_DOWN_ORDER";
-CONST_CHARS REACH_DOWNUP_ORDER =                       "DOWN_UP_ORDER";
-CONST_CHARS REACH_WIDTH =                              "CH_WIDTH";
-CONST_CHARS REACH_LENGTH =                             "CH_LEN";
-CONST_CHARS REACH_DEPTH =                              "CH_DEPTH";
-CONST_CHARS REACH_WDRATIO =                            "CH_WDRATIO";
-CONST_CHARS REACH_AREA =                               "CH_AREA";
-CONST_CHARS REACH_SIDESLP =                            "CH_SSLP";
-CONST_CHARS REACH_SLOPE =                              "CH_SLP";
+CONST_CHARS REACH_UPDOWN_ORDER =                       "UP_DOWN_ORDER"; ///< 
+CONST_CHARS REACH_DOWNUP_ORDER =                       "DOWN_UP_ORDER"; ///< 
+CONST_CHARS REACH_WIDTH =                              "CH_WIDTH"; ///< 
+CONST_CHARS REACH_LENGTH =                             "CH_LEN"; ///< 
+CONST_CHARS REACH_DEPTH =                              "CH_DEPTH"; ///< 
+CONST_CHARS REACH_WDRATIO =                            "CH_WDRATIO"; ///< 
+CONST_CHARS REACH_AREA =                               "CH_AREA"; ///< 
+CONST_CHARS REACH_SIDESLP =                            "CH_SSLP"; ///< 
+CONST_CHARS REACH_SLOPE =                              "CH_SLP"; ///< 
 // Hydrological related parameters
 CONST_CHARS REACH_MANNING =                         "CH_N"; // Manning's "n" value
 CONST_CHARS REACH_BEDK =                            "CH_BED_K"; /// hydraulic conductivity of the channel bed
@@ -199,436 +201,213 @@ CONST_CHARS REACH_BNKEROD =                         "CH_BNK_EROD"; // Erodibilit
 CONST_CHARS REACH_BEDD50 =                          "CH_BED_D50"; // D50(median) particle size diameter of channel bed sediment
 CONST_CHARS REACH_BNKD50 =                          "CH_BNK_D50"; // D50(median) particle size diameter of channel band sediment
 // Nutrient cycling related parameters
-CONST_CHARS REACH_BC1 =                             "BC1";
-CONST_CHARS REACH_BC2 =                             "BC2";
-CONST_CHARS REACH_BC3 =                             "BC3";
-CONST_CHARS REACH_BC4 =                             "BC4";
-CONST_CHARS REACH_RK1 =                             "RK1";
-CONST_CHARS REACH_RK2 =                             "RK2";
-CONST_CHARS REACH_RK3 =                             "RK3";
-CONST_CHARS REACH_RK4 =                             "RK4";
-CONST_CHARS REACH_RS1 =                             "RS1";
-CONST_CHARS REACH_RS2 =                             "RS2";
-CONST_CHARS REACH_RS3 =                             "RS3";
-CONST_CHARS REACH_RS4 =                             "RS4";
-CONST_CHARS REACH_RS5 =                             "RS5";
-CONST_CHARS REACH_DISOX =                           "DISOX";
-CONST_CHARS REACH_BOD =                             "BOD";
-CONST_CHARS REACH_ALGAE =                           "ALGAE";
-CONST_CHARS REACH_ORGN =                            "ORGN"; // ch_onco in SWAT
-CONST_CHARS REACH_NH4 =                             "NH4";
-CONST_CHARS REACH_NO2 =                             "NO2";
-CONST_CHARS REACH_NO3 =                             "NO3";
-CONST_CHARS REACH_ORGP =                            "ORGP"; // ch_opco in SWAT
-CONST_CHARS REACH_SOLP =                            "SOLP";
+CONST_CHARS REACH_BC1 =                             "BC1"; ///< 
+CONST_CHARS REACH_BC2 =                             "BC2"; ///< 
+CONST_CHARS REACH_BC3 =                             "BC3"; ///< 
+CONST_CHARS REACH_BC4 =                             "BC4"; ///< 
+CONST_CHARS REACH_RK1 =                             "RK1"; ///< 
+CONST_CHARS REACH_RK2 =                             "RK2"; ///< 
+CONST_CHARS REACH_RK3 =                             "RK3"; ///< 
+CONST_CHARS REACH_RK4 =                             "RK4"; ///< 
+CONST_CHARS REACH_RS1 =                             "RS1"; ///< 
+CONST_CHARS REACH_RS2 =                             "RS2"; ///< 
+CONST_CHARS REACH_RS3 =                             "RS3"; ///< 
+CONST_CHARS REACH_RS4 =                             "RS4"; ///< 
+CONST_CHARS REACH_RS5 =                             "RS5"; ///< 
+CONST_CHARS REACH_DISOX =                           "DISOX"; ///< 
+CONST_CHARS REACH_BOD =                             "BOD"; ///< 
+CONST_CHARS REACH_ALGAE =                           "ALGAE"; ///< 
+CONST_CHARS REACH_ORGN =                            "ORGN"; ///< ch_onco in SWAT
+CONST_CHARS REACH_NH4 =                             "NH4"; ///< 
+CONST_CHARS REACH_NO2 =                             "NO2"; ///< 
+CONST_CHARS REACH_NO3 =                             "NO3"; ///< 
+CONST_CHARS REACH_ORGP =                            "ORGP"; ///< ch_opco in SWAT
+CONST_CHARS REACH_SOLP =                            "SOLP"; ///< 
 // Groundwater nutrient related parameters
-CONST_CHARS REACH_GWNO3 =                           "GWNO3";
-CONST_CHARS REACH_GWSOLP =                          "GWSOLP";
+CONST_CHARS REACH_GWNO3 =                           "GWNO3"; ///< 
+CONST_CHARS REACH_GWSOLP =                          "GWSOLP"; ///< 
 // Derived parameters according to the input parameters of Reach, which may also be provided in database.
-CONST_CHARS REACH_BEDTC =                           "CH_BED_TC"; // Critical shear stress of channel bed
-CONST_CHARS REACH_BNKTC =                           "CH_BNK_TC"; // Critical shear stress of channel bank
-CONST_CHARS REACH_BNKSAND =                         "CH_BNK_SAND"; // Fraction of sand in channel bank sediment
-CONST_CHARS REACH_BNKSILT =                         "CH_BNK_SILT"; // Fraction of silt in channel bank sediment
-CONST_CHARS REACH_BNKCLAY =                         "CH_BNK_CLAY"; // Fraction of clay in channel bank sediment
-CONST_CHARS REACH_BNKGRAVEL =                       "CH_BNK_GRAVEL"; // Fraction of gravel in channel bank sediment
-CONST_CHARS REACH_BEDSAND =                         "CH_BED_SAND"; // Fraction of sand in channel bed sediment
-CONST_CHARS REACH_BEDSILT =                         "CH_BED_SILT"; // Fraction of silt in channel bed sediment
-CONST_CHARS REACH_BEDCLAY =                         "CH_BED_CLAY"; // Fraction of clay in channel bed sediment
-CONST_CHARS REACH_BEDGRAVEL =                       "CH_BED_GRAVEL"; // Fraction of gravel in channel bed sediment
+CONST_CHARS REACH_BEDTC =                           "CH_BED_TC"; ///< Critical shear stress of channel bed
+CONST_CHARS REACH_BNKTC =                           "CH_BNK_TC"; ///< Critical shear stress of channel bank
+CONST_CHARS REACH_BNKSAND =                         "CH_BNK_SAND"; ///< Fraction of sand in channel bank sediment
+CONST_CHARS REACH_BNKSILT =                         "CH_BNK_SILT"; ///< Fraction of silt in channel bank sediment
+CONST_CHARS REACH_BNKCLAY =                         "CH_BNK_CLAY"; ///< Fraction of clay in channel bank sediment
+CONST_CHARS REACH_BNKGRAVEL =                       "CH_BNK_GRAVEL"; ///< Fraction of gravel in channel bank sediment
+CONST_CHARS REACH_BEDSAND =                         "CH_BED_SAND"; ///< Fraction of sand in channel bed sediment
+CONST_CHARS REACH_BEDSILT =                         "CH_BED_SILT"; ///< Fraction of silt in channel bed sediment
+CONST_CHARS REACH_BEDCLAY =                         "CH_BED_CLAY"; ///< Fraction of clay in channel bed sediment
+CONST_CHARS REACH_BEDGRAVEL =                       "CH_BED_GRAVEL"; ///< Fraction of gravel in channel bed sediment
 // Grouping related
-CONST_CHARS REACH_GROUP =                              "GROUP";
-CONST_CHARS REACH_KMETIS =                             "KMETIS";
-CONST_CHARS REACH_PMETIS =                             "PMETIS";
+CONST_CHARS REACH_GROUP =                              "GROUP"; ///< 
+CONST_CHARS REACH_KMETIS =                             "KMETIS"; ///< 
+CONST_CHARS REACH_PMETIS =                             "PMETIS"; ///< 
 // Coordinates
 CONST_CHARS REACH_COORX =                              "CH_COORX"; ///< X coordinates (not cols!)
 CONST_CHARS REACH_COORY =                              "CH_COORY"; ///< Y coordinates (not rows!)
 
-/// these four are defined in DB_TAB_SITELIST in Source_ParameterDB
-CONST_CHARS SITELIST_TABLE_M =                      "SITELISTM";
-CONST_CHARS SITELIST_TABLE_P =                      "SITELISTP";
-CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET";
+// these four are defined in DB_TAB_SITELIST in Source_ParameterDB
+CONST_CHARS SITELIST_TABLE_M =                      "SITELISTM"; ///< 
+CONST_CHARS SITELIST_TABLE_P =                      "SITELISTP"; ///< 
+CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET"; ///< 
 
-//! define string constants used in the code, also used in the mongoDB.SiteList table's header
-CONST_CHARS Tag_Mode =                              "MODE";
-CONST_CHARS Tag_Mode_Storm =                        "STORM";
-CONST_CHARS Tag_Mode_Daily =                        "DAILY";
+// define string constants used in the code, also used in the mongoDB.SiteList table's header
+CONST_CHARS Tag_Mode =                              "MODE"; ///< 
+CONST_CHARS Tag_Mode_Storm =                        "STORM"; ///< 
+CONST_CHARS Tag_Mode_Daily =                        "DAILY"; ///< 
 
-CONST_CHARS Type_Scenario =                         "SCENARIO";
-CONST_CHARS Type_Reach =                            "REACH";
-CONST_CHARS Type_Subbasin =                         "SUBBASIN";
-CONST_CHARS Type_Raster1D =                         "RASTER1D";
-CONST_CHARS Type_Raster2D =                         "RASTER2D";
-CONST_CHARS Type_Array1DDateValue =                 "ARRAY1DDATEVALUE";
-CONST_CHARS Type_Array2D =                          "ARRAY2D";
-CONST_CHARS Type_Array1D =                          "ARRAY1D";
-CONST_CHARS Type_Single =                           "SINGLE";
+CONST_CHARS Type_Scenario =                         "SCENARIO"; ///< 
+CONST_CHARS Type_Reach =                            "REACH"; ///< 
+CONST_CHARS Type_Subbasin =                         "SUBBASIN"; ///< 
+CONST_CHARS Type_Raster1D =                         "RASTER1D"; ///< 
+CONST_CHARS Type_Raster2D =                         "RASTER2D"; ///< 
+CONST_CHARS Type_Array1DDateValue =                 "ARRAY1DDATEVALUE"; ///< 
+CONST_CHARS Type_Array2D =                          "ARRAY2D"; ///< 
+CONST_CHARS Type_Array1D =                          "ARRAY1D"; ///< 
+CONST_CHARS Type_Single =                           "SINGLE"; ///< 
 
-CONST_CHARS TFType_Whole =                          "TFWhole";
-CONST_CHARS TFType_Single =                         "TFSINGLE";
-CONST_CHARS TFType_Array1D =                        "TFARRAY1D";
+CONST_CHARS TFType_Whole =                          "TFWhole"; ///< 
+CONST_CHARS TFType_Single =                         "TFSINGLE"; ///< 
+CONST_CHARS TFType_Array1D =                        "TFARRAY1D"; ///< 
 
 //////////////////////////////////////////////////////////////////////////
 /// Define models' ID and description in SEIMS  //////////////////////////
-/// By LiangJun Zhu, Apr. 26, 2016  //////////////////////////////////////
+/// By Liangjun Zhu, Apr. 26, 2016  //////////////////////////////////////
+/// Updated by Tong Wu and Liangjun Zhu, Jul. 2021 ///////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-/// Hydro-Meteorological data
-CONST_CHARS_LIST MCLS_CLIMATE[] = {"HydroClimate", "HydroClimate data modules"};
-CONST_CHARS_LIST M_TSD_RD[] = {"TSD_RD", "Read time series data from HydroClimate database."};
-CONST_CHARS_LIST M_ITP[] = {"ITP", "Interpolation of P, T, etc."};
+// Hydro-Meteorological data related modules
+CONST_CHARS_LIST MCLS_CLIMATE[] = {"HydroClimate", "HydroClimate data modules"}; ///< 
+CONST_CHARS_LIST M_TSD_RD[] = {"TSD_RD", "Read time series data from HydroClimate database."}; ///< 
+CONST_CHARS_LIST M_ITP[] = {"ITP", "Interpolation of P, T, etc."}; ///< 
 
-// #define MCLS_CLIMATE                           "HydroClimate"
-// #define MCLSDESC_CLIMATE                       "HydroClimate data modules"
-// #define MID_TSD_RD                             "TSD_RD"
-// #define MDESC_TSD_RD                           "Read time series data from HydroClimate database."
-// #define MID_ITP                                "ITP"
-// #define MDESC_ITP                              "Interpolation of P, T, etc."
+// Soil properties related modules
+CONST_CHARS_LIST MCLS_SOIL[] = {"Soil property", "Soil properties related modules"}; ///< 
+CONST_CHARS_LIST M_STP_FP[] = {"STP_FP", "Finn Plauborg Method to compute soil temperature."}; ///< 
+CONST_CHARS_LIST M_SOL_WB[] = {"SOL_WB", "Soil water balance calculation" }; ///< 
 
-/// Soil temperature
-CONST_CHARS_LIST MCLS_SOLT[] = {"Soil Temperature", "Calculate the soil temperature."};
-CONST_CHARS_LIST M_STP_FP[] = {"STP_FP", "Finn Plauborg Method to compute soil temperature."};
+// Canopy interception related modules
+CONST_CHARS_LIST MCLS_INTERC[] = {"Interception", "Canopy interception module"}; ///< 
+CONST_CHARS_LIST M_PI_SVSC[] = {"PI_SVSC", "Precipitation interception by seasonal variation of storage capacity method"}; ///< 
+CONST_CHARS_LIST M_PI_MCS[] = {"PI_MCS", "Precipitation interception based on Maximum Canopy Storage"}; ///< 
 
-// #define MCLS_SOLT                              "Soil Temperature"
-// #define MCLSDESC_SOLT                          "Calculate the soil temperature."
-// #define MID_STP_FP                             "STP_FP"
-// #define MDESC_STP_FP                           "Finn Plauborg Method to compute soil temperature."
-
-/// Interception
-CONST_CHARS_LIST MCLS_INTERC[] = {"Interception", "Precipation interception module"};
-CONST_CHARS_LIST M_PI_SVSC[] = {"PI_SVSC", "Precipitation interception by seasonal variation of storage capacity method"};
-CONST_CHARS_LIST M_PI_MCS[] = {"PI_MCS", "Precipitation interception based on Maximum Canopy Storage"};
-
-// #define MCLS_INTERC                            "Interception"
-// #define MCLSDESC_INTERC                        "Precipation interception module"
-// #define MID_PI_SVSC                            "PI_SVSC"
-// #define MDESC_PI_SVSC                          "Precipitation interception by seasonal variation of storage capacity method"
-// #define MID_PI_MCS                             "PI_MCS"
-// #define MDESC_PI_MCS                           "Precipitation interception based on Maximum Canopy Storage"
-
-/// Snow redistribution
+// Snow redistribution related modules
 CONST_CHARS_LIST MCLS_SNO_RD[] = {"Snow redistribution", "Snow redistribution calculation"};
 CONST_CHARS_LIST M_SRD_MB[] = {"SRD_MB", "Original WetSpa algorithm"};
 
-// #define MCLS_SNO_RD                            "Snow redistribution"
-// #define MCLSDESC_SNO_RD                        "Snow redistribution calculation"
-// #define MID_SRD_MB                             "SRD_MB"
-// #define MDESC_SRD_MB                           "Original WetSpa algorithm"
+// Snow sublimation related modules
+CONST_CHARS_LIST MCLS_SNO_SB[] = {"Snow sublimation", "Calculate the amount of snow sublimation."}; ///< 
+CONST_CHARS_LIST M_SSM_PE[] = {"SSM_PE", "A simple method that used in the old WetSpa to calculate snow sublimation."}; ///< 
 
-/// Snow sublimation
-CONST_CHARS_LIST MCLS_SNO_SB[] = {"Snow sublimation", "Calculate the amount of snow sublimation ."};
-CONST_CHARS_LIST M_SSM_PE[] = {"SSM_PE", "A simple method that used in the old WetSpa to calculate snow sublimation."};
+// Snow melt related modules
+CONST_CHARS_LIST MCLS_SNOW[] = {"Snow accumulation and melt", "Snow accumulation and melt."}; ///< 
+CONST_CHARS_LIST M_SNO_WB[] = {"SNO_WB", "Calculate snow water balance"}; ///< 
+CONST_CHARS_LIST M_SNO_DD[] = {"SNO_DD", "Degree-Day method (Martinec et al., 1983) for snow melt modeling"}; ///< 
+CONST_CHARS_LIST M_SNO_SP[] = {"SNO_SP", "Snowpack Daily method from SWAT"}; ///< 
 
-// #define MCLS_SNO_SB                            "Snow sublimation"
-// #define MCLSDESC_SNO_SB                        "Calculate the amount of snow sublimation ."
-// #define MID_SSM_PE                             "SSM_PE"
-// #define MDESC_SSM_PE                           "A simple method that used in the old WetSpa to calculate snow sublimation."
+// Potential Evapotranspiration related modules
+CONST_CHARS_LIST MCLS_PET[] = {"Potential Evapotranspiration", "Calculate the potential evapotranspiration"}; ///< 
+CONST_CHARS_LIST M_PET_H[] = {"PET_H", "Hargreaves method for potential evapotranspiration."}; ///< 
+CONST_CHARS_LIST M_PET_PT[] = {"PET_PT", "PriestleyTaylor method for potential evapotranspiration."}; ///< 
+CONST_CHARS_LIST M_PET_PM[] = {"PET_PM", "Penman Monteith method for potential evapotranspiration."}; ///< 
 
-/// Snow melt
-CONST_CHARS_LIST MCLS_SNOW[] = {"Snow accumulation and melt", "Calculate the amount of snow  accumulation andmelt."};
-CONST_CHARS_LIST M_SNO_WB[] = {"SNO_WB", "Calculate snow water balance"};
-CONST_CHARS_LIST M_SNO_DD[] = {"SNO_DD", "Degree-Day method (Martinec et al., 1983) for snow melt modeling"};
-CONST_CHARS_LIST M_SNO_SP[] = {"SNO_SP", "Snowpack Daily method from SWAT"};
+// Actual Evapotranspiration from plant and soil related modules
+CONST_CHARS_LIST MCLS_AET[] = {"Actual Evapotranspiration", "Calculates potential plant transpiration "
+                               "and potential and actual soil evaporation."}; ///< 
+CONST_CHARS_LIST M_AET_PTH[] = {"AET_PTH", "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods"}; ///< 
+CONST_CHARS_LIST M_SET_LM[] = {"SET_LM", "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"}; ///< 
 
-// #define MCLS_SNOW                              "Snow accumulation and melt"
-// #define MCLSDESC_SNOW                          "Calculate the amount of snow  accumulation andmelt."
-// #define MID_SNO_WB                             "SNO_WB"
-// #define MDESC_SNO_WB                           "Calculate snow water balance"
-// #define MID_SNO_DD                             "SNO_DD"
-// #define MDESC_SNO_DD                           "Degree-Day method (Martinec et al., 1983) for snow melt modeling"
-// #define MID_SNO_SP                             "SNO_SP"
-// #define MDESC_SNO_SP                           "Snowpack Daily method from SWAT"
+// Depression related modules
+CONST_CHARS_LIST MCLS_DEP[] = {"Depression", "Fill depression"}; ///< 
+CONST_CHARS_LIST M_DEP_FS[] = {"DEP_FS", "A simple fill and spill method method to calculate depression storage."}; ///< 
+CONST_CHARS_LIST M_DEP_LINSLEY[] = {"DEP_LINSLEY", "Linsley method to calculate depression storage"}; ///< 
 
-/// Potential Evapotranspiration Modules
-CONST_CHARS_LIST MCLS_PET[] = {"Potential Evapotranspiration", "Calculate the potential evapotranspiration"};
-CONST_CHARS_LIST M_PET_H[] = {"PET_H", "Hargreaves method for calculating the potential evapotranspiration."};
-CONST_CHARS_LIST M_PET_PT[] = {"PET_PT", "PriestleyTaylor method for calculating the potential evapotranspiration."};
-CONST_CHARS_LIST M_PET_PM[] = {"PET_PM", "Penman Monteith method for calculating the potential evapotranspiration."};
+// Surface runoff and infiltration related modules
+CONST_CHARS_LIST MCLS_SUR_RUNOFF[] = {"Surface runoff", "Infiltration and surface runoff of excess precipitation."}; ///< 
+CONST_CHARS_LIST M_SUR_MR[] = {"SUR_MR", "Modified rational method to calculate infiltration and excess precipitation."}; ///< 
+CONST_CHARS_LIST M_SUR_CN[] = {"SUR_CN", "SCS curve number method to calculate infiltration and excess precipitation."}; ///< 
+CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Green-Ampt method for infiltration and excess precipitation in storm mode."}; ///< 
 
-// #define MCLS_PET                               "Potential Evapotranspiration"
-// #define MCLSDESC_PET                           "Calculate the potential evapotranspiration"
-// #define MID_PET_H                              "PET_H"
-// #define MDESC_PET_H                            "Hargreaves method for calculating the potential evapotranspiration."
-// #define MID_PET_PT                             "PET_PT"
-// #define MDESC_PET_PT                           "PriestleyTaylor method for calculating the potential evapotranspiration."
-// #define MID_PET_PM                             "PET_PM"
-// #define MDESC_PET_PM                           "Penman Monteith method for calculating the potential evapotranspiration."
+// Interflow (subsurface flow) routing related modules
+// TODO, uniform the prefix as SSR_. By lj
+CONST_CHARS_LIST MCLS_INTERFLOW[] = {"Interflow (subsurface flow) routing", "Interflow routing."}; ///< 
+CONST_CHARS_LIST M_IKW_IF[] = {"IKW_IF", "interflow routing using the method of WetSpa model."}; ///< TODO rewrite the desc
+CONST_CHARS_LIST M_IUH_IF[] = {"IUH_IF", "IUH overland method to calculate interflow routing."}; ///< 
+CONST_CHARS_LIST M_SSR_DA[] = {"SSR_DA", "Darcy's law and the kinematic approximation."}; ///<
 
-/// Actual Evapotranspiration
-CONST_CHARS_LIST MCLS_AET[] = {"Actual Evapotranspiration", "Calculates potential plant transpiration and potential and actual soil evaporation. "};
-CONST_CHARS_LIST M_AET_PTH[] = {"AET_PTH", "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods "};
-CONST_CHARS_LIST M_SET_LM[] = {"SET_LM", "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"};
+// Percolation related modules
+CONST_CHARS_LIST MCLS_PERCO[] = {"Percolation", "Water percolated out of the root zone."}; ///< 
+CONST_CHARS_LIST M_PER_PI[] = {"PER_PI", "Percolation based on Darcy's law and Brooks-Corey equation"}; ///< 
+CONST_CHARS_LIST M_PER_STR[] = {"PET_STR", "Percolation based on storage routing method"}; ///< 
+CONST_CHARS_LIST M_PERCO_DARCY[] = {"PERCO_DARCY", "Original WetSpa method which relates percolation with "
+                                    "soil moisture and pore size distribution index."}; ///< 
 
-// #define MCLS_AET                               "Actual Evapotranspiration"
-// #define MCLSDESC_AET                           "Calculates potential plant transpiration and potential and actual soil evaporation. "
-// #define MID_AET_PTH                            "AET_PTH"
-// #define MDESC_AET_PTH                          "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods "
-// #define MID_SET_LM                             "SET_LM"
-// #define MDESC_SET_LM                           "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"
+// Hillslope hydrology related modules
+CONST_CHARS_LIST MCLS_HS_HYDRO[] = {"Hillslope water balance", "Water balance calculation in hillslope."}; ///< 
+CONST_CHARS_LIST M_HS_WB[] = {"HS_WB", "Hillsloope water balance."}; ///< 
 
-/// Depression
-CONST_CHARS_LIST MCLS_DEP[] = {"Depression", "Calculate depression storage."};
-CONST_CHARS_LIST M_DEP_FS[] = {"DEP_FS", "A simple fill and spill method method to calculate depression storage."};
-CONST_CHARS_LIST M_DEP_LINSLEY[] = {"DEP_LINSLEY", "Linsley method to calculate depression storage"};
+// Paddy related modules
+CONST_CHARS_LIST MCLS_PADDY[] = {"Paddy", "Paddy simulations"}; ///< 
+CONST_CHARS_LIST M_IMP_SWAT[] = {"IMP_SWAT", "SWAT method, simulates depressional areas that do not drain to "
+                                 "the stream network (pothole) and impounded areas such as rice paddies"}; ///< 
+// Groundwater related modules
+CONST_CHARS_LIST MCLS_GW[] = {"Groundwater", "Groundwater routing and baseflow."}; ///< 
+CONST_CHARS_LIST M_GW_RSVR[] = {"GW_RSVR", "Groundwater routing based on reservoir method."}; ///< TODO, maybe should be removed!
+CONST_CHARS_LIST M_GWA_RE[] = {"GWA_RE", "Groundwater routing based on reservoir method."}; ///< 
 
-// #define MCLS_DEP                               "Depression"
-// #define MCLSDESC_DEP                           "Calculate depression storage."
-// #define MID_DEP_FS                             "DEP_FS"
-// #define MDESC_DEP_FS                           "A simple fill and spill method method to calculate depression storage."
-// #define MID_DEP_LINSLEY                        "DEP_LINSLEY"
-// #define MDESC_DEP_LINSLEY                      "Linsley method to calculate depression storage"
+// Erosion related modules
+CONST_CHARS_LIST MCLS_OL_EROSION[] = {"Overland erosion", "Calculate the amount sediment yield of overland erosion."}; ///< 
+CONST_CHARS_LIST MCLS_CH_EROSION[] = {"Channel erosion", "Calculate the amount channel erosion."}; ///< 
+CONST_CHARS_LIST M_SplashEro_Park[] = {"SplashEro_Park", "Park equation to calculate sediment yield of each unit"}; ///< 
+CONST_CHARS_LIST M_KINWAVSED_OL[] = {"KinWavSed_OL", "Energy function(Govers) method for sediment yield routing."}; ///< 
+CONST_CHARS_LIST M_KINWAVSED_CH[] = {"KinWavSed_CH", "Srinivasan & Galvao function for sediment yield routing."}; ///< 
+CONST_CHARS_LIST M_SERO_MUSLE[] = {"SERO_MUSLE", "MUSLE method for sediment yield."}; ///< 
+CONST_CHARS_LIST M_IUH_SED_OL[] = {"IUH_SED_OL", "Overland routing of sediment using IUH."}; ///< 
 
-/// Surface runoff
-CONST_CHARS_LIST MCLS_SUR_RUNOFF[] = {"Surface runoff", "Infiltration and surface runoff of excess precipitation."};
-CONST_CHARS_LIST M_SUR_MR[] = {"SUR_MR", "Modified rational method to calculate infiltration and excess precipitation."};
-CONST_CHARS_LIST M_SUR_CN[] = {"SUR_CN", "SCS curve number method to calculate infiltration and excess precipitation."};
-// SGA = Green&Ampt method ?
-CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Modified rational method to calculate infiltration and excess precipitation."};
+// Management related modules
+CONST_CHARS_LIST MCLS_MGT[] = {"Mangement practices", "BMP related modules"}; ///< 
+CONST_CHARS_LIST M_PLTMGT_SWAT[] = {"PLTMGT_SWAT", "Plant mangement operation modeling method in SWAT"}; ///< 
+CONST_CHARS_LIST M_NPSMGT[] = {"NPSMGT", "Non-point source pollution management"}; ///< 
 
-// #define MCLS_SUR_RUNOFF                        "Surface runoff"
-// #define MCLSDESC_SUR_RUNOFF                    "Infiltration and surface runoff of excess precipitation."
-// #define MID_SUR_MR                             "SUR_MR"
-// #define MDESC_SUR_MR                           "Modified rational method to calculate infiltration and excess precipitation."
-// #define MID_SUR_CN                             "SUR_CN"
-// #define MDESC_SUR_CN                           "SCS curve number method to calculate infiltration and excess precipitation."
-// #define MID_SUR_SGA                            "SUR_SGA"
-// #define MDESC_SUR_SGA                          "Modified rational method to calculate infiltration and excess precipitation."
+// Ecology (e.g., plant growth) related modules
+CONST_CHARS_LIST MCLS_PG[] = {"Plant growth", "Calculate the amount of plant growth."}; ///< 
+CONST_CHARS_LIST M_PG_EPIC[] = {"PG_EPIC", "Plant growth based on a simplified version of EPIC used in SWAT."}; ///< 
+CONST_CHARS_LIST M_PG_ORYZA[] = {"PG_ORYZA", "Rice crop growth module of ORYZA2000 model."}; ///< 
 
-/// Interflow
-CONST_CHARS_LIST MCLS_INTERFLOW[] = {"Interflow routing", "Interflow routing."};
-CONST_CHARS_LIST M_IKW_IF[] = {"IKW_IF", "interflow routing using the method of WetSpa model."};
-CONST_CHARS_LIST M_IUH_IF[] = {"IUH_IF", "IUH overland method to calculate interflow routing."};
+// Overland routing related modules
+CONST_CHARS_LIST MCLS_OL_ROUTING[] = {"Overland routing", "Overland routing module"}; ///< 
+CONST_CHARS_LIST M_IKW_OL[] = {"IKW_OL", "Overland routing using 4-point implicit finite difference method."}; ///< 
+CONST_CHARS_LIST M_IUH_OL[] = {"IUH_OL", "IUH overland method to calculate overland flow routing."}; ///< 
 
-// #define MCLS_INTERFLOW                         "Interflow routing"
-// #define MCLSDESC_INTERFLOW                     "Interflow routing."
-// #define MID_IKW_IF                             "IKW_IF"
-// #define MDESC_IKW_IF                           "interflow routing using the method of WetSpa model."
-// #define MID_IUH_IF                             "IUH_IF"
-// #define MDESC_IUH_IF                           "IUH overland method to calculate interflow routing."
+// Channel routing related modules
+CONST_CHARS_LIST MCLS_CH_ROUTING[] = {"Channel routing", "Channel routing modules"}; ///< 
+CONST_CHARS_LIST M_CH_DW[] = {"CH_DW", "Channel routing using diffusive wave equation."}; ///< 
+CONST_CHARS_LIST M_CH_MSK[] = {"CH_MSK", "Channel routing using Muskingum-Cunge method of storm model."}; ///< 
+CONST_CHARS_LIST M_IKW_CH[] = {"IKW_CH", "Channel routing using 4-point implicit finite difference method for kinematic wave."}; ///< 
+CONST_CHARS_LIST M_MUSK_CH[] = {"MUSK_CH", "Channel routing using Muskingum-Cunge method of longterm model."}; ///< 
+CONST_CHARS_LIST M_NUTR_CH[] = { "NUTR_CH", "Channel routing of nutrients" }; ///< 
+CONST_CHARS_LIST M_SEDR_SBAGNOLD[] = {"SEDR_SBAGNOLD", "Sediment channel routing using "
+                                      "variable channel dimension method as used in SWAT."}; ///<
 
-/// Percolation
-CONST_CHARS_LIST MCLS_PERCO[] = {"Percolation", "Calculate the amount of water percolated out of the root zone within the time step."};
-CONST_CHARS_LIST M_PER_PI[] = {"PER_PI", "Percolation calculated by Darcy's law and Brooks-Corey equation"};
-CONST_CHARS_LIST M_PER_STR[] = {"PET_STR", "Percolation calculated by storage routing method"};
-CONST_CHARS_LIST M_PERCO_DARCY[] = {"PERCO_DARCY", "The method relating percolation with soil moisture and pore size distribution index used in the original WetSpa will be the default method to estimate percolation out of the root zone."};
+// Nutrient related modules, e.g., carbon, nitrogen, and phosphorus mineralization and immobilization.
+CONST_CHARS_LIST MCLS_NUTRCYC[] = {"Nutrient cycling", "Carbon, nitrogen, and phosphorus cycling"}; ///<
+CONST_CHARS_LIST M_NUTR_TF[] = {"NUTR_TF", "Daily nitrogen and phosphorus mineralization and immobilization "
+                                "considering fresh organic material (plant residue) and active and stable humus material."}; ///< 
+CONST_CHARS_LIST M_NUTRSED[] = {"NUTRSED", "Nutrient removed and loss in surface runoff, lateral flow, tile flow,"
+                                " and percolation out of the profile."}; ///< 
+CONST_CHARS_LIST M_NUTRMV[] = {"NutrMV", "Simulates the loss of nitrate and phosphorus via surface runoff"}; ///< 
+CONST_CHARS_LIST M_NUTRGW[] = {"NutrGW", "Simulates the tutrient loading contributed by groundwater flow"}; ///< 
+CONST_CHARS_LIST M_NUTRCH_QUAL2E[] = {"NutrCH_QUAL2E", "In-stream nutrient transformations"}; ///< 
 
-// #define MCLS_PERCO                             "Percolation"
-// #define MCLSDESC_PERCO                         "Calculate the amount of water percolated out of the root zone within the time step."
-// #define MID_PER_PI                             "PER_PI"
-// #define MDESC_PER_PI                           "Percolation calculated by Darcy's law and Brooks-Corey equation"
-// #define MID_PER_STR                            "PET_STR"
-// #define MDESC_PER_STR                          "Percolation calculated by storage routing method"
-// #define MID_PERCO_DARCY                        "PERCO_DARCY"
-// #define MDESC_PERCO_DARCY                      "The method relating percolation with soil moisture and pore size distribution index used in the original WetSpa will be the default method to estimate percolation out of the root zone."
+// Atmospheric Deposition
+CONST_CHARS_LIST MCLS_ATMDEP[] = {"AtmosphericDeposition", "AtmosphericDeposition"}; ///<  
+CONST_CHARS_LIST M_ATMDEP[] = {"ATMDEP", "AtmosphericDeposition"}; ///< 
 
-/// Subsurface
-CONST_CHARS_LIST MCLS_SUBSURFACE[] = {"Subsurface", "Subsurface Runoff"};
-CONST_CHARS_LIST M_SSR_DA[] = {"SSR_DA", "Darcy's law and the kinematic approximation; Water is routed cell-to-cell according to D8 flow direction"};
-
-// #define MCLS_SUBSURFACE                        "Subsurface"
-// #define MCLSDESC_SUBSURFACE                    "Subsurface Runoff"
-// #define MID_SSR_DA                             "SSR_DA"
-// #define MDESC_SSR_DA                           "Darcy's law and the kinematic approximation; Water is routed cell-to-cell according to D8 flow direction"
-
-/// Soil water balance
-CONST_CHARS_LIST MCLS_WTRBALANCE[] = {"Water banlance", "Water balance calculation"};
-CONST_CHARS_LIST M_SOL_WB[] = {"SOL_WB", "Soil water balance calculation"};
-
-// #define MCLS_WTRBALANCE                        "Water banlance"
-// #define MCLSDESC_WTRBALANCE                    "Water balance calculation"
-// #define MID_SOL_WB                             "SOL_WB"
-// #define MDESC_SOL_WB                           "Soil water balance calculation"
-
-/// Hillslope hydrology
-CONST_CHARS_LIST MCLS_HS_HYDRO[] = {"Hillslope water balance", "Water balance calculation in hillslope."};
-CONST_CHARS_LIST M_HS_WB[] = {"HS_WB", "Hillsloope water balance."};
-
-// #define MCLS_HS_HYDRO                          "Hillslope water balance"
-// #define MCLSDESC_HS_HYDRO                      "Water balance calculation in hillslope."
-// #define MID_HS_WB                              "HS_WB"
-// #define MDESC_HS_WB                            "Hillsloope water balance."
-
-/// Paddy
-CONST_CHARS_LIST MCLS_PADDY[] = {"Paddy", "Paddy simulations"};
-CONST_CHARS_LIST M_IMP_SWAT[] = {"IMP_SWAT", "SWAT method, simulates depressional areas that do not drain to the stream network (pothole) and impounded areas such as rice paddies"};
-
-// #define MCLS_PADDY                             "Paddy"
-// #define MCLSDESC_PADDY                         "Paddy simulations"
-// #define MID_IMP_SWAT                           "IMP_SWAT"
-// #define MDESC_IMP_SWAT                         "SWAT method, simulates depressional areas that do not drain to the stream network (pothole) and impounded areas such as rice paddies"
-
-/// Groundwater
-CONST_CHARS_LIST MCLS_GW[] = {"Groundwater", "Calculate groundwater balance and baseflow."};
-CONST_CHARS_LIST M_GW_RSVR[] = {"GW_RSVR", "Calculate groundwater using reservoir method for storm model"};
-CONST_CHARS_LIST M_GWA_RE[] = {"GWA_RE", "Reservoir Method to calculate groundwater balance and baseflow for longterm model"};
-
-// #define MCLS_GW                                "Groundwater"
-// #define MCLSDESC_GW                            "Calculate groundwater balance and baseflow."
-// #define MID_GW_RSVR                            "GW_RSVR"
-// #define MDESC_GW_RSVR                          "Calculate groundwater using reservoir method for storm model"
-// #define MID_GWA_RE                             "GWA_RE"
-// #define MDESC_GWA_RE                           "Reservoir Method to calculate groundwater balance and baseflow for longterm model"
-
-/// Erosion related modules
-CONST_CHARS_LIST MCLS_OL_EROSION[] = {"Overland erosion", "Calculate the amount sediment yield of overland erosion."};
-CONST_CHARS_LIST MCLS_CH_EROSION[] = {"Channel erosion", "Calculate the amount channel erosion."};
-CONST_CHARS_LIST M_SplashEro_Park[] = {"SplashEro_Park", "use Park equation to calculate sediment yield of each cell"};
-CONST_CHARS_LIST M_KINWAVSED_OL[] = {"KinWavSed_OL", "Use energy function(Govers) method to calculate sediment yield routing of each hillslope cell"};
-CONST_CHARS_LIST M_KINWAVSED_CH[] = {"KinWavSed_CH", "Srinivasan & Galvao function to calculate sediment yield routing of each channel cell"};
-CONST_CHARS_LIST M_SERO_MUSLE[] = {"SERO_MUSLE", "use MUSLE method to calculate sediment yield of each cell"};
-CONST_CHARS_LIST M_IUH_SED_OL[] = {"IUH_SED_OL", "Overland routing of sediment using IUH"};
-CONST_CHARS_LIST M_NUTR_CH[] = {"NUTR_CH", "Channel routing of nutrients"};
-
-// #define MCLS_OL_EROSION                        "Overland erosion"
-// #define MCLS_CH_EROSION                        "Channel erosion"
-// #define MCLSDESC_OL_EROSION                    "Calculate the amount sediment yield of overland erosion."
-// #define MCLSDESC_CH_EROSION                    "Calculate the amount channel erosion."
-// #define MID_SplashEro_Park                     "SplashEro_Park"
-// #define MDESC_SplashEro_Park                   "use Park equation to calculate sediment yield of each cell"
-// #define MID_KINWAVSED_OL                       "KinWavSed_OL"
-// #define MID_KINWAVSED_CH                       "KinWavSed_CH"
-// #define MDESC_KINWAVSED_OL                     "Use energy function(Govers) method to calculate sediment yield routing of each hillslope cell"
-// #define MDESC_KINWAVSED_CH                     "Srinivasan & Galvao function to calculate sediment yield routing of each channel cell"
-// #define MID_SERO_MUSLE                         "SERO_MUSLE"
-// #define MDESC_SERO_MUSLE                       "use MUSLE method to calculate sediment yield of each cell"
-// #define MID_IUH_SED_OL                         "IUH_SED_OL"
-// #define MDESC_IUH_SED_OL                       "Overland routing of sediment using IUH"
-
-// #define MID_NUTR_CH                            "NUTR_CH"
-// #define MDESC_NUTR_CH                          "Channel routing of nutrients"
-
-/// Management
-CONST_CHARS_LIST MCLS_MGT[] = {"Mangement practices", "BMP related modules"};
-CONST_CHARS_LIST M_PLTMGT_SWAT[] = {"PLTMGT_SWAT", "Plant mangement operation modeling method in SWAT"};
-CONST_CHARS_LIST M_NPSMGT[] = {"NPSMGT", "Non-point source pollution management"};
-
-// #define MCLS_MGT                               "Mangement practices"
-// #define MCLSDESC_MGT                           "BMP related modules"
-// #define MID_PLTMGT_SWAT                        "PLTMGT_SWAT"
-// #define MDESC_PLTMGT_SWAT                      "Plant mangement operation modeling method in SWAT"
-// #define MID_NPSMGT                             "NPSMGT"
-// #define MDESC_NPSMGT                           "Non-point source pollution management"
-
-/// Ecology
-CONST_CHARS_LIST MCLS_PG[] = {"Plant growth", "Calculate the amount of plant growth."};
-CONST_CHARS_LIST M_PG_EPIC[] = {"PG_EPIC", "Calculate plant growth using a simplified version of the EPIC plant growth model as in SWAT"};
-CONST_CHARS_LIST M_PG_ORYZA[] = {"PG_ORYZA", "Rice crop growth module of ORYZA2000 model"};
-
-// #define MCLS_PG                                "Plant growth"
-// #define MCLSDESC_PG                            "Calculate the amount of plant growth."
-// #define MID_PG_EPIC                            "PG_EPIC"
-// #define MDESC_PG_EPIC                          "Calculate plant growth using a simplified version of the EPIC plant growth model as in SWAT"
-// #define MID_PG_ORYZA                           "PG_ORYZA"
-// #define MDESC_PG_ORYZA                         "Rice crop growth module of ORYZA2000 model"
-
-/// Overland routing related modules
-CONST_CHARS_LIST MCLS_OL_ROUTING[] = {"Overland routing", "Overland routing module"};
-CONST_CHARS_LIST M_IKW_OL[] = {"IKW_OL", "Overland routing using 4-point implicit finite difference method."};
-CONST_CHARS_LIST M_IUH_OL[] = {"IUH_OL", "IUH overland method to calculate overland flow routing."};
-
-// #define MCLS_OL_ROUTING                        "Overland routing"
-// #define MCLSDESC_OL_ROUTING                    "Overland routing module"
-// #define MID_IKW_OL                             "IKW_OL"
-// #define MDESC_IKW_OL                           "Overland routing using 4-point implicit finite difference method."
-// #define M_IUH_OL                             "IUH_OL"
-// #define MDESC_IUH_OL                           "IUH overland method to calculate overland flow routing."
-
-/// Channel routing related modules
-CONST_CHARS_LIST MCLS_CH_ROUTING[] = {"Channel routing", "Channel routing modules"};
-CONST_CHARS_LIST M_CH_DW[] = {"CH_DW", "Channel routing using diffusive wave equation."};
-CONST_CHARS_LIST M_CH_MSK[] = {"CH_MSK", "Channel routing using Muskingum-Cunge method of storm model."};
-CONST_CHARS_LIST M_IKW_CH[] = {"IKW_CH", "Channel routing using 4-point implicit finite difference method for kinematic wave."};
-CONST_CHARS_LIST M_MUSK_CH[] = {"MUSK_CH", "Channel routing using Muskingum-Cunge method of longterm model."};
-
-// #define MCLS_CH_ROUTING                        "Channel routing"
-// #define MCLSDESC_CH_ROUTING                    "Channel routing modules"
-// #define MID_CH_DW                              "CH_DW"
-// #define MDESC_CH_DW                            "Channel routing using diffusive wave equation."
-// #define MID_CH_MSK                             "CH_MSK"
-// #define MDESC_CH_MSK                           "Channel routing using Muskingum-Cunge method of storm model."
-// #define MID_IKW_CH                             "IKW_CH"
-// #define MDESC_IKW_CH                           "Channel routing using 4-point implicit finite difference method for kinematic wave."
-// #define MID_MUSK_CH                            "MUSK_CH"
-// #define MDESC_MUSK_CH                          "Channel routing using Muskingum-Cunge method of longterm model."
-
-/// Sediment routing related modules
-CONST_CHARS_LIST MCLS_SED_ROUTING[] = {"Sediment routing", "Sediment channel routing modules."};
-CONST_CHARS_LIST M_SEDR_SBAGNOLD[] = {"SEDR_SBAGNOLD", "Sediment channel routing using variable channel dimension method as used in SWAT."};
-
-// #define MCLS_SED_ROUTING                       "Sediment routing"
-// #define MCLSDESC_SED_ROUTING                   "Sediment channel routing modules."
-// #define MID_SEDR_SBAGNOLD                      "SEDR_SBAGNOLD"
-// #define MDESC_SEDR_SBAGNOLD                    "Sediment channel routing using variable channel dimension method as used in SWAT."
-
-/// Nutrient
-/// carbon, nitrogen, and phosphorus mineralization and immobilization etc
-CONST_CHARS_LIST MCLS_NUTRCYC[] = {"nutrient cycling", "Carbon, nitrogen, and phosphorus cycling"};
-CONST_CHARS_LIST M_NUTR_TF[] = {"NUTR_TF", "Daily nitrogen and phosphorus mineralization and immobilization considering fresh organic material (plant residue) and active and stable humus material."};
-
-// #define MCLS_NUTRCYC                           "nutrient cycling"
-// #define MCLSDESC_NUTRCYC                       "Carbon, nitrogen, and phosphorus cycling"
-// #define MID_NUTR_TF                            "NUTR_TF"
-// #define MDESC_NUTR_TF                          "Daily nitrogen and phosphorus mineralization and immobilization considering fresh organic material (plant residue) and active and stable humus material."
-
-/// Nutrient removed and loss in surface runoff
-CONST_CHARS_LIST MCLS_NUTRSED[] = {"Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile.", "Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile."};
-CONST_CHARS_LIST M_NUTRSED[] = {"NUTRSED", "Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile."};
-
-// #define MCLS_NUTRSED                           "Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile."
-// #define MCLSDESC_NUTRSED                       "Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile."
-// #define MID_NUTRSED                            "NUTRSED"
-// #define MDESC_NUTRSED                          "Nutrient removed and loss in surface runoff, lateral flow, tile flow, and percolation out of the profile."
-
-/// Atmospheric Deposition
-CONST_CHARS_LIST MCLS_ATMDEP[] = {"AtmosphericDeposition", "AtmosphericDeposition"};
-CONST_CHARS_LIST M_ATMDEP[] = {"ATMDEP", "AtmosphericDeposition"};
-
-// #define MCLS_ATMDEP                            "AtmosphericDeposition"
-// #define MCLSDESC_ATMDEP                        "AtmosphericDeposition"
-// #define MID_ATMDEP                             "ATMDEP"
-// #define MDESC_ATMDEP                           "AtmosphericDeposition"
-
-/// Nutrient remove
-CONST_CHARS_LIST MCLS_NutRemv[] = {"Nutrient remove", "Simulates the loss of nitrate and phosphorus via surface runoff"};
-CONST_CHARS_LIST M_NUTRMV[] = {"NutrMV", "Simulates the loss of nitrate and phosphorus via surface runoff"};
-
-// #define MCLS_NutRemv                           "Nutrient remove"
-// #define MCLSDESC_NutRemv                       "Simulates the loss of nitrate and phosphorus via surface runoff"
-// #define MID_NUTRMV                             "NutrMV"
-// #define MDESC_NUTRMV                           "Simulates the loss of nitrate and phosphorus via surface runoff"
-
-/// Nutrient routing
-CONST_CHARS_LIST M_SSR_NUTR[] = {"SSR_NUTR", "Nutrient routing through soil flow"};
-CONST_CHARS_LIST M_IUH_NUTR_OL[] = {"IUH_NUTR_OL", "Overland nutrient routing"};
-
-// #define MID_SSR_NUTR                           "SSR_NUTR"
-// #define MDESC_SSR_NUTR                         "Nutrient routing through soil flow"
-// #define MID_IUH_NUTR_OL                        "IUH_NUTR_OL"
-// #define MDESC_IUH_NUTR_OL                      "Overland nutrient routing"
-
-/// Nutrient loading contributed by groundwater flow
-CONST_CHARS_LIST MCLS_NUTRGW[] = {"Nutrient in groundwater", "Simulates the tutrient loading contributed by groundwater flow"};
-CONST_CHARS_LIST M_NUTRGW[] = {"NutrGW", "Simulates the tutrient loading contributed by groundwater flow"};
-
-// #define MCLS_NUTRGW                            "Nutrient in groundwater"
-// #define MCLSDESC_NUTRGW                        "Simulates the tutrient loading contributed by groundwater flow"
-// #define MID_NUTRGW                             "NutrGW"
-// #define MDESC_NUTRGW                           "Simulates the tutrient loading contributed by groundwater flow"
-
-/// In-stream nutrient transformations
-CONST_CHARS_LIST MCLS_NutCHRout[] = {"Nutrient in reach", "In-stream nutrient transformations"};
-CONST_CHARS_LIST M_NUTRCH_QUAL2E[] = {"NutrCH_QUAL2E", "In-stream nutrient transformations"};
-
-// #define MCLS_NutCHRout                         "Nutrient in reach"
-// #define MCLSDESC_NutCHRout                     "In-stream nutrient transformations"
-
-// #define MID_NUTRCH_QUAL2E                      "NutrCH_QUAL2E"
-// #define MDESC_NUTRCH_QUAL2E                    "In-stream nutrient transformations"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// Define units' names and descriptions common used in SEIMS, in case of inconsistency ///
-/// By LiangJun Zhu, HuiRan Gao ///
-/// Apr. , 2016  //////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
+/// By LiangJun Zhu, HuiRan Gao, Tong Wu                                                ///
+/// Last updated: Jul., 2021                                                            ///
+///////////////////////////////////////////////////////////////////////////////////////////
 
 CONST_CHARS_LIST VAR_A_BNK[] = {"a_bnk", "bank flow recession constant"}; 
 CONST_CHARS_LIST VAR_ACC[] = {"acc", "Flow accumulation, equals to the number of accumulated cells"}; /// m_flowAccm
@@ -717,21 +496,21 @@ CONST_CHARS_LIST VAR_CHWTRWIDTH[] = {"chwtrwidth", "Channel water width"}; /// m
 CONST_CHARS_LIST VAR_CHBTMWIDTH[] = {"chbtmwidth", "the bottom width of channel"}; 
 CONST_CHARS_LIST VAR_CHCROSSAREA[] = {"chCrossArea", "channel cross-sectional area"}; 
 CONST_CHARS_LIST VAR_CHWIDTH[] = {"CH_WIDTH", "Channel width"}; 
-CONST_CHARS_LIST VAR_CHWTRDEPTH[] = {"CHWTRDEPTH", "channel water depth"}; /// m_chWtrDepth
+CONST_CHARS_LIST VAR_CHWTRDEPTH[] = {"CHWTRDEPTH", "channel water depth"}; // m_chWtrDepth
 CONST_CHARS DESC_PRECHWTDEPTH = "channel water depth of previous timestep";
-CONST_CHARS_LIST VAR_CLAY[] = {"CLAY", "Percent of clay content"}; /// m_soilClay
-CONST_CHARS_LIST VAR_CMN[] = {"cmn", "Rate coefficient for mineralization of the humus active organic nutrients"}; /// m_minrlCoef
-CONST_CHARS_LIST VAR_CN2[] = {"CN2", "Curve Number value under moisture condition II"}; /// m_cn2
-CONST_CHARS_LIST VAR_CO2[] = {"Co2", "CO2 Concentration"}; /// m_co2Conc
+CONST_CHARS_LIST VAR_CLAY[] = {"CLAY", "Percent of clay content"}; // m_soilClay
+CONST_CHARS_LIST VAR_CMN[] = {"cmn", "Rate coefficient for mineralization of the humus active organic nutrients"}; // m_minrlCoef
+CONST_CHARS_LIST VAR_CN2[] = {"CN2", "Curve Number value under moisture condition II"}; // m_cn2
+CONST_CHARS_LIST VAR_CO2[] = {"Co2", "CO2 Concentration"}; // m_co2Conc
 CONST_CHARS_LIST VAR_CO2HI[] = {"CO2HI", "elevated CO2 atmospheric concentration corresponding the 2nd point on the radiation use efficiency curve"}; /// m_co2Conc2ndPt
-CONST_CHARS_LIST VAR_SUR_COD[] = {"sur_cod", "carbonaceous oxygen demand of surface runoff"}; /// m_surfRfCod
+CONST_CHARS_LIST VAR_SUR_COD[] = {"sur_cod", "carbonaceous oxygen demand of surface runoff"}; // m_surfRfCod
 CONST_CHARS DESC_COD_CH = "carbonaceous oxygen demand loading to reach";
 CONST_CHARS_LIST VAR_COD_N[] = {"cod_n", "Conversion factor"}; 
 CONST_CHARS_LIST VAR_COD_K[] = {"cod_k", "Reaction coefficient"}; 
 CONST_CHARS_LIST VAR_COND_RATE[] = {"Cond_rate", "Rate of decline in stomatal conductance per unit increase in vapor pressure deficit"}; 
-CONST_CHARS_LIST VAR_CONDUCT[] = {"Conductivity", "saturation hydraulic conductivity"}; 
-CONST_CHARS_LIST VAR_CONV_WT[] = {"conv_wt", "factor which converts kg/kg soil to kg/ha"}; /// m_cvtWt
-CONST_CHARS_LIST VAR_CROP_LOOKUP[] = {"CropLookup", "Crop lookup table"}; /// m_cropLookup
+CONST_CHARS_LIST VAR_CONDUCT[] = {"Conductivity", "saturation hydraulic conductivity"}; // 
+CONST_CHARS_LIST VAR_CONV_WT[] = {"conv_wt", "factor which converts kg/kg soil to kg/ha"}; // m_cvtWt
+CONST_CHARS_LIST VAR_CROP_LOOKUP[] = {"CropLookup", "Crop lookup table"}; // m_cropLookup
 CONST_CHARS_LIST VAR_CSWAT[] = {"cswat", "carbon modeling method"}; /// m_cbnModel
 CONST_CHARS_LIST VAR_PCP[] = {"D_P", "Precipitation of each time step on current cell"}; /// m_pcp
 CONST_CHARS_LIST VAR_DAYLEN[] = {"daylength", "day length"}; /// m_dayLen
@@ -860,8 +639,8 @@ CONST_CHARS_LIST VAR_MANNING[] = {"Manning", "Manning's roughness"};
 CONST_CHARS_LIST VAR_MAT_YRS[] = {"MAT_YRS", "the number of years for the tree species to reach full development"}; /// m_matYrs
 CONST_CHARS DESC_MAXCOND = "Maximum stomatal conductance";
 CONST_CHARS DESC_METEOLAT = "Latitude of MeteoClimate station";
-CONST_CHARS_LIST VAR_MINPGW_TOCH[] = {"minpgwToCh", "soluble P in groundwater to channel"}; /// m_gwSolPToCh
-CONST_CHARS_LIST VAR_MOIST_IN[] = {"Moist_in", "Initial soil moisture"}; /// m_initSoilWtrStoRatio
+CONST_CHARS_LIST VAR_MINPGW_TOCH[] = {"minpgwToCh", "soluble P in groundwater to channel"}; // m_gwSolPToCh
+CONST_CHARS_LIST VAR_MOIST_IN[] = {"Moist_in", "Initial soil moisture"}; // m_initSoilWtrStoRatio
 CONST_CHARS_LIST VAR_MSF[] = {"ManningScaleFactor", "flow velocity scaling factor for calibration"}; 
 CONST_CHARS_LIST VAR_MSK_CO1[] = {"MSK_co1", "Calibration coefficient used to control impact of the storage time constant for normal flow"}; /// m_mskCoef1
 //CONST_CHARS_LIST VAR_MSK_CO2[] = {"MSK_co2", "Calibration coefficient used to control impact of the storage time constant fro low flow"}; 
