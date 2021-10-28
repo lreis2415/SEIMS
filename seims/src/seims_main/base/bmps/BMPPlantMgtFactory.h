@@ -10,8 +10,11 @@
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
 
+#include <set>
+
 using namespace bmps;
 using namespace plant_management;
+using std::set;
 
 namespace bmps {
 /*!
@@ -46,7 +49,7 @@ public:
     int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    vector<int>& GetLocations() { return m_location; }
+    set<int>& GetLocations() { return m_location; }
 
     /// Get operation sequence
     vector<int>& GetOperationSequence() { return m_bmpSequence; }
@@ -68,8 +71,8 @@ private:
     int m_luccID;
     /// parameters
     float* m_parameters;
-    /// field index for where to apply the subScenario
-    vector<int> m_location;
+    /// field index for where to apply the subScenario. Using set instead of vector to accelerate find(). 
+    set<int> m_location;
     /*!
      * The first element is the sequence number of plant management operations
      * and the second is the corresponding unique management code, i.e., index * 1000 + operationCode

@@ -168,7 +168,7 @@ int AET_PT_H::Execute() {
                 evzp = evz;
                 if (m_soilWtrSto[i][ly] < m_solFC[i][ly]) {
                     xx = 2.5f * (m_soilWtrSto[i][ly] - m_solFC[i][ly]) / m_solFC[i][ly]; /// non dimension
-                    sev *= Expo(xx);
+                    sev *= exp(xx);
                 }
                 sev = Min(sev, m_soilWtrSto[i][ly] * etco);
                 if (sev < 0.f || sev != sev) sev = 0.f;
