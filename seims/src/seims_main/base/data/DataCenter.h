@@ -73,9 +73,10 @@ public:
      * \brief Read interpolated weight data and insert to m_weightDataMap
      * \param[in] remote_filename Data file name
      * \param[out] num Data length
+     * \param[out] stations Number of stations
      * \param[out] data returned data
      */
-    virtual void ReadItpWeightData(const string& remote_filename, int& num, float*& data) = 0;
+    virtual void ReadItpWeightData(const string& remote_filename, int& num, int& stations, float**& data) = 0;
     /*!
      * \brief Read 1D array data
      * \param[in] remote_filename Data file name
@@ -182,7 +183,7 @@ public:
                    SimulationModule* p_module, bool is_optional = false);
 
     //! Set BMPs Scenario data
-    void SetScenario(SimulationModule* p_module);
+    void SetScenario(SimulationModule* p_module, bool is_optional = false);
 
     //! Set Reaches information
     void SetReaches(SimulationModule* p_module);

@@ -103,9 +103,8 @@ bool DataCenter::GetFileInStringVector() {
 void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
     rows = 12;
     cols = 5;
-    data = new(nothrow) float *[rows];
+    Initialize2DArray(rows, cols, data, 0.f);
     for (int i = 0; i < rows; i++) {
-        data[i] = new(nothrow) float[cols];
         data[i][0] = 4.f;    /// element number
         data[i][1] = 0.03f;  // P
         data[i][2] = -0.65f; // T
@@ -193,9 +192,9 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     int n;
     float* data = nullptr;
     string upper_name = GetUpper(para_name);
-    if (StringMatch(upper_name, Tag_Weight[0])) {
-        /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
-        ReadItpWeightData(remote_filename, n, data);
+    //if (StringMatch(upper_name, Tag_Weight[0])) {
+    //    /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
+    //    ReadItpWeightData(remote_filename, n, data);
     //} else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) { // TODO: delete after test. lj
     //    /// 2. IF FLOWOUT_INDEX_D8
     //    Read1DArrayData(remote_filename, n, data);
@@ -204,7 +203,8 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     //                             "The data length derived from LoadAdjustArrayData in " + remote_filename +
     //                             " is not the same as the template.");
     //    }
-    } else if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
+    // } else 
+    if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
         /// 3. IF Meteorology sites data
         n = clim_station_->NumberOfSites(DataType_Meteorology);
         Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
@@ -248,6 +248,8 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     } else if (StringMatch(upper_name, Tag_LapseRate)) {
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
+    } else if (StringMatch(upper_name, Tag_Weight[0])) {
+        ReadItpWeightData(remote_filename, n_rows, n_cols, data);
     } else {
         // Including: ROUTING_LAYERS,
         //            FLOWIN_INDEX, FLOWIN_FRACTION,
@@ -339,7 +341,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
-        case DT_Scenario: SetScenario(p_module);
+        case DT_Scenario: SetScenario(p_module, is_opt);
             break;
         case DT_Reach: SetReaches(p_module);
             break;
@@ -466,9 +468,11 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     }
 }
 
-void DataCenter::SetScenario(SimulationModule* p_module) {
+void DataCenter::SetScenario(SimulationModule* p_module, const bool is_optional /* = false */) {
     if (nullptr == scenario_ && nullptr == GetScenarioData()) {
-        throw ModelException("DataCenter", "SetScenario", "Scenarios has not been set!");;
+        if (!is_optional) {
+            throw ModelException("DataCenter", "SetScenario", "Scenarios has not been set!");
+        }
     }
     p_module->SetScenario(scenario_);
 }

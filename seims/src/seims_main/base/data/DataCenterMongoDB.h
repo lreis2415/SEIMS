@@ -73,9 +73,10 @@ public:
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
      * \param[in] remote_filename \a string data file name
      * \param[out] num \a int&, data length
+     * \param[out] station \a int& number of stations
      * \param[out] data \a float*&, returned data
      */
-    void ReadItpWeightData(const string& remote_filename, int& num, float*& data) OVERRIDE;
+    void ReadItpWeightData(const string& remote_filename, int& num, int& stations, float**& data) OVERRIDE;
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float

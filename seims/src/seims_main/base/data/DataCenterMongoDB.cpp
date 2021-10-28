@@ -459,16 +459,19 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     return raster_data;
 }
 
-void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, float*& data) {
+void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, int& stations, float**& data) {
     ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
     if (!weight_data->Initialized()) {
         delete weight_data;
         data = nullptr;
         return;
     }
-    float* tmpdata = nullptr;
-    weight_data->GetWeightData(&num, &tmpdata);
-    Initialize1DArray(num, data, tmpdata);
+    // float* tmpdata = nullptr;
+    // weight_data->GetWeightData(&num, &tmpdata);
+    // Initialize1DArray(num, data, tmpdata);
+    float** tmpdata = nullptr;
+    weight_data->GetWeightData2D(&num, &stations, &tmpdata);
+    Initialize2DArray(num, stations, data, tmpdata);
     delete weight_data;
 }
 

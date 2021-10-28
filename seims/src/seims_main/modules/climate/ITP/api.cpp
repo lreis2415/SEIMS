@@ -10,20 +10,19 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
-    // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
-    //mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
     mdi.SetClass(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
     mdi.SetDescription(M_ITP[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_ITP[0]);
     mdi.SetName(M_ITP[0]);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("2.0");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    //from parameter database, e.g., Weight_P, Weight_PET, Weight_T.
-    mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array1D);
+    // from parameter database, e.g., Weight_P, Weight_PET, Weight_T.
+    // mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array2D);
     // from config.fig, e.g. Interpolation_P_1
     mdi.AddParameter(Tag_VerticalInterpolation[0], UNIT_NON_DIM, Tag_VerticalInterpolation[1], File_Config, DT_Single);
     // these three parameters are just read when it will do vertical interpolation
