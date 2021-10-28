@@ -51,8 +51,10 @@ public:
     void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
 
 private:
+    float GetFlowInFraction(int id, int up_idx);
+
     bool FlowInSoil(int id);
-private:
+
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// valid cell numbers
@@ -135,11 +137,11 @@ private:
 
     // outputs
 
-    /// subsurface runoff (mm), VAR_SSRU[0]
+    /// subsurface runoff (mm), VAR_SSRU
     float **m_subSurfRf;
-    /// subsurface runoff volume (m3), VAR_SSRUVOL[0]
+    /// subsurface runoff volume (m^3), VAR_SSRUVOL
     float **m_subSurfRfVol;
-    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF[0]
+    /// subsurface to streams from each subbasin, the first element is the whole watershed, m^3/s, VAR_SBIF
     float *m_ifluQ2Rch;
 };
 
