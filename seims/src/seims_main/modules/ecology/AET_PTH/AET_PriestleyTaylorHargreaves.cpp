@@ -26,59 +26,59 @@ AET_PT_H::~AET_PT_H() {
 }
 
 void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_AET_PTH, key, n, m_nCells);
+    CheckInputSize(M_AET_PTH[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_ESCO)) m_esco = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
+    if (StringMatch(sk, VAR_ESCO[0])) m_esco = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else if (StringMatch(sk, DataType_MeanTemperature)) m_tMean = data;
-    else if (StringMatch(sk, VAR_LAIDAY)) m_lai = data;
-    else if (StringMatch(sk, VAR_PET)) m_pet = data;
-    else if (StringMatch(sk, VAR_INET)) m_IntcpET = data;
-    else if (StringMatch(sk, VAR_SNAC)) m_snowAccum = data;
-    else if (StringMatch(sk, VAR_SNSB)) m_snowSublim = data;
-    else if (StringMatch(sk, VAR_SOL_COV))m_rsdCovSoil = data;
-    else if (StringMatch(sk, VAR_SOL_SW))m_soilWtrStoPrfl = data;
+    else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = data;
+    else if (StringMatch(sk, VAR_PET[0])) m_pet = data;
+    else if (StringMatch(sk, VAR_INET[0])) m_IntcpET = data;
+    else if (StringMatch(sk, VAR_SNAC[0])) m_snowAccum = data;
+    else if (StringMatch(sk, VAR_SNSB[0])) m_snowSublim = data;
+    else if (StringMatch(sk, VAR_SOL_COV[0]))m_rsdCovSoil = data;
+    else if (StringMatch(sk, VAR_SOL_SW[0]))m_soilWtrStoPrfl = data;
     else {
-        throw ModelException(MID_AET_PTH, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_AET_PTH[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void AET_PT_H::Set2DData(const char* key, const int n, const int col, float** data) {
-    CheckInputSize2D(MID_AET_PTH, key, n, col, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_AET_PTH[0], key, n, col, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
-    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
-    else if (StringMatch(sk, VAR_SOL_AWC)) m_solFC = data;
-    else if (StringMatch(sk, VAR_SOL_NO3)) m_solNo3 = data;
-    else if (StringMatch(sk, VAR_SOL_ST)) m_soilWtrSto = data;
+    if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
+    else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_solFC = data;
+    else if (StringMatch(sk, VAR_SOL_NO3[0])) m_solNo3 = data;
+    else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else {
-        throw ModelException(MID_AET_PTH, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_AET_PTH[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 bool AET_PT_H::CheckInputData() {
-    CHECK_POSITIVE(MID_AET_PTH, m_nCells);
-    CHECK_POSITIVE(MID_AET_PTH, m_maxSoilLyrs);
-    CHECK_POINTER(MID_AET_PTH, m_esco);
-    CHECK_POINTER(MID_AET_PTH, m_nSoilLyrs);
-    CHECK_POINTER(MID_AET_PTH, m_tMean);
-    CHECK_POINTER(MID_AET_PTH, m_lai);
-    CHECK_POINTER(MID_AET_PTH, m_pet);
-    CHECK_POINTER(MID_AET_PTH, m_snowAccum);
+    CHECK_POSITIVE(M_AET_PTH[0], m_nCells);
+    CHECK_POSITIVE(M_AET_PTH[0], m_maxSoilLyrs);
+    CHECK_POINTER(M_AET_PTH[0], m_esco);
+    CHECK_POINTER(M_AET_PTH[0], m_nSoilLyrs);
+    CHECK_POINTER(M_AET_PTH[0], m_tMean);
+    CHECK_POINTER(M_AET_PTH[0], m_lai);
+    CHECK_POINTER(M_AET_PTH[0], m_pet);
+    CHECK_POINTER(M_AET_PTH[0], m_snowAccum);
     /// If m_snowSB is not provided, it will be initialized in  InitialOutputs().
-    // CHECK_POINTER(MID_AET_PTH, m_snowSB);
-    CHECK_POINTER(MID_AET_PTH, m_rsdCovSoil);
-    CHECK_POINTER(MID_AET_PTH, m_soilDepth);
-    CHECK_POINTER(MID_AET_PTH, m_soilThk);
-    CHECK_POINTER(MID_AET_PTH, m_solFC);
-    CHECK_POINTER(MID_AET_PTH, m_solNo3);
-    CHECK_POINTER(MID_AET_PTH, m_soilWtrSto);
-    CHECK_POINTER(MID_AET_PTH, m_soilWtrStoPrfl);
+    // CHECK_POINTER(M_AET_PTH[0], m_snowSB);
+    CHECK_POINTER(M_AET_PTH[0], m_rsdCovSoil);
+    CHECK_POINTER(M_AET_PTH[0], m_soilDepth);
+    CHECK_POINTER(M_AET_PTH[0], m_soilThk);
+    CHECK_POINTER(M_AET_PTH[0], m_solFC);
+    CHECK_POINTER(M_AET_PTH[0], m_solNo3);
+    CHECK_POINTER(M_AET_PTH[0], m_soilWtrSto);
+    CHECK_POINTER(M_AET_PTH[0], m_soilWtrStoPrfl);
     return true;
 }
 
 void AET_PT_H::InitialOutputs() {
-    CHECK_POSITIVE(MID_AET_PTH, m_nCells);
+    CHECK_POSITIVE(M_AET_PTH[0], m_nCells);
     if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.f);
     if (nullptr == m_soilET) Initialize1DArray(m_nCells, m_soilET, 0.f);
     if (nullptr == m_snowSublim) Initialize1DArray(m_nCells, m_snowSublim, 0.f);
@@ -212,10 +212,10 @@ int AET_PT_H::Execute() {
 void AET_PT_H::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_PPT)) *data = m_maxPltET;
-    else if (StringMatch(sk, VAR_SOET)) *data = m_soilET;
+    if (StringMatch(sk, VAR_PPT[0])) *data = m_maxPltET;
+    else if (StringMatch(sk, VAR_SOET[0])) *data = m_soilET;
     else {
-        throw ModelException(MID_AET_PTH, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_AET_PTH[0], "Get1DData", "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
 }

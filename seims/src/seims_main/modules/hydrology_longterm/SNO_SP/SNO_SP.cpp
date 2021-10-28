@@ -21,23 +21,23 @@ SNO_SP::~SNO_SP() {
 }
 
 bool SNO_SP::CheckInputData() {
-    CHECK_POSITIVE(MID_SNO_SP, m_nCells);
-    CHECK_NODATA(MID_SNO_SP, m_t0);
-    CHECK_NODATA(MID_SNO_SP, m_kblow);
-    CHECK_NODATA(MID_SNO_SP, m_snowTemp);
-    CHECK_NODATA(MID_SNO_SP, m_lagSnow);
-    CHECK_NODATA(MID_SNO_SP, m_csnow6);
-    CHECK_NODATA(MID_SNO_SP, m_csnow12);
-    CHECK_NODATA(MID_SNO_SP, m_snowCoverMax);
-    CHECK_NODATA(MID_SNO_SP, m_snowCover50);
-    CHECK_POINTER(MID_SNO_SP, m_meanTemp);
-    CHECK_POINTER(MID_SNO_SP, m_maxTemp);
-    CHECK_POINTER(MID_SNO_SP, m_netPcp);
+    CHECK_POSITIVE(M_SNO_SP[0], m_nCells);
+    CHECK_NODATA(M_SNO_SP[0], m_t0);
+    CHECK_NODATA(M_SNO_SP[0], m_kblow);
+    CHECK_NODATA(M_SNO_SP[0], m_snowTemp);
+    CHECK_NODATA(M_SNO_SP[0], m_lagSnow);
+    CHECK_NODATA(M_SNO_SP[0], m_csnow6);
+    CHECK_NODATA(M_SNO_SP[0], m_csnow12);
+    CHECK_NODATA(M_SNO_SP[0], m_snowCoverMax);
+    CHECK_NODATA(M_SNO_SP[0], m_snowCover50);
+    CHECK_POINTER(M_SNO_SP[0], m_meanTemp);
+    CHECK_POINTER(M_SNO_SP[0], m_maxTemp);
+    CHECK_POINTER(M_SNO_SP[0], m_netPcp);
     return true;
 }
 
 void SNO_SP::InitialOutputs() {
-    CHECK_POSITIVE(MID_SNO_SP, m_nCells);
+    CHECK_POSITIVE(M_SNO_SP[0], m_nCells);
     if (nullptr == m_snowMelt) Initialize1DArray(m_nCells, m_snowMelt, 0.f);
     if (nullptr == m_SA) Initialize1DArray(m_nCells, m_SA, 0.f);
     if (nullptr == m_packT) Initialize1DArray(m_nCells, m_packT, 0.f);
@@ -106,37 +106,37 @@ int SNO_SP::Execute() {
 
 void SNO_SP::SetValue(const char* key, const float value) {
     string s(key);
-    if (StringMatch(s, VAR_K_BLOW)) m_kblow = value;
-    else if (StringMatch(s, VAR_T0)) m_t0 = value;
-    else if (StringMatch(s, VAR_T_SNOW)) m_snowTemp = value;
-    else if (StringMatch(s, VAR_LAG_SNOW)) m_lagSnow = value;
-    else if (StringMatch(s, VAR_C_SNOW6)) m_csnow6 = value;
-    else if (StringMatch(s, VAR_C_SNOW12)) m_csnow12 = value;
-    else if (StringMatch(s, VAR_SNOCOVMX)) m_snowCoverMax = value;
-    else if (StringMatch(s, VAR_SNO50COV)) m_snowCover50 = value;
+    if (StringMatch(s, VAR_K_BLOW[0])) m_kblow = value;
+    else if (StringMatch(s, VAR_T0[0])) m_t0 = value;
+    else if (StringMatch(s, VAR_T_SNOW[0])) m_snowTemp = value;
+    else if (StringMatch(s, VAR_LAG_SNOW[0])) m_lagSnow = value;
+    else if (StringMatch(s, VAR_C_SNOW6[0])) m_csnow6 = value;
+    else if (StringMatch(s, VAR_C_SNOW12[0])) m_csnow12 = value;
+    else if (StringMatch(s, VAR_SNOCOVMX[0])) m_snowCoverMax = value;
+    else if (StringMatch(s, VAR_SNO50COV[0])) m_snowCover50 = value;
     else {
-        throw ModelException(MID_SNO_SP, "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SNO_SP[0], "SetValue", "Parameter " + s + " does not exist.");
     }
 }
 
 void SNO_SP::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_SNO_SP, key, n, m_nCells);
+    CheckInputSize(M_SNO_SP[0], key, n, m_nCells);
     string s(key);
-    if (StringMatch(s, VAR_TMEAN)) m_meanTemp = data;
-    else if (StringMatch(s, VAR_TMAX)) m_maxTemp = data;
-    else if (StringMatch(s, VAR_NEPR)) m_netPcp = data;
+    if (StringMatch(s, VAR_TMEAN[0])) m_meanTemp = data;
+    else if (StringMatch(s, VAR_TMAX[0])) m_maxTemp = data;
+    else if (StringMatch(s, VAR_NEPR[0])) m_netPcp = data;
     else {
-        throw ModelException(MID_SNO_SP, "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SNO_SP[0], "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
 
 void SNO_SP::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SNME)) *data = m_snowMelt;
-    else if (StringMatch(s, VAR_SNAC)) *data = m_snowAccum;
+    if (StringMatch(s, VAR_SNME[0])) *data = m_snowMelt;
+    else if (StringMatch(s, VAR_SNAC[0])) *data = m_snowAccum;
     else {
-        throw ModelException(MID_SNO_SP, "Get1DData", "Result " + s + " does not exist.");
+        throw ModelException(M_SNO_SP[0], "Get1DData", "Result " + s + " does not exist.");
     }
     *n = m_nCells;
 }

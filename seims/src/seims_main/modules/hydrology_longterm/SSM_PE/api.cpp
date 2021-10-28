@@ -14,31 +14,31 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Chunping Ou");
-    mdi.SetClass(MCLS_SNO_SB, MCLSDESC_SNO_SB);
-    mdi.SetDescription(MDESC_SSM_PE);
+    mdi.SetClass(MCLS_SNO_SB[0], MCLS_SNO_SB[1]);
+    mdi.SetDescription(M_SSM_PE[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SSM_PE);
-    mdi.SetName(MID_SSM_PE);
+    mdi.SetID(M_SSM_PE[0]);
+    mdi.SetName(M_SSM_PE[0]);
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SSM_PE.chm");
 
-    mdi.AddParameter(VAR_K_SUBLI, UNIT_NON_DIM, DESC_K_SUBLI, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_K_BLOW, UNIT_NON_DIM, DESC_K_BLOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T0, UNIT_TEMP_DEG, DESC_T0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T_SNOW, UNIT_TEMP_DEG, DESC_T_SNOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SWE0, UNIT_DEPTH_MM, DESC_SWE0, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_K_SUBLI[0], UNIT_NON_DIM, VAR_K_SUBLI[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_K_BLOW[0], UNIT_NON_DIM, VAR_K_BLOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T0[0], UNIT_TEMP_DEG, VAR_T0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T_SNOW[0], UNIT_TEMP_DEG, VAR_T_SNOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SWE0[0], UNIT_DEPTH_MM, VAR_SWE0[1], Source_ParameterDB, DT_Single);
 
-    mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);  // from PET module
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D); // from interception module
-    mdi.AddInput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, Source_Module, DT_Raster1D); // from snow melt module
-    mdi.AddInput(VAR_SWE, UNIT_DEPTH_MM, DESC_SWE, Source_Module, DT_Single); // from snow water balance module
+    mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D);  // from PET module
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D); // from interception module
+    mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module, DT_Raster1D); // from snow melt module
+    mdi.AddInput(VAR_SWE[0], UNIT_DEPTH_MM, VAR_SWE[1], Source_Module, DT_Single); // from snow water balance module
     // SNRD should be added as input when snow redistribution module is accomplished. LJ
-    //mdi.AddInput(VAR_SNRD, UNIT_DEPTH_MM, DESC_SNRD, Source_Module, DT_Raster1D);	 // from snow redistribution module
-    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D); // from interpolation module
+    //mdi.AddInput(VAR_SNRD[0], UNIT_DEPTH_MM, VAR_SNRD[1], Source_Module, DT_Raster1D);	 // from snow redistribution module
+    mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D); // from interpolation module
 
     // set the output variables
-    mdi.AddOutput(VAR_SNSB, UNIT_DEPTH_MM, DESC_SNSB, DT_Raster1D);
+    mdi.AddOutput(VAR_SNSB[0], UNIT_DEPTH_MM, VAR_SNSB[1], DT_Raster1D);
 
     // write out the XML file.
 

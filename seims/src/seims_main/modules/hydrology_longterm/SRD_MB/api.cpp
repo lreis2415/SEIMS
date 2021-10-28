@@ -14,11 +14,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Chunping Ou");
-    mdi.SetClass(MCLS_SNO_RD, MCLSDESC_SNO_RD);
-    mdi.SetDescription(MDESC_SRD_MB);
+    mdi.SetClass(MCLS_SNO_RD[0], MCLS_SNO_RD[1]);
+    mdi.SetDescription(M_SRD_MB[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SRD_MB);
-    mdi.SetName(MID_SRD_MB);
+    mdi.SetID(M_SRD_MB[0]);
+    mdi.SetName(M_SRD_MB[0]);
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SRD_MB.chm");
@@ -62,7 +62,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput("D_TMAX", "oC", "max temperature", "Module", DT_Raster1D);
 
     // set the output variables
-    mdi.AddOutput(VAR_SNRD, UNIT_DEPTH_MM, DESC_SNRD, DT_Raster1D);
+    mdi.AddOutput(VAR_SNRD[0], UNIT_DEPTH_MM, VAR_SNRD[1], DT_Raster1D);
 
     // write out the XML file.
 

@@ -5,7 +5,7 @@
  * \revised LiangJun Zhu
  * \date 2016-7-13
  *  1. Remove m_isInitial and add initialOutputs(void)
- *  2. Add VAR_SWE as output, so this module will be not dependent on others
+ *  2. Add VAR_SWE[0] as output, so this module will be not dependent on others
  *  3. Add net precipitation as output, and added water amount of snow melt
  *
  */

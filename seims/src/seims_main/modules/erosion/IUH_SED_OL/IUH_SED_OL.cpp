@@ -15,21 +15,21 @@ IUH_SED_OL::~IUH_SED_OL() {
 }
 
 bool IUH_SED_OL::CheckInputData() {
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_date);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nSubbsns);
-    CHECK_NONNEGATIVE(MID_IUH_SED_OL, m_inputSubbsnID);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nCells);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_CellWidth);
-    CHECK_NONNEGATIVE(MID_IUH_SED_OL, m_TimeStep);
-    CHECK_POINTER(MID_IUH_SED_OL, m_subbsnID);
-    CHECK_POINTER(MID_IUH_SED_OL, m_iuhCell);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_date);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
+    CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_inputSubbsnID);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_CellWidth);
+    CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_TimeStep);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_subbsnID);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
     return true;
 }
 
 void IUH_SED_OL::InitialOutputs() {
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nSubbsns);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nCells);
-    CHECK_POINTER(MID_IUH_SED_OL, m_iuhCell);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
     if (m_cellArea <= 0.f) m_cellArea = m_CellWidth * m_CellWidth;
     if (nullptr == m_sedtoCh) {
         Initialize1DArray(m_nSubbsns + 1, m_sedtoCh, 0.f);
@@ -100,46 +100,46 @@ int IUH_SED_OL::Execute() {
 
 void IUH_SED_OL::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellSize)) m_nCells = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_CellWidth = value;
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(sk, Tag_TimeStep[0])) m_TimeStep = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellSize[0])) m_nCells = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_CellWidth = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else {
-        throw ModelException(MID_IUH_SED_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "SetValue", "Parameter " + sk + " does not exist in current method.");
     }
 }
 
 void IUH_SED_OL::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_IUH_SED_OL, key, n, m_nCells);
+    CheckInputSize(M_IUH_SED_OL[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
-    else if (StringMatch(sk, VAR_SOER)) m_sedYield = data;
+    if (StringMatch(sk, VAR_SUBBSN[0])) m_subbsnID = data;
+    else if (StringMatch(sk, VAR_SOER[0])) m_sedYield = data;
     else {
-        throw ModelException(MID_IUH_SED_OL, "Set1DData", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "Set1DData", "Parameter " + sk + " does not exist in current method.");
     }
 }
 
 void IUH_SED_OL::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize2D(MID_IUH_SED_OL, key, nrows, ncols, m_nCells, m_iuhCols);
+    if (StringMatch(sk, VAR_OL_IUH[0])) {
+        CheckInputSize2D(M_IUH_SED_OL[0], key, nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
     } else {
-        throw ModelException(MID_IUH_SED_OL, "Set2DData", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "Set2DData", "Parameter " + sk + " does not exist in current method.");
     }
 }
 
 void IUH_SED_OL::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SED_TO_CH)) {
+    if (StringMatch(sk, VAR_SED_TO_CH[0])) {
         *data = m_sedtoCh; // from each subbasin to channel
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SEDYLD)) {
+    } else if (StringMatch(sk, VAR_SEDYLD[0])) {
         *data = m_olWtrEroSed;
         *n = m_nCells;
     } else {
-        throw ModelException(MID_IUH_SED_OL, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_IUH_SED_OL[0], "Get1DData", "Result " + sk + " does not exist.");
     }
 }

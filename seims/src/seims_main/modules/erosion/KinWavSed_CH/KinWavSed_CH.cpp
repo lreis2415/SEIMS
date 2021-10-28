@@ -50,14 +50,14 @@ KinWavSed_CH::~KinWavSed_CH() {
 
 void KinWavSed_CH::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, Tag_CellWidth)) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
-    else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
-    else if (StringMatch(s, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(data); }
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
+    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
+    else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
+    else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
     else {
-        throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s + " does not exist in current module.\n");
+        throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s + " does not exist in current module.\n");
     }
 }
 
@@ -71,7 +71,7 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
 //        *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
 //        //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
 //    } else {
-//        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk +
+//        throw ModelException(M_KINWAVSED_CH[0], "GetValue", "Output " + sk +
 //                             " does not exist in the current module. Please contact the module developer.");
 //    }
 //}
@@ -81,15 +81,15 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
 
     CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_SLOPE)) { m_Slope = data; }
-    else if (StringMatch(s, VAR_CHWIDTH)) { m_chWidth = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK)) { m_streamLink = data; }
-    else if (StringMatch(s, VAR_USLE_K)) { m_USLE_K = data; }
-    else if (StringMatch(s, Tag_FLOWOUT_INDEX_D8)) { m_flowOutIndex = data; }
-    else if (StringMatch(s, VAR_SED_TO_CH)) { m_SedToChannel = data; }
+    if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
+    else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
+    else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
+    else if (StringMatch(s, Tag_FLOWOUT_INDEX_D8[0])) { m_flowOutIndex = data; }
+    else if (StringMatch(s, VAR_SED_TO_CH[0])) { m_SedToChannel = data; }
 
     else {
-        throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s +
+        throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -101,20 +101,20 @@ void KinWavSed_CH::Get1DData(const char *key, int *n, float **data) {
     {
     *data = m_SedSubbasin;
     }*/
-    if (StringMatch(sk, VAR_CH_DEP)) {
+    if (StringMatch(sk, VAR_CH_DEP[0])) {
         *data = m_depCh;
-    } else if (StringMatch(sk, VAR_CH_DET)) {
+    } else if (StringMatch(sk, VAR_CH_DET[0])) {
         *data = m_detCH;
-    } else if (StringMatch(sk, VAR_CH_SEDRATE)) {
+    } else if (StringMatch(sk, VAR_CH_SEDRATE[0])) {
         *data = m_routQs;
-    } else if (StringMatch(sk, VAR_CH_FLOWCAP)) {
+    } else if (StringMatch(sk, VAR_CH_FLOWCAP[0])) {
         *data = m_cap;
-    } else if (StringMatch(sk, VAR_CH_V)) {
+    } else if (StringMatch(sk, VAR_CH_V[0])) {
         *data = m_chanV;  // this is the problem
-    } else if (StringMatch(sk, VAR_CH_VOL)) {
+    } else if (StringMatch(sk, VAR_CH_VOL[0])) {
         *data = m_chanVol;  // this is the problem
     } else {
-        throw ModelException(MID_KINWAVSED_CH, "Get1DData", "Output " + sk
+        throw ModelException(M_KINWAVSED_CH[0], "Get1DData", "Output " + sk
             +
                 " does not exist in the KinWavSed_CH module. Please contact the module developer.");
     }
@@ -122,15 +122,15 @@ void KinWavSed_CH::Get1DData(const char *key, int *n, float **data) {
 
 void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
         m_flowInIndex = data;
-    } else if (StringMatch(sk, VAR_HCH)) {
+    } else if (StringMatch(sk, VAR_HCH[0])) {
         m_ChannelWH = data;
-    } else if (StringMatch(sk, VAR_QRECH)) {
+    } else if (StringMatch(sk, VAR_QRECH[0])) {
         m_ChQkin = data;
         cout << m_ChQkin << endl;
     } else {
-        throw ModelException(MID_KINWAVSED_CH, "Set2DData", "Parameter " + sk
+        throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 
@@ -138,7 +138,7 @@ void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data
 
 void KinWavSed_CH::SetReaches(clsReaches *reaches) {
     if (nullptr == reaches) {
-        throw ModelException(MID_KINWAVSED_CH, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "SetReaches", "The reaches input can not to be NULL.");
     }
     m_chNumber = reaches->GetReachNumber();
 
@@ -158,81 +158,81 @@ void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***d
     else if (StringMatch(sk, "SEDINFLOW"))
         *data = m_CHSed_kg;
     else
-        throw ModelException(MID_KINWAVSED_CH, "Get2DData", "Output " + sk
+        throw ModelException(M_KINWAVSED_CH[0], "Get2DData", "Output " + sk
         + " does not exist in the KinWavSed_CH module. Please contact the module developer.");*/
 
 }
 
 bool KinWavSed_CH::CheckInputData() {
     if (nullptr == m_flowInIndex) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The parameter: flow in index has not been set.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The parameter: flow in index has not been set.");
         return false;
     }
     if (m_date < 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "You have not set the time.");
         return false;
     }
     if (m_CellWith <= 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The cell width can not be less than zero.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The cell width can not be less than zero.");
         return false;
     }
     if (m_nCells <= 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The cell number can not be less than zero.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The cell number can not be less than zero.");
         return false;
     }
     if (m_chNumber <= 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The channel reach number can not be less than zero.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The channel reach number can not be less than zero.");
         return false;
     }
     if (m_TimeStep < 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "You have not set the time step.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "You have not set the time step.");
         return false;
     }
     if (m_ChTcCo < 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
                              "You have not set calibration coefficient of transport capacity.");
         return false;
     }
     if (m_ChDetCo < 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
                              "You have not set calibration coefficient of channel flow detachment.");
         return false;
     }
     if (nullptr == m_Slope) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The slope��%��can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The slope��%��can not be NULL.");
         return false;
     }
     if (nullptr == m_ChManningN) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "Manning N can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "Manning N can not be NULL.");
         return false;
     }
     if (nullptr == m_chWidth) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "Channel width can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "Channel width can not be NULL.");
         return false;
     }
     if (nullptr == m_ChannelWH) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The channel water depth can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The channel water depth can not be NULL.");
         return false;
     }
     if (nullptr == m_ChQkin) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The channel flow can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The channel flow can not be NULL.");
         return false;
     }
     if (nullptr == m_streamLink) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The stream link can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The stream link can not be NULL.");
         return false;
     }
     if (nullptr == m_flowOutIndex) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The flow out index can not be NULL.");
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The flow out index can not be NULL.");
         return false;
     }
     if (nullptr == m_streamOrder) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
                              "The stream order of reach parameter can not be NULL.");
         return false;
     }
     if (nullptr == m_reachDownStream) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
                              "The downstream of reach in reach parameter can not be NULL.");
         return false;
     }
@@ -242,14 +242,14 @@ bool KinWavSed_CH::CheckInputData() {
 
 bool KinWavSed_CH::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_KINWAVSED_CH, "CheckInputSize",
+        throw ModelException(M_KINWAVSED_CH[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
-            throw ModelException(MID_KINWAVSED_CH, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_KINWAVSED_CH[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -277,11 +277,11 @@ void KinWavSed_CH::initial() {
         }
         //allocate the output variable
         if (m_nCells <= 0) {
-            throw ModelException(MID_KINWAVSED_CH, "initialOutputs",
+            throw ModelException(M_KINWAVSED_CH[0], "initialOutputs",
                                  "The cell number of the input can not be less than zero.");
         }
         if (m_chNumber <= 0) {
-            throw ModelException(MID_KINWAVSED_CH, "initialOutputs",
+            throw ModelException(M_KINWAVSED_CH[0], "initialOutputs",
                                  "The channel number of the input can not be less than zero.");
         }
 

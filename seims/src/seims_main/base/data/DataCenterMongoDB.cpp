@@ -17,8 +17,8 @@ const char* METEO_VARS[] = {
 
 const int SOILWATER_VARS_NUM = 5;
 const char* SOILWATER_VARS[] = {
-    VAR_SOL_WPMM, VAR_SOL_AWC, VAR_SOL_UL,
-    VAR_SOL_SUMAWC, VAR_SOL_SUMSAT
+    VAR_SOL_WPMM[0], VAR_SOL_AWC[0], VAR_SOL_UL[0],
+    VAR_SOL_SUMAWC[0], VAR_SOL_SUMSAT[0]
 };
 
 DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, 
@@ -106,7 +106,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 
     /// 5. Read Mask raster data
     std::ostringstream oss;
-    oss << subbasin_id_ << "_" << Tag_Mask;
+    oss << subbasin_id_ << "_" << Tag_Mask[0];
     string mask_filename = GetUpper(oss.str());
     mask_raster_ = FloatRaster::Init(spatial_gridfs_, mask_filename.c_str());
     assert(nullptr != mask_raster_);
@@ -118,12 +118,12 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 
     /// 6. Constructor Subbasin data. Subbasin and slope data are required!
     oss.str("");
-    oss << subbasin_id_ << "_" << VAR_SUBBSN;
-    LoadAdjustRasterData(VAR_SUBBSN, GetUpper(oss.str()));
+    oss << subbasin_id_ << "_" << VAR_SUBBSN[0];
+    LoadAdjustRasterData(VAR_SUBBSN[0], GetUpper(oss.str()));
 
     oss.str("");
-    oss << subbasin_id_ << "_" << VAR_SLOPE;
-    LoadAdjustRasterData(VAR_SLOPE, GetUpper(oss.str()));
+    oss << subbasin_id_ << "_" << VAR_SLOPE[0];
+    LoadAdjustRasterData(VAR_SLOPE[0], GetUpper(oss.str()));
 
     subbasins_ = clsSubbasins::Init(rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
@@ -277,8 +277,8 @@ bool DataCenterMongoDB::GetFileOutVector() {
 }
 
 bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
-    bson_t* b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID),
-                         BCON_UTF8(VAR_SUBBSNID_NUM),
+    bson_t* b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID[0]),
+                         BCON_UTF8(VAR_SUBBSNID_NUM[0]),
                          "]", "}", "}");
     // printf("%s\n",bson_as_json(b, NULL));
 
@@ -306,9 +306,9 @@ bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
             GetNumericFromBsonIterator(&iter, num_tmp);
         }
         if (!StringMatch(name_tmp, "") && num_tmp != -1) {
-            if (StringMatch(name_tmp, VAR_OUTLETID)) {
+            if (StringMatch(name_tmp, VAR_OUTLETID[0])) {
                 GetNumericFromBsonIterator(&iter, outlet_id_);
-            } else if (StringMatch(name_tmp, VAR_SUBBSNID_NUM)) {
+            } else if (StringMatch(name_tmp, VAR_SUBBSNID_NUM[0])) {
                 GetNumericFromBsonIterator(&iter, n_subbasins_);
             }
         } else {
@@ -423,7 +423,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         }
         /// Special handling code for soil water capcity parameters
         /// e.g., SOL_AWC, SOL_UL, WILTINGPOINT. By ljzhu, 2018-1-11
-        if (StringMatch(p->Name, VAR_SW_CAP)) {
+        if (StringMatch(p->Name, VAR_SW_CAP[0])) {
             for (int si = 0; si < SOILWATER_VARS_NUM; si++) {
                 ParamInfo* tmpp = new ParamInfo(*p);
                 tmpp->Name = SOILWATER_VARS[si];

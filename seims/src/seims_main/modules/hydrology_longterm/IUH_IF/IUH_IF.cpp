@@ -176,11 +176,11 @@ bool IUH_IF::CheckInputSize(const char *key, int n) {
 
 void IUH_IF::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) {
+    if (StringMatch(sk, Tag_TimeStep[0])) {
         m_TimeStep = (int) value;
-    } else if (StringMatch(sk, Tag_CellWidth)) {
+    } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
-    } else if (StringMatch(sk, Tag_CellSize)) {
+    } else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = int(value);
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk
@@ -192,9 +192,9 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     //set the value
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbasin = data;
-    } else if (StringMatch(sk, VAR_SSRU)) {
+    } else if (StringMatch(sk, VAR_SSRU[0])) {
         m_ssru = data;
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk +
@@ -204,8 +204,8 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
 
 void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
     string sk(key);
-    if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize(VAR_OL_IUH, nRows);
+    if (StringMatch(sk, VAR_OL_IUH[0])) {
+        CheckInputSize(VAR_OL_IUH[0], nRows);
         m_iuhCell = data;
         m_iuhCols = nCols;
     } else {
@@ -216,7 +216,7 @@ void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
 
 void IUH_IF::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SBIF)) {
+    if (StringMatch(sk, VAR_SBIF[0])) {
         *data = m_Q_SBIF;
     } else {
         throw ModelException("IUH_IF", "getResult", "Result " + sk +

@@ -287,8 +287,8 @@ void ModelMain::AppendOutputData(const time_t time) {
                     StringMatch(param->BasicName, "RSWB") || //reservoir water balance
                     StringMatch(param->BasicName, "RESB") || //reservoir sediment balance
                     StringMatch(param->BasicName, "CHSB") ||
-                    StringMatch(param->BasicName, VAR_GWWB) || // groundwater water balance
-                    StringMatch(param->BasicName, VAR_SOWB)    // soil water balance
+                    StringMatch(param->BasicName, VAR_GWWB[0]) || // groundwater water balance
+                    StringMatch(param->BasicName, VAR_SOWB[0])    // soil water balance
                 ) {
                     // TODO: more conditions will be added in the future.
                     //for modules in which only the results of output subbasins are calculated.

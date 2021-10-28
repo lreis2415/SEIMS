@@ -69,7 +69,7 @@ void HS_WB::SetValue(const char *key, float data) {
     if (StringMatch(s, Tag_SubbasinId)) {
         m_subbasinID = data;
     } else {
-        throw ModelException(MID_HS_WB, "SetValue", "Parameter " + s
+        throw ModelException(M_HS_WB[0], "SetValue", "Parameter " + s
             + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -79,16 +79,16 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
 
     this->CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_QOVERLAND)) { this->m_qs = data; }
-    else if (StringMatch(s, VAR_QSOIL)) { this->m_qi = data; }
-    else if (StringMatch(s, VAR_SUBBSN)) { this->m_subbasin = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK)) { this->m_streamLink = data;}
-    else if (StringMatch(s, VAR_SOILDEPTH)) { this->m_rootdepth = data;}
-    else if (StringMatch(s, VAR_POROST)) { this->m_porosity = data; }
-    else if (StringMatch(s, VAR_FIELDCAP)) { this->m_fieldCapacity = data; }
-    else if (StringMatch(s, VAR_NEPR)) { m_pNet = data; }
+    if (StringMatch(s, VAR_QOVERLAND[0])) { this->m_qs = data; }
+    else if (StringMatch(s, VAR_QSOIL[0])) { this->m_qi = data; }
+    else if (StringMatch(s, VAR_SUBBSN[0])) { this->m_subbasin = data; }
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) { this->m_streamLink = data;}
+    else if (StringMatch(s, VAR_SOILDEPTH[0])) { this->m_rootdepth = data;}
+    else if (StringMatch(s, VAR_POROST[0])) { this->m_porosity = data; }
+    else if (StringMatch(s, VAR_FIELDCAP[0])) { this->m_fieldCapacity = data; }
+    else if (StringMatch(s, VAR_NEPR[0])) { m_pNet = data; }
     else {
-        throw ModelException(MID_HS_WB, "Set1DData", "Parameter " + s +
+        throw ModelException(M_HS_WB[0], "Set1DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -96,23 +96,23 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
 void HS_WB::Get1DData(const char *key, int *nRows, float **data) {
     *nRows = m_nReaches + 1;
     string s(key);
-    if (StringMatch(s, VAR_SBOF)) {
+    if (StringMatch(s, VAR_SBOF[0])) {
         *data = m_qsInput;
-    } else if (StringMatch(s, VAR_SBIF)) {
+    } else if (StringMatch(s, VAR_SBIF[0])) {
         *data = m_qiInput;
     } else {
-        throw ModelException(MID_HS_WB, "Get1DData", "Result " + string(key) +
+        throw ModelException(M_HS_WB[0], "Get1DData", "Result " + string(key) +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void HS_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     string s(key);
-    if (StringMatch(s, VAR_SOWB)) {
+    if (StringMatch(s, VAR_SOWB[0])) {
         *nCols = 17;
         *data = m_soilWaterBalance;
     } else {
-        throw ModelException(MID_HS_WB, "Get2DData", "Result " + s +
+        throw ModelException(M_HS_WB[0], "Get2DData", "Result " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -123,17 +123,17 @@ void HS_WB::SetReaches(clsReaches *reaches) {
 }
 
 bool HS_WB::CheckInputData() {
-    CHECK_NONNEGATIVE(MID_HS_WB, m_subbasinID);
-    CHECK_POSITIVE(MID_HS_WB, m_nCells);
-    CHECK_POINTER(MID_HS_WB, m_qs);
-    CHECK_POINTER(MID_HS_WB, m_subbasin);
-    CHECK_POINTER(MID_HS_WB, m_streamLink);
+    CHECK_NONNEGATIVE(M_HS_WB[0], m_subbasinID);
+    CHECK_POSITIVE(M_HS_WB[0], m_nCells);
+    CHECK_POINTER(M_HS_WB[0], m_qs);
+    CHECK_POINTER(M_HS_WB[0], m_subbasin);
+    CHECK_POINTER(M_HS_WB[0], m_streamLink);
     return true;
 }
 
 bool HS_WB::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_HS_WB, "CheckInputSize",
+        throw ModelException(M_HS_WB[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
@@ -142,7 +142,7 @@ bool HS_WB::CheckInputSize(const char *key, int n) {
             this->m_nCells = n;
         } else {
             cout << key << "\t" << n << "\t" << m_nCells << endl;
-            throw ModelException(MID_HS_WB, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_HS_WB[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }

@@ -32,7 +32,7 @@ ReservoirMethod::~ReservoirMethod() {
 }
 
 void ReservoirMethod::InitialOutputs() {
-    CHECK_POSITIVE(MID_GWA_RE, m_nSubbsns);
+    CHECK_POSITIVE(M_GWA_RE[0], m_nSubbsns);
     int nLen = m_nSubbsns + 1;
     if (m_T_Perco == nullptr) Initialize1DArray(nLen, m_T_Perco, 0.f);
     if (m_T_Revap == nullptr) Initialize1DArray(nLen, m_T_Revap, 0.f);
@@ -151,12 +151,12 @@ int ReservoirMethod::Execute() {
         m_gwSto[subID] = curSub->GetGw();
     }
 
-    m_T_Perco[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERCO);
-    m_T_PerDep[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERDE);
-    m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP);
-    m_T_RG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_RG); // get rg of entire watershed
-    m_T_QG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_QG); // get qg of entire watershed
-    m_gwSto[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
+    m_T_Perco[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERCO[0]);
+    m_T_PerDep[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERDE[0]);
+    m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP[0]);
+    m_T_RG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_RG[0]); // get rg of entire watershed
+    m_T_QG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_QG[0]); // get qg of entire watershed
+    m_gwSto[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q[0]);
 
     // output to GWWB, the sequence is coincident with the header information defined in PrintInfo.cpp, line 528.
     for (int i = 0; i <= m_nSubbsns; i++) {
@@ -185,88 +185,88 @@ int ReservoirMethod::Execute() {
 }
 
 bool ReservoirMethod::CheckInputData() {
-    CHECK_POSITIVE(MID_GWA_RE, m_nCells);
-    CHECK_POSITIVE(MID_GWA_RE, m_nSubbsns);
-    CHECK_POSITIVE(MID_GWA_RE, m_cellWth);
-    CHECK_POSITIVE(MID_GWA_RE, m_dt);
-    CHECK_POSITIVE(MID_GWA_RE, m_maxSoilLyrs);
-    CHECK_NODATA(MID_GWA_RE, m_dp_co);
-    CHECK_NODATA(MID_GWA_RE, m_Kg);
-    CHECK_NODATA(MID_GWA_RE, m_Base_ex);
-    CHECK_POINTER(MID_GWA_RE, m_soilPerco);
-    CHECK_POINTER(MID_GWA_RE, m_IntcpET);
-    CHECK_POINTER(MID_GWA_RE, m_deprStoET);
-    CHECK_POINTER(MID_GWA_RE, m_soilET);
-    CHECK_POINTER(MID_GWA_RE, m_actPltET);
-    CHECK_POINTER(MID_GWA_RE, m_pet);
-    CHECK_POINTER(MID_GWA_RE, m_slope);
-    CHECK_POINTER(MID_GWA_RE, m_soilWtrSto);
-    CHECK_POINTER(MID_GWA_RE, m_nSoilLyrs);
-    CHECK_POINTER(MID_GWA_RE, m_soilThk);
-    CHECK_POINTER(MID_GWA_RE, m_subbasinsInfo);
+    CHECK_POSITIVE(M_GWA_RE[0], m_nCells);
+    CHECK_POSITIVE(M_GWA_RE[0], m_nSubbsns);
+    CHECK_POSITIVE(M_GWA_RE[0], m_cellWth);
+    CHECK_POSITIVE(M_GWA_RE[0], m_dt);
+    CHECK_POSITIVE(M_GWA_RE[0], m_maxSoilLyrs);
+    CHECK_NODATA(M_GWA_RE[0], m_dp_co);
+    CHECK_NODATA(M_GWA_RE[0], m_Kg);
+    CHECK_NODATA(M_GWA_RE[0], m_Base_ex);
+    CHECK_POINTER(M_GWA_RE[0], m_soilPerco);
+    CHECK_POINTER(M_GWA_RE[0], m_IntcpET);
+    CHECK_POINTER(M_GWA_RE[0], m_deprStoET);
+    CHECK_POINTER(M_GWA_RE[0], m_soilET);
+    CHECK_POINTER(M_GWA_RE[0], m_actPltET);
+    CHECK_POINTER(M_GWA_RE[0], m_pet);
+    CHECK_POINTER(M_GWA_RE[0], m_slope);
+    CHECK_POINTER(M_GWA_RE[0], m_soilWtrSto);
+    CHECK_POINTER(M_GWA_RE[0], m_nSoilLyrs);
+    CHECK_POINTER(M_GWA_RE[0], m_soilThk);
+    CHECK_POINTER(M_GWA_RE[0], m_subbasinsInfo);
     return true;
 }
 
 // set value
 void ReservoirMethod::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_dt = CVT_INT(value);
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(sk, Tag_TimeStep[0])) m_dt = CVT_INT(value);
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
-    else if (StringMatch(sk, VAR_KG)) m_Kg = value;
-    else if (StringMatch(sk, VAR_Base_ex)) m_Base_ex = value;
-    else if (StringMatch(sk, VAR_DF_COEF)) m_dp_co = value;
-    else if (StringMatch(sk, VAR_GW0)) m_GW0 = value;
-    else if (StringMatch(sk, VAR_GWMAX)) m_GWMAX = value;
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
+    else if (StringMatch(sk, VAR_KG[0])) m_Kg = value;
+    else if (StringMatch(sk, VAR_Base_ex[0])) m_Base_ex = value;
+    else if (StringMatch(sk, VAR_DF_COEF[0])) m_dp_co = value;
+    else if (StringMatch(sk, VAR_GW0[0])) m_GW0 = value;
+    else if (StringMatch(sk, VAR_GWMAX[0])) m_GWMAX = value;
     else {
-        throw ModelException(MID_GWA_RE, "SetValue", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_GWA_RE[0], "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
 }
 
 void ReservoirMethod::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    if (StringMatch(sk, VAR_GWNEW)) {
+    if (StringMatch(sk, VAR_GWNEW[0])) {
         m_VgroundwaterFromBankStorage = data;
         return;
     }
     //check the input data
-    if (!CheckInputSize(MID_GWA_RE, key, n, m_nCells)) return;
+    if (!CheckInputSize(M_GWA_RE[0], key, n, m_nCells)) return;
 
     //set the value
-    if (StringMatch(sk, VAR_INET)) {
+    if (StringMatch(sk, VAR_INET[0])) {
         m_IntcpET = data;
-    } else if (StringMatch(sk, VAR_DEET)) {
+    } else if (StringMatch(sk, VAR_DEET[0])) {
         m_deprStoET = data;
-    } else if (StringMatch(sk, VAR_SOET)) {
+    } else if (StringMatch(sk, VAR_SOET[0])) {
         m_soilET = data;
-    } else if (StringMatch(sk, VAR_AET_PLT)) {
+    } else if (StringMatch(sk, VAR_AET_PLT[0])) {
         m_actPltET = data;
-    } else if (StringMatch(sk, VAR_PET)) {
+    } else if (StringMatch(sk, VAR_PET[0])) {
         m_pet = data;
-    } else if (StringMatch(sk, VAR_SLOPE)) {
+    } else if (StringMatch(sk, VAR_SLOPE[0])) {
         m_slope = data;
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) {
+    } else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
     } else {
-        throw ModelException(MID_GWA_RE, "Set1DData", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_GWA_RE[0], "Set1DData", "Parameter " + sk + " does not exist in current module.");
     }
 }
 
 void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(MID_GWA_RE, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(M_GWA_RE[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
 
-    if (StringMatch(sk, VAR_PERCO)) {
+    if (StringMatch(sk, VAR_PERCO[0])) {
         m_soilPerco = data;
-    } else if (StringMatch(sk, VAR_SOL_ST)) {
+    } else if (StringMatch(sk, VAR_SOL_ST[0])) {
         m_soilWtrSto = data;
-    } else if (StringMatch(sk, VAR_SOILDEPTH)) {
+    } else if (StringMatch(sk, VAR_SOILDEPTH[0])) {
         m_soilDepth = data;
-    } else if (StringMatch(sk, VAR_SOILTHICK)) {
+    } else if (StringMatch(sk, VAR_SOILTHICK[0])) {
         m_soilThk = data;
     } else {
-        throw ModelException(MID_GWA_RE, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_GWA_RE[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -281,34 +281,34 @@ void ReservoirMethod::SetSubbasins(clsSubbasins* subbsns) {
 void ReservoirMethod::Get1DData(const char* key, int* nrows, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_REVAP)) {
+    if (StringMatch(sk, VAR_REVAP[0])) {
         *data = m_revap;
         *nrows = m_nCells;
-    } else if (StringMatch(sk, VAR_RG)) {
+    } else if (StringMatch(sk, VAR_RG[0])) {
         *data = m_T_RG;
         *nrows = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SBQG)) {
+    } else if (StringMatch(sk, VAR_SBQG[0])) {
         *data = m_T_QG;
         *nrows = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SBGS)) {
+    } else if (StringMatch(sk, VAR_SBGS[0])) {
         *data = m_gwSto;
         *nrows = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SBPET)) {
+    } else if (StringMatch(sk, VAR_SBPET[0])) {
         *data = m_petSubbsn;
         *nrows = m_nSubbsns + 1;
     } else {
-        throw ModelException(MID_GWA_RE, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_GWA_RE[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void ReservoirMethod::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_GWWB)) {
+    if (StringMatch(sk, VAR_GWWB[0])) {
         *data = m_T_GWWB;
         *nrows = m_nSubbsns + 1;
         *ncols = 6;
     } else {
-        throw ModelException(MID_GWA_RE, "Get2DData", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_GWA_RE[0], "Get2DData", "Parameter " + sk + " does not exist in current module.");
     }
 }

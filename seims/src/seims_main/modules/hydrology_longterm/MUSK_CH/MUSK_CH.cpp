@@ -51,30 +51,30 @@ MUSK_CH::~MUSK_CH() {
 }
 
 bool MUSK_CH::CheckInputData() {
-    CHECK_POSITIVE(MID_MUSK_CH, m_dt);
-    CHECK_NONNEGATIVE(MID_MUSK_CH, m_inputSubbsnID);
-    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
-    CHECK_POSITIVE(MID_MUSK_CH, m_outletID);
-    CHECK_NODATA(MID_MUSK_CH, m_Epch);
-    CHECK_NODATA(MID_MUSK_CH, m_Bnk0);
-    CHECK_NODATA(MID_MUSK_CH, m_Chs0_perc);
-    CHECK_NODATA(MID_MUSK_CH, m_aBank);
-    CHECK_NODATA(MID_MUSK_CH, m_bBank);
-    //CHECK_NODATA(MID_MUSK_CH, m_mskX); // Do not throw exception, since they have default values.
-    //CHECK_NODATA(MID_MUSK_CH, m_mskCoef1);
-    //CHECK_NODATA(MID_MUSK_CH, m_mskCoef2);
-    CHECK_POINTER(MID_MUSK_CH, m_subbsnID);
+    CHECK_POSITIVE(M_MUSK_CH[0], m_dt);
+    CHECK_NONNEGATIVE(M_MUSK_CH[0], m_inputSubbsnID);
+    CHECK_POSITIVE(M_MUSK_CH[0], m_nreach);
+    CHECK_POSITIVE(M_MUSK_CH[0], m_outletID);
+    CHECK_NODATA(M_MUSK_CH[0], m_Epch);
+    CHECK_NODATA(M_MUSK_CH[0], m_Bnk0);
+    CHECK_NODATA(M_MUSK_CH[0], m_Chs0_perc);
+    CHECK_NODATA(M_MUSK_CH[0], m_aBank);
+    CHECK_NODATA(M_MUSK_CH[0], m_bBank);
+    //CHECK_NODATA(M_MUSK_CH[0], m_mskX); // Do not throw exception, since they have default values.
+    //CHECK_NODATA(M_MUSK_CH[0], m_mskCoef1);
+    //CHECK_NODATA(M_MUSK_CH[0], m_mskCoef2);
+    CHECK_POINTER(M_MUSK_CH[0], m_subbsnID);
 
-    CHECK_POINTER(MID_MUSK_CH, m_petSubbsn);
-    CHECK_POINTER(MID_MUSK_CH, m_gwSto);
-    CHECK_POINTER(MID_MUSK_CH, m_olQ2Rch);
-    CHECK_POINTER(MID_MUSK_CH, m_ifluQ2Rch);
-    CHECK_POINTER(MID_MUSK_CH, m_gndQ2Rch);
+    CHECK_POINTER(M_MUSK_CH[0], m_petSubbsn);
+    CHECK_POINTER(M_MUSK_CH[0], m_gwSto);
+    CHECK_POINTER(M_MUSK_CH[0], m_olQ2Rch);
+    CHECK_POINTER(M_MUSK_CH[0], m_ifluQ2Rch);
+    CHECK_POINTER(M_MUSK_CH[0], m_gndQ2Rch);
     return true;
 }
 
 void MUSK_CH::InitialOutputs() {
-    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
+    CHECK_POSITIVE(M_MUSK_CH[0], m_nreach);
     if (nullptr != m_qRchOut) return; // DO NOT Initial Outputs repeatedly.
     if (m_mskX < 0.f) m_mskX = 0.2f;
     if (m_mskCoef1 < 0.f || m_mskCoef1 > 1.f) {
@@ -199,7 +199,7 @@ int MUSK_CH::Execute() {
             }
         }
         if (errCount > 0) {
-            throw ModelException(MID_MUSK_CH, "Execute", "Error occurred!");
+            throw ModelException(M_MUSK_CH[0], "Execute", "Error occurred!");
         }
     }
     return 0;
@@ -209,16 +209,16 @@ void MUSK_CH::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-    else if (StringMatch(sk, VAR_OUTLETID)) m_outletID = CVT_INT(value);
-    else if (StringMatch(sk, VAR_EP_CH)) m_Epch = value;
-    else if (StringMatch(sk, VAR_BNK0)) m_Bnk0 = value;
-    else if (StringMatch(sk, VAR_CHS0_PERC)) m_Chs0_perc = value;
-    else if (StringMatch(sk, VAR_A_BNK)) m_aBank = value;
-    else if (StringMatch(sk, VAR_B_BNK)) m_bBank = value;
-    else if (StringMatch(sk, VAR_MSK_X)) m_mskX = value;
-    else if (StringMatch(sk, VAR_MSK_CO1)) m_mskCoef1 = value;
+    else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = CVT_INT(value);
+    else if (StringMatch(sk, VAR_EP_CH[0])) m_Epch = value;
+    else if (StringMatch(sk, VAR_BNK0[0])) m_Bnk0 = value;
+    else if (StringMatch(sk, VAR_CHS0_PERC[0])) m_Chs0_perc = value;
+    else if (StringMatch(sk, VAR_A_BNK[0])) m_aBank = value;
+    else if (StringMatch(sk, VAR_B_BNK[0])) m_bBank = value;
+    else if (StringMatch(sk, VAR_MSK_X[0])) m_mskX = value;
+    else if (StringMatch(sk, VAR_MSK_CO1[0])) m_mskCoef1 = value;
     else {
-        throw ModelException(MID_MUSK_CH, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -229,37 +229,37 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     string sk(key);
     /// Set single value of array1D of current subbasin
     /// IN/OUTPUT variables
-    if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
-    else if (StringMatch(sk, VAR_QS)) m_qsRchOut[index] = value;
-    else if (StringMatch(sk, VAR_QI)) m_qiRchOut[index] = value;
-    else if (StringMatch(sk, VAR_QG)) m_qgRchOut[index] = value;
+    if (StringMatch(sk, VAR_QRECH[0])) m_qRchOut[index] = value;
+    else if (StringMatch(sk, VAR_QS[0])) m_qsRchOut[index] = value;
+    else if (StringMatch(sk, VAR_QI[0])) m_qiRchOut[index] = value;
+    else if (StringMatch(sk, VAR_QG[0])) m_qgRchOut[index] = value;
     else {
-        throw ModelException(MID_MUSK_CH, "SetValueByIndex", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "SetValueByIndex", "Parameter " + sk + " does not exist.");
     }
 }
 
 void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     //check the input data
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_SBPET)) {
-        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
+    } else if (StringMatch(sk, VAR_SBPET[0])) {
+        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_petSubbsn = data;
-    } else if (StringMatch(sk, VAR_SBGS)) {
-        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
+    } else if (StringMatch(sk, VAR_SBGS[0])) {
+        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_gwSto = data;
-    } else if (StringMatch(sk, VAR_SBOF)) {
-        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
+    } else if (StringMatch(sk, VAR_SBOF[0])) {
+        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_olQ2Rch = data;
-    } else if (StringMatch(sk, VAR_SBIF)) {
-        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
+    } else if (StringMatch(sk, VAR_SBIF[0])) {
+        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_ifluQ2Rch = data;
-    } else if (StringMatch(sk, VAR_SBQG)) {
-        CheckInputSize(MID_MUSK_CH, key, n - 1, m_nreach);
+    } else if (StringMatch(sk, VAR_SBQG[0])) {
+        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_gndQ2Rch = data;
     } else {
-        throw ModelException(MID_MUSK_CH, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -267,12 +267,12 @@ void MUSK_CH::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
     /// IN/OUTPUT variables
-    if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_QS) && m_inputSubbsnID > 0) *value = m_qsRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_QI) && m_inputSubbsnID > 0) *value = m_qiRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_QG) && m_inputSubbsnID > 0) *value = m_qgRchOut[m_inputSubbsnID];
+    if (StringMatch(sk, VAR_QRECH[0]) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_QS[0]) && m_inputSubbsnID > 0) *value = m_qsRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_QI[0]) && m_inputSubbsnID > 0) *value = m_qiRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_QG[0]) && m_inputSubbsnID > 0) *value = m_qgRchOut[m_inputSubbsnID];
     else {
-        throw ModelException(MID_MUSK_CH, "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -280,44 +280,44 @@ void MUSK_CH::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
-    if (StringMatch(sk, VAR_QRECH)) {
+    if (StringMatch(sk, VAR_QRECH[0])) {
         m_qRchOut[0] = m_qRchOut[m_outletID];
         *data = m_qRchOut;
-    } else if (StringMatch(sk, VAR_QS)) {
+    } else if (StringMatch(sk, VAR_QS[0])) {
         m_qsRchOut[0] = m_qsRchOut[m_outletID];
         *data = m_qsRchOut;
-    } else if (StringMatch(sk, VAR_QI)) {
+    } else if (StringMatch(sk, VAR_QI[0])) {
         m_qiRchOut[0] = m_qiRchOut[m_outletID];
         *data = m_qiRchOut;
-    } else if (StringMatch(sk, VAR_QG)) {
+    } else if (StringMatch(sk, VAR_QG[0])) {
         m_qgRchOut[0] = m_qgRchOut[m_outletID];
         *data = m_qgRchOut;
-    } else if (StringMatch(sk, VAR_CHST)) {
+    } else if (StringMatch(sk, VAR_CHST[0])) {
         m_chSto[0] = m_chSto[m_outletID];
         *data = m_chSto;
-    } else if (StringMatch(sk, VAR_RTE_WTRIN)) {
+    } else if (StringMatch(sk, VAR_RTE_WTRIN[0])) {
         m_rteWtrIn[0] = m_rteWtrIn[m_outletID];
         *data = m_rteWtrIn;
-    } else if (StringMatch(sk, VAR_RTE_WTROUT)) {
+    } else if (StringMatch(sk, VAR_RTE_WTROUT[0])) {
         m_rteWtrOut[0] = m_rteWtrOut[m_outletID];
         *data = m_rteWtrOut;
-    } else if (StringMatch(sk, VAR_BKST)) {
+    } else if (StringMatch(sk, VAR_BKST[0])) {
         m_bankSto[0] = m_bankSto[m_outletID];
         *data = m_bankSto;
-    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) {
+    } else if (StringMatch(sk, VAR_CHWTRDEPTH[0])) {
         m_chWtrDepth[0] = m_chWtrDepth[m_outletID];
         *data = m_chWtrDepth;
-    } else if (StringMatch(sk, VAR_CHWTRWIDTH)) {
+    } else if (StringMatch(sk, VAR_CHWTRWIDTH[0])) {
         m_chWtrWth[0] = m_chWtrWth[m_outletID];
         *data = m_chWtrWth;
-    } else if (StringMatch(sk, VAR_CHBTMWIDTH)) {
+    } else if (StringMatch(sk, VAR_CHBTMWIDTH[0])) {
         m_chBtmWth[0] = m_chBtmWth[m_outletID];
         *data = m_chBtmWth;
-    } else if (StringMatch(sk, VAR_CHCROSSAREA)) {
+    } else if (StringMatch(sk, VAR_CHCROSSAREA[0])) {
         m_chCrossArea[0] = m_chCrossArea[m_outletID];
         *data = m_chCrossArea;
     } else {
-        throw ModelException(MID_MUSK_CH, "Get1DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "Get1DData", "Output " + sk + " does not exist.");
     }
 }
 
@@ -335,13 +335,13 @@ void MUSK_CH::SetScenario(Scenario* sce) {
             }
         }
     } else {
-        throw ModelException(MID_MUSK_CH, "SetScenario", "The scenario can not to be NULL.");
+        throw ModelException(M_MUSK_CH[0], "SetScenario", "The scenario can not to be NULL.");
     }
 }
 
 void MUSK_CH::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(MID_MUSK_CH, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_MUSK_CH[0], "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nreach = reaches->GetReachNumber();
 

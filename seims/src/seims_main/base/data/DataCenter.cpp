@@ -193,10 +193,10 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     int n;
     float* data = nullptr;
     string upper_name = GetUpper(para_name);
-    if (StringMatch(upper_name, Tag_Weight)) {
+    if (StringMatch(upper_name, Tag_Weight[0])) {
         /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
         ReadItpWeightData(remote_filename, n, data);
-    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8)) {
+    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) {
         /// 2. IF FLOWOUT_INDEX_D8
         Read1DArrayData(remote_filename, n, data);
         if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
@@ -249,9 +249,9 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
     } else {
-        // Including: Tag_ROUTING_LAYERS, Tag_ROUTING_LAYERS_DINF,
-        //            Tag_FLOWIN_INDEX_D8, Tag_FLOWIN_INDEX_DINF,
-        //            Tag_FLOWIN_PERCENTAGE_DINF, Tag_FLOWOUT_INDEX_DINF
+        // Including: Tag_ROUTING_LAYERS[0], Tag_ROUTING_LAYERS_DINF,
+        //            Tag_FLOWIN_INDEX_D8[0], Tag_FLOWIN_INDEX_DINF,
+        //            Tag_FLOWIN_PERCENTAGE_DINF[0], Tag_FLOWOUT_INDEX_DINF[0]
         Read2DArrayData(remote_filename, n_rows, n_cols, data);
     }
     if (nullptr != data) {
@@ -282,7 +282,7 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
         vector<ParamInfo*>& parameters = module_parameters[id];
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo* param = parameters[j];
-            if (StringMatch(param->Name, Tag_VerticalInterpolation)) {
+            if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) {
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
@@ -312,7 +312,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
     } else {
         oss << name;
     }
-    if (StringMatch(name, Tag_Weight)) {
+    if (StringMatch(name, Tag_Weight[0])) {
         if (setting->dataTypeString() == DataType_Precipitation) {
             oss << "_P";
         } else {
@@ -359,19 +359,19 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
     }
     if (StringMatch(param->Name, Tag_SubbasinId)) {
         param->Value = CVT_FLT(subbasin_id_);
-    } else if (StringMatch(param->Name, Tag_CellSize)) {
+    } else if (StringMatch(param->Name, Tag_CellSize[0])) {
         // valid cells number, do not be confused with Tag_CellWidth
         param->Value = CVT_FLT(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
-    } else if (StringMatch(param->Name, Tag_CellWidth)) {
+    } else if (StringMatch(param->Name, Tag_CellWidth[0])) {
         //cell size
         param->Value = CVT_FLT(mask_raster_->GetCellWidth());
-    } else if (StringMatch(param->Name, Tag_TimeStep)) {
+    } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
-    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep)) {
+    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
         param->Value = CVT_FLT(input_->getDtChannel());
-    } else if (StringMatch(param->Name, Tag_LayeringMethod)) {
+    } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = CVT_FLT(lyr_method_);
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
@@ -410,7 +410,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     float** data = nullptr;
     /// Get ROUTING_LAYERS real file name
     string real_filename = remote_filename;
-    if (StringMatch(para_name, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
         real_filename += lyr_method_ == UP_DOWN ? "_UP_DOWN" : "_DOWN_UP";
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
@@ -523,7 +523,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                 clim_station_->GetTimeSeriesData(t, data_type, &datalen, &data);
                 if (StringMatch(param->Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int i_data = 0; i_data < datalen; i_data++) {
-                        data[i_data] *= init_params_[VAR_K_PET]->GetAdjustedValue();
+                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue();
                     }
                 }
                 p_module->Set1DData(DataType_Prefix_TS, datalen, data);
@@ -553,7 +553,7 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
         float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
         vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
         /// Get landuse data of current subbasin ("0_" for the whole basin)
-        string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
+        string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE[0]);
         int nsize = -1;
         float* ludata = nullptr;
         rs_map_[lur]->GetRasterData(&nsize, &ludata);

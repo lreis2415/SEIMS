@@ -134,11 +134,11 @@ private:
 
     // outputs
 
-    /// subsurface runoff (mm), VAR_SSRU
+    /// subsurface runoff (mm), VAR_SSRU[0]
     float **m_subSurfRf;
-    /// subsurface runoff volume (m3), VAR_SSRUVOL
+    /// subsurface runoff volume (m3), VAR_SSRUVOL[0]
     float **m_subSurfRfVol;
-    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF
+    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF[0]
     float *m_ifluQ2Rch;
 };
 

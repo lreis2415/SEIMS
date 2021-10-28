@@ -51,19 +51,19 @@ int Interpolate::Execute() {
         m_itpOutput[i] = value;
     }
     if (err_count > 0) {
-        throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!");
+        throw ModelException(M_ITP[0], "Execute", "Error occurred in weight data!");
     }
     return true;
 }
 
 void Interpolate::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_TSD_DT)) {
+    if (StringMatch(sk, VAR_TSD_DT[0])) {
         SetClimateDataType(value);
-    } else if (StringMatch(sk, Tag_VerticalInterpolation)) {
+    } else if (StringMatch(sk, Tag_VerticalInterpolation[0])) {
         m_itpVertical = value > 0;
     } else {
-        throw ModelException(MID_ITP, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_ITP[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -72,11 +72,11 @@ void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols,
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
             int n_month = 12;
-            CheckInputSize(MID_ITP, key, n_rows, n_month);
+            CheckInputSize(M_ITP[0], key, n_rows, n_month);
             m_lapseRate = data;
         }
     } else {
-        throw ModelException(MID_ITP, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_ITP[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -84,39 +84,39 @@ void Interpolate::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, Tag_DEM)) {
         if (m_itpVertical) {
-            CheckInputSize(MID_ITP, key, n, m_nCells);
+            CheckInputSize(M_ITP[0], key, n, m_nCells);
             m_dem = data;
         }
-    } else if (StringMatch(sk, Tag_Weight)) {
-        CheckInputSize(MID_ITP, key, n, m_nCells);
+    } else if (StringMatch(sk, Tag_Weight[0])) {
+        CheckInputSize(M_ITP[0], key, n, m_nCells);
         m_itpWeights = data;
     } else if (StringMatch(sk, Tag_Elevation_Precipitation) || StringMatch(sk, Tag_Elevation_Meteorology)
         || StringMatch(sk, Tag_Elevation_Temperature) || StringMatch(sk, Tag_Elevation_PET)) {
         if (m_itpVertical) {
-            CheckInputSize(MID_ITP, key, n, m_nStatioins);
+            CheckInputSize(M_ITP[0], key, n, m_nStatioins);
             m_hStations = data;
         }
     } else {
         string prefix = sk.substr(0, 1);
         if (StringMatch(prefix, DataType_Prefix_TS)) {
-            CheckInputSize(MID_ITP, key, n, m_nStatioins);
+            CheckInputSize(M_ITP[0], key, n, m_nStatioins);
             m_stationData = data;
         } else {
-            throw ModelException(MID_ITP, "Set1DData", "Parameter " + sk + " does not exist.");
+            throw ModelException(M_ITP[0], "Set1DData", "Parameter " + sk + " does not exist.");
         }
     }
 }
 
 bool Interpolate::CheckInputData() {
-    CHECK_NONNEGATIVE(MID_ITP, m_dataType);
-    CHECK_NONNEGATIVE(MID_ITP, m_month);
-    CHECK_POINTER(MID_ITP, m_itpWeights);
+    CHECK_NONNEGATIVE(M_ITP[0], m_dataType);
+    CHECK_NONNEGATIVE(M_ITP[0], m_month);
+    CHECK_POINTER(M_ITP[0], m_itpWeights);
     if (m_itpVertical) {
-        CHECK_POINTER(MID_ITP, m_lapseRate);
-        CHECK_POINTER(MID_ITP, m_dem);
-        CHECK_POINTER(MID_ITP, m_hStations);
+        CHECK_POINTER(M_ITP[0], m_lapseRate);
+        CHECK_POINTER(M_ITP[0], m_dem);
+        CHECK_POINTER(M_ITP[0], m_hStations);
     }
-    CHECK_POINTER(MID_ITP, m_stationData);
+    CHECK_POINTER(M_ITP[0], m_stationData);
     return true;
 }
 
