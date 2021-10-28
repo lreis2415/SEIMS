@@ -5,6 +5,7 @@
 #include "utils_math.h"
 #include "utils_string.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_math;
 using namespace utils_string;
@@ -13,7 +14,7 @@ ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dim
                          Transfer(TF_None), Source(""), Value(0.f), Impact(0.f), Change(""),
                          Maximum(0.f), Minimun(0.f), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
-                         BasicName(""), initialized(false) {
+						 BasicName(""), initialized(false), ImpactSeries(){
 }
 
 ParamInfo::ParamInfo(const ParamInfo& another) {
@@ -36,6 +37,7 @@ ParamInfo::ParamInfo(const ParamInfo& another) {
     OutputToOthers = another.OutputToOthers;
     BasicName = another.BasicName;
     initialized = another.initialized;
+	ImpactSeries = another.ImpactSeries;
 }
 
 ParamInfo::~ParamInfo() {
@@ -54,16 +56,50 @@ float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
         return res;
     }
 
-    if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
-        res *= Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
-        res += Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
-        res = Impact;
-    } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
+	if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
+		res *= Impact;
+	}
+	else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
+		res += Impact;
+	}
+	else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
+		res = Impact;
+	}
+	else if (StringMatch(Change, PARAM_CHANGE_NC)) {
+		//don't change
+		return res;
+	}
+	
+    if (!FloatEqual(Maximum, NODATA_VALUE) && res > Maximum) res = Maximum;
+    if (!FloatEqual(Minimun, NODATA_VALUE) && res < Minimun) res = Minimun;
+    return res;
+}
+
+float ParamInfo::GetAdjustedValueWithImpactIndexes(const float pre_value, int curImpactIndex) {
+    float res = pre_value;
+    if (FloatEqual(pre_value, NODATA_VALUE)) {
+        res = Value;
+    }
+    if (FloatEqual(res, NODATA_VALUE)) {
+        /// Do not change NoData value
+        return res;
+    }
+
+    float tmpImpact = ImpactSeries[curImpactIndex];
+    if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(tmpImpact, 1.f)) {
+        res *= tmpImpact;
+    }
+    else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(tmpImpact, 0.f)) {
+        res += tmpImpact;
+    }
+    else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(tmpImpact, NODATA_VALUE)) {
+        res = tmpImpact;
+    }
+    else if (StringMatch(Change, PARAM_CHANGE_NC)) {
         //don't change
         return res;
     }
+
     if (!FloatEqual(Maximum, NODATA_VALUE) && res > Maximum) res = Maximum;
     if (!FloatEqual(Minimun, NODATA_VALUE) && res < Minimun) res = Minimun;
     return res;
@@ -94,14 +130,51 @@ int ParamInfo::Adjust1DRaster(const int n, float* data, const float* units,
             continue;
         }
         int curunit = CVT_INT(units[i]);
-        int curlu = CVT_INT(lu[i]);
+        int curlu = CVT_INT(lu[i]);        
+        
         if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
             continue;
         }
+
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
+
         data[i] = GetAdjustedValue(data[i]);
+        count += 1;
+    }
+    return count;
+}
+
+int ParamInfo::Adjust1DRasterWithImpactIndexes(const int n, float* data, const float* units,
+    const vector<int>& selunits,  const map<int, int>& impactIndexes,const float* lu, const vector<int>& sellu) {
+    int count = 0;
+#pragma omp parallel for reduction(+:count)
+    for (int i = 0; i < n; i++) {
+        if (FloatEqual(data[i], NODATA_VALUE)) {
+            /// Do not change NoData value
+            continue;
+        }
+
+        int curunit = CVT_INT(units[i]);
+        int curlu = CVT_INT(lu[i]);
+        //cannot find, continue
+        if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
+            continue;
+        }
+
+        if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
+            continue;
+        }
+
+        map<int, int>::const_iterator it = impactIndexes.find(curunit);
+        if (it == impactIndexes.end())
+        {
+            continue;
+        }
+
+        data[i] = GetAdjustedValueWithImpactIndexes(data[i], it->second);
+
         count += 1;
     }
     return count;
@@ -123,9 +196,9 @@ void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
 }
 
 int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
-                              const vector<int>& selunits, float* lu, const vector<int>& sellu) {
+	const vector<int>& selunits, float* lu, const vector<int>& sellu) {
     int count = 0;
-#pragma omp parallel for reduction(+:count)
+//#pragma omp parallel for reduction(+:count)
     for (int i = 0; i < n; i++) {
         int curunit = CVT_INT(units[i]);
         int curlu = CVT_INT(lu[i]);
@@ -135,9 +208,44 @@ int ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* 
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
+        //cout << i << ",";
         for (int j = 0; j < lyrs; j++) {
             data[i][j] = GetAdjustedValue(data[i][j]);
         }
+        count += 1;
+    }
+    //cout << endl << endl;
+    return count;
+}
+
+int ParamInfo::Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, float** data, float* units,
+    const vector<int>& selunits, const map<int,int>& impactIndexes, float* lu, const vector<int>& sellu) {
+
+    int count = 0;
+#pragma omp parallel for reduction(+:count)
+    for (int i = 0; i < n; i++) {
+        int curunit = CVT_INT(units[i]);
+        int curlu = CVT_INT(lu[i]);
+
+        //cannot find, continue
+        if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
+            continue;
+        }
+
+        if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
+            continue;
+        }
+
+        map<int, int>::const_iterator it = impactIndexes.find(curunit);
+        if (it == impactIndexes.end())
+        {
+            continue;
+        }
+
+        for (int j = 0; j < lyrs; j++) {
+            data[i][j] = GetAdjustedValueWithImpactIndexes(data[i][j], it->second);
+        }
+
         count += 1;
     }
     return count;

@@ -1,3 +1,4 @@
+# coding:utf-8
 """Terrain related spatial parameters extraction
 
     @author   : Liangjun Zhu, Junzhi Liu

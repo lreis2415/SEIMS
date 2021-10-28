@@ -1,3 +1,4 @@
+# coding:utf-8
 """Base class of parameters sensitivity analysis.
 
     @author   : Liangjun Zhu
@@ -273,7 +274,7 @@ class Sensitivity(object):
                 model_cfg_dict_list.append(tmpcfg)
 
             if self.cfg.resource.workload.lower() == 'slurm' or \
-                    self.cfg.resource.workload.lower() == 'bash':
+                self.cfg.resource.workload.lower() == 'bash':
                 from utility.slurmpy import Slurm
                 output_models = list()
                 model_cmd_list = list()
@@ -305,7 +306,7 @@ class Sensitivity(object):
                     output_models[iii].executed = True
                     output_models[iii].ParseTimespan()
             elif self.cfg.resource.workload.lower() == 'cmd' and (
-                    self.model.workload.lower() == 'mpi' or self.model.workload == ''):
+                self.model.workload.lower() == 'mpi' or self.model.workload == ''):
                 # For function testing on Windows
                 output_models = list()
                 model_cmd_list = list()

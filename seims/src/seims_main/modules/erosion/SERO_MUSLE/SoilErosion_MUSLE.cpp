@@ -75,54 +75,25 @@ void SERO_MUSLE::InitialOutputs() {
         m_slopeForPq = new(nothrow) float[m_nCells];
         m_usleL = new(nothrow) float[m_nCells];
         m_usleS = new(nothrow) float[m_nCells];
+    }
+    if (nullptr == m_usleC) {
+        m_usleC = new(nothrow) float[m_nCells];
+    }
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            // Calculate USLE slope length factor, line 286-292 of readhru.f of SWAT source.
-            // Section 4:1.1.4 and 4:1.1.5 of SWAT Theory 2009.
-            // In SWAT, the calculation of LS factor needs `slsubbsn` (average slope length for subbasin)
-            //   I found the calcuation of `slsubbsn` in QSWAT (function `getSlsubbsn` in `hrus.py`)
-            //def getSlsubbsn(meanSlope) :
-            //    """Estimate the average slope length in metres from the mean slope."""
-            //    if meanSlope < 0.01 : return 120
-            //        elif meanSlope < 0.02 : return 100
-            //        elif meanSlope < 0.03 : return 90
-            //        elif meanSlope < 0.05 : return 60
-            //    else: return 30
-            //
-            // Currently, I decided to take slope length as input parameter.
-            // The calculation of LS factor follows the equation of McCool et al.(1989) used in RUSLE.
-            // Also refers to Zhang et al.(2013), C&G, 52, 177-188.
-            //                Liu et al.(2015), C&G, 78, 110-122.
-            float slp_rad = atan(m_slope[i]);
-            float slp_deg = slp_rad * 180.f / PI;
-            float sin_slp = sin(slp_rad);
-            float beta = sin_slp / 0.0896f / (3.f * pow(sin_slp, 0.8f) + 0.56f);
-            float m = beta / (1.f + beta);
-            float S = 0.f;
-            if (slp_deg < 5.f) S = 10.8f * sin_slp + 0.03f;
-            else if (slp_deg >= 5.f && slp_deg <= 14.f) S = 16.8f * sin_slp - 0.5f;
-            else S = 21.91f * sin_slp - 0.96f;
-            // float xm = 0.6f * (1.f - exp(-35.835f * m_slope[i])); // eq. of SWAT
-            // float s = 65.41f * sin_slp * sin_slp + 4.56f * sin_slp + 0.065f; // eq. of SWAT
-            // If m_slpLen is not provided, use the equation developed by Renard et al.(1997) and the extended
-            //    variation by Desmet and Govers (1996).
-            float L = 0.f;
-            if (nullptr == m_slpLen) {
-                float up_lambda = m_flowAccm[i] * m_cellWth;
-                float slope_lambda = up_lambda + m_cellWth;
-                L = pow(slope_lambda, m + 1.f) - pow(up_lambda, m + 1.f);
-                L /= m_cellWth * pow(22.13f, m);
-            } else {
-                L = pow(m_slpLen[i] / 22.13f, m);
-            }
+    for (int i = 0; i < m_nCells; i++) {
+        if (m_rchID[i] > 0) {
+            m_usleC[i] = 0.f;
+            continue;
+        }
+        m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
 
-            if (m_usleP[i] < 0.f) m_usleP[i] = 0.f;
-            if (m_usleP[i] > 1.f) m_usleP[i] = 1.f;
-            // line 111-113 of soil_phys.f of SWAT source.
-            m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
-            m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
-            m_usleL[i] = L;
-            m_usleS[i] = S;
+        if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
+            m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
+        }
+        if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
+            // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
+            //  the minimum value of the USLE_C for the land cover
+            m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
         }
     }
     if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {
@@ -130,31 +101,66 @@ void SERO_MUSLE::InitialOutputs() {
         m_cellAreaKM1 = 3.79f * pow(m_cellAreaKM, 0.7f);
         m_cellAreaKM2 = 0.903f * pow(m_cellAreaKM, 0.017f);
     }
-    if (nullptr == m_usleC) {
-        m_usleC = new(nothrow) float[m_nCells];
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            if (m_rchID[i] > 0) {
-                m_usleC[i] = 0.f;
-                continue;
-            }
-            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+}
 
-            if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
-                m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
-            }
-            if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
-                // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
-                //  the minimum value of the USLE_C for the land cover
-                m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
-            }
+void SERO_MUSLE::InitializeIntermediateVariables() {
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        // Calculate USLE slope length factor, line 286-292 of readhru.f of SWAT source.
+        // Section 4:1.1.4 and 4:1.1.5 of SWAT Theory 2009.
+        // In SWAT, the calculation of LS factor needs `slsubbsn` (average slope length for subbasin)
+        //   I found the calcuation of `slsubbsn` in QSWAT (function `getSlsubbsn` in `hrus.py`)
+        //def getSlsubbsn(meanSlope) :
+        //    """Estimate the average slope length in metres from the mean slope."""
+        //    if meanSlope < 0.01 : return 120
+        //        elif meanSlope < 0.02 : return 100
+        //        elif meanSlope < 0.03 : return 90
+        //        elif meanSlope < 0.05 : return 60
+        //    else: return 30
+        //
+        // Currently, I decided to take slope length as input parameter.
+        // The calculation of LS factor follows the equation of McCool et al.(1989) used in RUSLE.
+        // Also refers to Zhang et al.(2013), C&G, 52, 177-188.
+        //                Liu et al.(2015), C&G, 78, 110-122.
+        float slp_rad = atan(m_slope[i]);
+        float slp_deg = slp_rad * 180.f / PI;
+        float sin_slp = sin(slp_rad);
+        float beta = sin_slp / 0.0896f / (3.f * pow(sin_slp, 0.8f) + 0.56f);
+        float m = beta / (1.f + beta);
+        float S = 0.f;
+        if (slp_deg < 5.f) S = 10.8f * sin_slp + 0.03f;
+        else if (slp_deg >= 5.f && slp_deg <= 14.f) S = 16.8f * sin_slp - 0.5f;
+        else S = 21.91f * sin_slp - 0.96f;
+        // float xm = 0.6f * (1.f - exp(-35.835f * m_slope[i])); // eq. of SWAT
+        // float s = 65.41f * sin_slp * sin_slp + 4.56f * sin_slp + 0.065f; // eq. of SWAT
+        // If m_slpLen is not provided, use the equation developed by Renard et al.(1997) and the extended
+        //    variation by Desmet and Govers (1996).
+        float L = 0.f;
+        if (nullptr == m_slpLen) {
+            float up_lambda = m_flowAccm[i] * m_cellWth;
+            float slope_lambda = up_lambda + m_cellWth;
+            L = pow(slope_lambda, m + 1.f) - pow(up_lambda, m + 1.f);
+            L /= m_cellWth * pow(22.13f, m);
+        } else {
+            L = pow(m_slpLen[i] / 22.13f, m);
         }
+
+        if (m_usleP[i] < 0.f) m_usleP[i] = 0.f;
+        if (m_usleP[i] > 1.f) m_usleP[i] = 1.f;
+        // line 111-113 of soil_phys.f of SWAT source.
+        m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
+        m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
+        m_usleL[i] = L;
+        m_usleS[i] = S;
     }
+    
+    m_needReCalIntermediateParams = false;
 }
 
 int SERO_MUSLE::Execute() {
     CheckInputData();
     InitialOutputs();
+    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfRf[i] < 0.0001f || m_rchID[i] > 0) {
@@ -216,6 +222,9 @@ int SERO_MUSLE::Execute() {
         m_eroSmAgg[i] = m_eroSed[i] * m_detSmAgg[i];
         m_eroLgAgg[i] = m_eroSed[i] * m_detLgAgg[i];
     }
+
+    //debug
+    //cout << ConvertToString2(m_date) << ": " << m_usleK[50608][0] << ", " << m_eroSed[50608] << endl;
     return 0;
 }
 
@@ -285,4 +294,17 @@ void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
         throw ModelException(M_SERO_MUSLE[0], "Get1DData", "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
+}
+
+void SERO_MUSLE::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
+    InitialOutputs();
+    string sk(key);
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
+    if (StringMatch(sk, VAR_USLE_K)) {
+        *data = m_usleK;
+    }
+    else {
+        throw ModelException(MID_SERO_MUSLE, "Get2DData", "Parameter " + sk + " does not exist.");
+    }
 }

@@ -1,3 +1,4 @@
+# coding:utf-8
 """
 This code was originally published by the following individuals for use with
 Scilab:

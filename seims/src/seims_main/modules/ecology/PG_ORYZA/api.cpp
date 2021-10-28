@@ -48,10 +48,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_LAPE[0], UNIT_LAPE, VAR_LAPE[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_ZRTTR[0], UNIT_LEN_M, VAR_ZRTTR[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_TMPSB[0], UNIT_TEMP_DEG, VAR_TMPSB[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_AFSH[0], UNIT_NON_DIM, VAR_AFLV[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_BFSH[0], UNIT_NON_DIM, VAR_BFLV[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_AFLV[0], UNIT_NON_DIM, VAR_AFSH[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_BFLV[0], UNIT_NON_DIM, VAR_BFSH[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_AFSH[0], UNIT_NON_DIM, VAR_AFSH[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_BFSH[0], UNIT_NON_DIM, VAR_BFSH[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_AFLV[0], UNIT_NON_DIM, VAR_AFLV[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_BFLV[0], UNIT_NON_DIM, VAR_BFLV[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_AFSO[0], UNIT_NON_DIM, VAR_AFSO[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_BFSO[0], UNIT_NON_DIM, VAR_BFSO[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_ADRLV[0], UNIT_NON_DIM, VAR_ADRLV[1], Source_ParameterDB, DT_Single);

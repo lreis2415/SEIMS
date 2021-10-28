@@ -50,9 +50,13 @@ public:
 
     void InitialOutputs() OVERRIDE;
 
+    void InitializeIntermediateVariables() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
     //! valid cell number

@@ -1,3 +1,4 @@
+# coding:utf-8
 """@package spatialunits
 Spatial optimization of watershed BMPs based on different spatial configuration units,
 

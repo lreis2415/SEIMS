@@ -33,16 +33,22 @@ void DepressionFSDaily::InitialOutputs() {
         Initialize1DArray(m_nCells, m_sd, 0.f);
         Initialize1DArray(m_nCells, m_ed, 0.f);
         Initialize1DArray(m_nCells, m_sr, 0.f);
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            m_sd[i] = m_depCo * m_depCap[i];
-        }
     }
+}
+
+void DepressionFSDaily::InitializeIntermediateVariables(){
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        m_sd[i] = m_depCo * m_depCap[i];
+    }
+
+    m_needReCalIntermediateParams = false;
 }
 
 int DepressionFSDaily::Execute() {
     CheckInputData();
     InitialOutputs();
+    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //////////////////////////////////////////////////////////////////////////

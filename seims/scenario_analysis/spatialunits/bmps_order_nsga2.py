@@ -1,15 +1,9 @@
-"""BMPs optimization based on different BMP configuration units.
-
-    @author   : Liangjun Zhu, Huiran Gao
-
-    @changelog:
-    - 16-12-30  - hr - initial implementation.
-    - 17-08-18  - lj - reorganize.
-    - 18-02-09  - lj - compatible with Python3.
-    - 18-11-02  - lj - Optimization.
-    - 18-12-04  - lj - Updates of crossover operation of UPDOWN method.
-    - 19-03-13  - lj - Support using input Pareto fronts to initialize population.
-"""
+# -*- coding: utf-8 -*-
+# """ BMPs order optimization based on slope position units.
+#
+#     @author   : Shen Shen
+#
+# """
 from __future__ import absolute_import, unicode_literals
 
 import array
@@ -18,7 +12,7 @@ import sys
 import random
 import time
 import pickle
-from typing import Dict, List
+import copy
 from io import open
 
 import matplotlib
@@ -26,6 +20,7 @@ import matplotlib
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 
+from typing import Dict
 import numpy
 from deap import base
 from deap import creator
@@ -36,22 +31,19 @@ from pygeoc.utils import UtilClass, get_config_parser
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
+from typing import List
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
-from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg,\
-    initRepeatWithCfgFromList, initIterateWithCfgWithInput
+from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv, \
+    initRepeatWithCfgFromList, initIterateWithCfgIndvInput
 from scenario_analysis.visualization import read_pareto_solutions_from_txt
-from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig,\
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
-from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.spatialunits.userdef import check_individual_diff,\
-    crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
-
-# Definitions, assignments, operations, etc. that will be executed by each worker
-#    when paralleled by SCOOP.
-# DEAP related operations such as initialize, register, etc.
+from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness, \
+    initialize_scenario_with_bmps_order, scenario_effectiveness_with_bmps_order
+from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_with_bmps_order
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -69,43 +61,52 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
-toolbox.register('gene_values', initialize_scenario)
-toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
-toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+toolbox.register('gene_values', initialize_scenario_with_bmps_order)
+toolbox.register('individual', initIterateWithCfgIndv, creator.Individual, toolbox.gene_values)
+toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
 
-toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
+# register functions by inputs
+toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Individual,
                  toolbox.gene_values)
 toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
-toolbox.register('evaluate', scenario_effectiveness)
-
-# knowledge-rule based mate and mutate
-toolbox.register('mate_slppos', crossover_slppos)
-toolbox.register('mate_updown', crossover_updown)
-toolbox.register('mutate_rule', mutate_rule)
-# random-based mate and mutate
-toolbox.register('mate_rdm', crossover_rdm)
-toolbox.register('mutate_rdm', mutate_rdm)
-
+toolbox.register('evaluate', scenario_effectiveness_with_bmps_order)
+toolbox.register('crossover', tools.cxTwoPoint)
+toolbox.register('mutate', mutate_with_bmps_order)
 toolbox.register('select', tools.selNSGA2)
 
 
-def run_base_scenario(sceobj):
-    """Run base scenario to get the environment effectiveness value."""
-    base_ind = creator.Individual(initialize_scenario(sceobj.cfg))
-    for i in list(range(len(base_ind))):
-        base_ind[i] = 0
-    base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
-    sceobj.cfg.eval_info['BASE_ENV'] = base_ind.fitness.values[1]
+def run_benchmark_scenario(sceobj):
+    """ Base scenario: Set the gene values of the current scenario to 1.
+    This means that all BMPs are implemented in the first year.
+    Then run base scenario to get the environment effectiveness value."""
+    new_gene_values = []
+    for v in sceobj.gene_values:
+        if numpy.isclose(v, 0.0):
+            new_v = v
+        else:
+            new_v = int('{0}1'.format(int(v)))
+        new_gene_values.append(new_v)
+
+    copyed_sceobj = copy.deepcopy(sceobj)
+    # benchmark scenario donot consider investment quota
+    copyed_sceobj.cfg.enable_investment_quota = False
+    benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(copyed_sceobj.cfg, new_gene_values, True))
+    benchmark_indv = scenario_effectiveness_with_bmps_order(copyed_sceobj.cfg, benchmark_indv)
+    sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
+    scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f, sed_per_period: %s ' %
+              (benchmark_indv.fitness.values[0], benchmark_indv.fitness.values[1], benchmark_indv.sed_sum,
+               benchmark_indv.sed_per_period))
 
 
-def main(sceobj):
-    # type: (SUScenario) -> ()
-    """Main workflow of NSGA-II based Scenario analysis."""
-    if sceobj.cfg.eval_info['BASE_ENV'] < 0:
-        run_base_scenario(sceobj)
-        print('The environment effectiveness value of the '
-              'base scenario is %.2f' % sceobj.cfg.eval_info['BASE_ENV'])
+def main(scenario_obj, indv_obj_benchmark):
+    # type: (SUScenario, Individual) -> ()
+    """Main workflow of NSGA-II based Time Extended Scenario analysis."""
+    # The Base scenario maintains the same evaluation method as the original one.
+    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+    #     run_benchmark_scenario(scenario_obj)
+    #     print('The environment effectiveness value of the '
+    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 
@@ -114,28 +115,29 @@ def main(sceobj):
     plot_time = 0.
     allmodels_exect = list()  # execute time of all model runs
 
-    pop_size = sceobj.cfg.opt.npop
-    gen_num = sceobj.cfg.opt.ngens
-    cx_rate = sceobj.cfg.opt.rcross
-    mut_perc = sceobj.cfg.opt.pmut
-    mut_rate = sceobj.cfg.opt.rmut
-    sel_rate = sceobj.cfg.opt.rsel
+    pop_size = scenario_obj.cfg.opt.npop
+    gen_num = scenario_obj.cfg.opt.ngens
+    cx_rate = scenario_obj.cfg.opt.rcross
+    mut_perc = scenario_obj.cfg.opt.pmut
+    mut_rate = scenario_obj.cfg.opt.rmut
+    sel_rate = scenario_obj.cfg.opt.rsel
     pop_select_num = int(pop_size * sel_rate)
 
-    ws = sceobj.cfg.opt.out_dir
-    cfg_unit = sceobj.cfg.bmps_cfg_unit
-    cfg_method = sceobj.cfg.bmps_cfg_method
-    worst_econ = sceobj.worst_econ
-    worst_env = sceobj.worst_env
+    ws = scenario_obj.cfg.opt.out_dir
+    cfg_unit = scenario_obj.cfg.bmps_cfg_unit
+    cfg_method = scenario_obj.cfg.bmps_cfg_method
+    worst_econ = scenario_obj.worst_econ
+    worst_env = scenario_obj.worst_env
+
     # available gene value list
-    possible_gene_values = list(sceobj.bmps_params.keys())
-    if 0 not in possible_gene_values:
+    possible_gene_values = list(scenario_obj.bmps_params.keys())
+    if 0 not in possible_gene_values:  # 0 means no BMP is configured
         possible_gene_values.append(0)
-    units_info = sceobj.cfg.units_infos
-    suit_bmps = sceobj.suit_bmps
-    gene_to_unit = sceobj.cfg.gene_to_unit
-    unit_to_gene = sceobj.cfg.unit_to_gene
-    updown_units = sceobj.cfg.updown_units
+    units_info = scenario_obj.cfg.units_infos
+    suit_bmps = scenario_obj.suit_bmps
+    gene_to_unit = scenario_obj.cfg.gene_to_unit
+    unit_to_gene = scenario_obj.cfg.unit_to_gene
+    updown_units = scenario_obj.cfg.updown_units
 
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
@@ -152,21 +154,25 @@ def main(sceobj):
     logbook = tools.Logbook()
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
-    # Initialize population
+    # Initialize population by specifying the file to avoid failure in the optimization process
+    # and thus have to start from beginning again
+    # PopulationSize must be the same as the original
     initialize_byinputs = False
-    if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
-        sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
-        inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
+    if scenario_obj.cfg.initial_byinput and scenario_obj.cfg.input_pareto_file is not None and \
+        scenario_obj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
+        inpareto_file = scenario_obj.modelcfg.model_dir + os.sep + scenario_obj.cfg.input_pareto_file
         if os.path.isfile(inpareto_file):
             inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
                                                                 sce_name='scenario',
                                                                 field_name='gene_values')
-            if sceobj.cfg.input_pareto_gen in inpareto_solutions:
-                pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
-                pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
+            if scenario_obj.cfg.input_pareto_gen in inpareto_solutions:
+                pareto_solutions = inpareto_solutions[scenario_obj.cfg.input_pareto_gen]
+                pop = toolbox.population_byinputs(scenario_obj.cfg, pareto_solutions)  # type: List
                 initialize_byinputs = True
+
     if not initialize_byinputs:
-        pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
+        pop = toolbox.population(scenario_obj.cfg, indv_obj_benchmark, n=pop_size)  # type: List
+        print(pop)
 
     init_time = time.time() - stime
 
@@ -179,6 +185,9 @@ def main(sceobj):
         new_ind.comp_time = 0.
         new_ind.simu_time = 0.
         new_ind.runtime = 0.
+        new_ind.sed_sum = 0.
+        new_ind.sed_per_period = list()
+        new_ind.net_costs_per_period = list()
 
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
@@ -196,10 +205,10 @@ def main(sceobj):
         try:
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
+            invalid_pops = list(futures.map(toolbox.evaluate, [scenario_obj.cfg] * popnum, invalid_pops))
         except ImportError or ImportWarning:
             # serial
-            invalid_pops = list(map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
+            invalid_pops = list(toolbox.map(toolbox.evaluate, [scenario_obj.cfg] * popnum, invalid_pops))
 
         # Filter for a valid solution
         if filter_ind:
@@ -232,13 +241,13 @@ def main(sceobj):
     scoop_log(logbook.stream)
     front = numpy.array([ind.fitness.values for ind in pop])
     # save front for further possible use
-    numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen0.txt',
+    numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_with_bmps_order_gen0.txt',
                   front, delimiter=str(' '), fmt=str('%.4f'))
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
     scoop_log(output_str)
-    UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='replace')
+    UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='replace')
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
 
@@ -251,38 +260,17 @@ def main(sceobj):
                 old_ind1 = toolbox.clone(ind1)
                 old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
-                    if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
-                        toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num)
-                    elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
-                        toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
-                    else:
-                        toolbox.mate_rdm(ind1, ind2)
+                    toolbox.crossover(ind1, ind2)
 
-                if cfg_method == BMPS_CFG_METHODS[0]:
-                    toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
-                    toolbox.mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
-                else:
-                    tagnames = None
-                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
-                        tagnames = sceobj.cfg.slppos_tagnames
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
-                                        suit_bmps, ind1,
-                                        perc=mut_perc, indpb=mut_rate,
-                                        unit=cfg_unit, method=cfg_method,
-                                        tagnames=tagnames,
-                                        thresholds=sceobj.cfg.boundary_adaptive_threshs)
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
-                                        suit_bmps, ind2,
-                                        perc=mut_perc, indpb=mut_rate,
-                                        unit=cfg_unit, method=cfg_method,
-                                        tagnames=tagnames,
-                                        thresholds=sceobj.cfg.boundary_adaptive_threshs)
+                toolbox.mutate(ind1, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+                toolbox.mutate(ind2, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+
                 if check_individual_diff(old_ind1, ind1):
-                    delete_fitness(ind1)
+                    delete_fitness(ind1)  # delete fitness, valid will be false
                 if check_individual_diff(old_ind2, ind2):
                     delete_fitness(ind2)
 
-        # Evaluate the individuals with an invalid fitness
+        # only evaluate the individuals with invalid fitness
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
         valid_inds = [ind for ind in offspring if ind.fitness.valid]
         invalid_ind_size = len(invalid_inds)
@@ -304,6 +292,7 @@ def main(sceobj):
         # Previous version may result in duplications of the same scenario in one Pareto front,
         #   thus, I decided to check and remove the duplications first.
         # pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
+        # remove individuals with duplicated gen and id
         tmppop = pop + valid_inds + invalid_inds
         pop = list()
         unique_sces = dict()
@@ -323,7 +312,7 @@ def main(sceobj):
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
         scoop_log(hyper_str)
-        UtilClass.writelog(sceobj.cfg.opt.hypervlog, hyper_str, mode='append')
+        UtilClass.writelog(scenario_obj.cfg.opt.hypervlog, hyper_str, mode='append')
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
@@ -340,7 +329,7 @@ def main(sceobj):
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
         # save front for further possible use
-        numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
+        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_with_bmps_order_gen%d.txt' % gen,
                       front, delimiter=str(' '), fmt=str('%.4f'))
 
         # Comment out the following plot code if matplotlib does not work.
@@ -349,33 +338,33 @@ def main(sceobj):
             pareto_title = 'Near Pareto optimal solutions'
             xlabel = 'Economy'
             ylabel = 'Environment'
-            if sceobj.cfg.plot_cfg.plot_cn:
+            if scenario_obj.cfg.plot_cfg.plot_cn:
                 xlabel = r'经济净投入'
                 ylabel = r'环境效益'
                 pareto_title = r'近似最优Pareto解集'
             plot_pareto_front_single(front, [xlabel, ylabel],
                                      ws, gen, pareto_title,
-                                     plot_cfg=sceobj.cfg.plot_cfg)
+                                     plot_cfg=scenario_obj.cfg.plot_cfg)
         except Exception as e:
             scoop_log('Exception caught: %s' % str(e))
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'generation\tscenario\teconomy\tenvironment\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tsed_sum\tsed_pp\tnet_cost_pp\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                                                    indi.fitness.values[1], str(indi))
-        UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
-        
+            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period), str(indi))
+        UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
+
         pklfile_str = 'gen%d.pickle' % (gen,)
-        with open(sceobj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
+        with open(scenario_obj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
             pickle.dump(pop, pklfp)
 
     # Plot hypervolume and newly executed model count
     # Comment out the following plot code if matplotlib does not work.
     try:
         from scenario_analysis.visualization import plot_hypervolume_single
-        plot_hypervolume_single(sceobj.cfg.opt.hypervlog, ws, plot_cfg=sceobj.cfg.plot_cfg)
+        plot_hypervolume_single(scenario_obj.cfg.opt.hypervlog, ws, plot_cfg=scenario_obj.cfg.plot_cfg)
     except Exception as e:
         scoop_log('Exception caught: %s' % str(e))
 
@@ -429,18 +418,39 @@ if __name__ == "__main__":
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
 
+    with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
+        pareto_pop = pickle.load(fp)
+        # print(type(pareto_pop))
+        # print(pareto_pop)
     sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
-    fpop, fstats = main(sce)
-    fpop.sort(key=lambda x: x.fitness.values)
-    scoop_log(fstats)
+    # Select an individual from the pareto front as the benchmark scenario
+    target_indv_id = 156278373  # modify to an input parameter later
+    for indv in pareto_pop:
+        if indv.id == target_indv_id:
+            selected_indv = indv
+            break
+
+    print('The ID of the selected scenario that provided spatial configuration: ' + str(selected_indv.id))
+    print('The genes of the selected scenario: ' + str(selected_indv.tolist()))
+    sce.set_unique_id(selected_indv.id)
+    sce.gene_values = selected_indv.tolist()
+    sce.economy = selected_indv.fitness.values[0]
+    sce.environment = selected_indv.fitness.values[1]
+    sce.export_scenario_to_txt()
+    # sce.export_scenario_to_gtiff()
+
+    time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
+
+    time_pareto_pop.sort(key=lambda x: x.fitness.values)
+    scoop_log(time_pareto_stats)
     with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
         #   when using unicode_literals, please use '%s' to concatenate string!
-        f.write('%s' % fstats.__str__())
+        f.write('%s' % time_pareto_stats.__str__())
 
     endT = time.time()
     scoop_log('Running time: %.2fs' % (endT - startT))

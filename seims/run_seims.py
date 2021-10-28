@@ -282,13 +282,14 @@ class MainSEIMS(object):
         # - OUTPUT-1 means no scenario, calibration ID is 1
         # - OUTPUT100 means scenario ID is 100, no calibration
         # - OUTPUT100-2 means scenario ID is 100, calibration ID is 2
-        self.output_name = 'OUTPUT'
-        if self.scenario_id >= 0:
-            self.output_name += '%d' % self.scenario_id
-        if self.calibration_id >= 0:
-            self.output_name += '-%d' % self.calibration_id
-        self.output_dir = os.path.join(self.model_dir, self.output_name)
-        self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
+        # self.output_name = 'OUTPUT'
+        # if self.scenario_id >= 0:
+        #     self.output_name += '%d' % self.scenario_id
+        # if self.calibration_id >= 0:
+        #     self.output_name += '-%d' % self.calibration_id
+        # self.output_dir = os.path.join(self.model_dir, self.output_name)
+        # self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
+        self.UpdateScenarioID()
 
         # Concatenate executable command
         self.cmd = list()
@@ -355,6 +356,7 @@ class MainSEIMS(object):
             self.cmd += ['-cali', str(self.calibration_id)]
         if self.subbasin_id >= 0:
             self.cmd += ['-id', str(self.subbasin_id)]
+        # self.cmd += ['-ll Debug']
         return self.cmd
 
     @property
@@ -733,6 +735,15 @@ class MainSEIMS(object):
             read_model.CleanScenariosConfiguration(scenario_id)
             if delete_spatial_gfs:
                 read_model.CleanSpatialGridFs(scenario_id)
+
+    def UpdateScenarioID(self):
+        self.output_name = 'OUTPUT'
+        if self.scenario_id >= 0:
+            self.output_name += '%d' % self.scenario_id
+        if self.calibration_id >= 0:
+            self.output_name += '-%d' % self.calibration_id
+        self.output_dir = os.path.join(self.model_dir, self.output_name)
+        self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
 
 
 def create_run_model(modelcfg_dict, scenario_id=-1, calibration_id=-1, subbasin_id=-1,
