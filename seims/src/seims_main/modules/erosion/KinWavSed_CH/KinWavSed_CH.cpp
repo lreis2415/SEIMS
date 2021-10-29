@@ -3,32 +3,33 @@
 
 //using namespace std;  // Avoid this statement! by lj.
 
-KinWavSed_CH::KinWavSed_CH() : m_CellWith(-1),
-                                   m_nCells(-1),
-                                   m_TimeStep(NODATA_VALUE), //m_layeringMethod(UP_DOWN),
-                                   m_chNumber(-1),
-                                   m_Slope(nullptr),
-                                   m_chWidth(nullptr),
-                                   m_ChannelWH(nullptr),
-                                   m_flowInIndex(nullptr),
-                                   m_flowOutIdx(nullptr),
-                                   m_streamOrder(nullptr),
-                                   m_sourceCellIds(nullptr),
-                                   m_streamLink(nullptr),
-                                   m_ChQkin(nullptr),
-                                   m_ChVol(nullptr),
-                                   m_Qsn(nullptr),
-                                   m_CHDETFlow(nullptr),
-                                   m_CHSedDep(nullptr),
-                                   m_CHSed_kg(nullptr),
-                                   m_ChDetCo(NODATA_VALUE),
-                                   m_USLE_K(nullptr),
-                                   m_SedToChannel(nullptr),
-                                   m_ChV(nullptr),
-                                   m_ChManningN(nullptr),
-                                   m_ChTcCo(NODATA_VALUE),
-                                   m_CHSedConc(nullptr),
-                                   m_depCh(nullptr) {//m_SedSubbasin(nullptr), deprecated by LJ
+KinWavSed_CH::KinWavSed_CH() :
+    m_CellWith(-1),
+    m_nCells(-1),
+    m_TimeStep(NODATA_VALUE),
+    m_chNumber(-1),
+    m_Slope(nullptr),
+    m_chWidth(nullptr),
+    m_ChannelWH(nullptr),
+    m_flowInIndex(nullptr),
+    m_flowOutIdx(nullptr),
+    m_streamOrder(nullptr),
+    m_sourceCellIds(nullptr),
+    m_streamLink(nullptr),
+    m_ChQkin(nullptr),
+    m_ChVol(nullptr),
+    m_Qsn(nullptr),
+    m_CHDETFlow(nullptr),
+    m_CHSedDep(nullptr),
+    m_CHSed_kg(nullptr),
+    m_ChDetCo(NODATA_VALUE),
+    m_USLE_K(nullptr),
+    m_SedToChannel(nullptr),
+    m_ChV(nullptr),
+    m_ChManningN(nullptr),
+    m_ChTcCo(NODATA_VALUE),
+    m_CHSedConc(nullptr),
+    m_depCh(nullptr) {//m_SedSubbasin(nullptr), deprecated by LJ
 }
 
 KinWavSed_CH::~KinWavSed_CH() {
@@ -341,7 +342,7 @@ void KinWavSed_CH::initial() {
             m_ChV = new float *[m_chNumber];
             for (int i = 0; i < m_chNumber; ++i) {
                 //m_SedSubbasin[i] = 0.0f;
-                int n = m_reachs[i].size();
+                int n = CVT_INT(m_reachs[i].size());
                 m_CHDETFlow[i] = new float[n];
                 m_CHSedDep[i] = new float[n];
                 m_CHSedConc[i] = new float[n];
@@ -597,7 +598,7 @@ void KinWavSed_CH::ChannelflowSedRouting(int iReach, int iCell, int id) {
         for (size_t i = 0; i < m_reachUpStream[iReach].size(); ++i) {
             int upReachId = m_reachUpStream[iReach][i];
             if (upReachId >= 0) {
-                int upCellsNum = m_reachs[upReachId].size();
+                int upCellsNum = CVT_INT(m_reachs[upReachId].size());
                 int upCellId = m_reachs[upReachId][upCellsNum - 1];
                 Qin += m_ChQkin[upReachId][upCellsNum - 1];
                 Sin += m_Qsn[upReachId][upCellsNum - 1];

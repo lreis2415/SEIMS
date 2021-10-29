@@ -69,16 +69,8 @@ void SERO_MUSLE::InitialOutputs() {
     if (nullptr == m_eroClay) Initialize1DArray(m_nCells, m_eroClay, 0.f);
     if (nullptr == m_eroSmAgg) Initialize1DArray(m_nCells, m_eroSmAgg, 0.f);
     if (nullptr == m_eroLgAgg) Initialize1DArray(m_nCells, m_eroLgAgg, 0.f);
+    if (nullptr == m_usleC) Initialize1DArray(m_nCells, m_usleC, 0.f);
 
-    if (nullptr == m_usleMult) {
-        m_usleMult = new(nothrow) float[m_nCells];
-        m_slopeForPq = new(nothrow) float[m_nCells];
-        m_usleL = new(nothrow) float[m_nCells];
-        m_usleS = new(nothrow) float[m_nCells];
-    }
-    if (nullptr == m_usleC) {
-        m_usleC = new(nothrow) float[m_nCells];
-    }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_rchID[i] > 0) {
@@ -96,14 +88,24 @@ void SERO_MUSLE::InitialOutputs() {
             m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
         }
     }
+}
+
+void SERO_MUSLE::InitialIntermediates() {
+    if (!m_reCalIntermediates) return;
+
+    // m_cellAreaKM put here is for future improvement of cells -> arbitrary polygons
     if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {
         m_cellAreaKM = m_cellWth * m_cellWth * 0.000001f;
         m_cellAreaKM1 = 3.79f * pow(m_cellAreaKM, 0.7f);
         m_cellAreaKM2 = 0.903f * pow(m_cellAreaKM, 0.017f);
     }
-}
 
-void SERO_MUSLE::InitializeIntermediateVariables() {
+    if (nullptr == m_usleMult) {
+        Initialize1DArray(m_nCells, m_usleL, 0.f);
+        Initialize1DArray(m_nCells, m_usleS, 0.f);
+        Initialize1DArray(m_nCells, m_slopeForPq, 0.f);
+        Initialize1DArray(m_nCells, m_usleMult, 0.f);
+    }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // Calculate USLE slope length factor, line 286-292 of readhru.f of SWAT source.
@@ -147,20 +149,20 @@ void SERO_MUSLE::InitializeIntermediateVariables() {
 
         if (m_usleP[i] < 0.f) m_usleP[i] = 0.f;
         if (m_usleP[i] > 1.f) m_usleP[i] = 1.f;
-        // line 111-113 of soil_phys.f of SWAT source.
-        m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
         m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
         m_usleL[i] = L;
         m_usleS[i] = S;
+        // line 111-113 of soil_phys.f of SWAT source.
+        m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
     }
     
-    m_needReCalIntermediateParams = false;
+    m_reCalIntermediates = false;
 }
 
 int SERO_MUSLE::Execute() {
     CheckInputData();
+    InitialIntermediates();
     InitialOutputs();
-    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfRf[i] < 0.0001f || m_rchID[i] > 0) {
@@ -175,7 +177,8 @@ int SERO_MUSLE::Execute() {
         // Update C factor
         if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (m_landCover[i] > 0.f && m_landCover[i] != 18) {
+            if (m_landCover[i] > 0.f && FloatEqual(m_landCover[i], 18)) {
+                // TODO, use some flexible way to exclude WATER, rather than use 18!
                 // exclude WATER
                 // ln(0.8) = -0.2231435513142097
                 m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
@@ -237,7 +240,8 @@ void SERO_MUSLE::SetValue(const char* key, const float value) {
     } else if (StringMatch(sk, VAR_ICFAC[0])) {
         m_iCfac = CVT_INT(value);
     } else {
-        throw ModelException(M_SERO_MUSLE[0], "SetValue", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_SERO_MUSLE[0], "SetValue",
+                             "Parameter " + sk + " does not exist in current module.");
     }
 }
 
@@ -262,7 +266,8 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(s, VAR_DETACH_SAG[0])) m_detSmAgg = data;
     else if (StringMatch(s, VAR_DETACH_LAG[0])) m_detLgAgg = data;
     else {
-        throw ModelException(M_SERO_MUSLE[0], "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SERO_MUSLE[0], "Set1DData",
+                             "Parameter " + s + " does not exist.");
     }
 }
 
@@ -273,8 +278,8 @@ void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, fl
     if (StringMatch(s, VAR_USLE_K[0])) m_usleK = data;
     else if (StringMatch(s, VAR_ROCK[0])) m_soilRock = data;
     else {
-        throw ModelException(M_SERO_MUSLE[0], "Set2DData", "Parameter " + s +
-                             " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_SERO_MUSLE[0], "Set2DData",
+                             "Parameter " + s + " does not exist.");
     }
 }
 
@@ -291,7 +296,8 @@ void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_SAGYLD[0])) *data = m_eroSmAgg;
     else if (StringMatch(sk, VAR_LAGYLD[0])) *data = m_eroLgAgg;
     else {
-        throw ModelException(M_SERO_MUSLE[0], "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_SERO_MUSLE[0], "Get1DData",
+                             "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
 }
@@ -301,10 +307,11 @@ void SERO_MUSLE::Get2DData(const char* key, int* nrows, int* ncols, float*** dat
     string sk(key);
     *nrows = m_nCells;
     *ncols = m_maxSoilLyrs;
-    if (StringMatch(sk, VAR_USLE_K)) {
+    if (StringMatch(sk, VAR_USLE_K[0])) {
         *data = m_usleK;
     }
     else {
-        throw ModelException(MID_SERO_MUSLE, "Get2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SERO_MUSLE[0], "Get2DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }

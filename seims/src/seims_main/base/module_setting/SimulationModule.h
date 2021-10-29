@@ -7,6 +7,7 @@
  *   - 2. 2016-06-14 - lj - Add SetScenario etc. functions.
  *   - 3. 2018-03-03 - lj - Add CHECK_XXX series macros for data checking.
  *   - 4. 2020-09-18 - lj - Using Easyloggingpp
+ *   - 5. 2021-10-29 - ss,lj - Add InitialIntermediates to initialize intermediate params.
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -159,10 +160,18 @@ public:
     virtual void InitialOutputs() {}
 
     /*!
-     * \brief InitializeIntermediateVariables
+     * \brief Initialize intermediate parameters for reducing computing amount.
+     *
+     *        This function is optional to be overridden.
+     *        Intermediate parameters only need to be calculated once
+     *          and will not change during simulation.
+     *        This function must be separated with InitialOutputs().
+     *
+     *        For example, K*P*LS*11.8*exp(ROCK) in the equation of MUSLE can be
+     *          considered as an intermediate parameter.
      *
      */
-    virtual void InitializeIntermediateVariables() {}
+    virtual void InitialIntermediates() {}
 
     /*!
      * \brief Get time step type, default is hillslope process.
@@ -186,7 +195,7 @@ public:
     void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
     //! set whether intermediate parameters need to recalculated
-    void SetReCalIntermediateParams(const bool recal) { m_needReCalIntermediateParams = recal; }
+    void SetReCalIntermediates(const bool recal) { m_reCalIntermediates = recal; }
 
 protected:
     /// date time
@@ -206,7 +215,7 @@ protected:
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
     /// need to recalculate intermediate parameters?
-    bool m_needReCalIntermediateParams;
+    bool m_reCalIntermediates;
 };
 
 /*!

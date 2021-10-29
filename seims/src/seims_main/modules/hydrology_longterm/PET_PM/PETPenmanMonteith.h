@@ -48,8 +48,6 @@ public:
 
     void InitialOutputs() OVERRIDE;
 
-    void InitializeIntermediateVariables() OVERRIDE;
-
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;

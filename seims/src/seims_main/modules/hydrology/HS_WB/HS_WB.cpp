@@ -64,13 +64,13 @@ int HS_WB::Execute() {
     return 0;
 }
 
-void HS_WB::SetValue(const char *key, float data) {
+void HS_WB::SetValue(const char *key, float value) {
     string s(key);
     if (StringMatch(s, Tag_SubbasinId)) {
-        m_subbasinID = data;
+        m_subbasinID = CVT_INT(value);
     } else {
-        throw ModelException(M_HS_WB[0], "SetValue", "Parameter " + s
-            + " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_HS_WB[0], "SetValue",
+                             "Parameter " + s + " does not exist.");
     }
 }
 

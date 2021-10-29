@@ -153,7 +153,7 @@ void ModelMain::Execute() {
         if (m_dataCenter->UpdateScenarioParametersDynamic(m_dataCenter->GetSubbasinID(), t)){
             for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();
                 it != m_simulationModules.end(); ++it) {
-                (*it)->SetReCalIntermediateParams(true);
+                (*it)->SetReCalIntermediates(true);
             }
         }
 

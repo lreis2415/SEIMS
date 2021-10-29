@@ -14,10 +14,10 @@
  * \ingroup Hydrology
  * \brief Calculate percolation using Darcy law
  */
+
 /*!
  * \class Percolation_DARCY
  * \ingroup PERCO_DARCY
- *
  * \brief Calculate percolation using Darcy law
  *
  */
@@ -53,7 +53,7 @@ public:
 
     //virtual void Set1DData(const char *key, int n, float *data);
     
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 

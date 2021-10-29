@@ -53,7 +53,7 @@ public:
 
     void InitialOutputs() OVERRIDE;
 
-    void InitializeIntermediateVariables() OVERRIDE;
+    void InitialIntermediates() OVERRIDE;
 
     int Execute() OVERRIDE;
 
