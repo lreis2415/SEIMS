@@ -44,11 +44,11 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the output variables
     mdi.AddOutput(VAR_GWNO3_CONC[0], UNIT_CONCENTRATION, VAR_GWNO3_CONC[1], DT_Array1D);
-    mdi.AddOutput(VAR_GWSOLP_CONC[0], UNIT_CONCENTRATION, VAR_GWSOLP[1], DT_Array1D);
+    mdi.AddOutput(VAR_GWSOLP_CONC[0], UNIT_CONCENTRATION, VAR_GWSOLP_CONC[1], DT_Array1D);
     mdi.AddOutput(VAR_NO3GW_TOCH[0], UNIT_KG, VAR_NO3GW_TOCH[1], DT_Array1D);
     mdi.AddOutput(VAR_MINPGW_TOCH[0], UNIT_KG, VAR_MINPGW_TOCH[1], DT_Array1D);
     mdi.AddOutput(VAR_GWNO3[0], UNIT_KG, VAR_GWNO3[1], DT_Array1D);
-    mdi.AddOutput(VAR_GWSOLP[0], UNIT_KG, VAR_GWSOLP_CONC[1], DT_Array1D);
+    mdi.AddOutput(VAR_GWSOLP[0], UNIT_KG, VAR_GWSOLP[1], DT_Array1D);
 
     string res = mdi.GetXMLDocument();
     char* tmp = new char[res.size() + 1];

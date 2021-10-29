@@ -33,10 +33,10 @@ void DepressionFSDaily::InitialOutputs() {
         Initialize1DArray(m_nCells, m_sd, 0.f);
         Initialize1DArray(m_nCells, m_ed, 0.f);
         Initialize1DArray(m_nCells, m_sr, 0.f);
+    }
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            m_sd[i] = m_depCo * m_depCap[i];
-        }
+    for (int i = 0; i < m_nCells; i++) {
+        m_sd[i] = m_depCo * m_depCap[i];
     }
 }
 

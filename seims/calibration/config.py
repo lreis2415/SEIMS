@@ -1,3 +1,4 @@
+# coding:utf-8
 """Base configuration of Parameter Calibration.
 
     @author   : Liangjun Zhu

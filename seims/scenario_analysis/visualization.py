@@ -1,3 +1,4 @@
+# coding:utf-8
 """Visualization of Scenarios, which is relative independent with SA.
 
     @author   : Liangjun Zhu, Huiran Gao

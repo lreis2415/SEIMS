@@ -15,6 +15,7 @@
  *        -# Change module ID from MUSLE_AS to SERO_MUSLE.
  *        -# Updates USLE_C factor during the growth cycle of the plant.
  *        -# Change the calculation of LS factor, and add USLE_L and USLE_S as outputs.
+ *   - 4. 2021-10-29 - ss,lj - 
  *
  * \author Liangjun Zhu, Zhiqiang Yu
  */
@@ -27,10 +28,10 @@
  * \ingroup Erosion
  * \brief use MUSLE method to calculate sediment yield of each cell
  */
+
 /*!
  * \class SERO_MUSLE
  * \ingroup SERO_MUSLE
- *
  * \brief use MUSLE method to calculate sediment yield of each cell
  *
  */
@@ -50,9 +51,13 @@ public:
 
     void InitialOutputs() OVERRIDE;
 
+    void InitialIntermediates() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
     //! valid cell number
@@ -112,7 +117,7 @@ private:
     //! snow accumulation
     float* m_snowAccum;
 
-    // temporary variables
+    // intermediate parameters
 
     //! product of USLE K,P,LS,exp(rock)
     float* m_usleMult;

@@ -79,7 +79,7 @@ private:
     /// scaling factor depending on land use (Ki)
     float m_landuseFactor;
 
-    float **m_soilMoistrue;
+    float **m_soilWtrSto;
     //float* m_residual;
     float **m_porosity;
     float **m_poreIndex;

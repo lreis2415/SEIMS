@@ -69,7 +69,8 @@ bool NutrientTransportSediment::CheckInputData() {
     CHECK_POINTER(M_NUTRSED[0], m_subbsnID);
     CHECK_POINTER(M_NUTRSED[0], m_subbasinsInfo);
     if (!(m_cbnModel == 0 || m_cbnModel == 1 || m_cbnModel == 2)) {
-        throw ModelException(M_NUTRSED[0], "CheckInputData", "Carbon modeling method must be 0, 1, or 2.");
+        throw ModelException(M_NUTRSED[0], "CheckInputData",
+                             "Carbon modeling method must be 0, 1, or 2.");
     }
     return true;
 }
@@ -107,7 +108,8 @@ void NutrientTransportSediment::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
     else if (StringMatch(sk, VAR_CSWAT[0])) m_cbnModel = CVT_INT(value);
     else {
-        throw ModelException(M_NUTRSED[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "SetValue",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -123,7 +125,8 @@ void NutrientTransportSediment::Set1DData(const char* key, const int n, float* d
     } else if (StringMatch(sk, VAR_OLFLOW[0])) {
         m_surfRf = data;
     } else {
-        throw ModelException(M_NUTRSED[0], "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -162,7 +165,8 @@ void NutrientTransportSediment::Set2DData(const char* key, const int nrows, cons
         /// for C-FARM one carbon model
     else if (StringMatch(sk, VAR_SOL_MP[0])) m_soilManP = data;
     else {
-        throw ModelException(M_NUTRSED[0], "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Set2DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -174,16 +178,6 @@ void NutrientTransportSediment::InitialOutputs() {
     }
     if (m_cellArea < 0) {
         m_cellArea = m_cellWth * m_cellWth * 0.0001f; //Unit is ha
-    }
-    /// initialize m_soilMass
-    if (m_soilMass == nullptr) {
-        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilMass, 0.f);
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
-                m_soilMass[i][k] = 10000.f * m_soilThk[i][k] * m_soilBD[i][k] * (1.f - m_soilRock[i][k] * 0.01f);
-            }
-        }
     }
     // allocate the output variables
     if (nullptr == m_surfRfSedOrgN) {
@@ -207,6 +201,22 @@ void NutrientTransportSediment::InitialOutputs() {
     }
 }
 
+void NutrientTransportSediment::InitialIntermediates() {
+    if (!m_reCalIntermediates) return;
+
+    if (nullptr == m_soilMass) {
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilMass, 0.f);
+    }
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+            m_soilMass[i][k] = 10000.f * m_soilThk[i][k] * m_soilBD[i][k] * (1.f - m_soilRock[i][k] * 0.01f);
+        }
+    }
+
+    m_reCalIntermediates = false;
+}
+
 void NutrientTransportSediment::SetSubbasins(clsSubbasins* subbasins) {
     if (nullptr == m_subbasinsInfo) {
         m_subbasinsInfo = subbasins;
@@ -223,6 +233,7 @@ int NutrientTransportSediment::Execute() {
     if (m_cbnModel == 2) {
         if (!CheckInputDataCenturyModel()) return false;
     }
+    InitialIntermediates();
     InitialOutputs();
     // initial nutrient to channel for each day
     for (int i = 0; i < m_nSubbsns + 1; i++) {
@@ -311,7 +322,8 @@ void NutrientTransportSediment::OrgNRemovedInRunoffStaticMethod(const int i) {
     wt = m_soilBD[i][0] * m_soilThk[i][0] * 0.01f;
     //concentration of organic N in soil (concn)
     float concn = orgninfl * m_enratio[i] / wt;
-    //Calculate the amount of organic nitrogen transported with sediment to the stream, equation 4:2.2.1 in SWAT Theory 2009, p271
+    //Calculate the amount of organic nitrogen transported with sediment to the stream,
+    //  equation 4:2.2.1 in SWAT Theory 2009, p271
     m_surfRfSedOrgN[i] = 0.001f * concn * m_olWtrEroSed[i] * 0.001f / m_cellArea; /// kg/ha
     //update soil nitrogen pools
     if (orgninfl > 1.e-6f) {
@@ -544,7 +556,8 @@ void NutrientTransportSediment::Get1DData(const char* key, int* n, float** data)
         *data = m_sedLossCbn;
         *n = m_nCells;
     } else {
-        throw ModelException(M_NUTRSED[0], "Get1DData", "Parameter " + sk + " does not exist");
+        throw ModelException(M_NUTRSED[0], "Get1DData",
+                             "Parameter " + sk + " does not exist");
     }
 }
 
@@ -564,6 +577,7 @@ void NutrientTransportSediment::Get2DData(const char* key, int* nrows, int* ncol
     else if (StringMatch(sk, VAR_SOL_LATERAL_C[0])) *data = m_soilIfluCbn;
     else if (StringMatch(sk, VAR_SOL_PERCO_C[0])) *data = m_soilPercoCbn;
     else {
-        throw ModelException(M_NUTRSED[0], "Get2DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Get2DData",
+                             "Output " + sk + " does not exist.");
     }
 }

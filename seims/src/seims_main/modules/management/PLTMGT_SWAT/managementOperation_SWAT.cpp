@@ -301,7 +301,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float**
         m_cropNum = n;
         InitializeCropLookup();
         if (col != CROP_PARAM_COUNT) {
-            throw ModelException(M_PLTMGT_SWAT[0], "ReadCropLookup", 
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadCropLookup",
                                  "The field number " + ValueToString(col) +
                                  "is not coincident with CROP_PARAM_COUNT: " +
                                  ValueToString(CROP_PARAM_COUNT));
@@ -313,7 +313,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float**
         m_fertNum = n;
         InitializeFertilizerLookup();
         if (col != FERTILIZER_PARAM_COUNT) {
-            throw ModelException(M_PLTMGT_SWAT[0], "ReadFertilizerLookup", 
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadFertilizerLookup",
                                  "The field number " + ValueToString(col) +
                                  "is not coincident with FERTILIZER_PARAM_COUNT: " +
                                  ValueToString(FERTILIZER_PARAM_COUNT));
@@ -325,7 +325,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float**
         m_tillageNum = n;
         InitializeTillageLookup();
         if (col != TILLAGE_PARAM_COUNT) {
-            throw ModelException(M_PLTMGT_SWAT[0], "ReadTillageLookup", 
+            throw ModelException(M_PLTMGT_SWAT[0], "ReadTillageLookup",
                                  "The field number " + ValueToString(col) +
                                  "is not coincident with TILLAGE_PARAM_COUNT: " +
                                  ValueToString(TILLAGE_PARAM_COUNT));
@@ -1996,7 +1996,7 @@ void MGTOpt_SWAT::InitialOutputs() {
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         int curFactoryID = CVT_INT(m_landUse[i]) * 100 + m_subSceneID;
-        /// Use nested IF-ELSE to make the logic more clear!   
+        /// Use nested IF-ELSE to make the logic more clear!
         if (m_mgtFactory.find(curFactoryID) == m_mgtFactory.end()) { // no BMPs for landuse
             m_doneOpSequence[i] = -9999;
         } else {

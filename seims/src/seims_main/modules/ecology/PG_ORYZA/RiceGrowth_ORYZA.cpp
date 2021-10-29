@@ -391,8 +391,8 @@ void ORYZA::Sgpl(int i) {
 
 void ORYZA::CalCanopyAssimilationRate(int i) {
     // Gauss weights for three point Gauss
-    float gsx[3] = {0.112702, 0.500000, 0.887298};
-    float gsw[3] = {0.277778, 0.444444, 0.277778};
+    float gsx[3] = {0.112702f, 0.500000f, 0.887298f};
+    float gsw[3] = {0.277778f, 0.444444f, 0.277778f};
     m_gai[i] = m_aLAI;
 
     for (int k = 0; k < 3; k++) {

@@ -18,6 +18,7 @@
 
 using namespace ccgl;
 using std::vector;
+using std::map;
 
 /*!
 * \ingroup data
@@ -44,6 +45,9 @@ public:
      */
     float GetAdjustedValue(float pre_value = NODATA_VALUE);
 
+    //! 
+    float GetAdjustedValueWithImpactIndexes(float pre_value, int curImpactIndex);
+
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
 
@@ -52,7 +56,11 @@ public:
 
     //! Adjust 1D Raster on selected area
     int Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
-                       const float* lu, const vector<int>& sellu);
+		const float* lu, const vector<int>& sellu);
+
+    //! Adjust 1D Raster on selected area, using impact index version
+    int Adjust1DRasterWithImpactIndexes(const int n, float* data, const float* units,
+        const vector<int>& selunits, const map<int, int>& impactIndexes, const float* lu, const vector<int>& sellu);
 
     //! Adjust 2D array
     void Adjust2DArray(int n, float** data);
@@ -62,7 +70,11 @@ public:
 
     //! Adjust 1D Raster on selected area
     int Adjust2DRaster(int n, int lyrs, float** data, float* units, const vector<int>& selunits,
-                       float* lu, const vector<int>& sellu);
+		float* lu, const vector<int>& sellu);
+
+
+    int Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, float** data, float* units,
+        const vector<int>& selunits, const map<int, int>& impactIndexes, float* lu, const vector<int>& sellu);
 
     //! Name
     string Name;
@@ -102,6 +114,9 @@ public:
     string BasicName;
     //! whether is initialized
     bool initialized;
+	//! If the BMP effectiveness is variable, set the values of impacts 
+	vector<float> ImpactSeries;
+
 };
 
 #endif /* SEIMS_PARAMETER_INFO_H */

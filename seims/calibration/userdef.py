@@ -1,3 +1,4 @@
+# coding: utf-8
 """User defined functions.
 
     @author   : Liangjun Zhu

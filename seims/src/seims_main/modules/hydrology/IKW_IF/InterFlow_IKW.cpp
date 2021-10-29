@@ -3,12 +3,12 @@
 
 // using namespace std;  // Avoid this statement! by lj.
 
-InterFlow_IKW::InterFlow_IKW(void) : m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chWidth(NULL),
-                                     m_s0(NULL), m_rootDepth(NULL), m_ks(NULL), m_landuseFactor(1.f),
-                                     m_soilMoistrue(NULL), m_porosity(NULL), m_poreIndex(NULL), m_fieldCapacity(NULL),
-                                     m_flowInIndex(NULL), m_routingLayers(NULL), m_nLayers(-1),
-                                     m_q(NULL), m_h(NULL), m_sr(NULL), m_streamLink(NULL), m_hReturnFlow(NULL),
-                                     m_soilDepth(NULL) {
+InterFlow_IKW::InterFlow_IKW() :
+    m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chWidth(nullptr),
+    m_s0(nullptr), m_rootDepth(nullptr), m_ks(nullptr), m_landuseFactor(1.f),
+    m_soilWtrSto(nullptr), m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
+    m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),
+    m_q(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr) {
 }
 
 InterFlow_IKW::~InterFlow_IKW(void) {
@@ -38,44 +38,44 @@ bool InterFlow_IKW::CheckInputData(void) {
         return false;
     }
 
-    if (m_chWidth == NULL) {
+    if (m_chWidth == nullptr) {
         throw ModelException(M_IKW_CH[0], "CheckInputData", "The parameter: CHWIDTH has not been set.");
     }
 
-    if (m_flowInIndex == NULL) {
+    if (m_flowInIndex == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: flow in index has not been set.");
     }
-    if (m_routingLayers == NULL) {
+    if (m_routingLayers == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: routingLayers has not been set.");
     }
 
-    if (m_s0 == NULL) {
+    if (m_s0 == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: slope has not been set.");
     }
-    if (m_rootDepth == NULL) {
+    if (m_rootDepth == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: soil depth has not been set.");
     }
-    if (m_ks == NULL) {
+    if (m_ks == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: Conductivity has not been set.");
     }
 
-    if (m_porosity == NULL) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The porosity can not be NULL.");
+    if (m_porosity == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The porosity can not be nullptr.");
     }
-    if (m_poreIndex == NULL) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The pore index can not be NULL.");
+    if (m_poreIndex == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The pore index can not be nullptr.");
     }
-    if (m_fieldCapacity == NULL) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The field capacity can not be NULL.");
+    if (m_fieldCapacity == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The field capacity can not be nullptr.");
     }
-    if (m_soilMoistrue == NULL) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil moistrue can not be NULL.");
+    if (m_soilWtrSto == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil moistrue can not be nullptr.");
     }
-    if (m_streamLink == NULL) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The STREAM_LINK can not be NULL.");
+    if (m_streamLink == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The STREAM_LINK can not be nullptr.");
     }
 
-    if (m_sr == NULL) {
+    if (m_sr == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter D_SURU is not set.");
     }
 
@@ -87,7 +87,7 @@ void InterFlow_IKW:: InitialOutputs() {
         throw ModelException(M_IKW_IF[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
-    if (m_q == NULL) {
+    if (m_q == nullptr) {
         CheckInputData();
 
         m_q = new float[m_nCells];
@@ -127,17 +127,17 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 	for (int j = 0; j < (int)m_nSoilLyrs; j++) {
 		//float s0 = m_s0[id];
 		float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
-		m_soilMoisture[id][j] += qUp * m_dt / soilVolumn;
+		m_soilWtrSto[id][j] += qUp * m_dt / soilVolumn;
 
 		// the water exceeds the porosity is added to storage (return flow)
-		if (m_soilMoisture[id][j] > m_porosity[id][j]) {
-			m_hReturnFlow[id] = (m_soilMoisture[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
+		if (m_soilWtrSto[id][j] > m_porosity[id][j]) {
+			m_hReturnFlow[id] = (m_soilWtrSto[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
 			m_sr[id] += m_hReturnFlow[id];
-			m_soilMoisture[id][j] = m_porosity[id][j];
+			m_soilWtrSto[id][j] = m_porosity[id][j];
 		}
 
 		// if soil moisture is below the field capacity, no interflow will be generated
-		if (m_soilMoisture[id][j] < m_fieldCapacity[id][j]) {
+		if (m_soilWtrSto[id][j] < m_fieldCapacity[id][j]) {
 			m_q[id] = 0.f;
 			m_h[id] = 0.f;
 			//return;
@@ -145,12 +145,12 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
 		// calculate effective hydraulic conductivity (mm/h -> m/s)
 		//float k = m_ks[id]/1000/3600 * pow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
-		float k = m_ks[id][j] / 1000 / 3600 * pow(m_soilMoisture[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
+		float k = m_ks[id][j] / 1000 / 3600 * pow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
 		// calculate interflow (m3/s)
 		m_q[id] = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
 
 		// available water
-		float availableWater = (m_soilMoisture[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
+		float availableWater = (m_soilWtrSto[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
 		float interFlow = m_q[id] * (int)m_dt; // m3
 		if (interFlow > availableWater) {
 			m_q[id] = availableWater / (int)m_dt;
@@ -159,7 +159,7 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 		m_h[id] = 1000 * interFlow / (m_CellWidth * m_CellWidth);
 
 		// adjust soil moisture
-		m_soilMoisture[id][j] -= interFlow / soilVolumn;
+		m_soilWtrSto[id][j] -= interFlow / soilVolumn;
 	}
 	return true;
 }
@@ -177,12 +177,12 @@ int InterFlow_IKW::Execute() {
 #pragma omp parallel for
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];
-           	if (!FlowInSoil(id)) errCount++;
+            if (!FlowInSoil(id)) errCount++;
         }
-		if (errCount > 0) {
-			throw ModelException(MID_IKW_CH, "Execute:FlowInSoil",
-				"Please check the error message for more information"); //taken from SSR_DA
-		}
+        if (errCount > 0) {
+            throw ModelException(M_IKW_IF[0], "Execute:FlowInSoil",
+                                 "Please check the error message for more information");
+        }
     }
     //return 0;
 }
@@ -290,7 +290,7 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
 	else if (StringMatch(sk, VAR_SOL_ST[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
-		m_soilMoisture = data;
+		m_soilWtrSto = data;
 	}
 	else if (StringMatch(sk, VAR_FIELDCAP[0])) {
 		CheckInputSize(key, nrows);

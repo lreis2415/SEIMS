@@ -54,18 +54,27 @@ def get_option_value_exactly(cf, secname, optname, valtyp=str):
         return cf.get(secname, optname)
 
 
-def get_option_value(cf, secname, optnames, valtyp=str):
+def get_option_value(cf, secname, optnames, valtyp=str, defvalue=''):
     # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
     if type(optnames) is not list:
         optnames = [optnames]
+
     value = ''
+    found = False
     for optname in optnames:  # For backward compatibility
         if secname in cf.sections() and cf.has_option(secname, optname):
             value = get_option_value_exactly(cf, secname, optname, valtyp=valtyp)
+            found = True
             break
         elif cf.has_option('', optname):  # May be in [DEFAULT] section
             value = get_option_value_exactly(cf, '', optname, valtyp=valtyp)
+            found = True
             break
+
+    if not found:
+        if valtyp == int and defvalue == '':  # int type and not set default value
+            defvalue = -9999
+        value = defvalue
     return value
 
 
