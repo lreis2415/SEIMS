@@ -236,11 +236,12 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskNoPosExt, RasterIO) {
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
 
+        delete mongors;
         delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
-
-
     /** Copy constructor **/
     clsRasterData<float, int>* copyrs = new clsRasterData<float, int>(rs_);
     // Selected tests

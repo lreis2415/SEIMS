@@ -12,7 +12,7 @@ NutrientMovementViaWater::NutrientMovementViaWater() :
     m_surfRf(nullptr), m_isep_opt(-1), m_drainLyr(nullptr),
     m_soilCrk(nullptr), m_distToRch(nullptr), m_soilSat(nullptr), m_subSurfRf(nullptr),
     m_soilPerco(nullptr), m_soilBD(nullptr),
-    m_soilDepth(nullptr), m_flowOutIdxD8(nullptr),
+    m_soilDepth(nullptr), m_flowOutIdx(nullptr), m_flowOutFrac(nullptr),
     m_rteLyrs(nullptr), m_nRteLyrs(-1),
     m_sedorgn(nullptr), m_meanTemp(nullptr), m_soilCbn(nullptr), m_soilThk(nullptr), m_latNO3(nullptr),
     m_percoN(nullptr), m_percoP(nullptr), m_surfRfNO3(nullptr),
@@ -158,11 +158,32 @@ bool NutrientMovementViaWater::CheckInputData() {
     CHECK_POINTER(M_NUTRMV[0], m_soilCrk);
     CHECK_POINTER(M_NUTRMV[0], m_soilBD);
     CHECK_POINTER(M_NUTRMV[0], m_soilDepth);
-    CHECK_POINTER(M_NUTRMV[0], m_flowOutIdxD8);
+    CHECK_POINTER(M_NUTRMV[0], m_flowOutIdx);
     CHECK_POINTER(M_NUTRMV[0], m_soilThk);
     CHECK_POINTER(M_NUTRMV[0], m_subbasinsInfo);
-    if (m_cbnModel == 2)
-        CHECK_POINTER(M_NUTRMV[0], m_sedLossCbn);
+    if (m_cbnModel == 2) CHECK_POINTER(M_NUTRMV[0], m_sedLossCbn);
+
+    /** TEST CODE START **/
+    /*
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
+        int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
+        cout << ilyr << ":" << ncells << "{";
+        for (int icell = 1; icell <= ncells; icell++) {
+            int id = CVT_INT(m_rteLyrs[ilyr][icell]);
+            int nDownstream = CVT_INT(m_flowOutIdx[id][0]);
+            cout << id << ": [";
+            for (int downIndex = 1; downIndex <= nDownstream; downIndex++) {
+                int flowOutID = CVT_INT(m_flowOutIdx[id][downIndex]);
+                float flowOutFrac = 1.f;
+                if (nullptr != m_flowOutFrac) flowOutFrac = m_flowOutFrac[id][downIndex];
+                cout << "(" << flowOutID << ": " << flowOutFrac << "), ";
+            }
+            cout << "], ";
+        }
+        cout << "}" << endl;
+    }
+    */
+    /** TEST CODE END   **/
     return true;
 }
 
@@ -212,8 +233,6 @@ void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* da
         m_nSoilLyrs = data;
     } else if (StringMatch(sk, VAR_SEDYLD[0])) {
         m_olWtrEroSed = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8[0])) {
-        m_flowOutIdxD8 = data;
     } else if (StringMatch(sk, VAR_SEDORGN[0])) {
         m_sedorgn = data;
     } else if (StringMatch(sk, VAR_TMEAN[0])) {
@@ -230,6 +249,16 @@ void NutrientMovementViaWater::Set2DData(const char* key, const int nrows, const
     if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_nRteLyrs = nrows;
         m_rteLyrs = data;
+        return;
+    }
+    if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_nCells = nrows;
+        m_flowOutIdx = data;
+        return;
+    }
+    if (StringMatch(sk, Tag_FLOWOUT_FRACTION[0])) {
+        m_nCells = nrows;
+        m_flowOutFrac = data;
         return;
     }
     if (!CheckInputSize2D(M_NUTRMV[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
@@ -343,7 +372,7 @@ void NutrientMovementViaWater::NitrateLoss(const int i) {
             m_soilNO3[i][k] -= m_surfRfNO3[i];
         }
         // TODO: calculate nitrate in tile flow
-        if (m_drainLyr[i] == k) {
+        if (CVT_INT(m_drainLyr[i]) == k) {
         }
         // nitrate moved with subsuface flow (kg/ha)
         float ssfnlyr = k == 0 ? cosurf * m_subSurfRf[i][k] : con * m_subSurfRf[i][k]; // kg/ha
@@ -353,9 +382,18 @@ void NutrientMovementViaWater::NitrateLoss(const int i) {
         m_latNO3[i] += ssfnlyr;
         // move the lateral no3 flow to the downslope cell (routing considered)
         m_soilNO3[i][k] -= ssfnlyr;
-        int id_downstream = CVT_INT(m_flowOutIdxD8[i]);
-        if (id_downstream >= 0) m_soilNO3[id_downstream][k] += m_latNO3[i];
-        /// old code: m_soilNO3[idDownSlope][k] += ssfnlyr; /// changed by LJ, 16-10-13
+        int down_count = CVT_INT(m_flowOutIdx[i][0]);
+        for (int downi = 1; downi <= down_count; downi++) {
+            int id_downstream = CVT_INT(m_flowOutIdx[i][downi]);
+            if (id_downstream < 0) continue;
+            if (nullptr == m_flowOutFrac) {
+                m_soilNO3[id_downstream][k] += m_latNO3[i];
+            } else {
+                m_soilNO3[id_downstream][k] += m_latNO3[i] * m_flowOutFrac[i][downi];
+            }
+        }
+        /// old code for D8 only: if (id_downstream >= 0) m_soilNO3[id_downstream][k] += m_latNO3[i];
+        /// legacy code: m_soilNO3[idDownSlope][k] += ssfnlyr; /// changed by LJ, 16-10-13
 
         // calculate nitrate in percolate
         percnlyr = con * m_soilPerco[i][k];

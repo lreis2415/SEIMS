@@ -76,7 +76,7 @@ void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
     else if (StringMatch(s, "D_FlowWidth")) { m_FlowWidth = data; }
     else {
         throw ModelException(M_KINWAVSED_OL[0], "Set1DData", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
+                             " does not exist.");
     }
 }
 
@@ -87,11 +87,11 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
     if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_routingLayers = data;
         m_nLayers = nrows;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8[0])) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
         throw ModelException(M_KINWAVSED_OL[0], "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+                             + " does not exist.");
     }
 }
 
@@ -105,7 +105,7 @@ void KinWavSed_OL::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_OL_SED_CCOE[0])) { m_Ccoe = data; }
     else {
         throw ModelException(M_KINWAVSED_OL[0], "SetValue", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
+                             " does not exist in current module.");
     }
 }
 

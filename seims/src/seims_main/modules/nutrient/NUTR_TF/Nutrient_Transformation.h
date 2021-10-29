@@ -279,5 +279,7 @@ private:
 
     /// factor which converts kg/kg soil to kg/ha, could be used in other nutrient modules
     float** m_conv_wt;
+    /// reverse of m_conv_wt, aimed to avoid divide, i.e., 1/m_conv_wt[i][j]
+    float** m_conv_wt_reverse;
 };
 #endif /* SEIMS_MODULE_NUTR_TF_H */

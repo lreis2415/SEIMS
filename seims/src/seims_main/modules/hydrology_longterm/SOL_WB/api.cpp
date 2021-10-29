@@ -12,7 +12,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     mdi.SetAuthor("Chunping Ou, Liangjun Zhu");
-    mdi.SetClass(MCLS_WTRBALANCE[0], MCLS_WTRBALANCE[1]);
+    mdi.SetClass(MCLS_SOIL[0], MCLS_SOIL[1]);
     mdi.SetDescription(M_SOL_WB[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_SOL_WB[0]);

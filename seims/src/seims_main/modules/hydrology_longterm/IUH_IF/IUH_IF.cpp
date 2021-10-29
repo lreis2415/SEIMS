@@ -70,7 +70,7 @@ void IUH_IF:: InitialOutputs() {
         for (int i = 0; i < this->m_nCells; i++) {
             subs[int(this->m_subbasin[i])] += 1;
         }
-        this->m_nsub = subs.size();
+        this->m_nsub = CVT_INT(subs.size());
     }
 
     if (m_cellFlow == NULL) {

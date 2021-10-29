@@ -12,7 +12,7 @@ Measurement::Measurement(MongoClient* conn, const string& hydroDBName,
     m_startTime(startTime), m_endTime(endTime), pData(nullptr) {
     utils_string::SplitStringForValues(sitesList, ',', m_siteIDList);
     sort(m_siteIDList.begin(), m_siteIDList.end());
-    Initialize1DArray(m_siteIDList.size(), pData, NODATA_VALUE);
+    Initialize1DArray(CVT_INT(m_siteIDList.size()), pData, NODATA_VALUE);
 }
 
 Measurement::~Measurement() {

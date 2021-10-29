@@ -32,7 +32,7 @@ Nutrient_Transformation::Nutrient_Transformation() :
     m_soilNH4(nullptr), m_soilWP(nullptr), m_wshd_dnit(-1.f), m_wshd_hmn(-1.f), m_wshd_hmp(-1.f),
     m_wshd_rmn(-1.f), m_wshd_rmp(-1.f), m_wshd_rwn(-1.f), m_wshd_nitn(-1.f), m_wshd_voln(-1.f),
     m_wshd_pal(-1.f), m_wshd_pas(-1.f),
-    m_conv_wt(nullptr) {
+    m_conv_wt(nullptr), m_conv_wt_reverse(nullptr) {
 }
 
 Nutrient_Transformation::~Nutrient_Transformation() {
@@ -72,6 +72,7 @@ Nutrient_Transformation::~Nutrient_Transformation() {
     if (m_sol_RSPC != nullptr) Release2DArray(m_nCells, m_sol_RSPC);
 
     if (m_conv_wt != nullptr) Release2DArray(m_nCells, m_conv_wt);
+    if (m_conv_wt_reverse != nullptr) Release2DArray(m_nCells, m_conv_wt_reverse);
 }
 
 bool Nutrient_Transformation::CheckInputData() {
@@ -237,6 +238,7 @@ void Nutrient_Transformation::InitialOutputs() {
     /// initialize m_conv_wt
     if (m_conv_wt == nullptr) {
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_conv_wt, 0.f);
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_conv_wt_reverse, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
@@ -245,6 +247,7 @@ void Nutrient_Transformation::InitialOutputs() {
                 wt1 = m_soilBD[i][k] * m_soilThk[i][k] * 0.01f; // mg/kg => kg/ha
                 conv_wt = 1.e6f * wt1;                          // kg/kg => kg/ha
                 m_conv_wt[i][k] = conv_wt;
+                m_conv_wt_reverse[i][k] = 1.f / conv_wt;
             }
         }
     }
@@ -319,7 +322,7 @@ void Nutrient_Transformation::InitialOutputs() {
                 if (m_solP_model == 0) {
                     // Set active pool based on dynamic PSP MJW
                     // Allow Dynamic PSP Ratio
-                    if (m_conv_wt[i][k] != 0) solp = m_soilSolP[i][k] / m_conv_wt[i][k] * 1000000.f;
+                    if (!FloatEqual(m_conv_wt[i][k], 0.f)) solp = m_soilSolP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
                     if (m_soilClay[i][k] > 0.f) {
                         m_phpSorpIdx[i] = -0.045f * log(m_soilClay[i][k]) + 0.001f * solp;
                         m_phpSorpIdx[i] = m_phpSorpIdx[i] - 0.035f * m_soilCbn[i][k] + 0.43f;
@@ -346,8 +349,8 @@ void Nutrient_Transformation::InitialOutputs() {
                 if (m_solP_model == 0) {
                     // Set Stable pool based on dynamic coefficient, From White et al 2009
                     // convert to concentration for ssp calculation
-                    actp = m_soilActvMinP[i][k] / m_conv_wt[i][k] * 1000000.f;
-                    solp = m_soilSolP[i][k] / m_conv_wt[i][k] * 1000000.f;
+                    actp = m_soilActvMinP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
+                    solp = m_soilSolP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
                     // estimate Total Mineral P in this soil based on data from sharpley 2004
                     float ssp = 25.044f * pow(actp + solp, -0.3833f);
                     // limit SSP Range
@@ -735,17 +738,17 @@ void Nutrient_Transformation::Volatilization(const int i) {
 void Nutrient_Transformation::CalculatePflux(const int i) {
     for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
         // make sure that no zero or negative pool values come in
-        if (m_soilSolP[i][k] <= 1.e-6) m_soilSolP[i][k] = 1.e-6f;
-        if (m_soilActvMinP[i][k] <= 1.e-6) m_soilActvMinP[i][k] = 1.e-6f;
-        if (m_soilStabMinP[i][k] <= 1.e-6) m_soilStabMinP[i][k] = 1.e-6f;
+        if (m_soilSolP[i][k] <= 1.e-6f) m_soilSolP[i][k] = 1.e-6f;
+        if (m_soilActvMinP[i][k] <= 1.e-6f) m_soilActvMinP[i][k] = 1.e-6f;
+        if (m_soilStabMinP[i][k] <= 1.e-6f) m_soilStabMinP[i][k] = 1.e-6f;
 
         // Convert kg/ha to ppm so that it is more meaningful to compare between soil layers
         float solp = 0.f;
         float actp = 0.f;
         float stap = 0.f;
-        solp = m_soilSolP[i][k] / m_conv_wt[i][k] * 1000000.f;
-        actp = m_soilActvMinP[i][k] / m_conv_wt[i][k] * 1000000.f;
-        stap = m_soilStabMinP[i][k] / m_conv_wt[i][k] * 1000000.f;
+        solp = m_soilSolP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
+        actp = m_soilActvMinP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
+        stap = m_soilStabMinP[i][k] * m_conv_wt_reverse[i][k] * 1000000.f;
 
         // ***************Soluble - Active Transformations***************
         // Dynamic PSP Ratio
@@ -933,7 +936,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
     // SNMN = 0.f, PN4 = 0.f, ALMCO2 = 0.f, ALSLCO2 = 0.f, ALSLNCO2 = 0.f, LSLNCAT = 0.f . NOT used in this module
     // XBMT = 0.f, XLSLF = 0.f, LSLF = 0.f, LSF = 0.f, LMF = 0.f, x3 = 0.f
     /// calculate tillage factor using DSSAT
-    if (m_tillSwitch[i] == 1 && m_tillDays[i] <= 30.f) {
+    if (FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
         m_tillFactor[i] = 1.6f;
     } else {
         m_tillFactor[i] = 1.f;
@@ -966,7 +969,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             //compute tillage factor (x1)
             x1 = 1.f;
             // calculate tillage factor using DSSAT
-            if (m_tillSwitch[i] == 1 && m_tillDays[i] <= 30.f) {
+            if (FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
                 if (k == 1) {
                     x1 = 1.6f;
                 } else {

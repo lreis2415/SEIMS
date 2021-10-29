@@ -245,7 +245,6 @@ void tiffIO::write(long xstart, long ystart, long numRows, long numCols, void *s
         strcat(filename, ".tif");
         index = 0;
     } else {
-
         //  convert to lower case for matching
         for (int i = 0; ext[i]; i++) {
             ext[i] = tolower(ext[i]);
@@ -257,8 +256,7 @@ void tiffIO::write(long xstart, long ystart, long numRows, long numCols, void *s
                 break;
             }
         }
-        if (index < 0)  // Extension not matched so set it to tif
-        {
+        if (index < 0) { // Extension not matched so set it to tif
             char filename_withoutext[MAXLN]; // layer name is file name without extension
             size_t len = strlen(filename);
             size_t len1 = strlen(ext + 1);
@@ -280,17 +278,17 @@ void tiffIO::write(long xstart, long ystart, long numRows, long numCols, void *s
         // Set options
         if (index == 0) {  // for .tif files.  Refer to http://www.gdal.org/frmt_gtiff.html for GTiff options.
             papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", compression_meth[index]);
-        } else if (index
-            == 1) { // .img files.  Refer to http://www.gdal.org/frmt_hfa.html where COMPRESSED = YES are create options for ERDAS .img files
+        } else if (index == 1) {
+            // .img files.  Refer to http://www.gdal.org/frmt_hfa.html where COMPRESSED = YES are create options for ERDAS .img files
             papszOptions = CSLSetNameValue(papszOptions, "COMPRESSED", compression_meth[index]);
         }
         int cellbytes = 4;
         if (datatype == SHORT_TYPE)cellbytes = 2;
-        double fileGB = (double) cellbytes * (double) totalX * (double) totalY
-            / 1000000000.0;  // This purposely neglects the lower significant digits to overvalue GB to allow space for header information in the file
+        double fileGB = (double) cellbytes * (double) totalX * (double) totalY / 1000000000.0;
+        // This purposely neglects the lower significant digits to overvalue GB to allow space for header information in the file
         if (fileGB > 4.0) {
-            if (index == 0 || index
-                == 6) {  // .tiff files.  Need to explicity indicate BIGTIFF.  See http://www.gdal.org/frmt_gtiff.html.
+            if (index == 0 || index == 6) {
+                // .tiff files.  Need to explicity indicate BIGTIFF.  See http://www.gdal.org/frmt_gtiff.html.
                 papszOptions = CSLSetNameValue(papszOptions, "BIGTIFF", "YES");
                 printf("Setting BIGTIFF, File: %s, Anticipated size (GB):%.2f\n", filename, fileGB);
             }

@@ -74,11 +74,13 @@ class ImportMongodbClass(object):
     def grid_layering(cfg, n_subbasins):
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
-        UtilClass.rmmkdir(layering_dir)
-        str_cmd = '"%s/grid_layering" %s %d %s %s %s %d' % (
-            cfg.seims_bin, cfg.hostname, cfg.port, layering_dir,
-            cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
-        UtilClass.run_command(str_cmd)
+        UtilClass.mkdir(layering_dir)
+        for alg in ['d8', 'dinf', 'mfdmd']:
+            str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' %\
+                      (cfg.seims_bin, alg, cfg.vecs.reach, layering_dir,
+                       cfg.hostname, cfg.port,
+                       cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
+            UtilClass.run_command(str_cmd)
 
     @staticmethod
     def workflow(cfg):
@@ -151,7 +153,9 @@ def main():
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
-    ImportMongodbClass.workflow(seims_cfg)
+    # ImportMongodbClass.workflow(seims_cfg)
+    ImportMongodbClass.grid_layering(seims_cfg, 0)
+    ImportMongodbClass.grid_layering(seims_cfg, 17)
 
 
 if __name__ == "__main__":

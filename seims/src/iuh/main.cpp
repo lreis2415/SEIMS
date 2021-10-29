@@ -34,13 +34,10 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
         oss << i << "_LANDCOVER";
         landcoverName = oss.str();
 
-        clsRasterData<int> rsMask;
-        rsMask.ReadFromMongoDB(gfs, maskName.c_str());
-
-        clsRasterData<float> rsTime, rsDelta, rsLandcover;
-        rsTime.ReadFromMongoDB(gfs, tName.c_str());
-        rsDelta.ReadFromMongoDB(gfs, deltaName.c_str());
-        rsLandcover.ReadFromMongoDB(gfs, landcoverName.c_str());
+        FloatRaster* rsMask = FloatRaster::Init(gfs, maskName.c_str(), true);
+        FltMaskFltRaster* rsTime = FltMaskFltRaster::Init(gfs, tName.c_str(), false, rsMask, true);
+        FltMaskFltRaster* rsDelta = FltMaskFltRaster::Init(gfs, deltaName.c_str(), false, rsMask, true);
+        FltMaskFltRaster* rsLandcover = FltMaskFltRaster::Init(gfs, landcoverName.c_str(), false, rsMask, true);
 
         SubbasinIUHCalculator iuh(dt, rsMask, rsLandcover, rsTime, rsDelta, gfs);
         iuh.calCell(i);

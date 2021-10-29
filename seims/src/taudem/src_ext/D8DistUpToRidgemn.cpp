@@ -2,7 +2,7 @@
     based on D8 flow direction model, ridge is assigned by user.
 	Also, cells without any sources are belong to ridge.
 
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS
   Apr 1, 2015
 

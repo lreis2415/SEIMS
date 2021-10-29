@@ -19,20 +19,34 @@ using namespace ccgl;
 using namespace db_mongoc;
 using namespace data_raster;
 
+#ifndef IntRaster
+#define IntRaster   clsRasterData<int>
+#endif
+#ifndef FloatRaster
+#define FloatRaster clsRasterData<float>
+#endif
+#ifndef FloatMaskedRaster
+#define FloatMaskedRaster clsRasterData<float, int>
+#endif
+#ifndef FltMaskFltRaster
+#define FltMaskFltRaster clsRasterData<float, float>
+#endif
+
+
 class SubbasinIUHCalculator: Interface {
 public:
-    SubbasinIUHCalculator(int t, clsRasterData<int>& rsMask, clsRasterData<float>& rsLanduse,
-                          clsRasterData<float>& rsTime, clsRasterData<float>& rsDelta, MongoGridFs* grdfs);
+    SubbasinIUHCalculator(int t, FloatRaster* rsMask, FltMaskFltRaster* rsLanduse,
+                          FltMaskFltRaster* rsTime, FltMaskFltRaster* rsDelta, MongoGridFs* grdfs);
 
 private:
     vector<vector<double> > uhCell, uh1; //IUH from cell to watershed outlet
 
-    int noDataValue;
+    float noDataValue;
     int nRows, nCols; //number of rows and columns
     int dt;           //time interval in hours
     int nCells;       //number of cells
 
-    int* mask;        //value of subwatershed/subbasin
+    float* mask;      //value of subwatershed/subbasin
     float* landcover; //landcover map
     float* t0;        //flow time
     float* delta;     //standard deviation of flow time

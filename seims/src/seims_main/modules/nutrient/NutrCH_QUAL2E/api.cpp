@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
-    mdi.SetClass(MCLS_NutCHRout[0], MCLS_NutCHRout[1]);
+    mdi.SetClass(MCLS_NUTRCYC[0], MCLS_NUTRCYC[1]);
     mdi.SetDescription(M_NUTRCH_QUAL2E[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_NUTRCH_QUAL2E[0]);
@@ -22,7 +22,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the parameters
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_Single);
     mdi.AddParameter(VAR_RNUM1[0], UNIT_NON_DIM, VAR_RNUM1[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_IGROPT[0], UNIT_NON_DIM, VAR_IGROPT[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_AI0[0], UNIT_NUTR_RATIO, VAR_AI0[1], Source_ParameterDB, DT_Single);

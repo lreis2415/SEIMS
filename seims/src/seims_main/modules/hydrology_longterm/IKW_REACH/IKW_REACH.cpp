@@ -3,7 +3,7 @@
 
 //using namespace std;  // Avoid this statement! by lj.
 
-IKW_REACH::IKW_REACH() : m_dt(-1), m_layeringMethod(UP_DOWN), m_nreach(-1), m_Kchb(nullptr),
+IKW_REACH::IKW_REACH() : m_dt(-1), m_nreach(-1), m_Kchb(nullptr),
                          m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
                          m_aBank(NODATA_VALUE),
                          m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
@@ -158,8 +158,8 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
         } else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nreach << ".\n";
+            oss << "Input data for " + string(key) << " is invalid with size: "
+                    << n << ". The origin size is " << m_nreach << ".\n";
             throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
         }
     }
@@ -173,9 +173,10 @@ void IKW_REACH::SetValue(const char *key, float value) {
     //if (StringMatch(sk, VAR_QUPREACH)) {
     //    m_qUpReach = value;
     //} else
-    if (StringMatch(sk, Tag_LayeringMethod[0])) {
-        m_layeringMethod = (LayeringMethod) int(value);
-    } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
+    //if (StringMatch(sk, Tag_LayeringMethod[0])) {
+    //    m_layeringMethod = (LayeringMethod) int(value);
+    //} else 
+    if (StringMatch(sk, Tag_ChannelTimeStep[0])) {
         m_dt = int(value);
     } else if (StringMatch(sk, VAR_EP_CH[0])) {
         m_Epch = value;
@@ -194,8 +195,8 @@ void IKW_REACH::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, VAR_MSK_CO1[0])) {
         m_co1 = value;
     } else {
-        throw ModelException("IKW_REACH", "SetSingleData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+        throw ModelException("IKW_REACH", "SetSingleData", 
+                             "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 
 }
@@ -347,8 +348,8 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * Power(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * Power(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
         Qkx = Max(Qkx, MIN_FLUX);
         count++;

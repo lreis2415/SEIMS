@@ -3,7 +3,7 @@ Parameters sensitivity analysis based on Morris screening method and eFAST.
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2021 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *

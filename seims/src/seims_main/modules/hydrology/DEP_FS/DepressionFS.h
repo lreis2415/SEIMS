@@ -71,7 +71,8 @@ private:
     float *m_pet;
     /// evaporation from the interception storage
     float *m_ei;
-
+    /// evaporation from depression storage
+    float *m_ed; 
     // state variables (output)
     /// depression storage
     float *m_sd;

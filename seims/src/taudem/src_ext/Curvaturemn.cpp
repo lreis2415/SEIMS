@@ -1,10 +1,10 @@
 /*  Curvature algorithm calculate ProfileCurvature, PlanCurvature...
     algorithm is adpoted from Shary et al.(2002).
-     
-  Liangjun, Zhu
-  Lreis, CAS  
-  Apr 8, 2015 
-  
+
+  Liangjun Zhu
+  Lreis, CAS
+  Apr 8, 2015
+
   changelog: 17-08-03  lj - update the command arguments
 */
 // include TauDEM header files
@@ -12,7 +12,7 @@
 // include algorithm header file
 #include "Curvature.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     //printf("%d",argc);
     char demfile[MAXLN], profcfile[MAXLN], plancfile[MAXLN], horizcfile[MAXLN];
     char unspherfile[MAXLN], meancfile[MAXLN], maxcfile[MAXLN], mincfile[MAXLN];
@@ -35,7 +35,9 @@ int main(int argc, char **argv) {
                 strcpy(demfile, argv[i]);
                 //printf("dem:%s\n",demfile);
                 i++;
-            } else { goto errexit; }
+            } else {
+                goto errexit;
+            }
         } else if (strcmp(argv[i], "-prof") == 0) {
             i++;
             if (argc > i) {
@@ -93,7 +95,9 @@ int main(int argc, char **argv) {
                 //printf("min:%s\n",mincfile);
                 i++;
             }
-        } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
     }
     if (argc == 2) {
         strcpy(demfile, argv[1]);
@@ -114,14 +118,14 @@ int main(int argc, char **argv) {
     }
     if ((err = Curvature(demfile, profcfile, plancfile, horizcfile, unspherfile, meancfile, maxcfile, mincfile, calprof,
                          calplan, calhoriz, calunspher, calmeanc, calmaxc, calminc)) != 0) {
-                             printf("area error %d\n", err);
+        printf("area error %d\n", err);
     }
     return 0;
-    errexit:
+errexit:
     printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
     printf("Usage with specific file names:\n %s -fel <felfile>\n", argv[0]);
-    printf(
-        "[-prof <profcfile> -plan <plancfile> -horiz <horizcfile> -unspher <unspherfile> -ave <meancfile> -max <maxcfile> -min <mincfile>]\n");
+    printf("[-prof <profcfile> -plan <plancfile> -horiz <horizcfile> -unspher <unspherfile>"
+           " -ave <meancfile> -max <maxcfile> -min <mincfile>]\n");
     printf("<felfile> is the name of the filled digital elevation model\n");
     printf("<profcfile> is the profile curvature output file.\n");
     printf("<plancfile> is the plan curvature output file.\n");

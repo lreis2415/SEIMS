@@ -137,8 +137,12 @@ private:
     * Value is a series of plant management operations
     */
     map<int, BMPPlantMgtFactory *> m_mgtFactory;
+    map<int, set<int> > m_mgtFieldIDs;
+    map<int, vector<int> > m_mgtOpSequences;
+    map<int, int> m_mgtOpSeqCount;
+    map<int, map<int, PltMgtOp* > > m_pltMgtOps;
     /// Landuse configured plant management operations
-    vector<int> m_landuseMgtOp;
+    //set<int> m_landuseMgtOp;
     /// valid cells number
     int m_nCells;
     /// cell width (m)
@@ -212,7 +216,12 @@ private:
     float* m_pgTempBase;
     /** Temporary parameters**/
 
-    /// Sequence number of management operations done in the previous time step run
+    /*!
+     * Sequence number of management operations done in the previous time step run
+     * -9999 means no plant management operations (PMOs) will be applied
+     *    -1 means there are PMOs will be applied, but not started yet
+     *   >=0 means a series of PMOs has been started to apply
+     */
     int* m_doneOpSequence;
 
     /** plant operation related parameters **/

@@ -19,10 +19,11 @@
  *   - 7. Mar. 2018 lj Make part of CCGL, and make GDAL optional. Follows Google C++ Code Style.
  *   - 8. Jun. 2018 lj Use emplace and emplace_back rather than insert and push_back whenever possible.
  *   - 9. Nov. 2018 lj Add specific field-value as options of raster data, including SRS.
+ *   -10. Jul. 2021 lj No need to use pointer-to-pointer as arguments in GetValue and GetValueByIndex.
  *
  * \author Liangjun Zhu
  * \email zlj@lreis.ac.cn
- * \version 2.3
+ * \version 2.4
  */
 #ifndef CCGL_DATA_RASTER_H
 #define CCGL_DATA_RASTER_H
@@ -636,9 +637,9 @@ public:
 
     /*!
      * \brief Get raster data at the valid cell index (both for 1D and 2D raster)
-     * \return a float array with length as n_lyrs
+     * \return a float array with length as n_lyrs which should be release in the invoke code
      */
-    void GetValueByIndex(int cell_index, int* n_lyrs, T** values);
+    void GetValueByIndex(int cell_index, T*& values);
 
     /*!
      * \brief Get raster data via row and col
@@ -648,15 +649,15 @@ public:
 
     /*!
      * \brief Get raster data (both for 1D and 2D raster) at the (row, col)
-     * \return a float array with length as n_lyrs
+     * \return a float array with the length of n_lyrs_
      */
-    void GetValue(int row, int col, int* n_lyrs, T** values);
+    void GetValue(int row, int col, T*& values);
 
     /*!
      * \brief Check if the raster data is NoData via row and col
      * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
      */
-    T IsNoData(const int row, const int col, const int lyr = 1) {
+    bool IsNoData(const int row, const int col, const int lyr = 1) {
         return FloatEqual(GetValue(row, col, lyr), no_data_value_);
     }
 
@@ -696,8 +697,8 @@ public:
      */
     bool ValidateRowCol(const int row, const int col) {
         if ((row < 0 || row >= GetRows()) || (col < 0 || col >= GetCols())) {
-            StatusNoUnitTest("The row must between 0 and " + ValueToString(GetRows() - 1) +
-                             ", and the col must between 0 and " + ValueToString(GetCols() - 1));
+            //StatusNoUnitTest("The row must between 0 and " + ValueToString(GetRows() - 1) +
+            //                 ", and the col must between 0 and " + ValueToString(GetCols() - 1));
             return false;
         }
         return true;
@@ -1149,8 +1150,13 @@ clsRasterData<T, MASK_T>::clsRasterData(vector<string>& filenames,
             return;
         }
         // 2. then, change the core file name and file path template which format is: `<file dir>/CoreName_%d.<suffix>`
-        core_name_ = SplitString(core_name_, '_').at(0);
-        full_path_ = GetPathFromFullName(filenames[0]) + SEP + core_name_ + "_%d." + GetSuffix(filenames[0]);
+        // core_name_ = SplitString(core_name_, '_').at(0); // Old way will lost info after the first underline
+        string::size_type last_underline = core_name_.find_last_of('_');
+        if (last_underline == string::npos) {
+            last_underline = core_name_.length();
+        }
+        core_name_ = core_name_.substr(0, last_underline);
+        full_path_ = GetPathFromFullName(filenames[0]) + core_name_ + "_%d." + GetSuffix(filenames[0]);
         // So, to get a given layer's filepath, please use the following code. Definitely, maximum 99 layers is supported now.
         //    string layerFilepath = m_filePathName.replace(m_filePathName.find_last_of("%d") - 1, 2, ValueToString(1));
         // 3. initialize raster_2d_ and read the other layers according to position data if stated,
@@ -1602,24 +1608,21 @@ T clsRasterData<T, MASK_T>::GetValueByIndex(const int cell_index, const int lyr 
 }
 
 template <typename T, typename MASK_T>
-void clsRasterData<T, MASK_T>::GetValueByIndex(const int cell_index, int* n_lyrs, T** values) {
+void clsRasterData<T, MASK_T>::GetValueByIndex(const int cell_index, T*& values) {
     if (!ValidateRasterData() || !ValidateIndex(cell_index)) {
-        *n_lyrs = -1;
-        *values = nullptr;
+        if (nullptr != values) { Release1DArray(values); }
+        values = nullptr;
         return;
     }
+    if (nullptr == values) {
+        Initialize1DArray(n_lyrs_, values, no_data_value_);
+    }
     if (is_2draster) {
-        T* cell_values = new T[n_lyrs_];
         for (int i = 0; i < n_lyrs_; i++) {
-            cell_values[i] = raster_2d_[cell_index][i];
+            values[i] = raster_2d_[cell_index][i];
         }
-        *n_lyrs = n_lyrs_;
-        *values = cell_values;
     } else {
-        *n_lyrs = 1;
-        T* cell_values = new T[1];
-        cell_values[0] = raster_[cell_index];
-        *values = cell_values;
+        values[0] = raster_[cell_index];
     }
 }
 
@@ -1642,41 +1645,35 @@ T clsRasterData<T, MASK_T>::GetValue(const int row, const int col, const int lyr
 }
 
 template <typename T, typename MASK_T>
-void clsRasterData<T, MASK_T>::GetValue(const int row, const int col, int* n_lyrs, T** values) {
+void clsRasterData<T, MASK_T>::GetValue(const int row, const int col, T*& values) {
     if (!ValidateRasterData() || !ValidateRowCol(row, col)) {
-        *n_lyrs = -1;
-        *values = nullptr;
+        if (nullptr != values) { Release1DArray(values); }
+        values = nullptr;
         return;
+    }
+    if (nullptr == values) {
+        Initialize1DArray(n_lyrs_, values, no_data_value_);
     }
     if (calc_pos_ && nullptr != raster_pos_data_) {
         int valid_cell_index = GetPosition(row, col);
         if (valid_cell_index == -2) {
-            *n_lyrs = -1;
-            *values = nullptr; // error
+            if (nullptr != values) { Release1DArray(values); }
+            values = nullptr; // error
         } else if (valid_cell_index == -1) {
-            *n_lyrs = n_lyrs_;
-            T* cell_values = new T[n_lyrs_];
             for (int i = 0; i < n_lyrs_; i++) {
-                cell_values[i] = no_data_value_;
+                values[i] = no_data_value_; // NODATA
             }
-            *values = cell_values; // NODATA
         } else {
-            GetValueByIndex(valid_cell_index, n_lyrs, values);
+            GetValueByIndex(valid_cell_index, values);
         }
     } else {
         // get data directly from row and col
         if (is_2draster) {
-            T* cell_values = new T[n_lyrs_];
             for (int i = 0; i < n_lyrs_; i++) {
-                cell_values[i] = raster_2d_[row * GetCols() + col][i];
+                values[i] = raster_2d_[row * GetCols() + col][i];
             }
-            *n_lyrs = n_lyrs_;
-            *values = cell_values;
         } else {
-            *n_lyrs = 1;
-            T* cell_values = new T[1];
-            cell_values[0] = raster_[row * GetCols() + col];
-            *values = cell_values;
+            values[0] = raster_[row * GetCols() + col];
         }
     }
 }
@@ -2104,7 +2101,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     // 1. Get stream data and metadata by file name
     char* buf = NULL;
     size_t length;
-    if (!gfs->GetStreamData(filename, buf, length, NULL, opts) || 
+    if (!gfs->GetStreamData(filename, buf, length, NULL, opts) ||
         NULL == buf) {
         initialized_ = false;
         return false;
@@ -2156,9 +2153,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     no_data_value_ = static_cast<T>(headers_.at(HEADER_RS_NODATA));
     n_lyrs_ = CVT_INT(headers_.at(HEADER_RS_LAYERS));
 
-    // CAUTION: Currently data stored in MongoDB is always float. lj
-    //  I can not find an elegant way to make it templated.
-    assert(n_cells_ == length / sizeof(float) / n_lyrs_);
+    assert(n_cells_ == length / sizeof(T) / n_lyrs_);
 
     int validcount = -1;
     if (headers_.find(HEADER_RS_CELLSNUM) != headers_.end()) {
@@ -2175,7 +2170,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     }
     // read data directly
     if (n_lyrs_ == 1) {
-        float* tmpdata = reinterpret_cast<float *>(buf);
+        T* tmpdata = reinterpret_cast<T *>(buf);
         Initialize1DArray(n_cells_, raster_, no_data_value_);
 #pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {
@@ -2186,7 +2181,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
         Release1DArray(tmpdata);
         is_2draster = false;
     } else {
-        float* tmpdata = reinterpret_cast<float *>(buf);
+        T* tmpdata = reinterpret_cast<T *>(buf);
         Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, no_data_value_);
 #pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {
@@ -2536,6 +2531,9 @@ void clsRasterData<T, MASK_T>::ReplaceNoData(T replacedv) {
             }
         }
     }
+    no_data_value_ = replacedv;
+    default_value_ = replacedv;
+    headers_[HEADER_RS_NODATA] = replacedv;
 }
 
 template <typename T, typename MASK_T>

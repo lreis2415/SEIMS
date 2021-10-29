@@ -1,21 +1,21 @@
 /*!
  * \brief routing in the channel cells using 4-point implicit finite difference method
+ *
+ * Changelog:
+ *   - 1. 2021-07-09 - lj - Code reformat.
+ *
  * \author Junzhi Liu, Liangjun Zhu
- * \version 1.1
- * \date May 2017
- * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM[0]
  */
 #ifndef SEIMS_MODULE_CH_DW_H
 #define SEIMS_MODULE_CH_DW_H
 
 #include "SimulationModule.h"
 
-//using namespace std;  // Avoid this statement! by lj.
-
 /*! \defgroup CH_DW
  * \ingroup Hydrology
  * \brief Channel routing using diffusive wave equation.
  */
+
 /*!
  * \ingroup CH_DW
  * \class DiffusiveWave
@@ -25,56 +25,38 @@
  */
 class DiffusiveWave : public SimulationModule {
 public:
-    //! Constructor
     DiffusiveWave();
 
-    //! Destructor
     ~DiffusiveWave();
-
-    int Execute() OVERRIDE;
 
     void SetReaches(clsReaches *reaches) OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
-
-    // void GetValue(const char *key, float *value) OVERRIDE;
-
+    void SetValue(const char *key, float value) OVERRIDE;
+    
     void Set1DData(const char *key, int n, float *data) OVERRIDE;
-
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
     void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
-    /*
-    // TODO: CheckInputSize and CheckInputSizeChannel should be overrided from SimulationModule, by zhulj.
-    bool CheckInputSize(const char *key, int n);
-    */
-    bool CheckInputSizeChannel(const char *key, int n);
-
     bool CheckInputData() OVERRIDE;
 
-    void  InitialOutputs() OVERRIDE;
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+
+    void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
 
 private:
     void ChannelFlow(int iReach, int iCell, int id);
 
-    ///< Valid cells number
-    int m_nCells;
-    ///< cell width of the grid (m)
-    float m_CellWidth;
-    ///< layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
-    ///< time step (second)
-    float m_dt;
-    ///< slope (percent)
-    float *m_s0;
-    /// channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells)
-    float *m_chWidth;
-    /// elevation
-    float *m_elevation;
-    /// stream link
-    float *m_streamLink;
+    int m_nCells;  ///< Valid cells number
+    float m_CellWidth; ///< cell width of the grid (m)
+    float m_dt; ///< channel routing time step (seconds)
+    float *m_s0; ///< slope (percent)
+    float *m_chWidth; ///< channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells) 
+    float *m_elevation; ///< elevation
+    float *m_streamLink; ///< stream link
     /**
     *	@brief flow direction by the rule of TauDEM
     *   4  3  2
@@ -90,14 +72,14 @@ private:
     /// interflow to channel (m3/s)
     float *m_qi;
 
-    /**
-    *	@brief 2d array of flow in cells
-    *
-    *	The first element in each sub-array is the number of flow in cells in this sub-array
-    */
+    /*!
+     * \brief 2d array of flow in cells
+     *
+     *	The first element in each sub-array is the number of flow in cells of the current cell
+     */
     float **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIndex;
+    float *m_flowOutIdx;
 
     /// Water depth in the downslope boundary of channel cells(output)
     float **m_hCh;
@@ -135,7 +117,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    vector <vector<int> > m_reachUpStream;
     /// reach manning's n
     float *m_reachN;
     /// map from subbasin id to index of the array

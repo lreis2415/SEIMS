@@ -27,7 +27,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_Single);
-    mdi.AddParameter(Tag_LayeringMethod[0], UNIT_NON_DIM, Tag_LayeringMethod[1], File_Input, DT_Single);
+    //mdi.AddParameter(Tag_LayeringMethod[0], UNIT_NON_DIM, Tag_LayeringMethod[1], File_Input, DT_Single);
     mdi.AddParameter(VAR_CH_TCCO[0], UNIT_NON_DIM, VAR_CH_TCCO[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CH_DETCO[0], UNIT_NON_DIM, VAR_CH_DETCO[1], Source_ParameterDB, DT_Single);
 
@@ -36,8 +36,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_USLE_K[0], UNIT_NON_DIM, VAR_USLE_K[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddParameter(Tag_FLOWOUT_INDEX_D8[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX_D8[1], Source_ParameterDB, DT_Array1D);
-    mdi.AddParameter(Tag_FLOWIN_INDEX_D8[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX_D8[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2D);
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 

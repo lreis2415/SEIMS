@@ -1,8 +1,12 @@
 /*!
  * \brief Routing in the channel cells using implicit finite difference method
- * kinematic wave method in LISEM model
+ *        kinematic wave method in LISEM model
  * \author Junzhi Liu
- * \date Feb. 2011
+ *
+ * Changelog:
+ *   - 1. 2011-02-28 - jz - Original implementation.
+ *   - 2. 2021-10-29 - lj - Update to new SEIMS designs and code styles.
+ *
  */
 
 #ifndef SEIMS_IKW_CH_H
@@ -17,57 +21,45 @@
  * \ingroup Hydrology
  * \brief Routing in the channel cells using implicit finite difference method
  */
+
 /*!
  * \class ImplicitKinematicWave_CH
  * \ingroup IKW_CH
- *
  * \brief kinematic wave method in LISEM model
  *
  */
 class ImplicitKinematicWave_CH : public SimulationModule {
 public:
-    //! Constructor
-    ImplicitKinematicWave_CH(void);
+    ImplicitKinematicWave_CH();
 
-    //! Destructor
-    ~ImplicitKinematicWave_CH(void);
+    ~ImplicitKinematicWave_CH();
 
-    virtual int Execute(void);
+    void SetValue(const char *key, float value) OVERRIDE;
 
-    virtual void SetValue(const char *key, float data);
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    virtual void GetValue(const char *key, float *value);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
-    virtual void Set1DData(const char *key, int n, float *data);
-
-    virtual void Get1DData(const char *key, int *n, float **data);
-
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-    virtual void SetReaches(clsReaches *reaches);
-
-    bool CheckInputSize(const char *key, int n);
+    void SetReaches(clsReaches *reaches) OVERRIDE;
 
     bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData(void) OVERRIDE;
 
-    virtual TimeStepType GetTimeStepType(void) {
+    int Execute() OVERRIDE;
+
+    TimeStepType GetTimeStepType() OVERRIDE {
         return TIMESTEP_CHANNEL;
-    };
+    }
+
+    void GetValue(const char *key, float *value) OVERRIDE;
+
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+
+    void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
+
 
 private:
-    ///// deal with positive and negative float numbers
-    //float Power(float a, float n)
-    //{
-    //	if (a >= 0)
-    //		return pow(a, n);
-    //	else
-    //		return -pow(-a, n);
-    //}
-
     float GetNewQ(float qIn, float qLast, float surplus, float alpha, float dt, float dx);
 
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
@@ -81,7 +73,7 @@ private:
     /// cell width of the grid (m)
     float m_CellWidth;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    //LayeringMethod m_layeringMethod;
     /// time step (second)
     float m_dt;
 
@@ -120,9 +112,9 @@ private:
     *
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
-    float **m_flowInIndex;
+    float **m_flowInIdx;
     /// flow out index
-    float *m_flowOutIndex;
+    float *m_flowOutIdx;
 
     /// Water depth in the downslope boundary of channel cells(output)
     float **m_hCh;

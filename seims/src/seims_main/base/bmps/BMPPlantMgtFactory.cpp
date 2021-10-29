@@ -23,7 +23,11 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, co
     if (StringMatch(location, "ALL")) {
         m_location.clear();
     } else {
-        SplitStringForValues(location, '-', m_location);
+        vector<int> tmp_locations;
+        SplitStringForValues(location, '-', tmp_locations);
+        for (vector<int>::iterator it = tmp_locations.begin(); it != tmp_locations.end(); ++it) {
+            m_location.insert(*it);
+        }
     }
 }
 

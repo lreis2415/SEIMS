@@ -39,20 +39,17 @@ bool SUR_MR::CheckInputData() {
 
 void SUR_MR::InitialOutputs() {
     CHECK_POSITIVE(M_SUR_MR[0], m_nCells);
-    // allocate the output variables
     if (nullptr == m_exsPcp) {
         Initialize1DArray(m_nCells, m_exsPcp, 0.f);
         Initialize1DArray(m_nCells, m_infil, 0.f);
         Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.f);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
     }
-}
-
-void SUR_MR::InitializeIntermediateVariables(){
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-            if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f && m_soilFC[i][j] >= 0.f) {
+            if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f &&
+                m_soilFC[i][j] >= 0.f) {
                 m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
             }
             else {
@@ -73,14 +70,11 @@ void SUR_MR::InitializeIntermediateVariables(){
             }
         }
     }
-
-    m_needReCalIntermediateParams = false;
 }
 
 int SUR_MR::Execute() {
     CheckInputData();
     InitialOutputs();
-    if (m_needReCalIntermediateParams) InitializeIntermediateVariables();
     m_maxPcpRf *= m_dt * 1.1574074074074073e-05f; /// 1. / 86400. = 1.1574074074074073e-05;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -139,7 +133,8 @@ void SUR_MR::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_P_MAX[0])) m_maxPcpRf = value;
     else if (StringMatch(sk, VAR_S_FROZEN[0])) m_soilFrozenWtrRatio = value;
     else {
-        throw ModelException(M_SUR_MR[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SUR_MR[0], "SetValue", 
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -157,7 +152,8 @@ void SUR_MR::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_POT_VOL[0])) m_potVol = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impndTrig = data;
     else {
-        throw ModelException(M_SUR_MR[0], "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SUR_MR[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -167,7 +163,8 @@ void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, float*
     if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
     else {
-        throw ModelException(M_SUR_MR[0], "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SUR_MR[0], "Set2DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -181,7 +178,8 @@ void SUR_MR::Get1DData(const char* key, int* n, float** data) {
     } else if (StringMatch(sk, VAR_SOL_SW[0])) {
         *data = m_soilWtrStoPrfl;
     } else {
-        throw ModelException(M_SUR_MR[0], "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_SUR_MR[0], "Get1DData",
+                             "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
 }
@@ -194,6 +192,7 @@ void SUR_MR::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     if (StringMatch(sk, VAR_SOL_ST[0])) {
         *data = m_soilWtrSto;
     } else {
-        throw ModelException(M_SUR_MR[0], "Get2DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_SUR_MR[0], "Get2DData",
+                             "Output " + sk + " does not exist.");
     }
 }

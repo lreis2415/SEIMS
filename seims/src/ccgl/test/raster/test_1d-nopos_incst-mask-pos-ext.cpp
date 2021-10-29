@@ -10,16 +10,18 @@
  *        Since we mainly support ASC and GDAL(e.g., TIFF),
  *        value-parameterized tests of Google Test will be used.
  * \cite https://github.com/google/googletest/blob/master/googletest/samples/sample7_unittest.cc
- * \version 1.1
+ * \version 1.2
  * \authors Liangjun Zhu (zlj@lreis.ac.cn)
  * \revised 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
  *          2019-11-06 - lj - Allow user specified MongoDB host and port.
+ *          2021-07-20 - lj - Update after changes of GetValue and GetValueByIndex.
  *
  */
 #include "gtest/gtest.h"
 #include "../../src/data_raster.h"
 #include "../../src/utils_filesystem.h"
+#include "../../src/utils_array.h"
 #ifdef USE_MONGODB
 #include "../../src/db_mongoc.h"
 #endif
@@ -27,6 +29,7 @@
 
 using namespace ccgl::data_raster;
 using namespace ccgl::utils_filesystem;
+using namespace ccgl::utils_array;
 #ifdef USE_MONGODB
 using namespace ccgl::db_mongoc;
 #endif
@@ -50,7 +53,7 @@ public:
     InputRasterFiles(const string& rsf, const string& maskf) {
         raster_name = rsf.c_str();
         mask_name = maskf.c_str();
-    };
+    }
     const char* raster_name;
     const char* mask_name;
 };
@@ -167,13 +170,12 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(-1, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(90, 2));
 
-    int tmp_lyr;
-    float* tmp_values;
-    rs_->GetValueByIndex(-1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    int tmp_lyr = rs_->GetLayers();
+    float* tmp_values = nullptr;
+    Initialize1DArray(tmp_lyr, tmp_values, -9999.f);
+    rs_->GetValueByIndex(-1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs_->GetValueByIndex(1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(1, tmp_lyr);
+    rs_->GetValueByIndex(1, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
 
@@ -186,20 +188,18 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(8.77f, rs_->GetValue(2, 4));
     EXPECT_FLOAT_EQ(8.77f, rs_->GetValue(2, 4, 1));
 
-    rs_->GetValue(-1, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs_->GetValue(-1, 0, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs_->GetValue(0, -1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(-1, tmp_lyr);
+    rs_->GetValue(0, -1, tmp_values);
     EXPECT_EQ(nullptr, tmp_values);
-    rs_->GetValue(0, 0, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(1, tmp_lyr);
+    rs_->GetValue(0, 0, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
-    rs_->GetValue(1, 1, &tmp_lyr, &tmp_values);
-    EXPECT_EQ(1, tmp_lyr);
+    rs_->GetValue(1, 1, tmp_values);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(7.62f, tmp_values[0]);
+
+    Release1DArray(tmp_values);
 
     // Get position
     EXPECT_EQ(22, rs_->GetPosition(22.05f, 37.95f)); // row 2, col 2
@@ -241,6 +241,8 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
+        string maskfilename = "int_mask";
+        gfs->RemoveFile(maskfilename);
         // Add additional metadata key-values
         map<string, string> opts;
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -250,9 +252,12 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         opts.insert(make_pair("Author", "Liangjun"));
         opts.emplace(make_pair("Grade", "5.0"));
 #endif
+        maskrs_->OutputToMongoDB(maskfilename, gfs);
         rs_->OutputToMongoDB(gfsfilename, gfs, opts);
-        clsRasterData<float, int>* mongors = clsRasterData<float, int>::
-                Init(gfs, gfsfilename.c_str(), false, maskrs_, true, NODATA_VALUE, opts);
+        clsRasterData<int>* mongomask = clsRasterData<int>::Init(gfs, maskfilename.c_str(), true);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(),
+                                                                             false, maskrs_, true,
+                                                                             NODATA_VALUE, opts);
         // test mongors data
         EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(1, mongors->GetLayers());
@@ -264,7 +269,13 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         // output to asc/tif file for comparison
         EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
         EXPECT_TRUE(FileExists(newfullname4mongo));
+
+        delete mongomask;
+        delete mongors;
+        delete gfs;
     }
+    //conn->Destroy(); // the MongoClient MUST not be destroyed or deleted!
+    //delete conn;
 #endif
 
     /* Get position data, which will be calculated if not existed,

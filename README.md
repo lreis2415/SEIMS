@@ -1,6 +1,6 @@
 ## SEIMS: A modular and parallelized watershed modeling framework
 
-Copyright (C) 2013-2020 [Lreis](http://www.lreis.ac.cn),
+Copyright (C) 2013-2021 [Lreis](http://www.lreis.ac.cn),
 [IGSNRR](http://english.igsnrr.cas.cn),
 [CAS](http://english.cas.cn), and
 [NJNU](http://en.njnu.edu.cn). All rights reserved.
@@ -63,15 +63,15 @@ _Computers & Geosciences_ 60, 58–62.
 
 ### Scenario optimization of BMPs
 
-+ Zhu, L.-J., Qin, C.-Z., and Zhu, A-X. **2020**.
++ Zhu, L.-J., Qin, C.-Z., and Zhu, A-X. **2021**.
 [Spatial Optimization of Watershed Best Management Practice Scenarios Based on Boundary-Adaptive Configuration Units](https://doi.org/10.1177/0309133320939002).
-_Progress in Physical Geography: Earth and Environment_.
+_Progress in Physical Geography: Earth and Environment_ 45(2), 207–227.
 + Zhu, L.-J., Qin, C.-Z., Zhu, A-X., Liu, J., Wu, H., **2019**.
 [Effects of different spatial configuration units for the spatial optimization of watershed best management practice scenarios](https://doi.org/10.3390/w11020262).
-_Water_, 11(2), 262.
+_Water_ 11(2), 262.
 + Qin, C.-Z., Gao, H.-R., Zhu, L.-J., Zhu, A-X., Liu, J.-Z., Wu, H., **2018**.
 [Spatial optimization of watershed best management practices based on slope position units](https://doi.org/10.2489/jswc.73.5.504).
-_Journal of Soil and Water Conservation_ 73(5), 504-517.
+_Journal of Soil and Water Conservation_ 73(5), 504–517.
 + Wu, H., Zhu, A-X., Liu, J., Liu, Y., Jiang, J., **2018**.
 [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8).
 _Water Resource Management_ 32, 155–177.

@@ -45,12 +45,14 @@ class ImportParam2Mongo(object):
             maindb: MongoDB database object
         """
         # delete if existed, initialize if not existed
+        # TODO, collection_names is deprecated. Use list_collection_names instead (from v3.6).
         c_list = maindb.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
             maindb.create_collection(DBTableNames.main_parameter)
         else:
             maindb.drop_collection(DBTableNames.main_parameter)
         # initialize bulk operator
+        # TODO, initialize_ordered_bulk_op is deprecated from v3.5.
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
@@ -295,8 +297,10 @@ class ImportParam2Mongo(object):
                                    'items in file.out must have 7 columns, i.e., OUTPUTID,'
                                    'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
                                    'Otherwise, the OUTPUTID MUST existed in the header!')
-            user_out_field_array = ['OUTPUTID', 'TYPE', 'STARTTIME', 'ENDTIME', 'INTERVAL',
-                                    'INTERVAL_UNIT', 'SUBBASIN']
+            user_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
+                                    ModelCfgFields.stime, ModelCfgFields.etime,
+                                    ModelCfgFields.interval, ModelCfgFields.interval_unit,
+                                    ModelCfgFields.subbsn]
             data_items.insert(0, user_out_field_array)
 
         for idx, iitem in enumerate(data_items):
@@ -308,7 +312,7 @@ class ImportParam2Mongo(object):
             cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
-        MongoUtil.run_bulk(bulk, 'No operations to excute when import the desired outputs.')
+        MongoUtil.run_bulk(bulk, 'No operations to execute when import the desired outputs.')
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg, maindb):

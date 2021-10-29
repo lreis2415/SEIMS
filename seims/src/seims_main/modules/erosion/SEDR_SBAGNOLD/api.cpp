@@ -14,7 +14,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Liangjun Zhu; Wu Hui; Junzhi Liu");
-    mdi.SetClass(MCLS_SED_ROUTING[0], MCLS_SED_ROUTING[1]);
+    mdi.SetClass(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
     mdi.SetDescription(M_SEDR_SBAGNOLD[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("");

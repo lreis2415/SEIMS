@@ -529,7 +529,7 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
     if (StringMatch(type, Tag_Sum)) {
         res = AT_Sum;
     }
-    if (StringMatch(type, Tag_Average) || StringMatch(type, Tag_Average2) || StringMatch(type, Tag_Average3)) {
+    if (StringMatch(type, Tag_Average) || StringMatch(type, "AVERAGE") || StringMatch(type, "MEAN")) {
         res = AT_Average;
     }
     if (StringMatch(type, Tag_Minimum)) {

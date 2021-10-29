@@ -18,8 +18,8 @@ from osgeo.gdal import GDT_Int32, GDT_Float32
 from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
 from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
 from osgeo.osr import SpatialReference as osr_SpatialReference
-from pygeoc.TauDEM import TauDEMWorkflow
-from pygeoc.postTauDEM import D8Util, StreamnetUtil
+from pygeoc.TauDEM import TauDEMFilesUtils, TauDEM, TauDEMWorkflow
+from pygeoc.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
@@ -61,17 +61,46 @@ class SpatialDelineation(object):
 
     @staticmethod
     def original_delineation(cfg):
-        """Original Delineation by calling TauDEM functions"""
+        """Original watershed delineation by TauDEM functions and
+        other terrain attributes by TauDEM-ext functions"""
         # Check directories
         UtilClass.mkdir(cfg.workspace)
         UtilClass.mkdir(cfg.dirs.log)
         bin_dir = cfg.seims_bin
         mpi_bin = cfg.mpi_bin
         np = cfg.np
-        TauDEMWorkflow.watershed_delineation(np, cfg.dem, cfg.outlet_file, cfg.d8acc_threshold,
-                                             True,
-                                             cfg.dirs.taudem, mpi_bin, bin_dir,
-                                             cfg.logs.delineation)
+        # Watershed delineation
+        TauDEMWorkflow.watershed_delineation(np, cfg.dem,  # required arguments
+                                             outlet_file=cfg.outlet_file,
+                                             thresh=cfg.acc_thresh,
+                                             singlebasin=True,
+                                             workingdir=cfg.dirs.taudem,
+                                             mpi_bin=mpi_bin,
+                                             bin_dir=bin_dir,
+                                             logfile=cfg.logs.delineation,
+                                             avoid_redo=True)
+        # D-inf flow direction
+        TauDEM.dinfflowdir(np, cfg.taudems.filldem, cfg.taudems.dinf, cfg.taudems.dinf_slp,
+                           workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+                           log_file=cfg.logs.delineation)
+        # MFD-md flow directions
+        # TODO, arguments for calculating MFD-md might be specified in configuration file. lj
+        TauDEM.mfdmdflowdir(np, cfg.taudems.filldem, cfg.taudems.mfdmd_dir, cfg.taudems.mfdmd_frac,
+                            min_portion=0.01, p0=1.1, rng=8.9, lb=0., ub=1.,
+                            workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+                            log_file=cfg.logs.delineation)
+        # Distance to stream using Surface method based on D8 flow direction
+        TauDEM.d8distdowntostream(np, cfg.taudems.d8flow, cfg.taudems.filldem,
+                                  cfg.taudems.stream_raster, cfg.taudems.dist2stream_d8,
+                                  cfg.distdown_method, 1,
+                                  workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+                                  log_file=cfg.logs.delineation)
+        # Distance to stream using Surface method in Average length based on D-inf flow direction
+        TauDEM.dinfdistdown(np, cfg.taudems.dinf, cfg.taudems.filldem, cfg.taudems.dinf_slp,
+                            cfg.taudems.stream_raster, 'Average', cfg.distdown_method, False,
+                            cfg.taudems.dinf, cfg.taudems.dist2stream_dinf,
+                            workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+                            log_file=cfg.logs.delineation)
 
     @staticmethod
     def mask_raster_cpp(bin_dir, maskfile, originalfiles, outputfiles, default_values, configfile):
@@ -96,20 +125,24 @@ class SpatialDelineation(object):
         UtilClass.mkdir(geodata2dbdir)
         mask_file = cfg.spatials.mask
         RasterUtilClass.get_mask_from_raster(subbasin_tau_file, mask_file)
-        # Total 12 raster files
+        # Total 21 raster files
         original_files = [cfg.taudems.subbsn, cfg.taudems.d8flow, cfg.taudems.stream_raster,
                           cfg.taudems.slp, cfg.taudems.filldem, cfg.taudems.d8acc,
                           cfg.taudems.stream_order, cfg.taudems.dinf, cfg.taudems.dinf_d8dir,
                           cfg.taudems.dinf_slp, cfg.taudems.dinf_weight,
-                          cfg.taudems.dist2stream_d8]
+                          cfg.taudems.mfdmd_dir,
+                          cfg.taudems.dist2stream_d8, cfg.taudems.dist2stream_dinf]
+        original_files += [FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
+                           for i in range(1, 9, 1)]
         # output masked files
         output_files = [cfg.taudems.subbsn_m, cfg.taudems.d8flow_m, cfg.taudems.stream_m,
                         cfg.spatials.slope, cfg.spatials.filldem, cfg.spatials.d8acc,
                         cfg.spatials.stream_order, cfg.spatials.dinf, cfg.spatials.dinf_d8dir,
-                        cfg.spatials.dinf_slp, cfg.spatials.dinf_weight,
-                        cfg.spatials.dist2stream_d8]
+                        cfg.spatials.dinf_slp, cfg.spatials.dinf_weight, cfg.spatials.mfdmd_d8dir,
+                        cfg.spatials.dist2stream_d8, cfg.spatials.dist2stream_dinf]
+        output_files += [FileClass.add_postfix(cfg.spatials.mfdmd_fraction, '%d' % i)
+                         for i in range(1, 9, 1)]
 
-        default_values = list()
         default_values = [DEFAULT_NODATA] * len(original_files)
 
         # other input rasters need to be masked
@@ -144,47 +177,37 @@ class SpatialDelineation(object):
 
     @staticmethod
     def post_process_of_delineated_data(cfg):
-        """Do some necessary transfer for subbasin, stream, and flow direction raster."""
-        # inputs
-        stream_net_file = cfg.taudems.streamnet_shp
-        subbasin_file = cfg.taudems.subbsn_m
-        flow_dir_file_tau = cfg.taudems.d8flow_m
-        stream_raster_file = cfg.taudems.stream_m
-        # outputs
-        # -- shapefile
-        shp_dir = cfg.dirs.geoshp
-        UtilClass.mkdir(shp_dir)
-        # ---- outlet, copy from DirNameUtils.TauDEM
+        """Necessary data processing of subbasin, stream, and flow direction rasters."""
+        # Outlet shapefile
+        UtilClass.mkdir(cfg.dirs.geoshp)
         FileClass.copy_files(cfg.taudems.outlet_m, cfg.vecs.outlet)
-        # ---- reaches
-        output_reach_file = cfg.vecs.reach
-        # ---- subbasins
-        subbasin_vector_file = cfg.vecs.subbsn
-        # -- raster file
-        output_subbasin_file = cfg.spatials.subbsn
-        output_flow_dir_file = cfg.spatials.d8flow
-        output_stream_link_file = cfg.spatials.stream_link
-        output_hillslope_file = cfg.spatials.hillslope
-
-        id_map = StreamnetUtil.serialize_streamnet(stream_net_file, output_reach_file)
-        RasterUtilClass.raster_reclassify(subbasin_file, id_map, output_subbasin_file, GDT_Int32)
-        StreamnetUtil.assign_stream_id_raster(stream_raster_file, output_subbasin_file,
-                                              output_stream_link_file)
-
+        # Recoding stream IDs and the corresponding rasters of subbasin and stream
+        id_map = StreamnetUtil.serialize_streamnet(cfg.taudems.streamnet_shp, cfg.vecs.reach)
+        RasterUtilClass.raster_reclassify(cfg.taudems.subbsn_m, id_map,
+                                          cfg.spatials.subbsn, GDT_Int32)
+        StreamnetUtil.assign_stream_id_raster(cfg.taudems.stream_m, cfg.spatials.subbsn,
+                                              cfg.spatials.stream_link)
         # Convert D8 encoding rule to ArcGIS
-        D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
+        D8Util.convert_code(cfg.taudems.d8flow_m, cfg.spatials.d8flow)
+        # Convert Dinf to compressed flow direction according to ArcGIS encoding rule
+        DinfUtil.output_compressed_dinf(cfg.spatials.dinf, cfg.spatials.dinf_d8dir,
+                                        cfg.spatials.dinf_weight,
+                                        minfraction=cfg.min_flowfrac,
+                                        upddinffile=cfg.spatials.dinf_upd)
+
 
         # convert raster to shapefile (for subbasin and basin)
         print('Generating subbasin vector...')
-        VectorUtilClass.raster2shp(output_subbasin_file, subbasin_vector_file, 'subbasin',
+        VectorUtilClass.raster2shp(cfg.spatials.subbsn, cfg.vecs.subbsn, 'subbasin',
                                    FieldNames.subbasin_id)
         mask_file = cfg.spatials.mask
         basin_vector = cfg.vecs.bsn
         print('Generating basin vector...')
         VectorUtilClass.raster2shp(mask_file, basin_vector, 'basin', FieldNames.basin)
         # delineate hillslope
-        DelineateHillslope.downstream_method_whitebox(output_stream_link_file, flow_dir_file_tau,
-                                                      output_hillslope_file)
+        DelineateHillslope.downstream_method_whitebox(cfg.spatials.stream_link,
+                                                      cfg.taudems.d8flow_m,
+                                                      cfg.spatials.hillslope)
 
     @staticmethod
     def generate_lat_raster(cfg):
@@ -226,11 +249,11 @@ class SpatialDelineation(object):
     @staticmethod
     def workflow(cfg):
         """Subbasin delineation workflow"""
-        # 1. Originally delineated by TauDEM
+        # 1. Originally delineated by TauDEM and DTA algorithms based on TauDEM framework
         SpatialDelineation.original_delineation(cfg)
         # 2. Mask delineated raster by subbasin
         SpatialDelineation.mask_origin_delineated_data(cfg)
-        # 3. Post processing, such as serialize stream ID, mask dataset etc.
+        # 3. Post processing, such as serialize stream ID, flow direction recoding etc.
         SpatialDelineation.post_process_of_delineated_data(cfg)
         # 4. Convert current coordinate to WGS84 and convert shapefile to GeoJson.
         # todo: convert to geojson may failed in Windows for some reason caused by compiled GDAL.

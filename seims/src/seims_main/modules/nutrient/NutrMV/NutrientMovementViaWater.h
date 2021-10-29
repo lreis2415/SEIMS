@@ -142,8 +142,10 @@ private:
     /// depth to bottom of soil layer, sol_z in SWAT
     float** m_soilDepth;
 
-    /// flow out index
-    float* m_flowOutIdxD8;
+    /// flow out indexes
+    float** m_flowOutIdx;
+    /// flow out fractions
+    float** m_flowOutFrac;
     /**
     *	@brief Routing layers according to the flow direction
     *

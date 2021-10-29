@@ -114,18 +114,20 @@ inline bool operator==(const node& n1, const node& n2)
     return (n1.x == n2.x) && (n1.y == n2.y);
 }
 const double PI = 3.14159265359;
+const double SQRT2 = 1.4142135623730951;
 const int16_t MISSINGSHORT = -32768;
 const int32_t MISSINGLONG = -2147483647;
 const float MISSINGFLOAT = -1 * FLT_MAX;
 const float MINEPS = 1E-5f;
 
 const float DEFAULTNODATA = -9999.f;  // added by Liangjun Zhu
+const int DEFAULTNODATA_INT = -9999;
 const int OMPTHREADS = 4;
 const float ZERO = 1.0e-12F;
 
 /// for D-8 flow model
-const int d1[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1};
-const int d2[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
+const int d1[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1}; // Col, Y
+const int d2[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1}; // Row, X
 /// for D-inf flow model
 const double e = 0.;
 const double ne = PI * 0.25;
@@ -137,7 +139,7 @@ const double s = PI * 1.5;
 const double se = PI * 1.75;
 const double dinfang[9] = {0., e, ne, n, nw, w, sw, s, se};
 
-
+const int esri_flowdir[9] = {-1, 1, 128, 64, 32, 16, 8, 4, 2};
 
 //  TODO adjust this for different dx and dy
 //const double aref[10] = { -atan2((double)1,(double)1), 0., -aref[0],(double)(0.5*PI),PI-aref[2],(double)PI,

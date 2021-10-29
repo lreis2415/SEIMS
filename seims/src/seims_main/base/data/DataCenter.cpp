@@ -8,13 +8,13 @@ using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
-    lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
-    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id), 
+    lyr_method_(input_args->lyr_mtd), fdir_method_(input_args->fdir_mtd), subbasin_id_(subbasin_id),
+    scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
     mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),
     use_scenario_(false),
     output_path_(input_args->output_path),
-    model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
+    n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
     reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
     // Nothing to do for now.
@@ -103,9 +103,8 @@ bool DataCenter::GetFileInStringVector() {
 void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
     rows = 12;
     cols = 5;
-    data = new(nothrow) float *[rows];
+    Initialize2DArray(rows, cols, data, 0.f);
     for (int i = 0; i < rows; i++) {
-        data[i] = new(nothrow) float[cols];
         data[i][0] = 4.f;    /// element number
         data[i][1] = 0.03f;  // P
         data[i][2] = -0.65f; // T
@@ -193,18 +192,19 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     int n;
     float* data = nullptr;
     string upper_name = GetUpper(para_name);
-    if (StringMatch(upper_name, Tag_Weight[0])) {
-        /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
-        ReadItpWeightData(remote_filename, n, data);
-    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) {
-        /// 2. IF FLOWOUT_INDEX_D8
-        Read1DArrayData(remote_filename, n, data);
-        if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
-            throw ModelException("DataCenter", "LoadAdjustArrayData",
-                                 "The data length derived from LoadAdjustArrayData in " + remote_filename +
-                                 " is not the same as the template.");
-        }
-    } else if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
+    //if (StringMatch(upper_name, Tag_Weight[0])) {
+    //    /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
+    //    ReadItpWeightData(remote_filename, n, data);
+    //} else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) { // TODO: delete after test. lj
+    //    /// 2. IF FLOWOUT_INDEX_D8
+    //    Read1DArrayData(remote_filename, n, data);
+    //    if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
+    //        throw ModelException("DataCenter", "LoadAdjustArrayData",
+    //                             "The data length derived from LoadAdjustArrayData in " + remote_filename +
+    //                             " is not the same as the template.");
+    //    }
+    // } else 
+    if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
         /// 3. IF Meteorology sites data
         n = clim_station_->NumberOfSites(DataType_Meteorology);
         Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
@@ -248,10 +248,12 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     } else if (StringMatch(upper_name, Tag_LapseRate)) {
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
+    } else if (StringMatch(upper_name, Tag_Weight[0])) {
+        ReadItpWeightData(remote_filename, n_rows, n_cols, data);
     } else {
-        // Including: Tag_ROUTING_LAYERS[0], Tag_ROUTING_LAYERS_DINF,
-        //            Tag_FLOWIN_INDEX_D8[0], Tag_FLOWIN_INDEX_DINF,
-        //            Tag_FLOWIN_PERCENTAGE_DINF[0], Tag_FLOWOUT_INDEX_DINF[0]
+        // Including: ROUTING_LAYERS,
+        //            FLOWIN_INDEX, FLOWIN_FRACTION,
+        //            FLOWOUT_INDEX, FLOWOUT_FRACTION
         Read2DArrayData(remote_filename, n_rows, n_cols, data);
     }
     if (nullptr != data) {
@@ -339,7 +341,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
-        case DT_Scenario: SetScenario(p_module);
+        case DT_Scenario: SetScenario(p_module, is_opt);
             break;
         case DT_Reach: SetReaches(p_module);
             break;
@@ -348,7 +350,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         default: break;
     }
     double timeconsume = TimeCounting() - stime;
-    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename << 
+    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename <<
     " done, TIMESPAN " << timeconsume << " sec.";
 }
 
@@ -369,10 +371,12 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
         param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtHillslope());
-    } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
+    } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
         param->Value = CVT_FLT(input_->getDtChannel());
     } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = CVT_FLT(lyr_method_);
+    } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
+        param->Value = CVT_FLT(fdir_method_);
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
@@ -408,10 +412,18 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     int n_rows = 0;
     int n_cols = 1;
     float** data = nullptr;
-    /// Get ROUTING_LAYERS real file name
     string real_filename = remote_filename;
     if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
-        real_filename += lyr_method_ == UP_DOWN ? "_UP_DOWN" : "_DOWN_UP";
+        /// Get ROUTING_LAYERS's real file name according to Layering method and flow direction algorithm
+        real_filename.append(LayeringMethodString[lyr_method_]);
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0])) {
+        /// Get FLOWIN/FLOWOUT_INDEX's real file name according to flow direction algorithm
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    } else if (StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
+        /// Get FLOWIN/FLOWOUT_FRACTION's real file name according to flow direction algorithm except D8
+        if (fdir_method_ == D8) { return; }
+        real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
         LoadAdjust2DArrayData(para_name, real_filename);
@@ -456,9 +468,11 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     }
 }
 
-void DataCenter::SetScenario(SimulationModule* p_module) {
+void DataCenter::SetScenario(SimulationModule* p_module, const bool is_optional /* = false */) {
     if (nullptr == scenario_ && nullptr == GetScenarioData()) {
-        throw ModelException("DataCenter", "SetScenario", "Scenarios has not been set!");;
+        if (!is_optional) {
+            throw ModelException("DataCenter", "SetScenario", "Scenarios has not been set!");
+        }
     }
     p_module->SetScenario(scenario_);
 }
@@ -561,7 +575,7 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
         for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
 
             cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
-                << iter2->second->getBMPName() << endl;
+                    << iter2->second->getBMPName() << endl;
             vector<int>& suitablelu = iter2->second->getSuitableLanduse();
             map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
             for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
@@ -571,7 +585,7 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                 ///   If existed, update the missing values, otherwise, print warning message and continue.
                 if (init_params_.find(paraname) == init_params_.end()) {
                     cout << "      Warning: the parameter is not defined in PARAMETER table, and "
-                        " will not work as expected." << endl;
+                            " will not work as expected." << endl;
                     continue;
                 }
                 ParamInfo* tmpparam = init_params_[paraname];
@@ -584,8 +598,8 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                 string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
                 if (rs_map_.find(remote_filename) == rs_map_.end()) {
                     cout << "      Warning: the parameter name: " << remote_filename <<
-                        " is not loaded as 1D or 2D raster, and "
-                        " will not work as expected." << endl;
+                            " is not loaded as 1D or 2D raster, and "
+                            " will not work as expected." << endl;
                     continue;
                 }
                 int count = 0;
@@ -594,16 +608,16 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                     float** data2d = nullptr;
                     rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                     count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
-                        sel_ids, ludata, suitablelu);
+                                                          sel_ids, ludata, suitablelu);
                 }
                 else {
                     float* data = nullptr;
                     rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                     count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
-                        ludata, suitablelu);
+                                                          ludata, suitablelu);
                 }
                 cout << "      A total of " << count << " has been updated for " <<
-                    remote_filename << endl;
+                        remote_filename << endl;
             }
         }
     }
@@ -624,17 +638,17 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
         if (!iter->second->IsEffectivenessChangeable()) continue;
 
         //DEBUG: only fengjin
-		//if (iter->second->GetSubScenarioId() != 1) continue;
+        //if (iter->second->GetSubScenarioId() != 1) continue;
 
-		BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
-		map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
+        BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
+        map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
         for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
             if (tmp_bmp_areal_struct_factory->getSeriesIndex() == tmp_bmp_areal_struct_factory->GetChangeTimes()){
                 continue;
             }
 
-			time_t lastUpdateTime = iter2->second->getLastUpdateTime();
-			time_t changeFrequency = iter->second->GetChangeFrequency();
+            time_t lastUpdateTime = iter2->second->getLastUpdateTime();
+            time_t changeFrequency = iter->second->GetChangeFrequency();
 
             // update condition: long enough
             time_t needUpdateTime = -1;
@@ -651,19 +665,19 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
 
             if (t >= needUpdateTime){
                 cout << "Update scenario parameters dynamically." << endl;
-				float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
-				vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDsByIndex();
+                float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
+                vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDsByIndex();
                 map<int, int> unitUpdateTimes = tmp_bmp_areal_struct_factory->getUpdateTimesByIndex();
                 // some spatial units need to update
                 if (!sel_ids.empty()){
                     /// Get landuse data of current subbasin ("0_" for the whole basin)
-                    string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE);
+                    string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE[0]);
                     int nsize = -1;
                     float* ludata = nullptr;
                     rs_map_[lur]->GetRasterData(&nsize, &ludata);
 
                     cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
-                        << iter2->second->getBMPName() << endl;
+                            << iter2->second->getBMPName() << endl;
                     vector<int>& suitablelu = iter2->second->getSuitableLanduse();
                     map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
                     for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
@@ -677,7 +691,7 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                         ///   If existed, update the missing values, otherwise, print warning message and continue.
                         if (init_params_.find(paraname) == init_params_.end()) {
                             cout << "      Warning: the parameter is not defined in PARAMETER table, and "
-                                " will not work as expected." << endl;
+                                    " will not work as expected." << endl;
                             continue;
                         }
                         ParamInfo* tmpparam = init_params_[paraname];
@@ -691,15 +705,15 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                         string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
                         if (rs_map_.find(remote_filename) == rs_map_.end()) {
                             cout << "      Warning: the parameter name: " << remote_filename <<
-                                " is not loaded as 1D or 2D raster, and "
-                                " will not work as expected." << endl;
+                                    " is not loaded as 1D or 2D raster, and "
+                                    " will not work as expected." << endl;
                             continue;
                         }
 #ifdef _DEBUG
                         // DEBUG: output the modified data
                         CLOG(INFO, LOG_OUTPUT) << t << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
-                            << iter2->second->getBMPName() << " param: " << remote_filename;
-                        vector<string> output_params{ "0_CONDUCTIVITY" };//"0_DENSITY", "0_CONDUCTIVITY"
+                        << iter2->second->getBMPName() << " param: " << remote_filename;
+                        vector<string> output_params{ "0_CONDUCTIVITY" }; //"0_DENSITY", "0_CONDUCTIVITY"
 #endif // _DEBUG
                         int count = 0;
                         if (rs_map_[remote_filename]->Is2DRaster()) {
@@ -708,44 +722,44 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                             rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                             count = iter3->second->Adjust2DRasterWithImpactIndexes(nsize, lyr, data2d, mgtunits,
                                 sel_ids, unitUpdateTimes, ludata, suitablelu);
-//#ifdef _DEBUG
-//                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-//                            {
-//                                std::stringstream ss;
-//                                for (int x = 0; x < nsize; x++)
-//                                {
-//                                    ss << data2d[x][0] << ' ';
-//                                }
-//                                CLOG(INFO, LOG_OUTPUT) << ss.str();
-//                            }
-//#endif
+                            //#ifdef _DEBUG
+                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+                            //                            {
+                            //                                std::stringstream ss;
+                            //                                for (int x = 0; x < nsize; x++)
+                            //                                {
+                            //                                    ss << data2d[x][0] << ' ';
+                            //                                }
+                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str();
+                            //                            }
+                            //#endif
                         }
                         else {
                             float* data = nullptr;
                             rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                             count = iter3->second->Adjust1DRasterWithImpactIndexes(nsize, data, mgtunits, sel_ids,
                                 unitUpdateTimes, ludata, suitablelu);
-//#ifdef _DEBUG
-//                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-//                            {
-//                                std::stringstream ss;
-//                                for (int x = 0; x < nsize; x++)
-//                                {
-//                                    ss << data[x] << ' ';
-//                                }
-//                                CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
-//                            }
-//#endif
+                            //#ifdef _DEBUG
+                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
+                            //                            {
+                            //                                std::stringstream ss;
+                            //                                for (int x = 0; x < nsize; x++)
+                            //                                {
+                            //                                    ss << data[x] << ' ';
+                            //                                }
+                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
+                            //                            }
+                            //#endif
                         }
                         cout << "      A total of " << count << " has been updated for " <<
-                            remote_filename << endl;
+                                remote_filename << endl;
                     }
                 }
                 tmp_bmp_areal_struct_factory->increaseSeriesIndex();//use next location array
-				iter2->second->setLastUpdateTime(t);
+                iter2->second->setLastUpdateTime(t);
                 hasUpdated = true;
             }
-		}
+        }
     }
     return hasUpdated;
 }

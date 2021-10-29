@@ -2,7 +2,7 @@
     based on D-infinity flow direction model, ridge is
 	assigned by user.
 
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS
   Apr 1, 2015
 

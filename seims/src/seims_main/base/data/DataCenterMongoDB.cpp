@@ -27,7 +27,6 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                                      const int subbasin_id /* = 0 */) :
     DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
     mongodb_port_(input_args->port),
-    clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
     spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
     //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
@@ -130,7 +129,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
-    reaches_->Update(init_params_);
+    reaches_->Update(init_params_, mask_raster_);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
         bson_t* query = bson_new();
@@ -461,16 +460,19 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     return raster_data;
 }
 
-void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, float*& data) {
+void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, int& stations, float**& data) {
     ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
     if (!weight_data->Initialized()) {
         delete weight_data;
         data = nullptr;
         return;
     }
-    float* tmpdata = nullptr;
-    weight_data->GetWeightData(&num, &tmpdata);
-    Initialize1DArray(num, data, tmpdata);
+    // float* tmpdata = nullptr;
+    // weight_data->GetWeightData(&num, &tmpdata);
+    // Initialize1DArray(num, data, tmpdata);
+    float** tmpdata = nullptr;
+    weight_data->GetWeightData2D(&num, &stations, &tmpdata);
+    Initialize2DArray(num, stations, data, tmpdata);
     delete weight_data;
 }
 
@@ -480,7 +482,7 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     if (nullptr == databuf) return;
 
-    num = CVT_INT(datalength / 4);
+    num = CVT_INT(datalength / sizeof(float));
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 }
 

@@ -7,9 +7,9 @@
  * Changelog:
  *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from ModuleFactory class.
  *   - 2. 2018-09-19 - lj - Separate load data from SetData. Compatible with optional parameters.
+ *   - 3. 2021-04-06 - lj - Add fdir_method_ to handle different flow direction algorithms.
  *
  * \author Liangjun Zhu
- * \date May 2017
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
@@ -73,9 +73,10 @@ public:
      * \brief Read interpolated weight data and insert to m_weightDataMap
      * \param[in] remote_filename Data file name
      * \param[out] num Data length
+     * \param[out] stations Number of stations
      * \param[out] data returned data
      */
-    virtual void ReadItpWeightData(const string& remote_filename, int& num, float*& data) = 0;
+    virtual void ReadItpWeightData(const string& remote_filename, int& num, int& stations, float**& data) = 0;
     /*!
      * \brief Read 1D array data
      * \param[in] remote_filename Data file name
@@ -182,7 +183,7 @@ public:
                    SimulationModule* p_module, bool is_optional = false);
 
     //! Set BMPs Scenario data
-    void SetScenario(SimulationModule* p_module);
+    void SetScenario(SimulationModule* p_module, bool is_optional = false);
 
     //! Set Reaches information
     void SetReaches(SimulationModule* p_module);
@@ -216,6 +217,7 @@ public:
     string GetFileOutFullPath() const { return file_out_file_; }
     string GetFileCfgFullPath() const { return file_cfg_file_; }
     LayeringMethod GetLayeringMethod() const { return lyr_method_; }
+    FlowDirMethod GetFlowDirectionMethod() const { return fdir_method_; }
     int GetSubbasinID() const { return subbasin_id_; }
     int GetScenarioID() const { return scenario_id_; }
     int GetCalibrationID() const { return calibration_id_; }
@@ -263,6 +265,7 @@ protected:
     string file_out_file_;                 ///< file.out full path
     string file_cfg_file_;                 ///< config.fig full path
     const LayeringMethod lyr_method_;      ///< Layering method
+    const FlowDirMethod fdir_method_;      ///< Flow direction method
     const int subbasin_id_;                ///< Subbasin ID
     const int scenario_id_;                ///< Scenario ID
     const int calibration_id_;             ///< Calibration ID
@@ -286,9 +289,9 @@ protected:
     FloatRaster* mask_raster_;             ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D
     map<string, ParamInfo *> init_params_; ///< Store parameters from Database (PARAMETERS collection)
-    map<string, float *> array1d_map_;     ///< 1D array data map, e.g. FLOWOUT_INDEX_D8
+    map<string, float *> array1d_map_;     ///< 1D array data map
     map<string, int> array1d_len_map_;     ///< 1D array data length map
-    map<string, float **> array2d_map_;    ///< 2D array data map, e.g. ROUTING_LAYERS
+    map<string, float **> array2d_map_;    ///< 2D array data map, e.g. FLOWIN_INDEX, FLOWOUT_INDEX, ROUTING_LAYERS
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map
     map<string, int> array2d_cols_map_;    ///< Col number of 2D array data map
                                            ///<   CAUTION that nCols may not same for all rows

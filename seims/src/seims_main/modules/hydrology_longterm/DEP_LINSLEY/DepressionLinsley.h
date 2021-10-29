@@ -65,8 +65,6 @@ public:
      */
     void InitialOutputs() OVERRIDE;
 
-    void InitializeIntermediateVariables() OVERRIDE;
-
 private:
     /// valid cells number
     int m_nCells;

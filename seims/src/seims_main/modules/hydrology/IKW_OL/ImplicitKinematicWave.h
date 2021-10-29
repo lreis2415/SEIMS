@@ -85,7 +85,7 @@ private:
     float **m_flowInIndex;
 
     /// flow out index
-    float *m_flowOutIndex;
+    float *m_flowOutIdx;
 
     /**
     *	@brief Routing layers according to the flow direction

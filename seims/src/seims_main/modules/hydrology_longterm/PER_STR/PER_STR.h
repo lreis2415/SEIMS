@@ -32,7 +32,7 @@ public:
 
     ~PER_STR();
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
