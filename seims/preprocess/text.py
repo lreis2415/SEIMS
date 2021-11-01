@@ -49,7 +49,7 @@ class ModelCfgUtils(object):
 class DirNameUtils(object):
     """Names for folders in output workspace for Spatial data preprocessing"""
     _Log = 'runtime_log'
-    _Delineation = 'watershed delineation'
+    _Delineation = 'watershed_delineation'
     _GeoData2DB = 'spatial_raster'
     _GeoShp = 'spatial_shp'
     _LayerInfo = 'layering_info'

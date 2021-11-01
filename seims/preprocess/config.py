@@ -19,7 +19,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from configparser import ConfigParser
 
-from pygeoc.TauDEM import TauDEMFilesUtils
+from pygeoc.TauDEM import TauDEMExtFiles
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
@@ -118,7 +118,7 @@ class PreprocessConfig(object):
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
         self.vecs = VectorNameUtils(self.dirs.geoshp)
-        self.taudems = TauDEMFilesUtils(self.dirs.taudem)
+        self.taudems = TauDEMExtFiles(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database')

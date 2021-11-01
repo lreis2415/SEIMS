@@ -41,7 +41,7 @@ class DelineateHillslope(object):
                 maxid + (curid - 1) * 3 + 3]  # left
 
     @staticmethod
-    def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg="taudem",
+    def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg='taudem',
                                    stream_value_method=-1):
         """Algorithm modified from Whitebox GAT v3.4.0.
            source code: https://github.com/jblindsay/whitebox-geospatial-analysis-tools/
@@ -77,12 +77,12 @@ class DelineateHillslope(object):
         flowd8_data = flowd8r.data
         flowd8_nodata = flowd8r.noDataValue
         if flowd8r.nRows != nrows or flowd8r.nCols != ncols:
-            raise ValueError("The input extent of D8 flow direction is not "
-                             "consistent with stream data!")
+            raise ValueError('The input extent of D8 flow direction is not '
+                             'consistent with stream data!')
 
         # definition of utility functions
 
-        def inflow_stream_number(vrow, vcol, flowmodel="taudem"):
+        def inflow_stream_number(vrow, vcol, flowmodel='taudem'):
             """
             Count the inflow stream cell number and coordinates of all inflow cells
             Args:
@@ -108,7 +108,7 @@ class DelineateHillslope(object):
                         neighb_stream_cell_num += 1
             return neighb_stream_cell_num, cell_coors
 
-        def assign_sequenced_stream_ids(c_id, vrow, vcol, flowmodel="taudem"):
+        def assign_sequenced_stream_ids(c_id, vrow, vcol, flowmodel='taudem'):
             """set sequenced stream IDs"""
             in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
             if in_strm_num != 0:
@@ -146,7 +146,7 @@ class DelineateHillslope(object):
                     sequenced_stream_d[tmp_row][tmp_col] = c_id
             return c_id
 
-        def assign_hillslope_code_of_neighbors(vrow, vcol, flowmodel="taudem"):
+        def assign_hillslope_code_of_neighbors(vrow, vcol, flowmodel='taudem'):
             """set hillslope code for neighbors of current stream cell."""
             stream_coors.append((vrow, vcol))
             in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
