@@ -131,8 +131,8 @@ class SpatialDelineation(object):
         original_files = [cfg.taudems.d8flow,
                           cfg.taudems.subbsn_m, cfg.taudems.stream_m,
                           cfg.taudems.slp, cfg.taudems.filldem, cfg.taudems.d8acc,
-                          cfg.taudems.stream_order, cfg.taudems.dinf, cfg.taudems.dinf_d8dir,
-                          cfg.taudems.dinf_slp, cfg.taudems.dinf_weight,
+                          cfg.taudems.stream_order, cfg.taudems.dinf,
+                          cfg.taudems.dinf_slp,
                           cfg.taudems.mfdmd_dir,
                           cfg.taudems.dist2stream_d8, cfg.taudems.dist2stream_dinf]
         original_files += [FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
@@ -141,8 +141,8 @@ class SpatialDelineation(object):
         output_files = [cfg.taudems.d8flow_m,  # temp store in taudems, convert to ArcGIS later
                         cfg.spatials.subbsn, cfg.spatials.stream_link,
                         cfg.spatials.slope, cfg.spatials.filldem, cfg.spatials.d8acc,
-                        cfg.spatials.stream_order, cfg.spatials.dinf, cfg.spatials.dinf_d8dir,
-                        cfg.spatials.dinf_slp, cfg.spatials.dinf_weight, cfg.spatials.mfdmd_d8dir,
+                        cfg.spatials.stream_order, cfg.spatials.dinf,
+                        cfg.spatials.dinf_slp, cfg.spatials.mfdmd_d8dir,
                         cfg.spatials.dist2stream_d8, cfg.spatials.dist2stream_dinf]
         output_files += [FileClass.add_postfix(cfg.spatials.mfdmd_fraction, '%d' % i)
                          for i in range(1, 9, 1)]
@@ -186,6 +186,7 @@ class SpatialDelineation(object):
         UtilClass.mkdir(cfg.dirs.geoshp)
         FileClass.copy_files(cfg.taudems.outlet_m, cfg.vecs.outlet)
         FileClass.copy_files(cfg.taudems.subbsn_shp, cfg.vecs.subbsn)
+        FileClass.copy_files(cfg.taudems.streamnet_m,cfg.vecs.reach)
         # Convert D8 encoding rule to ArcGIS
         D8Util.convert_code(cfg.taudems.d8flow_m, cfg.spatials.d8flow)
         # Convert Dinf to compressed flow direction according to ArcGIS encoding rule
