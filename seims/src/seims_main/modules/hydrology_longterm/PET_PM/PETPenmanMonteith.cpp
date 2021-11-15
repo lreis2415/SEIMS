@@ -248,6 +248,9 @@ int PETPenmanMonteith::Execute() {
             }
         }
         m_maxPltET[j] = epMax;
+        if (m_maxPltET[j] != m_maxPltET[j] || m_maxPltET[j] < 0.f) {
+            cout << "PET_PM: is less than zero" << m_maxPltET[j] << endl;
+        }
     }
     return 0;
 }

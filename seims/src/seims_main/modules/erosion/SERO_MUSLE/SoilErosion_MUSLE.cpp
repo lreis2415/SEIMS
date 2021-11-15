@@ -69,23 +69,25 @@ void SERO_MUSLE::InitialOutputs() {
     if (nullptr == m_eroClay) Initialize1DArray(m_nCells, m_eroClay, 0.f);
     if (nullptr == m_eroSmAgg) Initialize1DArray(m_nCells, m_eroSmAgg, 0.f);
     if (nullptr == m_eroLgAgg) Initialize1DArray(m_nCells, m_eroLgAgg, 0.f);
-    if (nullptr == m_usleC) Initialize1DArray(m_nCells, m_usleC, 0.f);
+    if (nullptr == m_usleC) {
+        Initialize1DArray(m_nCells, m_usleC, 0.f);
 
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        if (m_rchID[i] > 0) {
-            m_usleC[i] = 0.f;
-            continue;
-        }
-        m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_rchID[i] > 0) {
+                m_usleC[i] = 0.f;
+                continue;
+            }
+            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
 
-        if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
-            m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
-        }
-        if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
-            // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
-            //  the minimum value of the USLE_C for the land cover
-            m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
+            if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
+                m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
+            }
+            if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
+                // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
+                //  the minimum value of the USLE_C for the land cover
+                m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
+            }
         }
     }
 }
@@ -163,7 +165,7 @@ int SERO_MUSLE::Execute() {
     CheckInputData();
     InitialIntermediates();
     InitialOutputs();
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfRf[i] < 0.0001f || m_rchID[i] > 0) {
             m_eroSed[i] = 0.f;
@@ -177,7 +179,7 @@ int SERO_MUSLE::Execute() {
         // Update C factor
         if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (m_landCover[i] > 0.f && FloatEqual(m_landCover[i], 18)) {
+            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // TODO, use some flexible way to exclude WATER, rather than use 18!
                 // exclude WATER
                 // ln(0.8) = -0.2231435513142097
@@ -187,11 +189,11 @@ int SERO_MUSLE::Execute() {
                 if (m_rsdCovSoil[i] > 1.e-4f) {
                     m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
                 } else {
-                    m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
+                    m_usleC[i] = 0.8f; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
-            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) {
+            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // exclude WATER
                 // new calculation method from RUSLE with the minimum C factor value
                 //! fraction of cover by residue
@@ -207,6 +209,7 @@ int SERO_MUSLE::Execute() {
         }
         if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
         if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
+        assert(m_usleC[i]>=0.f);
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);

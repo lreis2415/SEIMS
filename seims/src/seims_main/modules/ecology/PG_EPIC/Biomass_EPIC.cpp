@@ -461,6 +461,10 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         }
         m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j] - m_wuse[i][j]);
         xx += m_wuse[i][j];
+
+        if (m_soilWtrSto[i][j] != m_soilWtrSto[i][j] || m_soilWtrSto[i][j] < 0.f) {
+            cout << "EPIC: moisture is less than zero" << m_soilWtrSto[i][j] << endl;
+        }
     }
     /// update total soil water in profile
     m_soilWtrStoPrfl[i] = 0.f;
@@ -673,6 +677,9 @@ void Biomass_EPIC::PlantNitrogenUptake(const int i) {
         //	", uno3l: "<<uno3l<<endl;
         m_plantUpTkN[i] += uno3l;
         m_soilNO3[i][l] -= uno3l;
+        if (m_soilNO3[i][l] != m_soilNO3[i][l]) {
+            cout << "EPIC: m_soilNO3 " << m_soilNO3[i][l] << endl;
+        }
     }
     if (m_plantUpTkN[i] < 0.f) m_plantUpTkN[i] = 0.f;
     /// If crop is a legume, call nitrogen fixation routine
@@ -804,6 +811,9 @@ int Biomass_EPIC::Execute() {
             }
         } else {
             m_alb[i] = 0.8f; // eq. 1:1.2.13
+        }
+        if (m_alb[i] != m_alb[i]) {
+            cout << "EPIC: #IND" << m_alb[i] << endl;
         }
         /// reWrite from plantmod.f of SWAT
         /// calculate residue on soil surface for current day

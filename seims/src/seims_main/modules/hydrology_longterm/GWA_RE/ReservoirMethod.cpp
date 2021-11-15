@@ -178,6 +178,11 @@ int ReservoirMethod::Execute() {
         for (int i = 0; i < nCells; i++) {
             index = cells[i];
             m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] += m_revap[index];
+
+            if (m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] != m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1]
+                || m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] < 0.f) {
+                cout << "GWA_RE: moisture is less than zero" << m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] << endl;
+            }
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }

@@ -1113,6 +1113,11 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, 
     m_soilFrshOrgN[i][0] += ff1 * (m_pltN[i] - yieldn);
     m_soilFrshOrgP[i][0] += ff1 * (m_pltP[i] - yieldp);
     m_soilRsd[i][0] = Max(m_soilRsd[i][0], 0.f);
+
+    if (m_soilRsd[i][0] != m_soilRsd[i][0]) {
+        cout << "PLTMGT: m_soilRsd " << m_soilRsd[i][0] << endl;
+    }
+
     m_soilFrshOrgN[i][0] = Max(m_soilFrshOrgN[i][0], 0.f);
     m_soilFrshOrgP[i][0] = Max(m_soilFrshOrgP[i][0], 0.f);
 
@@ -1167,6 +1172,11 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, 
     /// allocate dead roots, N, P to soil layers
     for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+
+        if (m_soilRsd[i][l] != m_soilRsd[i][l]) {
+            cout << "PLTMGT: m_soilRsd " << m_soilRsd[i][l] << endl;
+        }
+
         m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * ff2 * (m_pltN[i] - yieldn);
         m_soilFrshOrgP[i][l] += tmp_rtfr[i][l] * ff2 * (m_pltP[i] - yieldp);
 
@@ -1428,6 +1438,11 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
             m_soilStabMinP[i][l] = m_soilStabMinP[i][l] * WW3 + tmp_smix[i][9] * WW4;
             m_soilRsd[i][l] = m_soilRsd[i][l] * WW3 + tmp_smix[i][10] * WW4;
             if (m_soilRsd[i][l] < 1.e-10f) m_soilRsd[i][l] = 1.e-10f;
+
+            if (m_soilRsd[i][l] != m_soilRsd[i][l]) {
+                cout << "PLTMGT: m_soilRsd " << m_soilRsd[i][l] << endl;
+            }
+
             if (m_cbnModel == 1) {
                 m_soilManC[i][l] = m_soilManC[i][l] * WW3 + tmp_smix[i][11] * WW4;
                 m_soilManN[i][l] = m_soilManN[i][l] * WW3 + tmp_smix[i][12] * WW4;
@@ -1436,6 +1451,11 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
             m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][14] * tmp_soilMixedMass[i][l])
                     /
                     tmp_soilMass[i][l];
+
+            if (m_soilCbn[i][l] < 0.f) {
+                cout << "PLTMGT_SWAT: m_soilCbn " << m_soilCbn[i][l] << endl;
+            }
+
             m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][15] * tmp_soilMixedMass[i][l]) /
                     tmp_soilMass[i][l];
             m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][16] * tmp_soilMixedMass[i][l
@@ -1636,6 +1656,11 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
     /// allocate dead roots, N and P to soil layers
     for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+
+        if (m_soilRsd[i][l] != m_soilRsd[i][l]) {
+            cout << "PLTMGT: m_soilRsd " << m_soilRsd[i][l] << endl;
+        }
+
         m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * m_pltN[i] * m_frRoot[i];
         m_soilFrshOrgP[i][l] += tmp_rtfr[i][l] * m_pltP[i] * m_frRoot[i];
     }
@@ -1725,6 +1750,10 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
                 dep2cap = Min(dep2cap, m_potVol[i]);
                 m_soilWtrSto[i][ly] += dep2cap;
                 m_potVol[i] -= dep2cap;
+            }
+
+            if (m_soilWtrSto[i][ly] != m_soilWtrSto[i][ly] || m_soilWtrSto[i][ly] < 0.f) {
+                cout << "SET_LM: moisture is less than zero" << m_soilWtrSto[i][ly] << endl;
             }
         }
         if (m_potVol[i] < curOperation->MaxFitDepth()) {
