@@ -18,7 +18,7 @@
 
 #include "basic.h"
 #include "db_mongoc.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 /// include utility classes and const definition of SEIMS
 #include "seims.h"

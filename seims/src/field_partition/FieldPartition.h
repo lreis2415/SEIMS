@@ -9,7 +9,7 @@
 #ifndef FIELD_PARTITION_HEADER
 #define FIELD_PARTITION_HEADER
 
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 using namespace ccgl::data_raster;
 

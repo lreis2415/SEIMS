@@ -15,7 +15,7 @@
 
 #include "tinyxml.h"
 #include "basic.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 #include "BMPFactory.h"
 #include "ParamInfo.h"

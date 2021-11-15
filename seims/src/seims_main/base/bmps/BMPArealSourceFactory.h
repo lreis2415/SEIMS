@@ -12,7 +12,7 @@
 #define SEIMS_BMP_AREALSOURCE_H
 
 #include "basic.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 #include "BMPFactory.h"
 
 using namespace ccgl;

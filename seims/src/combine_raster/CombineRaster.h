@@ -10,7 +10,7 @@
 #ifdef USE_MONGODB
 #include "db_mongoc.h"
 #endif /* USE_MONGODB */
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 using namespace ccgl;
 #ifdef USE_MONGODB

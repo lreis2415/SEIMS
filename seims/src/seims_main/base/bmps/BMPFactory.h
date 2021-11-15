@@ -11,7 +11,7 @@
 #define SEIMS_BMP_FACTORY_H
 
 #include "db_mongoc.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 #include "seims.h"
 

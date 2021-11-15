@@ -22,7 +22,7 @@
 #ifndef GRID_LAYERING_H
 #define GRID_LAYERING_H
 
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 using namespace ccgl;
 using namespace data_raster;

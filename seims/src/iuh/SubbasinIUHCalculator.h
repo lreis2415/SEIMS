@@ -13,7 +13,7 @@
 #define IUH_SUBBASIN_CALCULATOR_H
 
 #include "db_mongoc.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 using namespace ccgl;
 using namespace db_mongoc;
