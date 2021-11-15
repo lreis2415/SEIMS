@@ -1,16 +1,21 @@
 ##############
 # Unit Tests
 ##############
-enable_testing()
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10 FATAL_ERROR)
+#enable_testing()
+include(GoogleTest)
 
 file(GLOB_RECURSE TEST_SRC_FILES *.cpp)
 set(APPNAME UnitTests_CCGL)
 add_executable(${APPNAME} ${TEST_SRC_FILES})
+
 IF (GTEST_FOUND)
-    target_link_libraries(${APPNAME} GTest::GTest GTest::Main ${CCGLNAME})
+    target_link_libraries(${APPNAME} GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CCGLNAME})
 ELSE ()
-    target_link_libraries(${APPNAME} gtest gtest_main ${CCGLNAME})
+    target_link_libraries(${APPNAME} gtest gtest_main gmock gmock_main ${CCGLNAME})
 ENDIF ()
+
+gtest_discover_tests(${APPNAME})
 
 IF(XCODE AND LLVM_FOUND)
     TARGET_LINK_LIBRARIES(${APPNAME} ${OpenMP_LIBRARY})
