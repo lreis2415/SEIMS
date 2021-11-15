@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "../../src/utils_array.h"
-#include "../../src/data_raster.h"
+#include "../../src/data_raster.hpp"
 #include "../../src/utils_filesystem.h"
 
 using namespace ccgl::data_raster;

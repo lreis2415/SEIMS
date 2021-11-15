@@ -22,7 +22,7 @@
  *
  */
 #include "gtest/gtest.h"
-#include "../../src/data_raster.h"
+#include "../../src/data_raster.hpp"
 #include "../../src/utils_filesystem.h"
 #include "../../src/utils_time.h"
 #include "../../src/utils_string.h"

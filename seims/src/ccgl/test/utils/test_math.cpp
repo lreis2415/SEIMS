@@ -11,19 +11,21 @@ using namespace ccgl::utils_math;
 #define EPSILON_RELMAX 0.00001
 #endif
 
-template <typename PTYPE>
-bool equals(PTYPE x, PTYPE y) {
-    PTYPE err;
+template <typename PTYPE1, typename PTYPE2>
+bool equals(PTYPE1 x, PTYPE2 y) {
+    double err;
+    double dx = CVT_DBL(x);
+    double dy = CVT_DBL(y);
 
-    if (fabs(x - y) <= static_cast<PTYPE>(EPSILON_MAX))
+    if (fabs(dx - dy) <= EPSILON_MAX)
         return true;
 
-    if (fabs(x) > fabs(y))
-        err = fabs((x - y) / x);
+    if (fabs(dx) > fabs(dy))
+        err = fabs((dx - dy) / dx);
     else
-        err = fabs((x - y) / y);
+        err = fabs((dx - dy) / dy);
 
-    return err <= static_cast<PTYPE>(EPSILON_RELMAX);
+    return err <= EPSILON_RELMAX;
 }
 
 TEST(TestutilsMath, NumericEqual) {
@@ -114,6 +116,6 @@ TEST(TestutilsMath, ApprPow) {
     err_ave /= n;
     printf("%f,%f,%f\n", err_min, err_max, err_ave);
     // currently, with precision=11, pow(0.000001~2, -1~1) get a err_ave around 0.016% and err_max around 0.06%
-    EXPECT_LE(err_ave, 0.02f); 
+    EXPECT_LE(err_ave, 0.02f);
     // EXPECT_LE(err_max, 0.02f);
 }
