@@ -132,7 +132,8 @@ INCLUDE(AddFindPaths)
 INCLUDE(GNUInstallDirs)
 
 ### CCGL library
-FILE(GLOB INC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
+FILE(GLOB INC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 FILE(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 IF(UNIX)
     IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
@@ -260,6 +261,8 @@ IF (RUNCOV STREQUAL 1)
 ENDIF ()
 
 IF (UNITTEST STREQUAL 1)
+    # Enable testing for the project
+    enable_testing()
     ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test)
     ### Copy test data to build directory for UnitTest Only!
     MAKE_DIRECTORY(${INSTALL_DIR})
