@@ -713,7 +713,8 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                         // DEBUG: output the modified data
                         CLOG(INFO, LOG_OUTPUT) << t << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                         << iter2->second->getBMPName() << " param: " << remote_filename;
-                        vector<string> output_params{ "0_CONDUCTIVITY" }; //"0_DENSITY", "0_CONDUCTIVITY"
+                        vector<string> output_params;
+                        output_params.push_back("0_CONDUCTIVITY"); //"0_DENSITY", "0_CONDUCTIVITY"
 #endif // _DEBUG
                         int count = 0;
                         if (rs_map_[remote_filename]->Is2DRaster()) {

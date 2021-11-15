@@ -155,7 +155,7 @@ void SERO_MUSLE::InitialIntermediates() {
         // line 111-113 of soil_phys.f of SWAT source.
         m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
     }
-    
+
     m_reCalIntermediates = false;
 }
 
@@ -177,8 +177,7 @@ int SERO_MUSLE::Execute() {
         // Update C factor
         if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (m_landCover[i] > 0.f && FloatEqual(m_landCover[i], 18)) {
-                // TODO, use some flexible way to exclude WATER, rather than use 18!
+            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // exclude WATER
                 // ln(0.8) = -0.2231435513142097
                 m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
@@ -191,7 +190,7 @@ int SERO_MUSLE::Execute() {
                 }
             }
         } else {
-            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) {
+            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // exclude WATER
                 // new calculation method from RUSLE with the minimum C factor value
                 //! fraction of cover by residue

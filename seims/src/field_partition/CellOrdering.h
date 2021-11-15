@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "basic.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 #include "Cell.h"
 #include "Field.h"
 #include "FieldPartition.h"

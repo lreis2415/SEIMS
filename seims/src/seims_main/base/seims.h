@@ -12,7 +12,7 @@
 #ifndef SEIMS_HEADER
 #define SEIMS_HEADER
 
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 /*!
  * \enum LayeringMethod
@@ -32,7 +32,7 @@ const char* const LayeringMethodString[] = {"_UP_DOWN", "_DOWN_UP"};
  * \brief Flow direction method for flow routing.
  */
 enum FlowDirMethod {
-    D8,     ///< D8 (O¡¯Callaghan and Mark, 1984), default
+    D8,     ///< D8 (Oï¿½ï¿½Callaghan and Mark, 1984), default
     Dinf,   ///< Dinf (Tarboton, 1997)
     MFDmd   ///< Multiple Flow Direction based on maximum downslope gradient (Qin et al., 2007)
 };
