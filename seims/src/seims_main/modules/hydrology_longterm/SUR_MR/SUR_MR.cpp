@@ -121,9 +121,6 @@ int SUR_MR::Execute() {
         if (m_infil[i] > 0.f) {
             m_soilWtrSto[i][0] += m_infil[i];
         }
-        if (m_soilWtrSto[i][0] != m_soilWtrSto[i][0] || m_soilWtrSto[i][0] < 0.f) {
-            cout << "SUR_MR: moisture is less than zero" << m_soilWtrSto[i][0] << endl;
-        }
     }
     return 0;
 }

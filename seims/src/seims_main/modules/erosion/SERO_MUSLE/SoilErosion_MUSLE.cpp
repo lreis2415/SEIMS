@@ -165,7 +165,7 @@ int SERO_MUSLE::Execute() {
     CheckInputData();
     InitialIntermediates();
     InitialOutputs();
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfRf[i] < 0.0001f || m_rchID[i] > 0) {
             m_eroSed[i] = 0.f;
@@ -209,7 +209,6 @@ int SERO_MUSLE::Execute() {
         }
         if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
         if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
-        assert(m_usleC[i]>=0.f);
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);

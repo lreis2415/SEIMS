@@ -439,16 +439,6 @@ void Nutrient_Transformation::InitialOutputs() {
                     m_soilStabOrgN[i][k] = m_sol_HPN[i][k];
                     m_soilActvOrgN[i][k] = m_sol_HSN[i][k];
                     m_soilFrshOrgN[i][k] = m_sol_LMN[i][k] + m_sol_LSN[i][k];
-
-                    if (isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k]) ||
-                        isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k]) ||
-                        isnan(m_sol_HPN[i][k]) || isinf(m_sol_HPN[i][k]) ||
-                        isnan(m_sol_LSN[i][k]) || isinf(m_sol_LSN[i][k]) ||
-                        isnan(m_sol_LMN[i][k]) || isinf(m_sol_LMN[i][k]) ||
-                        isnan(m_sol_BMN[i][k]) || isinf(m_sol_BMN[i][k]) ||
-                        isnan(m_sol_HSN[i][k]) || isinf(m_sol_HSN[i][k])) {
-                        cout << "NUTRTF: m_soilRsd " << m_soilRsd[i][k] << endl;
-                    }
                 }
             }
         }
@@ -471,7 +461,7 @@ void Nutrient_Transformation::InitialOutputs() {
 int Nutrient_Transformation::Execute() {
     CheckInputData();
     InitialOutputs();
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // compute nitrogen and phosphorus mineralization
         if (m_cbnModel == 0) {
@@ -503,9 +493,9 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(const int i) {
             sut = 0.1f + 0.9f * sqrt(m_soilWtrSto[i][kk] / m_soilFC[i][kk]);
             sut = Max(0.05f, sut);
 
-            if (isnan(m_soilWtrSto[i][kk]) || isinf(m_soilWtrSto[i][kk])) {
-                cout << "NUTR_TF: moisture is less than zero" << m_soilWtrSto[i][kk] << endl;
-            }
+            //if (isnan(m_soilWtrSto[i][kk]) || isinf(m_soilWtrSto[i][kk])) {
+            //    cout << "NUTR_TF: moisture is less than zero" << m_soilWtrSto[i][kk] << endl;
+            //}
 
             //compute soil temperature factor
             //variable to hold intermediate calculation result (xx)
@@ -622,11 +612,6 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(const int i) {
                 rdc = decr * m_soilRsd[i][k];
                 m_soilRsd[i][k] = m_soilRsd[i][k] - rdc;
                 if (m_soilRsd[i][k] < 0)m_soilRsd[i][k] = 0.f;
-
-                if (isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k])) {
-                    cout << "NUTRTF: m_soilRsd " << m_soilRsd[i][k] << endl;
-                }
-
                 rmn1 = decr * m_soilFrshOrgN[i][k];
                 m_soilFrshOrgP[i][k] = Max(1.e-6f, m_soilFrshOrgP[i][k]);
                 rmp = decr * m_soilFrshOrgP[i][k];
@@ -1002,17 +987,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
                 x1 = 1.f;
             }
 
-            if (isnan(wdn) || isinf(wdn) ||
-                isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k]) ||
-                isnan(m_sol_HPN[i][k]) || isinf(m_sol_HPN[i][k]) ||
-                isnan(m_sol_LSN[i][k]) || isinf(m_sol_LSN[i][k]) ||
-                isnan(m_sol_LMN[i][k]) || isinf(m_sol_LMN[i][k]) ||
-                isnan(m_sol_BMN[i][k]) || isinf(m_sol_BMN[i][k]) ||
-                isnan(m_sol_HSN[i][k]) || isinf(m_sol_HSN[i][k]) ||
-                isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k])) {
-                cout << "NUTRTF: m_soilNO3[i][k] " << m_soilNO3[i][k] << endl;
-            }
-
             //compute soil temperature factor
             float cdg = 0.f;
             /// cdg = m_sote[i] / (m_sote[i] + exp(5.058459f - 0.2503591f * m_sote[i]));
@@ -1042,35 +1016,11 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
                 float vof = 1.f / (1.f + pow(voidfr * 25.f, 5.f));
                 wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoef * cdg * vof * m_soilCbn[i][k]));
                 m_soilNO3[i][k] -= wdn;
-                if (isnan(wdn) || isinf(wdn) ||
-                    isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k])){
-                    cout << "NUTRTF: m_soilNO3[i][k] " << m_soilNO3[i][k] << endl;
-                }
             }
-
-            if (isnan(wdn) || isinf(wdn) ||
-                isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k]) ||
-                isnan(m_sol_HPN[i][k]) || isinf(m_sol_HPN[i][k]) ||
-                isnan(m_sol_LSN[i][k]) || isinf(m_sol_LSN[i][k]) ||
-                isnan(m_sol_LMN[i][k]) || isinf(m_sol_LMN[i][k]) ||
-                isnan(m_sol_BMN[i][k]) || isinf(m_sol_BMN[i][k]) ||
-                isnan(m_sol_HSN[i][k]) || isinf(m_sol_HSN[i][k]) ||
-                isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k])) {
-                cout << "NUTRTF: m_soilNO3[i][k] " << m_soilNO3[i][k] << endl;
-            }
-
             m_wshd_dnit += wdn * m_cellAreaFr;
             m_wdntl[i] += wdn;
 
             float sol_min_n = m_soilNO3[i][k] + m_soilNH4[i][k];
-
-
-            if (isnan(sol_min_n) || isinf(sol_min_n) ||
-                isnan(wdn) || isinf(wdn) ||
-                isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k])) {
-                cout << "NUTRTF: sol_min_n " << sol_min_n << endl;
-            }
-
             //if(i == 100 && k == 0) cout << m_sol_LSL[i][k] << m_sol_LS[i][k] << endl;
             // lignin content in structural litter (fraction)
             RLR = Min(0.8f, m_sol_LSL[i][k] / (m_sol_LS[i][k] + 1.e-5f));
@@ -1185,12 +1135,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             // REDUCE DEMAND if SUPPLY LIMITS
             if (Wmin < DMDN) x3 = Wmin / DMDN;
 
-            if (isnan(x3) || isinf(x3) ||
-                isnan(SUM) || isinf(SUM) ||
-                isnan(Wmin) || isinf(Wmin)) {
-                cout << "NUTRTF: x3 " << x3 << "\t" << "SUM " << SUM << endl;
-            }
-
             // ACTUAL TRANSFORMATIONS
             if (CPN1 > 0.f) {
                 LSCTA = LSCTP * x3;
@@ -1258,11 +1202,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             if (HSNTA < x1) { CPN4 = x1 - HSNTA; } else { SUM = SUM + HSNTA - x1; }
             if (HPNTA < PN9) { CPN5 = PN9 - HPNTA; } else { SUM = SUM + HPNTA - PN9; }
 
-            if (isnan(SUM) ||  isinf(SUM) ||
-                isnan(x1) || isinf(x1)) {
-                cout << "NUTRTF: SUM " << SUM << endl;
-            }
-
             // total available N
             Wmin = Max(1.e-5f, m_soilNO3[i][k] + m_soilNH4[i][k] + SUM);
             // total demand for potential transformation of SOM
@@ -1282,17 +1221,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
                     m_soilNO3[i][k] = x1;
                 }
             }
-
-            if (isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k]) || 
-                isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k]) ||
-                isnan(m_sol_HPN[i][k]) || isinf(m_sol_HPN[i][k]) || 
-                isnan(m_sol_LSN[i][k]) || isinf(m_sol_LSN[i][k]) ||
-                isnan(m_sol_LMN[i][k]) || isinf(m_sol_LMN[i][k]) ||
-                isnan(m_sol_BMN[i][k]) || isinf(m_sol_BMN[i][k]) ||
-                isnan(m_sol_HSN[i][k]) || isinf(m_sol_HSN[i][k])) {
-                cout << "NUTRTF: m_soilRsd " << m_soilRsd[i][k] << endl;
-            }
-
             DF1 = LSNTA;
             DF2 = LMNTA;
             // DF represents Demand from
@@ -1338,16 +1266,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
 
             x3 = APX * HPCTA + ASX * HSCTA + A1 * (LMCTA + LSLNCTA);
             m_sol_BMC[i][k] = m_sol_BMC[i][k] - BMCTA + x3;
-
-            if (m_sol_BMC[i][k] <0.f /*&& i==46238 && k==0*/)
-            {
-                cout << "NUTRTF: m_sol_BMC: " << m_sol_BMC[i][k] 
-                    << " sut: " << sut << " x1: " << x1 << " x3: " << x3 << " Wmin: " << Wmin << " DMDN: " << DMDN
-                    << " APX: " << APX << " HPCTA: " << HPCTA << " ASX: " << ASX
-                    << " HSCTA: " << HSCTA << " A1: " << A1 << " LMCTA: " << LMCTA << " LSLNCTA: " << LSLNCTA
-                    << " BMCTA: " << BMCTA  << endl;
-            }
-
             DF3 = BMNTA - NCBM * x3;
             // DF3 is the supply of BMNTA - demand of N to meet the Passive, Slow, Metabolic, and Non-lignin Structural
             // C pools transformations into microbiomass pool
@@ -1361,12 +1279,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             // DF5 Passive pool demand of N - N demand for microbiomass C transformed into passive pool
             DF6 = sol_min_n - m_soilNO3[i][k] - m_soilNH4[i][k];
             // DF6 Supply of mineral N - available mineral N = N demanded from mineral pool
-
-            if (isnan(sol_min_n) || isinf(sol_min_n) ||
-                isnan(DF6)|| isinf(DF6)) {
-                cout << "NUTRTF: sol_min_n " << sol_min_n << endl;
-            }
-
+            
             ADD = DF1 + DF2 + DF3 + DF4 + DF5 + DF6;
             ADF1 = Abs(DF1);
             ADF2 = Abs(DF2);
@@ -1390,10 +1303,6 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             m_soilCbn[i][k] = 100.f * (m_sol_LSC[i][k] + m_sol_LMC[i][k] + m_sol_HSC[i][k] +
                 m_sol_HPC[i][k] + m_sol_BMC[i][k]) / m_soilMass[i][k];
 
-            if (m_soilCbn[i][k] < 0.f) {
-                cout << "NUTRTF: m_soilCbn " << m_soilCbn[i][k] << endl;
-            }
-
             // summary calculations
             float hmn = 0.f;
             hmn = m_sol_RNMN[i][k];
@@ -1414,6 +1323,27 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             m_rmn2tl[i] = m_rmn2tl[i] + rmn1;
             m_rmptl[i] = m_rmptl[i] + rmp;
             m_wdntl[i] = m_wdntl[i] + wdn;
+
+#ifdef _DEBUG
+            if (isnan(wdn) || isinf(wdn) ||
+                isnan(m_soilNO3[i][k]) || isinf(m_soilNO3[i][k]) ||
+                isnan(m_sol_HPN[i][k]) || isinf(m_sol_HPN[i][k]) ||
+                isnan(m_sol_LSN[i][k]) || isinf(m_sol_LSN[i][k]) ||
+                isnan(m_sol_LMN[i][k]) || isinf(m_sol_LMN[i][k]) ||
+                isnan(m_sol_BMN[i][k]) || isinf(m_sol_BMN[i][k]) ||
+                isnan(m_sol_HSN[i][k]) || isinf(m_sol_HSN[i][k]) ||
+                isnan(m_soilRsd[i][k]) || isinf(m_soilRsd[i][k])) {
+                cout << "NUTRTF: m_soilNO3[i][k] " << m_soilNO3[i][k] << endl;
+            }
+            if (m_sol_BMC[i][k] < 0.f /*&& i==46238 && k==0*/)
+            {
+                cout << "NUTRTF: m_sol_BMC: " << m_sol_BMC[i][k]
+                    << " sut: " << sut << " x1: " << x1 << " x3: " << x3 << " Wmin: " << Wmin << " DMDN: " << DMDN
+                    << " APX: " << APX << " HPCTA: " << HPCTA << " ASX: " << ASX
+                    << " HSCTA: " << HSCTA << " A1: " << A1 << " LMCTA: " << LMCTA << " LSLNCTA: " << LSLNCTA
+                    << " BMCTA: " << BMCTA << endl;
+            }
+#endif
         }
     }
 }

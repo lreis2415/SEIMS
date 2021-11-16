@@ -125,8 +125,9 @@ bool SSR_DA::FlowInSoil(const int id) {
         //Adjust the moisture content in the current layer, and the layer immediately below it
         m_soilWtrSto[id][j] -= m_subSurfRf[id][j];
         m_soilWtrSto[id][j] = Max(UTIL_ZERO, m_soilWtrSto[id][j]);
-        m_soilWtrStoPrfl[id] += m_soilWtrSto[id][j];
-        if (m_soilWtrSto[id][j] != m_soilWtrSto[id][j] || m_soilWtrSto[id][j] < 0.f) {
+        m_soilWtrStoPrfl[id] += m_soilWtrSto[id][j]; 
+
+        if (isinf(m_soilWtrSto[id][j]) ||isnan(m_soilWtrSto[id][j]) || m_soilWtrSto[id][j] < 0.f) {
             cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
                     << m_soilWtrSto[id][j] << ", subsurface runoff: " << m_subSurfRf[id][j] << ", depth:"
                     << m_soilThk[id][j] << endl;

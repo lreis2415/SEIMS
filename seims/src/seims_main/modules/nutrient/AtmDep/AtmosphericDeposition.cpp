@@ -65,9 +65,12 @@ int AtmosphericDeposition::Execute() {
         float addrnh4 = 0.01f * m_rainNH4Conc * m_pcp[i];
         m_soilNO3[i][0] += addrno3 + m_dryDepNO3 * 0.0027397260273972603f; // 1. / 365.f;
         m_soilNH4[i][0] += addrnh4 + m_dryDepNH4 * 0.0027397260273972603f;
-        if (m_soilNO3[i][0] != m_soilNO3[i][0]) {
+#ifdef _DEBUG
+        if (isinf(m_soilNO3[i][0]) || isnan(m_soilNO3[i][0]) ||
+            isinf(m_soilNH4[i][0]) || isnan(m_soilNH4[i][0])) {
             cout << "ATMDEP: m_soilNO3 " << m_soilNO3[i][0] << endl;
         }
+#endif
     }
     return 0;
 }
