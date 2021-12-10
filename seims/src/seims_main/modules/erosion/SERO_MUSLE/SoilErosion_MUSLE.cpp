@@ -78,11 +78,11 @@ void SERO_MUSLE::InitialOutputs() {
                 m_usleC[i] = 0.f;
                 continue;
             }
-            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
 
             if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
                 m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
             }
+            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
             if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
                 // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
                 //  the minimum value of the USLE_C for the land cover
@@ -156,6 +156,15 @@ void SERO_MUSLE::InitialIntermediates() {
         m_usleS[i] = S;
         // line 111-113 of soil_phys.f of SWAT source.
         m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
+
+        // for debug only
+        //if (i == 18181 || i == 18182 || i == 18183 ||
+        //    i == 24796 || i == 24797 || i == 24798 ||
+        //    i == 25139 || i == 25140 || i == 25141) // NODATA cell id of USLE_C 
+        //{
+        //    cout << " i: " << i << "c: " << m_usleC[i] << " p: " << m_usleP[i] << " k: " << m_usleK[i][0]
+        //        << " L: " << L << " S: " << S << " mult: " << m_usleMult[i] << endl;
+        //}
     }
     
     m_reCalIntermediates = false;
@@ -189,7 +198,7 @@ int SERO_MUSLE::Execute() {
                 if (m_rsdCovSoil[i] > 1.e-4f) {
                     m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
                 } else {
-                    m_usleC[i] = 0.8f; // In SWAT, this is 0.8. But I think it should be 0.
+                    m_usleC[i] = 0.001f; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
@@ -204,7 +213,7 @@ int SERO_MUSLE::Execute() {
                 float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
                 m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
             } else {
-                m_usleC[i] = 0.f;
+                m_usleC[i] = 0.001f;
             }
         }
         if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
@@ -219,6 +228,15 @@ int SERO_MUSLE::Execute() {
             sed_yld /= exp(3.f * m_snowAccum[i] * 0.03937007874015748f);
         }
         m_eroSed[i] = sed_yld * 1000.f; /// kg
+
+        // for debug only
+        //if (i == 18181 || i == 18182 || i == 18183 ||
+        //    i == 24796 || i == 24797 || i == 24798 ||
+        //    i == 25139 || i == 25140 || i == 25141)
+        //{
+        //    cout << " i: " << i << "c: " << m_usleC[i] << " surfRf: " << m_surfRf[i] << " mult: " << m_usleMult[i]
+        //        << " slopeForPq: " << m_slopeForPq[i] << " sed_yld: " << sed_yld << endl;
+        //}
 
         /// particle size distribution of sediment yield
         m_eroSand[i] = m_eroSed[i] * m_detSand[i];

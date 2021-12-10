@@ -254,7 +254,10 @@ class LanduseUtilClass(object):
             coef1 = (1 - c0) * slp / (slp + s0)
             coef2 = c0 + coef1
             # TODO, Check if it is (lu_id >= 98), by lj
-            if int(lu_id) == 106 or int(lu_id) == 107 or int(lu_id) == 105:
+            # special treatment for urban landuse
+            if int(lu_id) == 106:
+                return 0.1
+            elif int(lu_id) == 107 or int(lu_id) == 105:
                 return coef2 * (1 - imper_perc) + imper_perc
             else:
                 return coef2
