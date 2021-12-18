@@ -13,12 +13,12 @@ Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 
 
 Scenario::~Scenario() {
     CLOG(TRACE, LOG_RELEASE) << "Releasing Scenario...";
-    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end();) {
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        m_bmpFactories.erase(it++);
+        // m_bmpFactories.erase(it++);
     }
     m_bmpFactories.clear();
 }

@@ -74,13 +74,13 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
 
 BMPArealStruct::~BMPArealStruct() {
     CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in BMPArealStruct ...";
-    for (auto it = m_parameters.begin(); it != m_parameters.end();) {
+    for (auto it = m_parameters.begin(); it != m_parameters.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             delete it->second;
             it->second = nullptr;
         }
-        m_parameters.erase(it++);
+        // m_parameters.erase(it++);
     }
     m_parameters.clear();
 }
@@ -89,7 +89,7 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                                              const int bmpType, const int bmpPriority, vector<string>& distribution,
                                              const string& collection, const string& location, bool effectivenessChangeable,
                                              time_t changeFrequency, int variableTimes) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessChangeable, 
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location, effectivenessChangeable,
     changeFrequency, variableTimes),
     m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_changeTimes),m_unitUpdateTimes(m_changeTimes),m_seriesIndex(0) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
@@ -116,17 +116,17 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
     }
     else{
         SplitStringForValues(location, '-', m_unitIDs);
-    }    
+    }
 }
 
 BMPArealStructFactory::~BMPArealStructFactory() {
     // m_mgtFieldsRs will be released in DataCenter. No need to be released here.
-    for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end();) {
+    for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        m_bmpStructMap.erase(it++);
+        // m_bmpStructMap.erase(it++);
     }
     m_bmpStructMap.clear();
 }

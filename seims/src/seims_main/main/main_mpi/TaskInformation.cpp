@@ -21,26 +21,31 @@ TaskInfo::~TaskInfo() {
     if (up_count != nullptr) Release1DArray(up_count);
     if (up_ids != nullptr) Release1DArray(up_ids);
     if (subbsn_count_rank_ != nullptr) Release1DArray(subbsn_count_rank_);
-    for (auto it = subbsn_tfvalues_.begin(); it != subbsn_tfvalues_.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    for (auto it = subbsn_tfvalues_.begin(); it != subbsn_tfvalues_.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (it2->second != nullptr) {
                 Release1DArray(it2->second);
                 it2->second = nullptr;
             }
-            it->second.erase(it2++);
+            // it->second.erase(it2++);
         }
-        subbsn_tfvalues_.erase(it++);
+        it->second.clear();
+        // subbsn_tfvalues_.erase(it++);
     }
-    for (auto it = recv_subbsn_tfvalues_.begin(); it != recv_subbsn_tfvalues_.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    subbsn_tfvalues_.clear();
+
+    for (auto it = recv_subbsn_tfvalues_.begin(); it != recv_subbsn_tfvalues_.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (it2->second != nullptr) {
                 Release1DArray(it2->second);
                 it2->second = nullptr;
             }
-            it->second.erase(it2++);
+            // it->second.erase(it2++);
         }
-        recv_subbsn_tfvalues_.erase(it++);
+        it->second.clear();
+        // recv_subbsn_tfvalues_.erase(it++);
     }
+    recv_subbsn_tfvalues_.clear();
 }
 
 bool TaskInfo::CheckInputData() {

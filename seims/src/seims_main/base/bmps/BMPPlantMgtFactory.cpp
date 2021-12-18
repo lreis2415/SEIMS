@@ -33,12 +33,12 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, co
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory() {
     Release1DArray(m_parameters);
-    for (auto it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
+    for (auto it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        m_bmpPlantOps.erase(it++);
+        // m_bmpPlantOps.erase(it++);
     }
     m_bmpPlantOps.clear();
 }

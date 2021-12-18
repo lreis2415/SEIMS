@@ -113,11 +113,11 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
 }
 
 RegularMeasurement::~RegularMeasurement() {
-    for (auto it = m_siteData.begin(); it != m_siteData.end();) {
+    for (auto it = m_siteData.begin(); it != m_siteData.end(); ++it) {
         if (*it != nullptr) {
             utils_array::Release1DArray(*it);
         }
-        it = m_siteData.erase(it);
+        // it = m_siteData.erase(it);
     }
     m_siteData.clear();
 }

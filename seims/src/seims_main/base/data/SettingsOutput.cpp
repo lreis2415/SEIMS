@@ -95,18 +95,18 @@ SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, 
 
 SettingsOutput::~SettingsOutput() {
     CLOG(TRACE, LOG_RELEASE) << "Start to release SettingsOutput ...";
-    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end();) {
+    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ++it) {
         if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
         }
-        m_printInfosMap.erase(it++);
+        // m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
-    for (auto it = m_printInfos.begin(); it != m_printInfos.end();) {
+    for (auto it = m_printInfos.begin(); it != m_printInfos.end(); ++it) {
         *it = nullptr;
-        it = m_printInfos.erase(it);
+        // it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
     CLOG(TRACE, LOG_RELEASE) << "End to release SettingsOutput.";

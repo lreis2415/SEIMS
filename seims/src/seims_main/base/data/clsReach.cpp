@@ -66,7 +66,7 @@ clsReach::clsReach(const bson_t*& bson_table):
         i++;
     }
     // read coordinates of reaches
-    if (bson_iter_init_find(&iterator, bson_table, REACH_COORX) && 
+    if (bson_iter_init_find(&iterator, bson_table, REACH_COORX) &&
         SplitStringForValues(GetStringFromBsonIterator(&iterator), ',', coor_x_) &&
         bson_iter_init_find(&iterator, bson_table, REACH_COORY) &&
         SplitStringForValues(GetStringFromBsonIterator(&iterator), ',', coor_y_) &&
@@ -405,21 +405,21 @@ clsReaches::~clsReaches() {
     //CLOG(TRACE, LOG_RELEASE) << "Release clsReach...";
     StatusMessage("Release clsReach...");
     if (!reaches_obj_.empty()) {
-        for (auto iter = reaches_obj_.begin(); iter != reaches_obj_.end();) {
+        for (auto iter = reaches_obj_.begin(); iter != reaches_obj_.end(); ++iter) {
             if (nullptr != iter->second) {
                 delete iter->second;
                 iter->second = nullptr;
             }
-            reaches_obj_.erase(iter++);
+            // reaches_obj_.erase(iter++);
         }
         reaches_obj_.clear();
     }
     if (!reaches_properties_.empty()) {
-        for (auto iter = reaches_properties_.begin(); iter != reaches_properties_.end();) {
+        for (auto iter = reaches_properties_.begin(); iter != reaches_properties_.end(); ++iter) {
             if (nullptr != iter->second) {
                 Release1DArray(iter->second);
             }
-            reaches_properties_.erase(iter++);
+            // reaches_properties_.erase(iter++);
         }
         reaches_properties_.clear();
     }

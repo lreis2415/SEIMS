@@ -81,66 +81,81 @@ ModuleFactory::~ModuleFactory() {
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
     CLOG(TRACE, LOG_RELEASE) << "---release map of SEIMSModuleSettings ...";
-    for (auto it = m_settings.begin(); it != m_settings.end();) {
+    for (auto it = m_settings.begin(); it != m_settings.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
-        m_settings.erase(it++);
+        // m_settings.erase(it++);
     }
     m_settings.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release module parameters ...";
-    for (auto it = m_moduleParameters.begin(); it != m_moduleParameters.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    for (auto it = m_moduleParameters.begin(); it != m_moduleParameters.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (*it2 != nullptr) {
                 delete *it2;
                 *it2 = nullptr;
             }
-            it2 = it->second.erase(it2);
+            // it2 = it->second.erase(it2);
         }
-        m_moduleParameters.erase(it++);
+        it->second.clear();
+        // m_moduleParameters.erase(it++);
     }
+    m_moduleParameters.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release module inputs ...";
-    for (auto it = m_moduleInputs.begin(); it != m_moduleInputs.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    for (auto it = m_moduleInputs.begin(); it != m_moduleInputs.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (*it2 != nullptr) {
                 delete *it2;
                 *it2 = nullptr;
             }
-            it2 = it->second.erase(it2);
+            // it2 = it->second.erase(it2);
         }
-        m_moduleInputs.erase(it++);
+        it->second.clear();
+        // m_moduleInputs.erase(it++);
     }
+    m_moduleInputs.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release module outputs ...";
-    for (auto it = m_moduleOutputs.begin(); it != m_moduleOutputs.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    for (auto it = m_moduleOutputs.begin(); it != m_moduleOutputs.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (*it2 != nullptr) {
                 delete *it2;
                 *it2 = nullptr;
             }
-            it2 = it->second.erase(it2);
+            // it2 = it->second.erase(it2);
         }
-        m_moduleOutputs.erase(it++);
+        it->second.clear();
+        // m_moduleOutputs.erase(it++);
     }
+    m_moduleOutputs.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release module in/outputs ...";
-    for (auto it = m_moduleInOutputs.begin(); it != m_moduleInOutputs.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+    for (auto it = m_moduleInOutputs.begin(); it != m_moduleInOutputs.end(); ++it) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             if (*it2 != nullptr) {
                 delete *it2;
                 *it2 = nullptr;
             }
-            it2 = it->second.erase(it2);
+            // it2 = it->second.erase(it2);
         }
-        m_moduleInOutputs.erase(it++);
+        it->second.clear();
+        // m_moduleInOutputs.erase(it++);
     }
+    m_moduleInOutputs.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release module transferred value inputs ...";
-    for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end();) {
+    for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end(); ++it) {
         if (*it != nullptr) {
             *it = nullptr;
         }
-        it = m_tfValueInputs.erase(it);
+        // it = m_tfValueInputs.erase(it);
     }
+    m_tfValueInputs.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release dynamic library handles ...";
     for (vector<DLLINSTANCE>::iterator dllit = m_dllHandles.begin(); dllit != m_dllHandles.end(); ) {
 #ifdef WIN32

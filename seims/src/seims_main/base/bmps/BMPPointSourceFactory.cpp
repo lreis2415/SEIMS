@@ -35,23 +35,22 @@ BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, co
 
 BMPPointSrcFactory::~BMPPointSrcFactory() {
     if (!m_pointSrcLocsMap.empty()) {
-        for (auto it = m_pointSrcLocsMap.begin();
-             it != m_pointSrcLocsMap.end();) {
+        for (auto it = m_pointSrcLocsMap.begin(); it != m_pointSrcLocsMap.end(); ++it) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_pointSrcLocsMap.erase(it++);
+            // m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
     }
     if (!m_pointSrcMgtMap.empty()) {
-        for (auto it = m_pointSrcMgtMap.begin(); it != m_pointSrcMgtMap.end();) {
+        for (auto it = m_pointSrcMgtMap.begin(); it != m_pointSrcMgtMap.end(); ++it) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_pointSrcMgtMap.erase(it++);
+            // m_pointSrcMgtMap.erase(it++);
         }
         m_pointSrcMgtMap.clear();
     }

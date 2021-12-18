@@ -53,40 +53,40 @@ DataCenter::~DataCenter() {
         subbasins_ = nullptr;
     }
     CLOG(TRACE, LOG_RELEASE) << "---release map of all 1D and 2D raster data ...";
-    for (auto it = rs_map_.begin(); it != rs_map_.end();) {
+    for (auto it = rs_map_.begin(); it != rs_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
-        rs_map_.erase(it++);
+        // rs_map_.erase(it++);
     }
     rs_map_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in MongoDB ...";
-    for (auto it = init_params_.begin(); it != init_params_.end();) {
+    for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        init_params_.erase(it++);
+        // init_params_.erase(it++);
     }
     init_params_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of 1D array data ...";
-    for (auto it = array1d_map_.begin(); it != array1d_map_.end();) {
+    for (auto it = array1d_map_.begin(); it != array1d_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             Release1DArray(it->second);
         }
-        array1d_map_.erase(it++);
+        // array1d_map_.erase(it++);
     }
     array1d_map_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of 2D array data ...";
-    for (auto it = array2d_map_.begin(); it != array2d_map_.end();) {
+    for (auto it = array2d_map_.begin(); it != array2d_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             Release2DArray(array2d_rows_map_[it->first], it->second);
         }
-        array2d_map_.erase(it++);
+        // array2d_map_.erase(it++);
     }
     array2d_map_.clear();
 }
@@ -203,7 +203,7 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     //                             "The data length derived from LoadAdjustArrayData in " + remote_filename +
     //                             " is not the same as the template.");
     //    }
-    // } else 
+    // } else
     if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
         /// 3. IF Meteorology sites data
         n = clim_station_->NumberOfSites(DataType_Meteorology);
@@ -661,7 +661,7 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
             else{
                 needUpdateTime = lastUpdateTime + changeFrequency;
                 //needUpdateTime = lastUpdateTime + 2;// changeFrequency;
-            }                
+            }
 
             if (t >= needUpdateTime){
                 cout << "Update scenario parameters dynamically." << endl;

@@ -78,56 +78,56 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
 MGTOpt_SWAT::~MGTOpt_SWAT() {
     /// release map containers
     if (!m_mgtFactory.empty()) {
-        for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end();) {
+        for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); ++it) {
             if (it->second != nullptr) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_mgtFactory.erase(it++);
+            // m_mgtFactory.erase(it++);
         }
         m_mgtFactory.clear();
     }
     if (!m_landuseLookupMap.empty()) {
-        for (auto it = m_landuseLookupMap.begin(); it != m_landuseLookupMap.end();) {
+        for (auto it = m_landuseLookupMap.begin(); it != m_landuseLookupMap.end(); ++it) {
             if (it->second != nullptr) {
                 delete[] it->second;
                 it->second = nullptr;
             }
             it->second = nullptr;
-            m_landuseLookupMap.erase(it++);
+            // m_landuseLookupMap.erase(it++);
         }
         m_landuseLookupMap.clear();
     }
     if (!m_cropLookupMap.empty()) {
-        for (auto it = m_cropLookupMap.begin(); it != m_cropLookupMap.end();) {
+        for (auto it = m_cropLookupMap.begin(); it != m_cropLookupMap.end(); ++it) {
             if (it->second != nullptr) {
                 delete[] it->second;
                 it->second = nullptr;
             }
             it->second = nullptr;
-            m_cropLookupMap.erase(it++);
+            // m_cropLookupMap.erase(it++);
         }
         m_cropLookupMap.clear();
     }
     if (!m_fertilizerLookupMap.empty()) {
-        for (auto it = m_fertilizerLookupMap.begin(); it != m_fertilizerLookupMap.end();) {
+        for (auto it = m_fertilizerLookupMap.begin(); it != m_fertilizerLookupMap.end(); ++it) {
             if (it->second != nullptr) {
                 delete[] it->second;
                 it->second = nullptr;
             }
             it->second = nullptr;
-            m_fertilizerLookupMap.erase(it++);
+            // m_fertilizerLookupMap.erase(it++);
         }
         m_fertilizerLookupMap.clear();
     }
     if (!m_tillageLookupMap.empty()) {
-        for (auto it = m_tillageLookupMap.begin(); it != m_tillageLookupMap.end();) {
+        for (auto it = m_tillageLookupMap.begin(); it != m_tillageLookupMap.end(); ++it) {
             if (it->second != nullptr) {
                 delete[] it->second;
                 it->second = nullptr;
             }
             it->second = nullptr;
-            m_tillageLookupMap.erase(it++);
+            // m_tillageLookupMap.erase(it++);
         }
         m_tillageLookupMap.clear();
     }

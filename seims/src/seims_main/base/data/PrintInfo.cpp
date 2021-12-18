@@ -29,11 +29,11 @@ PrintInfoItem::~PrintInfoItem() {
     Release1DArray(m_1DData);
     Release2DArray(m_nRows, m_2DData);
 
-    for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end();) {
+    for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
         if (it->second != nullptr) {
             Release1DArray(it->second);
         }
-        TimeSeriesDataForSubbasin.erase(it++);
+        // TimeSeriesDataForSubbasin.erase(it++);
     }
     TimeSeriesDataForSubbasin.clear();
 
@@ -557,12 +557,12 @@ PrintInfo::PrintInfo(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
 }
 
 PrintInfo::~PrintInfo() {
-    for (auto it = m_PrintItems.begin(); it != m_PrintItems.end();) {
+    for (auto it = m_PrintItems.begin(); it != m_PrintItems.end(); ++it) {
         if (nullptr != *it) {
             delete *it;
             *it = nullptr;
         }
-        it = m_PrintItems.erase(it);
+        // it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
 

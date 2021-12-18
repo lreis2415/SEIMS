@@ -38,22 +38,22 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
 
 BMPArealSrcFactory::~BMPArealSrcFactory() {
     if (!m_arealSrcLocsMap.empty()) {
-        for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end();) {
+        for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end(); ++it) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_arealSrcLocsMap.erase(it++);
+            // m_arealSrcLocsMap.erase(it++);
         }
         m_arealSrcLocsMap.clear();
     }
     if (!m_arealSrcMgtMap.empty()) {
-        for (auto it = m_arealSrcMgtMap.begin(); it != m_arealSrcMgtMap.end();) {
+        for (auto it = m_arealSrcMgtMap.begin(); it != m_arealSrcMgtMap.end(); ++it) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_arealSrcMgtMap.erase(it++);
+            // m_arealSrcMgtMap.erase(it++);
         }
         m_arealSrcMgtMap.clear();
     }

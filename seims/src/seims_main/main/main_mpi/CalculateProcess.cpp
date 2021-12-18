@@ -37,7 +37,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         mongo_client = new MongoClient(input_args->host.c_str(), input_args->port);
     } else {
         // The total number of clients that can be created from this pool is limited
-        //   by the URI option ¡°maxPoolSize¡±, default 100.
+        //   by the URI option ï¿½ï¿½maxPoolSizeï¿½ï¿½, default 100.
         mclient = mongoc_client_pool_pop(mongo_pool);
         if (!mclient) {
             throw ModelException("MongoDBClient", "Constructor",
@@ -412,16 +412,20 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     MPI_Barrier(MCW);
 
     // clean up
-    for (auto it = model_map.begin(); it != model_map.end();) {
+    for (auto it = model_map.begin(); it != model_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        model_map.erase(it++);
+        // model_map.erase(it++);
     }
-    for (auto it = data_center_map.begin(); it != data_center_map.end();) {
+    model_map.clear();
+
+    for (auto it = data_center_map.begin(); it != data_center_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        data_center_map.erase(it++);
+        // data_center_map.erase(it++);
     }
+    data_center_map.clear();
+
     delete module_factory;
     if (spatial_gfs_in) {
         delete spatial_gfs_in;

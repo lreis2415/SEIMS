@@ -142,12 +142,12 @@ clsSubbasins::~clsSubbasins() {
     // CLOG(TRACE, LOG_RELEASE) << "Release subbasin class ...";
     StatusMessage("Release subbasin class ...");
     if (!subbasin_objs_.empty()) {
-        for (auto iter = subbasin_objs_.begin(); iter != subbasin_objs_.end();) {
+        for (auto iter = subbasin_objs_.begin(); iter != subbasin_objs_.end(); ++iter) {
             if (iter->second != nullptr) {
                 delete iter->second;
                 iter->second = nullptr;
             }
-            subbasin_objs_.erase(iter++);
+            // subbasin_objs_.erase(iter++);
         }
         subbasin_objs_.clear();
     }

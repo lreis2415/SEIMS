@@ -17,29 +17,29 @@ InputStation::InputStation(MongoClient* conn, const time_t dtHillslope, const ti
 
 InputStation::~InputStation() {
     CLOG(TRACE, LOG_RELEASE) << "Start to release InputStation data ...";
-    for (auto it = m_measurement.begin(); it != m_measurement.end();) {
+    for (auto it = m_measurement.begin(); it != m_measurement.end(); ++it) {
         if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
         }
-        m_measurement.erase(it++);
+        // m_measurement.erase(it++);
     }
     m_measurement.clear();
 
-    for (auto it = m_latitude.begin(); it != m_latitude.end();) {
+    for (auto it = m_latitude.begin(); it != m_latitude.end(); ++it) {
         if (it->second != nullptr) {
             delete[] it->second;
             it->second = nullptr;
         }
-        m_latitude.erase(it++);
+        // m_latitude.erase(it++);
     }
     m_latitude.clear();
-    for (auto it = m_elevation.begin(); it != m_elevation.end();) {
+    for (auto it = m_elevation.begin(); it != m_elevation.end(); ++it) {
         if (it->second != nullptr) {
             delete[] it->second;
             it->second = nullptr;
         }
-        m_elevation.erase(it++);
+        // m_elevation.erase(it++);
     }
     m_elevation.clear();
 }
