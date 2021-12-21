@@ -99,7 +99,7 @@ def run_benchmark_scenario(sceobj):
                benchmark_indv.sed_per_period))
 
 
-def main(scenario_obj, indv_obj_benchmark):
+def main(scenario_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
     # The Base scenario maintains the same evaluation method as the original one.
@@ -171,7 +171,7 @@ def main(scenario_obj, indv_obj_benchmark):
                 initialize_byinputs = True
 
     if not initialize_byinputs:
-        pop = toolbox.population(scenario_obj.cfg, indv_obj_benchmark, n=pop_size)  # type: List
+        pop = toolbox.population(scenario_obj.cfg, scenario_obj.gene_values, n=pop_size)  # type: List
         print(pop)
 
     init_time = time.time() - stime
@@ -417,33 +417,26 @@ if __name__ == "__main__":
     else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
-
-    with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
-        pareto_pop = pickle.load(fp)
-        # print(type(pareto_pop))
-        # print(pareto_pop)
     sce = SUScenario(sa_cfg)
+
+    sce.set_unique_id()
+    gvalues = [0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0,
+               2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0,
+               0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    sce.initialize(input_genes=gvalues)
+    # sce.economy = selected_indv.fitness.values[0]
+    # sce.environment = selected_indv.fitness.values[1]
+    # sce.export_scenario_to_txt()
+    # sce.export_scenario_to_gtiff()
+    print('The ID of the selected scenario that provided spatial configuration: ' + str(sce.ID))
+    print('The genes of the selected scenario: ' + str(gvalues))
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
-    # Select an individual from the pareto front as the benchmark scenario
-    target_indv_id = 156278373  # modify to an input parameter later
-    for indv in pareto_pop:
-        if indv.id == target_indv_id:
-            selected_indv = indv
-            break
-
-    print('The ID of the selected scenario that provided spatial configuration: ' + str(selected_indv.id))
-    print('The genes of the selected scenario: ' + str(selected_indv.tolist()))
-    sce.set_unique_id(selected_indv.id)
-    sce.gene_values = selected_indv.tolist()
-    sce.economy = selected_indv.fitness.values[0]
-    sce.environment = selected_indv.fitness.values[1]
-    sce.export_scenario_to_txt()
-    # sce.export_scenario_to_gtiff()
-
-    time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
+    time_pareto_pop, time_pareto_stats = main(sce)
 
     time_pareto_pop.sort(key=lambda x: x.fitness.values)
     scoop_log(time_pareto_stats)

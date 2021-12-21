@@ -104,8 +104,13 @@ class SUScenario(Scenario):
                         v = [int(abs(nv)) for nv in v]
                     self.bmps_params[curid][k] = v[:]
                 elif k == 'INCOME':
-                    v = StringClass.extract_numeric_values_from_string(v)
-                    self.bmps_params[curid][k] = v[:]
+                    if isinstance(v, int):  # scenario analysis
+                        self.bmps_params[curid][k] = v
+                    elif isinstance(v, str):  # bmp order optimization
+                        v = StringClass.extract_numeric_values_from_string(v)
+                        self.bmps_params[curid][k] = v[:]
+                    else:
+                        self.bmps_params[curid][k] = v
                 else:
                     self.bmps_params[curid][k] = v
         # client.close()
@@ -188,7 +193,7 @@ class SUScenario(Scenario):
                 else:
                     rand_bit = random.randint(1, self.cfg.change_times)
                     # self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
-                    self.gene_values[idx] = int(gene)*1000+rand_bit
+                    self.gene_values[idx] = int(gene) * 1000 + rand_bit
         return self.gene_values
 
     def rule_based_config(self, method, conf_rate=0.5):
@@ -430,7 +435,7 @@ class SUScenario(Scenario):
             if gene_v == 0:
                 continue
             # subscenario, year = [int(x) for x in str(int(gene_v))]
-            subscenario, year = divmod(int(gene_v),1000)
+            subscenario, year = divmod(int(gene_v), 1000)
             if subscenario not in bmp_units:
                 bmp_units[subscenario] = list()
             bmp_units[subscenario].append('{0}|{1}'.format(unit_id, year))
@@ -488,7 +493,7 @@ class SUScenario(Scenario):
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * actual_years
-                    income += luarea * bmpparam['INCOME'][-1] * actual_years
+                    income += luarea * bmpparam['INCOME'] * actual_years
 
         # self.economy = capex
         # self.economy = capex + opex
@@ -530,7 +535,7 @@ class SUScenario(Scenario):
         # use net present value
         net_present_value = 0.
         for index, net_cost in enumerate(self.net_costs_per_period):
-            net_present_value += net_cost/numpy.power(1.0+self.cfg.discount_rate, index+1)
+            net_present_value += net_cost / numpy.power(1.0 + self.cfg.discount_rate, index + 1)
         self.economy = net_present_value
         print('economy:{}, capex {}, maintain {}, income {}'.format(self.economy, costs, maintains, incomes))
         return self.economy
@@ -610,12 +615,12 @@ class SUScenario(Scenario):
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             # sum of 2013-2017
             rr = RasterUtilClass.read_raster(rfile)
-            # sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment 13-17
+            sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment 13-17
             for i in range(self.cfg.change_times):
                 # 2013-2017
                 filename = self.modelout_dir + os.path.sep + str(i + 3) + '_' + self.eval_info['ENVEVAL']
                 sed_per_period.append(RasterUtilClass.read_raster(filename).get_sum())
-            sed_sum = sed_per_period[-1] # 2017 sed sum
+            # sed_sum = sed_per_period[-1]  # 2017 sed sum
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
@@ -719,7 +724,7 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            subscenario, impl_period = divmod(int(gene_v),1000)
+            subscenario, impl_period = divmod(int(gene_v), 1000)
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
@@ -730,7 +735,7 @@ class SUScenario(Scenario):
                     # every period has income after impl
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
                         bmp_maintain_by_period[prd - 1] += luarea * opex
-                        bmp_income_by_period[prd - 1] += luarea * income[prd - 1] # each year has different benefit
+                        bmp_income_by_period[prd - 1] += luarea * income[prd - 1]  # each year has different benefit
         return bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period
 
     def satisfy_investment_constraints(self):
@@ -1045,6 +1050,7 @@ def main_manual(sceid, gene_values):
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
         sce.economy, sce.environment, sce.sed_sum))
+    return sceid, sce.economy, sce.environment, sce.sed_sum
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
@@ -1184,51 +1190,67 @@ def test_func():
 
     # selected scenario
     # sid = 10
-    # gvalues = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
-    #            0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0,
-    #            0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 1.0, 3.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0,
-    #            0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    # gvalues = [0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0,
+    #            2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0,
+    #            0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual(sid, gvalues)
 
-    # benchmark scenario: all BMPs are implemented in the first year
-    sid = 10515
-    gvalues = [0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               2001.0,
-               0.0, 0.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0,
-               3001.0, 0.0,
-               0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 3001.0, 0.0, 0.0, 1001.0, 0.0, 2001.0, 0.0, 0.0, 0.0,
-               2001.0, 0.0,
-               0.0, 1001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 1001.0, 3001.0, 4001.0, 2001.0, 0.0, 0.0, 0.0,
-               0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 0.0,
-               0.0]
+    # benchmark scenario: all BMPs are implemented in the 1st year
+    sid = 1051
+    gvalues = [0.0, 2001.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0,
+               0.0, 2001.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 1001.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0,
+               2001.0, 0.0, 0.0, 2001.0, 0.0,
+               2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 1001.0, 3001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 1001.0, 2001.0, 2001.0,
+               0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0,
+               0.0, 0.0, 0.0, 0.0,
+               2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3001.0, 4001.0, 1001.0, 3001.0, 0.0, 1001.0, 3001.0, 0.0,
+               2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
     main_manual_bmps_order(sid, gvalues)
 
+    # benchmark scenario: all BMPs are implemented in the 2nd year
     # sid = 1052
-    # gvalues = [0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 1002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            2002.0,
-    #            0.0, 0.0, 2002.0, 0.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 2002.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0,
-    #            3002.0, 0.0,
-    #            0.0, 2002.0, 2002.0, 0.0, 2002.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0, 3002.0, 0.0, 0.0, 1002.0, 0.0, 2002.0, 0.0, 0.0, 0.0,
-    #            2002.0, 0.0,
-    #            0.0, 1002.0, 0.0, 2002.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0, 2002.0, 0.0, 1002.0, 3002.0, 4002.0, 2002.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1002.0, 2002.0, 0.0, 1002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 0.0, 0.0,
-    #            0.0]
+    # gvalues = [0.0, 2002.0, 2002.0, 2002.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0, 0.0, 2002.0, 2002.0,
+    #            0.0, 2002.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 0.0, 2002.0, 0.0, 1002.0, 1002.0, 0.0, 2002.0, 2002.0, 0.0, 2002.0,
+    #            2002.0, 0.0, 0.0, 2002.0, 0.0,
+    #            2002.0, 2002.0, 0.0, 2002.0, 0.0, 0.0, 1002.0, 3002.0, 2002.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 1002.0, 2002.0, 2002.0,
+    #            0.0, 2002.0, 2002.0, 1002.0, 0.0, 0.0, 2002.0, 2002.0, 0.0, 1002.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0,
+    #            2002.0, 2002.0, 2002.0, 0.0, 0.0, 0.0, 1002.0, 3002.0, 4002.0, 1002.0, 3002.0, 0.0, 1002.0, 3002.0, 0.0,
+    #            2002.0, 2002.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual_bmps_order(sid, gvalues)
-
+    #
+    # # benchmark scenario: all BMPs are implemented in the 3rd year
     # sid = 1053
-    # gvalues = [0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            2003.0,
-    #            0.0, 0.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0,
-    #            3003.0, 0.0,
-    #            0.0, 2003.0, 2003.0, 0.0, 2003.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 3003.0, 0.0, 0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 0.0,
-    #            2003.0, 0.0,
-    #            0.0, 1003.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 3003.0, 4003.0, 2003.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2003.0, 0.0, 1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0,
-    #            0.0]
+    # gvalues = [0.0, 2003.0, 2003.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0,
+    #            0.0, 2003.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 2003.0, 0.0, 1003.0, 1003.0, 0.0, 2003.0, 2003.0, 0.0, 2003.0,
+    #            2003.0, 0.0, 0.0, 2003.0, 0.0,
+    #            2003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 1003.0, 3003.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 1003.0, 2003.0, 2003.0,
+    #            0.0, 2003.0, 2003.0, 1003.0, 0.0, 0.0, 2003.0, 2003.0, 0.0, 1003.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0,
+    #            2003.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 3003.0, 4003.0, 1003.0, 3003.0, 0.0, 1003.0, 3003.0, 0.0,
+    #            2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual_bmps_order(sid, gvalues)
+    #
+    # # benchmark scenario: all BMPs are implemented in the 4th year
+    # sid = 1054
+    # gvalues = [0.0, 2004.0, 2004.0, 2004.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2004.0, 2004.0,
+    #            0.0, 2004.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2004.0, 2004.0, 0.0, 0.0, 2004.0, 0.0, 1004.0, 1004.0, 0.0, 2004.0, 2004.0, 0.0, 2004.0,
+    #            2004.0, 0.0, 0.0, 2004.0, 0.0,
+    #            2004.0, 2004.0, 0.0, 2004.0, 0.0, 0.0, 1004.0, 3004.0, 2004.0, 0.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 1004.0, 2004.0, 2004.0,
+    #            0.0, 2004.0, 2004.0, 1004.0, 0.0, 0.0, 2004.0, 2004.0, 0.0, 1004.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0,
+    #            2004.0, 2004.0, 2004.0, 0.0, 0.0, 0.0, 1004.0, 3004.0, 4004.0, 1004.0, 3004.0, 0.0, 1004.0, 3004.0, 0.0,
+    #            2004.0, 2004.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual_bmps_order(sid, gvalues)
 
     # BMP 1 are implemented in the first year
@@ -1287,35 +1309,37 @@ def test_func():
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
 
-    # sid = 229353850
-    # gvalues = [0.0, 22.0, 0.0, 0.0, 0.0, 0.0, 22.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            22.0, 0.0, 0.0, 22.0, 0.0, 22.0, 0.0, 21.0, 23.0, 0.0, 21.0, 0.0, 0.0, 23.0, 21.0, 0.0, 21.0, 21.0, 0.0,
-    #            12.0, 33.0, 0.0, 0.0, 22.0, 21.0, 0.0, 22.0, 0.0, 22.0, 23.0, 0.0, 13.0, 31.0, 0.0, 0.0, 13.0, 0.0, 21.0,
-    #            0.0, 0.0, 0.0, 21.0, 0.0, 0.0, 12.0, 0.0, 22.0, 0.0, 0.0, 22.0, 22.0, 0.0, 11.0, 21.0, 0.0, 12.0, 32.0,
-    #            43.0, 23.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 22.0, 0.0, 12.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0, 22.0, 21.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
-
-    # do nothing scenario:
-    # sid = 100
-    # gvalues = [0.0, 23.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            23.0,
-    #            0.0, 0.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0,
-    #            33.0, 0.0,
-    #            0.0, 23.0, 23.0, 0.0, 23.0, 0.0, 23.0, 23.0, 0.0, 13.0, 33.0, 0.0, 0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 0.0,
-    #            23.0, 0.0,
-    #            0.0, 13.0, 0.0, 23.0, 0.0, 0.0, 23.0, 23.0, 0.0, 13.0, 23.0, 0.0, 13.0, 33.0, 43.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0, 0.0,
-    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 23.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 23.0, 0.0, 0.0, 0.0,
-    #            0.0]
-    # main_manual_bmps_order(sid, gvalues)
-
     # Generate TXT files and gif files for the models that have been run.
     # generate_giff_txt(sid, gvalues)
     # generate_giff_txt_with_bmps_order(sid, gvalues)
 
 
+def run_gen100():
+    input_file = 'D:/TempData/SA_NSGA2_SLPPOS_SLPPOS_Gen_100_Pop_480-1205/temp_gen100.csv'
+    output_file = 'D:/TempData/SA_NSGA2_SLPPOS_SLPPOS_Gen_100_Pop_480-1205/output_gen100.csv'
+    outputs = []
+    with open(input_file, 'r') as fp:
+        for index, line in enumerate(fp.readlines()):
+            if index == 0: continue
+            items = line.split(',')
+            scenarioID = int(items[1])
+            old_economy = float(items[2])
+            old_environment = float(items[3])
+            gene_values = [float(i) for i in items[4].split('-')]
+            print(scenarioID, old_economy, old_environment, gene_values)
+            _, new_economy, new_environment, new_sed_sum = main_manual(scenarioID, gene_values)
+            outputs.append([new_economy, new_environment, new_sed_sum])
+    with open(output_file, 'w') as fp:
+        fp.writelines(outputs)
+
+
 if __name__ == '__main__':
+    # output_tif = 'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/Scenario_220322012.tif'
+    # gene_values=[0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    # generate_giff_txt_with_bmps_order(220322012,gene_values,True,True,output_tif)
+
+    # run_gen100()
+
     test_func()
 
     # gen_tif_for_last_generation('D:/Data/1.1 SA_NSGA2_SLPPOS_HILLSLP_Gen_50_Pop_72-20210823181624',
