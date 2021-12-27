@@ -735,7 +735,7 @@ class SUScenario(Scenario):
                     # every period has income after impl
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
                         bmp_maintain_by_period[prd - 1] += luarea * opex
-                        bmp_income_by_period[prd - 1] += luarea * income[prd - 1]  # each year has different benefit
+                        bmp_income_by_period[prd - 1] += luarea * income[prd - impl_period]  # each year has different benefit
         return bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period
 
     def satisfy_investment_constraints(self):
@@ -1224,8 +1224,8 @@ def test_func():
     #            2002.0, 2002.0, 2002.0, 0.0, 0.0, 0.0, 1002.0, 3002.0, 4002.0, 1002.0, 3002.0, 0.0, 1002.0, 3002.0, 0.0,
     #            2002.0, 2002.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual_bmps_order(sid, gvalues)
-    #
-    # # benchmark scenario: all BMPs are implemented in the 3rd year
+
+    # benchmark scenario: all BMPs are implemented in the 3rd year
     # sid = 1053
     # gvalues = [0.0, 2003.0, 2003.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 2003.0, 2003.0,
     #            0.0, 2003.0, 0.0, 0.0,
@@ -1238,8 +1238,8 @@ def test_func():
     #            2003.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 3003.0, 4003.0, 1003.0, 3003.0, 0.0, 1003.0, 3003.0, 0.0,
     #            2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual_bmps_order(sid, gvalues)
-    #
-    # # benchmark scenario: all BMPs are implemented in the 4th year
+
+    # benchmark scenario: all BMPs are implemented in the 4th year
     # sid = 1054
     # gvalues = [0.0, 2004.0, 2004.0, 2004.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2004.0, 2004.0,
     #            0.0, 2004.0, 0.0, 0.0,
@@ -1251,6 +1251,20 @@ def test_func():
     #            0.0, 0.0, 0.0, 0.0,
     #            2004.0, 2004.0, 2004.0, 0.0, 0.0, 0.0, 1004.0, 3004.0, 4004.0, 1004.0, 3004.0, 0.0, 1004.0, 3004.0, 0.0,
     #            2004.0, 2004.0, 0.0, 0.0, 0.0, 0.0]
+    # main_manual_bmps_order(sid, gvalues)
+
+    # benchmark scenario: all BMPs are implemented in the 5th year
+    # sid = 1055
+    # gvalues = [0.0, 2005.0, 2005.0, 2005.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 0.0, 0.0, 2005.0, 2005.0,
+    #            0.0, 2005.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2005.0, 2005.0, 0.0, 0.0, 2005.0, 0.0, 1005.0, 1005.0, 0.0, 2005.0, 2005.0, 0.0, 2005.0,
+    #            2005.0, 0.0, 0.0, 2005.0, 0.0,
+    #            2005.0, 2005.0, 0.0, 2005.0, 0.0, 0.0, 1005.0, 3005.0, 2005.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            0.0, 1005.0, 2005.0, 2005.0,
+    #            0.0, 2005.0, 2005.0, 1005.0, 0.0, 0.0, 2005.0, 2005.0, 0.0, 1005.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0,
+    #            2005.0, 2005.0, 2005.0, 0.0, 0.0, 0.0, 1005.0, 3005.0, 4005.0, 1005.0, 3005.0, 0.0, 1005.0, 3005.0, 0.0,
+    #            2005.0, 2005.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual_bmps_order(sid, gvalues)
 
     # BMP 1 are implemented in the first year
