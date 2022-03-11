@@ -120,10 +120,12 @@ class SAConfig(object):
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config, None]
+
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir,
                                         'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
-                                                            self.bmps_cfg_method))
+                                                            self.bmps_cfg_method),
+                                        specified_out_dir=self.model.sa_out_dir)
         # Using the existed population derived from previous scenario optimization
         self.initial_byinput = cf.getboolean(self.opt_mtd.upper(), 'inputpopulation') if \
             cf.has_option(self.opt_mtd.upper(), 'inputpopulation') else False

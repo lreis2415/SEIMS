@@ -73,7 +73,7 @@ def parse_datetime_from_ini(cf, section_name, option_name):
 class ParseNSGA2Config(object):
     """NSGA-II related parameters"""
 
-    def __init__(self, cf, wp, dir_template='NSGA2_Gen_%d_Pop_%d'):
+    def __init__(self, cf, wp, dir_template='NSGA2_Gen_%d_Pop_%d',specified_out_dir=None):
         # type: (ConfigParser, AnyStr, AnyStr) -> None
         """Initialization."""
         self.ngens = cf.getint('NSGA2', 'generationsnum') if \
@@ -92,14 +92,18 @@ class ParseNSGA2Config(object):
         if self.npop % 4 != 0:
             raise ValueError('PopulationSize must be a multiple of 4.')
 
-        if '%d' not in dir_template:
-            dir_template += '_Gen_%d_Pop_%d'
-        elif dir_template.count('%d') == 1:
-            dir_template += '_Pop_%d'
-        elif dir_template.count('%d') > 2:
-            dir_template = 'NSGA2_Gen_%d_Pop_%d'
-        self.dirname = dir_template % (self.ngens, self.npop)
-        self.out_dir = wp + os.path.sep + self.dirname
+        if specified_out_dir is None:
+            if '%d' not in dir_template:
+                dir_template += '_Gen_%d_Pop_%d'
+            elif dir_template.count('%d') == 1:
+                dir_template += '_Pop_%d'
+            elif dir_template.count('%d') > 2:
+                dir_template = 'NSGA2_Gen_%d_Pop_%d'
+            self.dirname = dir_template % (self.ngens, self.npop)
+            self.out_dir = wp + os.path.sep + self.dirname
+        else:
+            self.out_dir = specified_out_dir
+            
         UtilClass.rmmkdir(self.out_dir)
 
         self.hypervlog = self.out_dir + os.path.sep + 'hypervolume.txt'

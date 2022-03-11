@@ -63,6 +63,7 @@ class ParseSEIMSConfig(object):
         self.port = 27017
         self.bin_dir = ''
         self.model_dir = ''
+        self.sa_out_dir = ''
         self.db_name = ''
         self.version = 'OMP'
         self.mpi_bin = None
@@ -104,7 +105,8 @@ class ParseSEIMSConfig(object):
         self.db_name = os.path.split(self.model_dir)[1]  # Defaultly, spatial dbname equals dirname
         if cf.has_option(sec_name, 'spatial_dbname'):
             self.db_name = cf.get(sec_name, 'spatial_dbname')
-
+        if cf.has_option(sec_name, 'sa_out_dir'):
+            self.sa_out_dir = cf.get(sec_name, 'sa_out_dir')
         if cf.has_option(sec_name, 'version'):
             self.version = cf.get(sec_name, 'version')
         if cf.has_option(sec_name, 'mpi_bin'):  # full path of the executable MPI program
@@ -143,6 +145,7 @@ class ParseSEIMSConfig(object):
         if self.config_dict:
             return self.config_dict
         model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
+                          'sa_out_dir':self.sa_out_dir,
                           'nthread': self.nthread, 'lyrmtd': self.lyrmtd,
                           'host': self.host, 'port': self.port,
                           'db_name': self.db_name,
