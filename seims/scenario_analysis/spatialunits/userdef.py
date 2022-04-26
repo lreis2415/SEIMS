@@ -425,44 +425,26 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
 
 
 def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
-    mut_num = random.randint(1, int(len(indv) * max_perc))
-    mpoint = random.randint(0, len(indv) - 1)
+    # if max_perc > 0.5:
+    #     max_perc = 0.5
+    # elif max_perc < 0.01:
+    #     max_perc = 0.01
 
-    # first half
-    index = mpoint
-    counter = 0 # the NO of modified
-    while counter < math.floor(mut_num/2) and index >= 0:
-        if indv[index] == 0:
-            index -= 1
-            continue
-        if random.random() < indpb:# mutate
-            val = int(indv[index])
-            bmp_type, impl_year = divmod(val,1000)
-            new_impl_year = random.randint(low, up)
-            while impl_year == new_impl_year:
-                new_impl_year = random.randint(low, up)
-            new_val = bmp_type*1000+new_impl_year
-            indv[index] = new_val
-        counter += 1
-        index -= 1
-
-    # second half
-    index = mpoint + 1
-    counter = 0
-    while counter < math.ceil(mut_num/2) and index < len(indv):
-        if indv[index] == 0:
-            index += 1
-            continue
+    # mutate each gene in each individual with probability indpb,
+    # change bmp type is not currently considered
+    mut_count = 0
+    for idx in range(len(indv)):
+        val = int(indv[idx])
+        if val == 0: continue
         if random.random() < indpb:
-            val = int(indv[index])
-            bmp_type, impl_year = divmod(val,1000)
+            bmp_type, impl_year = divmod(val, 1000)
             new_impl_year = random.randint(low, up)
             while impl_year == new_impl_year:
                 new_impl_year = random.randint(low, up)
             new_val = bmp_type * 1000 + new_impl_year
-            indv[index] = new_val
-        counter += 1
-        index += 1
+            indv[idx] = new_val
+            mut_count += 1
+    print(mut_count)
 
     return indv
 
@@ -578,7 +560,6 @@ def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
 
 
 def mutate_test(mut_perc, mut_rate):
-    # type: (int, float, float, float) -> None
     """Test mutate function."""
     from deap import base
     from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
@@ -608,16 +589,19 @@ def mutate_test(mut_perc, mut_rate):
     ind1 = sce1.initialize_with_bmps_order(gvalues)
     sceid1 = sce1.set_unique_id()
     print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid1, ind1.__str__()))
+
     sce2 = SUScenario(cfg)
     ind2 = sce2.initialize_with_bmps_order(gvalues)
     sceid2 = sce2.set_unique_id()
     print('Scenario2-ID: %d\n  Initial genes: %s' % (sceid2, ind2.__str__()))
 
-    mutate_with_bmps_order(ind1, 1,5,mut_rate,mut_perc)
+    mutate_with_bmps_order(ind1, 1, 5, mut_rate, mut_perc)
     print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid1, ind1.__str__()))
-    mutate_with_bmps_order(ind2, 1,5,mut_rate,mut_perc)
+
+    mutate_with_bmps_order(ind2, 1, 5, mut_rate, mut_perc)
     print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid2, ind2.__str__()))
+
 
 if __name__ == '__main__':
     # main_test_crossover_mutate(100, 0.8, 0.2, 0.1)
-    mutate_test(0.2,0.1)
+    mutate_test(0.2, 0.1)
