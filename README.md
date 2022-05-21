@@ -47,5 +47,5 @@ SEIMS is an open source software. Support is provided through the Github issues 
 + SEIMS issues: https://github.com/lreis2415/SEIMS/issues
 + Emails of present developers:
   + Dr. Liang-Jun Zhu (zlj@lreis.ac.cn)
-  + Asso. Prof. Junzhi Liu (liujunzhi@njnu.edu.cn)
+  + Prof. Junzhi Liu (liujunzhi@lzu.edu.cn)
 
