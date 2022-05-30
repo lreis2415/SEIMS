@@ -478,7 +478,7 @@ void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& nu
 
 void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, float*& data) {
     char* databuf = nullptr;
-    size_t datalength;
+    vint datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     if (nullptr == databuf) return;
 
@@ -489,7 +489,7 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
 void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols,
                                         float**& data) {
     char* databuf = nullptr;
-    size_t datalength;
+    vint datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     if (nullptr == databuf) {
         data = nullptr;
@@ -532,7 +532,7 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
 
 void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float**& data) {
     char* databuf = nullptr;
-    size_t datalength;
+    vint datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     if (nullptr == databuf) {
         data = nullptr;

@@ -46,33 +46,33 @@ Nutrient_Transformation::~Nutrient_Transformation() {
     if (m_roctl != nullptr) Release1DArray(m_roctl);
     if (m_phpApldDays != nullptr) Release1DArray(m_phpApldDays);
     if (m_phpDefDays != nullptr) Release1DArray(m_phpDefDays);
-    if (m_soilMass != nullptr) Release2DArray(m_nCells, m_soilMass);
+    if (m_soilMass != nullptr) Release2DArray(m_soilMass);
     /// release CENTURY related variables
-    if (m_sol_WOC != nullptr) Release2DArray(m_nCells, m_sol_WOC);
-    if (m_sol_WON != nullptr) Release2DArray(m_nCells, m_sol_WON);
-    if (m_sol_BM != nullptr) Release2DArray(m_nCells, m_sol_BM);
-    if (m_sol_BMC != nullptr) Release2DArray(m_nCells, m_sol_BMC);
-    if (m_sol_BMN != nullptr) Release2DArray(m_nCells, m_sol_BMN);
-    if (m_sol_HP != nullptr) Release2DArray(m_nCells, m_sol_HP);
-    if (m_sol_HS != nullptr) Release2DArray(m_nCells, m_sol_HS);
-    if (m_sol_HSC != nullptr) Release2DArray(m_nCells, m_sol_HSC);
-    if (m_sol_HSN != nullptr) Release2DArray(m_nCells, m_sol_HSN);
-    if (m_sol_HPC != nullptr) Release2DArray(m_nCells, m_sol_HPC);
-    if (m_sol_HPN != nullptr) Release2DArray(m_nCells, m_sol_HPN);
-    if (m_sol_LM != nullptr) Release2DArray(m_nCells, m_sol_LM);
-    if (m_sol_LMC != nullptr) Release2DArray(m_nCells, m_sol_LMC);
-    if (m_sol_LMN != nullptr) Release2DArray(m_nCells, m_sol_LMN);
-    if (m_sol_LSC != nullptr) Release2DArray(m_nCells, m_sol_LSC);
-    if (m_sol_LSN != nullptr) Release2DArray(m_nCells, m_sol_LSN);
-    if (m_sol_LS != nullptr) Release2DArray(m_nCells, m_sol_LS);
-    if (m_sol_LSL != nullptr) Release2DArray(m_nCells, m_sol_LSL);
-    if (m_sol_LSLC != nullptr) Release2DArray(m_nCells, m_sol_LSLC);
-    if (m_sol_LSLNC != nullptr) Release2DArray(m_nCells, m_sol_LSLNC);
-    if (m_sol_RNMN != nullptr) Release2DArray(m_nCells, m_sol_RNMN);
-    if (m_sol_RSPC != nullptr) Release2DArray(m_nCells, m_sol_RSPC);
+    if (m_sol_WOC != nullptr) Release2DArray(m_sol_WOC);
+    if (m_sol_WON != nullptr) Release2DArray(m_sol_WON);
+    if (m_sol_BM != nullptr) Release2DArray(m_sol_BM);
+    if (m_sol_BMC != nullptr) Release2DArray(m_sol_BMC);
+    if (m_sol_BMN != nullptr) Release2DArray(m_sol_BMN);
+    if (m_sol_HP != nullptr) Release2DArray(m_sol_HP);
+    if (m_sol_HS != nullptr) Release2DArray(m_sol_HS);
+    if (m_sol_HSC != nullptr) Release2DArray(m_sol_HSC);
+    if (m_sol_HSN != nullptr) Release2DArray(m_sol_HSN);
+    if (m_sol_HPC != nullptr) Release2DArray(m_sol_HPC);
+    if (m_sol_HPN != nullptr) Release2DArray(m_sol_HPN);
+    if (m_sol_LM != nullptr) Release2DArray(m_sol_LM);
+    if (m_sol_LMC != nullptr) Release2DArray(m_sol_LMC);
+    if (m_sol_LMN != nullptr) Release2DArray(m_sol_LMN);
+    if (m_sol_LSC != nullptr) Release2DArray(m_sol_LSC);
+    if (m_sol_LSN != nullptr) Release2DArray(m_sol_LSN);
+    if (m_sol_LS != nullptr) Release2DArray(m_sol_LS);
+    if (m_sol_LSL != nullptr) Release2DArray(m_sol_LSL);
+    if (m_sol_LSLC != nullptr) Release2DArray(m_sol_LSLC);
+    if (m_sol_LSLNC != nullptr) Release2DArray(m_sol_LSLNC);
+    if (m_sol_RNMN != nullptr) Release2DArray(m_sol_RNMN);
+    if (m_sol_RSPC != nullptr) Release2DArray(m_sol_RSPC);
 
-    if (m_conv_wt != nullptr) Release2DArray(m_nCells, m_conv_wt);
-    if (m_conv_wt_reverse != nullptr) Release2DArray(m_nCells, m_conv_wt_reverse);
+    if (m_conv_wt != nullptr) Release2DArray(m_conv_wt);
+    if (m_conv_wt_reverse != nullptr) Release2DArray(m_conv_wt_reverse);
 }
 
 bool Nutrient_Transformation::CheckInputData() {

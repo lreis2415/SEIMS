@@ -13,7 +13,7 @@ SOL_WB::SOL_WB() :
 }
 
 SOL_WB::~SOL_WB() {
-    if (m_soilWtrBal != nullptr) Release2DArray(m_nSubbsns + 1, m_soilWtrBal);
+    if (m_soilWtrBal != nullptr) Release2DArray(m_soilWtrBal);
 }
 
 void SOL_WB::InitialOutputs() {

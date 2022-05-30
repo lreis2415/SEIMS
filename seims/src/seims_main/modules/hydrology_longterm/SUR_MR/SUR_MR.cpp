@@ -15,7 +15,7 @@ SUR_MR::SUR_MR() :
 SUR_MR::~SUR_MR() {
     if (m_exsPcp != nullptr) Release1DArray(m_exsPcp);
     if (m_infil != nullptr) Release1DArray(m_infil);
-    if (m_soilWtrSto != nullptr) Release2DArray(m_nCells, m_soilWtrSto);
+    if (m_soilWtrSto != nullptr) Release2DArray(m_soilWtrSto);
     if (m_soilWtrStoPrfl != nullptr) Release1DArray(m_soilWtrStoPrfl);
 }
 
@@ -133,7 +133,7 @@ void SUR_MR::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_P_MAX[0])) m_maxPcpRf = value;
     else if (StringMatch(sk, VAR_S_FROZEN[0])) m_soilFrozenWtrRatio = value;
     else {
-        throw ModelException(M_SUR_MR[0], "SetValue", 
+        throw ModelException(M_SUR_MR[0], "SetValue",
                              "Parameter " + sk + " does not exist.");
     }
 }

@@ -11,7 +11,7 @@ IUH_SED_OL::IUH_SED_OL() :
 
 IUH_SED_OL::~IUH_SED_OL() {
     if (m_sedtoCh != nullptr) Release1DArray(m_sedtoCh);
-    if (m_cellSed != nullptr) Release2DArray(m_nCells, m_cellSed);
+    if (m_cellSed != nullptr) Release2DArray(m_cellSed);
 }
 
 bool IUH_SED_OL::CheckInputData() {

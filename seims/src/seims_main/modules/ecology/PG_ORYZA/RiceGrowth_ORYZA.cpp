@@ -67,7 +67,7 @@ ORYZA::ORYZA() :
 
 ORYZA::~ORYZA() {
     if (m_rsdCovSoil != nullptr) Release1DArray(m_rsdCovSoil);
-    if (m_soilRsd != nullptr) Release2DArray(m_nCells, m_soilRsd);
+    if (m_soilRsd != nullptr) Release2DArray(m_soilRsd);
     if (m_stoSoilRootD != nullptr) Release1DArray(m_stoSoilRootD);
     if (m_actPltET != nullptr) Release1DArray(m_actPltET);
     if (m_plantUpTkN != nullptr) Release1DArray(m_plantUpTkN);

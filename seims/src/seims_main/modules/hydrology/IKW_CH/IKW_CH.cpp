@@ -19,9 +19,9 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
 }
 
 ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
-    Release2DArray(m_chNumber, m_hCh);
-    Release2DArray(m_chNumber, m_qCh);
-    Release2DArray(m_chNumber, m_flowLen);
+    Release2DArray(m_hCh);
+    Release2DArray(m_qCh);
+    Release2DArray(m_flowLen);
 
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_qSubbasin);
@@ -438,7 +438,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
         int reachId = it->second[0];
         *data = m_qCh[reachId];
     } else {
-        throw ModelException(M_IKW_CH[0], "Get1DData", 
+        throw ModelException(M_IKW_CH[0], "Get1DData",
                              "Output " + sk + " does not exist.");
     }
 }

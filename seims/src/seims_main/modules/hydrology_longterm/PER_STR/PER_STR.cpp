@@ -12,7 +12,7 @@ PER_STR::PER_STR() :
 }
 
 PER_STR::~PER_STR() {
-    if (m_soilPerco != nullptr) Release2DArray(m_nCells, m_soilPerco);
+    if (m_soilPerco != nullptr) Release2DArray(m_soilPerco);
 }
 
 void PER_STR::InitialOutputs() {

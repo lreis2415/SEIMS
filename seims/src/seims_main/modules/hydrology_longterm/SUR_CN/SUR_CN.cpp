@@ -17,7 +17,7 @@ SUR_CN::~SUR_CN(void) {
     //// cleanup output variables
     Release1DArray(m_PE);
     Release1DArray(m_INFIL);
-    Release2DArray(m_nCells, m_soilMoisture);
+    Release2DArray(m_soilMoisture);
     /// clean up temporary variables
     Release1DArray(m_w1);
     Release1DArray(m_w2);

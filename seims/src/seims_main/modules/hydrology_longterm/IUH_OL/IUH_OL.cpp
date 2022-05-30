@@ -11,7 +11,7 @@ IUH_OL::IUH_OL() :
 
 IUH_OL::~IUH_OL() {
     if (m_Q_SBOF != nullptr) Release1DArray(m_Q_SBOF);
-    if (m_cellFlow != nullptr) Release2DArray(m_nCells, m_cellFlow);
+    if (m_cellFlow != nullptr) Release2DArray(m_cellFlow);
     if (m_OL_Flow != nullptr) Release1DArray(m_OL_Flow);
 }
 

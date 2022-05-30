@@ -29,19 +29,19 @@ public:
 
     ~Interpolate();
 
-    void SetClimateDataType(float value) OVERRIDE;
+    void SetClimateDataType(FLTPT value) OVERRIDE;
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Set2DData(const char* key, int n_rows, int n_cols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int n_rows, int n_cols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     // This is the climate data type. It is used to get the specific lapse rate from lapse_rate table.
@@ -53,21 +53,21 @@ private:
     /// count of stations
     int m_nStations;
     /// data of stations
-    float* m_stationData;
+    FLTPT* m_stationData;
     /// count of valid cells
     int m_nCells;
     /// weights of each sites of all valid cells
-    float** m_itpWeights;
+    FLTPT** m_itpWeights;
 
     /// whether using vertical interpolation
     bool m_itpVertical;
     /// elevation of stations
-    float* m_hStations;
+    FLTPT* m_hStations;
     /// elevation of cells
-    float* m_dem;
+    FLTPT* m_dem;
     /// Lapse Rate, a 2D array. The first level is by month, and the second level is by data type in order of (P,T,PET).
-    float** m_lapseRate;
+    FLTPT** m_lapseRate;
     /// interpolation result
-    float* m_itpOutput;
+    FLTPT* m_itpOutput;
 };
 #endif /* SEIMS_MODULE_ITP_H */

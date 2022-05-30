@@ -24,7 +24,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
         PrintInfo* pi = m_printInfosMap[(*iter).outputID];
 
         bool isRaster = false;
-        if (StringMatch(suffix, string(GTiffExtension))) {
+        if (StringMatch(suffix.c_str(), data_raster::GTiffExtension)) {
             if (m_subbasinID == 9999) {
                 /// For field-version model, all spatial outputs should be text!
                 (*iter).outFileName = coreFileName + "." + TextExtension;

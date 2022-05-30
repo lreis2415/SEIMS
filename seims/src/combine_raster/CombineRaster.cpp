@@ -165,9 +165,9 @@ bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
     if (read_data_flag) {
         FloatRaster* combined_rs = CombineRasters(all_raster_data);
         gfs->RemoveFile(real_name);
-        combined_rs->OutputToMongoDB(real_name, gfs);
+        combined_rs->OutputToMongoDB(gfs, real_name);
         if (!folder.empty()) {
-            // Ouput as gtiff file will not contain ScenarioID and CalibrationID information
+            // Output as gtiff file will not contain ScenarioID and CalibrationID information
             combined_rs->OutputToFile(folder + SEP + s_var + "." + GTiffExtension);
         }
         // clean up

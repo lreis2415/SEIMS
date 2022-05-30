@@ -84,7 +84,7 @@ DataCenter::~DataCenter() {
     for (auto it = array2d_map_.begin(); it != array2d_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
-            Release2DArray(array2d_rows_map_[it->first], it->second);
+            Release2DArray(it->second);
         }
         // array2d_map_.erase(it++);
     }

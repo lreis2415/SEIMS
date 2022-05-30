@@ -751,7 +751,7 @@ bool GridLayering::OutputToMongodb(const char* name, const int number, char* s) 
 bool GridLayering::OutputGridLayering(const string& name, const int datalength,
                                       float* const layer_grid, float* const layer_cells) {
     string outpath = string(output_dir_) + "/" + name + ".tif";
-    FloatRaster(mask_, layer_grid).OutputFileByGdal(outpath);
+    FloatRaster(mask_, layer_grid, n_valid_cells_).OutputFileByGdal(outpath);
 
     string header = "LayerID\tCellCount\tCellIDs";
     bool done = Output2DimensionArrayTxt(name, header, layer_cells);

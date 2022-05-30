@@ -17,8 +17,8 @@ SSR_DA::SSR_DA() :
 }
 
 SSR_DA::~SSR_DA() {
-    if (m_subSurfRf != nullptr) Release2DArray(m_nCells, m_subSurfRf);
-    if (m_subSurfRfVol != nullptr) Release2DArray(m_nCells, m_subSurfRfVol);
+    if (m_subSurfRf != nullptr) Release2DArray(m_subSurfRf);
+    if (m_subSurfRfVol != nullptr) Release2DArray(m_subSurfRfVol);
     if (m_ifluQ2Rch != nullptr) Release1DArray(m_ifluQ2Rch);
 }
 
@@ -211,7 +211,7 @@ void SSR_DA::SetValue(const char* key, const float value) {
     } else if (StringMatch(s, Tag_TimeStep[0])) {
         m_dt = CVT_INT(value);
     } else {
-        throw ModelException(M_SSR_DA[0], "SetValue", 
+        throw ModelException(M_SSR_DA[0], "SetValue",
                              "Parameter " + s + " does not exist.");
     }
 }
@@ -271,7 +271,7 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, float*
         CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
         m_flowInFrac = data;
     } else {
-        throw ModelException(M_SSR_DA[0], "Set2DData", 
+        throw ModelException(M_SSR_DA[0], "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -281,7 +281,7 @@ void SSR_DA::Get1DData(const char* key, int* n, float** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBIF[0])) *data = m_ifluQ2Rch;
     else {
-        throw ModelException(M_SSR_DA[0], "Get1DData", 
+        throw ModelException(M_SSR_DA[0], "Get1DData",
                              "Result " + sk + " does not exist.");
     }
     *n = m_nSubbsns + 1;
@@ -298,7 +298,7 @@ void SSR_DA::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     } else if (StringMatch(sk, VAR_SSRUVOL[0])) {
         *data = m_subSurfRfVol;
     } else {
-        throw ModelException(M_SSR_DA[0], "Get2DData", 
+        throw ModelException(M_SSR_DA[0], "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 }

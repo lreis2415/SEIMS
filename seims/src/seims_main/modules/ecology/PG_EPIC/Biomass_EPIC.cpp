@@ -49,7 +49,7 @@ Biomass_EPIC::Biomass_EPIC() :
 
 Biomass_EPIC::~Biomass_EPIC() {
     if (m_rsdCovSoil != nullptr) Release1DArray(m_rsdCovSoil);
-    if (m_soilRsd != nullptr) Release2DArray(m_nCells, m_soilRsd);
+    if (m_soilRsd != nullptr) Release2DArray(m_soilRsd);
     if (m_lai != nullptr) Release1DArray(m_lai);
     if (m_maxLaiYr != nullptr) Release1DArray(m_maxLaiYr);
     if (m_phuAccum != nullptr) Release1DArray(m_phuAccum);
@@ -77,7 +77,7 @@ Biomass_EPIC::~Biomass_EPIC() {
     if (m_biomassDelta != nullptr) Release1DArray(m_biomassDelta);
     if (m_biomass != nullptr) Release1DArray(m_biomass);
 
-    if (m_wuse != nullptr) Release2DArray(m_nCells, m_wuse);
+    if (m_wuse != nullptr) Release2DArray(m_wuse);
 }
 
 void Biomass_EPIC::SetValue(const char* key, const float value) {

@@ -11,7 +11,7 @@ IO_TEST::IO_TEST() :
 
 IO_TEST::~IO_TEST() {
     if (m_output1Draster != nullptr) Release1DArray(m_output1Draster);
-    if (m_output2Draster != nullptr) Release2DArray(m_nCells, m_output2Draster);
+    if (m_output2Draster != nullptr) Release2DArray(m_output2Draster);
     // NOTE: m_scenario and m_reaches will be released in DataCenter!
 }
 

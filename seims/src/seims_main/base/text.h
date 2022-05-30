@@ -13,8 +13,12 @@
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
+#ifndef CONST_CHARS
 #define CONST_CHARS static const char* ///< const string
+#endif
+#ifndef CONST_CHARS_LIST
 #define CONST_CHARS_LIST static const char* const ///< list of const strings
+#endif
 
 CONST_CHARS MODEL_NAME =                      "SEIMS";
 CONST_CHARS MODEL_FULLNAME =                  "Spatially Explicit Integrated Modeling System";

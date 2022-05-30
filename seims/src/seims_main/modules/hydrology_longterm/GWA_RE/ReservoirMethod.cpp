@@ -28,7 +28,7 @@ ReservoirMethod::~ReservoirMethod() {
     if (m_T_QG != nullptr) Release1DArray(m_T_QG);
     if (m_petSubbsn != nullptr) Release1DArray(m_petSubbsn);
     if (m_gwSto != nullptr) Release1DArray(m_gwSto);
-    if (m_T_GWWB != nullptr) Release2DArray(m_nSubbsns + 1, m_T_GWWB);
+    if (m_T_GWWB != nullptr) Release2DArray(m_T_GWWB);
 }
 
 void ReservoirMethod::InitialOutputs() {

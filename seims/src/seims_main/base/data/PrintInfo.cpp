@@ -6,6 +6,7 @@
 #include "Logging.h"
 
 using namespace utils_time;
+using namespace data_raster;
 
 //////////////////////////////////////////////
 ///////////PrintInfoItem Class////////////////
@@ -25,9 +26,9 @@ PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = 
 
 PrintInfoItem::~PrintInfoItem() {
     CLOG(TRACE, LOG_RELEASE) << "Start to release PrintInfoItem for " << Filename << " ...";
-    Release2DArray(m_Counter, m_1DDataWithRowCol);
+    Release2DArray(m_1DDataWithRowCol);
     Release1DArray(m_1DData);
-    Release2DArray(m_nRows, m_2DData);
+    Release2DArray(m_2DData);
 
     for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
         if (it->second != nullptr) {
@@ -175,15 +176,15 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
             FloatRaster* rs_data = nullptr;
             if (is1d) { // Single-layered and cell-based raster data
-                rs_data = new FloatRaster(templateRaster, m_1DData);
+                rs_data = new FloatRaster(templateRaster, m_1DData, m_nRows);
             } else { // Multi-layered and cell-based raster data
-                rs_data = new FloatRaster(templateRaster, m_2DData, m_nLayers);
+                rs_data = new FloatRaster(templateRaster, m_2DData, m_nRows, m_nLayers);
             }
             if (outToMongoDB) {
                 gfs->RemoveFile(gfs_name);
                 int try_times = 1;
                 while (try_times <= 3) { // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
-                    if (!rs_data->OutputToMongoDB(gfs_name, gfs, opts)) {
+                    if (!rs_data->OutputToMongoDB(gfs, gfs_name, opts)) {
                         CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
                         << " Try time: " << try_times;
                     } else {
@@ -222,58 +223,6 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         }
         return;
     }
-    /* This snippet has been integrated with the above one. This snippet should be removed. -LJ.
-    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) {
-        if (templateRaster == nullptr) {
-            throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
-        }
-        if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
-            /// Multi-Layers raster data
-            if (outToMongoDB) {
-                gfs->RemoveFile(gfs_name);
-                int try_times = 1;
-                mongoc_gridfs_file_t* gfile = NULL;
-                while (try_times <= 3) {  // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
-                    FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(gfs_name, gfs, opts);
-                    // Check if the raster data has been save successfully.
-                    gfile = gfs->GetFile(gfs_name);
-                    if (NULL == gfile) {
-                        CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
-                        << " Try time: " << try_times;
-                    } else {
-                        CLOG(TRACE, LOG_OUTPUT) << "-- The raster data " << gfs_name << "-- saved to MongoDB SUCCEED!";
-                        break;
-                    }
-                    SleepMs(2);  // Sleep 0.002 second
-                    try_times++;
-                }
-                mongoc_gridfs_file_destroy(gfile);
-            } else {
-                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
-            }
-        } else if (Suffix == TextExtension) {
-            /// For field-version models, the Suffix is TextExtension
-            std::ofstream fs;
-            string filename = projectPath + Filename + "." + TextExtension;
-            DeleteExistedFile(filename);
-            fs.open(filename.c_str(), std::ios::out);
-            if (fs.is_open()) {
-                int valid_num = templateRaster->GetValidNumber();
-                int nlyrs = templateRaster->GetLayers();
-                for (int idx = 0; idx < valid_num; idx++) {
-                    fs << idx;
-                    for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
-                        fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
-                    }
-                    fs << endl;
-                }
-                fs.close();
-                CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
-            }
-        }
-        return;
-    }
-    */
     if (!TimeSeriesData.empty()) {
         /// time series data
         std::ofstream fs;

@@ -10,12 +10,9 @@ ENDIF ()
 if (UNIX)
     target_link_libraries(metis m)
 endif ()
-### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
-IF(XCODE AND LLVM_FOUND)
-    TARGET_LINK_LIBRARIES(metis ${OpenMP_LIBRARY})
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
+### For LLVM-Clang installed by brew, add link library of OpenMP explicitly.
+IF(CV_CLANG AND LLVM_VERSION_MAJOR)
+    TARGET_LINK_LIBRARIES(${EXECNAME} ${OpenMP_LIBRARY})
 ENDIF()
 # refers to https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-metis
 if(WIN32)

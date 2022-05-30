@@ -1,6 +1,7 @@
 #include "clsInterpolationWeightData.h"
 
 #include <fstream>
+#include <seims.h>
 
 #include "utils_array.h"
 #include "utils_string.h"
@@ -17,19 +18,19 @@ n_rows_(-1), n_cols_(-1), initialized_(false) {
 
 ItpWeightData::~ItpWeightData() {
     if (nullptr != itp_weight_data_) { Release1DArray(itp_weight_data_); }
-    if (nullptr != itp_weight_data2d_) { Release2DArray(n_rows_, itp_weight_data2d_); }
+    if (nullptr != itp_weight_data2d_) { Release2DArray(itp_weight_data2d_); }
 }
 
-void ItpWeightData::GetWeightData(int* n, float** data) {
+void ItpWeightData::GetWeightData(int* n, FLTPT** data) {
     *n = n_rows_ * n_cols_;
     *data = itp_weight_data_;
 }
 
-void ItpWeightData::GetWeightData2D(int* n, int* n_stations, float*** data) {
+void ItpWeightData::GetWeightData2D(int* n, int* n_stations, FLTPT*** data) {
     *n = n_rows_;
     *n_stations = n_cols_;
     if (nullptr == itp_weight_data2d_) {
-        Initialize2DArray(n_rows_, n_cols_, itp_weight_data2d_, 0.f);
+        Initialize2DArray(n_rows_, n_cols_, itp_weight_data2d_, 0.);
     }
     int index = 0;
     for (int i = 0; i < n_rows_; i++) {
@@ -78,11 +79,11 @@ bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
         }
     }
     char* databuf = nullptr;
-    size_t datalength;
+    vint datalength;
     gfs->GetStreamData(wfilename, databuf, datalength);
     if (nullptr == databuf) return false;
 
-    itp_weight_data_ = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
+    itp_weight_data_ = reinterpret_cast<FLTPT *>(databuf); // deprecate C-style: (float *) databuf
     /// Get metadata
     bson_t* md = gfs->GetFileMetadata(wfilename);
     /// Get value of given keys

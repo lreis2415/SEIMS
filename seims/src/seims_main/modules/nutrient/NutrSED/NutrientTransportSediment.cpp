@@ -29,7 +29,7 @@ NutrientTransportSediment::NutrientTransportSediment() :
 }
 
 NutrientTransportSediment::~NutrientTransportSediment() {
-    if (m_soilMass != nullptr) Release2DArray(m_nCells, m_soilMass);
+    if (m_soilMass != nullptr) Release2DArray(m_soilMass);
     if (m_enratio != nullptr) Release1DArray(m_enratio);
 
     if (m_surfRfSedOrgP != nullptr) Release1DArray(m_surfRfSedOrgP);
@@ -43,8 +43,8 @@ NutrientTransportSediment::~NutrientTransportSediment() {
     if (m_surfRfSedSorbMinPToCh != nullptr) Release1DArray(m_surfRfSedSorbMinPToCh);
 
     /// for CENTURY C/N cycling model outputs
-    if (m_soilIfluCbn != nullptr) Release2DArray(m_nCells, m_soilPercoCbn);
-    if (m_soilPercoCbn != nullptr) Release2DArray(m_nCells, m_soilPercoCbn);
+    if (m_soilIfluCbn != nullptr) Release2DArray(m_soilPercoCbn);
+    if (m_soilPercoCbn != nullptr) Release2DArray(m_soilPercoCbn);
     if (m_soilIfluCbnPrfl != nullptr) Release1DArray(m_soilIfluCbnPrfl);
     if (m_soilPercoCbnPrfl != nullptr) Release1DArray(m_soilPercoCbnPrfl);
     if (m_sedLossCbn != nullptr) Release1DArray(m_sedLossCbn);

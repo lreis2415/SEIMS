@@ -10,7 +10,7 @@ Interpolate::Interpolate() :
     m_itpOutput(nullptr) {
 }
 
-void Interpolate::SetClimateDataType(const float value) {
+void Interpolate::SetClimateDataType(const FLTPT value) {
     int data_type = CVT_INT(value);
     if (data_type == 1) {
         m_dataType = 0; /// Precipitation
@@ -36,7 +36,7 @@ int Interpolate::Execute() {
 #pragma omp parallel for reduction(+: err_count)
     for (int i = 0; i < m_nCells; i++) {
         // int index = 0;
-        float value = 0.f;
+        FLTPT value = 0.;
         for (int j = 0; j < m_nStations; j++) {
             // index = i * m_nStations + j;
             value += m_stationData[j] * m_itpWeights[i][j];
@@ -46,9 +46,9 @@ int Interpolate::Execute() {
                         ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
             }
             if (m_itpVertical) {
-                float delta = m_dem[i] - m_hStations[j];
-                float factor = m_lapseRate[m_month - 1][m_dataType];
-                float adjust = m_itpWeights[i][j] * delta * factor * 0.01f;
+                FLTPT delta = m_dem[i] - m_hStations[j];
+                FLTPT factor = m_lapseRate[m_month - 1][m_dataType];
+                FLTPT adjust = m_itpWeights[i][j] * delta * factor * 0.01f;
                 value += adjust;
             }
         }
@@ -61,7 +61,7 @@ int Interpolate::Execute() {
     return true;
 }
 
-void Interpolate::SetValue(const char* key, const float value) {
+void Interpolate::SetValue(const char* key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, VAR_TSD_DT[0])) {
         SetClimateDataType(value);
@@ -72,7 +72,7 @@ void Interpolate::SetValue(const char* key, const float value) {
     }
 }
 
-void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, float** data) {
+void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
@@ -88,7 +88,7 @@ void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols,
     }
 }
 
-void Interpolate::Set1DData(const char* key, const int n, float* data) {
+void Interpolate::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEM[0])) {
         if (m_itpVertical) {
@@ -128,7 +128,7 @@ bool Interpolate::CheckInputData() {
     return true;
 }
 
-void Interpolate::Get1DData(const char* key, int* n, float** data) {
+void Interpolate::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEM[0])) {
         *n = m_nCells;

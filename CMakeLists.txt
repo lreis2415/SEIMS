@@ -18,7 +18,7 @@
 #     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Jul. 21, 2019
+#  Latest updated: May. 30, 2022
 #
 #  Copyright (C) 2013-2019 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
@@ -85,12 +85,15 @@ ENDIF(MSVC)
 
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+    SET(INSTALL_DIR ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
 ELSE()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
+    IF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        SET(INSTALL_DIR ${PROJECT_BINARY_DIR} CACHE PATH "Set specified install path" FORCE)
+    ELSE ()
+        SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
+    ENDIF ()
 ENDIF ()
-SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc" CACHE PATH "Path to the documentation")
+SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
 
 ### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -143,25 +146,31 @@ ELSE()
 ENDIF()
 
 ### Find OMP which is optional
-IF(XCODE)
-  # To use OpenMP in Xcode built by CMake, the recommended way is to
-  #   install llvm by 'brew install llvm', which has builtin 'libomp'
-  IF (NOT LLVM_ROOT_DIR)
-    SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
+# Refers to https://mac.r-project.org/openmp/ for further method to handle openmp in AppleClang
+IF(NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+  IF(CV_CLANG)
+    message(STATUS "Find OpenMP from LLVM")
+    # To use OpenMP in Clang built by CMake, the recommended way is to
+    #   install llvm alone by 'brew install llvm', which has builtin 'libomp'
+    IF (NOT LLVM_ROOT_DIR)
+        SET(LLVM_ROOT_DIR "/opt/homebrew/opt/llvm")
+    ENDIF ()
+    FIND_PACKAGE(LLVM)
+    IF(LLVM_VERSION_MAJOR)
+        geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
+        SET(OpenMP_CXX_FLAGS "-fopenmp")
+        SET(OpenMP_C_FLAGS "-fopenmp")
+        FIND_LIBRARY(OpenMP_LIBRARY
+            NAMES "omp"
+            HINTS ${LLVM_LIBRARY_DIRS})
+        SET(OPENMP_FOUND 1)
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+    ENDIF ()
+  ELSE ()
+    FIND_PACKAGE(OpenMP)
   ENDIF ()
-  FIND_PACKAGE(LLVM)
-  IF(LLVM_FOUND)
-    geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
-	SET(OpenMP_CXX_FLAGS "-fopenmp")
-    SET(OpenMP_C_FLAGS "-fopenmp")
-	FIND_LIBRARY(OpenMP_LIBRARY
-		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS})
-    SET(OPENMP_FOUND 1)
-  ENDIF ()
-ELSE ()
-  FIND_PACKAGE(OpenMP)
 ENDIF ()
+
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
@@ -199,6 +208,11 @@ IF(MONGOC_ROOT)
 ENDIF()
 INCLUDE(FindBson)
 INCLUDE(FindMongoC)
+
+### Set bits of float pointing number, i.e., float32 or float64(double)
+IF(FLOAT32)
+  add_definitions(-DUSE_FLOAT32)
+ENDIF()
 
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)

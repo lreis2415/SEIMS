@@ -163,11 +163,11 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (m_potVolMax != nullptr) Release1DArray(m_potVolMax);
     if (m_potVolLow != nullptr) Release1DArray(m_potVolLow);
     /// temporary variables
-    if (nullptr != tmp_rtfr) Release2DArray(m_nCells, tmp_rtfr);
-    if (nullptr != tmp_soilMass) Release2DArray(m_nCells, tmp_soilMass);
-    if (nullptr != tmp_soilMixedMass) Release2DArray(m_nCells, tmp_soilMixedMass);
-    if (nullptr != tmp_soilNotMixedMass) Release2DArray(m_nCells, tmp_soilNotMixedMass);
-    if (nullptr != tmp_smix) Release2DArray(m_nCells, tmp_smix);
+    if (nullptr != tmp_rtfr) Release2DArray(tmp_rtfr);
+    if (nullptr != tmp_soilMass) Release2DArray(tmp_soilMass);
+    if (nullptr != tmp_soilMixedMass) Release2DArray(tmp_soilMixedMass);
+    if (nullptr != tmp_soilNotMixedMass) Release2DArray(tmp_soilNotMixedMass);
+    if (nullptr != tmp_smix) Release2DArray(tmp_smix);
 }
 
 void MGTOpt_SWAT::SetValue(const char* key, const float value) {

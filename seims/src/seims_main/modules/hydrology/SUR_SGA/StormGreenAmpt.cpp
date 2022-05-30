@@ -7,9 +7,9 @@ StormGreenAmpt::StormGreenAmpt() :
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilDepth(nullptr), m_soilPor(nullptr),
     m_soilClay(nullptr), m_soilSand(nullptr), m_ks(nullptr),
-    m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr), 
+    m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr),
     m_meanTmp(nullptr), m_netPcp(nullptr), m_deprSto(nullptr),
-    m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr), 
+    m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
     m_capillarySuction(nullptr), m_accumuDepth(nullptr),
     m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr) {
 
@@ -18,7 +18,7 @@ StormGreenAmpt::StormGreenAmpt() :
 StormGreenAmpt::~StormGreenAmpt() {
     if (m_capillarySuction != nullptr) Release1DArray(m_capillarySuction);
     if (m_accumuDepth != nullptr) Release1DArray(m_accumuDepth);
-    if (m_soilWtrSto != nullptr) Release2DArray(m_nCells, m_soilWtrSto);
+    if (m_soilWtrSto != nullptr) Release2DArray(m_soilWtrSto);
     if (m_infil != nullptr) Release1DArray(m_infil);
     if (m_infilCapacitySurplus != nullptr) Release1DArray(m_infilCapacitySurplus);
 }
@@ -110,8 +110,8 @@ int StormGreenAmpt::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j], 
-                                                                  m_soilClay[i][j] * 100, 
+                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j],
+                                                                  m_soilClay[i][j] * 100,
                                                                   m_soilSand[i][j] * 100);
             }
         }

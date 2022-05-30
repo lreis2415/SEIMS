@@ -32,7 +32,7 @@ const char* const LayeringMethodString[] = {"_UP_DOWN", "_DOWN_UP"};
  * \brief Flow direction method for flow routing.
  */
 enum FlowDirMethod {
-    D8,     ///< D8 (O��Callaghan and Mark, 1984), default
+    D8,     ///< D8 (O'Callaghan and Mark, 1984), default
     Dinf,   ///< Dinf (Tarboton, 1997)
     MFDmd   ///< Multiple Flow Direction based on maximum downslope gradient (Qin et al., 2007)
 };
@@ -94,20 +94,26 @@ const int FlowDirCCW[9] = { 0, 1, 128, 64, 32, 16, 8, 4, 2 };
 const int CCWDeltaRow[9] = { 0, 0, -1, -1, -1, 0, 1, 1, 1 }; ///< Delta Row (Y-axis) according to FlowDirCCW
 const int CCWDeltaCol[9] = { 0, 1, 1, 0, -1, -1, -1, 0, 1 }; ///< Delta Col (X-axis) according to FlowDirCCW
 
+#ifdef USE_FLOAT32
+typedef float FLTPT;
+#else
+typedef double FLTPT;
+#endif
+
 ///
 /// Common used const.
 ///
-const float _pi = 3.14159265358979323846f; ///< PI
-const float _1div3 = 0.3333333333333333f; ///< 1. / 3.
-const float _2div3 = 0.6666666666666666f; ///< 2. / 3.
-const float _8div3 = 2.6666666666666665f; ///< 8. / 3.
-const float SQ2 = 1.4142135623730951f; ///< sqrt(2.0)
-const float deg2rad = 0.017453292519943295f; ///< PI / 180.
-const float rad2deg = 57.29577951308232f; ///< 180. / PI
+const FLTPT _pi = 3.14159265358979323846; ///< PI
+const FLTPT _1div3 = 0.3333333333333333; ///< 1. / 3.
+const FLTPT _2div3 = 0.6666666666666666; ///< 2. / 3.
+const FLTPT _8div3 = 2.6666666666666665; ///< 8. / 3.
+const FLTPT SQ2 = 1.4142135623730951; ///< sqrt(2.0)
+const FLTPT deg2rad = 0.017453292519943295; ///< PI / 180.
+const FLTPT rad2deg = 57.29577951308232; ///< 180. / PI
 
-const float MIN_FLUX = 1e-12f; ///< \def minimum flux (m3/s) in kinematic wave
+const FLTPT MIN_FLUX = 1e-12; ///< \def minimum flux (m3/s) in kinematic wave
 const int MAX_ITERS_KW = 10; ///< \def maximum iterate number in kinematic wave method
-const float MIN_SLOPE = 1e-4f;  ///< \def minimum slope (tan value)
+const FLTPT MIN_SLOPE = 1e-4;  ///< \def minimum slope (tan value)
 
 #ifndef IntRaster
 /*! Integer-typed raster */
@@ -115,7 +121,7 @@ const float MIN_SLOPE = 1e-4f;  ///< \def minimum slope (tan value)
 #endif
 #ifndef FloatRaster
 /*! Float-typed raster */
-#define FloatRaster ccgl::data_raster::clsRasterData<float>
+#define FloatRaster ccgl::data_raster::clsRasterData<FLTPT>
 #endif
 #ifndef IntMaskedRaster
 /*! Int-typed raster with int-typed mask */
@@ -123,7 +129,7 @@ const float MIN_SLOPE = 1e-4f;  ///< \def minimum slope (tan value)
 #endif
 #ifndef FloatMaskedRaster
 /*! Float-typed raster with int-typed mask */
-#define FloatMaskedRaster ccgl::data_raster::clsRasterData<float, int>
+#define FloatMaskedRaster ccgl::data_raster::clsRasterData<FLTPT, int>
 #endif
 
 #endif /* SEIMS_HEADER */

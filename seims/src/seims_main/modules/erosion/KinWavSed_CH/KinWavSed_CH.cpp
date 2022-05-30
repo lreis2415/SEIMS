@@ -33,13 +33,13 @@ KinWavSed_CH::KinWavSed_CH() :
 }
 
 KinWavSed_CH::~KinWavSed_CH() {
-    Release2DArray(m_chNumber, m_CHDETFlow);
-    Release2DArray(m_chNumber, m_CHSedDep);
-    Release2DArray(m_chNumber, m_CHSed_kg);
-    Release2DArray(m_chNumber, m_CHSedConc);
-    Release2DArray(m_chNumber, m_Qsn);
-    Release2DArray(m_chNumber, m_ChVol);
-    Release2DArray(m_chNumber, m_ChV);
+    Release2DArray(m_CHDETFlow);
+    Release2DArray(m_CHSedDep);
+    Release2DArray(m_CHSed_kg);
+    Release2DArray(m_CHSedConc);
+    Release2DArray(m_Qsn);
+    Release2DArray(m_ChVol);
+    Release2DArray(m_ChV);
 
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_detCH);
