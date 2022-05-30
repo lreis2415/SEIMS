@@ -2,11 +2,11 @@
  * \file utils_math.h
  * \brief Useful math equations in CCGL.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *   - 2. 2021-07-15 - lj - Integrate pal.math for fast pow, exp, and ln
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(a)lreis.ac.cn
  * \version 1.1
  */
 #ifndef CCGL_UTILS_MATH_H
@@ -16,23 +16,48 @@
 
 #include "basic.h"
 #include "utils_array.h"
-
+#ifndef M_E
 #define M_E        2.7182818284590452354     /* e */
+#endif
+#ifndef M_LOG2E
 #define M_LOG2E    1.4426950408889634074     /* log 2e */
+#endif
+#ifndef M_LOG10E
 #define M_LOG10E   0.43429448190325182765    /* log 10e */
+#endif
 #ifndef M_LN2 /* Avoid warning, newlib defines this as _M_LN2 */
 #define M_LN2      0.69314718055994530942    /* log e2 */
 #endif
+#ifndef M_LN10
 #define M_LN10     2.30258509299404568402    /* log e10 */
+#endif
+#ifndef M_PI
 #define M_PI       3.14159265358979323846    /* pi */
+#endif
+#ifndef M_PI_2
 #define M_PI_2     1.57079632679489661923    /* pi/2 */
+#endif
+#ifndef M_PI_4
 #define M_PI_4     0.78539816339744830962    /* pi/4 */
+#endif
+#ifndef M_1_PI
 #define M_1_PI     0.31830988618379067154    /* 1/pi */
+#endif
+#ifndef M_2_PI
 #define M_2_PI     0.63661977236758134308    /* 2/pi */
+#endif
+#ifndef M_2_SQRTPI
 #define M_2_SQRTPI 1.12837916709551257390    /* 2/sqrt(pi) */
+#endif
+#ifndef M_SQRT2
 #define M_SQRT2    1.41421356237309504880    /* sqrt(2) */
+#endif
+#ifndef M_SQRT1_2
 #define M_SQRT1_2  0.70710678118654752440    /* 1/sqrt(2) */
+#endif
+#ifndef M_2POW23
 #define M_2POW23   8388608.0f                /* pow(2, 23) */
+#endif
 
 #ifndef HUGE
 #define HUGE ((float)3.40282347e+38)      /*maximum value of float*/

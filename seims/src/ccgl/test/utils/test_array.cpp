@@ -41,8 +41,8 @@ TEST(TestutilsArray, Handle2DArray) {
         }
     }
 
-    Release2DArray(r, float_2d);
+    Release2DArray(float_2d);
     EXPECT_EQ(nullptr, float_2d);
-    Release2DArray(r, float_2d_copy);
+    Release2DArray(float_2d_copy);
     EXPECT_EQ(nullptr, float_2d_copy);
 }

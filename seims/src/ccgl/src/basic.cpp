@@ -109,7 +109,7 @@ int GetAvailableThreadNum() {
 #ifdef LINUX
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
 #endif /* LINUX */
-#ifdef MACOSX
+#ifdef MACOS
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
 #endif /* macOS X 10.5 and later */
 }
@@ -127,6 +127,7 @@ void SetDefaultOpenMPThread() {
 }
 
 void SetOpenMPThread(const int n) {
+    if (n < 0) return;
 #ifdef SUPPORT_OMP
     omp_set_nested(1); // Enable nest omp loops. BUT, not recommended!
     omp_set_num_threads(n);
@@ -138,6 +139,12 @@ void StatusMessage(const char* msg) {
     /// Just for debugging
 #ifdef _DEBUG
     std::cout << msg << std::endl;
-#endif /* DEBUG */
+#endif
+}
+
+void StatusMessage(const string& msg) {
+#ifdef _DEBUG
+    std::cout << msg << std::endl;
+#endif
 }
 } /* namespace: ccgl */
