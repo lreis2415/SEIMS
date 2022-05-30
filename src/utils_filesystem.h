@@ -2,19 +2,18 @@
  * \file utils_filesystem.h
  * \brief File system related functions in CCGL.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn)
  * \version 1.0
  */
 #ifndef CCGL_UTILS_FILESYSTEM_H
 #define CCGL_UTILS_FILESYSTEM_H
 
-#include <vector>
-#include <cstring>
-
 #include "basic.h"
+
+#include <vector>
 
 using std::vector;
 
@@ -25,9 +24,14 @@ namespace ccgl {
  */
 namespace utils_filesystem {
 /*!
- * \brief Check the given directory path is exists or not.
+ * \brief Check the given directory path (not regular file!) is exists or not.
  */
 bool DirectoryExists(const string& dirpath);
+
+/*!
+ * \brief Make directory if not exists
+ */
+bool MakeDirectory(const string& dirpath);
 
 /*!
  * \brief Clean a directory if exists, otherwise create it.
@@ -51,43 +55,71 @@ string GetAppPath();
 
 /*!
  * \brief Return the absolute file path from a given file path
- * \param[in] full_filename
- * \return absolutePath
+ * \param[in] full_filename Full file path
  * \sa GetPathFromFullName
  */
 string GetAbsolutePath(string const& full_filename);
 
 /*!
  * \brief Return the file name from a given file's path
- * \param[in] full_filename
- * \return CoreFileName
+ * \param[in] full_filename Full file path
  * \sa GetPathFromFullName
  */
 string GetCoreFileName(string const& full_filename);
 
 /*!
- * \brief Return the suffix of a given file's path
- * \param[in] full_filename
- * \return Suffix
+ * \brief Return the suffix of a given file's path without dot, e.g., "tif", "asc"
+ * \param[in] full_filename Full file path
  * \sa GetPathFromFullName
  */
 string GetSuffix(string const& full_filename);
 
 /*!
  * \brief Replace the suffix by a given suffix
- * \param[in] full_filename
- * \param[in] new_suffix
- * \return new full_filename
+ * \param[in] full_filename Full file path
+ * \param[in] new_suffix New suffix without dot, e.g., "tif", "asc"
  */
 string ReplaceSuffix(string const& full_filename, string const& new_suffix);
 
 /*!
+ * \brief Append a given string to the core filename
+ * \param[in] full_filename Full file path
+ * \param[in] endstr End string
+ * \param[in] deli (Optional) Delimiter
+ * \return new full_filename
+ */
+string AppendCoreFileName(string const& full_filename, string const& endstr, char deli = '_');
+
+/*!
+ * \brief Append a given integer to the core filename
+ */
+string AppendCoreFileName(string const& full_filename, vint endint, char deli = '_');
+
+/*!
+ * \brief Add a prefix to the core filename
+ * \param[in] full_filename Full file path
+ * \param[in] prestr Start string
+ * \param[in] deli (Optional) Delimiter
+ * \return new full_filename
+ */
+string PrefixCoreFileName(string const& full_filename, string const& prestr, char deli = '_');
+
+/*!
+ * \brief Add a prefix to the core filename
+ */
+string PrefixCoreFileName(string const& full_filename, vint preint, char deli = '_');
+
+/*!
  * \brief Get Path From full file path string
- * \param[in] full_filename \a string
- * \return filePath string
+ * \param[in] full_filename Full file path
  * \sa GetCoreFileName
  */
 string GetPathFromFullName(string const& full_filename);
+
+/*!
+ * \brief Concatenate directory, core file name, and suffix
+ */
+string ConcatFullName(string const& fdir, string const& corename, string const& suffix = std::string());
 
 /*!
  * \brief Return a flag indicating if the given file exists
@@ -97,7 +129,14 @@ string GetPathFromFullName(string const& full_filename);
 bool FileExists(string const& filename);
 
 /*!
- * \brief Return a flag indicating if the given path exists
+ * \brief Return a flag indicating if given files exist
+ * \param[in] filenames Vector of full file paths
+ * \return True if all existed, else false
+ */
+bool FilesExist(vector<string>& filenames);
+
+/*!
+ * \brief Return a flag indicating if the given path (directory or file) exists
  * \param[in] path String path
  * \return True if Exists, and false if not.
  */
@@ -112,8 +151,9 @@ int DeleteExistedFile(const string& filepath);
 
 /*!
  * \brief Find files in given paths
- * \param[in] lp_path, expression
- * \param[out] vec_files
+ * \param[in] lp_path Directory path
+ * \param[in] expression Wildcard characters, e.g., "*.*" means any filename with any suffix
+ * \param[out] vec_files Vector of full file paths
  * \return 0 means success
  */
 int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_files);

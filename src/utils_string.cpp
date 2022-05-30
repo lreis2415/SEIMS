@@ -44,6 +44,65 @@ vector<string> SplitString(const string& item, const char delimiter) {
     return tokens;
 }
 
+
+vector<string> SplitString(const string& item) {
+    std::istringstream iss(item);
+    vector<string> tokens;
+    string field;
+    iss >> field;
+    while (!iss.eof()) {
+        tokens.emplace_back(field);
+        iss >> field;
+    }
+    tokens.emplace_back(field);
+    return tokens;
+}
+
+bool StringMatch(const char* a, const char* b) {
+    return strcasecmp(a, b) == 0;
+}
+
+bool StringMatch(const string& text1, const string& text2) {
+    // convert to UPPERCASE for comparison
+    return GetUpper(text1) == GetUpper(text2);
+}
+
+string& Trim(string& s) {
+    if (s.empty()) {
+        return s;
+    }
+    s.erase(0, s.find_first_not_of(" \n\r\t"));
+    return s.erase(s.find_last_not_of(" \n\r\t") + 1);
+}
+
+void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts) {
+    if (in_opts.empty()) { return; }
+    for (auto it = in_opts.begin(); it != in_opts.end(); ++it) {
+        if (out_opts.find(it->first) != out_opts.end()) {
+            out_opts[it->first] = it->second;
+        }
+        else {
+#ifdef HAS_VARIADIC_TEMPLATES
+            out_opts.emplace(it->first, it->second);
+#else
+            out_opts.insert(make_pair(it->first, it->second));
+#endif
+        }
+    }
+}
+
+void UpdateStringMap(STRING_MAP& opts, const string& key, const string& value) {
+    if (opts.count(key) > 0) {
+        opts[key] = value;
+    } else {
+#ifdef HAS_VARIADIC_TEMPLATES
+        opts.emplace(key, value);
+#else
+        opts.insert(make_pair(key, value));
+#endif
+    }
+}
+
 #if defined(CPP_GCC) || defined(CPP_ICC)
 void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix) {
     strprintf(buffer, size, "%d", value);
@@ -54,7 +113,7 @@ void _itow_s(vint32_t value, wchar_t* buffer, size_t size, vint radix) {
 }
 
 void _i64toa_s(vint64_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%ld", value);
+    strprintf(buffer, size, LLD, static_cast<long long>(value));
 }
 
 void _i64tow_s(vint64_t value, wchar_t* buffer, size_t size, vint radix) {
@@ -70,7 +129,7 @@ void _uitow_s(vuint32_t value, wchar_t* buffer, size_t size, vint radix) {
 }
 
 void _ui64toa_s(vuint64_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%lu", value);
+    strprintf(buffer, size, LLU, static_cast<unsigned long long>(value));
 }
 
 void _ui64tow_s(vuint64_t value, wchar_t* buffer, size_t size, vint radix) {
@@ -255,51 +314,6 @@ double IsDouble(const wstring& num_str, bool& success) {
     double result = wcstod(num_str.c_str(), &endptr);
     success = endptr == num_str.c_str() + num_str.length();
     return result;
-}
-
-vector<string> SplitString(const string& item) {
-    std::istringstream iss(item);
-    vector<string> tokens;
-    string field;
-    iss >> field;
-    while (!iss.eof()) {
-        tokens.emplace_back(field);
-        iss >> field;
-    }
-    tokens.emplace_back(field);
-    return tokens;
-}
-
-bool StringMatch(const char* a, const char* b) {
-    return strcasecmp(a, b) == 0;
-}
-
-bool StringMatch(const string& text1, const string& text2) {
-    // convert to UPPERCASE for comparison
-    return GetUpper(text1) == GetUpper(text2);
-}
-
-string& Trim(string& s) {
-    if (s.empty()) {
-        return s;
-    }
-    s.erase(0, s.find_first_not_of(" \n\r\t"));
-    return s.erase(s.find_last_not_of(" \n\r\t") + 1);
-}
-
-void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts) {
-    if (in_opts.empty()) return;
-    for (auto it = in_opts.begin(); it != in_opts.end(); ++it) {
-        if (out_opts.find(it->first) != out_opts.end()) {
-            out_opts[it->first] = it->second;
-        } else {
-#ifdef HAS_VARIADIC_TEMPLATES
-            out_opts.emplace(it->first, it->second);
-#else
-            out_opts.insert(make_pair(it->first, it->second));
-#endif
-        }
-    }
 }
 } /* namespace: utils_string */
 

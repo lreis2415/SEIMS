@@ -2,11 +2,11 @@
  * \file utils_array.h
  * \brief Template functions to initialize and release arrays.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *   - 2. 2021-07-20 - lj - Initialize 2D array in a succesive memory.
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
  * \version 1.1
  */
 #ifndef CCGL_UTILS_ARRAY_H
@@ -53,10 +53,10 @@ bool Initialize1DArray(int row, T*& data, INI_T* init_data);
 /*!
  * \brief Initialize DT_Array2D data
  *
- * The 2D array are created in a succesive memory.
+ * The 2D array are created in a successive memory.
  * 1. Create a 1D array of row data pointers with the length of row
  * 2. Create a 1D array of data pool with the length of row * col
- * 3. Iterately point row pointers to appropriate positions in data pool
+ * 3. Iteratively point row pointers to appropriate positions in data pool
  *
  * Refers to https://stackoverflow.com/a/21944048/4837280
  *
@@ -94,7 +94,7 @@ void Release1DArray(T*& data);
  * \param[in] data
  */
 template <typename T>
-void Release2DArray(int row, T**& data);
+void Release2DArray(T**& data);
 
 /*!
  * \brief Batch release of 1D array
@@ -321,10 +321,16 @@ bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
         cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
+    if (row <= 0) {
+        cout << "The data length MUST greater than 0!" << endl;
+        data = nullptr;
+        return false;
+    }
     data = new(nothrow)T[row];
     if (nullptr == data) {
         delete[] data;
         cout << "Bad memory allocated during 1D array initialization!" << endl;
+        data = nullptr;
         return false;
     }
     T init = static_cast<T>(init_value);
@@ -417,7 +423,7 @@ void Release1DArray(T*& data) {
 }
 
 template <typename T>
-void Release2DArray(const int row, T**& data) {
+void Release2DArray(T**& data) {
     if (nullptr == data) {
         return;
     }

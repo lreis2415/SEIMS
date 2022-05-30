@@ -3,12 +3,12 @@
  * \brief Basic definitions.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Initially implementation.
  *   - 2. 2018-06-21 - lj - Test on Intel C++ compiler.
  *   - 3. 2018-08-21 - lj - Doxygen comment style check.
  *
- * \author Liangjun Zhu (crazyzlj)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
  * \version 1.1
  */
 #ifndef CCGL_BASIC_H
@@ -45,6 +45,7 @@
 #endif /* __APPLE__ */
 #endif /* __GNUC__ */
 
+#include <stdint.h>
 #include <memory>
 #include <stdexcept>
 #include <cfloat>
@@ -203,7 +204,6 @@ typedef unsigned __int32 vuint32_t;
 typedef signed __int64 vint64_t;
 /// 8-byte (64-bit) unsigned integer
 typedef unsigned __int64 vuint64_t;
-
 #else
 typedef          int8_t            vint8_t;
 typedef          uint8_t           vuint8_t;
@@ -213,6 +213,15 @@ typedef          int32_t           vint32_t;
 typedef          uint32_t          vuint32_t;
 typedef          int64_t           vint64_t;
 typedef          uint64_t          vuint64_t;
+#endif
+
+#ifdef _WIN32
+/*! Format of integers */
+#define LLD "%I64d"
+#define LLU "%I64u"
+#else
+#define LLD "%lld"
+#define LLU "%llu"
 #endif
 
 #ifdef CPP_64
@@ -233,7 +242,7 @@ typedef vint64_t pos_t;
 
 /*! Default NoData value for raster data etc. */
 #ifndef NODATA_VALUE
-#define NODATA_VALUE    (-9999.0f)
+#define NODATA_VALUE    (-9999.)
 #endif /* NODATA_VALUE */
 
 /*! Missing float value */
@@ -253,32 +262,34 @@ typedef vint64_t pos_t;
 
 /*! A approximation of Zero */
 #ifndef UTIL_ZERO
-#define UTIL_ZERO       1.0e-6f
+#define UTIL_ZERO       1.0e-6
 #endif /* UTIL_ZERO */
 
 /*! A approximation of PI */
 #ifndef PI
-#define PI              3.14159265358979323846f
+#define PI              3.14159265358979323846
 #endif /* PI */
 
 /*! Minimum slope(radian) value */
 #ifndef MINI_SLOPE
-#define MINI_SLOPE      0.0001f
+#define MINI_SLOPE      0.0001
 #endif /* MINI_SLOPE */
 
 #ifdef WINDOWS
-#define SEP             "\\"
+#define SEP             '\\'
+#define SEPSTR          "\\"
 #ifndef MSVC
 #define LIBPREFIX       "lib"
 #endif
 #define LIBSUFFIX       ".dll"
 #else
-#define SEP             "/"
+#define SEP             '/'
+#define SEPSTR          "/"
 #define LIBPREFIX       "lib"
 #endif /* Windows */
 #ifdef LINUX
 #define LIBSUFFIX       ".so"
-#elif defined MACOSX
+#elif defined MACOS
 #define LIBSUFFIX       ".dylib"
 #endif /* Linux and macOS */
 
@@ -329,6 +340,9 @@ typedef vint64_t pos_t;
 
 /*! Map of string key and string value */
 typedef std::map<string, string> STRING_MAP;
+
+/*! Map of string key and double value */
+typedef std::map<string, double> STRDBL_MAP;
 
 #ifdef CPP_64
 #define ITOA_S		_i64toa_s
@@ -456,6 +470,12 @@ void SetOpenMPThread(int n);
  * \param[in] msg \a char* Message
  */
 void StatusMessage(const char* msg);
+
+/*!
+ * \brief Print status messages for Debug
+ * \param[in] msg \a char* Message
+ */
+void StatusMessage(const string& msg);
 
 /*!
  * \brief Sleep milliseconds

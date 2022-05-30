@@ -2,13 +2,13 @@
  * \file db_mongoc.cpp
  * \brief Implementation of utility functions of MongoDB.
  *
- *  * Changelog:
+ * \remarks
  *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
  *   - 2. 2018-05-02 - lj - Make part of CCGL.
  *   - 3. 2019-08-16 - lj - Add or move detail description in the implementation code.
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
- * \version 1.1
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
+ * \version 1.2
  */
 #include "db_mongoc.h"
 
@@ -76,10 +76,11 @@ MongoClient::MongoClient(mongoc_client_t* conn): conn_(conn) {
  * \sa MongoClient()
  */
 MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
-    if (!IsIpAddress(host)) {
-        cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
-        return nullptr;
-    }
+    // mongo host not only limit to IP address
+    // if (!IsIpAddress(host)) {
+    //     cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
+    //     return nullptr;
+    // }
     mongoc_init();
     mongoc_uri_t* uri = mongoc_uri_new_for_host_port(host, port);
     mongoc_client_t* conn = mongoc_client_new_from_uri(uri);
@@ -115,8 +116,11 @@ void MongoClient::Destroy() {
 void MongoClient::GetDatabaseNames(vector<string>& dbnames) {
     char** dbnames_char = NULL;
     bson_error_t err;
+#if MONGOC_CHECK_VERSION(1, 9, 0)
+    dbnames_char = mongoc_client_get_database_names_with_opts (conn_, NULL, &err);
+#else // deprecated from 1.9.0
     dbnames_char = mongoc_client_get_database_names(conn_, &err);
-    /// TODO: Check start version to use mongoc_client_get_database_names_with_opts()
+#endif
     if (dbnames_char) {
         if (!dbnames.empty()) {
             dbnames.clear(); // get clean vector before push database names
@@ -154,8 +158,6 @@ mongoc_collection_t* MongoClient::GetCollection(string const& dbname, string con
                 << ") failed! Error message: " << err.message << endl;
         return NULL;
     }
-    // Get collection directly from mongoc_client_t rather than database_t. -LJ.
-    // mongoc_collection_t* collection = mongoc_database_get_collection(db, collectionname.c_str());
     mongoc_database_destroy(db);
     mongoc_collection_t* collection = mongoc_client_get_collection(conn_, dbname.c_str(),
                                                                    collectionname.c_str());
@@ -213,8 +215,11 @@ MongoDatabase::~MongoDatabase() {
 void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
     char **collnames_chars = NULL;
     bson_error_t err;
+#if MONGOC_CHECK_VERSION(1, 9, 0)
+    collnames_chars = mongoc_database_get_collection_names_with_opts (db_, NULL, &err);
+#else // deprecated from 1.9.0
     collnames_chars = mongoc_database_get_collection_names(db_, &err);
-    /// TODO: Use mongoc_database_get_collection_names_with_opts()
+#endif
     if (collnames_chars) {
         if (!collnames.empty()) {
             collnames.clear(); // get clean vector before push database names
@@ -268,29 +273,34 @@ MongoCollection::~MongoCollection() {
 }
 
 mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
-    // printf("%s\n", bson_as_json(b, NULL));
-    // TODO: mongoc_collection_find should be deprecated, however, mongoc_collection_find_with_opts
-    //       may not work in my Windows 10 both by MSVC and MINGW64.
-    //       So, remove `&& !defined(WINDOWS)` when this bug fixed. LJ
-    //       Upd 12/13/2017 The new method also failed in our linux cluster (redhat 6.2 and Intel C++ 12.1)
-    //                      So, I will uncomment these code later.
-    //#if MONGOC_CHECK_VERSION(1, 5, 0) && !defined(WINDOWS)
-    //    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
-    //#else
-    mongoc_cursor_t* cursor = mongoc_collection_find(collection_, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-    //#endif /* MONGOC_CHECK_VERSION */
+    // NOTE: mongoc_collection_find should be deprecated from v1.5.0, however, mongoc_collection_find_with_opts
+    //       do not work in my Windows 10 both by MSVC and MINGW64.
+    //       Upd 12/13/2017 The new method also failed in our linux cluster (redhat 6.2 and Intel C++ 12.1).
+    //       Upd 12/29/2021 I decide to use new method from a quite later version such as v1.8.0.
+    //                      Maybe a precise version can be determined after a thorough test.
+    mongoc_cursor_t* cursor = nullptr;
+#if MONGOC_CHECK_VERSION(1, 8, 0)
+    cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
+#else // Deprecated from 1.5.0
+    cursor = mongoc_collection_find(collection_, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+#endif
     return cursor;
 }
 
 vint MongoCollection::QueryRecordsCount() {
     const bson_t* q_count = bson_new();
     bson_error_t err;
-    vint count = CVT_VINT(mongoc_collection_count(collection_, MONGOC_QUERY_NONE, q_count, 0, 0, NULL, &err));
+#if MONGOC_CHECK_VERSION(1, 11, 0)
+    int64_t count = mongoc_collection_count_documents(collection_, q_count,
+                                                      NULL, NULL, NULL, &err);
+#else
+    int64_t count = mongoc_collection_count(collection_, MONGOC_QUERY_NONE, q_count, 0, 0, NULL, &err);
+#endif
     if (count < 0) {
         cout << "MongoCollection::QueryRecordsCount failed: " << err.message << endl;
         return -1;
     }
-    return count;
+    return CVT_VINT(count);
 }
 
 ///////////////////////////////////////////////////
@@ -301,12 +311,12 @@ MongoGridFs::MongoGridFs(mongoc_gridfs_t* gfs /* = NULL */) : gfs_(gfs) {
 }
 
 MongoGridFs::~MongoGridFs() {
-    if (gfs_ != NULL) mongoc_gridfs_destroy(gfs_);
+    if (gfs_ != NULL) { mongoc_gridfs_destroy(gfs_); }
 }
 
 mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */,
-                                           STRING_MAP opts /* = STRING_MAP() */) {
-    if (gfs_ != NULL) gfs = gfs_;
+                                           const STRING_MAP& opts /* = STRING_MAP() */) {
+    if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return NULL;
@@ -315,8 +325,7 @@ mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridf
     bson_error_t err;
     bson_t filter = BSON_INITIALIZER;
     BSON_APPEND_UTF8(&filter, "filename", gfilename.c_str());
-    AppendStringOptionsToBson(&filter, opts);
-    // Replace `mongoc_gridfs_find_one_by_filename` by `mongoc_gridfs_find_one_with_opts`
+    AppendStringOptionsToBson(&filter, opts, "metadata.");
     int count = 0;
     while (count < 5) {
         gfile = mongoc_gridfs_find_one_with_opts(gfs, &filter, NULL, &err);
@@ -333,22 +342,44 @@ mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridf
     return gfile;
 }
 
-bool MongoGridFs::RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */) {
-    if (gfs_ != NULL) gfs = gfs_;
+bool MongoGridFs::RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */,
+                             STRING_MAP opts /* = STRING_MAP() */) {
+    if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return false;
     }
     bson_error_t err;
-    if (mongoc_gridfs_remove_by_filename(gfs, gfilename.c_str(), &err)) {
-        return true;
+    bson_t filter = BSON_INITIALIZER;
+    BSON_APPEND_UTF8(&filter, "filename", gfilename.c_str());
+    AppendStringOptionsToBson(&filter, opts, "metadata.");
+    // Deprecated: this function will remove all files with the same filename
+    // if (mongoc_gridfs_remove_by_filename(gfs, gfilename.c_str(), &err)) {
+    //     return true;
+    // }
+    mongoc_gridfs_file_list_t* filelist;
+    mongoc_gridfs_file_t* gfile = NULL;
+    filelist = mongoc_gridfs_find_with_opts(gfs, &filter, NULL);
+    while ((gfile = mongoc_gridfs_file_list_next(filelist))) {
+        const bson_value_t* tmpid = mongoc_gridfs_file_get_id(gfile);
+        char charid[25];
+        bson_oid_to_string(&tmpid->value.v_oid, charid);
+        string strid = charid;
+        if (!mongoc_gridfs_file_remove(gfile, &err)) {
+            StatusMessage(("MongoGridFs::RemoveFile(" + gfilename + ") failed: " + err.message).c_str());
+        } else {
+            StatusMessage(("Removed GridFs: " + gfilename + ", _id: " + strid).c_str());
+        }
+        mongoc_gridfs_file_destroy(gfile);
     }
-    StatusMessage(("MongoGridFs::RemoveFile (" + gfilename + ") failed: " + err.message).c_str());
-    return false;
+
+    mongoc_gridfs_file_list_destroy(filelist);
+    bson_destroy(&filter);
+    return true;
 }
 
 void MongoGridFs::GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs /* = NULL */) {
-    if (gfs_ != NULL) gfs = gfs_;
+    if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
     }
@@ -387,9 +418,9 @@ bson_t* MongoGridFs::GetFileMetadata(string const& gfilename,
 }
 
 bool MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
-                                size_t& datalength, mongoc_gridfs_t* gfs /* = NULL */,
+                                vint& datalength, mongoc_gridfs_t* gfs /* = NULL */,
                                 STRING_MAP opts /* = STRING_MAP() */) {
-    if (gfs_ != NULL) gfs = gfs_;
+    if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return false;
@@ -406,7 +437,7 @@ bool MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
     iov.iov_base = databuf;
     iov.iov_len = static_cast<u_long>(datalength);
     mongoc_stream_t* stream = mongoc_stream_gridfs_new(gfile);
-    // Set a 10 milliseconds for timeout
+    // Set 10 milliseconds for timeout
     vint flag = mongoc_stream_readv(stream, &iov, 1, -1, 10);
     mongoc_stream_destroy(stream);
     mongoc_gridfs_file_destroy(gfile);
@@ -414,9 +445,9 @@ bool MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
 }
 
 bool MongoGridFs::WriteStreamData(const string& gfilename, char*& buf,
-                                  const size_t length, const bson_t* p,
+                                  vint length, const bson_t* p,
                                   mongoc_gridfs_t* gfs /* = NULL */) {
-    if (gfs_ != NULL) gfs = gfs_;
+    if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return false;
@@ -452,16 +483,20 @@ bool MongoGridFs::WriteStreamData(const string& gfilename, char*& buf,
  * \param[in,out] bson_opts Instance of `bson_t`
  * \param[in] opts STRING_MAP key-value
  */
-void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts) {
-    if (opts.empty()) return;
+void AppendStringOptionsToBson(bson_t* bson_opts, const STRING_MAP& opts,
+                               const string& prefix /* = string() */) {
+    if (opts.empty()) { return; }
     for (auto iter = opts.begin(); iter != opts.end(); ++iter) {
-        string meta_field = "metadata." + iter->first;
+        string meta_field;
+        if (prefix.empty()) { meta_field = iter->first; }
+        else { meta_field = prefix + iter->first; }
         bool is_dbl = false;
         double dbl_value = IsDouble(iter->second, is_dbl);
         if (StringMatch("", iter->second) || !is_dbl) {
             BSON_APPEND_UTF8(bson_opts, meta_field.c_str(), iter->second.c_str());
         } else {
-            if (std::fmod(dbl_value, 1.) == 0) {
+            double intpart; // https://stackoverflow.com/a/1521682/4837280
+            if (std::modf(dbl_value, &intpart) == 0.0) {
                 BSON_APPEND_INT32(bson_opts, meta_field.c_str(), CVT_INT(dbl_value));
             } else {
                 BSON_APPEND_DOUBLE(bson_opts, meta_field.c_str(), dbl_value);

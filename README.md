@@ -1,13 +1,11 @@
-# CCGL
-Common Cross-platform Geographic-computing Library
+# CCGL - Common Cross-platform Geographic-computing Library
 
-## Build status
 
-+ Windows_MSVC2013x64_GDAL-1.11.4_mongo-c-driver-1.5.5: [![Build status](https://ci.appveyor.com/api/projects/status/b239pv4qvvxxythk/branch/master?svg=true)](https://ci.appveyor.com/project/crazyzlj/ccgl/branch/master)
-+ Linux(Ubuntu trusty)_GCC-4.8_GDAL-1.10.1_mongo-c-driver-1.6.1: [![Build Status](http://badges.herokuapp.com/travis/crazyzlj/CCGL?branch=master&env=BUILD_NAME=linux_gcc&label=linux_gcc)](https://travis-ci.org/crazyzlj/CCGL)
-+ macOS(10.13.3)_AppleClang-10.0_GDAL-2.3.1_mongo-c-driver-1.14.0: [![Build Status](http://badges.herokuapp.com/travis/crazyzlj/CCGL?branch=master&env=BUILD_NAME=osx_clang&label=osx_clang)](https://travis-ci.org/crazyzlj/CCGL)
+[![Build on native C++](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds.yml/badge.svg)](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds.yml)
+[![Build with GDAL](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-gdal.yml/badge.svg)](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-gdal.yml)
+[![Build with MongoDB](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-mongodb.yml/badge.svg)](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-mongodb.yml)
+[![Build with GDAL and MongoDB](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-gdal-mongodb.yml/badge.svg)](https://github.com/crazyzlj/CCGL/actions/workflows/cmake_builds_with-gdal-mongodb.yml)
 
-+ Code coverage: [![codecov](https://codecov.io/gh/crazyzlj/CCGL/branch/master/graph/badge.svg)](https://codecov.io/gh/crazyzlj/CCGL)
 
 ## UnitTest
 + [Google Test](https://github.com/google/googletest) Tag-[release-1.8.0](https://github.com/google/googletest/tree/release-1.8.0) is adopted as UnitTest framework. Note that other versions that higher than `release-1.8.0` will cause error C2220: warning treated as error - no 'object' file generated on MSVS 2013.
