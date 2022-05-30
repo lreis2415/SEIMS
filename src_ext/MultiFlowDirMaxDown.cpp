@@ -154,7 +154,7 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         // write flow fractions data into separated raster files
         for (lyr = 1; lyr <= 8; lyr++) {
             char ffracfile[MAXLN];
-            std::string intstr = std::to_string(lyr);
+            std::string intstr = std::to_string((long long)lyr);
             intstr.insert(0, "_");
             nameadd(ffracfile, fportion, intstr.c_str());
             tiffIO ffractTIFF(ffracfile, FLOAT_TYPE, static_cast<double>(DEFAULTNODATA), srcf);

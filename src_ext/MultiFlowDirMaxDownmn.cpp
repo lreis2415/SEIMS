@@ -25,14 +25,15 @@ int main(int argc, char** argv) {
     double tanb_ub = 1.;
     double min_portion = 0.05;
 
+    char* err = nullptr;
     int scount = 2; // argument count of simple usage including the executable itself
+    int i = 1;
     if (argc < scount) {
         printf("Error: To run the program, use either the Simple Usage option or\n");
         printf("the Usage with Specific file names option\n");
         goto errexit;
     }
-    int i = argc == scount ? scount : 1;
-    char* err = nullptr;
+    i = argc == scount ? scount : 1;
     while (argc > i) {
         if (strcmp(argv[i], "-dem") == 0) {
             i++;

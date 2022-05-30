@@ -343,7 +343,9 @@ int reachshape(long *cnet,
         OGR_G_AddPoint(line, mypointx[j], mypointy[j], 0);
     }
     OGR_F_SetGeometryDirectly(hFeature1, line); // set geometry to feature
-    OGR_L_CreateFeature(hLayer1, hFeature1); //adding feature
+    if (OGR_L_CreateFeature(hLayer1, hFeature1) != OGRERR_NONE) { //adding feature
+        printf("reachshape: Create feature failed!");
+    }
 
     delete[] mypointx;
     delete[] mypointy;
