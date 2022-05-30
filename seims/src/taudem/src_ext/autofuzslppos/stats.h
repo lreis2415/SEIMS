@@ -79,7 +79,7 @@ float std_vector(vector<T> values, float mean = MISSINGFLOAT)
  * interpolation : {"linear", "lower", "higher", "midpoint", "nearest"}
  */
 template<typename T>
-float percentile_vector(vector<T> values, float percent, char *interpolation = "linear")
+float percentile_vector(vector<T> values, float percent, char *interpolation = (char*)"linear")
 {
 	if(percent < 0.f || percent > 100.f)
 	{
