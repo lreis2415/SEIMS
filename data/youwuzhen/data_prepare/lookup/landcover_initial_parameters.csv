@@ -1,3 +1,16 @@
+### This file defines parameters dependent on landcover.
+###Landuse_ID: Landuse ID
+###IGRO: Land cover status: 0-none growing; 1-growing
+###LANDCOVER: i.e.,ICNUM, Land cover ID number (required when IGRO is 1)
+###LAI_INIT: Initial leaf area index (required when IGRO is 1)
+###BIO_INIT: Initial biomass (kg/ha) (required when IGRO is 1)
+###PHU_PLT: Number of heat units to bring plant to maturity (required when IGRO is 1)
+###EPCO: Plant uptake compensation factor, 0.01~1
+###RSDIN: Initial residue cover (kg/ha)
+###CURYR_INIT: Initial age of trees (yrs)
+###CHT: Initial canopy height for the day (m)
+###DORMI: Dormancy status code: 1 - Growing and 0 - Dormancy
+###USLE_P: Conservation practice management factor for MUSLE; range from 0 to 1.
 LANDUSE_ID,IGRO,LANDCOVER,LAI_INIT,BIO_INIT,PHU_PLT,EPCO,RSDIN,CURYR_INIT,CHT,DORMI,USLE_P
 33,0,33,0,0,0,1,100,0,0,0,0.084
 4,1,4,2,200,0,1,200,2,2,0,0.8
