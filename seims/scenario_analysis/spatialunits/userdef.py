@@ -444,7 +444,7 @@ def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
             new_val = bmp_type * 1000 + new_impl_year
             indv[idx] = new_val
             mut_count += 1
-    print(mut_count)
+    # print(mut_count)
 
     return indv
 

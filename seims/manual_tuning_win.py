@@ -19,8 +19,8 @@ cmd_run_model = ['python', SEIMS_CODE + 'run_seims.py', '-ini',
 cmd_post = ['python', SEIMS_CODE + 'postprocess/main.py', '-ini',
             SEIMS_DATA + 'youwuzhen/workspace/postprocess.ini']
 
-target_param = 'USLE_K'
-possible_values = ['0.8','0.9','1.1','1.2','1.3']
+target_param = 'ch_slp'
+possible_values = ['1.04','1.14']
 # possible_values = ['0.15','-0.25','-0.5','-0.75']
 
 model_ywz = SEIMS_DATA + 'youwuzhen/ss_youwuzhen10m_longterm_model/'

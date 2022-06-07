@@ -184,6 +184,7 @@ class SUScenario(Scenario):
         Returns:
             A list contains BMPs identifier of each gene location.
         """
+
         def generate_gene_values(obj, genes):
             invests = numpy.array(obj.cfg.investment_each_period, dtype=float)
             pro_dist = invests / numpy.sum(invests)
@@ -748,7 +749,8 @@ class SUScenario(Scenario):
                     # every period has income after impl
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
                         bmp_maintain_by_period[prd - 1] += luarea * opex
-                        bmp_income_by_period[prd - 1] += luarea * income[prd - impl_period]  # each year has different benefit
+                        bmp_income_by_period[prd - 1] += luarea * income[
+                            prd - impl_period]  # each year has different benefit
         return bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period
 
     def satisfy_investment_constraints(self):
@@ -808,14 +810,14 @@ class SUScenario(Scenario):
                     bmpname = bmpparam['NAME']
                     # every period has opex,income after impl, only one capex
                     capex = luarea * bmpparam['CAPEX']
-                    periods[impl_period-1]['BMPS'][bmpname]['CAPEX'] += capex
+                    periods[impl_period - 1]['BMPS'][bmpname]['CAPEX'] += capex
                     for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
                         bmp_year_index = prd - impl_period
-                        opex = luarea * bmpparam['OPEX'] # only 1 number
-                        income = luarea * bmpparam['INCOME'][bmp_year_index] # sequence numbers
-                        periods[prd-1]['BMPS'][bmpname]['AREA'] += luarea
-                        periods[prd-1]['BMPS'][bmpname]['OPEX'] += opex
-                        periods[prd-1]['BMPS'][bmpname]['INCOME'] += income
+                        opex = luarea * bmpparam['OPEX']  # only 1 number
+                        income = luarea * bmpparam['INCOME'][bmp_year_index]  # sequence numbers
+                        periods[prd - 1]['BMPS'][bmpname]['AREA'] += luarea
+                        periods[prd - 1]['BMPS'][bmpname]['OPEX'] += opex
+                        periods[prd - 1]['BMPS'][bmpname]['INCOME'] += income
 
         for period in periods:
             total_capex = 0.
@@ -830,7 +832,7 @@ class SUScenario(Scenario):
             period['SUMMARY']['CAPEX'] = total_capex
             period['SUMMARY']['OPEX'] = total_opex
             period['SUMMARY']['INCOME'] = total_income
-            period['SUMMARY']['NETCOST'] = total_capex+total_opex-total_income
+            period['SUMMARY']['NETCOST'] = total_capex + total_opex - total_income
             period['SUMMARY']['AREA'] = total_area
 
         return periods
@@ -1116,6 +1118,8 @@ def main_manual(sceid, gene_values):
     sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.calculate_economy()
     sce.calculate_environment()
+    sce.export_sce_txt = True
+    sce.export_scenario_to_txt()
 
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n' % (
@@ -1143,6 +1147,7 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
     satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()
+    print('investments: ', costs + maintains)
     if satisfied:
         sce.execute_seims_model()
         sce.calculate_economy_bmps_order(costs, maintains, incomes)
@@ -1193,7 +1198,7 @@ def generate_giff_txt(sceid, gene_values):
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
-def extra_process_for_last_generation(log_filename, last_gen, output_path,export_tif=True):
+def extra_process_for_last_generation(log_filename, last_gen, output_path, export_tif=True):
     import ast
     # read runtime.log
     last_gen_str = 'Generation: {}'.format(last_gen)
@@ -1245,7 +1250,7 @@ def extra_process_for_last_generation(log_filename, last_gen, output_path,export
                 sce_dict['periods'] = sce.statistics_by_period_bmp()
                 # append reduction rates
                 base_amounts = sce.eval_info['BASE_ENV_PERIODS']
-                for index,sed in enumerate(sce_dict['sed_pp']):
+                for index, sed in enumerate(sce_dict['sed_pp']):
                     environment = (base_amounts[index] - sed) * 100 / base_amounts[index]
                     sce_dict['periods'][index]['SUMMARY']['environment'] = environment
                 output_json = '{}/Scenario_{}.json'.format(output_path, sceid)
@@ -1258,9 +1263,9 @@ def test_func():
     # main_multiple(4)
 
     # run base
-    sid = 0
-    gvalues = [0.0] * 105
-    main_manual(sid, gvalues)
+    # sid = 0
+    # gvalues = [0.0] * 105
+    # main_manual(sid, gvalues)
 
     # selected scenario
     # sid = 10
@@ -1397,6 +1402,17 @@ def test_func():
     #            0.0]
     # main_manual_bmps_order(sid, gvalues)
 
+    # BMP 4 are implemented in the first year
+    sid = 11111
+    gvalues = [0.0, 2002.0, 2002.0, 2004.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2005.0, 2001.0,
+               0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2004.0, 0.0, 0.0, 2002.0, 0.0, 1001.0, 1001.0, 0.0, 2004.0,
+               2001.0, 0.0, 2005.0, 2004.0, 0.0, 0.0, 2005.0, 0.0, 2004.0, 2003.0, 0.0, 2001.0, 0.0, 0.0, 1002.0,
+               3002.0, 2001.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 2004.0, 0.0, 2002.0,
+               2004.0, 1001.0, 0.0, 0.0, 2004.0, 2001.0, 0.0, 1001.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 0.0, 0.0, 0.0,
+               0.0, 0.0, 2005.0, 2001.0, 2005.0, 0.0, 0.0, 0.0, 1002.0, 3002.0, 4004.0, 1001.0, 3001.0, 0.0, 1003.0,
+               3005.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual_bmps_order(sid, gvalues)
+
     # Generate TXT files and gif files for the models that have been run.
     # generate_giff_txt(sid, gvalues)
     # generate_giff_txt_with_bmps_order(sid, gvalues)
@@ -1443,10 +1459,10 @@ if __name__ == '__main__':
 
     # recalc_economy()
 
-    # test_func()
+    test_func()
 
-    extra_process_for_last_generation('D:/TempData/runtime-2.log', 100, 'D:/TempData/Scenarios-2/')
-    extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
+    # extra_process_for_last_generation('D:/TempData/runtime-2.log', 100, 'D:/TempData/Scenarios-2/')
+    # extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
 
 # cf = get_config_parser()
 # # cfg = SAConfig(cf)  # type: SAConfig
