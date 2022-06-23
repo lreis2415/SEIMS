@@ -159,7 +159,7 @@ class ParseResourceConfig(object):
 
         res_sec = 'Computing_Resources'
         self.workload = get_option_value(cf, res_sec, 'workload')
-        if self.workload is '':
+        if self.workload == '':
             self.workload = 'scoop'
         self.partition = get_option_value(cf, res_sec, 'partition')
         self.nnodes = get_option_value(cf, res_sec, 'nnodes', valtyp=int)

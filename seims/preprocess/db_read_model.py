@@ -225,7 +225,7 @@ class ReadModelData(object):
         vars_existed = list()
         data_dict = OrderedDict()
 
-        coll_list = self.climatedb.collection_names()
+        coll_list = self.climatedb.list_collection_names()
         if DBTableNames.observes not in coll_list:
             return None, None
         isoutlet = 0

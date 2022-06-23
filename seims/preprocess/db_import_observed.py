@@ -23,6 +23,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
+from pymongo import InsertOne
 
 from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil, MongoQuery
@@ -150,7 +151,7 @@ class ImportObservedData(object):
                         variable_lists.append(var_dic)
         site_ids = list(set(site_ids))
         # 2. Read measurement data and import to MongoDB
-        bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
+        bulk_requests = list()
         count = 0
         for measDataFile in obs_txts_list:
             # print(measDataFile)
@@ -158,7 +159,7 @@ class ImportObservedData(object):
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
-            if obs_data_items == [] or len(obs_data_items) == 1:
+            if obs_data_items == list() or len(obs_data_items) == 1:
                 continue
             obs_flds = obs_data_items[0]
             required_flds = [StationFields.id, DataValueFields.type, DataValueFields.value]
@@ -186,18 +187,14 @@ class ImportObservedData(object):
                 dic[DataValueFields.local_time] = utc_t - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_t
-                # curfilter = {StationFields.id: dic[StationFields.id],
-                #              DataValueFields.type: dic[DataValueFields.type],
-                #              DataValueFields.utc: dic[DataValueFields.utc]}
-                # bulk.find(curfilter).replace_one(dic)
-                bulk.insert(dic)
-                count += 1
-                if count % 500 == 0:
-                    MongoUtil.run_bulk(bulk)
-                    bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
-                    # db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
-        if count % 500 != 0:
-            MongoUtil.run_bulk(bulk)
+
+                bulk_requests.append(InsertOne(dic))
+
+        results = MongoUtil.run_bulk_write(hydro_clim_db[DBTableNames.observes],
+                                           bulk_requests)
+        print('Inserted %d observed data!' % (results.inserted_count
+                                              if results is not None else 0))
+
         # 3. Add measurement data with unit converted
         # loop variables list
         added_dics = list()
@@ -261,7 +258,7 @@ class ImportObservedData(object):
             hydro_clim_db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
 
     @staticmethod
-    def workflow(cfg, maindb, climdb):
+    def workflow(cfg):
         """
         This function mainly to import measurement data to MongoDB
         data type may include Q (discharge, m3/s), SED (mg/L), TN (mg/L), TP (mg/L), etc.
@@ -269,15 +266,15 @@ class ImportObservedData(object):
         """
         if not cfg.use_observed:
             return False
-        c_list = climdb.collection_names()
+        c_list = cfg.climatedb.list_collection_names()
         if not StringClass.string_in_list(DBTableNames.observes, c_list):
-            climdb.create_collection(DBTableNames.observes)
+            cfg.climatedb.create_collection(DBTableNames.observes)
         else:
-            climdb.drop_collection(DBTableNames.observes)
+            cfg.climatedb.drop_collection(DBTableNames.observes)
         if not StringClass.string_in_list(DBTableNames.sites, c_list):
-            climdb.create_collection(DBTableNames.sites)
+            cfg.climatedb.create_collection(DBTableNames.sites)
         if not StringClass.string_in_list(DBTableNames.var_desc, c_list):
-            climdb.create_collection(DBTableNames.var_desc)
+            cfg.climatedb.create_collection(DBTableNames.var_desc)
 
         file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt', '.csv'])
         meas_file_list = list()
@@ -287,7 +284,7 @@ class ImportObservedData(object):
                 meas_file_list.append(fl)
             else:
                 site_loc.append(fl)
-        ImportObservedData.data_from_txt(maindb, climdb, meas_file_list, site_loc,
+        ImportObservedData.data_from_txt(cfg.maindb, cfg.climatedb, meas_file_list, site_loc,
                                          cfg.spatials.subbsn)
         return True
 
