@@ -373,7 +373,9 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     int poslen;
     maskrs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
-    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid);
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);
 
     // Check the consistency of mongors and mongors_valid
     EXPECT_NE(mongors->GetCellNumber(), mongors_valid->GetCellNumber());
@@ -624,7 +626,9 @@ TEST_P(clsRasterDataTestMask2D, CalcPos) {
     int poslen;
     maskrs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
-    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid);
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);
 
     // Check the consistency of mongors and mongors_valid
     EXPECT_NE(mongors->GetCellNumber(), mongors_valid->GetCellNumber());

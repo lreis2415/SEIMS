@@ -288,16 +288,6 @@ IF (DOWNLOAD_GTEST)
         set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     ENDIF ()
     FetchContent_MakeAvailable(googletest)
-    
-    #INCLUDE(DownloadProject)
-    #download_project(PROJ                googletest
-    #        GIT_REPOSITORY      https://github.com/google/googletest.git
-    #        GIT_TAG             ${GTestTAG}
-    #        ${UPDATE_DISCONNECTED_IF_AVAILABLE}
-    #        )
-    #ADD_SUBDIRECTORY(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-    #geo_include_directories(${gtest_SOURCE_DIR}/include)
-    #geo_include_directories(${gmock_SOURCE_DIR}/include)
 ENDIF ()
 
 IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
@@ -325,10 +315,10 @@ ENDIF ()
 ### CCGL based applications
 ADD_SUBDIRECTORY(${APPS_DIR})
 
-# Install CCGL, including include files and library file
+# Install CCGL, including headers, libraries, executable, stc.
 INSTALL(TARGETS ${CCGLNAME}
-        RUNTIME DESTINATION "${INSTALL}/bin"
-        PUBLIC_HEADER DESTINATION "${INSTALL_DIR}/include"
+        RUNTIME DESTINATION "${INSTALL_DIR}/bin"
+        PUBLIC_HEADER DESTINATION "${INSTALL_DIR}/include/ccgl"
         ARCHIVE DESTINATION "${INSTALL_DIR}/lib"
         LIBRARY DESTINATION "${INSTALL_DIR}/lib")
 

@@ -321,7 +321,7 @@ TEST_P(clsRasterData2DSplitMerge, MaskLyrIO) {
     EXPECT_TRUE(maskrs_->OutputSubsetToFile(false, true, outfile));
     string outfile_full = PrefixCoreFileName(outfile, 0);
     /* Same as:
-    EXPECT_TRUE(maskrs_->OutputToFile(outfile_full, true));
+    EXPECT_TRUE(maskrs_->OutputToFile(outfile_full, false));
     */
     vector<string> outfilesfull(newlyrs);
     for (int ilyr = 0; ilyr < newlyrs; ilyr++) {
@@ -348,7 +348,7 @@ TEST_P(clsRasterData2DSplitMerge, MaskLyrIO) {
     /** Output subset data to MongoDB **/
     string mask_subset_name = maskrs_->GetCoreName() + "_2d";
     EXPECT_TRUE(maskrs_->OutputSubsetToMongoDB(GlobalEnv->gfs_, mask_subset_name, ccgl::STRING_MAP(),
-                    false, false, true)); // store fullsize data
+                    true, false, false)); // store fullsize data
 
     EXPECT_TRUE(maskrs_->OutputSubsetToMongoDB(GlobalEnv->gfs_, mask_subset_name, ccgl::STRING_MAP(),
                     false, false, false)); // store valid data only
@@ -360,8 +360,8 @@ TEST_P(clsRasterData2DSplitMerge, MaskLyrIO) {
 
     STRING_MAP opts_full;
     STRING_MAP opts_valid;
-    UpdateStrHeader(opts_full, HEADER_INC_NODATA, "true");
-    UpdateStrHeader(opts_valid, HEADER_INC_NODATA, "false");
+    UpdateStrHeader(opts_full, HEADER_INC_NODATA, "TRUE");
+    UpdateStrHeader(opts_valid, HEADER_INC_NODATA, "FALSE");
     
     for (auto it = subsetsfull.begin(); it != subsetsfull.end(); ++it) {
         string gfsfull = itoa(it->first) + "_" + mask_subset_name;
@@ -402,10 +402,10 @@ TEST_P(clsRasterData2DSplitMerge, MaskLyrIO) {
 
     /** Output subset data to new single file **/
     EXPECT_TRUE(maskrs_->OutputSubsetToMongoDB(GlobalEnv->gfs_, mask_subset_name, ccgl::STRING_MAP(),
-                    false, true, true)); // store fullsize data
+                    true, false, true)); // store fullsize data
 
     EXPECT_TRUE(maskrs_->OutputSubsetToMongoDB(GlobalEnv->gfs_, mask_subset_name, ccgl::STRING_MAP(),
-                    false, true, false)); // store valid data only
+                    false, false, true)); // store valid data only
 
     string outgfsfile_full = "0_" + mask_subset_name;
 
@@ -614,7 +614,7 @@ TEST_P(clsRasterData2DSplitMerge, SplitRaster) {
     // Store valid subset data to MongoDB
     string outsubname = rs->GetCoreName() + "_2d";
     EXPECT_TRUE(rs->OutputSubsetToMongoDB(GlobalEnv->gfs_, outsubname, ccgl::STRING_MAP(),
-                                          true, false, false)); // store valid data only
+                    false, true, false)); // store valid data only
     // Combine raster data using mask's subset data
     for (auto it = subset.begin(); it != subset.end(); ++it) {
         string gfsvalid = itoa(it->first) + "_" + outsubname;
@@ -625,18 +625,7 @@ TEST_P(clsRasterData2DSplitMerge, SplitRaster) {
     string com_fname = rs->GetCoreName() + "_com_frommongo";
     string com_fname_real = "0_" + com_fname;
     EXPECT_TRUE(maskrsflt_->OutputToMongoDB(GlobalEnv->gfs_, com_fname,
-                                            ccgl::STRING_MAP(), true, true));
-    // read from MongoDB with mask data (need to create datacomb_from_subset)
-//    FltRaster* com_inrs_mongo = FltRaster::Init(GlobalEnv->gfs_, com_fname_real.c_str(),
-//                                                true, maskrsflt_, true);
-//    EXPECT_NE(nullptr, com_inrs_mongo);
-//    EXPECT_EQ(20, com_inrs_mongo->GetCellNumber());
-//    for (int i = 0; i < 20; i++) {
-//        for (int l = 0; l < orglyr; l++) {
-//            EXPECT_FLOAT_EQ(orgvalues[i][l], com_inrs_mongo->GetValueByIndex(i, l + 1));
-//        }
-//    }
-//    delete com_inrs_mongo;
+                    ccgl::STRING_MAP(), true, false));
     // read from MongoDB without mask data
     FltRaster* com_inrs_mongo2 = FltRaster::Init(GlobalEnv->gfs_, com_fname_real.c_str(),
                                                  true);

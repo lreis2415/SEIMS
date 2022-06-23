@@ -20,6 +20,7 @@ IOMODE StringToIOMode(const string& str) {
     string mode_str = GetUpper(str);
     if (mode_str == "DEC" || mode_str == "DECOMPOSE") { return DEC; }
     if (mode_str == "COM" || mode_str == "COMBINE") { return COM; }
+    if (mode_str == "MASK&DEC" || mode_str == "MASKDEC") { return MASKDEC; }
     if (mode_str == "MASK") { return MASK; }
     return UNKNOWNMODE;
 }
@@ -39,11 +40,12 @@ void Usage(const string& appname, const string& error_msg /* = std::string() */)
     cout << "Simple Usage:\n    " << corename << " <configFile>\n\n";
     cout << "Two complete usage modes are supported:\n";
     cout << "1. " << corename <<
-            " -in [<inFmt>] [<inFile>[;<inFile2>;...]] [<inGFSName>]"
+            " -in [<inFmt>] [<inFile>[,<inFile2>,...]] [<inGFSName>]"
             " [-mask [<maskFmt>] [<maskFile>] [<maskGFSName>]]"
+            " [-reclass <reclassifyList>]"
             " [-mode <IOMode>]"
             " [-out [<outFmt>] [<outFile>] [<outGFSName>]"
-            " [-outdatatype <outDataType>] [-default <defaultValue>]"
+            " [-outdatatype <outDataType>] [-default <defaultValue>] [-nodata <updatedNodata>]"
             " [-include_nodata <includeNoData>]"
             " [-mongo <host> <port> <DB> <GFS>]"
             " [-thread <threadsNum>]\n\n";
@@ -52,33 +54,37 @@ void Usage(const string& appname, const string& error_msg /* = std::string() */)
     cout << "\t<xxFmt> is data format for <in>, <out>, and <mask>, can be FILE or GFS.\n";
     cout << "\t<xxFile> and <xxFile2>... are full paths of raster, ASCII and GeoTIFF are recommended.\n";
     cout << "\t<xxGFSName> is the GridFS file name in MongoDB.\n";
-    cout << "\t<defaultValue> is default value for nodata locations that covered by mask.\n";
-    cout << "\t<IOMode> is the operation type, can be MASK (default), DEC(Decompose), or COM(Combine).\n";
+    cout << "\t<reclassifyList> is the reclassified list, the format is origin1:new1,origin2:new2,.... "
+            "The new value can be single value or multi values, e.g., 1.2 or 1.2|1.3|2.2 \n";
+    cout << "\t<IOMode> is the operation type, can be MASK (default), DEC(Decompose), MASK&DEC, or COM(Combine).\n";
     cout << "\tIf -out is not specified, <in>_masked.tif will be generated.\n";
     cout << "\t<outDataType> is the data type of <out>, uint8, int8, uint16,"
             " int16, uint32, int32, float, and double are supported.\n";
+    cout << "\t<defaultValue> is default value for nodata locations that covered by mask.\n";
+    cout << "\t<updatedNodata> is updated nodata value.\n";
     cout << "\t<includeNoData> is used when output raster data into MongoDB, can be 1 or 0.\n";
     cout << "\t<threadsNum> is the number of thread used by OpenMP, which must be >= 1 (default).\n";
     cout << "\t-mongo specify the MongoDB configuration, including host, port, DB, and GFS.\n";
     cout << "\t<configFile> is a plain text file that defines all input parameters, the format is:\n";
-    cout << "\t\t[-mode <IOMode>]";
-    cout << "\t\t[-mongo <host> <port> <DB> <GFS>]\n";
-    cout << "\t\t-mask <maskFmt> [<maskFile>] [<maskGFSName>]";
-    cout << "\t\t[-in <inFmt>]\n";
-    cout << "\t\t[-out <outFmt>]\n";
-    cout << "\t\t[-outdatatype <outDataType>]\n";
-    cout << "\t\t[-include_nodata <includeNoData>]\n";
-    cout << "\t\t\"<in1>;<in2>;... <out> [<defaultValue>][<outDataType>]\"\n";
+    cout << "\t\t[-mode\t<IOMode>]";
+    cout << "\t\t[-mongo\t<host>\t<port>\t<DB>\t<GFS>]\n";
+    cout << "\t\t-mask\t[<maskFmt>\t][<maskFile>|<maskGFSName>]";
+    cout << "\t\t[-in\t<inFmt>]\n";
+    cout << "\t\t[-out\t<outFmt>]\n";
+    cout << "\t\t[-outdatatype\t<outDataType>]\n";
+    cout << "\t\t[-include_nodata\t<includeNoData>]\n";
+    cout << "\t\t\"<in1>,<in2>,...;<out>;[<defaultValue>];[<updatedNodata>];[<outDataType>];"
+            "[<reclassifyList>]\"\n";
     cout << "\t\t...\n\n";
 }
 
 
-bool parse_fmt_paths(const string& tag, vector<string>& strs, DATAFMT& fmt, vector<string>& paths) {
+bool parse_fmt_paths(const string& tag, const vector<string>& strs, DATAFMT& fmt, vector<string>& paths) {
     if (strs.empty()) { return false; }
     size_t tmpcount = strs.size();
     int path_idx = tmpcount > 1 ? 1 : 0;
     DATAFMT tmpfmt = StringToDataFormat(strs[0]);
-    vector<string> file_paths = SplitString(strs[path_idx], ';');
+    vector<string> file_paths = SplitString(strs[path_idx], ',');
     if (!StringMatch(tag, "OUT") && FilesExist(file_paths)) {
         // 1: {"/path/to/single_file.tif"},
         // 3: {"file", "/path/to/single_file.tif"}
@@ -91,10 +97,14 @@ bool parse_fmt_paths(const string& tag, vector<string>& strs, DATAFMT& fmt, vect
             if (tmpfmt == GFS || tmpfmt == SFILE) {
                 // 7: {"file"} or {"gfs"}
                 fmt = tmpfmt;
-                return true;
             }
-            // 2: {"single_gfsname"}
-            fmt = GFS; // we can only guess this is a GridFS filename!
+            else if (file_paths.at(path_idx).find_first_of(SEP) != string::npos) {
+                fmt = SFILE;
+            }
+            else {
+                // 2: {"single_gfsname"}
+                fmt = GFS; // we can only guess this is a GridFS filename!
+            }
         }
         else {
             if (tmpfmt == GFS || tmpfmt == SFILE) { // 4: {"gfs", "single_gfsname"} or for "OUT" tag!
@@ -112,6 +122,38 @@ bool parse_fmt_paths(const string& tag, vector<string>& strs, DATAFMT& fmt, vect
     return true;
 }
 
+bool parse_key_values(string& kvstrs, map<vint, vector<double> >& kv) {
+    if (kvstrs.empty()) { return false; }
+    bool valid_kv = true;
+    bool str2num_flag = false;
+    vector<string> tmpkvlist = SplitString(kvstrs, ',');
+    if (tmpkvlist.empty()) { return false; }
+    for (auto it_kvlist = tmpkvlist.begin(); it_kvlist != tmpkvlist.end(); ++it_kvlist) {
+        if ((*it_kvlist).empty()) { continue; }
+        vector<string> tmpkv = SplitString(*it_kvlist, ':');
+        if (tmpkv.size() != 2) { continue; }
+        vint tmp_key = IsInt(tmpkv.at(0), str2num_flag);
+        if (!str2num_flag) { continue; }
+        vector<string> tmpvalues = SplitString(tmpkv.at(1), '|');
+        vector<double> v;
+        for (auto it = tmpvalues.begin(); it != tmpvalues.end(); ++it) {
+            double tmp_value = IsDouble(*it, str2num_flag);
+            if (!str2num_flag) { break; }
+            v.emplace_back(tmp_value);
+        }
+        if (tmpvalues.size() == v.size()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            kv.emplace(tmp_key, v);
+#else
+            kv.insert(make_pair(tmp_key, v));
+#endif
+        } else {
+            valid_kv = false;
+        }
+    }
+    return valid_kv;
+}
+
 /*!
  * \return
  *   0. Succeed
@@ -121,8 +163,6 @@ bool parse_fmt_paths(const string& tag, vector<string>& strs, DATAFMT& fmt, vect
  *
  */
 int main(const int argc, const char** argv) {
-    //InputArgs* input_args = InputArgs::Init(argc, argv);
-    //if (nullptr == input_args) { return EXIT_FAILURE; }
     IOMODE mode = MASK;
     int thread_num = 1;
     bool inc_nodata = true;
@@ -146,9 +186,16 @@ int main(const int argc, const char** argv) {
     vector<DATAFMT> out_fmts;
     vector<string> out_paths;
     double global_defaultv = NODATA_VALUE;
+    bool global_updnodata = false;
+    double global_nodata = NODATA_VALUE;
     vector<double> default_values;
+    vector<bool> update_nodata;
+    vector<double> nodata_values;
     RasterDataType global_outtype = RDT_Unknown;
     vector<RasterDataType> out_types;
+    bool global_recls = false;
+    vector<bool> reclass_data;
+    vector<map<vint, vector<double> > > reclass_keyvalues;
 
     if (argc < 2) {
         Usage(argv[0], "To run the program, "
@@ -162,6 +209,9 @@ int main(const int argc, const char** argv) {
         if (StringMatch(argv[idx], "-configfile") && argc > idx && argv[idx + 1][0] != '-') {
             config_path = argv[idx + 1];
         }
+        bool tmp_dbl_flag = false;
+        IsDouble(argv[idx], tmp_dbl_flag);
+        if (tmp_dbl_flag) { continue; }
         arg_sep.push_back(idx);
     }
     arg_sep.push_back(argc);
@@ -202,17 +252,28 @@ int main(const int argc, const char** argv) {
     }
     // Concatenate arguments from command line and configuration file
     for (auto it = config_strs.begin(); it != config_strs.end(); ++it) {
-        vector<string> tmpconfig = SplitString(*it, '\t'); // Only support \t!!!
-        if (tmpconfig.empty() || tmpconfig.size() < 2) { continue; }
-        if (tmpconfig[0][0] == '-') {
+        string tmpstr = *it;
+        TrimSpaces(tmpstr);
+        if (tmpstr.empty()) { continue; }
+        if (tmpstr[0] == '#') { continue; }
+        if (tmpstr[0] == '-') { // configuration key and value that separated by space
+            vector<string> tmpconfig = SplitString(tmpstr, '\t'); // Only support \t!!!
+            if (tmpconfig.empty() || tmpconfig.size() < 2) {
+                cout << tmpstr << " contains invalid configuration!" << endl;
+                continue;
+            }
             string tmpkey = GetUpper(tmpconfig[0].substr(1, string::npos));
             if (key_args.find(tmpkey) != key_args.end()) { continue; }
             key_args.insert(std::make_pair(tmpkey, vector<string>(tmpconfig.begin() + 1,
                                                                   tmpconfig.end())));
+            continue;
         }
-        else {
-            io_strs.emplace_back(tmpconfig);
+        vector<string> tmpconfig = SplitString(tmpstr, ';'); // data item configuration
+        if (tmpconfig.empty()) {
+            cout << tmpstr << " contains invalid data item!" << endl;
+            continue;
         }
+        io_strs.emplace_back(tmpconfig);
     }
     // Parse mixed arguments
     char* strend = nullptr;
@@ -256,6 +317,16 @@ int main(const int argc, const char** argv) {
             global_defaultv = IsDouble(itkv->second.at(0), str2num_flag);
             if (!str2num_flag) { global_defaultv = NODATA_VALUE; }
         }
+        else if (itkv->first == "NODATA" || itkv->first == "NODATAVALUE") {
+            global_nodata = IsDouble(itkv->second.at(0), str2num_flag);
+            global_updnodata = true;
+            if (!str2num_flag) { global_nodata = NODATA_VALUE; }
+        }
+        else if (itkv->first == "RECLASS") {
+            map<vint, vector<double> > tmp_recls = map<vint, vector<double> >();
+            global_recls = parse_key_values(itkv->second.at(0), tmp_recls);
+            reclass_keyvalues.emplace_back(tmp_recls);
+        }
         else if (itkv->first == "MONGO" || itkv->first == "MONGODB") {
 #ifdef USE_MONGODB
             if (itkv->second.size() < 4) {
@@ -263,7 +334,8 @@ int main(const int argc, const char** argv) {
                 return 1;
             }
             mongo_host = itkv->second.at(0);
-            mongo_port = strtol(itkv->second.at(1).c_str(), &strend, 10);
+            mongo_port = static_cast<vint16_t>(strtol(itkv->second.at(1).c_str(),
+                                                      &strend, 10));
             dbname = itkv->second.at(2);
             gfsname = itkv->second.at(3);
             client = MongoClient::Init(mongo_host.c_str(), mongo_port);
@@ -300,7 +372,7 @@ int main(const int argc, const char** argv) {
             cout << "Warning: Unknown Tag that will be ignored: " << itkv->first << "\n";
         }
     }
-    // Make sure in_paths, out_paths, default_values, and out_types have same size
+    // Make sure in_paths, out_paths, default_values, nodata_values, and out_types have same size
     if (!use_mongo) {
         if (global_outfmt == GFS) { global_outfmt = SFILE; }
     }
@@ -310,62 +382,95 @@ int main(const int argc, const char** argv) {
     if (!in_paths.empty()) {
         if (in_paths.size() != 1) { return 1; }
         if (out_paths.empty()) {
-            out_paths.emplace_back(AppendCoreFileName(in_paths[0][0], "masked"));
+            if (in_paths[0].size() == 1) {
+                out_paths.emplace_back(AppendCoreFileName(in_paths[0][0], "masked"));
+            } else {
+                string core_name = GetCoreFileName(in_paths[0][0]);
+                string::size_type last_underline = core_name.find_last_of('_');
+                if (last_underline == string::npos) {
+                    last_underline = core_name.length();
+                }
+                out_paths.emplace_back(GetPathFromFullName(in_paths[0][0])
+                                       + core_name.substr(0, last_underline) + "_masked."
+                                       + GetSuffix(in_paths[0][0]));
+            }
         }
         if (default_values.empty()) { default_values.emplace_back(global_defaultv); }
+        if (update_nodata.empty()) { update_nodata.push_back(global_updnodata); }  // compatible with vs2010 
+        if (nodata_values.empty()) { nodata_values.emplace_back(global_nodata); }
         if (out_types.empty()) { out_types.emplace_back(global_outtype); }
         if (out_fmts.empty()) { out_fmts.emplace_back(global_outfmt); }
         else { out_fmts[0] = global_outfmt; }
+        if (reclass_data.empty()) { reclass_data.push_back(global_recls); }
+        if (reclass_keyvalues.empty()) { reclass_keyvalues.emplace_back(map<vint, vector<double> >()); }
     }
     else { // clear others
         if (!out_paths.empty()) { vector<string>().swap(out_paths); }
         if (!default_values.empty()) { vector<double>().swap(default_values); }
+        if (!update_nodata.empty()) { vector<bool>().swap(update_nodata); }
+        if (!nodata_values.empty()) { vector<double>().swap(nodata_values); }
         if (!out_types.empty()) { vector<RasterDataType>().swap(out_types); }
+        if (!out_fmts.empty()) { vector<DATAFMT>().swap(out_fmts); }
+        if (!reclass_data.empty()) { vector<bool>().swap(reclass_data); }
+        if (!reclass_keyvalues.empty()) { vector<map<vint, vector<double> > >().swap(reclass_keyvalues); }
     }
     // Parse input and output settings in configuration file
     for (auto ioit = io_strs.begin(); ioit != io_strs.end(); ++ioit) {
-        size_t item_count = (*ioit).size();
-        if (item_count < 1) { continue; }
+        size_t item_count = (*ioit).size(); // item_count has been checked to be sure >=1
         int inidx = 0;
-        int outidx = -1;
-        int dvidx = -1;
-        int outtypeidx = -1;
-        if (item_count == 2) {
-            outidx = 1;
-            dvidx = 1;
-            outtypeidx = 1;
-        }
-        else if (item_count == 3) {
-            outidx = 1;
-            dvidx = 2;
-            outtypeidx = 2;
-        }
-        else if (item_count == 4) {
-            outidx = 1;
-            dvidx = 2;
-            outtypeidx = 3;
-        }
-        vector<string> tmpin = SplitString((*ioit).at(inidx), ';');
+        int outidx = item_count >= 2 ? 1 : -1;
+        int dvidx = item_count >= 3 ? 2 : -1;
+        int nodataidx = item_count >= 4 ? 3 : -1;
+        int outtypeidx = item_count >= 5 ? 4 : -1;
+        int reclsidx = item_count >= 6 ? 5 : -1;
+
+        if (item_count == 1 && (*ioit).at(0).empty()) { continue; }
+
+        vector<string> tmpin = SplitString((*ioit).at(inidx), ','); // could be ""
         string tmpout = outidx > 0 ? (*ioit).at(outidx) : "";
-        double tmpdefv = NODATA_VALUE;
-        if (outidx > 0) {
-            tmpdefv = IsDouble((*ioit).at(dvidx), str2num_flag);
-            if (!str2num_flag) { tmpdefv = NODATA_VALUE; }
+
+        if (tmpin.size() == 1 && tmpin.at(0).empty() && tmpout.empty()) { continue; }
+
+        if (global_infmt == UNKNOWNFMT && FilesExist(tmpin)) { global_infmt = SFILE; }
+        if (global_infmt == UNKNOWNFMT && !tmpin.empty() && use_mongo) { global_infmt = GFS; }
+        if (global_outfmt != GFS && use_mongo) { global_outfmt = GFS; }
+        if (global_outfmt == UNKNOWNFMT) { global_outfmt = SFILE; }
+
+        double tmp_defv = NODATA_VALUE;
+        if (dvidx > 0 && !(*ioit).at(dvidx).empty()) {
+            tmp_defv = IsDouble((*ioit).at(dvidx), str2num_flag);
+            if (!str2num_flag) { tmp_defv = NODATA_VALUE; }
         }
-        RasterDataType tmpouttype = static_cast<RasterDataType>(RDT_Unknown);
+        bool upd_nodata = false;
+        double tmp_nodata = NODATA_VALUE;
+        if (nodataidx > 0 && !(*ioit).at(nodataidx).empty()) {
+            tmp_nodata = IsDouble((*ioit).at(nodataidx), str2num_flag);
+            if (!str2num_flag) { tmp_nodata = NODATA_VALUE; }
+            else { upd_nodata = true; }
+        }
+        RasterDataType tmpouttype = RDT_Unknown;
         if (outtypeidx > 0) {
             tmpouttype = StringToRasterDataType((*ioit).at(outtypeidx));
-            if (tmpouttype == static_cast<RasterDataType>(RDT_Unknown)) {
-                tmpouttype = global_outtype;
-            }
+            if (tmpouttype == RDT_Unknown) { tmpouttype = global_outtype; }
         }
-        if ((global_infmt == SFILE && FilesExist(tmpin) || global_infmt == GFS)) {
+        bool do_recls = false;
+        map<vint, vector<double> > tmp_recls = map<vint, vector<double> >();
+        if (reclsidx > 0) {
+            do_recls = parse_key_values((*ioit).at(reclsidx), tmp_recls);
+        }
+        if ((!FilesExist(tmpin) && do_recls)
+            || (global_infmt == SFILE && FilesExist(tmpin))
+            || global_infmt == GFS) {
             in_paths.emplace_back(tmpin);
-            in_fmts.emplace_back(SFILE);
+            in_fmts.emplace_back(global_infmt);
             out_paths.emplace_back(tmpout);
             out_fmts.emplace_back(global_outfmt);
-            default_values.emplace_back(tmpdefv);
+            default_values.emplace_back(tmp_defv);
+            update_nodata.push_back(upd_nodata);  // compatible with vs2010
+            nodata_values.emplace_back(tmp_nodata);
             out_types.emplace_back(tmpouttype);
+            reclass_data.push_back(do_recls);
+            reclass_keyvalues.emplace_back(tmp_recls);
         }
     }
 
@@ -376,14 +481,14 @@ int main(const int argc, const char** argv) {
     SetOpenMPThread(thread_num);
 
     // Load mask layer
-    IntRaster* mask_layer = nullptr;
+    DblRaster* mask_layer = nullptr;
     if (!mask_path.empty()) {
         if (mask_fmt == SFILE && FileExists(mask_path)) {
-            mask_layer = IntRaster::Init(mask_path);
+            mask_layer = DblRaster::Init(mask_path);
             if (nullptr == mask_layer) { return 3; }
         } else if (mask_fmt == GFS && use_mongo) {
 #ifdef USE_MONGODB
-            mask_layer = IntRaster::Init(gfs, mask_path.c_str());
+            mask_layer = DblRaster::Init(gfs, mask_path.c_str());
             if (nullptr == mask_layer) { return 3; }
 #endif
         } else {
@@ -393,56 +498,114 @@ int main(const int argc, const char** argv) {
 
     // Load input raster
     STRING_MAP opts; // Additional options, e.g., output data type
+    bool output_all = false;
     bool output_subset = false;
     bool combine_subset = false;
-    if (mask_layer != nullptr) {
-        if (mode == DEC || mode == COM) {
-            mask_layer->BuildSubSet();
-            output_subset = mode == DEC;
-            combine_subset = mode == COM;
-        }
+    if (mode != MASK) {
+        if (mask_layer != nullptr) { mask_layer->BuildSubSet(); }
+        output_all = mode == MASKDEC;
+        output_subset = mode == DEC || mode == MASKDEC;
+        combine_subset = mode == COM;
+    } else {
+        output_all = true;
     }
 
+    if (inc_nodata) {
+        UpdateStringMap(opts, HEADER_INC_NODATA, "TRUE");
+    } else {
+        UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+    }
     for (auto in_it = in_paths.begin(); in_it != in_paths.end(); ++in_it) {
         size_t in_idx = in_it - in_paths.begin();
-        if (out_types.at(in_idx) == static_cast<RasterDataType>(RDT_Unknown)) {
+        if (out_types.at(in_idx) == RDT_Unknown) {
             UpdateStringMap(opts, HEADER_RSOUT_DATATYPE, "DOUBLE");
+            out_types.at(in_idx) = RDT_Double;
         } else {
             UpdateStringMap(opts, HEADER_RSOUT_DATATYPE, RasterDataTypeToString(out_types.at(in_idx)));
         }
-        if (mode == MASK || mode == DEC) { // paths in *in_it are regarded as multiple layers
-            DblIntRaster* rs = nullptr;
+        if (mode == MASK || mode == DEC || mode == MASKDEC) { // paths in *in_it are regarded as multiple layers
+            DblRaster* rs = nullptr;
             if (in_fmts.at(in_idx) == SFILE && FilesExist(*in_it)) {
-                rs = DblIntRaster::Init(*in_it,
-                                        false,            // No need to calculate valid positions
-                                        mask_layer, true, // Use entire extent of Mask
-                                        default_values.at(in_idx),
-                                        opts);
+                rs = DblRaster::Init(*in_it,
+                                     false,            // No need to calculate valid positions
+                                     mask_layer, true, // Use entire extent of Mask
+                                     default_values.at(in_idx));
+                if (out_types.at(in_idx) != RDT_Unknown) { rs->SetOutDataType(out_types.at(in_idx)); }
             }
             else if (in_fmts.at(in_idx) == GFS && use_mongo) {
 #ifdef USE_MONGODB
-                rs = DblIntRaster::Init(gfs, (*in_it).at(0).c_str(),
-                                        false,
-                                        mask_layer, true,
-                                        default_values.at(in_idx), opts);
+                rs = DblRaster::Init(gfs, (*in_it).at(0).c_str(),
+                                     false,
+                                     mask_layer, true,
+                                     default_values.at(in_idx), opts);
 #endif
             }
             else {
                 continue;
             }
             if (nullptr == rs) { continue; }
-            rs->CalculateStatistics();
+
+            if (update_nodata.at(in_idx)) { rs->ReplaceNoData(nodata_values.at(in_idx)); }
+
+            if (reclass_data.at(in_idx)) {
+                rs->BuildSubSet();
+            }
+
             if (out_fmts.at(in_idx) == SFILE) {
-                rs->OutputToFile(out_paths.at(in_idx), output_subset);
+                if (reclass_data.at(in_idx)) {
+                    if (output_subset) {
+                        rs->OutputSubsetToFile(true, false,
+                                               out_paths.at(in_idx), reclass_keyvalues.at(in_idx),
+                                               default_values.at(in_idx));
+                    }
+                    if (output_all) {
+                        rs->OutputSubsetToFile(true, true,
+                                               out_paths.at(in_idx), reclass_keyvalues.at(in_idx),
+                                               default_values.at(in_idx));
+                    }
+                } else {
+                    if (output_subset) { rs->OutputToFile(out_paths.at(in_idx), false); }
+                    if (output_all) { rs->OutputToFile(out_paths.at(in_idx), true); }
+                }
             } else if (out_fmts.at(in_idx) == GFS && use_mongo) {
 #ifdef USE_MONGODB
-                rs->OutputToMongoDB(gfs, out_paths.at(in_idx), opts, inc_nodata, output_subset);
+                if (reclass_data.at(in_idx)) {
+                    if (output_subset) {
+                        rs->OutputSubsetToMongoDB(gfs, out_paths.at(in_idx), opts,
+                                                  inc_nodata, true, false, 
+                                                  reclass_keyvalues.at(in_idx),
+                                                  default_values.at(in_idx));
+                    }
+                    if (output_all) {
+                        rs->OutputSubsetToMongoDB(gfs, out_paths.at(in_idx), opts,
+                                                  inc_nodata, true, true, 
+                                                  reclass_keyvalues.at(in_idx),
+                                                  default_values.at(in_idx));
+                    }
+                } else {
+                    if (output_subset) {
+                        if (nullptr == mask_layer) {
+                            rs->BuildSubSet();
+                        }
+                        rs->OutputSubsetToMongoDB(gfs, out_paths.at(in_idx), opts,
+                                                  inc_nodata, true, false);
+                    }
+                    if (output_all) {
+                        rs->OutputToMongoDB(gfs, "0_" + out_paths.at(in_idx), opts,
+                                            inc_nodata, true);
+                    }
+                }
 #endif
             } else {
                 // Nothing to do
             }
             delete rs;
         } else if (mode == COM) {
+            if (nullptr == mask_layer) {
+                cout << "Error: The COMBINE mode MUST based on a mask layer!";
+                return 1;
+            }
+            mask_layer->SetDefaultValue(default_values.at(in_idx));
             map<int, SubsetPositions*>& subset = mask_layer->GetSubset();
             for (auto it = subset.begin(); it != subset.end(); ++it) {
                 it->second->usable = false;
@@ -455,31 +618,32 @@ int main(const int argc, const char** argv) {
                 if (!str2num_flag) { continue; }
                 if (subset.find(subid) == subset.end()) { continue; }
 
-                DblRaster* tmpsubrs = nullptr;
                 if (in_fmts.at(in_idx) == SFILE && FileExists(*inf_it)) {
-                    tmpsubrs = DblRaster::Init(*inf_it, !inc_nodata);
-                } else if (in_fmts.at(in_idx) == GFS && use_mongo) {
+                    DblRaster* tmpsubrs = nullptr;
+                    tmpsubrs = DblRaster::Init(*inf_it, true);
+                    if (nullptr == tmpsubrs) { continue; }
+                    int tmpsublen;
+                    double* tmpsubdata = nullptr;
+                    tmpsubrs->GetRasterData(&tmpsublen, &tmpsubdata);
+                    subset.at(subid)->SetData(tmpsublen, tmpsubdata);
+                    delete tmpsubrs;
+                }
+                else if (in_fmts.at(in_idx) == GFS && use_mongo) {
 #ifdef USE_MONGODB
-                    tmpsubrs = DblRaster::Init(gfs, (*inf_it).c_str(), !inc_nodata);
+                    subset.at(subid)->ReadFromMongoDB(gfs, *inf_it, opts);
 #endif
                 } else {
-                    continue;
+                    // Nothing to do
                 }
-                if (nullptr == tmpsubrs) { continue; }
-                int tmpsublen;
-                double* tmpsubdata = nullptr;
-                tmpsubrs->GetRasterData(&tmpsublen, &tmpsubdata);
-                subset.at(subid)->SetData(tmpsublen, tmpsubdata);
-
-                delete tmpsubrs;
             }
-
+            mask_layer->SetOutDataType(out_types.at(in_idx));
             if (out_fmts.at(in_idx) == SFILE) {
-                mask_layer->OutputToFile(out_paths.at(in_idx), combine_subset);
+                mask_layer->OutputToFile(out_paths.at(in_idx), false);
             }
             else if (out_fmts.at(in_idx) == GFS && use_mongo) {
 #ifdef USE_MONGODB
-                mask_layer->OutputToMongoDB(gfs, out_paths.at(in_idx), opts, inc_nodata, combine_subset);
+                mask_layer->OutputToMongoDB(gfs, out_paths.at(in_idx), opts,
+                                            inc_nodata, false);
 #endif
             }
             else {
@@ -489,7 +653,6 @@ int main(const int argc, const char** argv) {
             // Nothing to do
         }
     }
-
     delete mask_layer;
 #ifdef USE_MONGODB
     if (use_mongo) {
