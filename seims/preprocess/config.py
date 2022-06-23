@@ -23,7 +23,9 @@ from pygeoc.TauDEM import TauDEMExtFiles
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
-from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from preprocess.text import TauDEMbasedNames, VectorNameUtils, \
+    SpatialNamesUtils, ModelParamDataUtils
+from preprocess.db_mongodb import ConnectMongoDB
 
 
 class PreprocessConfig(object):
@@ -118,7 +120,7 @@ class PreprocessConfig(object):
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
         self.vecs = VectorNameUtils(self.dirs.geoshp)
-        self.taudems = TauDEMExtFiles(self.dirs.taudem)
+        self.taudems = TauDEMbasedNames(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database')
@@ -146,13 +148,21 @@ class PreprocessConfig(object):
         if 'MONGODB' in cf.sections():
             self.hostname = cf.get('MONGODB', 'hostname')
             self.port = cf.getint('MONGODB', 'port')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
             self.climate_db = cf.get('MONGODB', 'climatedbname')
             self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
-            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
         else:
             raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
-        if not StringClass.is_valid_ip_addr(self.hostname):
-            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+        # if not StringClass.is_valid_ip_addr(self.hostname):
+        #     raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+        # build a global connection to mongodb database
+        self.client = ConnectMongoDB(self.hostname, self.port)
+        self.conn = self.client.get_conn()
+        self.maindb = self.conn[self.spatial_db]
+        self.climatedb = self.conn[self.climate_db]
+        self.scenariodb = None
+        if self.use_scernario:
+            self.scenariodb = self.conn[self.bmp_scenario_db]
 
         # 3. Climate Input
         if 'CLIMATE' in cf.sections():
