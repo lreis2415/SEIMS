@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         else if (utils_string::StringMatch(argv[i], "-port")) {
             i++;
             if (argc > i) {
-                mongo_port = strtol(argv[i], &strend, 10);
+                mongo_port = static_cast<vint16_t>(strtol(argv[i], &strend, 10));
                 i++;
             }
         }

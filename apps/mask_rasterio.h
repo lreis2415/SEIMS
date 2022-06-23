@@ -8,9 +8,10 @@ using namespace data_raster;
 
 
 enum IOMODE {
-    MASK,  ///< mask by single area
-    DEC,   ///< decompose input raster by the mask layer
-    COM,   ///< combine input raster by the mask layer
+    MASK,    ///< mask by single area
+    DEC,     ///< decompose input raster by the mask layer
+    MASKDEC, ///< mask and decompose in the same time
+    COM,     ///< combine input raster by the mask layer
     UNKNOWNMODE
 };
 
@@ -43,6 +44,8 @@ void Usage(const string& appname, const string& error_msg = std::string());
  * 
  */ 
 bool parse_fmt_paths(string& tag, vector<string>& strs, DATAFMT& fmt, vector<string>& paths);
+
+bool parse_key_values(string& kvstrs, map<vint, vector<double> >& kv);
 
 
 #endif /* CCGL_APP_MASK_RASTERIO_H */

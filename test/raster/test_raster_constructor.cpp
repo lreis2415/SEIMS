@@ -224,16 +224,18 @@ TEST(clsRasterDataUnsignedByte, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
-
-    clsRasterData<vuint8_t>* rs_mongo_fail = clsRasterData<vuint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), false, mask_rs);
-    EXPECT_EQ(rs_mongo_fail, nullptr);
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+    clsRasterData<vuint8_t>* rs_mongo_auto_calc_pos = clsRasterData<vuint8_t>::
+            Init(GlobalEnv->gfs_, newcorename.c_str(), false, mask_rs, true, NODATA_VALUE, opts);
+    EXPECT_NE(rs_mongo_auto_calc_pos, nullptr);
     clsRasterData<vuint8_t>* rs_mongo = clsRasterData<vuint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
     }
+    delete rs_mongo_auto_calc_pos;
     delete rs_mongo;
 #endif
 
@@ -260,8 +262,10 @@ TEST(clsRasterDatasignedByte, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -313,8 +317,10 @@ TEST(clsRasterDatasignedByteNoNegative, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -343,8 +349,10 @@ TEST(clsRasterDataUInt16, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<uint16_t>* rs_mongo = clsRasterData<uint16_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -373,8 +381,10 @@ TEST(clsRasterDataInt16, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<int16_t>* rs_mongo = clsRasterData<int16_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -403,8 +413,10 @@ TEST(clsRasterDataUInt32, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<uint32_t>* rs_mongo = clsRasterData<uint32_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -433,8 +445,10 @@ TEST(clsRasterDataInt32, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<int32_t>* rs_mongo = clsRasterData<int32_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -471,8 +485,10 @@ TEST(clsRasterDataFloat, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<float>* rs_mongo = clsRasterData<float>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
@@ -501,8 +517,10 @@ TEST(clsRasterDataDouble, FullIO) {
 
 #ifdef USE_MONGODB
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     clsRasterData<double>* rs_mongo = clsRasterData<double>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs);
+            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));

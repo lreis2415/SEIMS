@@ -21,9 +21,9 @@ string GetUpper(const string& str) {
 
 void TrimSpaces(string& str) {
     // Find the first character position after excluding leading blank spaces
-    size_t startpos = str.find_first_not_of(" \t");
+    size_t startpos = str.find_first_not_of(" \n\r\t");
     // Find the first character position from reverse
-    size_t endpos = str.find_last_not_of(" \t");
+    size_t endpos = str.find_last_not_of(" \n\r\t");
     // if all spaces or empty return an empty string
     if (string::npos == startpos || string::npos == endpos) {
         str = "";
