@@ -10,8 +10,7 @@ Interpolate::Interpolate() :
     m_itpOutput(nullptr) {
 }
 
-void Interpolate::SetClimateDataType(const FLTPT value) {
-    int data_type = CVT_INT(value);
+void Interpolate::SetClimateDataType(const int data_type) {
     if (data_type == 1) {
         m_dataType = 0; /// Precipitation
     } else if (data_type == 2 || data_type == 3 || data_type == 4) {
@@ -55,7 +54,7 @@ int Interpolate::Execute() {
         m_itpOutput[i] = value;
     }
     if (err_count > 0) {
-        throw ModelException(M_ITP[0], "Execute", 
+        throw ModelException(M_ITP[0], "Execute",
                              "Error occurred in interpolation based on weight data of stations!");
     }
     return true;

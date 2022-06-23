@@ -152,7 +152,7 @@ void ModelMain::Execute() {
         // update bmp parameters with variable effectiveness
         if (m_dataCenter->UpdateScenarioParametersDynamic(m_dataCenter->GetSubbasinID(), t)){
             for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();
-                it != m_simulationModules.end(); ++it) {
+                 it != m_simulationModules.end(); ++it) {
                 (*it)->SetReCalIntermediates(true);
             }
         }

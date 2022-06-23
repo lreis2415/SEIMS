@@ -29,7 +29,7 @@ public:
 
     ~Interpolate();
 
-    void SetClimateDataType(FLTPT value) OVERRIDE;
+    void SetClimateDataType(int data_type) OVERRIDE;
 
     void SetValue(const char* key, FLTPT value) OVERRIDE;
 

@@ -63,6 +63,7 @@ const string TagDependencies = "dependencies";
 enum dimensionTypes {
     DT_Unknown = -1,         /**< Unknown type */
     DT_Single = 0,           /**< Single numeric */
+    DT_SingleInt = 1,
     DT_Array1D = 1,          /**< 1D array, e.g., maximum temperature of sites */
     DT_Array2D = 2,          /**< 2D array */
     DT_Array1DDateValue = 4, /**< 1D date array */
