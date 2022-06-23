@@ -331,7 +331,7 @@ bool GridLayering::Output2DimensionArrayTxt(const string& name, string& header,
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputArrayAsGfs(const string& name, const int length, float* const matrix) {
+bool GridLayering::OutputArrayAsGfs(const string& name, const vint length, float* const matrix) {
     bool flag = false;
     int max_loop = 3;
     int cur_loop = 1;
@@ -549,8 +549,8 @@ bool GridLayering::GridLayeringEvenly() {
     //
     int lyr_95 = -1;
     int lyr_5 = -1;
-    int count_95 = ceil(n_valid_cells_ * 0.95f);
-    int count_5 = ceil(n_valid_cells_ * 0.05f);
+    int count_95 = CVT_INT(ceil(n_valid_cells_ * 0.95f));
+    int count_5 = CVT_INT(ceil(n_valid_cells_ * 0.05f));
     int act_count_95 = 0;
     int act_count_5 = 0;
     int acc_count = 0;
@@ -712,6 +712,7 @@ bool GridLayering::GridLayeringEvenly() {
         if (!has_changes) continue;
         cur_loop++;
     }
+    Release1DArray(layer_diff);
     // create output variables based on n_layer_cells_evenly_
     Initialize1DArray(n_valid_cells_ + n_layer_count_ + 1, layer_cells_evenly_, 0.f);
     layer_cells_evenly_[0] = CVT_FLT(n_layer_count_);
@@ -729,16 +730,17 @@ bool GridLayering::GridLayeringEvenly() {
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputToMongodb(const char* name, const int number, char* s) {
+bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", subbasin_id_);
     BSON_APPEND_UTF8(&p, "TYPE", name);
     BSON_APPEND_UTF8(&p, "ID", name);
     BSON_APPEND_UTF8(&p, "DESCRIPTION", name);
     BSON_APPEND_DOUBLE(&p, "NUMBER", CVT_DBL(number));
+    BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
 
     gfs_->RemoveFile(string(name));
-    size_t n = number * sizeof(float);
+    vint n = number * sizeof(float);
     gfs_->WriteStreamData(string(name), s, n, &p);
     bson_destroy(&p);
     if (nullptr == gfs_->GetFile(name)) {

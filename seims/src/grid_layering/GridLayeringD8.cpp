@@ -5,7 +5,7 @@ GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_d
     GridLayering(id, gfs, out_dir) {
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR";
-    mask_name_ = prefix + "_MASK";
+    mask_name_ = prefix + "_SUBBASIN";
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_D8";
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_D8";
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_D8";
@@ -36,8 +36,10 @@ bool GridLayeringD8::LoadData() {
 #ifdef USE_MONGODB
         has_mask_ = true;
         mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        STRING_MAP opts;
+        UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
         flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(), 
-                                          true, mask_, true);
+                                          true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
@@ -51,12 +53,12 @@ bool GridLayeringD8::LoadData() {
             flowdir_ = FltMaskFltRaster::Init(flowdir_name_, true, mask_, true);
         }
     }
-    if (nullptr == flowdir_ || nullptr == mask_) return false;
+    if (nullptr == flowdir_ || nullptr == mask_) { return false; }
     n_rows_ = mask_->GetRows();
     n_cols_ = mask_->GetCols();
     mask_->GetRasterPositionData(&n_valid_cells_, &pos_rowcol_);
 
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
-    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) flowdir_->ReplaceNoData(out_nodata_);
+    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) { flowdir_->ReplaceNoData(out_nodata_); }
     return true;
 }

@@ -8,7 +8,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     // inputs
     flowdir_name_ = prefix + "_FLOW_DIR_MFDMD";
     flowfrac_corename_ = prefix + "_FLOW_FRACTION_MFDMD";
-    mask_name_ = prefix + "_MASK";
+    mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
     // outputs
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
@@ -58,10 +58,12 @@ bool GridLayeringMFDmd::LoadData() {
 #ifdef USE_MONGODB
         has_mask_ = true;
         mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        STRING_MAP opts;
+        UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
         flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(),
-                                          true, mask_, true);
+                                          true, mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FltMaskFltRaster::Init(gfs_, flowfrac_corename_.c_str(),
-                                                true, mask_, true);
+                                                true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif

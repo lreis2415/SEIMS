@@ -160,12 +160,12 @@ protected:
     /*!
      * \brief Output grid layering related data to MongoDB GridFS
      */
-    bool OutputToMongodb(const char* name, int number, char* s);
+    bool OutputToMongodb(const char* name, vint number, char* s);
 
     /*!
     * \brief Ouput 2D array as MongoDB-GridFS
     */
-    bool OutputArrayAsGfs(const string& name, int length, float* matrix);
+    bool OutputArrayAsGfs(const string& name, vint length, float* matrix);
     /*!
      * \brief Output grid layering as tiff file and MongoDB-GridFS
      */

@@ -9,16 +9,15 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
     // connect to mongodb
     MongoClient* client = MongoClient::Init(host, port);
     if (nullptr == client) {
-        throw ModelException("DataCenterMongoDB", "Constructor", "Failed to connect to MongoDB!");
+        throw ModelException("IUH", "MainFunc", "Failed to connect to MongoDB!");
     }
     MongoGridFs* gfs = new MongoGridFs(client->GetGridFs(string(modelStr), string(gridFSName)));
-    int subbasinStartID = 1;
-    if (nSubbasins == 0) subbasinStartID = 0;
+    int subbasinStartID = nSubbasins == 0 ? 0 : 1;
     for (int i = subbasinStartID; i <= nSubbasins; i++) {
         //cout << "subbasin: " << i << endl;
         //input
         std::ostringstream oss;
-        string deltaName, streamLinkName, tName, maskName, landcoverName;
+        string deltaName, streamLinkName, tName, maskName, subbsnName, landcoverName;
         oss << i << "_DELTA_S";
         deltaName = oss.str();
 
@@ -27,20 +26,39 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
         tName = oss.str();
 
         oss.str("");
-        oss << i << "_MASK";
-        maskName = oss.str();
+        oss << i << "_SUBBASIN";
+        subbsnName = oss.str();
 
         oss.str("");
         oss << i << "_LANDCOVER";
         landcoverName = oss.str();
 
-        FloatRaster* rsMask = FloatRaster::Init(gfs, maskName.c_str(), true);
-        FltMaskFltRaster* rsTime = FltMaskFltRaster::Init(gfs, tName.c_str(), false, rsMask, true);
-        FltMaskFltRaster* rsDelta = FltMaskFltRaster::Init(gfs, deltaName.c_str(), false, rsMask, true);
-        FltMaskFltRaster* rsLandcover = FltMaskFltRaster::Init(gfs, landcoverName.c_str(), false, rsMask, true);
+        FloatRaster* rsMask = FloatRaster::Init(gfs, subbsnName.c_str(), true);
+        if (nullptr == rsMask) {
+            cout << subbsnName << " cannot be found in MongoDB! IUH will be not calculated!\n";
+            continue;
+        }
 
+        STRING_MAP opts;
+        UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+
+        FltMaskFltRaster* rsTime = FltMaskFltRaster::Init(gfs, tName.c_str(), true,
+                                                          rsMask, true, NODATA_VALUE, opts);
+        FltMaskFltRaster* rsDelta = FltMaskFltRaster::Init(gfs, deltaName.c_str(), true,
+                                                           rsMask, true, NODATA_VALUE, opts);
+        FltMaskFltRaster* rsLandcover = FltMaskFltRaster::Init(gfs, landcoverName.c_str(), true,
+                                                               rsMask, true, NODATA_VALUE, opts);
+        if (nullptr == rsTime || nullptr == rsDelta || nullptr == rsLandcover) {
+            cout << "Required input raster cannot be satisfied!\n";
+            continue;
+        }
         SubbasinIUHCalculator iuh(dt, rsMask, rsLandcover, rsTime, rsDelta, gfs);
         iuh.calCell(i);
+
+        delete rsLandcover;
+        delete rsDelta;
+        delete rsTime;
+        delete rsMask;
     }
     delete gfs;
     delete client;
