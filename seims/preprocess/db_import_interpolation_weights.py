@@ -90,7 +90,6 @@ class ImportWeightData(object):
         """Generate some parameters dependent on weight data and only should be calculated once.
             Such as PHU0 (annual average total potential heat units)
                 TMEAN0 (annual average temperature)
-            added by Liangjun, 2016-6-17
         """
         spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
@@ -153,7 +152,7 @@ class ImportWeightData(object):
         xsize = int(mask['metadata'][RasterMetadata.ncols])
         nodata_value = mask['metadata'][RasterMetadata.nodata]
         maskgfs_data = spatial_gfs.get(mask['_id'])
-        total_len = xsize * ysize
+        total_len = xsize * ysize  # INCLUDE_NODATA: TRUE
         fmt = '%df' % (total_len,)
         mask_data = unpack(fmt, maskgfs_data.read())
         fname = '%d_%s' % (subbsn_id, DataType.phu0)
@@ -168,18 +167,22 @@ class ImportWeightData(object):
         meta_dic['TYPE'] = DataType.phu0
         meta_dic['ID'] = fname
         meta_dic['DESCRIPTION'] = DataType.phu0
+        meta_dic['INCLUDE_NODATA'] = 'FALSE'
+        meta_dic['CELLSNUM'] = num_cells
 
         meta_dic2 = copy.deepcopy(mask['metadata'])
         meta_dic2['TYPE'] = DataType.mean_tmp0
         meta_dic2['ID'] = fname2
         meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
+        meta_dic2['INCLUDE_NODATA'] = 'FALSE'
+        meta_dic2['CELLSNUM'] = num_cells
 
         myfile = spatial_gfs.new_file(filename=fname, metadata=meta_dic)
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
         vaild_count = 0
+        cur_row = list()
+        cur_row2 = list()
         for i in range(0, ysize):
-            cur_row = list()
-            cur_row2 = list()
             for j in range(0, xsize):
                 index = i * xsize + j
                 if abs(mask_data[index] - nodata_value) > UTIL_ZERO:
@@ -187,11 +190,12 @@ class ImportWeightData(object):
                     cur_row2.append(tmean0_data[vaild_count])
                     vaild_count += 1
                 else:
-                    cur_row.append(nodata_value)
-                    cur_row2.append(nodata_value)
-            fmt = '%df' % xsize
-            myfile.write(pack(fmt, *cur_row))
-            myfile2.write(pack(fmt, *cur_row2))
+                    # cur_row.append(nodata_value)
+                    # cur_row2.append(nodata_value)
+                    continue
+        fmt = '%df' % vaild_count
+        myfile.write(pack(fmt, *cur_row))
+        myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
         print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
