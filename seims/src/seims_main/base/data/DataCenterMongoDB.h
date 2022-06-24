@@ -50,10 +50,6 @@ public:
      */
     bool GetFileOutVector() OVERRIDE;
     /*!
-     * \brief Get subbasin number and outlet ID
-     */
-    bool GetSubbasinNumberAndOutletID() OVERRIDE;
-    /*!
      * \brief Read climate site data from HydroClimate database
      */
     void ReadClimateSiteList() OVERRIDE;
@@ -64,6 +60,10 @@ public:
      *   - 1. 2017-12-23 - lj - Read parameters (Impact value) according to calibration ID.
      */
     bool ReadParametersInDB() OVERRIDE;
+    /*!
+     * \brief Get subbasin number and outlet ID
+     */
+    int ReadIntParameterInDB(const char* param_name) OVERRIDE;
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
      * \param[in] remote_filename Raster file name.

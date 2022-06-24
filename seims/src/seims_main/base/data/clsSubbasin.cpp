@@ -115,7 +115,7 @@ clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int pr
     /// Mask raster data is prerequisite.
     vector<string> rs_names;
     std::ostringstream oss;
-    oss << prefix_id << "_" << Tag_Mask[0];
+    oss << prefix_id << "_" << VAR_SUBBSN[0]; // Tag_Mask[0];
     string mask_file_name = GetUpper(oss.str());
     if (rs_map.find(mask_file_name) == rs_map.end()) {
         cout << "MASK data has not been loaded yet!" << endl;

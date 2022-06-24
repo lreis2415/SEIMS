@@ -61,6 +61,10 @@ public:
      */
     virtual bool ReadParametersInDB() = 0;
     /*!
+    * \brief Get subbasin number and outlet ID
+    */
+    virtual int ReadIntParameterInDB(const char* param_name) = 0;
+    /*!
      * \brief Output calibrated parameters to txt file
      */
     void DumpCaliParametersInDB();
@@ -253,10 +257,6 @@ public:
      * \brief Check date of output settings
      */
     void UpdateOutputDate(time_t start_time, time_t end_time);
-    /*!
-    * \brief Get subbasin number and outlet ID
-    */
-    virtual bool GetSubbasinNumberAndOutletID() = 0;
 
 protected:
     string model_name_;                    ///< Model name, e.g., model_dianbu30m_longterm

@@ -1180,7 +1180,7 @@ CONST_CHARS UNIT_NUMBERHA = "no/ha";
 /// By LiangJun Zhu, May. 4, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 CONST_CHARS MONG_GRIDFS_FN =                        "filename";
-CONST_CHARS MONG_GRIDFS_WEIGHT_CELLS =              "NUM_CELLS";
+CONST_CHARS MONG_GRIDFS_WEIGHT_CELLS =              "CELLSNUM";
 CONST_CHARS MONG_GRIDFS_WEIGHT_SITES =              "NUM_SITES";
 CONST_CHARS MONG_GRIDFS_ID =                        "ID";
 CONST_CHARS MONG_GRIDFS_SUBBSN =                    "SUBBASIN";

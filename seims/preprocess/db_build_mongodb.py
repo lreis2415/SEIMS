@@ -104,6 +104,8 @@ class ImportMongodbClass(object):
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # channel width
         mask_raster_cfg.append([cfg.spatials.chdepth, SpatialNamesUtils._CHDEPTH,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # channel depth
+        mask_raster_cfg.append([cfg.spatials.init_somo, SpatialNamesUtils._INITSOILMOIST,
+                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # initial soil mstr
         mask_raster_cfg.append([cfg.spatials.depression, SpatialNamesUtils._DEPRESSIONFILE,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # depression
         mask_raster_cfg.append([cfg.spatials.radius, SpatialNamesUtils._RADIUSFILE,

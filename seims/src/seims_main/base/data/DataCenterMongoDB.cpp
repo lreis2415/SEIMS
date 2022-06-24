@@ -39,7 +39,9 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     } else {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
     }
-    if (!DataCenterMongoDB::GetSubbasinNumberAndOutletID()) {
+    outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
+    n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
+    if (outlet_id_ < 0 || n_subbasins_ < 0) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (DataCenterMongoDB::GetFileOutVector()) {
@@ -105,7 +107,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 
     /// 5. Read Mask raster data
     std::ostringstream oss;
-    oss << subbasin_id_ << "_" << Tag_Mask[0];
+    oss << subbasin_id_ << "_" << VAR_SUBBSN[0]; // Tag_Mask[0];
     string mask_filename = GetUpper(oss.str());
     mask_raster_ = FloatRaster::Init(spatial_gridfs_, mask_filename.c_str());
     assert(nullptr != mask_raster_);
@@ -116,9 +118,9 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 #endif
 
     /// 6. Constructor Subbasin data. Subbasin and slope data are required!
-    oss.str("");
-    oss << subbasin_id_ << "_" << VAR_SUBBSN[0];
-    LoadAdjustRasterData(VAR_SUBBSN[0], GetUpper(oss.str()));
+    // oss.str("");
+    // oss << subbasin_id_ << "_" << VAR_SUBBSN[0];
+    // LoadAdjustRasterData(VAR_SUBBSN[0], GetUpper(oss.str()));
 
     oss.str("");
     oss << subbasin_id_ << "_" << VAR_SLOPE[0];
@@ -137,7 +139,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         if (!scenario_dbname_.empty()) {
             use_scenario_ = true;
             scenario_ = new Scenario(mongo_client_, scenario_dbname_, subbasin_id_, scenario_id_,
-                input_->getStartTime(), input_->getEndTime());
+                                     input_->getStartTime(), input_->getEndTime());
             if (SetRasterForScenario()) {
                 scenario_->setRasterForEachBMP();
             }
@@ -275,48 +277,31 @@ bool DataCenterMongoDB::GetFileOutVector() {
     return !origin_out_items_.empty();
 }
 
-bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
-    bson_t* b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID[0]),
-                         BCON_UTF8(VAR_SUBBSNID_NUM[0]),
-                         "]", "}", "}");
-    // printf("%s\n",bson_as_json(b, NULL));
-
+int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
+    bson_t* filter = BCON_NEW(PARAM_FLD_NAME, BCON_UTF8(param_name));
+    LOG(DEBUG) << "Query for " << param_name << ": " << bson_as_json(filter, NULL);
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
-        LOG(ERROR) << "Nothing found for subbasin number and outlet ID.";
+        LOG(ERROR) << "ReadIntParameterInDB: " << "Nothing found for " << param_name;
         /// destroy
-        bson_destroy(b);
+        bson_destroy(filter);
         mongoc_cursor_destroy(cursor);
-        return false;
+        return -9999;
     }
-
     bson_iter_t iter;
     const bson_t* bson_table;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
-        string name_tmp;
-        int num_tmp = -1;
-        if (bson_iter_init_find(&iter, bson_table, PARAM_FLD_NAME)) {
-            name_tmp = GetStringFromBsonIterator(&iter);
-        }
+    int num_tmp = -1;
+    while (mongoc_cursor_next(cursor, &bson_table)) {
         if (bson_iter_init_find(&iter, bson_table, PARAM_FLD_VALUE)) {
             GetNumericFromBsonIterator(&iter, num_tmp);
         }
-        if (!StringMatch(name_tmp, "") && num_tmp != -1) {
-            if (StringMatch(name_tmp, VAR_OUTLETID[0])) {
-                GetNumericFromBsonIterator(&iter, outlet_id_);
-            } else if (StringMatch(name_tmp, VAR_SUBBSNID_NUM[0])) {
-                GetNumericFromBsonIterator(&iter, n_subbasins_);
-            }
-        } else {
-            LOG(ERROR) << "Nothing found for subbasin number and outlet ID.";
-        }
     }
-    bson_destroy(b);
+    bson_destroy(filter);
     mongoc_cursor_destroy(cursor);
-    return outlet_id_ >= 0 && n_subbasins_ >= 0;
+    return num_tmp;
 }
 
 void DataCenterMongoDB::ReadClimateSiteList() {
@@ -440,14 +425,17 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 }
 
 FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
+    STRING_MAP opts;
+    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     FloatRaster* raster_data = FloatRaster::Init(spatial_gridfs_, remote_filename.c_str(),
-                                                 true, mask_raster_, true);
+                                                 true, mask_raster_, true,
+                                                 NODATA_VALUE, opts);
+    if (nullptr == raster_data) { return nullptr; }
     // When load from MongoDB failed (i.e., file not existed), the Initialized() will return false!
     if (!raster_data->Initialized()) {
         delete raster_data;
         return nullptr;
     }
-    assert(nullptr != raster_data);
     /// using emplace() if possible or insert() to make sure the successful insertion.
 #ifdef HAS_VARIADIC_TEMPLATES
     if (!rs_map_.emplace(remote_filename, raster_data).second) {
