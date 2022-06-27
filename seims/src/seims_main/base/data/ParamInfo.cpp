@@ -5,7 +5,6 @@
 #include "utils_math.h"
 #include "utils_string.h"
 #include "text.h"
-#include "Logging.h"
 
 using namespace utils_math;
 using namespace utils_string;

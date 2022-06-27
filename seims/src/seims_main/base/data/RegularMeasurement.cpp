@@ -33,7 +33,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     for (int i = 0; i < nSites; i++) {
         BSON_APPEND_INT32(site_array, ValueToString(i).c_str(), m_siteIDList[i]);
     }
-    if (_DEBUG) { printf("ClimateStationSites: %s\n", bson_as_json(site_array, NULL)); }
+    StatusMessage(bson_as_json(site_array, NULL));
     vint st = CVT_VINT(startTime) * 1000;
     vint et = CVT_VINT(endTime) * 1000;
 
@@ -47,7 +47,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                   MONG_HYDRO_DATA_UTC, BCON_INT32(1),
                              "}");
 
-    if (_DEBUG) { printf("%s\n", bson_as_json(q, NULL)); }
+    StatusMessage(bson_as_json(q, NULL));
 
     // perform query and read measurement data
     std::unique_ptr<MongoCollection>
@@ -55,7 +55,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     mongoc_cursor_t* cursor = collection->ExecuteQuery(q);
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
-        if (_DEBUG) { cout << "Query error: " << err.message << endl; }
+        StatusMessage(err.message);
         bson_destroy(q);
         mongoc_cursor_destroy(cursor);
         throw ModelException("RegularMeasurement", "Constructor", "Query error! ");

@@ -117,7 +117,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int> > m_reachUpStream;
+    vector<vector<int> > m_reachUpStream;
     /// reach manning's n
     float *m_reachN;
     /// map from subbasin id to index of the array

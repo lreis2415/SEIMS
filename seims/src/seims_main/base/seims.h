@@ -94,10 +94,10 @@ const int FlowDirCCW[9] = { 0, 1, 128, 64, 32, 16, 8, 4, 2 };
 const int CCWDeltaRow[9] = { 0, 0, -1, -1, -1, 0, 1, 1, 1 }; ///< Delta Row (Y-axis) according to FlowDirCCW
 const int CCWDeltaCol[9] = { 0, 1, 1, 0, -1, -1, -1, 0, 1 }; ///< Delta Col (X-axis) according to FlowDirCCW
 
-#ifdef USE_FLOAT32
-typedef float FLTPT;
-#else
+#ifdef USE_FLOAT64
 typedef double FLTPT;
+#else
+typedef float FLTPT;
 #endif
 
 ///

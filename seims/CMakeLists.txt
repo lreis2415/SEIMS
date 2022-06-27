@@ -40,9 +40,4 @@ ADD_SUBDIRECTORY(${METIS} bin/metis)
 ADD_SUBDIRECTORY(${TAUDEM} bin/taudem)
 ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_project)
 
-### For CLion to implement the "make install" command
-add_custom_target(install_${PROJECT_NAME}
-        $(MAKE) install
-        DEPENDS ${UTILS_APPS} ${TAUDEM_EXT_APP} ${TAUDEM_APP} ${SEIMSPRJ}
-        COMMENT "Installing ${PROJECT_NAME}")
 MESSAGE(STATUS "All SEIMS related compiled done!")

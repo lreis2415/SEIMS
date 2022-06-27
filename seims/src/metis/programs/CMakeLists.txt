@@ -17,7 +17,7 @@ foreach (prog gpmetis ndmetis mpmetis m2gmetis graphchk cmpfillin)
     #  target_link_libraries(${prog} metis profiler)
     ### For LLVM-Clang installed by brew, add link library of OpenMP explicitly.
     IF(CV_CLANG AND LLVM_VERSION_MAJOR)
-        TARGET_LINK_LIBRARIES(${EXECNAME} ${OpenMP_LIBRARY})
+        TARGET_LINK_LIBRARIES(${prog} ${OpenMP_LIBRARY})
     ENDIF()
 endforeach (prog)
 
