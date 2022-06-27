@@ -105,18 +105,16 @@ int GetAvailableThreadNum() {
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
-#endif /* WINDOWS */
-#ifdef LINUX
+#elif defined(MACOS) || defined(MACOSX)
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
-#endif /* LINUX */
-#ifdef MACOS
+#else
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
-#endif /* macOS X 10.5 and later */
+#endif
 }
 
 void SetDefaultOpenMPThread() {
 #ifdef SUPPORT_OMP
-    omp_set_nested(1); // Enable nest omp loops. BUT, not recommended!
+    // omp_set_nested(1); // Enable nest omp loops. BUT, not recommended!
     // omp thread have not been set
     if (omp_get_num_threads() <= 1) {
         // set one half of the available threads as default
@@ -129,7 +127,7 @@ void SetDefaultOpenMPThread() {
 void SetOpenMPThread(const int n) {
     if (n < 0) return;
 #ifdef SUPPORT_OMP
-    omp_set_nested(1); // Enable nest omp loops. BUT, not recommended!
+    // omp_set_nested(1); // Enable nest omp loops. BUT, not recommended!
     omp_set_num_threads(n);
 #endif /* SUPPORT_OMP */
     /// do nothing if OMP is not supported
