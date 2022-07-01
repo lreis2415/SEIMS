@@ -12,20 +12,20 @@ dependencies:
   - networkx
   - pathlib2
   - six
-  - pip:
-      # DEAP
-      # When install DEAP/deap,
-      #   to avoid the error of "error in deap setup command: use_2to3 is invalid."
-      #   Please install v57.5.0 manually, since use_2to3 was deprecated since setuptools==58
-      #- setuptools<=57.5.0
-      #- "https://github.com/DEAP/deap/archive/master.zip"
-      #
-      # Alternatively, we can install the revised deap from https://github.com/keszybz/deap
-      #
-      - "https://github.com/keszybz/deap/archive/2to3.zip"
-      # SCOOP
-      - "https://github.com/soravux/scoop/archive/master.zip"
-      # SALib
-      - SALib
-      # PyGeoC
-      - "https://github.com/lreis2415/PyGeoC/archive/master.zip"
+  - SALib
+# pip install should be called in shell, adding the "timeout 1000" argument.
+#  - pip:
+#      # DEAP
+#      # When install DEAP/deap,
+#      #   to avoid the error of "error in deap setup command: use_2to3 is invalid."
+#      #   Please install v57.5.0 manually, since use_2to3 was deprecated since setuptools==58
+#      #- setuptools<=57.5.0
+#      #- "https://github.com/DEAP/deap/archive/master.zip"
+#      #
+#      # Alternatively, we can install the revised deap from https://github.com/keszybz/deap
+#      #
+#      - "https://github.com/keszybz/deap/archive/2to3.zip"
+#      # SCOOP
+#      - "https://github.com/soravux/scoop/archive/master.zip"
+#      # PyGeoC
+#      - "https://github.com/lreis2415/PyGeoC/archive/master.zip"
