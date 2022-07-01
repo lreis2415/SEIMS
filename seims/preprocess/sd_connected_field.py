@@ -37,7 +37,7 @@ def connected_field_partition_wu2018(cfg):
     """
     if not cfg.fields_partition:  # Do field partition
         return
-    maskf = cfg.spatials.mask
+    maskf = cfg.spatials.subbsn
     streamf = cfg.spatials.stream_link
     flowf = cfg.spatials.d8flow
     luf = cfg.spatials.landuse
