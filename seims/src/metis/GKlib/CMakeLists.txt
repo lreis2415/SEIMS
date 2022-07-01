@@ -23,6 +23,6 @@ include_directories("test")
 add_subdirectory("test")
 
 install(TARGETS GKlib
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib)
-install(FILES ${GKlib_includes} DESTINATION include)
+        ARCHIVE DESTINATION "${INSTALL_DIR}/lib"
+        LIBRARY DESTINATION "${INSTALL_DIR}/lib")
+install(FILES ${GKlib_includes} DESTINATION "${INSTALL_DIR}/include")

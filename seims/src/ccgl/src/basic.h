@@ -289,7 +289,7 @@ typedef vint64_t pos_t;
 #endif /* Windows */
 #ifdef LINUX
 #define LIBSUFFIX       ".so"
-#elif defined MACOS
+#elif defined(MACOS) || defined(MACOSX)
 #define LIBSUFFIX       ".dylib"
 #endif /* Linux and macOS */
 

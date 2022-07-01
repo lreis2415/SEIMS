@@ -164,63 +164,6 @@ class SpatialDelineation(object):
         mask_rasterio(cfg.seims_bin, mask_raster_cfg, maskfile=cfg.spatials.mask,
                       cfgfile=cfg.logs.mask_cfg)
 
-        # subbasin_tau_file = cfg.taudems.subbsn_m
-        # geodata2dbdir = cfg.dirs.geodata2db
-        # UtilClass.mkdir(geodata2dbdir)
-        #
-        # # Total 21 raster files
-        # original_files = [cfg.taudems.d8flow_esri,
-        #                   cfg.taudems.subbsn_m, cfg.taudems.stream_m,
-        #                   cfg.taudems.slp, cfg.taudems.filldem, cfg.taudems.d8acc,
-        #                   cfg.taudems.stream_order, cfg.taudems.dinf,
-        #                   cfg.taudems.dinf_slp,
-        #                   cfg.taudems.mfdmd_dir,
-        #                   cfg.taudems.dist2stream_d8, cfg.taudems.dist2stream_dinf]
-        #
-        # original_files += [FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
-        #                    for i in range(1, 9, 1)]
-        # # output masked files
-        # output_files = [cfg.taudems.d8flow_m,  # temp store in taudems, convert to ArcGIS later
-        #                 cfg.spatials.subbsn, cfg.spatials.stream_link,
-        #                 cfg.spatials.slope, cfg.spatials.filldem, cfg.spatials.d8acc,
-        #                 cfg.spatials.stream_order, cfg.spatials.dinf,
-        #                 cfg.spatials.dinf_slp, cfg.spatials.mfdmd_d8dir,
-        #                 cfg.spatials.dist2stream_d8, cfg.spatials.dist2stream_dinf]
-        # output_files += [FileClass.add_postfix(cfg.spatials.mfdmd_fraction, '%d' % i)
-        #                  for i in range(1, 9, 1)]
-        #
-        # default_values = [DEFAULT_NODATA] * len(original_files)
-        #
-        # # other input rasters need to be masked
-        # # soil and landuse
-        # FileClass.check_file_exists(cfg.soil)
-        # FileClass.check_file_exists(cfg.landuse)
-        # original_files.append(cfg.soil)
-        # output_files.append(cfg.spatials.soil_type)
-        # default_values.append(cfg.default_soil)
-        # original_files.append(cfg.landuse)
-        # output_files.append(cfg.spatials.landuse)
-        # default_values.append(cfg.default_landuse)
-        #
-        # # Additional raster file
-        # for k, v in cfg.additional_rs.items():
-        #     org_v = v
-        #     if not FileClass.is_file_exists(org_v):
-        #         v = cfg.spatial_dir + os.path.sep + org_v
-        #         if not FileClass.is_file_exists(v):
-        #             print('WARNING: The additional file %s MUST be located in '
-        #                   'SPATIAL_DATA_DIR, or provided as full file path!' % k)
-        #             continue
-        #     original_files.append(v)
-        #     output_files.append(cfg.dirs.geodata2db + os.path.sep + k + '.tif')
-        #     default_values.append(DEFAULT_NODATA)
-        #
-        # config_file = cfg.logs.mask_cfg
-        # # run mask operation
-        # print('Mask original delineated data by Subbasin raster...')
-        # SpatialDelineation.mask_raster_cpp(cfg.seims_bin, mask_file, original_files,
-        #                                    output_files, default_values, config_file)
-
     @staticmethod
     def generate_lat_raster(cfg):
         """Generate latitude raster"""
@@ -292,6 +235,7 @@ def main():
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
+    # SpatialDelineation.mask_spatial_data(seims_cfg)
 
 
 if __name__ == "__main__":

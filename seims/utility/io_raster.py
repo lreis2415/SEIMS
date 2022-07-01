@@ -18,21 +18,22 @@ def mask_rasterio(bin_dir, inoutcfg,
 
     TODO: this function is very preliminary, need to be improved and tested!
     """
-    # concatenate command line
     commands = ['"%s/mask_rasterio"' % bin_dir]
     if mode.upper() not in ['MASK', 'DEC', 'COM', 'MASKDEC']:
         mode = 'MASK'
-    commands.append('-mode %s' % mode)
+    commands += ['-mode', mode]
     usemongo = False
     if mongoargs is not None and type(mongoargs) is list and len(mongoargs) >= 4:
         usemongo = True
-        commands.append('-mongo %s' % ' '.join(i if is_string(i) else repr(i) for i in mongoargs))
+        commands += ['-mongo']
+        commands += [i if is_string(i) else repr(i) for i in mongoargs]
     if maskfile is not None:
         if FileClass.is_file_exists(maskfile):
-            commands.append('-mask SFILE %s' % maskfile)
+            commands += ['-mask', 'SFILE', maskfile]
         elif usemongo:
-            commands.append('-mask GFS %s' % maskfile)
-    commands.append('-include_nodata 1' if include_nodata else '-include_nodata 0')
+            commands += ['-mask', 'GFS', maskfile]
+    commands += ['-include_nodata',  '1' if include_nodata else '0']
+
     parsed_inout = list()
     for inout in inoutcfg:
         item_count = len(inout)
@@ -43,40 +44,37 @@ def mask_rasterio(bin_dir, inoutcfg,
         outtypeidx = 4 if item_count >= 5 else -1
         reclsidx = 5 if item_count >= 6 else -1
 
-        curstr = ''
-        instr = ''
+        cur_dict = dict()
         if type(inout[inidx]) is list:
-            instr = ','.join(inout[inidx])
+            cur_dict['-in'] = ','.join(inout[inidx])
         elif type(inout[inidx]) is str and inout[inidx] != '':
-            instr = inout[inidx]
-        if cfgfile is None:
-            if instr != '':
-                curstr += '-in %s ' % instr
-            if outidx > 0 and inout[outidx] != '':
-                curstr += '-out %s ' % inout[outidx]
-            if dvidx > 0:
-                curstr += '-default %s ' % repr(inout[dvidx])
-            if nodataidx > 0:
-                curstr += '-nodata %s ' % repr(inout[nodataidx])
-            if outtypeidx > 0:
-                curstr += '-outdatatype %s ' % inout[outtypeidx]
-            if reclsidx > 0:
-                curstr += '-reclass %s ' % inout[reclsidx]
-        else:
-            curstr += '%s;' % instr
-            curstr += '%s;' % (inout[outidx] if outidx > 0 else '')
-            curstr += '%s;' % (repr(inout[dvidx]) if dvidx > 0 else '')
-            curstr += '%s;' % (repr(inout[nodataidx]) if nodataidx > 0 else '')
-            curstr += '%s;' % (inout[outtypeidx] if outtypeidx > 0 else '')
-            curstr += '%s;' % (inout[reclsidx] if reclsidx > 0 else '')
-        parsed_inout.append(curstr)
+            cur_dict['-in'] = inout[inidx]
+        if outidx > 0 and inout[outidx] != '':
+            cur_dict['-out'] = inout[outidx]
+        if dvidx > 0:
+            cur_dict['-default'] = repr(inout[dvidx])
+        if nodataidx > 0:
+            cur_dict['-nodata'] = repr(inout[nodataidx])
+        if outtypeidx > 0:
+            cur_dict['-outdatatype'] = inout[outtypeidx]
+        if reclsidx > 0:
+            cur_dict['-reclass'] = inout[reclsidx]
+        parsed_inout.append(cur_dict)
     if cfgfile is not None:
         with open(cfgfile, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(parsed_inout))
-        commands.append('-configfile %s' % cfgfile)
+            for dic in parsed_inout:
+                f.write('%s;%s;%s;%s;%s;%s\n' % (dic['-in'],
+                                                 dic['-out'] if '-out' in dic else '',
+                                                 dic['-default'] if '-default' in dic else '',
+                                                 dic['-nodata'] if '-nodata' in dic else '',
+                                                 dic['-outdatatype'] if '-outdatatype' in dic else '',
+                                                 dic['-reclass'] if '-reclass' in dic else ''))
+        commands += ['-configfile', cfgfile]
         UtilClass.run_command(commands)
     else:
         for curargs in parsed_inout:
             curcommands = commands[:]
-            curcommands.append(curargs)
+            for ck, cv in curargs.items():
+                curcommands.append(ck)
+                curcommands.append(cv)
             UtilClass.run_command(curcommands)

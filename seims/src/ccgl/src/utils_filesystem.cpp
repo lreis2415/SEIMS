@@ -9,7 +9,7 @@
 #ifdef WINDOWS
 #include <io.h>
 #endif
-#ifdef MACOS
+#if defined(MACOS) || defined(MACOSX)
 #include <libproc.h>
 #endif
 
@@ -253,7 +253,7 @@ string GetAppPath() {
     TCHAR buffer[PATH_MAX];
     GetModuleFileName(nullptr, buffer, PATH_MAX);
     root_path = CVT_STR(static_cast<char *>(buffer));
-#elif defined MACOS
+#elif defined(MACOS) || defined(MACOSX)
     /// http://stackoverflow.com/a/8149380/4837280
     int ret;
     pid_t pid;
@@ -277,8 +277,7 @@ string GetAppPath() {
     }
     root_path = buf;
 #endif /* WINDOWS */
-    std::basic_string<char>::size_type idx = root_path.find_last_of(SEP);
-    return root_path.substr(0, idx + 1);
+    return root_path.substr(0, root_path.find_last_of(SEP) + 1);
 }
 
 string GetAbsolutePath(string const& full_filename) {

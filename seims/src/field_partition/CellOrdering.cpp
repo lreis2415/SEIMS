@@ -643,7 +643,7 @@ void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father 
     } else {
         degree++;
         m_fields[id]->SetDegree(degree);
-        m_maxDegree < degree ? m_maxDegree = degree : m_maxDegree = m_maxDegree;    // maximum degree
+        if (m_maxDegree < degree) { m_maxDegree = degree; } // maximum degree
 
         vector<int> &inFieldID = m_fields[id]->GetInFieldIDs();
         if (!inFieldID.empty()) {
