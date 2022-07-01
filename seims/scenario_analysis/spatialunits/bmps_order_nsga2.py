@@ -15,10 +15,13 @@ import pickle
 import copy
 from io import open
 
-import matplotlib
+import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+        mpl.use('Agg', warn=False)
+    except TypeError:
+        mpl.use('Agg')
 
 from typing import Dict
 import numpy
