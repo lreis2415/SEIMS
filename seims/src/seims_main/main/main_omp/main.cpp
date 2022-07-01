@@ -34,7 +34,7 @@ int main(const int argc, const char** argv) {
     try {
         double input_t = TimeCounting();
         /// Get module path
-#ifdef MACOSX
+#ifndef WINDOWS
         string module_path = GetAppPath() + "../lib";
 #else
         string module_path = GetAppPath();

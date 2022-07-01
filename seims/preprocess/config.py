@@ -19,7 +19,6 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from configparser import ConfigParser
 
-from pygeoc.TauDEM import TauDEMExtFiles
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
