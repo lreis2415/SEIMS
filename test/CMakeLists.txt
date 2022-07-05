@@ -14,6 +14,7 @@ ENDIF ()
 set(APPNAME unittest)
 add_executable(${APPNAME} ${TEST_SRC_FILES})
 SET_TARGET_PROPERTIES(${APPNAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+# SET_TARGET_PROPERTIES(${APPNAME} PROPERTIES OUTPUT_NAME ${APPNAME}${CMAKE_BUILD_POSTFIX})
 
 IF (GTEST_FOUND)
     target_link_libraries(${APPNAME} ${TARGET_VISIBILITY}
@@ -22,17 +23,36 @@ ELSE ()
     target_link_libraries(${APPNAME} ${TARGET_VISIBILITY} gtest gtest_main ${CCGLNAME})
 ENDIF ()
 
+IF(HOST)
+    set(MONGOHOST ${HOST})
+ELSE()
+    set(MONGOHOST "127.0.0.1")
+ENDIF()
+IF(PORT)
+    set(MONGOPORT ${PORT})
+ELSE()
+    set(MONGOPORT "27017")
+ENDIF()
+
 IF (XCODE OR MSVC)
     # Xcode failed with gtest_discover_tests()
     # Stay tuned https://github.com/google/googletest/issues/3475#issuecomment-873690957
     # MSVC 2019 on Github Actions also failed.
+    # gtest_add_tests(TARGET      ${APPNAME}
+    #                 TEST_SUFFIX .noArgs
+    #                 TEST_LIST   noArgsTests
+    #                )
+    set_tests_properties(${ArgsTests} PROPERTIES TIMEOUT 10)
     gtest_add_tests(TARGET      ${APPNAME}
-                    TEST_SUFFIX .noArgs
-                    TEST_LIST   noArgsTests
+                    EXTRA_ARGS  -host ${MONGOHOST}  -port ${MONGOPORT}
+                    TEST_SUFFIX .withArgs
+                    TEST_LIST   withArgsTests
                    )
-    set_tests_properties(${noArgsTests} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${withArgsTests} PROPERTIES TIMEOUT 10)
 ELSE ()
-    gtest_discover_tests(${APPNAME})
+    gtest_discover_tests(${APPNAME}
+                         EXTRA_ARGS  -host ${MONGOHOST}  -port ${MONGOPORT}
+                        )
 ENDIF ()
 
 install(TARGETS ${APPNAME}

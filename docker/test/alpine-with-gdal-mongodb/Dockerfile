@@ -17,6 +17,11 @@ FROM osgeo/gdal:alpine-small-${GDAL_VERSION} as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
+# Specify MongoDB server
+ARG host=172.17.0.3
+ARG port=27017
+RUN echo ">>>>>>>>>>>> Using MongoDB on another docker: ${host}:${port}"
+
 # Replace alpine repository source cdn
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 
@@ -36,8 +41,8 @@ COPY data data
 RUN cd /CCGL \
     && mkdir -p build_with_test \
     && cd build_with_test \
-    && cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 -DFORCEDOWNGTEST=1 -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+    && cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 -DFORCEDOWNGTEST=1 -DHOST=${host} -DPORT=${port} -DCMAKE_INSTALL_PREFIX=/usr/local .. \
     && make -j 2 \
-    $$ test/unittestd -host 172.17.0.3 \
+    && ctest -C Debug --rerun-failed --output-on-failure \
     && make install \
     && cd ..

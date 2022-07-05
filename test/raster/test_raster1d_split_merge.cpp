@@ -351,6 +351,8 @@ TEST_P(clsRasterDataSplitMerge, MaskLyrIO) {
     EXPECT_TRUE(maskrs_->OutputSubsetToMongoDB(GlobalEnv->gfs_, "", ccgl::STRING_MAP(),
                     false, false, true)); // store valid data only
 
+    if (HasFailure()) { return; }
+
     string outgfsfile_full = "0_" + maskrs_->GetCoreName();
 
     IntRaster* mongofull = IntRaster::Init(GlobalEnv->gfs_, outgfsfile_full.c_str(),
@@ -538,6 +540,9 @@ TEST_P(clsRasterDataSplitMerge, SplitRaster) {
     string com_fname_real = "0_" + com_fname;
     EXPECT_TRUE(maskrsflt_->OutputToMongoDB(GlobalEnv->gfs_, com_fname, ccgl::STRING_MAP(),
                     true, false));
+
+    if (HasFailure()) { return; }
+
     // read from MongoDB with mask data
     FltRaster* com_inrs_mongo = FltRaster::Init(GlobalEnv->gfs_, com_fname_real.c_str(),
                                                 true, maskrsflt_, true);

@@ -7,6 +7,10 @@ TODO
 The <tag> can be `apline`, `apline-with-gdal`, `apline-with-mongodb`, and `apline-with-gdal-mongodb`.
 ```
 docker build -t crazyzlj/ccgl:<tag>-test -f docker/test/<tag>/Dockerfile .
+
+# or add `--progress=plain` to print all output from shell
+
+docker build --progress=plain -t crazyzlj/ccgl:<tag>-test -f docker/test/<tag>/Dockerfile .
 ```
 
 ### CCGL with the support of MongoDB
@@ -30,13 +34,18 @@ For example,
   + Now, you can connect to the MongoDB running in the container from *the host* host via `localhost:27018`.
   
 + Mount data directory of host using `-v </path/to/any>:/data/db`, e.g., 
-`docker run -d -v /Users/ljzhu/Documents/data/docker_mongodata:/data/db -p 27018:27017 --name mongodb-docker mongo:4.4.14-focal`
+`docker run -d -v /Users/ljzhu/Documents/data/docker_mongodata:/data/db -p 27017:27017 --name mongodb-docker mongo:4.4.14-focal`
 
 + There are couple of ways to do [Connect to MongoDB from another Docker container](https://github.com/docker-library/docs/blob/master/mongo/README.md#connect-to-mongodb-from-another-docker-container). 
 Also refers to one userful answer in [stackflow](https://stackoverflow.com/a/43962099).
-  + (Currently tested) Use mongodb container ip address: `docker inspect -f '{{.NetworkSettings.IPAddress}}' some-mongo`.
+  + (Currently tested) Use mongodb container ip address: `docker inspect -f '{{.NetworkSettings.IPAddress}}' mongo-docker`.
     The command will output the IP of the mongodb container which can be used in another application's container.
     For example, `./unittestd -host 172.17.0.3 -port 27017`
+
+    The IP of the mongodb container can be passed as an argument when build another docker image,
+    also see [here](https://stackoverflow.com/a/34254700):
+
+    `docker build --progress=plain -t crazyzlj/ccgl:alpine-with-mongodb-test --build-arg host=172.17.0.2 --build-arg port=27017 -f docker/test/alpine-with-mongodb/Dockerfile .`
   + ...
 
 ## Release docker images
