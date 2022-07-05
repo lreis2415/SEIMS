@@ -22,6 +22,7 @@ set(TAUDEM_EXT_APP
 
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})
+    SET_TARGET_PROPERTIES(${c_target} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     target_link_libraries(${c_target} ${TARGET_VISIBILITY} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     ### For LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
     IF(CV_CLANG AND LLVM_VERSION_MAJOR AND OPENMP_FOUND)

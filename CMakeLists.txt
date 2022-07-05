@@ -38,6 +38,12 @@ SET(CMAKE_SH "CMAKE_SH-NOTFOUND")
 PROJECT(TauDEM_ext CXX C)
 ### TauDEM_ext compilation version.
 SET(PRJNAME "TauDEM_ext")
+
+### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
+IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
+  SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+
 ### Build Postfix
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
@@ -71,11 +77,7 @@ ELSE()
         SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
     ENDIF ()
 ENDIF ()
-
-### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
-IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
-  SET(CMAKE_BUILD_TYPE Release)
-ENDIF()
+SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
 
 ### Allow project folders in MSVC and Xcode.
 IF(MSVC OR XCODE)

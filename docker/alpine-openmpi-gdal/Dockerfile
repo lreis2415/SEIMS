@@ -3,7 +3,7 @@
 #
 # Usage: 
 #   > cd TauDEM_ext
-#   > docker build -t <tag> -f docker/Dockerfile .
+#   > docker build -t <tag> -f docker/alpine-openmpi-gdal/Dockerfile .
 #
 # Copyright 2022 Liang-Jun Zhu <zlj@lreis.ac.cn>
 #
@@ -51,5 +51,8 @@ RUN apk add --no-cache openmpi tini openssh
 ARG INSTALL_DIR=/taudem_ext/dist
 COPY --from=builder ${INSTALL_DIR}/bin/ /usr/bin/
 
-COPY docker/docker-entrypoint.sh / 
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+COPY docker/docker-entrypoint.sh /
 ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
