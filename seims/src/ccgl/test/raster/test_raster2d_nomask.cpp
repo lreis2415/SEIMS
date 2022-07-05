@@ -406,6 +406,8 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIO) {
     additional_header[HEADER_MASK_NAME] = rs_->GetCoreName();
     EXPECT_TRUE(rs_->OutputToMongoDB(gfs_, gfsfilename_valid, additional_header, false));
 
+    if (HasFailure()) { return; }
+
     // Read from MongoDB without mask layer
     FltRaster* mongors = FltRaster::Init(gfs_, gfsfilename.c_str(), false);
 
@@ -735,6 +737,8 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIOWithCalcPos) {
     map<string, string> additional_header;
     additional_header[HEADER_MASK_NAME] = rs_->GetCoreName();
     EXPECT_TRUE(rs_->OutputToMongoDB(gfs_, gfsfilename_valid, additional_header, false));
+
+    if (HasFailure()) { return; }
 
     // Read from MongoDB without mask layer
     FltRaster* mongors = FltRaster::Init(gfs_, gfsfilename.c_str(), false);
