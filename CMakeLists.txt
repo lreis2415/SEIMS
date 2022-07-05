@@ -18,7 +18,7 @@
 #     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: May. 30, 2022
+#  Latest updated: Jul. 6, 2022
 #
 #  Copyright (C) 2013-2019 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
@@ -41,6 +41,8 @@ SET(CMAKE_SH "CMAKE_SH-NOTFOUND")
 PROJECT(SEIMS_ALL CXX C)
 ### SEIMS Version.
 SET(PRJNAME "SEIMS")
+
+
 ### Build Postfix
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
@@ -80,6 +82,10 @@ IF(MSVC)
     INCLUDE(CRTLinkage)
 ENDIF(MSVC)
 
+### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
+IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(INSTALL_DIR ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
@@ -90,12 +96,8 @@ ELSE()
         SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
     ENDIF ()
 ENDIF ()
+SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
 SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
-
-### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
-IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
-    SET(CMAKE_BUILD_TYPE Release)
-ENDIF()
 
 ### Allow project folders in MSVC and Xcode.
 IF(MSVC OR XCODE)

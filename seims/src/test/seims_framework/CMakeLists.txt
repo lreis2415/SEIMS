@@ -7,6 +7,7 @@ enable_testing()
 set(PROJECT_TEST_NAME ${UT_NAME_STR}_exec)
 file(GLOB TEST_SRC_FILES *.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
+SET_TARGET_PROPERTIES(${PROJECT_TEST_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 target_link_libraries(${PROJECT_TEST_NAME} ${PROJECT_LIB_NAME} gtest gmock_main)
 ## here is the template for adding another unittest of a module
 # 1. Create a unittest_MODULEID.cpp, e.g., unittest_utilsclass.cpp

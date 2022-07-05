@@ -479,7 +479,7 @@ void Biomass_EPIC::CalTempStress(const int i) {
     } else if (m_meanTemp[i] > m_pgOptTemp[i]) {
         tgx = 2.f * m_pgOptTemp[i] - m_pgTempBase[i] - m_meanTemp[i];
     }
-    rto = (m_pgOptTemp[i] - m_pgTempBase[i]) / pow(tgx + UTIL_ZERO, 2.f);
+    rto = (m_pgOptTemp[i] - m_pgTempBase[i]) / pow(tgx + UTIL_ZERO, 2.);
     if (rto <= 200.f && tgx > 0.f) {
         m_frStrsTmp[i] = exp(-0.1054f * rto);
     } else {

@@ -726,7 +726,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
 void IMP_SWAT::PotholeSurfaceArea(const int id) {
     /// compute surface area assuming a cone shape, ha
     float potVol_m3 = m_potVol[id] * m_cnv;
-    m_potArea[id] = PI * pow(3.f * potVol_m3 / (PI * m_slope[id]), 0.6666f);
+    m_potArea[id] = (FLTPT)PI * pow(3. * potVol_m3 / (PI * m_slope[id]), 0.6666);
     m_potArea[id] *= 0.0001f; /// convert to ha
     if (m_potArea[id] <= UTIL_ZERO) {
         m_potArea[id] = 0.001f;

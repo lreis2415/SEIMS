@@ -4,7 +4,7 @@
 #include <cmath>
 
 FLTPT manningQ(const FLTPT x1, const FLTPT x2, const FLTPT x3, const FLTPT x4) {
-    return x1 * pow(x2, 0.6666) * sqrt(x4) / x3;
+    return x1 * pow(x2, (FLTPT)0.6666) * sqrt(x4) / x3;
 }
 
 FLTPT ChannleBottomWidth(const FLTPT ch_wth, FLTPT& ch_sideslp, FLTPT& ch_depth) {
