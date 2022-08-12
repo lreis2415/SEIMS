@@ -1208,7 +1208,13 @@ def generate_giff_txt(sceid, gene_values):
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
-def extra_process_for_last_generation(log_filename, last_gen, output_path, export_tif=True):
+def extra_process_for_last_generation(log_filename, last_gen, output_path, export_tif=False):
+    def cumulative(lists):
+        cu_list = []
+        length = len(lists)
+        cu_list = [sum(lists[0:x:1]) for x in range(0, length + 1)]
+        return cu_list[1:]
+
     import ast
     # read runtime.log
     last_gen_str = 'Generation: {}'.format(last_gen)
@@ -1258,11 +1264,21 @@ def extra_process_for_last_generation(log_filename, last_gen, output_path, expor
                 sce_dict['net_cost_pp'] = ast.literal_eval(items[6])
                 sce_dict['gene_values'] = gene_values
                 sce_dict['periods'] = sce.statistics_by_period_bmp()
-                # append reduction rates
-                base_amounts = sce.eval_info['BASE_ENV_PERIODS']
+                sce_dict['net_cost_cumul'] = cumulative(sce_dict['net_cost_pp'])
+                sce_dict['redunction_rates'] = []
+
+                # calc cumulative reduction rates
+                cumul_sed = 0.
+                base_sed_amounts = sce.eval_info['BASE_SED_PERIODS']
+                cumul_sed_amounts = cumulative(base_sed_amounts)
                 for index, sed in enumerate(sce_dict['sed_pp']):
-                    environment = (base_amounts[index] - sed) * 100 / base_amounts[index]
+                    environment = (base_sed_amounts[index] - sed) * 100 / base_sed_amounts[index]
                     sce_dict['periods'][index]['SUMMARY']['environment'] = environment
+
+                    cumul_sed += sed
+                    cumul_env = (cumul_sed_amounts[index] - cumul_sed) * 100 / cumul_sed_amounts[index]
+                    sce_dict['redunction_rates'].append(cumul_env)
+
                 output_json = '{}/Scenario_{}.json'.format(output_path, sceid)
                 with open(output_json, 'w') as fp:
                     json.dump(sce_dict, fp)
@@ -1477,8 +1493,8 @@ if __name__ == '__main__':
 
     # test_func()
 
-    extra_process_for_last_generation('D:/TempData/2/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log', 100,
-                                      'D:/TempData/2/Scenarios/')
+    extra_process_for_last_generation('D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log', 100,
+                                      'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/Scenarios/')
     # extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
 
 # cf = get_config_parser()
