@@ -518,7 +518,9 @@ class SUScenario(Scenario):
     def calculate_economy_bmps_order(self, costs, maintains, incomes):
         """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
         self.net_costs_per_period = (costs + maintains - incomes).tolist()
-        # self.economy = sum(self.net_costs_per_period)
+        self.costs_per_period = (costs + maintains).tolist()
+        self.incomes_per_period = incomes.tolist()
+
         # use net present value
         net_present_value = 0.
         for index, net_cost in enumerate(self.net_costs_per_period):
@@ -749,7 +751,9 @@ class SUScenario(Scenario):
 
             # satisfy economic constraint
             if numpy.all(numpy.greater(invest, costs + maintain - income)):
-                self.net_costs_per_period = costs + maintain - income
+                self.net_costs_per_period = (costs + maintain - income).tolist()
+                self.costs_per_period = (costs + maintain).tolist()
+                self.incomes_per_period = income.tolist()
                 return True, [costs, maintain, income]
             else:
                 return False, [None, None, None]
@@ -830,7 +834,7 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            subscenario, impl_period = divmod(int(gene_v), 1000) # impl_period == 1 in this function
+            subscenario, impl_period = divmod(int(gene_v), 1000)  # impl_period == 1 in this function
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
@@ -1048,6 +1052,8 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
     ind.sed_sum = sce.sed_sum
     ind.sed_per_period = sce.sed_per_period
     ind.net_costs_per_period = sce.net_costs_per_period
+    ind.costs_per_period = sce.costs_per_period
+    ind.incomes_per_period = sce.incomes_per_period
 
     return ind
 
@@ -1169,8 +1175,9 @@ def main_manual_bmps_order(sceid, gene_values):
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
         print(
-            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s' %
-            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period)))
+            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\tincomes_per_period: %s' %
+            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period),
+             str(sce.costs_per_period), str(sce.incomes_per_period)))
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
@@ -1310,7 +1317,8 @@ def test_func():
                2001.0, 0.0, 0.0, 2001.0, 0.0,
                2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 1001.0, 3001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                0.0, 1001.0, 2001.0, 2001.0,
-               0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0,
+               0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0,
+               0.0,
                0.0, 0.0, 0.0, 0.0,
                2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3001.0, 4001.0, 1001.0, 3001.0, 0.0, 1001.0, 3001.0, 0.0,
                2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
@@ -1445,12 +1453,14 @@ def test_func():
 
 
 def recalc_economy():
-    log_file = 'D:/TempData/runtime-3.log'
-    output_file = 'D:/TempData/runtime-3-m.log'
+    # only for some custom functions
+    # the operation list -> str only works in python 3
+    log_file = 'D:/TempData/runtime.log.bk'
+    output_file = 'D:/TempData/runtime.log'
     contents = []
     with open(log_file, 'r') as fp_in:
         for index, line in enumerate(fp_in.readlines()):
-            if index == 0:
+            if index in [0,1]:
                 contents.append(line)
                 continue
             items = line.split('\t')
@@ -1470,8 +1480,8 @@ def recalc_economy():
             # sce.export_to_mongodb()
             satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()
             new_economy = sce.calculate_economy_bmps_order(costs, maintains, incomes)
-            items[2] = str(new_economy)
-            items[6] = str(sce.net_costs_per_period)
+            items.insert(7,str(sce.costs_per_period))
+            items.insert(8,str(sce.incomes_per_period))
             contents.append('\t'.join(items))
 
     with open(output_file, 'w') as fp_out:
@@ -1493,9 +1503,11 @@ if __name__ == '__main__':
 
     # test_func()
 
-    extra_process_for_last_generation('D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log', 100,
-                                      'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/Scenarios/')
-    # extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
+    extra_process_for_last_generation(
+        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log',
+        100,
+        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/Scenarios/')
+    extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
 
 # cf = get_config_parser()
 # # cfg = SAConfig(cf)  # type: SAConfig

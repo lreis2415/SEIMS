@@ -72,6 +72,8 @@ class Scenario(object):
         self.economy = 0.
         self.environment = 0.
         self.net_costs_per_period = list()
+        self.costs_per_period = list()
+        self.incomes_per_period = list()
         self.sed_sum = 0.
         self.sed_per_period = list()
         self.worst_econ = cfg.worst_econ
