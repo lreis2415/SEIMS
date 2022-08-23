@@ -13,6 +13,7 @@
  *   - 4. 2018-05-08 - lj -
  *        -# Reformat, especially naming style (sync update in "text.h").
  *        -# Code optimization, e.g., use multiply instead of divide.
+ *   - 5. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \todo Ammonian adsorbed to soil should be considered.
  * \author Huiran Gao, Liangjun Zhu
@@ -41,11 +42,15 @@ public:
 
     ~NutrientTransportSediment();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins*) OVERRIDE;
 
@@ -57,9 +62,9 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
 private:
     /*!
@@ -109,19 +114,19 @@ private:
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// cell width of grid map (m)
-    float m_cellWth;
+    FLTPT m_cellWth;
     /// cell area of grid map (ha)
-    float m_cellArea;
+    FLTPT m_cellArea;
     /// number of cells
     int m_nCells;
     /// soil layers
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     /// maximum soil layers
     int m_maxSoilLyrs;
     /// soil rock content, %
-    float** m_soilRock;
+    FLTPT** m_soilRock;
     /// sol_ul, soil saturated water amount, mm
-    float** m_soilSat;
+    FLTPT** m_soilSat;
     /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
@@ -129,87 +134,87 @@ private:
      */
     int m_cbnModel;
     /// enrichment ratio
-    float* m_enratio;
+    FLTPT* m_enratio;
 
     ///inputs
 
     // soil loss caused by water erosion
-    float* m_olWtrEroSed;
+    FLTPT* m_olWtrEroSed;
     // surface runoff generated
-    float* m_surfRf;
+    FLTPT* m_surfRf;
     //bulk density of the soil
-    float** m_soilBD;
+    FLTPT** m_soilBD;
     // thickness of soil layer
-    float** m_soilThk;
+    FLTPT** m_soilThk;
     /// Soil mass (kg/ha)
-    float** m_soilMass;
+    FLTPT** m_soilMass;
 
     /// subbasin related
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
-    float* m_subbsnID;
+    int* m_subbsnID;
     /// subbasins information
     clsSubbasins* m_subbasinsInfo;
 
     ///output data
     //amount of organic nitrogen in surface runoff
-    float* m_surfRfSedOrgN;
+    FLTPT* m_surfRfSedOrgN;
     //amount of organic phosphorus in surface runoff
-    float* m_surfRfSedOrgP;
+    FLTPT* m_surfRfSedOrgP;
     //amount of active mineral phosphorus sorbed to sediment in surface runoff
-    float* m_surfRfSedAbsorbMinP;
+    FLTPT* m_surfRfSedAbsorbMinP;
     //amount of stable mineral phosphorus sorbed to sediment in surface runoff
-    float* m_surfRfSedSorbMinP;
+    FLTPT* m_surfRfSedSorbMinP;
 
     /// output to channel
 
-    float* m_surfRfSedOrgNToCh;       // amount of organic N in surface runoff to channel, kg
-    float* m_surfRfSedOrgPToCh;       // amount of organic P in surface runoff to channel, kg
-    float* m_surfRfSedAbsorbMinPToCh; // amount of active mineral P in surface runoff to channel, kg
-    float* m_surfRfSedSorbMinPToCh;   // amount of stable mineral P in surface runoff to channel, kg
+    FLTPT* m_surfRfSedOrgNToCh;       // amount of organic N in surface runoff to channel, kg
+    FLTPT* m_surfRfSedOrgPToCh;       // amount of organic P in surface runoff to channel, kg
+    FLTPT* m_surfRfSedAbsorbMinPToCh; // amount of active mineral P in surface runoff to channel, kg
+    FLTPT* m_surfRfSedSorbMinPToCh;   // amount of stable mineral P in surface runoff to channel, kg
 
     ///input & output
     //amount of nitrogen stored in the active organic (humic) nitrogen pool, kg N/ha
-    float** m_soilActvOrgN;
+    FLTPT** m_soilActvOrgN;
     //amount of nitrogen stored in the fresh organic (residue) pool, kg N/ha
-    float** m_soilFrshOrgN;
+    FLTPT** m_soilFrshOrgN;
     //amount of nitrogen stored in the stable organic N pool, kg N/ha
-    float** m_soilStabOrgN;
+    FLTPT** m_soilStabOrgN;
     //amount of phosphorus stored in the organic P pool, kg P/ha
-    float** m_soilHumOrgP;
+    FLTPT** m_soilHumOrgP;
     //amount of phosphorus stored in the fresh organic (residue) pool, kg P/ha
-    float** m_soilFrshOrgP;
+    FLTPT** m_soilFrshOrgP;
     //amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool, kg P/ha
-    float** m_soilStabMinP;
+    FLTPT** m_soilStabMinP;
     //amount of phosphorus stored in the active mineral phosphorus pool, kg P/ha
-    float** m_soilActvMinP;
+    FLTPT** m_soilActvMinP;
     /// for C-FARM one carbon model
-    float** m_soilManP;
+    FLTPT** m_soilManP;
     /// for CENTURY C/Y cycling model
     /// inputs from other modules
-    float** m_sol_LSN;
-    float** m_sol_LMN;
-    float** m_sol_HPN;
-    float** m_sol_HSN;
-    float** m_sol_HPC;
-    float** m_sol_HSC;
-    float** m_sol_LMC;
-    float** m_sol_LSC;
-    float** m_sol_LS;
-    float** m_sol_LM;
-    float** m_sol_LSL;
-    float** m_sol_LSLC;
-    float** m_sol_LSLNC;
-    float** m_sol_BMC;
-    float** m_sol_WOC;
-    float** m_soilPerco;
-    float** m_subSurfRf;
+    FLTPT** m_sol_LSN;
+    FLTPT** m_sol_LMN;
+    FLTPT** m_sol_HPN;
+    FLTPT** m_sol_HSN;
+    FLTPT** m_sol_HPC;
+    FLTPT** m_sol_HSC;
+    FLTPT** m_sol_LMC;
+    FLTPT** m_sol_LSC;
+    FLTPT** m_sol_LS;
+    FLTPT** m_sol_LM;
+    FLTPT** m_sol_LSL;
+    FLTPT** m_sol_LSLC;
+    FLTPT** m_sol_LSLNC;
+    FLTPT** m_sol_BMC;
+    FLTPT** m_sol_WOC;
+    FLTPT** m_soilPerco;
+    FLTPT** m_subSurfRf;
     /// outputs
-    float** m_soilIfluCbn;     ///< lateral flow Carbon loss in each soil layer
-    float** m_soilPercoCbn;    ///< percolation Carbon loss in each soil layer
-    float* m_soilIfluCbnPrfl;  ///< lateral flow Carbon loss in soil profile
-    float* m_soilPercoCbnPrfl; ///< percolation Carbon loss in soil profile
-    float* m_sedLossCbn;       ///< amount of C lost with sediment pools
+    FLTPT** m_soilIfluCbn;     ///< lateral flow Carbon loss in each soil layer
+    FLTPT** m_soilPercoCbn;    ///< percolation Carbon loss in each soil layer
+    FLTPT* m_soilIfluCbnPrfl;  ///< lateral flow Carbon loss in soil profile
+    FLTPT* m_soilPercoCbnPrfl; ///< percolation Carbon loss in soil profile
+    FLTPT* m_sedLossCbn;       ///< amount of C lost with sediment pools
 };
 #endif /* SEIMS_MODULE_NUTRSED_H */

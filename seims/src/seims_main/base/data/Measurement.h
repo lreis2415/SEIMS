@@ -4,12 +4,15 @@
  *
  * Changelog:
  *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *   - 2. 2022-08-18 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
+ * \version 2.1
  */
 #ifndef SEIMS_MEASUREMENT_H
 #define SEIMS_MEASUREMENT_H
+
+#include <seims.h>
 
 #include "db_mongoc.h"
 
@@ -40,7 +43,7 @@ public:
     ~Measurement();
 
     //! Get site data by time
-    virtual float* GetSiteDataByTime(time_t t) = 0;
+    virtual FLTPT* GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
     int NumberOfSites() const { return CVT_INT(m_siteIDList.size()); }
@@ -68,6 +71,6 @@ protected:
     //! End time
     time_t m_endTime;
     //!	Measurement data of all sites in given date
-    float* pData;
+    FLTPT* pData;
 };
 #endif /* SEIMS_MEASUREMENT_H */

@@ -7,7 +7,6 @@
 #include "DataCenterMongoDB.h"
 #include "invoke.h"
 #include "ModelMain.h"
-#include "CombineRaster.h"
 #include "text.h"
 #include "Logging.h"
 
@@ -24,9 +23,12 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                       mongoc_client_pool_t* mongo_pool /* = nullptr */) {
     LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
-    /// Get module path, i.e., the path of executable and dynamic libraries
+    /// Get module path, i.e., the path of dynamic libraries
+#ifndef WINDOWS
+    string module_path = GetAppPath() + "../lib";
+#else
     string module_path = GetAppPath();
-
+#endif
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
     mongoc_client_t* mclient = nullptr;
@@ -37,7 +39,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         mongo_client = new MongoClient(input_args->host.c_str(), input_args->port);
     } else {
         // The total number of clients that can be created from this pool is limited
-        //   by the URI option ¡°maxPoolSize¡±, default 100.
+        //   by the URI option ï¿½ï¿½maxPoolSizeï¿½ï¿½, default 100.
         mclient = mongoc_client_pool_pop(mongo_pool);
         if (!mclient) {
             throw ModelException("MongoDBClient", "Constructor",
@@ -387,41 +389,85 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     ///   therefore, the time-consuming is not included.
     if (rank == MASTER_RANK) {
         CLOG(TRACE, LOG_OUTPUT) << "Combining raster data to GeoTIFF file(s)...";
-        //MongoGridFs* gfs = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
-        SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
-        for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
-            for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
-                PrintInfoItem* item = *item_it;
-                if (item->m_nLayers < 1) continue;
-                // Only need to handle raster data
-                CLOG(TRACE, LOG_OUTPUT) << "Combining raster: " << item->Corename << "...";
-                if (!CombineRasterResultsMongo(spatial_gfs_out, item->Corename,
-                                               data_center_map.begin()->second->GetSubbasinsCount(),
-                                               data_center_map.begin()->second->GetOutputScenePath(),
-                                               input_args->scenario_id, input_args->calibration_id)) {
-                    CLOG(WARNING, LOG_OUTPUT) << "Combining raster: " << item->Corename << " FAILED!";
-                } else {
-                    CLOG(TRACE, LOG_OUTPUT) << "Combining raster: " << item->Corename << " SUCCEED!";
+        map<string, string> mask_opts;
+        UpdateStringMap(mask_opts, HEADER_INC_NODATA, "TRUE");
+        map<string, string> valid_opts;
+        UpdateStringMap(mask_opts, HEADER_INC_NODATA, "FALSE");
+        CLOG(TRACE, LOG_OUTPUT) << "\tLoad 0_SUBBASIN with NoData value as mask layer...";
+        FloatRaster* subbsn_lyr = FloatRaster::Init(spatial_gfs_in, "0_SUBBASIN",
+                                                    true, nullptr, true,
+                                                    NODATA_VALUE, mask_opts);
+        if (nullptr == subbsn_lyr) {
+            CLOG(TRACE, LOG_OUTPUT) << "\t\tFAILED!";
+        }
+        else {
+            subbsn_lyr->BuildSubSet();
+            map<int, SubsetPositions*>& subset = subbsn_lyr->GetSubset();
+
+            SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
+            for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
+                for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
+                    PrintInfoItem* item = *item_it;
+                    if (item->m_nLayers < 1) { continue; }
+                    // Only need to handle raster data
+                    // Previous implementation in `seims/src/combine_raster/CombineRaster.cpp`
+                    // Change to new API of CCGL by LJ, 2022-07-06
+                    // bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+                    //                                const int n_subbasins, const string& folder /* = "" */,
+                    //                                int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+
+                    // Concatenate real filename
+                    string real_name = item->Corename + "_";
+                    string sce_str = itoa(input_args->scenario_id);
+                    string cali_str = itoa(input_args->calibration_id);
+                    if (input_args->scenario_id >= 0) { real_name += sce_str; }
+                    real_name += "_";
+                    if (input_args->calibration_id >= 0) { real_name += cali_str; }
+                    CLOG(TRACE, LOG_OUTPUT) << "\tCombining raster: " << item->Corename << " -> " << real_name << "...";
+                    bool read_data_flag = true;
+                    map<string, string> opts;
+                    UpdateStringMap(opts, "SCENARIO_ID", sce_str);
+                    UpdateStringMap(opts, "CALIBRATION_ID", cali_str);
+                    for (auto it_sub = subset.begin(); it_sub != subset.end(); ++it_sub) {
+                        string cfname = itoa(it_sub->first) + "_" + real_name;
+                        it_sub->second->usable = it_sub->second->ReadFromMongoDB(spatial_gfs_out, cfname);
+                    }
+
+                    string out_fname = "0_" + real_name;
+                    spatial_gfs_out->RemoveFile(out_fname, nullptr, valid_opts);
+                    bool save = subbsn_lyr->OutputToMongoDB(spatial_gfs_out, out_fname,
+                                                            valid_opts, false, false);
+                    if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To MongoDB!"; }
+                    string outpath = data_center_map.begin()->second->GetOutputScenePath();
+                    if (!outpath.empty()) {
+                        // Output as gtiff file will not contain ScenarioID and CalibrationID information
+                        save = subbsn_lyr->OutputToFile(outpath + SEP + item->Corename + "." + GTiffExtension,
+                                                        false);
+                        if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To GTiff!"; }
+                    }
                 }
             }
         }
-        //delete gfs;
+
+        delete subbsn_lyr;
     }
     /*** End of Combine raster outputs. ***/
 
     MPI_Barrier(MCW);
 
     // clean up
-    for (auto it = model_map.begin(); it != model_map.end();) {
+    for (auto it = model_map.begin(); it != model_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        model_map.erase(it++);
     }
-    for (auto it = data_center_map.begin(); it != data_center_map.end();) {
+    model_map.clear();
+
+    for (auto it = data_center_map.begin(); it != data_center_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        data_center_map.erase(it++);
     }
+    data_center_map.clear();
+
     delete module_factory;
     if (spatial_gfs_in) {
         delete spatial_gfs_in;
@@ -438,5 +484,5 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         delete mongo_client;
     }
     delete task_info;
-    if (buf != nullptr) Release1DArray(buf);
+    if (buf != nullptr) { Release1DArray(buf); }
 }

@@ -19,7 +19,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import DateClass, StringClass
-from pymongo import ASCENDING
+from pymongo import ASCENDING, InsertOne
 
 from utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 from preprocess.db_mongodb import MongoUtil
@@ -91,12 +91,12 @@ class ImportMeteoData(object):
                        DataType.rm, DataType.pet, DataType.ws, DataType.sr]
         # remove existed records
         for fld in output_flds:
-            climdb[DBTableNames.data_values].remove({'TYPE': fld})
+            climdb[DBTableNames.data_values].delete_many({'TYPE': fld})
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
                 raise ValueError('Meteorological Daily data MUST contain %s!' % fld)
-        # Create bulk object
-        bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
+
+        bulk_requests = list()
         count = 0
         for i, cur_clim_data_item in enumerate(clim_data_items):
             if i == 0:
@@ -154,24 +154,26 @@ class ImportMeteoData(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.type] = fld
-                    # Old code, insert or update one item a time, which is quite inefficiency
-                    # Update by using bulk operation interface. lj
-                    # # find old records and remove (deprecated because of low efficiency, lj.)
-                    # curfilter = {DataValueFields.type: fld,
-                    #              DataValueFields.utc: dic[DataValueFields.utc]}
-                    # bulk.find(curfilter).upsert().replace_one(cur_dic)
-                    bulk.insert(cur_dic)
+
+                    bulk_requests.append(InsertOne(cur_dic))
                     count += 1
-                    if count % 500 == 0:  # execute each 500 records
-                        MongoUtil.run_bulk(bulk)
-                        bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
+                    # if count % 500 == 0:  # execute each 500 records
+                    #     results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
+                    #                                        bulk_requests)
+                    #     print('Inserted %d initial parameters!' % (results.inserted_count
+                    #                                                if results is not None else 0))
+                    #     bulk_requests.clear()
 
             if dic[DataValueFields.id] not in list(hydro_climate_stats.keys()):
                 hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
             hydro_climate_stats[dic[DataValueFields.id]].add_item(dic)
         # execute the remained records
-        if count % 500 != 0:
-            MongoUtil.run_bulk(bulk)
+        # if count % 500 != 0:
+        results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
+                                           bulk_requests)
+        print('Inserted %d data items!' % (results.inserted_count
+                                           if results is not None else 0))
+
         for item, cur_climate_stats in list(hydro_climate_stats.items()):
             cur_climate_stats.annual_stats()
         # Create index
@@ -203,48 +205,46 @@ class ImportMeteoData(object):
                 climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
                                                                        upsert=True)
             # import multi-annual mean PHU
-            cur_dic[DataValueFields.value] = stats_v.PHU0
-            cur_dic[DataValueFields.id] = s_id
-            cur_dic[DataValueFields.y] = DEFAULT_NODATA
-            cur_dic[VariableDesc.unit] = 'heat units'
-            cur_dic[VariableDesc.type] = DataType.phu0
+            mul_dic = dict()
+            mul_dic[DataValueFields.value] = stats_v.PHU0
+            mul_dic[DataValueFields.id] = s_id
+            mul_dic[DataValueFields.y] = DEFAULT_NODATA
+            mul_dic[VariableDesc.unit] = 'heat units'
+            mul_dic[VariableDesc.type] = DataType.phu0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.phu0,
                          DataValueFields.y: DEFAULT_NODATA}
-            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, mul_dic,
                                                                    upsert=True)
             # import multi-annual mean temperature
-            cur_dic[VariableDesc.type] = DataType.mean_tmp0
-            cur_dic[VariableDesc.unit] = 'deg C'
-            cur_dic[DataValueFields.value] = stats_v.MeanTmp0
+            mul_dic[VariableDesc.type] = DataType.mean_tmp0
+            mul_dic[VariableDesc.unit] = 'deg C'
+            mul_dic[DataValueFields.value] = stats_v.MeanTmp0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.mean_tmp0,
                          DataValueFields.y: DEFAULT_NODATA}
-            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, mul_dic,
                                                                    upsert=True)
 
     @staticmethod
-    def workflow(cfg, clim_db):
+    def workflow(cfg):
         """Workflow"""
         print('Import Daily Meteorological Data... ')
-        site_m_loc = HydroClimateUtilClass.query_climate_sites(clim_db, 'M')
-        ImportMeteoData.daily_data_from_txt(clim_db, cfg.Meteo_data, site_m_loc)
+        site_m_loc = HydroClimateUtilClass.query_climate_sites(cfg.climatedb, 'M')
+        ImportMeteoData.daily_data_from_txt(cfg.climatedb, cfg.Meteo_data, site_m_loc)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    db = conn[seims_cfg.climate_db]
+
     import time
     st = time.time()
-    ImportMeteoData.workflow(seims_cfg, db)
+    ImportMeteoData.workflow(seims_cfg)
     et = time.time()
     print(et - st)
-    client.close()
 
 
 if __name__ == "__main__":

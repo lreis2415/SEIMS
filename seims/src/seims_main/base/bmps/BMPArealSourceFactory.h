@@ -33,7 +33,7 @@ public:
     ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t& iter);
 
     /// load valid cells index
-    void SetValidCells(int n, float* mgtFieldIDs);
+    void SetValidCells(int n, int* mgtFieldIDs);
 
     /// Output
     void Dump(std::ostream* fs);
@@ -51,7 +51,7 @@ public:
     int GetValidCells() { return m_nCells; }
 
     /// size
-    float GetSize() { return m_size; }
+    FLTPT GetSize() { return m_size; }
 
 private:
     /// ID of point source
@@ -63,7 +63,7 @@ private:
     /// index of valid cells
     vector<int> m_cellsIndex;
     /// size, used to calculate amount of pollutants
-    float m_size;
+    FLTPT m_size;
 };
 
 /*!
@@ -99,34 +99,34 @@ public:
     string GetSubScenarioName() { return m_name; }
 
     /// Get water volume
-    float GetWaterVolume() { return m_waterVolume; }
+    FLTPT GetWaterVolume() { return m_waterVolume; }
 
     /// Get sediment concentration
-    float GetSedment() { return m_sedimentConc; }
+    FLTPT GetSedment() { return m_sedimentConc; }
 
     /// Get sediment concentration
-    float GetTN() { return m_TNConc; }
+    FLTPT GetTN() { return m_TNConc; }
 
     /// Get NO3 concentration
-    float GetNO3() { return m_NO3Conc; }
+    FLTPT GetNO3() { return m_NO3Conc; }
 
     /// Get NH4 concentration
-    float GetNH4() { return m_NH4Conc; }
+    FLTPT GetNH4() { return m_NH4Conc; }
 
     /// Get OrgN concentration
-    float GetOrgN() { return m_OrgNConc; }
+    FLTPT GetOrgN() { return m_OrgNConc; }
 
     /// Get TP concentration
-    float GetTP() { return m_TPConc; }
+    FLTPT GetTP() { return m_TPConc; }
 
     /// Get MinP concentration
-    float GetMinP() { return m_SolPConc; }
+    FLTPT GetMinP() { return m_SolPConc; }
 
     /// Get OrgP concentration
-    float GetOrgP() { return m_OrgPConc; }
+    FLTPT GetOrgP() { return m_OrgPConc; }
 
     /// Get COD concentration
-    float GetCOD() { return m_COD; }
+    FLTPT GetCOD() { return m_COD; }
 
 private:
     /// subSecenario name
@@ -138,25 +138,25 @@ private:
     /// End date
     time_t m_endDate;
     ///  Q	Water volume	m3/'size'/day ('Size' may be one chicken or so, depends on ARSRC code)
-    float m_waterVolume;
+    FLTPT m_waterVolume;
     /// Sed	Sediment concentration	kg/'size'/day
-    float m_sedimentConc;
+    FLTPT m_sedimentConc;
     ///	TN	Total Nitrogen concentration	kg/'size'/day
-    float m_TNConc;
+    FLTPT m_TNConc;
     ///	NO3	Nitrate Nitrogen concentration	kg/'size'/day
-    float m_NO3Conc;
+    FLTPT m_NO3Conc;
     /// NH4	Ammonium Nitrogen concentration	kg/'size'/day
-    float m_NH4Conc;
+    FLTPT m_NH4Conc;
     ///	ORGN	Organic Nitrogen concentration	kg/'size'/day
-    float m_OrgNConc;
+    FLTPT m_OrgNConc;
     ///	TP	Total phosphorus concentration	kg/'size'/day
-    float m_TPConc;
+    FLTPT m_TPConc;
     ///	MINP	Mineral phosphorus concentration	kg/'size'/day
-    float m_SolPConc;
+    FLTPT m_SolPConc;
     ///	ORGP	Organic phosphorus concentration	kg/'size'/day
-    float m_OrgPConc;
+    FLTPT m_OrgPConc;
     /// cod
-    float m_COD;
+    FLTPT m_COD;
 };
 
 /*!
@@ -196,10 +196,10 @@ public:
     void ReadArealSourceLocations(MongoClient* conn, const string& bmpDBName);
 
     /// Set raster data if needed
-    void setRasterData(map<string, FloatRaster*>& sceneRsMap) OVERRIDE;
+    void setRasterData(map<string, IntRaster*>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
+    int* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 
@@ -211,7 +211,7 @@ public:
 
     bool GetLocationLoadStatus() { return m_loadedMgtFieldIDs; }
 
-    void SetArealSrcLocsMap(int n, float* mgtField);
+    void SetArealSrcLocsMap(int n, int* mgtField);
 
     map<int, ArealSourceLocations*>& GetArealSrcLocsMap() { return m_arealSrcLocsMap; }
 
@@ -230,7 +230,7 @@ private:
     /// core file name of areal source locations, such as MGT_FIELDS
     string m_arealSrcDistName;
     /// distribution data of areal source locations
-    float* m_mgtFieldsRs;
+    int* m_mgtFieldsRs;
     /// areal source distribution table
     string m_arealSrcDistTab;
     /// Field IDs of areal source of current subScenario

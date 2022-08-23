@@ -34,13 +34,13 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         // calculate current partition's first cell's position
         src->localToGlobal(0, 0, xstart, ystart);
         // get the current partition's pointer
-        srcf.read(xstart, ystart, ny, nx, src->getGridPointer()); 
+        srcf.read(xstart, ystart, ny, nx, src->getGridPointer());
 
         double readt = MPI_Wtime(); // record reading time
 
         // create empty partitions to store two types of results
         tdpartition* dest; // 1. compound flow direction according to ArcGIS directions
-        dest = CreateNewPartition(SHORT_TYPE, totalX, totalY, dx, dy, 
+        dest = CreateNewPartition(SHORT_TYPE, totalX, totalY, dx, dy,
                                   static_cast<short>(DEFAULTNODATA_INT));
         // 2. flow fractions in 8-directions from east anticlockwise
         linearpart<float> *flowfractions = new linearpart<float>[8];
@@ -154,12 +154,11 @@ int flowdirection_mfd_md(char* dem, char* fdir, char* fportion,
         // write flow fractions data into separated raster files
         for (lyr = 1; lyr <= 8; lyr++) {
             char ffracfile[MAXLN];
-            std::ostringstream oss;
-            oss << "_" << lyr;
-            std::string intstr = oss.str();
+            std::string intstr = std::to_string((long long)lyr);
+            intstr.insert(0, "_");
             nameadd(ffracfile, fportion, intstr.c_str());
             tiffIO ffractTIFF(ffracfile, FLOAT_TYPE, static_cast<double>(DEFAULTNODATA), srcf);
-            ffractTIFF.write(xstart, ystart, ny, nx, 
+            ffractTIFF.write(xstart, ystart, ny, nx,
                              flowfractions[lyr - 1].getGridPointer());
         }
         double writet = MPI_Wtime(); // record writing time

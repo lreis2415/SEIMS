@@ -9,6 +9,7 @@
  *        -# The PET calculate is changed from site-based to cell-based, because PET is not only dependent on Climate site data
  *        -# Add m_VPD, m_dayLen as outputs, which will be used in PG_EPIC module
  *        -# Add m_phuBase as outputs, which will be used in MGT_SWAT module
+ *   - 3. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -36,9 +37,9 @@ public:
 
     ~PETPriestleyTaylor();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* value) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* value) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -46,41 +47,41 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     /// mean air temperature for a given day(degree)
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     /// maximum air temperature for a given day(degree)
-    float* m_maxTemp;
+    FLTPT* m_maxTemp;
     /// minimum air temperature for a given day(degree)
-    float* m_minTemp;
+    FLTPT* m_minTemp;
     /// solar radiation(MJ/m2/d)
-    float* m_sr;
+    FLTPT* m_sr;
     /// relative humidity(%)
-    float* m_rhd;
+    FLTPT* m_rhd;
     /// elevation(m)
-    float* m_dem;
+    FLTPT* m_dem;
     /// valid cells number
     int m_nCells;
     /// Correction Factor for PET
-    float m_petFactor;
+    FLTPT m_petFactor;
     ///latitude of the stations
-    float* m_cellLat;
+    FLTPT* m_cellLat;
     /// annual PHU
-    float* m_phuAnn;
+    FLTPT* m_phuAnn;
     ///The temperature of snow melt
-    float m_snowTemp;
+    FLTPT m_snowTemp;
 
     /// output
 
     /// day length (hr)
-    float* m_dayLen;
+    FLTPT* m_dayLen;
     /// base zero total heat units (used when no land cover is growing)
-    float* m_phuBase;
+    FLTPT* m_phuBase;
     /// pet
-    float* m_pet;
+    FLTPT* m_pet;
     /// vapor pressure deficit
-    float* m_vpd;
+    FLTPT* m_vpd;
 };
 #endif /* SEIMS_MODULE_PET_PT_H */

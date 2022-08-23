@@ -394,12 +394,11 @@ class ImportReaches2Mongo(object):
         del ds_reach
 
     @staticmethod
-    def generate_reach_table(cfg, maindb):
+    def generate_reach_table(cfg):
         """Generate reaches table and import to MongoDB
 
         Args:
             cfg: configuration object
-            maindb: database object of MongoDB
         """
         reach_dict = ImportReaches2Mongo.read_reach_downstream_info(cfg.vecs.reach)
         ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn, reach_dict)
@@ -428,7 +427,7 @@ class ImportReaches2Mongo(object):
         ImportReaches2Mongo.add_group_field(cfg.vecs.subbsn, ImportReaches2Mongo._SUBBASIN,
                                             group_metis)
         # import to MongoDB
-        ImportReaches2Mongo.import_reach_info(maindb, reach_dict, updown_order,
+        ImportReaches2Mongo.import_reach_info(cfg.maindb, reach_dict, updown_order,
                                               downup_order, group_metis)
 
     @staticmethod
@@ -547,15 +546,10 @@ def adjust_group_result(weight_dic, group_list, n_groups):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    maindb = conn[seims_cfg.spatial_db]
 
-    ImportReaches2Mongo.generate_reach_table(seims_cfg, maindb)
-
-    client.close()
+    ImportReaches2Mongo.generate_reach_table(seims_cfg)
 
 
 if __name__ == "__main__":

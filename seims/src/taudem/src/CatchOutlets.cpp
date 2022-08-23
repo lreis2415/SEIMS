@@ -107,7 +107,9 @@ void CheckPoint(int thelink, double downout, double mindist, double minarea)
 				OGR_G_SetPoint_2D(hGeometrypt, 0, allinks[istream].x, allinks[istream].y);
 				OGR_F_SetGeometry(hFeaturept, hGeometrypt);
 				OGR_G_DestroyGeometry(hGeometrypt);
-				OGR_L_CreateFeature(hLayerpt, hFeaturept);
+				if(OGR_L_CreateFeature(hLayerpt, hFeaturept) != OGRERR_NONE) {
+                    printf("CheckPoint: Create feature failed!");
+                }
 				OGR_F_Destroy(hFeaturept);
 
 				downout = allinks[istream].doutend;
@@ -337,7 +339,9 @@ int catchoutlets(char *pfile, char *streamnetsrc, char *outletsdatasrc, double m
 							OGR_G_SetPoint_2D(hGeometrypt, 0, geoX, geoY);
 							OGR_F_SetGeometry(hFeaturept, hGeometrypt);
 							OGR_G_DestroyGeometry(hGeometrypt);
-							OGR_L_CreateFeature(hLayerpt, hFeaturept);
+							if(OGR_L_CreateFeature(hLayerpt, hFeaturept) != OGRERR_NONE) {
+                                printf("catchoutlets: Create feature failed!");
+                            }
 							OGR_F_Destroy(hFeaturept);
 							double downout = 0.0;
 							// Recursive calls to traverse up

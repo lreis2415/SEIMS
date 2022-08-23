@@ -17,20 +17,20 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetDescription(M_PLTMGT_SWAT[1]);
     mdi.SetID(M_PLTMGT_SWAT[0]);
     mdi.SetName(M_PLTMGT_SWAT[0]);
-    mdi.SetVersion("1.3");
+    mdi.SetVersion("1.4");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
-    mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_CSWAT[0], UNIT_NON_DIM, VAR_CSWAT[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(VAR_CSWAT[0], UNIT_NON_DIM, VAR_CSWAT[1], Source_ParameterDB, DT_SingleInt);
     //mdi.AddParameter(VAR_BACT_SWF[0], UNIT_NON_DIM, VAR_BACT_SWF[1], Source_ParameterDB, DT_Single); ///TODO
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     /// basic parameters
     mdi.AddParameter(VAR_SUBBASIN_PARAM[0], UNIT_NON_DIM, VAR_SUBBASIN_PARAM[1], Source_ParameterDB, DT_Subbasin);
-    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1DInt);
     /// soil
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOL_ZMX[0], UNIT_DEPTH_MM, VAR_SOL_ZMX[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_SUMAWC[0], UNIT_DEPTH_MM, VAR_SOL_SUMAWC[1], Source_ParameterDB, DT_Raster1D); /// m_soilSumFC
     mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
@@ -45,9 +45,9 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SAND[0], UNIT_PERCENT, VAR_SAND[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_ROCK[0], UNIT_PERCENT, VAR_ROCK[1], Source_ParameterDB, DT_Raster2D);
     /// landuse/landcover
-    mdi.AddParameter(VAR_IDC[0], UNIT_NON_DIM, VAR_IDC[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_IDC[0], UNIT_NON_DIM, VAR_IDC[1], Source_ParameterDB, DT_Raster1DInt);
+    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1DInt);
+    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_CN2[0], UNIT_NON_DIM, VAR_CN2[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_HVSTI[0], UNIT_CONT_RATIO, VAR_HVSTI[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_WSYF[0], UNIT_CONT_RATIO, VAR_WSYF[1], Source_ParameterDB, DT_Raster1D);
@@ -80,13 +80,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     /// landuse/landcover
     mdi.AddInput(VAR_PHUBASE[0], UNIT_HEAT_UNIT, VAR_PHUBASE[1], Source_Module, DT_Raster1D);       /// PET modules
-    mdi.AddInput(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_Module, DT_Raster1D);               /// PG_EPIC module
+    mdi.AddInput(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_Module, DT_Raster1DInt);            /// PG_EPIC module
     mdi.AddInput(VAR_FR_PHU_ACC[0], UNIT_HEAT_UNIT, VAR_FR_PHU_ACC[1], Source_Module, DT_Raster1D); /// PG_EPIC module
     mdi.AddParameter(VAR_TREEYRS[0], UNIT_YEAR, VAR_TREEYRS[1], Source_ParameterDB, DT_Raster1D);
     /// m_curYearMat, from ParameterDB
     mdi.AddInput(VAR_HVSTI_ADJ[0], UNIT_CONT_RATIO, VAR_HVSTI_ADJ[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY[0], UNIT_AREA_RATIO, VAR_LAIDAY[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], Source_Module, DT_Raster1DInt);
     mdi.AddInput(VAR_LAIMAXFR[0], UNIT_NON_DIM, VAR_LAIMAXFR[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_OLAI[0], UNIT_AREA_RATIO, VAR_OLAI[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_PLANT_N[0], UNIT_CONT_KGHA, VAR_PLANT_N[1], Source_Module, DT_Raster1D);
@@ -145,20 +145,20 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_BIOTARG[0], UNIT_CONT_KGHA, VAR_BIOTARG[1], DT_Raster1D);
     mdi.AddOutput(VAR_HVSTI_TARG[0], UNIT_NON_DIM, VAR_HVSTI_TARG[1], DT_Raster1D);
     ///// outputs of irrigation / autoIrrigation operation
-    mdi.AddOutput(VAR_IRR_FLAG[0], UNIT_NON_DIM, VAR_IRR_FLAG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_IRR_FLAG[0], UNIT_NON_DIM, VAR_IRR_FLAG[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_IRR_WTR[0], UNIT_DEPTH_MM, VAR_IRR_WTR[1], DT_Raster1D);
     mdi.AddOutput(VAR_IRR_SURFQ[0], UNIT_DEPTH_MM, VAR_IRR_SURFQ[1], DT_Raster1D);
     /// defined in auto irrigation operation
-    mdi.AddOutput(VAR_AWTR_STRS_ID[0], UNIT_NON_DIM, VAR_AWTR_STRS_ID[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AWTR_STRS_ID[0], UNIT_NON_DIM, VAR_AWTR_STRS_ID[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_AWTR_STRS_TRIG[0], UNIT_NON_DIM, VAR_AWTR_STRS_TRIG[1], DT_Raster1D);
-    mdi.AddOutput(VAR_AIRR_SOURCE[0], UNIT_NON_DIM, VAR_AIRR_SOURCE[1], DT_Raster1D);
-    mdi.AddOutput(VAR_AIRR_LOCATION[0], UNIT_NON_DIM, VAR_AIRR_LOCATION[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AIRR_SOURCE[0], UNIT_NON_DIM, VAR_AIRR_SOURCE[1], DT_Raster1DInt);
+    mdi.AddOutput(VAR_AIRR_LOCATION[0], UNIT_NON_DIM, VAR_AIRR_LOCATION[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_AIRR_EFF[0], UNIT_NON_DIM, VAR_AIRR_EFF[1], DT_Raster1D);
     mdi.AddOutput(VAR_AIRRWTR_DEPTH[0], UNIT_DEPTH_MM, VAR_AIRRWTR_DEPTH[1], DT_Raster1D);
     mdi.AddOutput(VAR_AIRRSURF_RATIO[0], UNIT_NON_DIM, VAR_AIRRSURF_RATIO[1], DT_Raster1D);
     /// outputs of fertilizer / auto fertilizer operations
-    mdi.AddOutput(VAR_AFERT_ID[0], UNIT_NON_DIM, VAR_AFERT_ID[1], DT_Raster1D);
-    mdi.AddOutput(VAR_AFERT_NSTRSID[0], UNIT_NON_DIM, VAR_AFERT_NSTRSID[1], DT_Raster1D);
+    mdi.AddOutput(VAR_AFERT_ID[0], UNIT_NON_DIM, VAR_AFERT_ID[1], DT_Raster1DInt);
+    mdi.AddOutput(VAR_AFERT_NSTRSID[0], UNIT_NON_DIM, VAR_AFERT_NSTRSID[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_AFERT_NSTRS[0], UNIT_NON_DIM, VAR_AFERT_NSTRS[1], DT_Raster1D);
     mdi.AddOutput(VAR_AFERT_MAXN[0], UNIT_CONT_KGHA, VAR_AFERT_MAXN[1], DT_Raster1D);
     mdi.AddOutput(VAR_AFERT_AMAXN[0], UNIT_CONT_KGHA, VAR_AFERT_AMAXN[1], DT_Raster1D);
@@ -171,15 +171,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_SOL_MP[0], UNIT_CONT_KGHA, VAR_SOL_MP[1], DT_Raster2D);
     //// outputs of grazing operation
     mdi.AddOutput(VAR_GRZ_DAYS[0], UNIT_NON_DIM, VAR_GRZ_DAYS[1], DT_Raster1D);
-    mdi.AddOutput(VAR_GRZ_FLAG[0], UNIT_NON_DIM, VAR_GRZ_FLAG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_GRZ_FLAG[0], UNIT_NON_DIM, VAR_GRZ_FLAG[1], DT_Raster1DInt);
     //// output of impound/release operation
-    mdi.AddOutput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], DT_Raster1D);
+    mdi.AddOutput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_POT_VOLMAXMM[0], UNIT_DEPTH_MM, VAR_POT_VOLMAXMM[1], DT_Raster1D);
     mdi.AddOutput(VAR_POT_VOLLOWMM[0], UNIT_DEPTH_MM, VAR_POT_VOLLOWMM[1], DT_Raster1D);
     /// outputs of tillage operation during CENTURY model
     mdi.AddOutput(VAR_TILLAGE_DAYS[0], UNIT_DAY, VAR_TILLAGE_DAYS[1], DT_Raster1D);
     mdi.AddOutput(VAR_TILLAGE_DEPTH[0], UNIT_DAY, VAR_TILLAGE_DEPTH[1], DT_Raster1D);
-    mdi.AddOutput(VAR_TILLAGE_SWITCH[0], UNIT_DAY, VAR_TILLAGE_SWITCH[1], DT_Raster1D);
+    mdi.AddOutput(VAR_TILLAGE_SWITCH[0], UNIT_DAY, VAR_TILLAGE_SWITCH[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_TILLAGE_FACTOR[0], UNIT_DAY, VAR_TILLAGE_FACTOR[1], DT_Raster1D);
 
     /// write out the XML file.

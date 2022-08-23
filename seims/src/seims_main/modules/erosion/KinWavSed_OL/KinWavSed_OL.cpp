@@ -270,13 +270,13 @@ void KinWavSed_OL::CalcuVelocityOverlandFlow() {
             S = sin(atan(m_Slope[i]));   //sine of the slope
             S = Max(0.001f, S);
             n = m_ManningN[i];  //manning n
-            //float Alpha = pow(n/sqrt(S) * pow(Perim, _23), beta);
+            //float Alpha = CalPow(n/CalSqrt(S) * CalPow(Perim, _23), beta);
             //if(Alpha > 0)
-            //	m_OverlandQ[i] = pow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
+            //	m_OverlandQ[i] = CalPow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
             //else
             //	m_OverlandQ[i] = 0;
 
-            m_V[i] = Power(R, _2div3) * sqrt(S) / n;
+            m_V[i] = CalPow(R, _2div3) * CalSqrt(S) / n;
         } else {
             m_V[i] = 0;
         }
@@ -306,7 +306,7 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
         m_Ctrans[id] = 0.f;
     } else {
         if (q < threadhold) {
-            m_Ctrans[id] = m_eco1 * K * S0 * sqrt(q);   // kg/(m*min) kg per unit width per minute
+            m_Ctrans[id] = m_eco1 * K * S0 * CalSqrt(q);   // kg/(m*min) kg per unit width per minute
         } else {
             m_Ctrans[id] = m_eco2 * K * S0 * Power(q, 2.0f);
         }
@@ -358,13 +358,13 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
 //				R = 0.0f;
 //			S = sin(atan(m_Slope[i]));   //sine of the slope
 //			n = m_ManningN[i];  //manning n
-//			float Alpha = pow(n/sqrt(S) * pow(Perim, _23), beta);
+//			float Alpha = CalPow(n/CalSqrt(S) * CalPow(Perim, _23), beta);
 //			if(Alpha > 0)
-//				m_OverlandQ[i] = pow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
+//				m_OverlandQ[i] = CalPow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
 //			else
 //				m_OverlandQ[i] = 0;
 //
-//			m_V[i] = pow(R, _23) * sqrt(S)/n;
+//			m_V[i] = CalPow(R, _23) * CalSqrt(S)/n;
 //		}
 //		else
 //			m_V[i] = 0;
@@ -513,10 +513,10 @@ void KinWavSed_OL::OverlandflowSedRouting(int id) {
     //float _23 = 2.0f/3;
     //float Perim = 2 * m_WH[id]/1000 + m_FlowWidth[id];
     //float S = sin(atan(m_Slope[id]));
-    //float Alpha = pow(m_ManningN[id]/sqrt(S) * pow(Perim, _23), beta);
+    //float Alpha = CalPow(m_ManningN[id]/CalSqrt(S) * CalPow(Perim, _23), beta);
     //float Q, Qs;
     //if(Alpha > 0)
-    //	Q = pow(m_FlowWidth[id]*m_WH[id] / Alpha, beta1);
+    //	Q = CalPow(m_FlowWidth[id]*m_WH[id] / Alpha, beta1);
     //else
     //	Q = 0;
     //Qs = Q * m_SedConc[id];

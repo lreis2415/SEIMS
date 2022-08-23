@@ -19,7 +19,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import StringClass
-from pymongo import ASCENDING
+from pymongo import ASCENDING, InsertOne
 
 from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
@@ -34,13 +34,13 @@ class ImportPrecipitation(object):
     def regular_data_from_txt(climdb, data_file):
         """Regular precipitation data from text file."""
         # delete existed precipitation data
-        climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.p})
+        climdb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
-        bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
-        count = 0
+
+        bulk_requests = list()
         for fld in clim_flds:
             if not StringClass.string_in_list(fld,
                                               [DataValueFields.dt, DataValueFields.y,
@@ -72,40 +72,35 @@ class ImportPrecipitation(object):
                 cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                 cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                 cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
-                bulk.insert(cur_dic)
-                count += 1
-                if count % 500 == 0:  # execute each 500 records
-                    MongoUtil.run_bulk(bulk)
-                    bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
-        if count % 500 != 0:
-            MongoUtil.run_bulk(bulk)
+                bulk_requests.append(InsertOne(cur_dic))
+
+        results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
+                                           bulk_requests)
+        print('Inserted %d initial parameters!' % (results.inserted_count
+                                                   if results is not None else 0))
         # Create index
         climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
                                                        (DataValueFields.type, ASCENDING),
                                                        (DataValueFields.utc, ASCENDING)])
 
     @staticmethod
-    def workflow(cfg, clim_db):
+    def workflow(cfg):
         """Workflow"""
         print('Import Daily Precipitation Data... ')
-        ImportPrecipitation.regular_data_from_txt(clim_db, cfg.prec_data)
+        ImportPrecipitation.regular_data_from_txt(cfg.climatedb, cfg.prec_data)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    hydroclim_db = conn[seims_cfg.climate_db]
+
     import time
     st = time.time()
-    ImportPrecipitation.workflow(seims_cfg, hydroclim_db)
+    ImportPrecipitation.workflow(seims_cfg)
     et = time.time()
     print(et - st)
-
-    client.close()
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PG_EPIC[0]);
     mdi.SetName(M_PG_EPIC[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// climate parameters
@@ -33,7 +33,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_NFIXMX[0], UNIT_NON_DIM, VAR_NFIXMX[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_TMEAN_ANN[0], UNIT_TEMP_DEG, VAR_TMEAN_ANN[1], Source_ParameterDB, DT_Raster1D);
     /// Soil parameters related raster data
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOL_ZMX[0], UNIT_DEPTH_MM, VAR_SOL_ZMX[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_ALB[0], UNIT_NON_DIM, VAR_SOL_ALB[1], Source_ParameterDB, DT_Raster1D); /// soil surface
     mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
@@ -43,7 +43,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SOL_SUMSAT[0], UNIT_DEPTH_MM, VAR_SOL_SUMSAT[1], Source_ParameterDB, DT_Raster1D);
 
     /// Crop or land cover related parameters
-    mdi.AddParameter(VAR_IDC[0], UNIT_NON_DIM, VAR_IDC[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_IDC[0], UNIT_NON_DIM, VAR_IDC[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_ALAIMIN[0], UNIT_AREA_RATIO, VAR_ALAIMIN[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_BIO_E[0], UNIT_RAD_USE_EFFI, VAR_BIO_E[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_BIOEHI[0], UNIT_RAD_USE_EFFI, VAR_BIOEHI[1], Source_ParameterDB, DT_Raster1D);
@@ -71,14 +71,14 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_WAVP[0], UNIT_RAD_USE_EFFI, VAR_WAVP[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_RSDIN[0], UNIT_CONT_KGHA, VAR_SOL_RSDIN[1], Source_ParameterDB, DT_Raster1D);
     /// Management related parameters, may saved as DT_Array2D with ICNUM as index. IF not provided, these should be initialized in intialOutputs()
-    mdi.AddParameter(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_EPCO[0], UNIT_NON_DIM, VAR_EPCO[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_TREEYRS[0], UNIT_YEAR, VAR_TREEYRS[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_LAIINIT[0], UNIT_CONT_RATIO, VAR_LAIINIT[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_BIOINIT[0], UNIT_CONT_KGHA, VAR_BIOINIT[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PHUPLT[0], UNIT_HEAT_UNIT, VAR_PHUPLT[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHT[0], UNIT_LEN_M, VAR_CHT[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], Source_ParameterDB, DT_Raster1DInt);
     /// nutrient
     mdi.AddParameter(VAR_SOL_NO3[0], UNIT_CONT_KGHA, VAR_SOL_NO3[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_SOLP[0], UNIT_CONT_KGHA, VAR_SOL_SOLP[1], Source_ParameterDB, DT_Raster2D);
@@ -107,11 +107,11 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_SOL_COV[0], UNIT_CONT_KGHA, VAR_SOL_COV[1], DT_Raster1D);
     mdi.AddOutput(VAR_SOL_RSD[0], UNIT_CONT_KGHA, VAR_SOL_RSD[1], DT_Raster2D);
     // set the output variables
-    mdi.AddOutput(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], DT_Raster1D);
+    mdi.AddOutput(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_HVSTI_ADJ[0], UNIT_CONT_RATIO, VAR_HVSTI_ADJ[1], DT_Raster1D);
     //mdi.AddOutput(VAR_CHT[0], UNIT_LEN_M, VAR_CHT[0], DT_Raster1D);
     mdi.AddOutput(VAR_ALBDAY[0], UNIT_NON_DIM, VAR_ALBDAY[1], DT_Raster1D);
-    mdi.AddOutput(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], DT_Raster1D);
+    mdi.AddOutput(VAR_DORMI[0], UNIT_NON_DIM, VAR_DORMI[1], DT_Raster1DInt);
 
     mdi.AddOutput(VAR_LAST_SOILRD[0], UNIT_DEPTH_MM, VAR_LAST_SOILRD[1], DT_Raster1D);
     mdi.AddOutput(VAR_LAIYRMAX[0], UNIT_AREA_RATIO, VAR_LAIYRMAX[1], DT_Raster1D);

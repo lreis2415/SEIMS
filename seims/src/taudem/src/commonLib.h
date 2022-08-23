@@ -61,13 +61,16 @@ email:  dtarb@usu.edu
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <stdio.h>
+#include <cstdio>
 #include <dlfcn.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
 #endif /* WINDOWS */
+#ifdef SUPPORT_OMP
+#include <omp.h>
+#endif /* SUPPORT_OMP */
 
 #define MCW MPI_COMM_WORLD
 #define MAX_STRING_LENGTH 255

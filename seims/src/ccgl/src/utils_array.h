@@ -2,11 +2,11 @@
  * \file utils_array.h
  * \brief Template functions to initialize and release arrays.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *   - 2. 2021-07-20 - lj - Initialize 2D array in a succesive memory.
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
  * \version 1.1
  */
 #ifndef CCGL_UTILS_ARRAY_H
@@ -53,10 +53,10 @@ bool Initialize1DArray(int row, T*& data, INI_T* init_data);
 /*!
  * \brief Initialize DT_Array2D data
  *
- * The 2D array are created in a succesive memory.
+ * The 2D array are created in a successive memory.
  * 1. Create a 1D array of row data pointers with the length of row
  * 2. Create a 1D array of data pool with the length of row * col
- * 3. Iterately point row pointers to appropriate positions in data pool
+ * 3. Iteratively point row pointers to appropriate positions in data pool
  *
  * Refers to https://stackoverflow.com/a/21944048/4837280
  *
@@ -82,6 +82,17 @@ template <typename T, typename INI_T>
 bool Initialize2DArray(int row, int col, T**& data, INI_T** init_data);
 
 /*!
+ * \brief Initialize irregular DT_Array2D data based on an existed 1D array
+ * \param[in] init_data Initial 1D array
+ * \param[out] rows Rows count
+ * \param[out] max_cols Maximum cols count
+ * \param[out] data Irregular 2D array
+ * \return True if succeed, else false and the error message will print as well.
+ */
+template <typename T1, typename T2>
+bool Initialize2DArray(T1* init_data, int& rows, int& max_cols, T2**& data);
+
+/*!
  * \brief Release DT_Array1D data
  * \param[in] data
  */
@@ -94,7 +105,7 @@ void Release1DArray(T*& data);
  * \param[in] data
  */
 template <typename T>
-void Release2DArray(int row, T**& data);
+void Release2DArray(T**& data);
 
 /*!
  * \brief Batch release of 1D array
@@ -321,10 +332,16 @@ bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
         cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
+    if (row <= 0) {
+        cout << "The data length MUST greater than 0!" << endl;
+        data = nullptr;
+        return false;
+    }
     data = new(nothrow)T[row];
     if (nullptr == data) {
         delete[] data;
         cout << "Bad memory allocated during 1D array initialization!" << endl;
+        data = nullptr;
         return false;
     }
     T init = static_cast<T>(init_value);
@@ -408,6 +425,38 @@ bool Initialize2DArray(const int row, const int col, T**& data,
     return true;
 }
 
+template <typename T1, typename T2>
+bool Initialize2DArray(T1* init_data, int& rows, int& max_cols, T2**& data) {
+    int idx = 0;
+    rows = CVT_INT(init_data[idx++]);
+    data = new(nothrow) T2* [rows];
+    if (nullptr == data) {
+        delete[] data;
+        cout << "Bad memory allocated during initialize rows of the 2D array!" << endl;
+        return false;
+    }
+    T2* pool = nullptr;
+    // Get actual data length of init_data, excluding the first element which is 'rows'
+    int* cols = new int[rows];
+    max_cols = -1;
+    for (int i = 0; i < rows; i++) {
+        cols[i] = CVT_INT(init_data[idx]);
+        idx += cols[i] + 1;
+        if (cols[i] > max_cols) { max_cols = cols[i]; }
+    }
+    int length = idx - 1;
+    // New a 1d array to store data
+    Initialize1DArray(length, pool, init_data + 1);
+    // Now point the row pointers to the appropriate positions in the data pool
+    int pos = 0;
+    for (int i = 0; i < rows; ++i) {
+        data[i] = pool + pos;
+        pos += cols[i] + 1;
+    }
+    delete[] cols;
+    return true;
+}
+
 template <typename T>
 void Release1DArray(T*& data) {
     if (nullptr != data) {
@@ -417,7 +466,7 @@ void Release1DArray(T*& data) {
 }
 
 template <typename T>
-void Release2DArray(const int row, T**& data) {
+void Release2DArray(T**& data) {
     if (nullptr == data) {
         return;
     }

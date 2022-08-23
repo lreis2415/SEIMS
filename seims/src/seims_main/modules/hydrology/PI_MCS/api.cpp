@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PI_MCS[0]);
     mdi.SetName(M_PI_MCS[0]);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -28,7 +28,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D); /// PET
 #else
     mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_SingleInt);
 #endif
 
     // set the parameters (non-time series)
@@ -36,7 +36,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_INTERC_MIN[0], UNIT_DEPTH_MM, VAR_INTERC_MIN[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PI_B[0], UNIT_NON_DIM, VAR_PI_B[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_INIT_IS[0], UNIT_NON_DIM, VAR_INIT_IS[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1DInt);
 
     // set the output variables
     mdi.AddOutput(VAR_INLO[0], UNIT_DEPTH_MM, VAR_INLO[1], DT_Raster1D);

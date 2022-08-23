@@ -15,18 +15,15 @@ foreach (prog gpmetis ndmetis mpmetis m2gmetis graphchk cmpfillin)
         SET_PROPERTY(TARGET ${prog} PROPERTY FOLDER "METIS_PACKAGE")
     ENDIF ()
     #  target_link_libraries(${prog} metis profiler)
-    ### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
-    IF(XCODE AND LLVM_FOUND)
+    ### For LLVM-Clang installed by brew, add link library of OpenMP explicitly.
+    IF(CV_CLANG AND LLVM_VERSION_MAJOR)
         TARGET_LINK_LIBRARIES(${prog} ${OpenMP_LIBRARY})
-        SET_TARGET_PROPERTIES(${prog} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
-        SET_TARGET_PROPERTIES(${prog} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
-        SET_TARGET_PROPERTIES(${prog} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
     ENDIF()
 endforeach (prog)
 
 if (METIS_INSTALL)
     install(TARGETS gpmetis ndmetis mpmetis m2gmetis graphchk cmpfillin
-            RUNTIME DESTINATION ${INSTALL_DIR})
+            RUNTIME DESTINATION "${INSTALL_DIR}/bin")
 endif ()
 
 # Try to find subversion revision.

@@ -18,6 +18,7 @@
  *		       initialization is realized by function initalOutputs.
  *        -# Delete input D_INFIL and add input D_EXCP.
  *   - 3. 2016-07-14 - lj - Code review and reformat.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Zhiqiang Yu, Liangjun Zhu
  */
@@ -45,11 +46,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
     /*!
@@ -69,29 +72,29 @@ private:
     /// valid cells number
     int m_nCells;
     /// impound/release
-    float* m_impoundTriger;
+    int* m_impoundTriger;
     /// pothole volume, mm
-    float* m_potVol;
+    FLTPT* m_potVol;
     /// initial depression storage coefficient
-    float m_depCo;
+    FLTPT m_depCo;
     /// depression storage capacity (mm)
-    float* m_depCap;
+    FLTPT* m_depCap;
 
     /// pet
-    float* m_pet;
+    FLTPT* m_pet;
     /// evaporation from the interception storage
-    float* m_ei;
+    FLTPT* m_ei;
 
     /// excess precipitation calculated in the infiltration module
-    float* m_pe;
+    FLTPT* m_pe;
 
     // state variables (output)
 
     /// depression storage
-    float* m_sd;
+    FLTPT* m_sd;
     /// evaporation from depression storage
-    float* m_ed;
+    FLTPT* m_ed;
     /// surface runoff
-    float* m_sr;
+    FLTPT* m_sr;
 };
 #endif /* SEIMS_MODULE_DEP_LINSLEY_H */

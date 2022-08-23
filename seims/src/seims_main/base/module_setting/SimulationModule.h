@@ -52,7 +52,7 @@ public:
     virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
-    virtual void SetDate(const time_t t, const int year_idx);
+    virtual void SetDate(time_t t, int year_idx);
 
     //! Set thread number for OpenMP
     virtual void SetTheadNumber(const int thread_num) {
@@ -60,47 +60,89 @@ public:
     }
 
     //! Set climate data type, P, M, PET etc.
-    virtual void SetClimateDataType(float value) {
+    virtual void SetClimateDataType(int data_type) {
     }
 
-    //! Set data, DT_Single
-    virtual void SetValue(const char* key, float value) {
+    //! Set data, DT_Single, integer
+    virtual void SetValue(const char* key, int value) {
         throw ModelException("SimulationModule", "SetValue",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Set single value to array1D by index, used in MPI version for passing values of subbasins
-    virtual void SetValueByIndex(const char* key, int index, float value) {
+    //! Set data, DT_Single, float point number (float or double)
+    virtual void SetValue(const char* key, FLTPT value) {
+        throw ModelException("SimulationModule", "SetValue",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Set single value to array1D by index, used in MPI version for passing values of subbasins, integer
+    virtual void SetValueByIndex(const char* key, int index, int value) {
         throw ModelException("SimulationModule", "SetValueByIndex",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Set 1D data, by default, DT_Raster1D
-    virtual void Set1DData(const char* key, int n, float* data) {
+    //! Set single value to array1D by index, used in MPI version for passing values of subbasins, float
+    virtual void SetValueByIndex(const char* key, int index, FLTPT value) {
+        throw ModelException("SimulationModule", "SetValueByIndex",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Set 1D data, by default, DT_Raster1D, integer
+    virtual void Set1DData(const char* key, int n, int* data) {
         throw ModelException("SimulationModule", "Set1DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Set 2D data, by default, DT_Raster2D
-    virtual void Set2DData(const char* key, int nrows, int ncols, float** data) {
+    //! Set 1D data, by default, DT_Raster1D, float
+    virtual void Set1DData(const char* key, int n, FLTPT* data) {
+        throw ModelException("SimulationModule", "Set1DData",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Set 2D data, by default, DT_Raster2D, integer
+    virtual void Set2DData(const char* key, int nrows, int ncols, int** data) {
         throw ModelException("SimulationModule", "Set2DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Get value, DT_Single
-    virtual void GetValue(const char* key, float* value) {
+    //! Set 2D data, by default, DT_Raster2D, float
+    virtual void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) {
+        throw ModelException("SimulationModule", "Set2DData",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Get value, DT_Single, integer
+    virtual void GetValue(const char* key, int* value) {
         throw ModelException("SimulationModule", "GetValue",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Get 1D data, by default, DT_Raster1D
-    virtual void Get1DData(const char* key, int* n, float** data) {
+    //! Get value, DT_Single, float
+    virtual void GetValue(const char* key, FLTPT* value) {
+        throw ModelException("SimulationModule", "GetValue",
+                             "Get function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Get 1D data, by default, DT_Raster1D, integer
+    virtual void Get1DData(const char* key, int* n, int** data) {
         throw ModelException("SimulationModule", "Get1DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
 
-    //! Get 2D data, by default, DT_Raster2D
-    virtual void Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
+    //! Get 1D data, by default, DT_Raster1D, float
+    virtual void Get1DData(const char* key, int* n, FLTPT** data) {
+        throw ModelException("SimulationModule", "Get1DData",
+                             "Get function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Get 2D data, by default, DT_Raster2D, integer
+    virtual void Get2DData(const char* key, int* nrows, int* ncols, int*** data) {
+        throw ModelException("SimulationModule", "Get2DData",
+                             "Get function of parameter " + string(key) + " is not implemented.");
+    }
+
+    //! Get 2D data, by default, DT_Raster2D, float
+    virtual void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) {
         throw ModelException("SimulationModule", "Get2DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
@@ -188,7 +230,7 @@ public:
         m_tsCounter = 1;
     }
 
-    //! Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
+    //! Whether the inputs (i.e., inputs derived from other modules) have been set.
     bool IsInputsSetDone() { return m_inputsSetDone; }
 
     //! Change the status of setting inputs parameters
@@ -238,10 +280,10 @@ protected:
 #define CHECK_NEGATIVE(moduleID, param) if ((param) >= 0) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST be negative!"))
 //! CHECK_ZERO is used for single value that must not be ZERO
-#define CHECK_ZERO(moduleID, param) if ((param) == 0 || FloatEqual(CVT_FLT(param), 0.f)) \
+#define CHECK_ZERO(moduleID, param) if ((param) == 0 || FloatEqual(CVT_DBL(param), 0.)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be zero!"))
 //! CHECK_NODATA is used for single value that must not be NODATA_VALUE
-#define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(CVT_FLT(param), NODATA_VALUE)) \
+#define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(CVT_DBL(param), NODATA_VALUE)) \
                      throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be NODATA_VALUE!"))
 
 #endif /* SIMULATION_MOUDULE_BASE */

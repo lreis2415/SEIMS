@@ -28,6 +28,7 @@
 *.out
 *.app
 bin
+dist
 build*
 cmake-build*
 
@@ -42,11 +43,16 @@ cmake-build*
 *.vat.cpg
 *.vat.dbf
 *.tif.aux.xml
+*.tif.vat
+*.tif.xml
 *.tfw
 *.tif.ovr
 
 # putty log
 putty.log
+
+# default Doxygen Html generated dir
+html
 
 # macOS
 .DS_Store

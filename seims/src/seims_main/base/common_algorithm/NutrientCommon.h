@@ -6,6 +6,7 @@
  */
 #ifndef SEIMS_NUTRIENT_COMMON_H
 #define SEIMS_NUTRIENT_COMMON_H
+#include "seims.h"
 
 /*!
  * \defgroup NutrientCommon
@@ -21,6 +22,6 @@
  * \param[in] surfq surface runoff, mm
  * \param[in] area area, ha
  */
-float CalEnrichmentRatio(float sedyld, float surfq, float area);
+FLTPT CalEnrichmentRatio(FLTPT sedyld, FLTPT surfq, FLTPT area);
 
 #endif /* SEIMS_NUTRIENT_COMMON_H */

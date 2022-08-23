@@ -7,6 +7,7 @@
  *   - 1. 2016-06-15 - lj - Initial implementation.
  *   - 2. 2016-10-07 - lj - Add some code of CENTURY model calculation.
  *   - 3. 2018-05-14 - lj - Code review and reformat code style.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Liangjun Zhu
  */
@@ -32,11 +33,13 @@ public:
 
     ~Biomass_EPIC();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -44,9 +47,11 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, int** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
 private:
     //////////////////////////////////////////////////////////////////////////
@@ -102,221 +107,221 @@ private:
     /**  climate inputs  **/
 
     /// CO2 concentration
-    float m_co2Conc;
+    FLTPT m_co2Conc;
     /// mean air temperature
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     /// min air temperature
-    float* m_minTemp;
+    FLTPT* m_minTemp;
     /// solar radiation
-    float* m_SR;
+    FLTPT* m_SR;
     /// average annual air temperature
-    float* m_annMeanTemp;
+    FLTPT* m_annMeanTemp;
     /// minimum day length
-    float* m_dayLenMin;
+    FLTPT* m_dayLenMin;
     /// dormancy threshold
-    float* m_dormHr;
+    FLTPT* m_dormHr;
     /**  soil properties  **/
 
     /// soil layers
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     /// maximum soil layers
     int m_maxSoilLyrs;
     /// maximum root depth
-    float* m_soilMaxRootD;
+    FLTPT* m_soilMaxRootD;
     /// albedo when soil is moist
-    float* m_soilAlb;
+    FLTPT* m_soilAlb;
     /// soil depth of all layers
-    float** m_soilDepth;
+    FLTPT** m_soilDepth;
     /// soil thickness of all layers
-    float** m_soilThk;
+    FLTPT** m_soilThk;
 
     /// amount of water available to plants in soil layer at field capacity (fc - wp water), sol_fc in SWAT
-    float** m_soilFC;
+    FLTPT** m_soilFC;
     /// total m_soilAWC in soil profile, sol_sumfc in SWAT
-    float* m_soilSumFC;
+    FLTPT* m_soilSumFC;
     /// amount of water held in soil profile at saturation, sol_sumul in SWAT
-    float* m_soilSumSat;
+    FLTPT* m_soilSumSat;
     /// amount of water stored in soil layers on current day, sol_st in SWAT
-    float** m_soilWtrSto;
+    FLTPT** m_soilWtrSto;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
-    float* m_soilWtrStoPrfl;
+    FLTPT* m_soilWtrStoPrfl;
 
     /**  crop or land cover related parameters  **/
 
     ///amount of residue on soil surface (kg/ha)
-    float* m_rsdInitSoil;
+    FLTPT* m_rsdInitSoil;
     /// amount of residue on soil surface (10 mm surface)
-    float* m_rsdCovSoil;
+    FLTPT* m_rsdCovSoil;
     /// amount of organic matter in the soil layer classified as residue, sol_rsd |kg/ha in SWAT
-    float** m_soilRsd;
+    FLTPT** m_soilRsd;
     /// biomass target, kg/ha
-    float* m_biomTrgt;
+    FLTPT* m_biomTrgt;
     /// land cover status code, 0 means no crop while 1 means land cover growing
-    float* m_igro;
+    int* m_igro;
     /// land cover/crop  classification:1-7, i.e., IDC
-    float* m_landCoverCls;
+    int* m_landCoverCls;
     /// minimum LAI during winter dormant period, alai_min
-    float* m_minLaiDorm;
+    FLTPT* m_minLaiDorm;
     /// Radiation-use efficicency or biomass-energy ratio ((kg/ha)/(MJ/m**2)), BIO_E in SWAT
-    float* m_biomEnrgRatio;
+    FLTPT* m_biomEnrgRatio;
     /// Biomass-energy ratio corresponding to the 2nd point on the radiation use efficiency curve
-    float* m_biomEnrgRatio2ndPt;
+    FLTPT* m_biomEnrgRatio2ndPt;
     /// fraction of biomass that drops during dormancy (for tree only), bio_leaf
-    float* m_biomDropFr;
+    FLTPT* m_biomDropFr;
     /// maximum (potential) leaf area index (BLAI in cropLookup db)
-    float* m_maxLai;
+    FLTPT* m_maxLai;
     /// Maximum biomass for a forest (metric tons/ha), BMX_TREES in SWAT
-    float* m_maxBiomTree;
+    FLTPT* m_maxBiomTree;
     /// nitrogen uptake parameter #1: normal fraction of N in crop biomass at emergence
-    float* m_biomNFr1;
+    FLTPT* m_biomNFr1;
     /// nitrogen uptake parameter #2: normal fraction of N in crop biomass at 50% maturity
-    float* m_biomNFr2;
+    FLTPT* m_biomNFr2;
     /// nitrogen uptake parameter #3: normal fraction of N in crop biomass at maturity
-    float* m_biomNFr3;
+    FLTPT* m_biomNFr3;
     /// phosphorus uptake parameter #1: normal fraction of P in crop biomass at emergence
-    float* m_biomPFr1;
+    FLTPT* m_biomPFr1;
     /// phosphorus uptake parameter #2: normal fraction of P in crop biomass at 50% maturity
-    float* m_biomPFr2;
+    FLTPT* m_biomPFr2;
     /// phosphorus uptake parameter #3: normal fraction of P in crop biomass at maturity
-    float* m_biomPFr3;
+    FLTPT* m_biomPFr3;
     /// maximum canopy height (m)
-    float* m_maxCanHgt;
+    FLTPT* m_maxCanHgt;
     /// elevated CO2 atmospheric concentration corresponding the 2nd point on the radiation use efficiency curve
-    float* m_co2Conc2ndPt;
+    FLTPT* m_co2Conc2ndPt;
     /// fraction of growing season(PHU) when senescence becomes dominant
-    float* m_dormPHUFr;
+    FLTPT* m_dormPHUFr;
     /// plant water uptake compensation factor
-    float* m_epco;
+    FLTPT* m_epco;
     /// light extinction coefficient, ext_coef
-    float* m_lightExtCoef;
+    FLTPT* m_lightExtCoef;
     /// fraction of the growing season corresponding to the 1st point on optimal leaf area development curve
-    float* m_frGrow1stPt;
+    FLTPT* m_frGrow1stPt;
     /// fraction of the growing season corresponding to the 2nd point on optimal leaf area development curve
-    float* m_frGrow2ndPt;
+    FLTPT* m_frGrow2ndPt;
     /// harvest index: crop yield/aboveground biomass (kg/ha)/(kg/ha)
-    float* m_hvstIdx;
+    FLTPT* m_hvstIdx;
     /// fraction of maximum leaf area index corresponding to the 1st point on optimal leaf area development curve
-    float* m_frMaxLai1stPt;
+    FLTPT* m_frMaxLai1stPt;
     /// fraction of maximum leaf area index corresponding to the 2nd point on optimal leaf area development curve
-    float* m_frMaxLai2ndPt;
+    FLTPT* m_frMaxLai2ndPt;
     /// the number of years for the tree species to reach full development (years), MAT_YRS in SWAT
-    float* m_matYrs;
+    FLTPT* m_matYrs;
     /// minimum temperature for plant growth
-    float* m_pgTempBase;
+    FLTPT* m_pgTempBase;
     /// optional temperature for plant growth
-    float* m_pgOptTemp;
+    FLTPT* m_pgOptTemp;
     /// Rate of decline in radiation use efficiency per unit increase in vapor pressure deficit, wavp in SWAT
-    float* m_wavp;
+    FLTPT* m_wavp;
 
     /**  parameters need to be initialized in this module if they are NULL, i.e., in initialOutputs(void)  **/
     /// canopy height (m)
-    float* m_canHgt;
+    FLTPT* m_canHgt;
     /// albedo in the current day
-    float* m_alb;
+    FLTPT* m_alb;
     /// initial age of trees (yrs) at the beginning of simulation
-    float* m_curYrMat;
+    FLTPT* m_curYrMat;
     /// initial biomass of transplants, kg/ha
-    float* m_initBiom;
+    FLTPT* m_initBiom;
     /// initial leaf area index of transplants
-    float* m_initLai;
+    FLTPT* m_initLai;
     /// total heat units needed to bring plant to maturity
-    float* m_phuPlt;
+    FLTPT* m_phuPlt;
     /// dominant code, 0 is land cover growing (not dormant), 1 is land cover dormant, by default m_dormFlag is 0.
-    float* m_dormFlag;
+    int* m_dormFlag;
     /// actual ET simulated during life of plant, plt_et in SWAT
-    float* m_totActPltET;
+    FLTPT* m_totActPltET;
     /// potential ET simulated during life of plant, pltPET in SWAT
-    float* m_totPltPET;
+    FLTPT* m_totPltPET;
 
     /**  Nutrient related parameters  **/
 
     /// Nitrogen uptake distribution parameter
-    float m_upTkDistN;
+    FLTPT m_upTkDistN;
     /// Phosphorus uptake distribution parameter
-    float m_upTkDistP;
+    FLTPT m_upTkDistP;
     /// Nitrogen fixation coefficient, FIXCO in SWAT
-    float m_NFixCoef;
+    FLTPT m_NFixCoef;
     /// Maximum daily-n fixation (kg/ha), NFIXMX in SWAT
-    float m_NFixMax;
+    FLTPT m_NFixMax;
 
     /**  input from other modules  **/
 
     /// day length
-    float* m_dayLen;
+    FLTPT* m_dayLen;
     /// vapor pressure deficit (kPa)
-    float* m_vpd;
+    FLTPT* m_vpd;
     /// potential evapotranspiration, pet_day in SWAT
-    float* m_pet;
+    FLTPT* m_pet;
     /// maximum plant et (mm H2O), ep_max in SWAT
-    float* m_maxPltET;
+    FLTPT* m_maxPltET;
     /// actual amount of evaporation (soil et), es_day in SWAT
-    float* m_soilET;
+    FLTPT* m_soilET;
     /// amount of nitrogen stored in the nitrate pool
-    float** m_soilNO3;
+    FLTPT** m_soilNO3;
     /// amount of phosphorus stored in solution
-    float** m_soilSolP;
+    FLTPT** m_soilSolP;
     /// amount of water in snow on current day
-    float* m_snowAccum;
+    FLTPT* m_snowAccum;
     /**  intermediate variables  **/
 
     /// water uptake distribution parameter, NOT ALLOWED TO MODIFIED BY USERS
-    float ubw;
+    FLTPT ubw;
     /// water uptake normalization parameter, NOT ALLOWED TO MODIFIED BY USERS
-    float uobw;
+    FLTPT uobw;
     /// current rooting depth
-    float* m_pltRootD;
+    FLTPT* m_pltRootD;
     /// wuse in DistributePlantET().
-    float** m_wuse;
+    FLTPT** m_wuse;
 
     /**  set output variables  **/
 
     /// the leaf area indices for day i
-    float* m_lai;
+    FLTPT* m_lai;
     /// fraction of plant heat units (PHU) accumulated, also as output, phuacc in SWAT
-    float* m_phuAccum;
+    FLTPT* m_phuAccum;
     /// maximum leaf area index for the current year (m_yearIdx), lai_yrmx in SWAT
-    float* m_maxLaiYr;
+    FLTPT* m_maxLaiYr;
     /// harvest index adjusted for water stress, hvstiadj in SWAT
-    float* m_hvstIdxAdj;
+    FLTPT* m_hvstIdxAdj;
     /// DO NOT KNOW NOW, initialized as 0.
-    float* m_LaiMaxFr;
+    FLTPT* m_LaiMaxFr;
     /// DO NOT KNOW NOW
-    float* m_oLai;
+    FLTPT* m_oLai;
     /// last soil root depth for use in harvest-kill-op/kill-op,
-    float* m_stoSoilRootD;
+    FLTPT* m_stoSoilRootD;
     /// actual amount of transpiration (mm H2O), ep_day in SWAT
-    float* m_actPltET;
+    FLTPT* m_actPltET;
     /// fraction of total plant biomass that is in roots, rwt in SWAT
-    float* m_frRoot;
+    FLTPT* m_frRoot;
     /// amount of nitrogen added to soil via fixation on the day
-    float* m_fixN;
+    FLTPT* m_fixN;
     /// plant uptake of nitrogen, nplnt in SWAT
-    float* m_plantUpTkN;
+    FLTPT* m_plantUpTkN;
     /// plant uptake of phosphorus, pplnt in SWAT
-    float* m_plantUpTkP;
+    FLTPT* m_plantUpTkP;
     /// amount of nitrogen in plant biomass (kg/ha), plantn in SWAT
-    float* m_pltN;
+    FLTPT* m_pltN;
     /// amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
-    float* m_pltP;
+    FLTPT* m_pltP;
     /// fraction of plant biomass that is nitrogen, pltfr_n in SWAT
-    float* m_frPltN;
+    FLTPT* m_frPltN;
     /// fraction of plant biomass that is phosphorus, pltfr_p in SWAT
-    float* m_frPltP;
+    FLTPT* m_frPltP;
     /// plant nitrogen deficiency (kg/ha), uno3d in SWAT
-    float* m_NO3Defic;
+    FLTPT* m_NO3Defic;
     /// soil aeration stress
-    float* m_frStrsAe;
+    FLTPT* m_frStrsAe;
     /// fraction of potential plant growth achieved where the reduction is caused by nitrogen stress, strsn in SWAT
-    float* m_frStrsN;
+    FLTPT* m_frStrsN;
     /// fraction of potential plant growth achieved where the reduction is caused by phosphorus stress, strsp in SWAT
-    float* m_frStrsP;
+    FLTPT* m_frStrsP;
     /// fraction of potential plant growth achieved where the reduction is caused by temperature stress, strstmp in SWAT
-    float* m_frStrsTmp;
+    FLTPT* m_frStrsTmp;
     /// fraction of potential plant growth achieved where the reduction is caused by water stress, strsw in SWAT
-    float* m_frStrsWtr;
+    FLTPT* m_frStrsWtr;
     /// biomass generated on current day, bioday in SWAT
-    float* m_biomassDelta;
+    FLTPT* m_biomassDelta;
     /// land cover/crop biomass (dry weight), bio_ms in SWAT
-    float* m_biomass;
+    FLTPT* m_biomass;
 };
 #endif /* SEIMS_MODULE_PG_EPIC_H */

@@ -4,8 +4,8 @@
  * From the file.out file or FILE_OUT collection in MongoDB
  *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
+ * \version 1.2
+ * \date Aug., 2022
  */
 #ifndef SEIMS_PRINTINFO_H
 #define SEIMS_PRINTINFO_H
@@ -47,25 +47,25 @@ public:
     ~PrintInfoItem();
 
     //! Aggregated data, the second dimension contains: row, col, value
-    float** m_1DDataWithRowCol;
+    FLTPT** m_1DDataWithRowCol;
     //! rows number, i.e., number of valid cells
     int m_nRows;
     //! For 1D raster/array data
-    float* m_1DData;
+    FLTPT* m_1DData;
     //! number of layers of raster data, greater or equal than 1
     int m_nLayers;
     //! For 2D raster/array data
-    float** m_2DData;
+    FLTPT** m_2DData;
 
     //! For time series data of a single subbasin, DT_Single
-    map<time_t, float> TimeSeriesData;
+    map<time_t, FLTPT> TimeSeriesData;
     //! For time series data of a single subbasin, DT_Raster1D or DT_Array1D
-    map<time_t, float *> TimeSeriesDataForSubbasin;
+    map<time_t, FLTPT*> TimeSeriesDataForSubbasin;
     //! Count of #TimeSeriesDataForSubbasin
     int TimeSeriesDataForSubbasinCount;
 
     //! Add 1D time series data result to #TimeSeriesDataForSubbasin
-    void add1DTimeSeriesResult(time_t, int n, const float* data);
+    void add1DTimeSeriesResult(time_t, int n, const FLTPT* data);
 
     //! used only by PET_TS???
     ///< The site id
@@ -84,10 +84,10 @@ public:
     time_t m_startTime;
 
     //! get start time \a time_t
-    time_t getStartTime() { return m_startTime; };
+    time_t getStartTime() { return m_startTime; }
 
     //! set start time \a time_t
-    void setStartTime(time_t& st) { m_startTime = st; }
+    void setStartTime(const time_t& st) { m_startTime = st; }
 
     ////! End time string
     //string EndTime;
@@ -95,10 +95,10 @@ public:
     time_t m_endTime;
 
     //! Get end time  \a time_t
-    time_t getEndTime() { return m_endTime; };
+    time_t getEndTime() { return m_endTime; }
 
     //! set end time \a time_t
-    void setEndTime(time_t& st) { m_endTime = st; }
+    void setEndTime(const time_t& st) { m_endTime = st; }
 
     //! file suffix, e.g., txt, tif, asc, etc.
     string Suffix;
@@ -110,7 +110,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, const string& header);
+    void Flush(const string& projectPath, MongoGridFs* gfs, IntRaster* templateRaster, const string& header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -118,22 +118,22 @@ public:
     //! Aggregate the 2D data from the given data parameter using the given method type.
     //! However this **data restrict to 3 layers, i.e., Row, Col, Value
     //! NO NEED TO USE?
-    void AggregateData(int numrows, float** data, AggregationType type, float NoDataValue);
+    void AggregateData(int numrows, FLTPT** data, AggregationType type, FLTPT NoDataValue);
 
     //! Aggregate the 1D data from the given data parameter using the given method type
-    void AggregateData(time_t time, int numrows, float* data);
+    void AggregateData(time_t time, int numrows, FLTPT* data);
 
     //! Aggregate the 2D raster data from the given data parameter using the given method type
-    void AggregateData2D(time_t time, int nRows, int nCols, float** data);
+    void AggregateData2D(time_t time, int nRows, int nCols, FLTPT** data);
 
     //! Set the Aggregation type
-    void setAggregationType(AggregationType type) { m_AggregationType = type; };
+    void setAggregationType(const AggregationType type) { m_AggregationType = type; }
 
     //! Get the Aggregation type
     AggregationType getAggregationType() { return m_AggregationType; };
 
     //! convert the given string into a matching Aggregation type
-    static AggregationType MatchAggregationType(string type);
+    static AggregationType MatchAggregationType(const string& type);
 
 private:
     //! Scenario ID
@@ -167,15 +167,15 @@ public:
     //! Unique Output ID, which should be one of "VAR_" defined in text.h and Output of any modules.
     string m_OutputID;
     //! The calibration parameters corresponding to the output id, if stated.
-    ParamInfo* m_param;
+    ParamInfo<FLTPT>* m_param;
     //! For one OutputID, there may be several output items, e.g., different time period, different subbasin ID. etc.
     vector<PrintInfoItem *> m_PrintItems;
 
 private:
     //! Selected subbasin IDs for time series data, vector container
     vector<int> m_subbasinSeleted;
-    //! Selected subbasin IDs for time series data, float array
-    float* m_subbasinSelectedArray;
+    //! Selected subbasin IDs for time series data, int array
+    int* m_subbasinSelectedArray;
 public:
     //! Constructor, initialize an empty instance
     PrintInfo(int scenario_id = 0, int calibration_id = -1);
@@ -184,40 +184,42 @@ public:
     ~PrintInfo();
 
     //! Get the number of output items
-    int ItemCount() const { return CVT_INT(m_PrintItems.size()); };
+    int ItemCount() const { return CVT_INT(m_PrintItems.size()); }
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
-    void getSubbasinSelected(int* count, float** subbasins);
+    void getSubbasinSelected(int* count, int** subbasins);
 
     //! Set the OutputID for this object
-    void setOutputID(string id) { m_OutputID = id; };
+    void setOutputID(string id) { m_OutputID = id; }
 
     //! Get the OutputId for this object
-    string getOutputID() const { return m_OutputID; };
+    string getOutputID() const { return m_OutputID; }
 
     //! Get Header string (all field names) for current OutputID. TODO, how to make it more flexible? By LJ.
     string getOutputTimeSeriesHeader();
 
     //! Set the interval
-    void setInterval(int interval) { m_Interval = interval; };
+    void setInterval(int interval) { m_Interval = interval; }
 
     //! Get the interval
     int getInterval() { return m_Interval; };
 
     //! Set the interval units
-    void setIntervalUnits(string& units) { m_IntervalUnits = units; };
+    void setIntervalUnits(string& units) { m_IntervalUnits = units; }
 
     //! Get the interval units
-    string getIntervalUnits() const { return m_IntervalUnits; };
+    string getIntervalUnits() const { return m_IntervalUnits; }
 
     //! Add an output item with the given start time, end time and file name
-    void AddPrintItem(time_t start, time_t end, string& file, string& sufi);
+    void AddPrintItem(time_t start, time_t end, const string& file, const string& sufi);
 
     //! Add an output item with the given aggregate type, start time, end time, file name and subbasin ID
-    void AddPrintItem(string& type, time_t start, time_t end, string& file, string& sufi, int subbasinID = 0);
+    void AddPrintItem(string& type, time_t start, time_t end, const string& file, const string& sufi,
+                      int subbasinID = 0);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
-    void AddPrintItem(time_t start, time_t end, string& file, string sitename, string& sufi, bool isSubbasin);
+    void AddPrintItem(time_t start, time_t end, const string& file, string sitename, const string& sufi,
+                      bool isSubbasin);
 
     //! Get a reference to the output item located at the given index position
     PrintInfoItem* getPrintInfoItem(int index);

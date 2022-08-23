@@ -3,7 +3,7 @@ Utility functions and classes of pySEIMS
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018-2021 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -27,6 +27,7 @@ SQ2 = 1.4142135623730951
 PI = 3.14159265358979323846
 
 from utility.io_plain_text import *
+from utility.io_raster import *
 from utility.parse_config import *
 from utility.timeseries_data import *
 from utility.plot import *

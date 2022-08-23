@@ -5,14 +5,14 @@
 
 IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nsub(-1), m_subbasin(NULL),
                        m_iuhCell(NULL), m_ssru(NULL), m_iuhCols(-1), m_cellFlowCols(-1) {
-    
+
     m_Q_SBIF = NULL;
     m_cellFlow = NULL;
 }
 
 IUH_IF::~IUH_IF(void) {
     Release1DArray(m_Q_SBIF);
-    Release2DArray(m_nCells, m_cellFlow);
+    Release2DArray(m_cellFlow);
 }
 
 bool IUH_IF::CheckInputData(void) {

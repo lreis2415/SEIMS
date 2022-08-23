@@ -20,9 +20,9 @@ DiffusiveWave::~DiffusiveWave() {
     //Release1DArray(m_reachDownStream);
     //Release1DArray(m_reachN);
 
-    Release2DArray(m_chNumber, m_hCh);
-    Release2DArray(m_chNumber, m_qCh);
-    Release2DArray(m_chNumber, m_flowLen);
+    Release2DArray(m_hCh);
+    Release2DArray(m_qCh);
+    Release2DArray(m_flowLen);
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_qSubbasin);
 }
@@ -215,8 +215,8 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     if (sf < MINI_SLOPE) {
         sf = MINI_SLOPE;
     }
-    float c = 1.f / 3600.f * m_reachN[iReach] * pow(perim, _2div3) / sqrt(sf);
-    c = pow(c, 0.6f);
+    float c = 1.f / 3600.f * m_reachN[iReach] * CalPow(perim, _2div3) / CalSqrt(sf);
+    c = CalPow(c, 0.6f);
 
     float d = 1.f;
     int counter = 0;
@@ -247,7 +247,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
         m_hCh[iReach][iCell] = 0.f;
     } else {
         m_qCh[iReach][iCell] = qNew;//m_hCh[iReach][iCell]
-        m_hCh[iReach][iCell] = c * pow(qNew, 0.6f) / m_chWidth[iReach];
+        m_hCh[iReach][iCell] = c * CalPow(qNew, 0.6f) / m_chWidth[iReach];
         //float hh = (qUp + qLat*dx - qNew)*m_dt/(m_chWidth[iReach]*dx) + m_hCh[iReach][iCell];
     }
 }

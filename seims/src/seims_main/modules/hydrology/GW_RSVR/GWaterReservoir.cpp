@@ -124,7 +124,7 @@ int GWaterReservoir::Execute(void) {
     for (int i = 1; i <= m_nReaches; i++) {
         float percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
-        float outFlowDepth = m_recessionCoefficient * pow(m_storage[i], m_recessionExponent);
+        float outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
         // groundwater flow out of the subbasin at time t (m3/s)
         m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
         //sum = sum + m_qg[i];

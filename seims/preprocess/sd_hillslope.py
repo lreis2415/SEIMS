@@ -44,8 +44,7 @@ class DelineateHillslope(object):
     def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg='taudem',
                                    stream_value_method=-1):
         """Algorithm modified from Whitebox GAT v3.4.0.
-           source code: https://github.com/jblindsay/whitebox-geospatial-analysis-tools/
-                                blob/master/HydroTools/src/plugins/Hillslopes.java
+
         Args:
             stream_raster: Stream cell value greater than 0 is identified by stream
                               The input stream are recommended sequenced as 1, 2, 3...

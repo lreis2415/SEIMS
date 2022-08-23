@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PET_H[0]);
     mdi.SetName(M_PET_H[0]);
-    mdi.SetVersion("2.0");
+    mdi.SetVersion("2.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 

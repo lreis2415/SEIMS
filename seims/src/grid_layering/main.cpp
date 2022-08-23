@@ -209,6 +209,7 @@ int main(int argc, char** argv) {
         // clean up
         delete gfs;
         client->Destroy();
+        delete client;
     }
 #else
     Usage("The '-mongo' option require mongo-c-driver and MongoDB!");

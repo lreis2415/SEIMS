@@ -2,11 +2,11 @@
  * \file utils_string.h
  * \brief Handling string related issues in CCGL.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
  *   - 2. 2018-11-12 - lj - Add check and conversion between string and number (int, float, double)
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
  * \version 1.1
  */
 #ifndef CCGL_UTILS_STRING_H
@@ -91,11 +91,15 @@ string ValueToString(const T& val) {
     return oss.str();
 }
 
-
 /*!
  * \brief Copy string map
  */
 void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts);
+
+/*!
+ * \brief Add or modify element in a string map
+ */
+void UpdateStringMap(STRING_MAP& opts, const string& key, const string& value);
 
 #if defined(CPP_GCC) || defined(CPP_ICC)
 extern void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix);
@@ -117,7 +121,7 @@ extern void _gcvt_s(char* buffer, size_t size, double value, vint numberOfDigits
 string itoa(vint number);
 
 /*!
- * \brief Convert a signed interger to an unicode string
+ * \brief Convert a signed integer to an unicode string
  * \param[in] number The number to convert
  * \return The converted unicode string
  */
@@ -185,6 +189,7 @@ wstring ftow(double number);
  * \return The converted ansi string
  */
 string wtoa(const wstring& wstr);
+
 vint _wtoa(const wchar_t* w, char* a, vint chars);
 
 /*!
@@ -353,6 +358,8 @@ double ToDouble(const STRING_T& num_str) {
 template <typename T>
 bool SplitStringForValues(const string& items, const char delimiter, vector<T>& values) {
     vector<string> value_strs = SplitString(items, delimiter);
+    if (value_strs.empty()) { return false; }
+    values.clear();
     char* end = nullptr;
     for (auto it = value_strs.begin(); it != value_strs.end(); ++it) {
         if ((*it).find_first_of("0123456789") == string::npos) {
@@ -361,7 +368,7 @@ bool SplitStringForValues(const string& items, const char delimiter, vector<T>& 
         values.emplace_back(static_cast<T>(strtod((*it).c_str(), &end)));
     }
     vector<T>(values).swap(values);
-    return true;
+    return value_strs.size() == values.size();
 }
 
 template <typename STRING_T>

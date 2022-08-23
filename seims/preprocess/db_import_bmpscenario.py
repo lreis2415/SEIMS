@@ -31,7 +31,7 @@ class ImportScenario2Mongo(object):
     _SUBBASINID = 'SUBBASINID'
 
     @staticmethod
-    def scenario_from_texts(cfg, main_db, scenario_db):
+    def scenario_from_texts(cfg):
         """Import BMPs Scenario data to MongoDB
         Args:
             cfg: SEIMS configuration object
@@ -51,15 +51,15 @@ class ImportScenario2Mongo(object):
             bmp_tabs_path.append(cfg.scenario_dir + os.path.sep + f)
 
         # initialize if collection not existed
-        c_list = scenario_db.collection_names()
+        c_list = cfg.scenariodb.list_collection_names()
         for item in bmp_tabs:
             if not StringClass.string_in_list(item.upper(), c_list):
-                scenario_db.create_collection(item.upper())
+                cfg.scenariodb.create_collection(item.upper())
             else:
-                scenario_db.drop_collection(item.upper())
+                cfg.scenariodb.drop_collection(item.upper())
         # Read subbasin.tif and dist2Stream.tif
         subbasin_r = RasterUtilClass.read_raster(cfg.spatials.subbsn)
-        dist2stream_r = RasterUtilClass.read_raster(cfg.spatials.dist2stream_d8)
+        dist2stream_r = RasterUtilClass.read_raster(cfg.spatials.dist2stream_dinf)
         # End reading
         for j, bmp_txt in enumerate(bmp_tabs_path):
             bmp_tab_name = bmp_tabs[j]
@@ -87,37 +87,31 @@ class ImportScenario2Mongo(object):
                     if subbsn_id is not None and distance is not None:
                         dic[ImportScenario2Mongo._SUBBASINID] = int(subbsn_id)
                         dic[ImportScenario2Mongo._DISTDOWN] = float(distance)
-                        scenario_db[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
-                                                                               upsert=True)
+                        cfg.scenariodb[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
+                                                                                  upsert=True)
                 else:
-                    scenario_db[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
-                                                                           upsert=True)
+                    cfg.scenariodb[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
+                                                                              upsert=True)
         # print('BMP tables are imported.')
         # Write BMP database name into Model workflow database
-        c_list = main_db.collection_names()
+        c_list = cfg.maindb.list_collection_names()
         if not StringClass.string_in_list(DBTableNames.main_scenario, c_list):
-            main_db.create_collection(DBTableNames.main_scenario)
+            cfg.maindb.create_collection(DBTableNames.main_scenario)
 
         bmp_info_dic = dict()
         bmp_info_dic[ImportScenario2Mongo._FLD_DB] = cfg.bmp_scenario_db
-        main_db[DBTableNames.main_scenario].find_one_and_replace(bmp_info_dic, bmp_info_dic,
-                                                                 upsert=True)
+        cfg.maindb[DBTableNames.main_scenario].find_one_and_replace(bmp_info_dic, bmp_info_dic,
+                                                                    upsert=True)
         return True
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    maindb = conn[seims_cfg.spatial_db]
-    scenariodb = conn[seims_cfg.bmp_scenario_db]
 
-    ImportScenario2Mongo.scenario_from_texts(seims_cfg, maindb, scenariodb)
-
-    client.close()
+    ImportScenario2Mongo.scenario_from_texts(seims_cfg)
 
 
 if __name__ == "__main__":

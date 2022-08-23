@@ -180,7 +180,7 @@ int SplashEro_Park::Execute() {
         float waterdepth = (m_sr[i] + m_depression[i]) / 1000.f;   // mm convert to m
         float Fw, Dr;
         if (waterdepth > Dm) {
-            Fw = exp(1.f - waterdepth / Dm);
+            Fw = CalExp(1.f - waterdepth / Dm);
         } else {
             Fw = 1.f;
         }

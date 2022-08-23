@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../../src/utils_string.h"
 
+using namespace ccgl;
 using namespace ccgl::utils_string;
 
 TEST(TestutilsString, GetUpper) {
@@ -57,7 +58,7 @@ TEST(TestutilsString, SplitStringForValuesInt) {
 TEST(TestutilsString, ValueToString) {
     int a = 12;
     EXPECT_STREQ("12", ValueToString(a).c_str());
-    float b = 1.2;
+    float b = 1.2f;
     EXPECT_STREQ("1.2", ValueToString(b).c_str());
     float c = 1.2e2;
     EXPECT_STREQ("120", ValueToString(c).c_str());
@@ -66,17 +67,17 @@ TEST(TestutilsString, ValueToString) {
 TEST(TestutilsString, IsInt) {
     string int_str1 = "123";
     bool flag1 = false;
-    int int1 = IsInt(int_str1, flag1);
+    vint int1 = IsInt(int_str1, flag1);
     EXPECT_TRUE(flag1);
     EXPECT_EQ(123, int1);
     string int_str2 = "12.3";
     bool flag2 = false;
-    int int2 = IsInt(int_str2, flag1);
+    vint int2 = IsInt(int_str2, flag1);
     EXPECT_FALSE(flag2);
     EXPECT_NE(123, int2);
     string int_str3 = "123.0";
     bool flag3 = false;
-    int int3 = IsInt(int_str3, flag3);
+    vint int3 = IsInt(int_str3, flag3);
     EXPECT_FALSE(flag3);
     EXPECT_EQ(123, int3);
 }
@@ -86,7 +87,7 @@ TEST(TestutilsString, IsDouble) {
     bool flag1 = false;
     double dbl1 = IsDouble(dbl_str1, flag1);
     EXPECT_TRUE(flag1);
-    EXPECT_FLOAT_EQ(1.23, dbl1);
+    EXPECT_DOUBLE_EQ(1.23, dbl1);
 }
 
 TEST(TestutilsString, IsNumber) {
@@ -104,6 +105,6 @@ TEST(TestutilsString, IsNumber) {
 
 TEST(TestutilsString, ToInt) {
     string str = "123";
-    int int1 = ToInt(str);
+    vint int1 = ToInt(str);
     EXPECT_EQ(123, int1);
 }

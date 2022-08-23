@@ -2,11 +2,11 @@
  * \file utils_time.h
  * \brief Time and datetime related functions in CCGL.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2018-05-01 - lj - Make part of CCGL.
  *   - 2. 2018-05-23 - lj - Add DateTime struct which combines date and time.
  *
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
  */
 #ifndef CCGL_UTILS_TIME_H
 #define CCGL_UTILS_TIME_H

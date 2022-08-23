@@ -10,12 +10,14 @@
     - 16-12-07  lj - rewrite for version 2.0
     - 17-06-23  lj - reorganize as basic class
     - 18-02-08  lj - compatible with Python3.
+    - 22-06-08  lj - use mask_rasterio to reclassify soil and landuse parameters
 """
 from __future__ import absolute_import, unicode_literals
 
 import math
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -26,6 +28,7 @@ from pygeoc.utils import StringClass
 
 from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
 from utility import status_output, read_data_items_from_txt
+from utility import mask_rasterio
 
 
 class SoilProperty(object):
@@ -226,7 +229,7 @@ class SoilProperty(object):
             else:
                 self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
         if len(self.SOILDEPTH) == 0 or len(self.SOILDEPTH) != self.SOILLAYERS or \
-                        DEFAULT_NODATA in self.SOILDEPTH:
+            DEFAULT_NODATA in self.SOILDEPTH:
             raise IndexError("Soil depth must have a size equal to NLAYERS and "
                              "should not include NODATA (-9999)!")
         # Calculate soil thickness of each layer
@@ -235,7 +238,7 @@ class SoilProperty(object):
                 self.SOILTHICK.append(self.SOILDEPTH[lyr])
             else:
                 self.SOILTHICK.append(self.SOILDEPTH[lyr] - self.SOILDEPTH[lyr - 1])
-        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]\
+        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1] \
             or self.SOL_ZMX < self.SOILDEPTH[-1]:
             self.SOL_ZMX = self.SOILDEPTH[-1]
         if self.ANION_EXCL == DEFAULT_NODATA:
@@ -243,7 +246,7 @@ class SoilProperty(object):
         if not self.OM or len(self.OM) != self.SOILLAYERS:
             raise IndexError("Soil organic matter must have a size equal to NLAYERS!")
         elif DEFAULT_NODATA in self.OM and self.OM.index(
-                DEFAULT_NODATA) >= 2 and self.SOILLAYERS >= 3:
+            DEFAULT_NODATA) >= 2 and self.SOILLAYERS >= 3:
             for i in range(2, self.SOILLAYERS):
                 if self.OM[i] == DEFAULT_NODATA:
                     self.OM[i] = self.OM[i - 1] * numpy.exp(-self.SOILTHICK[i])  # mm
@@ -614,8 +617,12 @@ class SoilUtilClass(object):
             return [1, 4, 0.02]  # sand / sha tu
 
     @staticmethod
-    def lookup_soil_parameters(dstdir, soiltype_file, soil_lookup_file):
-        """Reclassify soil parameters by lookup table."""
+    def lookup_soil_parameters(soil_lookup_file):
+        """Reclassify soil parameters by lookup table.
+
+        Returns:
+            recls_dict: dict, e.g., {'OM': '201:1.3|1.2|0.6,202:1.4|1.1|0.8'}
+        """
         #  Read soil properties from txt file
         soil_lookup_data = read_data_items_from_txt(soil_lookup_file)
         soil_instances = list()
@@ -679,6 +686,7 @@ class SoilUtilClass(object):
                     cur_soil_ins.SOL_ORGP = cur_flds
             cur_soil_ins.check_data_validation()
             soil_instances.append(cur_soil_ins)
+
         soil_prop_dict = dict()
         for sol in soil_instances:
             cur_sol_dict = sol.soil_dict()
@@ -687,45 +695,28 @@ class SoilUtilClass(object):
                     soil_prop_dict[fld].append(cur_sol_dict[fld])
                 else:
                     soil_prop_dict[fld] = [cur_sol_dict[fld]]
-        # print(list(soilPropDict.keys()))
-        # print(list(soilPropDict.values()))
 
-        replace_dicts = list()
-        dst_soil_tifs = list()
+        recls_dict = dict()
         seqns = soil_prop_dict[SoilUtilClass._SEQN]
-        max_lyr_num = int(numpy.max(soil_prop_dict[SoilUtilClass._NLYRS]))
         for key in soil_prop_dict:
-            if key != SoilUtilClass._SEQN and key != SoilUtilClass._NAME:
-                key_l = 1
-                for key_v in soil_prop_dict[key]:
-                    if isinstance(key_v, list):
-                        if len(key_v) > key_l:
-                            key_l = len(key_v)
+            if key == SoilUtilClass._SEQN or key == SoilUtilClass._NAME:
+                continue
+            key_l = 1  # maximum layer number
+            for key_v in soil_prop_dict[key]:
+                if isinstance(key_v, list):
+                    if len(key_v) > key_l:
+                        key_l = len(key_v)
+            cur_dict = dict()
+            for i, tmpseq in enumerate(seqns):
+                cur_dict[tmpseq] = [DEFAULT_NODATA] * key_l
                 if key_l == 1:
-                    cur_dict = {}
-                    for i, tmpseq in enumerate(seqns):
-                        cur_dict[float(tmpseq)] = soil_prop_dict[key][i]
-                    replace_dicts.append(cur_dict)
-                    dst_soil_tifs.append(dstdir + os.path.sep + key + '.tif')
-                else:
-                    for i in range(max_lyr_num):
-                        cur_dict = dict()
-                        for j, tmpseq in enumerate(seqns):
-                            if i < soil_prop_dict[SoilUtilClass._NLYRS][j]:
-                                cur_dict[float(tmpseq)] = soil_prop_dict[key][j][i]
-                            else:
-                                cur_dict[float(seqns[j])] = DEFAULT_NODATA
-                        replace_dicts.append(cur_dict)
-                        dst_soil_tifs.append(dstdir + os.path.sep + key + '_' + str(i + 1) + '.tif')
-        # print(replaceDicts)
-        # print(len(replaceDicts))
-        # print(dstSoilTifs)
-        # print(len(dstSoilTifs))
-
-        # Generate GTIFF
-        for i, soil_tif in enumerate(dst_soil_tifs):
-            print(soil_tif)
-            RasterUtilClass.raster_reclassify(soiltype_file, replace_dicts[i], soil_tif)
+                    cur_dict[tmpseq][0] = soil_prop_dict[key][i]
+                    continue
+                for j in range(soil_prop_dict[SoilUtilClass._NLYRS][i]):
+                    cur_dict[tmpseq][j] = soil_prop_dict[key][i][j]
+            recls_dict[key] = ','.join('%s:%s' % (k, '|'.join(repr(vv) for vv in v))
+                                       for k, v in cur_dict.items())
+        return recls_dict
 
     @staticmethod
     def initial_soil_moisture(acc_file, slope_file, out_file):
@@ -795,26 +786,33 @@ class SoilUtilClass(object):
     def parameters_extraction(cfg):
         """Soil spatial parameters extraction."""
         f = cfg.logs.extract_soil
-        # 1. Calculate soil physical and chemical parameters
-        soiltype_file = cfg.spatials.soil_type
-        status_output("Calculating initial soil physical and chemical parameters...", 30, f)
-        SoilUtilClass.lookup_soil_parameters(cfg.dirs.geodata2db, soiltype_file, cfg.soil_property)
+        status_output('Calculating initial soil physical and chemical parameters...', 30, f)
+        recls_dict = SoilUtilClass.lookup_soil_parameters(cfg.soil_property)
+
+        status_output('Decomposing to MongoDB and exclude nodata values to save space...', 50, f)
+        inoutcfg = list()
+        for k, v in recls_dict.items():
+            inoutcfg.append([cfg.spatials.soil_type, k,
+                             DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
+        mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
+        mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                      maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasssoil_cfg,
+                      include_nodata=False, mode='MASK&DEC')
 
         # other soil related spatial parameters
-        # 3. Initial soil moisture
-        status_output("Calculating initial soil moisture...", 40, f)
-        acc_file = cfg.spatials.d8acc
-        slope_file = cfg.spatials.slope
-        out_filename = cfg.spatials.init_somo
-        SoilUtilClass.initial_soil_moisture(acc_file, slope_file, out_filename)
+        status_output('Calculating initial soil moisture...', 90, f)
+        SoilUtilClass.initial_soil_moisture(cfg.spatials.d8acc, cfg.spatials.slope,
+                                            cfg.spatials.init_somo)
 
-        status_output("Soil related spatial parameters extracted done!", 100, f)
+        status_output('Soil related spatial parameters extracted done!', 100, f)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
+
     seims_cfg = parse_ini_configuration()
+
     SoilUtilClass.parameters_extraction(seims_cfg)
 
 

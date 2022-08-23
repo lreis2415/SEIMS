@@ -13,8 +13,12 @@
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
+#ifndef CONST_CHARS
 #define CONST_CHARS static const char* ///< const string
+#endif
+#ifndef CONST_CHARS_LIST
 #define CONST_CHARS_LIST static const char* const ///< list of const strings
+#endif
 
 CONST_CHARS MODEL_NAME =                      "SEIMS";
 CONST_CHARS MODEL_FULLNAME =                  "Spatially Explicit Integrated Modeling System";
@@ -71,6 +75,7 @@ CONST_CHARS PARAM_FLD_IMPACT =                      "IMPACT"; ///< impact value 
 CONST_CHARS PARAM_FLD_CHANGE =                      "CHANGE"; ///< change type, used with IMPACT
 CONST_CHARS PARAM_FLD_MAX =                         "MAX"; ///< maximum allowed actual VALUE
 CONST_CHARS PARAM_FLD_MIN =                         "MIN"; ///< minimum allowed actual VALUE
+CONST_CHARS PARAM_FLD_DTYPE =                       "DTYPE"; ///< data type of VALUE, can be INT or FLT
 CONST_CHARS PARAM_FLD_USE =                         "USE"; ///< use or not
 CONST_CHARS PARAM_USE_Y =                           "Y"; ///<
 CONST_CHARS PARAM_USE_N =                           "N"; ///<
@@ -259,11 +264,16 @@ CONST_CHARS Type_Scenario =                         "SCENARIO"; ///<
 CONST_CHARS Type_Reach =                            "REACH"; ///<
 CONST_CHARS Type_Subbasin =                         "SUBBASIN"; ///<
 CONST_CHARS Type_Raster1D =                         "RASTER1D"; ///<
+CONST_CHARS Type_Raster1DInt =                      "RASTER1DINT"; ///<
 CONST_CHARS Type_Raster2D =                         "RASTER2D"; ///<
+CONST_CHARS Type_Raster2DInt =                      "RASTER2DINT"; ///<
 CONST_CHARS Type_Array1DDateValue =                 "ARRAY1DDATEVALUE"; ///<
 CONST_CHARS Type_Array2D =                          "ARRAY2D"; ///<
+CONST_CHARS Type_Array2DInt =                       "ARRAY2DINT"; ///<
 CONST_CHARS Type_Array1D =                          "ARRAY1D"; ///<
+CONST_CHARS Type_Array1DInt =                       "ARRAY1DINT"; ///<
 CONST_CHARS Type_Single =                           "SINGLE"; ///<
+CONST_CHARS Type_SingleInt =                        "SINGLEINT"; ///<
 
 CONST_CHARS TFType_Whole =                          "TFWhole"; ///<
 CONST_CHARS TFType_Single =                         "TFSINGLE"; ///<
@@ -544,7 +554,7 @@ CONST_CHARS_LIST VAR_EP_CH[] = {"Ep_ch", "reach evaporation adjustment factor"};
 CONST_CHARS_LIST VAR_EPCO[] = {"epco", "plant water uptake compensation factor"}; /// m_epco
 CONST_CHARS_LIST VAR_ESCO[] = {"esco", "soil evaporation compensation factor"}; /// m_esco
 CONST_CHARS_LIST VAR_EVLAI[] = {"evlai", "leaf area index at which no evaporation occurs from the water surface"};
-CONST_CHARS_LIST VAR_POT_TILEMM[] = {"pot_tilemm", "Average daily outflow to main channel from tile flow if drainage tiles are installed in the pothole"};
+CONST_CHARS_LIST VAR_POT_TILE[] = {"pot_tile", "Average daily outflow to main channel from tile flow if drainage tiles are installed in the pothole"};
 CONST_CHARS_LIST VAR_POT_NO3DECAY[] = {"pot_no3l", "Nitrate decay rate in impounded water body"};
 CONST_CHARS_LIST VAR_POT_SOLPDECAY[] = {"pot_solpl", "Soluble phosphorus decay rate in impounded water body"};
 CONST_CHARS_LIST VAR_EXCP[] = {"EXCP", "excess precipitation"}; /// m_exsPcp
@@ -1176,7 +1186,7 @@ CONST_CHARS UNIT_NUMBERHA = "no/ha";
 /// By LiangJun Zhu, May. 4, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 CONST_CHARS MONG_GRIDFS_FN =                        "filename";
-CONST_CHARS MONG_GRIDFS_WEIGHT_CELLS =              "NUM_CELLS";
+CONST_CHARS MONG_GRIDFS_WEIGHT_CELLS =              "CELLSNUM";
 CONST_CHARS MONG_GRIDFS_WEIGHT_SITES =              "NUM_SITES";
 CONST_CHARS MONG_GRIDFS_ID =                        "ID";
 CONST_CHARS MONG_GRIDFS_SUBBSN =                    "SUBBASIN";

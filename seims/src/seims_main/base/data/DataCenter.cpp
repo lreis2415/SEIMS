@@ -53,42 +53,71 @@ DataCenter::~DataCenter() {
         subbasins_ = nullptr;
     }
     CLOG(TRACE, LOG_RELEASE) << "---release map of all 1D and 2D raster data ...";
-    for (auto it = rs_map_.begin(); it != rs_map_.end();) {
+    for (auto it = rs_map_.begin(); it != rs_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
             delete it->second;
             it->second = nullptr;
         }
-        rs_map_.erase(it++);
     }
     rs_map_.clear();
+    CLOG(TRACE, LOG_RELEASE) << "---release map of all integer 1D and 2D raster data ...";
+    for (auto it = rs_int_map_.begin(); it != rs_int_map_.end(); ++it) {
+        if (nullptr != it->second) {
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    rs_int_map_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in MongoDB ...";
-    for (auto it = init_params_.begin(); it != init_params_.end();) {
+    for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        init_params_.erase(it++);
     }
     init_params_.clear();
+    CLOG(TRACE, LOG_RELEASE) << "---release map of integer parameters in MongoDB ...";
+    for (auto it = init_params_int_.begin(); it != init_params_int_.end(); ++it) {
+        if (nullptr != it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    init_params_int_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of 1D array data ...";
-    for (auto it = array1d_map_.begin(); it != array1d_map_.end();) {
+    for (auto it = array1d_map_.begin(); it != array1d_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             Release1DArray(it->second);
         }
-        array1d_map_.erase(it++);
     }
     array1d_map_.clear();
+    CLOG(TRACE, LOG_RELEASE) << "---release map of integer 1D array data ...";
+    for (auto it = array1d_int_map_.begin(); it != array1d_int_map_.end(); ++it) {
+        if (nullptr != it->second) {
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
+            Release1DArray(it->second);
+        }
+    }
+    array1d_int_map_.clear();
     CLOG(TRACE, LOG_RELEASE) << "---release map of 2D array data ...";
-    for (auto it = array2d_map_.begin(); it != array2d_map_.end();) {
+    for (auto it = array2d_map_.begin(); it != array2d_map_.end(); ++it) {
         if (nullptr != it->second) {
             CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
-            Release2DArray(array2d_rows_map_[it->first], it->second);
+            Release2DArray(it->second);
         }
-        array2d_map_.erase(it++);
     }
     array2d_map_.clear();
+    CLOG(TRACE, LOG_RELEASE) << "---release map of integer 2D array data ...";
+    for (auto it = array2d_int_map_.begin(); it != array2d_int_map_.end(); ++it) {
+        if (nullptr != it->second) {
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first << " ...";
+            Release2DArray(it->second);
+        }
+    }
+    array2d_int_map_.clear();
 }
 
 bool DataCenter::GetFileInStringVector() {
@@ -100,16 +129,16 @@ bool DataCenter::GetFileInStringVector() {
     return true;
 }
 
-void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
+void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, FLTPT**& data) {
     rows = 12;
     cols = 5;
-    Initialize2DArray(rows, cols, data, 0.f);
+    Initialize2DArray(rows, cols, data, 0.);
     for (int i = 0; i < rows; i++) {
-        data[i][0] = 4.f;    /// element number
-        data[i][1] = 0.03f;  // P
-        data[i][2] = -0.65f; // T
-        data[i][3] = 0.f;    // PET
-        data[i][4] = 0.f;    // other Meteorology variables
+        data[i][0] = 4.;    // element number
+        data[i][1] = 0.03;  // P
+        data[i][2] = -0.65; // T
+        data[i][3] = 0.;    // PET
+        data[i][4] = 0.;    // other Meteorology variables
     }
 }
 
@@ -125,16 +154,15 @@ void DataCenter::DumpCaliParametersInDB() {
     fs << "# All calibrated parameters" << endl;
     for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr == it->second) continue;
-        ParamInfo* tmp_param = it->second;
-        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f)) ||
+        ParamInfo<FLTPT>* tmp_param = it->second;
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.)) ||
             (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             continue;
         }
         fs << tmp_param->Name << "," << tmp_param->Impact << "," << tmp_param->Change << endl;
     }
-
     fs.close();
 }
 
@@ -143,9 +171,25 @@ bool DataCenter::CheckAdjustment(const string& para_name) {
     auto find_iter = init_params_.find(upper_name);
     bool adjust_data = false;
     if (find_iter != init_params_.end()) {
-        ParamInfo* tmp_param = find_iter->second;
-        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f)) ||
+        ParamInfo<FLTPT>* tmp_param = find_iter->second;
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+            StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
+            adjust_data = true;
+        }
+    }
+    return adjust_data;
+}
+
+bool DataCenter::CheckAdjustmentInt(const string& para_name) {
+    string upper_name = GetUpper(para_name);
+    auto find_iter = init_params_int_.find(upper_name);
+    bool adjust_data = false;
+    if (find_iter != init_params_int_.end()) {
+        ParamInfo<int>* tmp_param = find_iter->second;
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.)) ||
             (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             adjust_data = true;
@@ -156,30 +200,33 @@ bool DataCenter::CheckAdjustment(const string& para_name) {
 
 void DataCenter::LoadAdjustRasterData(const string& para_name, const string& remote_filename,
                                       const bool is_optional /* = false */) {
-    FloatRaster* raster = ReadRasterData(remote_filename);
-    if (nullptr == raster) {
-        if (is_optional) return;
-        throw ModelException("DataCenter", "LoadAdjustRasterData", "Load " + remote_filename + " failed!");
+    FloatRaster* raster = nullptr;
+    if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
+        if (is_optional) { return; }
+        throw ModelException("DataCenter", "LoadAdjustRasterData",
+                             "Load " + remote_filename + " failed!");
     }
     string upper_name = GetUpper(para_name);
-    if (!CheckAdjustment(upper_name)) return;
+    if (!CheckAdjustment(upper_name)) { return; }
 
     int n, lyrs;
-    float* data = nullptr;
-    float** data2d = nullptr;
+    FLTPT* data = nullptr;
+    FLTPT** data2d = nullptr;
     /// 1D or 2D raster data
     if (raster->Is2DRaster()) {
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
-            if (is_optional) return;
-            throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
+            if (is_optional) { return; }
+            throw ModelException("DataCenter", "SetRaster",
+                                 "Load " + remote_filename + " failed!");
         }
         if (nullptr != data2d) {
             init_params_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
         }
     } else {
         if (!raster->GetRasterData(&n, &data)) {
-            if (is_optional) return;
-            throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
+            if (is_optional) { return; }
+            throw ModelException("DataCenter", "SetRaster",
+                                 "Load " + remote_filename + " failed!");
         }
         if (nullptr != data) {
             init_params_[upper_name]->Adjust1DRaster(n, data);
@@ -187,43 +234,64 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
     }
 }
 
+void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& remote_filename,
+                                         const bool is_optional /* = false */) {
+    IntRaster* raster = nullptr;
+    if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
+        if (is_optional) { return; }
+        throw ModelException("DataCenter", "LoadAdjustRasterData",
+                             "Load " + remote_filename + " failed!");
+    }
+    string upper_name = GetUpper(para_name);
+    if (!CheckAdjustmentInt(upper_name)) { return; }
+
+    int n, lyrs;
+    int* data = nullptr;
+    int** data2d = nullptr;
+    /// 1D or 2D raster data
+    if (raster->Is2DRaster()) {
+        if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
+            if (is_optional) { return; }
+            throw ModelException("DataCenter", "SetRaster",
+                                 "Load " + remote_filename + " failed!");
+        }
+        if (nullptr != data2d) {
+            init_params_int_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
+        }
+    }
+    else {
+        if (!raster->GetRasterData(&n, &data)) {
+            if (is_optional) { return; }
+            throw ModelException("DataCenter", "SetRaster",
+                                 "Load " + remote_filename + " failed!");
+        }
+        if (nullptr != data) {
+            init_params_int_[upper_name]->Adjust1DRaster(n, data);
+        }
+    }
+}
+
 void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
                                        const bool is_optional /* = false */) {
     int n;
-    float* data = nullptr;
+    FLTPT* data = nullptr;
     string upper_name = GetUpper(para_name);
-    //if (StringMatch(upper_name, Tag_Weight[0])) {
-    //    /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
-    //    ReadItpWeightData(remote_filename, n, data);
-    //} else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8[0])) { // TODO: delete after test. lj
-    //    /// 2. IF FLOWOUT_INDEX_D8
-    //    Read1DArrayData(remote_filename, n, data);
-    //    if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
-    //        throw ModelException("DataCenter", "LoadAdjustArrayData",
-    //                             "The data length derived from LoadAdjustArrayData in " + remote_filename +
-    //                             " is not the same as the template.");
-    //    }
-    // } else 
-    if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
-        /// 3. IF Meteorology sites data
+    if (StringMatch(upper_name, Tag_Elevation_Meteorology)) { // Meteorology sites data
         n = clim_station_->NumberOfSites(DataType_Meteorology);
         Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
-    } else if (StringMatch(upper_name, Tag_Elevation_Precipitation)) {
-        /// 4. IF Precipitation sites data
+    } else if (StringMatch(upper_name, Tag_Elevation_Precipitation)) { // Precipitation sites data
         n = clim_station_->NumberOfSites(DataType_Precipitation);
         Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Precipitation));
-    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) {
-        /// 5. IF Latitude of sites
+    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites
         n = clim_station_->NumberOfSites(DataType_Meteorology);
         Initialize1DArray(n, data, clim_station_->GetLatitude(DataType_Meteorology));
-    } else {
-        /// 6. IF any other 1D arrays, such as Heat units of all simulation years (HUTOT)
+    } else { // any other 1D arrays, such as Heat units of all simulation years (HUTOT)
         Read1DArrayData(remote_filename, n, data);
     }
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustment(upper_name)) {
-            init_params_[upper_name]->Adjust1DArray(n, data);;
+            init_params_[upper_name]->Adjust1DArray(n, data);
         }
 #ifdef HAS_VARIADIC_TEMPLATES
         array1d_map_.emplace(remote_filename, data);
@@ -235,10 +303,31 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     }
 }
 
+void DataCenter::LoadAdjustInt1DArrayData(const string& para_name, const string& remote_filename,
+                                          const bool is_optional /* = false */) {
+    int n;
+    int* data = nullptr;
+    string upper_name = GetUpper(para_name);
+    Read1DArrayData(remote_filename, n, data);
+    if (nullptr != data) {
+        // Adjust data according to calibration parameters
+        if (CheckAdjustmentInt(upper_name)) {
+            init_params_int_[upper_name]->Adjust1DArray(n, data);
+        }
+#ifdef HAS_VARIADIC_TEMPLATES
+        array1d_int_map_.emplace(remote_filename, data);
+        array1d_int_len_map_.emplace(remote_filename, n);
+#else
+        array1d_int_map_.insert(make_pair(remote_filename, data));
+        array1d_int_len_map_.insert(make_pair(remote_filename, n));
+#endif
+    }
+}
+
 void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& remote_filename) {
     int n_rows = 0;
     int n_cols = 1;
-    float** data = nullptr;
+    FLTPT** data = nullptr;
     string upper_name = GetUpper(para_name);
     /// Load data from DataCenter
     if (StringMatch(upper_name, TAG_OUT_OL_IUH)) {
@@ -274,16 +363,52 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     }
 }
 
-double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
+void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string& remote_filename) {
+    int n_rows = 0;
+    int n_cols = 1;
+    int** data = nullptr;
+    string upper_name = GetUpper(para_name);
+    // Including: ROUTING_LAYERS,
+    //            FLOWIN_INDEX,
+    //            FLOWOUT_INDEX,
+    Read2DArrayData(remote_filename, n_rows, n_cols, data);
+    if (nullptr != data) {
+        // Adjust data according to calibration parameters
+        if (CheckAdjustmentInt(upper_name)) {
+            init_params_int_[upper_name]->Adjust2DArray(n_rows, data);
+        }
+        /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+        array2d_int_map_.emplace(remote_filename, data);
+        array2d_int_rows_map_.emplace(remote_filename, n_rows);
+        array2d_int_cols_map_.emplace(remote_filename, n_cols);
+#else
+        array2d_int_map_.insert(make_pair(remote_filename, data));
+        array2d_int_rows_map_.insert(make_pair(remote_filename, n_rows));
+        array2d_int_cols_map_.insert(make_pair(remote_filename, n_cols));
+#endif
+    }
+}
+
+double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
-    map<string, vector<ParamInfo*> >& module_parameters = factory_->GetModuleParameters();
+    // floating point number
+    map<string, vector<ParamInfo<FLTPT>*> >& module_parameters = factory_->GetModuleParams();
+    // integer parameter
+    map<string, vector<ParamInfo<int>*> >& module_parameters_int = factory_->GetModuleParamsInt();
     for (size_t i = 0; i < module_ids.size(); i++) {
         string id = module_ids[i];
-        vector<ParamInfo*>& parameters = module_parameters[id];
+        vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
         for (size_t j = 0; j < parameters.size(); j++) {
-            ParamInfo* param = parameters[j];
+            ParamInfo<FLTPT>* param = parameters[j];
+            if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) { continue; }
+            SetData(module_settings[id], param, modules[i]);
+        }
+        vector<ParamInfo<int>*>& parameters_int = module_parameters_int[id];
+        for (size_t j = 0; j < parameters_int.size(); j++) {
+            ParamInfo<int>* param = parameters_int[j];
             if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) {
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
@@ -296,7 +421,7 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
     return timeconsume;
 }
 
-void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
+void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
                          SimulationModule* p_module) {
     double stime = TimeCounting();
     string name = param->BasicName;
@@ -328,7 +453,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
     if (StringMatch(param->Source, Source_ParameterDB_Optional)) is_opt = true;
 
     switch (param->Dimension) {
-        case DT_Unknown: throw ModelException("ModuleFactory", "SetData", "Type of " + param->Name + " is unknown.");
+        case DT_Unknown: throw ModelException("ModuleFactory", "SetData",
+                                              "Type of " + param->Name + " is unknown.");
         case DT_Single: SetValue(param, p_module);
             break;
         case DT_Array1D: Set1DData(name, remote_filename, p_module, is_opt);
@@ -354,36 +480,120 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
     " done, TIMESPAN " << timeconsume << " sec.";
 }
 
-void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
+void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<int>* param,
+                         SimulationModule* p_module) {
+    double stime = TimeCounting();
+    string name = param->BasicName;
+    if (setting->dataTypeString().empty()
+        && !StringMatch(param->BasicName, CONS_IN_ELEV)
+        && !StringMatch(param->BasicName, CONS_IN_LAT)
+        && !StringMatch(param->BasicName, CONS_IN_XPR)
+        && !StringMatch(param->BasicName, CONS_IN_YPR)) {
+        name = param->Name;
+    }
+    std::ostringstream oss;
+    size_t tmp = name.find("LOOKUP");
+    if (tmp == string::npos) {
+        oss << subbasin_id_ << "_" << name;
+    }
+    else {
+        oss << name;
+    }
+    if (StringMatch(name, Tag_Weight[0])) {
+        if (setting->dataTypeString() == DataType_Precipitation) {
+            oss << "_P";
+        }
+        else {
+            oss << "_M";
+        }
+    }
+    string remote_filename = oss.str();
+
+    // If the parameters from Database is optional.
+    bool is_opt = false;
+    if (StringMatch(param->Source, Source_ParameterDB_Optional)) is_opt = true;
+
+    switch (param->Dimension) {
+        case DT_Unknown: throw ModelException("ModuleFactory", "SetData",
+                                              "Type of " + param->Name + " is unknown.");
+        case DT_SingleInt: SetValue(param, p_module);
+            break;
+        case DT_Array1DInt: Set1DDataInt(name, remote_filename, p_module, is_opt);
+            break;
+        case DT_Array2DInt: Set2DDataInt(name, remote_filename, p_module, is_opt);
+            break;
+        case DT_Array1DDateValue:
+            break;
+        case DT_Raster1DInt: SetRasterInt(name, remote_filename, p_module, is_opt);
+            break;
+        case DT_Raster2DInt: SetRasterInt(name, remote_filename, p_module, is_opt);
+            break;
+        case DT_Scenario: SetScenario(p_module, is_opt);
+            break;
+        case DT_Reach: SetReaches(p_module);
+            break;
+        case DT_Subbasin: SetSubbasins(p_module);
+            break;
+        default: break;
+    }
+    double timeconsume = TimeCounting() - stime;
+    CLOG(TRACE, LOG_INIT) << "Set " << name << ": " << remote_filename <<
+    " done, TIMESPAN " << timeconsume << " sec.";
+}
+
+void DataCenter::SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module) {
     if (StringMatch(param->Name, Tag_DataType)) {
         // the data type is got from config.fig
         return;
     }
-    if (StringMatch(param->Name, Tag_SubbasinId)) {
-        param->Value = CVT_FLT(subbasin_id_);
-    } else if (StringMatch(param->Name, Tag_CellSize[0])) {
-        // valid cells number, do not be confused with Tag_CellWidth
-        param->Value = CVT_FLT(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
-    } else if (StringMatch(param->Name, Tag_CellWidth[0])) {
-        //cell size
-        param->Value = CVT_FLT(mask_raster_->GetCellWidth());
-    } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
-        param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
-    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
-        param->Value = CVT_FLT(input_->getDtHillslope());
-    } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
-        param->Value = CVT_FLT(input_->getDtChannel());
-    } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
-        param->Value = CVT_FLT(lyr_method_);
-    } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
-        param->Value = CVT_FLT(fdir_method_);
+    if (StringMatch(param->Name, Tag_CellWidth[0])) {
+        param->Value = CVT_FLT(mask_raster_->GetCellWidth()); //cell size
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
         } else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
-                throw ModelException("ModuleFactory", "SetValue", param->Name + " must be specified!");
+                throw ModelException("ModuleFactory", "SetValue",
+                                     param->Name + " must be specified!");
             }
+            return; // if optional, just return without assignment
+        }
+    }
+    p_module->SetValue(param->Name.c_str(), param->Value);
+}
+
+
+void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
+    if (StringMatch(param->Name, Tag_DataType)) {
+        // the data type is got from config.fig
+        return;
+    }
+    if (StringMatch(param->Name, Tag_CellSize[0])) {
+        // valid cells number, do not be confused with Tag_CellWidth
+        param->Value = mask_raster_->GetCellNumber(); // old code is ->Size();  they have the same function
+    } else if (StringMatch(param->Name, Tag_SubbasinId)) {
+        param->Value = subbasin_id_;
+    } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
+        param->Value = CVT_INT(input_->getDtDaily()); // return 86400 secs
+    } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
+        param->Value = CVT_INT(input_->getDtHillslope());
+    } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
+        param->Value = CVT_INT(input_->getDtChannel());
+    } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
+        param->Value = lyr_method_;
+    } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
+        param->Value = fdir_method_;
+    }
+    else {
+        if (init_params_int_.find(GetUpper(param->Name)) != init_params_int_.end()) {
+            param->Value = init_params_int_[GetUpper(param->Name)]->GetAdjustedValue();
+        }
+        else {
+            if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
+                throw ModelException("ModuleFactory", "SetValue",
+                                     param->Name + " must be specified!");
+            }
+            return; // if optional, just return without assignment
         }
     }
     p_module->SetValue(param->Name.c_str(), param->Value);
@@ -391,7 +601,7 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
 
 void DataCenter::Set1DData(const string& para_name, const string& remote_filename,
                            SimulationModule* p_module, const bool is_optional /* = false */) {
-    float* data = nullptr;
+    FLTPT* data = nullptr;
     /// If the data has not been loaded
     if (array1d_map_.find(remote_filename) == array1d_map_.end()) {
         LoadAdjust1DArrayData(para_name, remote_filename, is_optional);
@@ -403,7 +613,27 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
         return;
     }
     if (!is_optional) {
-        throw ModelException("ModuleFactory", "Set1DData", "Failed reading file " + remote_filename);
+        throw ModelException("ModuleFactory", "Set1DData",
+                             "Failed reading file " + remote_filename);
+    }
+}
+
+void DataCenter::Set1DDataInt(const string& para_name, const string& remote_filename,
+                              SimulationModule* p_module, const bool is_optional /* = false */) {
+    int* data = nullptr;
+    /// If the data has not been loaded
+    if (array1d_int_map_.find(remote_filename) == array1d_int_map_.end()) {
+        LoadAdjustInt1DArrayData(para_name, remote_filename, is_optional);
+    }
+    /// If the data has been read and stored in `array1d_map_` successfully
+    if (array1d_int_map_.find(remote_filename) != array1d_int_map_.end()) {
+        data = array1d_int_map_.at(remote_filename);
+        p_module->Set1DData(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
+        return;
+    }
+    if (!is_optional) {
+        throw ModelException("ModuleFactory", "Set1DData",
+                             "Failed reading file " + remote_filename);
     }
 }
 
@@ -411,16 +641,9 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
                            SimulationModule* p_module, const bool is_optional /* = false */) {
     int n_rows = 0;
     int n_cols = 1;
-    float** data = nullptr;
+    FLTPT** data = nullptr;
     string real_filename = remote_filename;
-    if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
-        /// Get ROUTING_LAYERS's real file name according to Layering method and flow direction algorithm
-        real_filename.append(LayeringMethodString[lyr_method_]);
-        real_filename.append(FlowDirMethodString[fdir_method_]);
-    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0])) {
-        /// Get FLOWIN/FLOWOUT_INDEX's real file name according to flow direction algorithm
-        real_filename.append(FlowDirMethodString[fdir_method_]);
-    } else if (StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
+    if (StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
         /// Get FLOWIN/FLOWOUT_FRACTION's real file name according to flow direction algorithm except D8
         if (fdir_method_ == D8) { return; }
         real_filename.append(FlowDirMethodString[fdir_method_]);
@@ -438,15 +661,49 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
         return;
     }
     if (!is_optional) {
-        throw ModelException("ModuleFactory", "Set2DData", "Failed reading file " + remote_filename);
+        throw ModelException("DataCenter", "Set2DData",
+                             "Failed reading file " + remote_filename);
+    }
+}
+
+void DataCenter::Set2DDataInt(const string& para_name, const string& remote_filename,
+                              SimulationModule* p_module, const bool is_optional /* = false */) {
+    int n_rows = 0;
+    int n_cols = 1;
+    int** data = nullptr;
+    string real_filename = remote_filename;
+    if (StringMatch(para_name, Tag_ROUTING_LAYERS[0])) {
+        /// Get ROUTING_LAYERS's real file name according to Layering method and flow direction algorithm
+        real_filename.append(LayeringMethodString[lyr_method_]);
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    }
+    else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0])) {
+        /// Get FLOWIN/FLOWOUT_INDEX's real file name according to flow direction algorithm
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    }
+    if (array2d_int_map_.find(real_filename) == array2d_int_map_.end()) {
+        LoadAdjustInt2DArrayData(para_name, real_filename);
+    }
+    /// Check if the data is already loaded
+    if (array2d_int_map_.find(real_filename) != array2d_int_map_.end()) {
+        data = array2d_int_map_.at(real_filename);
+        n_rows = array2d_int_rows_map_.at(real_filename);
+        n_cols = array2d_int_cols_map_.at(real_filename);
+
+        p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
+        return;
+    }
+    if (!is_optional) {
+        throw ModelException("DataCenter", "Set2DData",
+                             "Failed reading file " + remote_filename);
     }
 }
 
 void DataCenter::SetRaster(const string& para_name, const string& remote_filename,
                            SimulationModule* p_module, const bool is_optional /* = false */) {
     int n, lyrs;
-    float* data = nullptr;
-    float** data2d = nullptr;
+    FLTPT* data = nullptr;
+    FLTPT** data2d = nullptr;
     FloatRaster* raster = nullptr;
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
         LoadAdjustRasterData(para_name, remote_filename, is_optional);
@@ -463,6 +720,33 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     } else {
         if (!raster->GetRasterData(&n, &data)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
+        }
+        p_module->Set1DData(para_name.c_str(), n, data);
+    }
+}
+
+void DataCenter::SetRasterInt(const string& para_name, const string& remote_filename,
+                              SimulationModule* p_module, const bool is_optional /* = false */) {
+    int n, lyrs;
+    int* data = nullptr;
+    int** data2d = nullptr;
+    IntRaster* raster = nullptr;
+    if (rs_int_map_.find(remote_filename) == rs_int_map_.end()) {
+        LoadAdjustIntRasterData(para_name, remote_filename, is_optional);
+    }
+    if (rs_int_map_.find(remote_filename) == rs_int_map_.end()) {
+        return; // when encounter optional parameters
+    }
+    raster = rs_int_map_.at(remote_filename);
+    if (raster->Is2DRaster()) {
+        if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
+            throw ModelException("DataCenter", "SetRasterInt", "Load " + remote_filename + " failed!");
+        }
+        p_module->Set2DData(para_name.c_str(), n, lyrs, data2d);
+    }
+    else {
+        if (!raster->GetRasterData(&n, &data)) {
+            throw ModelException("DataCenter", "SetRasterInt", "Load " + remote_filename + " failed!");
         }
         p_module->Set1DData(para_name.c_str(), n, data);
     }
@@ -514,15 +798,15 @@ void DataCenter::UpdateOutputDate(time_t start_time, time_t end_time) {
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
-    map<string, vector<ParamInfo*> >& module_inputs = factory_->GetModuleInputs();
+    map<string, vector<ParamInfo<FLTPT>*> >& module_inputs = factory_->GetModuleInputs();
     size_t n = module_ids.size();
     for (size_t i = 0; i < n; i++) {
         string id = module_ids[i];
         SimulationModule* p_module = modules[i];
-        vector<ParamInfo*>& inputs = module_inputs[id];
+        vector<ParamInfo<FLTPT>*>& inputs = module_inputs[id];
         string data_type = module_settings[id]->dataTypeString();
         for (size_t j = 0; j < inputs.size(); j++) {
-            ParamInfo* param = inputs[j];
+            ParamInfo<FLTPT>* param = inputs[j];
             if (param->DependPara != nullptr) {
                 continue;
             } //the input which comes from other modules will not change when the date is change.
@@ -533,7 +817,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                 continue;
             if (data_type.length() > 0) {
                 int datalen;
-                float* data;
+                FLTPT* data;
                 clim_station_->GetTimeSeriesData(t, data_type, &datalen, &data);
                 if (StringMatch(param->Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int i_data = 0; i_data < datalen; i_data++) {
@@ -550,7 +834,6 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
     if (nullptr == scenario_) {
         return;
     }
-
     map<int, BMPFactory *> bmp_factories = scenario_->GetBMPFactories();
     for (auto iter = bmp_factories.begin(); iter != bmp_factories.end(); ++iter) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
@@ -564,20 +847,20 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
         cout << "Update by Scenario parameters stable" << endl;
         BMPArealStructFactory* tmp_bmp_areal_struct_factory = static_cast<BMPArealStructFactory *>(iter->second);
         map<int, BMPArealStruct *> arealbmps = tmp_bmp_areal_struct_factory->getBMPsSettings();
-        float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
+        int* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
         vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDs();
         /// Get landuse data of current subbasin ("0_" for the whole basin)
         string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE[0]);
         int nsize = -1;
-        float* ludata = nullptr;
-        rs_map_[lur]->GetRasterData(&nsize, &ludata);
+        int* ludata = nullptr;
+        rs_int_map_[lur]->GetRasterData(&nsize, &ludata);
 
         for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
 
             cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                     << iter2->second->getBMPName() << endl;
             vector<int>& suitablelu = iter2->second->getSuitableLanduse();
-            map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
+            map<string, ParamInfo<FLTPT>*>& updateparams = iter2->second->getParameters();
             for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
                 string paraname = iter3->second->Name;
                 cout << "   -- Parameter ID: " << paraname << endl;
@@ -588,12 +871,12 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                             " will not work as expected." << endl;
                     continue;
                 }
-                ParamInfo* tmpparam = init_params_[paraname];
+                ParamInfo<FLTPT>* tmpparam = init_params_[paraname];
                 if (iter3->second->Change.empty()) {
                     iter3->second->Change = tmpparam->Change;
                 }
                 iter3->second->Maximum = tmpparam->Maximum;
-                iter3->second->Minimun = tmpparam->Minimun;
+                iter3->second->Minimum = tmpparam->Minimum;
                 // Perform update
                 string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
                 if (rs_map_.find(remote_filename) == rs_map_.end()) {
@@ -605,13 +888,13 @@ void DataCenter::UpdateScenarioParametersStable(const int subbsn_id) {
                 int count = 0;
                 if (rs_map_[remote_filename]->Is2DRaster()) {
                     int lyr = -1;
-                    float** data2d = nullptr;
+                    FLTPT** data2d = nullptr;
                     rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                     count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
                                                           sel_ids, ludata, suitablelu);
                 }
                 else {
-                    float* data = nullptr;
+                    FLTPT* data = nullptr;
                     rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                     count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
                                                           ludata, suitablelu);
@@ -661,11 +944,11 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
             else{
                 needUpdateTime = lastUpdateTime + changeFrequency;
                 //needUpdateTime = lastUpdateTime + 2;// changeFrequency;
-            }                
+            }
 
             if (t >= needUpdateTime){
                 cout << "Update scenario parameters dynamically." << endl;
-                float* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
+                int* mgtunits = tmp_bmp_areal_struct_factory->GetRasterData();
                 vector<int> sel_ids = tmp_bmp_areal_struct_factory->getUnitIDsByIndex();
                 map<int, int> unitUpdateTimes = tmp_bmp_areal_struct_factory->getUpdateTimesByIndex();
                 // some spatial units need to update
@@ -673,13 +956,13 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                     /// Get landuse data of current subbasin ("0_" for the whole basin)
                     string lur = GetUpper(ValueToString(subbsn_id) + "_" + VAR_LANDUSE[0]);
                     int nsize = -1;
-                    float* ludata = nullptr;
-                    rs_map_[lur]->GetRasterData(&nsize, &ludata);
+                    int* ludata = nullptr;
+                    rs_int_map_[lur]->GetRasterData(&nsize, &ludata);
 
                     cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                             << iter2->second->getBMPName() << endl;
                     vector<int>& suitablelu = iter2->second->getSuitableLanduse();
-                    map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
+                    map<string, ParamInfo<FLTPT> *>& updateparams = iter2->second->getParameters();
                     for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
                         string paraname = iter3->second->Name;
 
@@ -694,12 +977,12 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                                     " will not work as expected." << endl;
                             continue;
                         }
-                        ParamInfo* tmpparam = init_params_[paraname];
+                        ParamInfo<FLTPT>* tmpparam = init_params_[paraname];
                         if (iter3->second->Change.empty()) {
                             iter3->second->Change = tmpparam->Change;
                         }
                         iter3->second->Maximum = tmpparam->Maximum;
-                        iter3->second->Minimun = tmpparam->Minimun;
+                        iter3->second->Minimum = tmpparam->Minimum;
 
                         // Perform update
                         string remote_filename = GetUpper(ValueToString(subbsn_id) + "_" + paraname);
@@ -719,7 +1002,7 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                         int count = 0;
                         if (rs_map_[remote_filename]->Is2DRaster()) {
                             int lyr = -1;
-                            float** data2d = nullptr;
+                            FLTPT** data2d = nullptr;
                             rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                             count = iter3->second->Adjust2DRasterWithImpactIndexes(nsize, lyr, data2d, mgtunits,
                                 sel_ids, unitUpdateTimes, ludata, suitablelu);
@@ -736,7 +1019,7 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                             //#endif
                         }
                         else {
-                            float* data = nullptr;
+                            FLTPT* data = nullptr;
                             rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                             count = iter3->second->Adjust1DRasterWithImpactIndexes(nsize, data, mgtunits, sel_ids,
                                 unitUpdateTimes, ludata, suitablelu);

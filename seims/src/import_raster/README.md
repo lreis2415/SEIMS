@@ -1,1 +1,0 @@
-Import raster data to MongoDB as GridFS.

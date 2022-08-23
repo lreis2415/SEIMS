@@ -59,7 +59,7 @@ email:  dtarb@usu.edu
 //const short d2[9] = { 0,1, 1, 0,-1,-1,-1,0,1};
 // moved to commonlib.h
 
-//Transport limited accumulation funciton
+//Transport limited accumulation function
 int tlaccum(char *angfile,
             char *tsupfile,
             char *tcfile,

@@ -27,7 +27,7 @@ typedef struct paramInfGRID
     float w2;
     float r2;
     float k2;
-};
+} paramInfGRID;
 /*!
  * \struct TypLocAttr
  * \brief Terrain attribute values at the typical location (col, row)
@@ -37,9 +37,9 @@ typedef struct TypLocAttr
 {
     int col, row;
     float *Value;
-};
+} TypLocAttr;
 
-int FuzzySlpPosInf(char *protofile, int prototag, int paramsnum, struct paramInfGRID *paramsgrd, float exponent,
+int FuzzySlpPosInf(char *protofile, int prototag, int paramsnum, paramInfGRID *paramsgrd, float exponent,
                    char *simfile);
 
 #endif /* FUZZYSLPPOS_INFERENCE_H */
