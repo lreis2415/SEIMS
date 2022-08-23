@@ -250,7 +250,7 @@ int SUR_GreenAmpt::Execute() {
                 cnday = Calculate_CN(iCell);
                 // calculate effective hydraulic conductivity
                 sol_k = m_Conductivity[iCell];
-                adj_hc = (56.82f * pow(sol_k, 0.286f)) / (1.f + 0.051f * exp(0.062f * cnday)) - 2.0f;
+                adj_hc = (56.82f * CalPow(sol_k, 0.286f)) / (1.f + 0.051f * CalExp(0.062f * cnday)) - 2.0f;
                 if (adj_hc <= 0.0) {
                     adj_hc = 0.001f;
                 }
@@ -293,7 +293,7 @@ int SUR_GreenAmpt::Execute() {
                     tst = adj_hc * m_TimeStep / 60.0f;
                     do {
                         f1 = 0.0f;
-                        f1 = cuminf + adj_hc * m_TimeStep / 60.0f + psidt * log((tst + psidt) / (cuminf + psidt));
+                        f1 = cuminf + adj_hc * m_TimeStep / 60.0f + psidt * CalLn((tst + psidt) / (cuminf + psidt));
                         if (abs(f1 - tst) <= 0.001) {
                             cuminf = f1;
                             break;
@@ -457,8 +457,8 @@ float SUR_GreenAmpt::Calculate_CN(int cell) {
         xx = 20.f;
     }
     // traditional CN method (function of soil water)
-    if ((sw + exp(xx)) > 0.001f) {
-        s = this->m_sMax[cell] * (1.f - sw / (sw + exp(xx)));  //2:1.1.6
+    if ((sw + CalExp(xx)) > 0.001f) {
+        s = this->m_sMax[cell] * (1.f - sw / (sw + CalExp(xx)));  //2:1.1.6
     }
 
     CNday = 25400.f / (s + 254.f);  //2:1.1.11
@@ -476,9 +476,9 @@ void SUR_GreenAmpt::initalW1W2() {
         float wsat = this->m_porosity[i] * this->m_rootDepth[i];
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
-        c1 = cnn - 20.f * c2 / (c2 + exp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
+        c1 = cnn - 20.f * c2 / (c2 + CalExp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
         c1 = Max(c1, 0.4f * cnn);
-        c3 = cnn * exp(0.006729f * c2);                                //CN3  2:1.1.5
+        c3 = cnn * CalExp(0.006729f * c2);                                //CN3  2:1.1.5
 
         //calculate maximum retention parameter value
         smx = 254.f * (100.f / c1 - 1.f);                            //2:1.1.2
@@ -489,8 +489,8 @@ void SUR_GreenAmpt::initalW1W2() {
         rto3 = 1.f - s3 / smx;
         rtos = 1.f - 2.54f / smx;
 
-        xx = log(fieldcap / rto3 - fieldcap);
-        wrt2 = (xx - log(wsat / rtos - wsat)) /
+        xx = CalLn(fieldcap / rto3 - fieldcap);
+        wrt2 = (xx - CalLn(wsat / rtos - wsat)) /
             (wsat - fieldcap);    //soilWater :completely saturated  (= soil_por - sol_wp)  w1  2:1.1.8
         wrt1 = xx + (fieldcap * wrt2); //w2 2:1.1.7
 
@@ -512,16 +512,15 @@ void SUR_GreenAmpt::initialWFMP() {
     }
 }
 
-float SUR_GreenAmpt::Calculate_WFMP(float sol_por, float sol_clay,
-                             float sand) //this function calculated the wetting front matric potential
-{
-    float wfmp = 10.0f * exp(6.5309f - 7.32561f * sol_por + 3.809479f * pow(sol_por, 2) + 0.001583f *
-        pow(sol_clay, 2) +
+float SUR_GreenAmpt::Calculate_WFMP(float sol_por, float sol_clay, float sand) {
+    //this function calculated the wetting front matric potential
+    float wfmp = 10.0f * CalExp(6.5309f - 7.32561f * sol_por + 3.809479f * CalPow(sol_por, 2) + 0.001583f *
+        CalPow(sol_clay, 2) +
         0.000344f * sand * sol_clay - 0.049837f * sol_por * sand + 0.001608f *
-        pow(sol_por, 2) * pow(sand, 2) +
-        0.001602f * pow(sol_por, 2) * pow(sol_clay, 2) -
-        0.0000136f * pow(sand, 2) * sol_clay - 0.003479f * pow(sol_clay, 2) *
-        sol_por - 0.000799f * pow(sand, 2) * sol_por);
+        CalPow(sol_por, 2) * CalPow(sand, 2) +
+        0.001602f * CalPow(sol_por, 2) * CalPow(sol_clay, 2) -
+        0.0000136f * CalPow(sand, 2) * sol_clay - 0.003479f * CalPow(sol_clay, 2) *
+        sol_por - 0.000799f * CalPow(sand, 2) * sol_por);
 
     return wfmp;
 }

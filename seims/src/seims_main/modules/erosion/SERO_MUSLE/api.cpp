@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_SERO_MUSLE[0]);
     mdi.SetName(M_SERO_MUSLE[0]);
-    mdi.SetVersion("1.3");
+    mdi.SetVersion("1.4");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -29,7 +29,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_ACC[0], UNIT_NON_DIM, VAR_ACC[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLPLEN[0], UNIT_LEN_M, VAR_SLPLEN[1], Source_ParameterDB_Optional, DT_Raster1D);
-    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1DInt);
 
     mdi.AddParameter(VAR_DETACH_SAND[0], UNIT_NON_DIM, VAR_DETACH_SAND[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DETACH_SILT[0], UNIT_NON_DIM, VAR_DETACH_SILT[1], Source_ParameterDB, DT_Raster1D);
@@ -38,10 +38,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_DETACH_LAG[0], UNIT_NON_DIM, VAR_DETACH_LAG[1], Source_ParameterDB, DT_Raster1D);
 
     // C-Factor related
-    mdi.AddParameter(VAR_ICFAC[0], UNIT_NON_DIM, VAR_ICFAC[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_ICFAC[0], UNIT_NON_DIM, VAR_ICFAC[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_USLE_C[0], UNIT_NON_DIM, VAR_USLE_C[1], Source_ParameterDB, DT_Raster1D);
     // Update USLE_C factor by average minimum C factor for the land cover (icfac = 0)
-    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddInput(VAR_SOL_COV[0], UNIT_CONT_KGHA, VAR_SOL_COV[1], Source_Module_Optional, DT_Raster1D);
     // Update USLE_C factor by the new calculation method from RUSLE without the ave. min. C (icfac = 1)
     mdi.AddParameter(VAR_RSDCOV_COEF[0], UNIT_NON_DIM, VAR_RSDCOV_COEF[1], Source_ParameterDB, DT_Single);

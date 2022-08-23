@@ -18,15 +18,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(M_IUH_SED_OL[0]);
     mdi.SetName(M_IUH_SED_OL[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_OL_IUH[0], UNIT_NON_DIM, VAR_OL_IUH[1], Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1DInt);
 
     mdi.AddInput(VAR_SOER[0], UNIT_KG, VAR_SOER[1], Source_Module, DT_Raster1D);
 

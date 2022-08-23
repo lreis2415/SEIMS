@@ -22,7 +22,6 @@ InputStation::~InputStation() {
             delete it->second;
             it->second = nullptr;
         }
-        // m_measurement.erase(it++);
     }
     m_measurement.clear();
 
@@ -31,7 +30,6 @@ InputStation::~InputStation() {
             delete[] it->second;
             it->second = nullptr;
         }
-        // m_latitude.erase(it++);
     }
     m_latitude.clear();
     for (auto it = m_elevation.begin(); it != m_elevation.end(); ++it) {
@@ -39,15 +37,14 @@ InputStation::~InputStation() {
             delete[] it->second;
             it->second = nullptr;
         }
-        // m_elevation.erase(it++);
     }
     m_elevation.clear();
 }
 
-void InputStation::build_query_bson(const int nSites, vector<int>& siteIDList,
+void InputStation::build_query_bson(const int nSites, const vector<int>& siteIDList,
                                     const string& siteType, bson_t* query) {
     /// build query statement
-    //query = bson_new();  query has been initalized before
+    //query = bson_new();  query has been initialized before
     bson_t* child = bson_new();
     bson_t* child2 = bson_new();
     bson_t* child3 = bson_new();
@@ -107,13 +104,14 @@ void InputStation::ReadSitesInfo(const string& siteType, const string& hydroDBNa
     build_query_bson(nSites, siteIDList, siteType, query);
     //printf("%s\n",bson_as_json(query,NULL));
 
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_SITES)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName,
+                                                                        DB_TAB_SITES)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     const bson_t* record = NULL;
-    float* pEle = new float[nSites];
-    float* pLat = new float[nSites];
-    float ele, lat;
+    FLTPT* pEle = new FLTPT[nSites];
+    FLTPT* pLat = new FLTPT[nSites];
+    FLTPT ele, lat;
     bool hasData = false;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &record)) {
         hasData = true;
@@ -131,13 +129,15 @@ void InputStation::ReadSitesInfo(const string& siteType, const string& hydroDBNa
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_SITE_LAT)) {
             GetNumericFromBsonIterator(&iter, lat);
         } else {
-            throw ModelException("InputStation", "ReadSitesInfo", "The Lat field does not exist in Sites table.");
+            throw ModelException("InputStation", "ReadSitesInfo",
+                                 "The Lat field does not exist in Sites table.");
         }
 
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_SITE_ELEV)) {
             GetNumericFromBsonIterator(&iter, ele);
         } else {
-            throw ModelException("InputStation", "ReadSitesInfo", "The Lat field does not exist in Sites table.");
+            throw ModelException("InputStation", "ReadSitesInfo",
+                                 "The Lat field does not exist in Sites table.");
         }
         pLat[siteIndex] = lat;
         pEle[siteIndex] = ele;
@@ -170,7 +170,7 @@ void InputStation::ReadSitesData(const string& hydroDBName, const string& sitesL
     }
 }
 
-void InputStation::GetTimeSeriesData(const time_t time, const string& type, int* nRow, float** data) {
+void InputStation::GetTimeSeriesData(const time_t time, const string& type, int* nRow, FLTPT** data) {
     Measurement* m = m_measurement[type];
     *nRow = m->NumberOfSites();
     //cout << type << "\t" << *nRow << endl;

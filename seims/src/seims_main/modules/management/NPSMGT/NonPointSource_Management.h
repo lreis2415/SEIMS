@@ -47,7 +47,7 @@ private:
     /// time step (second)
     float m_timestep;
     /// management fields raster
-    float* m_mgtFields;
+    int* m_mgtFields;
     /*!
      * areal source operations
      * key: unique index, BMPID * 100000 + subScenarioID

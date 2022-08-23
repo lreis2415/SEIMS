@@ -18,13 +18,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PER_STR[0]);
     mdi.SetName(M_PER_STR[0]);
-    mdi.SetVersion("0.5");
+    mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, UNIT_NON_DIM, File_Input, DT_Single);
+    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, UNIT_NON_DIM, File_Input, DT_SingleInt);
     mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOILTHICK[0], UNIT_LEN_M, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_UL[0], UNIT_DEPTH_MM, VAR_SOL_UL[1], Source_ParameterDB, DT_Raster2D);   // m_sat
@@ -36,7 +36,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_SOL_SW[0], UNIT_DEPTH_MM, VAR_SOL_SW[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_POT_VOL[0], UNIT_DEPTH_MM, VAR_POT_VOL[1], Source_Module_Optional, DT_Raster1D);
-    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1DInt);
     // set the output variables
     mdi.AddOutput(VAR_PERCO[0], UNIT_DEPTH_MM, VAR_PERCO[1], DT_Raster2D);
 

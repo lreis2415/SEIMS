@@ -6,6 +6,7 @@
  *   - 1. 2016-06-30 - hr - Initial implementation.
  *   - 2. 2018-03-23 - lj - Debug for mpi version.
  *   - 3. 2018-05-15 - lj - Code review and reformat.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Huiran Gao, Liangjun Zhu
  */
@@ -33,11 +34,15 @@ public:
 
     ~NutrientinGroundwater();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nRows, int nCols, FLTPT** data) OVERRIDE;
 
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
@@ -47,7 +52,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
@@ -57,7 +62,7 @@ private:
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// cell width of grid map (m)
-    float m_cellWth;
+    FLTPT m_cellWth;
     /// number of cells
     int m_nCells;
     /// time step (s)
@@ -65,41 +70,41 @@ private:
 
     /// input data
     /// gw0
-    float m_gw0;
+    FLTPT m_gw0;
     /// nitrate N concentration in groundwater loading to reach (mg/L, i.e. g/m3)
-    float* m_gwNO3Conc;
+    FLTPT* m_gwNO3Conc;
     /// kg
-    float* m_gwNO3;
+    FLTPT* m_gwNO3;
     /// soluble P concentration in groundwater loading to reach (mg/L, i.e. g/m3)
-    float* m_gwSolPConc;
+    FLTPT* m_gwSolPConc;
     /// kg
-    float* m_gwSolP;
+    FLTPT* m_gwSolP;
     /// groundwater contribution to stream flow (m3/s)
-    float* m_gw_q;
+    FLTPT* m_gw_q;
     /// groundwater storage
-    float* m_gwStor;
+    FLTPT* m_gwStor;
     /// amount of nitrate percolating past bottom of soil profile, kg
-    float* m_perco_no3_gw;
+    FLTPT* m_perco_no3_gw;
     /// amount of solute P percolating past bottom of soil profile, kg
-    float* m_perco_solp_gw;
+    FLTPT* m_perco_solp_gw;
 
     // soil related
     /// amount of nitrogen stored in the nitrate pool in soil layer
-    float** m_soilNO3;
+    FLTPT** m_soilNO3;
     /// amount of soluble phosphorus stored in the soil layer
-    float** m_soilSolP;
+    FLTPT** m_soilSolP;
     /// max number of soil layers
     int m_maxSoilLyrs;
     /// number of soil layers of each cell
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
 
 
     /// outputs
 
     /// nitrate loading to reach in groundwater to channel
-    float* m_gwNO3ToCh;
+    FLTPT* m_gwNO3ToCh;
     /// soluble P loading to reach in groundwater to channel
-    float* m_gwSolPToCh;
+    FLTPT* m_gwSolPToCh;
 
     /// subbasin related
     /// the total number of subbasins
@@ -107,7 +112,7 @@ private:
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
-    float* m_subbsnID;
+    int* m_subbsnID;
     /// subbasins information
     clsSubbasins* m_subbasinsInfo;
 };

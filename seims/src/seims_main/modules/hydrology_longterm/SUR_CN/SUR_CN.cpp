@@ -372,8 +372,8 @@ float SUR_CN::Calculate_CN(float sm, int cell) {
         xx = 20.f;
     }
     // traditional CN method (function of soil water)
-    if ((sw + exp(xx)) > 0.001f) {
-        s = m_sMax[cell] * (1.f - sw / (sw + exp(xx)));  //2:1.1.6
+    if ((sw + CalExp(xx)) > 0.001f) {
+        s = m_sMax[cell] * (1.f - sw / (sw + CalExp(xx)));  //2:1.1.6
     }
     CNday = 25400.f / (s + 254.f);  //2:1.1.11
     return CNday;
@@ -416,9 +416,9 @@ void SUR_CN::initalW1W2() {
         //float wsat = m_porosity[i] * m_rootDepth[i];
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
-        c1 = cnn - 20.f * c2 / (c2 + exp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
+        c1 = cnn - 20.f * c2 / (c2 + CalExp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
         c1 = Max(c1, 0.4f * cnn);
-        c3 = cnn * exp(0.006729f * c2);                                //CN3  2:1.1.5
+        c3 = cnn * CalExp(0.006729f * c2);                                //CN3  2:1.1.5
 
         //calculate maximum retention parameter value
         smx = 254.f * (100.f / c1 - 1.f);                            //2:1.1.2
@@ -429,8 +429,8 @@ void SUR_CN::initalW1W2() {
         rto3 = 1.f - s3 / smx;
         rtos = 1.f - 2.54f / smx;
 
-        xx = log(fieldcap / rto3 - fieldcap);
-        wrt2 = (xx - log(wsat / rtos - wsat)) /
+        xx = CalLn(fieldcap / rto3 - fieldcap);
+        wrt2 = (xx - CalLn(wsat / rtos - wsat)) /
             (wsat - fieldcap);    //soilWater :completely saturated  (= soil_por - sol_wp)  w1  2:1.1.8
         wrt1 = xx + (fieldcap * wrt2); //w2 2:1.1.7
 
@@ -450,9 +450,9 @@ void SUR_CN::initalW1W2() {
 //m_CN1[i] = 0.f;
 ///// calculate moisture condition I and III curve numbers
 //c2 = 100. - cnn;
-//m_CN1[i] = cnn - 20. * c2 / (c2 + exp(2.533 - 0.0636 * c2));
+//m_CN1[i] = cnn - 20. * c2 / (c2 + CalExp(2.533 - 0.0636 * c2));
 //m_CN1[i] = max(m_CN1[i], 0.4 * cnn);
-//m_CN3[i] = cnn * exp(0.006729 * c2);
+//m_CN3[i] = cnn * CalExp(0.006729 * c2);
 
 ///// calculate maximum retention parameter value
 //m_reCoefSoilMois[i] = 254. * (100. / m_CN1[i] - 1.);

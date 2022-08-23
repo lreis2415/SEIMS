@@ -9,6 +9,7 @@
  *   - 2. 2018-05-10 - lj -
  *        -# Reformat, especially naming style (sync update in "text.h").
  *        -# Code optimization, e.g., use multiply instead of divide.
+ *   - 3. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Huiran Gao, Liangjun Zhu
  */
@@ -35,11 +36,17 @@ public:
 
     ~NutrientMovementViaWater();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, int** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -47,9 +54,9 @@ public:
 
     int Execute() OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
+    void GetValue(const char* key, FLTPT* value) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
@@ -81,17 +88,17 @@ private:
     void SumBySubbasin();
 private:
     /// cell width of grid map (m)
-    float m_cellWth;
+    FLTPT m_cellWth;
     /// cell area, ha
-    float m_cellArea;
+    FLTPT m_cellArea;
     /// number of cells
     int m_nCells;
     /// soil layers
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     /// maximum soil layers
     int m_maxSoilLyrs;
     /// stream link
-    float* m_rchID;
+    int* m_rchID;
     /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
@@ -102,98 +109,98 @@ private:
     /// input data
 
     /// factor which converts kg/kg soil to kg/ha
-    float** m_cvtWt;
+    FLTPT** m_cvtWt;
     /// drainage tile flow in soil profile
-    float m_qtile;
+    FLTPT m_qtile;
     /// Phosphorus soil partitioning coefficient
-    float m_phoskd;
+    FLTPT m_phoskd;
     /// phosphorus percolation coefficient (0-1)
-    float m_pperco;
+    FLTPT m_pperco;
     /// nitrate percolation coefficient (0-1)
-    float m_nperco;
+    FLTPT m_nperco;
     /// Conversion factor from CBOD to COD
-    float m_cod_n;
+    FLTPT m_cod_n;
     /// Reaction coefficient from CBOD to COD
-    float m_cod_k;
+    FLTPT m_cod_k;
 
     /// soil loss caused by water erosion in overland
-    float* m_olWtrEroSed;
+    FLTPT* m_olWtrEroSed;
     // fraction of porosity from which anions are excluded
-    float* m_anionExclFr;
+    FLTPT* m_anionExclFr;
     // distribution of surface runoff generated
-    float* m_surfRf;
+    FLTPT* m_surfRf;
     /// initial septic operational condition (active-1, failing-2, non_septic-0)
-    float m_isep_opt;
+    int m_isep_opt;
     /// soil layer where drainage tile is located
-    float* m_drainLyr;
+    int* m_drainLyr;
     /// crack volume potential of soil
-    float* m_soilCrk;
+    FLTPT* m_soilCrk;
     /// distance to the downstream reach
-    float* m_distToRch;
+    FLTPT* m_distToRch;
     /// amount of water held in the soil layer at saturation
-    float** m_soilSat;
+    FLTPT** m_soilSat;
 
     /// lateral flow in soil layer
-    float** m_subSurfRf;
+    FLTPT** m_subSurfRf;
     /// percolation from soil layer
-    float** m_soilPerco;
+    FLTPT** m_soilPerco;
     /// bulk density of the soil
-    float** m_soilBD;
+    FLTPT** m_soilBD;
     /// depth to bottom of soil layer, sol_z in SWAT
-    float** m_soilDepth;
+    FLTPT** m_soilDepth;
 
     /// flow out indexes
-    float** m_flowOutIdx;
+    int** m_flowOutIdx;
     /// flow out fractions
-    float** m_flowOutFrac;
+    FLTPT** m_flowOutFrac;
     /**
     *	@brief Routing layers according to the flow direction
     *
     *	There are not flow relationships within each layer.
     *	The first element in each layer is the number of cells in the layer
     */
-    float** m_rteLyrs;
+    int** m_rteLyrs;
     /// number of routing layers
     int m_nRteLyrs;
     /// amount of organic nitrogen in surface runoff
-    float* m_sedorgn;
+    FLTPT* m_sedorgn;
     /// average air temperature
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     ///percent organic carbon in soil layer (%)
-    float** m_soilCbn;
+    FLTPT** m_soilCbn;
     /// soil thick of each layer (mm)
-    float** m_soilThk;
+    FLTPT** m_soilThk;
 
     /// output data
     /// amount of nitrate transported with lateral flow, kg/ha
-    float* m_latNO3;
+    FLTPT* m_latNO3;
     /// amount of nitrate percolating past bottom of soil profile, kg/ha
-    float* m_percoN;
+    FLTPT* m_percoN;
     /// amount of solute P percolating past bottom of soil profile
-    float* m_percoP;
+    FLTPT* m_percoP;
     /// amount of nitrate transported with surface runoff, kg/ha
-    float* m_surfRfNO3;
+    FLTPT* m_surfRfNO3;
     /// amount of ammonian transported with surface runoff, kg/ha
-    float* m_surfRfNH4;
+    FLTPT* m_surfRfNH4;
     /// amount of soluble phosphorus in surface runoff
-    float* m_surfRfSolP;
+    FLTPT* m_surfRfSolP;
     /// carbonaceous oxygen demand of surface runoff
-    float* m_surfRfCod;
+    FLTPT* m_surfRfCod;
     /// chlorophyll-a concentration in water yield
-    float* m_surfRfChlA;
+    FLTPT* m_surfRfChlA;
     /// dissolved oxygen concentration in the surface runoff
-    //float* m_doxq;
+    //FLTPT* m_doxq;
     /// dissolved oxygen saturation concentration
-    //float* m_soxy;
+    //FLTPT* m_soxy;
 
     // N and P to channel
-    float* m_latNO3ToCh;     ///< amount of nitrate transported with lateral flow to channel, kg
-    float* m_surfRfNO3ToCh;  ///< amount of nitrate transported with surface runoff to channel, kg
-    float* m_surfRfNH4ToCh;  ///< amount of ammonian transported with surface runoff to channel, kg
-    float* m_surfRfSolPToCh; ///< amount of soluble phosphorus in surface runoff to channel, kg
-    float* m_percoNGw;       ///< amount of nitrate percolating past bottom of soil profile sum by sub-basin, kg
-    float* m_percoPGw;       ///< amount of solute P percolating past bottom of soil profile sum by sub-basin, kg
-    float* m_surfRfCodToCh;  ///< amount of COD to reach in surface runoff (kg)
+    FLTPT* m_latNO3ToCh;     ///< amount of nitrate transported with lateral flow to channel, kg
+    FLTPT* m_surfRfNO3ToCh;  ///< amount of nitrate transported with surface runoff to channel, kg
+    FLTPT* m_surfRfNH4ToCh;  ///< amount of ammonian transported with surface runoff to channel, kg
+    FLTPT* m_surfRfSolPToCh; ///< amount of soluble phosphorus in surface runoff to channel, kg
+    FLTPT* m_percoNGw;       ///< amount of nitrate percolating past bottom of soil profile sum by sub-basin, kg
+    FLTPT* m_percoPGw;       ///< amount of solute P percolating past bottom of soil profile sum by sub-basin, kg
+    FLTPT* m_surfRfCodToCh;  ///< amount of COD to reach in surface runoff (kg)
 
     /// subbasin related
     /// the total number of subbasins
@@ -201,21 +208,21 @@ private:
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
-    float* m_subbsnID;
+    int* m_subbsnID;
     /// subbasins information
     clsSubbasins* m_subbasinsInfo;
 
     /// input & output
     /// average annual amount of phosphorus leached into second soil layer
-    float m_wshdLchP;
+    FLTPT m_wshdLchP;
 
     /// amount of nitrogen stored in the nitrate pool in soil layer
-    float** m_soilNO3;
+    FLTPT** m_soilNO3;
     /// amount of phosphorus stored in solution
-    float** m_soilSolP;
+    FLTPT** m_soilSolP;
 
     /* CENTURY C/N cycling model related */
     /// amount of Carbon lost with sediment, kg/ha, input from NUTRSED module
-    float* m_sedLossCbn;
+    FLTPT* m_sedLossCbn;
 };
 #endif /* SEIMS_MODULE_NUTRMV_H */

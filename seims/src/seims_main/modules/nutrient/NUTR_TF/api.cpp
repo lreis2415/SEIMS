@@ -16,7 +16,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_NUTR_TF[0]);
     mdi.SetName(M_NUTR_TF[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -28,13 +28,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_PSP[0], UNIT_NON_DIM, VAR_PSP[1], Source_ParameterDB, DT_Single);
 
     /// idplt in SWAT is a lookup array. in SEIMS, use landcover
-    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDCOVER[0], UNIT_NON_DIM, VAR_LANDCOVER[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_PL_RSDCO[0], UNIT_NON_DIM, VAR_PL_RSDCO[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_RSDIN[0], UNIT_CONT_KGHA, VAR_SOL_RSDIN[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_CSWAT[0], UNIT_NON_DIM, VAR_CSWAT[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CSWAT[0], UNIT_NON_DIM, VAR_CSWAT[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_SOL_CBN[0], UNIT_PERCENT, VAR_SOL_CBN[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_CLAY[0], UNIT_PERCENT, VAR_CLAY[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_ROCK[0], UNIT_PERCENT, VAR_ROCK[1], Source_ParameterDB, DT_Raster2D);
@@ -61,7 +61,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     /// tillage operation during CENTURY model
     mdi.AddInput(VAR_TILLAGE_DAYS[0], UNIT_DAY, VAR_TILLAGE_DAYS[1], Source_Module_Optional, DT_Raster1D);
     mdi.AddInput(VAR_TILLAGE_DEPTH[0], UNIT_DAY, VAR_TILLAGE_DEPTH[1], Source_Module_Optional, DT_Raster1D);
-    mdi.AddInput(VAR_TILLAGE_SWITCH[0], UNIT_DAY, VAR_TILLAGE_SWITCH[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_TILLAGE_SWITCH[0], UNIT_DAY, VAR_TILLAGE_SWITCH[1], Source_Module_Optional, DT_Raster1DInt);
     mdi.AddInput(VAR_TILLAGE_FACTOR[0], UNIT_DAY, VAR_TILLAGE_FACTOR[1], Source_Module_Optional, DT_Raster1D);
 
     mdi.AddOutput(VAR_SOL_COV[0], UNIT_CONT_KGHA, VAR_SOL_COV[1], DT_Raster1D);

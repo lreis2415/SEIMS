@@ -4,7 +4,7 @@
 #include <cmath>
 
 FLTPT manningQ(const FLTPT x1, const FLTPT x2, const FLTPT x3, const FLTPT x4) {
-    return x1 * pow(x2, (FLTPT)0.6666) * sqrt(x4) / x3;
+    return x1 * CalPow(x2, (FLTPT)0.6666) * CalSqrt(x4) / x3;
 }
 
 FLTPT ChannleBottomWidth(const FLTPT ch_wth, FLTPT& ch_sideslp, FLTPT& ch_depth) {
@@ -19,11 +19,11 @@ FLTPT ChannleBottomWidth(const FLTPT ch_wth, FLTPT& ch_sideslp, FLTPT& ch_depth)
 FLTPT ChannelWettingPerimeter(const FLTPT ch_btmwth, const FLTPT ch_depth, const FLTPT wtr_depth,
                               const FLTPT ch_sideslp, const FLTPT ch_wth, const FLTPT fps /* = 4. */) {
     if (wtr_depth <= ch_depth) {
-        return ch_btmwth + 2. * wtr_depth * sqrt(ch_sideslp * ch_sideslp + 1.);
+        return ch_btmwth + 2. * wtr_depth * CalSqrt(ch_sideslp * ch_sideslp + 1.);
     }
     // wtr_depth greater than ch_depth means floodplanin. Eq. 7:1.1.10 in SWAT theory 2009.
-    FLTPT p = ch_btmwth + 2. * ch_depth * sqrt(ch_sideslp * ch_sideslp + 1.);
-    p += 4. * ch_wth + 2. * (wtr_depth - ch_depth) * sqrt(fps * fps + 1.);
+    FLTPT p = ch_btmwth + 2. * ch_depth * CalSqrt(ch_sideslp * ch_sideslp + 1.);
+    p += 4. * ch_wth + 2. * (wtr_depth - ch_depth) * CalSqrt(fps * fps + 1.);
     return p;
 }
 

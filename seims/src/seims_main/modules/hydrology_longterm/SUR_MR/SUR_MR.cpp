@@ -40,20 +40,20 @@ bool SUR_MR::CheckInputData() {
 void SUR_MR::InitialOutputs() {
     CHECK_POSITIVE(M_SUR_MR[0], m_nCells);
     if (nullptr == m_exsPcp) {
-        Initialize1DArray(m_nCells, m_exsPcp, 0.f);
-        Initialize1DArray(m_nCells, m_infil, 0.f);
-        Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.f);
+        Initialize1DArray(m_nCells, m_exsPcp, 0.);
+        Initialize1DArray(m_nCells, m_infil, 0.);
+        Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
     }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-            if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f &&
-                m_soilFC[i][j] >= 0.f) {
+            if (m_initSoilWtrStoRatio[i] >= 0. && m_initSoilWtrStoRatio[i] <= 1. &&
+                m_soilFC[i][j] >= 0.) {
                 m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
             }
             else {
-                m_soilWtrSto[i][j] = 0.f;
+                m_soilWtrSto[i][j] = 0.;
             }
             m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
         }
@@ -61,10 +61,10 @@ void SUR_MR::InitialOutputs() {
 
     /// update (sol_sumul) amount of water held in soil profile at saturation
     if (nullptr == m_soilSumSat && m_soilSat != nullptr) {
-        m_soilSumSat = new(nothrow) float[m_nCells];
+        m_soilSumSat = new(nothrow) FLTPT[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            m_soilSumSat[i] = 0.f;
+            m_soilSumSat[i] = 0.;
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
                 m_soilSumSat[i] += m_soilSat[i][j];
             }
@@ -75,37 +75,37 @@ void SUR_MR::InitialOutputs() {
 int SUR_MR::Execute() {
     CheckInputData();
     InitialOutputs();
-    m_maxPcpRf *= m_dt * 1.1574074074074073e-05f; /// 1. / 86400. = 1.1574074074074073e-05;
+    m_maxPcpRf *= m_dt * 1.1574074074074073e-05; /// 1. / 86400. = 1.1574074074074073e-05;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        float hWater = 0.f;
+        FLTPT hWater = 0.;
         hWater = m_netPcp[i] + m_deprSto[i];
-        if (hWater > 0.f) {
+        if (hWater > 0.) {
             /// update total soil water content
-            m_soilWtrStoPrfl[i] = 0.f;
+            m_soilWtrStoPrfl[i] = 0.;
             for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
                 m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
             }
-            float smFraction = Min(m_soilWtrStoPrfl[i] / m_soilSumSat[i], 1.f);
+            FLTPT smFraction = Min(m_soilWtrStoPrfl[i] / m_soilSumSat[i], 1.);
             // for frozen soil, no infiltration will occur
             if (m_soilTemp[i] <= m_soilFrozenTemp && smFraction >= m_soilFrozenWtrRatio) {
                 m_exsPcp[i] = m_netPcp[i];
-                m_infil[i] = 0.f;
+                m_infil[i] = 0.;
             } else {
-                float alpha = m_rfExp - (m_rfExp - 1.f) * hWater / m_maxPcpRf;
+                FLTPT alpha = m_rfExp - (m_rfExp - 1.) * hWater / m_maxPcpRf;
                 if (hWater >= m_maxPcpRf) {
-                    alpha = 1.f;
+                    alpha = 1.;
                 }
 
                 //runoff percentage
-                float runoffPercentage;
-                if (m_potRfCoef[i] > 0.99f) {
-                    runoffPercentage = 1.f;
+                FLTPT runoffPercentage;
+                if (m_potRfCoef[i] > 0.99) {
+                    runoffPercentage = 1.;
                 } else {
-                    runoffPercentage = m_potRfCoef[i] * pow(smFraction, alpha);
+                    runoffPercentage = m_potRfCoef[i] * CalPow(smFraction, alpha);
                 }
 
-                float surfq = hWater * runoffPercentage;
+                FLTPT surfq = hWater * runoffPercentage;
                 if (surfq > hWater) surfq = hWater;
                 m_infil[i] = hWater - surfq;
                 m_exsPcp[i] = surfq;
@@ -115,20 +115,19 @@ int SUR_MR::Execute() {
                 ///       then surface runoff should be calculated. By LJ.
             }
         } else {
-            m_exsPcp[i] = 0.f;
-            m_infil[i] = 0.f;
+            m_exsPcp[i] = 0.;
+            m_infil[i] = 0.;
         }
-        if (m_infil[i] > 0.f) {
+        if (m_infil[i] > 0.) {
             m_soilWtrSto[i][0] += m_infil[i];
         }
     }
     return 0;
 }
 
-void SUR_MR::SetValue(const char* key, const float value) {
+void SUR_MR::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) m_dt = value;
-    else if (StringMatch(sk, VAR_T_SOIL[0])) m_soilFrozenTemp = value;
+    if (StringMatch(sk, VAR_T_SOIL[0])) m_soilFrozenTemp = value;
     else if (StringMatch(sk, VAR_K_RUN[0])) m_rfExp = value;
     else if (StringMatch(sk, VAR_P_MAX[0])) m_maxPcpRf = value;
     else if (StringMatch(sk, VAR_S_FROZEN[0])) m_soilFrozenWtrRatio = value;
@@ -138,7 +137,16 @@ void SUR_MR::SetValue(const char* key, const float value) {
     }
 }
 
-void SUR_MR::Set1DData(const char* key, const int n, float* data) {
+void SUR_MR::SetValue(const char* key, const int value) {
+    string sk(key);
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) m_dt = value;
+    else {
+        throw ModelException(M_SUR_MR[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void SUR_MR::Set1DData(const char* key, const int n, FLTPT* data) {
     CheckInputSize(M_SUR_MR[0], key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_RUNOFF_CO[0])) m_potRfCoef = data;
@@ -148,16 +156,25 @@ void SUR_MR::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_SOL_SUMSAT[0])) m_soilSumSat = data;
     else if (StringMatch(sk, VAR_DPST[0])) m_deprSto = data;
     else if (StringMatch(sk, VAR_SOTE[0])) m_soilTemp = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_POT_VOL[0])) m_potVol = data;
-    else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impndTrig = data;
     else {
         throw ModelException(M_SUR_MR[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
-void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+void SUR_MR::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_SUR_MR[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
+    else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impndTrig = data;
+    else {
+        throw ModelException(M_SUR_MR[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     CheckInputSize2D(M_SUR_MR[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
@@ -168,7 +185,7 @@ void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, float*
     }
 }
 
-void SUR_MR::Get1DData(const char* key, int* n, float** data) {
+void SUR_MR::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_INFIL[0])) {
@@ -184,7 +201,7 @@ void SUR_MR::Get1DData(const char* key, int* n, float** data) {
     *n = m_nCells;
 }
 
-void SUR_MR::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void SUR_MR::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;

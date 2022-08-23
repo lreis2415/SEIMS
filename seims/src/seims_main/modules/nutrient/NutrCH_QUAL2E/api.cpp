@@ -16,15 +16,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_NUTRCH_QUAL2E[0]);
     mdi.SetName(M_NUTRCH_QUAL2E[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
     // set the parameters
-    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(VAR_RNUM1[0], UNIT_NON_DIM, VAR_RNUM1[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_IGROPT[0], UNIT_NON_DIM, VAR_IGROPT[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_IGROPT[0], UNIT_NON_DIM, VAR_IGROPT[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_AI0[0], UNIT_NUTR_RATIO, VAR_AI0[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_AI1[0], UNIT_NUTR_RATIO, VAR_AI1[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_AI2[0], UNIT_NUTR_RATIO, VAR_AI2[1], Source_ParameterDB, DT_Single);
@@ -44,7 +44,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_RHOQ[0], UNIT_PER_DAY, VAR_RHOQ[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_COD_N[0], UNIT_NON_DIM, VAR_COD_N[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_COD_K[0], UNIT_NON_DIM, VAR_COD_K[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_CH_ONCO[0], UNIT_CONCENTRATION, VAR_CH_ONCO[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CH_OPCO[0], UNIT_CONCENTRATION, VAR_CH_OPCO[1], Source_ParameterDB, DT_Single);
     // add reach information

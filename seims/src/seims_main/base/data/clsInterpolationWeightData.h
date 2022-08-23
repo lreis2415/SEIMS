@@ -2,14 +2,15 @@
  * \file clsInterpolationWeightData.h
  * \brief Methods for clsITPWeightData class
  * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
- * \date May. 2017
+ * \version 2.1
+ * \date Aug, 2022
  */
 #ifndef SEIMS_ITP_WEIGHTDATA_H
 #define SEIMS_ITP_WEIGHTDATA_H
-
 #include "basic.h"
 #include "db_mongoc.h"
+
+#include <seims.h>
 
 using namespace ccgl;
 using namespace db_mongoc;
@@ -26,7 +27,7 @@ public:
      * \brief Overload constructor
      *
      * \param[in] gfs MongoGridFs
-     * \param[in] filename
+     * \param[in] filename file name
      */
     ItpWeightData(MongoGridFs* gfs, const string& filename);
 
@@ -39,29 +40,27 @@ public:
      * \Deprecate Weight data should be 2DArray. Delete this function!
      *
      * \param[out] n Rows
-     * \param[out] data
+     * \param[out] data data
      */
-    void GetWeightData(int* n, float** data);
+    void GetWeightData(int* n, FLTPT** data);
 
     /*!
     * \brief Get the weight data read from mongoDB in form of 2DArray
     *
     * \param[out] n Rows
     * \param[out] n_stations Cols
-    * \param[out] data
+    * \param[out] data data
     */
-    void GetWeightData2D(int* n, int* n_stations, float*** data);
+    void GetWeightData2D(int* n, int* n_stations, FLTPT*** data);
 
     /*!
      * \brief Output the weight data to \a ostream
-     *
-     * \param[out] fs
      */
     void Dump(std::ostream* fs);
 
     /*!
      * \brief Output the weight data to file
-     * \param[in] filename
+     * \param[in] filename file name
      * \sa Dump(std::ostream *fs)
      */
     void Dump(const string& filename);
@@ -72,19 +71,18 @@ public:
 private:
     /*!
      * \brief Read GridFS from MongoDB
-     *
      * \param[in] gfs MongoGridFs
-     * \param[in] filename
+     * \param[in] filename file name
      */
     bool ReadFromMongoDB(MongoGridFs* gfs, const string& filename);
 
 private:
     //! file name
     string filename_;
-    //! iterpolation weight data array
-    float* itp_weight_data_;
-    //! iterpolation weight data array (2DArray)
-    float** itp_weight_data2d_;
+    //! interpolation weight data array
+    FLTPT* itp_weight_data_;
+    //! interpolation weight data array (2DArray)
+    FLTPT** itp_weight_data2d_;
     //! row of weight data
     int n_rows_;
     //! column of weight data, i.e., number of stations

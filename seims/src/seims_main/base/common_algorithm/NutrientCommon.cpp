@@ -15,7 +15,7 @@ FLTPT CalEnrichmentRatio(const FLTPT sedyld, const FLTPT surfq, const FLTPT area
     // Calculate sediment concentration, equation 4:2.2.3 and 4:2.2.4 in SWAT Theory 2009, p272
     cy = sedyld / 1000. / (10. * area * surfq + 1.e-6); /// Mg sed/m^3 H2O
     if (cy > 1.e-6) {
-        enratio = 0.78 * pow(cy, -0.2468f);
+        enratio = 0.78 * CalPow(cy, -0.2468f);
     } else {
         enratio = 0.;
     }

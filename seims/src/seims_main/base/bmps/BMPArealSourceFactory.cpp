@@ -125,7 +125,7 @@ void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const strin
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
+void BMPArealSrcFactory::SetArealSrcLocsMap(int n, int* mgtField) {
     for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end(); ++it) {
         ArealSourceLocations* tmpArealLoc = it->second;
         if (tmpArealLoc->GetValidCells() < 0 && tmpArealLoc->GetCellsIndex().empty()) {
@@ -153,7 +153,7 @@ void BMPArealSrcFactory::Dump(std::ostream* fs) {
     }
 }
 
-void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *>& sceneRsMap) {
+void BMPArealSrcFactory::setRasterData(map<string, IntRaster *>& sceneRsMap) {
     if (sceneRsMap.find(m_arealSrcDistName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_arealSrcDistName)->GetRasterData(&n, &m_mgtFieldsRs);
@@ -167,9 +167,9 @@ void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *>& sceneRsMap) {
 /************************************************************************/
 
 ArealSourceMgtParams::ArealSourceMgtParams(const bson_t*& bsonTable, bson_iter_t& iter)
-    : m_name(""), m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f),
-      m_TNConc(0.f), m_NO3Conc(0.f), m_NH4Conc(0.f), m_OrgNConc(0.f), m_TPConc(0.f), m_SolPConc(0.f),
-      m_OrgPConc(0.f), m_COD(0.f) {
+    : m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.), m_sedimentConc(0.),
+      m_TNConc(0.), m_NO3Conc(0.), m_NH4Conc(0.), m_OrgNConc(0.), m_TPConc(0.), m_SolPConc(0.),
+      m_OrgPConc(0.), m_COD(0.) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
         m_name = GetStringFromBsonIterator(&iter);
     }
@@ -255,7 +255,7 @@ void ArealSourceMgtParams::Dump(std::ostream* fs) {
 /************************************************************************/
 
 ArealSourceLocations::ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t& iter)
-    : m_arealSrcID(-1), m_nCells(-1), m_size(0.f) {
+    : m_arealSrcID(-1), m_nCells(-1), m_size(0.) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
         m_name = GetStringFromBsonIterator(&iter);
     }
@@ -268,10 +268,10 @@ ArealSourceLocations::ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t
 }
 
 
-void ArealSourceLocations::SetValidCells(const int n, float* mgtFieldIDs) {
+void ArealSourceLocations::SetValidCells(const int n, int* mgtFieldIDs) {
     if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
-            if (FloatEqual(m_arealSrcID, CVT_INT(mgtFieldIDs[i]))) {
+            if (m_arealSrcID == mgtFieldIDs[i]) {
                 m_cellsIndex.emplace_back(i);
             }
         }

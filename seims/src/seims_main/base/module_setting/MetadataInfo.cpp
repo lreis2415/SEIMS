@@ -73,15 +73,25 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
     switch (dimType) {
         case DT_Array1D: strTmp = Type_Array1D;
             break;
+        case DT_Array1DInt: strTmp = Type_Array1DInt;
+            break;
         case DT_Array1DDateValue: strTmp = Type_Array1DDateValue;
             break;
         case DT_Array2D: strTmp = Type_Array2D;
             break;
+        case DT_Array2DInt: strTmp = Type_Array2DInt;
+            break;
         case DT_Raster1D: strTmp = Type_Raster1D;
+            break;
+        case DT_Raster1DInt: strTmp = Type_Raster1DInt;
             break;
         case DT_Raster2D: strTmp = Type_Raster2D;
             break;
+        case DT_Raster2DInt: strTmp = Type_Raster2DInt;
+            break;
         case DT_Single: strTmp = Type_Single;
+            break;
+        case DT_SingleInt: strTmp = Type_SingleInt;
             break;
         case DT_Scenario: strTmp = Type_Scenario;
             break;

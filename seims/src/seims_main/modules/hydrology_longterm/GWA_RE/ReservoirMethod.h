@@ -21,6 +21,7 @@
  *   - 4. 2016-07-27 - lj - Move subbasin class to base/data module for sharing with other modules.
  *	 - 5. 2018-06-28 - lj - Move SetSubbasinInfos() to dataCenter class.
  *	 - 6. 2018-07-18 - sf - revap should be calculated by cell first.
+ *   - 7. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Hui Wu, Zhiqiang Yu, Liangjun Zhu, Fang Shen
  */
@@ -48,11 +49,15 @@ public:
 
     ~ReservoirMethod();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
 
@@ -62,9 +67,9 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* nrows, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* nrows, FLTPT** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
     TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
 
@@ -76,65 +81,65 @@ private:
     //! Valid cells number
     int m_nCells;
     //! cell size of the grid (m)
-    float m_cellWth;
+    FLTPT m_cellWth;
     //! maximum soil layers number
     int m_maxSoilLyrs;
     //! soil layers number of each cell
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     //! soil thickness of each layer
-    float** m_soilThk;
+    FLTPT** m_soilThk;
 
     //! groundwater Revap coefficient
-    float m_dp_co;
+    FLTPT m_dp_co;
     //! baseflow recession coefficient
-    float m_Kg;
+    FLTPT m_Kg;
     //! baseflow recession exponent
-    float m_Base_ex;
+    FLTPT m_Base_ex;
     //! the amount of water percolated from the soil water reservoir and input to the groundwater reservoir from the percolation module(mm)
-    float** m_soilPerco;
+    FLTPT** m_soilPerco;
     //! evaporation from interception storage (mm) from the interception module
-    float* m_IntcpET;
+    FLTPT* m_IntcpET;
     //! evaporation from the depression storage (mm) from the depression module
-    float* m_deprStoET;
+    FLTPT* m_deprStoET;
     //! evaporation from the soil water storage (mm) from the soil ET module
-    float* m_soilET;
+    FLTPT* m_soilET;
     //! actual amount of transpiration (mm H2O)
-    float* m_actPltET;
+    FLTPT* m_actPltET;
     //! PET(mm) from the PET modules
-    float* m_pet;
+    FLTPT* m_pet;
     //! revap needed of cell
-    float* m_revap;
+    FLTPT* m_revap;
     //! initial ground water storage (or at time t-1)
-    float m_GW0;
+    FLTPT m_GW0;
     //! maximum ground water storage
-    float m_GWMAX;
+    FLTPT m_GWMAX;
 
-    float* m_petSubbsn; ///< Average PET of each subbasin, mm
-    float* m_gwSto;     ///<  Groundwater storage (mm) of the subbasin
+    FLTPT* m_petSubbsn; ///< Average PET of each subbasin, mm
+    FLTPT* m_gwSto;     ///<  Groundwater storage (mm) of the subbasin
 
     /// slope (percent, or drop/distance, or tan) of each cell
-    float* m_slope;
+    FLTPT* m_slope;
 
     //! soil storage
-    float** m_soilWtrSto;
+    FLTPT** m_soilWtrSto;
     //! soil depth of each layer, the maximum soil depth is used here, i.e., m_soilDepth[i][(int)m_soilLayers[i]]
-    float** m_soilDepth;
+    FLTPT** m_soilDepth;
     //! ground water from bank storage, passed from channel routing module
-    float* m_VgroundwaterFromBankStorage;
+    FLTPT* m_VgroundwaterFromBankStorage;
 
     //output
     //!
-    float* m_T_Perco;
+    FLTPT* m_T_Perco;
     //!
-    float* m_T_PerDep;
+    FLTPT* m_T_PerDep;
     //!
-    float* m_T_RG;
+    FLTPT* m_T_RG;
     //!
-    float* m_T_QG;
+    FLTPT* m_T_QG;
     //!
-    float* m_T_Revap;
+    FLTPT* m_T_Revap;
     //! groundwater water balance statistics
-    float** m_T_GWWB;
+    FLTPT** m_T_GWWB;
 
     //! subbasin number
     int m_nSubbsns;

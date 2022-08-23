@@ -4,6 +4,7 @@
  *
  * Changelog:
  *   - 1. 2018-05-07 - lj - Code reformat.
+ *   - 2. 2022-08-18 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
  * \date Jan. 2010
@@ -31,7 +32,7 @@ public:
 
     void SetClimateDataType(int data_type) OVERRIDE;
 
-    void SetValue(const char* key, FLTPT value) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 

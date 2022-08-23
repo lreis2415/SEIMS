@@ -374,7 +374,7 @@ void KinWavSed_CH::initial() {
 //	float wh = m_ChannelWH[i]/1000;    // mm to m -> /1000
 //	float FW = m_FlowWidth[i];
 //	float S = sin(atan(m_Slope[i]));   //sine of the slope
-//	float grad = sqrt(S);
+//	float grad = CalSqrt(S);
 //	float Perim = 2 * wh + FW;
 //	float area = FW * wh;
 //	float R = 0.0f;
@@ -384,7 +384,7 @@ void KinWavSed_CH::initial() {
 //		R = 0.0f;
 //
 //	float V = 0.0f;
-//	V = pow(R, _23) * grad / m_ChManningN[i];
+//	V = CalPow(R, _23) * grad / m_ChManningN[i];
 //	return V;
 //}
 void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id is the cell id in the 1D array
@@ -393,7 +393,7 @@ void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id
     float wh = m_ChannelWH[iReach][iCell] / 1000;    // mm to m -> /1000
     float FW = m_chWidth[id];
     float S = sin(atan(m_Slope[id]));   //sine of the slope
-    float grad = Max(0.001f, sqrt(S));
+    float grad = Max(0.001f, CalSqrt(S));
     float Perim = 2 * wh + FW;
     float area = FW * wh;
     float R = 0.0f;
@@ -404,7 +404,7 @@ void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id
     }
 
     //float V = 0.0f;
-    m_ChV[iReach][iCell] = pow(R, _2div3) * grad / m_ChManningN[iReach];
+    m_ChV[iReach][iCell] = CalPow(R, _2div3) * grad / m_ChManningN[iReach];
 
     //test
     m_chanV[id] = wh; //m_ChV[iReach][iCell];
@@ -483,7 +483,7 @@ void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is 
 //	S0 = sin(atan(s));
 //	K = m_USLE_K[id];
 //
-//	TranCap = m_ChTcCo * K * S0 * pow(q, 2.0f) * (m_TimeStep/60);   // convert to kg
+//	TranCap = m_ChTcCo * K * S0 * CalPow(q, 2.0f) * (m_TimeStep/60);   // convert to kg
 //
 //	/*if (q > 1)
 //	{
@@ -508,9 +508,9 @@ float KinWavSed_CH::GetTransportCapacity(int iReach, int iCell, int id) {
         TranCap = m_ChTcCo * K * S0 * Power(q, 2.0f) * (m_TimeStep / 60) / chVol;   // kg/min, convert to kg/m3
         //float threadhold = 0.046f;
         //if(q < threadhold)
-        //	TranCap = m_eco1 * K * S0 * sqrt(q) * (m_TimeStep/60);   // convert to kg
+        //	TranCap = m_eco1 * K * S0 * CalSqrt(q) * (m_TimeStep/60);   // convert to kg
         //else
-        //	TranCap = m_eco2 * K * S0 * pow(q, 2.0f) * (m_TimeStep/60);
+        //	TranCap = m_eco2 * K * S0 * CalPow(q, 2.0f) * (m_TimeStep/60);
         /*if (q > 1)
         {
             int i = 0;
@@ -624,10 +624,10 @@ void KinWavSed_CH::ChannelflowSedRouting(int iReach, int iCell, int id) {
     //float _23 = 2.0f/3;
     //float Perim = 2 * m_ChannelWH[iReach][iCell]/1000 + m_chWidth[id];
     //float S = sin(atan(m_Slope[id]));
-    //float Alpha = pow(m_ChManningN[id]/sqrt(S) * pow(Perim, _23), beta);
+    //float Alpha = CalPow(m_ChManningN[id]/CalSqrt(S) * CalPow(Perim, _23), beta);
     //float Q, Qs;
     //if(Alpha > 0)
-    //	Q = pow(m_chWidth[id]*m_ChannelWH[iReach][iCell] / Alpha, beta1);
+    //	Q = CalPow(m_chWidth[id]*m_ChannelWH[iReach][iCell] / Alpha, beta1);
     //else
     //	Q = 0;
     //Qs = Q * m_CHSedConc[iReach][iCell];

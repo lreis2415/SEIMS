@@ -3,7 +3,7 @@
 
 namespace bmps {
 Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
-    int scenarioID /* = 0 */, time_t startTime/* = -1 */, time_t endTime/* = -1 */) :
+                   int scenarioID /* = 0 */, time_t startTime/* = -1 */, time_t endTime/* = -1 */) :
     m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID),
     m_startTime(startTime), m_endTime(endTime){
     assert(m_sceneID >= 0);
@@ -18,7 +18,6 @@ Scenario::~Scenario() {
             delete it->second;
             it->second = nullptr;
         }
-        // m_bmpFactories.erase(it++);
     }
     m_bmpFactories.clear();
 }
@@ -91,9 +90,9 @@ void Scenario::loadBMPs() {
         bson_iter_t iter;
         int BMPID = -1;
         int subScenario = -1;
-        string distribution = "";
-        string collectionName = "";
-        string location = "";
+        string distribution;
+        string collectionName;
+        string location;
         bool effectivenessChangeable = false;
         int tempEffectivenessChangeable = -1;
         int changeFrequency = 0;
@@ -107,7 +106,7 @@ void Scenario::loadBMPs() {
         effectivenessChangeable = tempEffectivenessChangeable == 1 ? true : false;
         if (effectivenessChangeable) {
             if (bson_iter_init_find(&iter, info, FLD_SCENARIO_CHANGEFREQUENCY)) GetNumericFromBsonIterator(&iter, changeFrequency);
-            // !!! MUST MODIFY. Or read from database later!
+            // TODO, !!! MUST MODIFY. Or read from database later!
             time_t warmUpPeriod = 31536000;// 1 year
             changeTimes = 5;//(m_endTime - m_startTime - warmUpPeriod) / changeFrequency;
         }

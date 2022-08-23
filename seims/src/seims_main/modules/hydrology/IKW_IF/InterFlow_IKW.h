@@ -49,9 +49,9 @@ private:
     //float Power(float a, float n)
     //{
     //	if (a >= 0)
-    //		return pow(a, n);
+    //		return CalPow(a, n);
     //	else
-    //		return -pow(-a, n);
+    //		return -CalPow(-a, n);
     //}
 
     bool FlowInSoil(int id);

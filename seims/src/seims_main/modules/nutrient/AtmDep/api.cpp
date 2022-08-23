@@ -19,7 +19,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_ATMDEP[0]);
     mdi.SetName(M_ATMDEP[0]);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
 
     //mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);

@@ -4,15 +4,17 @@
  *
  * Changelog:
  *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *   - 2. 2022-08-18 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
- * \version 2.0
+ * \version 2.1
  */
 #ifndef SEIMS_NOTREGULAR_MEASUREMENT_H
 #define SEIMS_NOTREGULAR_MEASUREMENT_H
 
 #include "db_mongoc.h"
 #include "Measurement.h"
+#include <seims.h>
 
 /*!
  * \ingroup data
@@ -38,11 +40,11 @@ public:
                           time_t startTime, time_t endTime);
 
     //! Get site date by time \a pData
-    float* GetSiteDataByTime(time_t t) OVERRIDE;
+    FLTPT* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
     vector<vector<time_t> > m_timeList; ///< time list of site data
-    vector<vector<float> > m_valueList; ///< site data corresponding to m_timeList
+    vector<vector<FLTPT> > m_valueList; ///< site data corresponding to m_timeList
     vector<int> m_curIndexList;         ///< index
 };
 #endif /* SEIMS_NOTREGULAR_MEASUREMENT_H */

@@ -12,12 +12,11 @@ using namespace data_raster;
 ///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+PrintInfoItem::PrintInfoItem(const int scenario_id /* = 0 */, const int calibration_id /* = -1 */)
     : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
       m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
       SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
-      m_startTime(0),  m_endTime(0), Suffix(""), Corename(""),
-      Filename(""),
+      m_startTime(0),  m_endTime(0),
       m_scenarioID(scenario_id), m_calibrationID(calibration_id),
       m_Counter(-1), m_AggregationType(AT_Unknown) {
     TimeSeriesData.clear();
@@ -34,7 +33,6 @@ PrintInfoItem::~PrintInfoItem() {
         if (it->second != nullptr) {
             Release1DArray(it->second);
         }
-        // TimeSeriesDataForSubbasin.erase(it++);
     }
     TimeSeriesDataForSubbasin.clear();
 
@@ -49,8 +47,8 @@ bool PrintInfoItem::IsDateInRange(time_t dt) {
     return bStatus;
 }
 
-void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
-    float* temp = new float[n];
+void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const FLTPT* data) {
+    FLTPT* temp = new FLTPT[n];
     for (int i = 0; i < n; i++) {
         temp[i] = data[i];
     }
@@ -58,7 +56,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, const string& header) {
+void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster* templateRaster, const string& header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     /*   Currently, I cannot find a way to store GridFS files with the same filename but with
     *        different metadata information by mongo-c-driver, which can be done by pymongo.
@@ -246,7 +244,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
     " is failed. There is no result data for this file. Please check output variables of modules.";
 }
 
-void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** data) {
+void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, FLTPT** data) {
     if (m_AggregationType == AT_SpecificCells) {
         return; // TODO to implement.
     }
@@ -279,7 +277,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
                 for (int j = 0; j < m_nLayers; j++) {
                     if (!FloatEqual(data[i][j], NODATA_VALUE)) {
                         if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                            m_2DData[i][j] = 0.f;
+                            m_2DData[i][j] = 0.;
                         }
                         m_2DData[i][j] += data[i][j];
                     }
@@ -321,7 +319,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
     m_Counter++;
 }
 
-void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
+void PrintInfoItem::AggregateData(time_t time, int numrows, FLTPT* data) {
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
         {
@@ -344,15 +342,15 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
                 case AT_Average:
                     if (!FloatEqual(data[rw], NODATA_VALUE)) {
                         if (FloatEqual(m_1DData[rw], NODATA_VALUE)) {
-                            m_1DData[rw] = 0.f;
+                            m_1DData[rw] = 0.;
                         }
-                        m_1DData[rw] = (m_1DData[rw] * m_Counter + data[rw]) / (m_Counter + 1.f);
+                        m_1DData[rw] = (m_1DData[rw] * m_Counter + data[rw]) / (m_Counter + 1.);
                     }
                     break;
                 case AT_Sum:
                     if (!FloatEqual(data[rw], NODATA_VALUE)) {
                         if (FloatEqual(m_1DData[rw], NODATA_VALUE)) {
-                            m_1DData[rw] = 0.f;
+                            m_1DData[rw] = 0.;
                         }
                         m_1DData[rw] += data[rw];
                     }
@@ -384,14 +382,14 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
     }
 }
 
-void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType type, float NoDataValue) {
+void PrintInfoItem::AggregateData(int numrows, FLTPT** data, AggregationType type, FLTPT NoDataValue) {
     // check to see if there is an aggregate array to add data to
     if (m_1DDataWithRowCol == nullptr) {
         // create the aggregate array
         m_nRows = numrows;
-        m_1DDataWithRowCol = new float *[m_nRows];
+        m_1DDataWithRowCol = new FLTPT *[m_nRows];
         for (int i = 0; i < m_nRows; i++) {
-            m_1DDataWithRowCol[i] = new float[3];
+            m_1DDataWithRowCol[i] = new FLTPT[3];
             m_1DDataWithRowCol[i][0] = NoDataValue;
             m_1DDataWithRowCol[i][1] = NoDataValue;
             m_1DDataWithRowCol[i][2] = NoDataValue;
@@ -426,7 +424,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // add the next value to the current sum
@@ -439,7 +437,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // if the next value is smaller than the current value
@@ -455,7 +453,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // if the next value is larger than the current value
@@ -470,7 +468,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
     }
 }
 
-AggregationType PrintInfoItem::MatchAggregationType(string type) {
+AggregationType PrintInfoItem::MatchAggregationType(const string& type) {
     AggregationType res = AT_Unknown;
     if (StringMatch(type, Tag_Unknown)) {
         res = AT_Unknown;
@@ -498,10 +496,9 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 ///////////PrintInfo Class////////////////
 //////////////////////////////////////////
 
-PrintInfo::PrintInfo(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+PrintInfo::PrintInfo(const int scenario_id /* = 0 */, const int calibration_id /* = -1 */)
     : m_scenarioID(scenario_id), m_calibrationID(calibration_id),
-      m_Interval(0), m_IntervalUnits(""), m_moduleIndex(-1), m_OutputID(""),
-      m_param(nullptr), m_subbasinSelectedArray(nullptr) {
+      m_Interval(0), m_param(nullptr), m_subbasinSelectedArray(nullptr) {
     m_PrintItems.clear();
 }
 
@@ -511,7 +508,6 @@ PrintInfo::~PrintInfo() {
             delete *it;
             *it = nullptr;
         }
-        // it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
 
@@ -619,7 +615,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
     return oss.str();
 }
 
-void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string& sufi) {
+void PrintInfo::AddPrintItem(const time_t start, const time_t end, const string& file, const string& sufi) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
@@ -635,8 +631,8 @@ void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string& suf
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& type, time_t start, time_t end, string& file, string& sufi,
-                             int subbasinID /* = 0 */) {
+void PrintInfo::AddPrintItem(string& type, const time_t start, const time_t end,
+                             const string& file, const string& sufi, const int subbasinID /* = 0 */) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
@@ -662,8 +658,8 @@ void PrintInfo::AddPrintItem(string& type, time_t start, time_t end, string& fil
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string sitename,
-                             string& sufi, bool isSubbasin) {
+void PrintInfo::AddPrintItem(const time_t start, const time_t end, const string& file, const string sitename,
+                             const string& sufi, const bool isSubbasin) {
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
     char* strend = nullptr;
     errno = 0;
@@ -689,13 +685,13 @@ void PrintInfo::AddPrintItem(time_t start, time_t end, string& file, string site
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::getSubbasinSelected(int* count, float** subbasins) {
+void PrintInfo::getSubbasinSelected(int* count, int** subbasins) {
     *count = CVT_INT(m_subbasinSeleted.size());
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
-        m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
+        m_subbasinSelectedArray = new int[m_subbasinSeleted.size()];
         int index = 0;
         for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); ++it) {
-            m_subbasinSelectedArray[index] = CVT_FLT(*it);
+            m_subbasinSelectedArray[index] = *it;
             index++;
         }
     }

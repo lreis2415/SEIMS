@@ -278,9 +278,9 @@ void ORYZA::CalDayLengthAndSINB(int i) {
     }
 
     float dsinb = 2.f * 3600.f * (m_dayL[i] * 0.5f * m_sinLD[i] - 12.f * m_cosLD[i] * zzcos / PI);
-    m_dsinbe[i] = 2.f * 3600.f * (m_dayL[i] * (0.5f * m_sinLD[i] + 0.2f * pow(m_sinLD[i], 2.f) + 0.1f *
-        pow(m_cosLD[i], 2.f)) - (12.f * m_cosLD[i] * zzcos + 9.6f * m_sinLD[i] * m_cosLD[i] *
-        zzcos + 2.4f * pow(m_cosLD[i], 2.f) * zzcos * zzsin) / PI);
+    m_dsinbe[i] = 2.f * 3600.f * (m_dayL[i] * (0.5f * m_sinLD[i] + 0.2f * CalPow(m_sinLD[i], 2.f) + 0.1f *
+        CalPow(m_cosLD[i], 2.f)) - (12.f * m_cosLD[i] * zzcos + 9.6f * m_sinLD[i] * m_cosLD[i] *
+        zzcos + 2.4f * CalPow(m_cosLD[i], 2.f) * zzcos * zzsin) / PI);
 
     m_solcon[i] = 1370.f * (1.f + 0.033f * cos(2.f * PI * m_dayOfYear / 365.f));
 }
@@ -294,10 +294,10 @@ void ORYZA::CalDirectRadiation(int i) {
         float tmpr1 = m_SR[i] * 1000000.f * m_sinb[i] * (1.f + 0.4f * m_sinb[i]) / m_dsinbe[i];
         atmtr = tmpr1 / (m_solcon[i] * m_sinb[i]);
         if (atmtr < 0.22) frdif = 1.f;
-        else if (atmtr > 0.22 && atmtr < 0.35) frdif = 1.f - 6.4f * pow(atmtr - 0.22f, 2.f);
+        else if (atmtr > 0.22 && atmtr < 0.35) frdif = 1.f - 6.4f * CalPow(atmtr - 0.22f, 2.f);
         else frdif = 1.47f - 1.66f * atmtr;
 
-        float xx = 0.15f + 0.85f * (1.f - exp(-0.1f / m_sinb[i]));
+        float xx = 0.15f + 0.85f * (1.f - CalExp(-0.1f / m_sinb[i]));
         frdif = Max(frdif, xx);
 
         m_rdpdf[i] = tmpr1 * m_frpar * frdif;
@@ -308,7 +308,7 @@ void ORYZA::CalDirectRadiation(int i) {
 void ORYZA::CalLeafAbsorbRadiation(int i) {
     /// Scattering coefficient of leaves for PAR
     float cslv = 0.2f;
-    float tmpr1 = sqrt(1.f - cslv);
+    float tmpr1 = CalSqrt(1.f - cslv);
     float rflh = (1.f - tmpr1) / (1.f + tmpr1);
     float rfls = rflh * 2.f / (1.f + 2.f * m_sinb[i]);
     //compute Extinction coefficient
@@ -322,23 +322,23 @@ void ORYZA::CalLeafAbsorbRadiation(int i) {
     float ecpbl = 0.5f / m_sinb[i] * clustf;
     float ecptd = ecpbl * tmpr1;
 
-    float rapdfl = (1.f - rflh) * m_rdpdf[i] * ecpdf * exp(-ecpdf * m_gaid[i]);
-    float raptdl = (1.f - rfls) * m_rdpdr[i] * ecptd * exp(-ecptd * m_gaid[i]);
-    float rapddl = (1.f - cslv) * m_rdpdr[i] * ecpbl * exp(-ecpbl * m_gaid[i]);
+    float rapdfl = (1.f - rflh) * m_rdpdf[i] * ecpdf * CalExp(-ecpdf * m_gaid[i]);
+    float raptdl = (1.f - rfls) * m_rdpdr[i] * ecptd * CalExp(-ecptd * m_gaid[i]);
+    float rapddl = (1.f - cslv) * m_rdpdr[i] * ecpbl * CalExp(-ecpbl * m_gaid[i]);
 
     m_rapshl[i] = rapdfl + raptdl - rapddl;
     m_rapppl[i] = (1.f - cslv) * m_rdpdr[i] / m_sinb[i];
-    m_fslla[i] = clustf * exp(-ecpbl * m_gaid[i]);
+    m_fslla[i] = clustf * CalExp(-ecpbl * m_gaid[i]);
 }
 
 float ORYZA::CalLeafMaxAssimilationRate(float gai, float gaid, float nflv, float redf) {
     /// AmaxIn shows in the oryza.for,but it is not in use everywhere,so delete it
     float slni = 0.f, Amax = 0.f;
-    float AmaxCO2 = 49.57f / 34.26f * (1.f - exp(-0.208f * (m_co2 - 60.f) / 49.57f));
+    float AmaxCO2 = 49.57f / 34.26f * (1.f - CalExp(-0.208f * (m_co2 - 60.f) / 49.57f));
     AmaxCO2 = Max(0.f, AmaxCO2);
 
     if (gai > 0.01f && m_knf > 0.f) {
-        slni = nflv * gai * m_knf * exp(m_knf * gaid) / (1.f - exp(-m_knf * gai));
+        slni = nflv * gai * m_knf * CalExp(m_knf * gaid) / (1.f - CalExp(-m_knf * gai));
     } else {
         slni = nflv;
     }
@@ -375,13 +375,13 @@ void ORYZA::Sgpl(int i) {
 
     float Amax2 = CalLeafMaxAssimilationRate(m_gai[i], m_gaid[i], m_nflv, m_redf);
     if (Amax2 > 0) {
-        gpshl = Amax2 * (1.f - exp(-m_rapshl[i] * m_eff / Amax2));
+        gpshl = Amax2 * (1.f - CalExp(-m_rapshl[i] * m_eff / Amax2));
     }
 
     for (int k = 0; k < 3; k++) {
         float tmpr1 = m_rapshl[i] + rapsll * gsx[k];
         if (Amax2 > 0) {
-            gpsll = gpsll + Amax2 * (1.f - exp(-tmpr1 * m_eff / Amax2)) * gsw[k];
+            gpsll = gpsll + Amax2 * (1.f - CalExp(-tmpr1 * m_eff / Amax2)) * gsw[k];
         }
         rapsll = rapsll + tmpr1 * gsw[k];
     }
@@ -449,10 +449,10 @@ void ORYZA::CalSpikeletAndGrainRate(int i) {
 
     // there is a second requirement that GRAINS (Fortran logical function whether grains are formed) is true
     if (m_dvs[i] > 1.2f) {
-        float sf1 = 1.f - (4.6f + 0.054f * pow(m_coldTT[i], 1.56f)) / 100.f;
+        float sf1 = 1.f - (4.6f + 0.054f * CalPow(m_coldTT[i], 1.56f)) / 100.f;
         sf1 = Min(1.f, Max(0.f, sf1));
         float xx = m_tfert[i] / m_ntfert;
-        float sf2 = 1.f / (1.f + exp(0.853f * (xx - 36.6f)));
+        float sf2 = 1.f / (1.f + CalExp(0.853f * (xx - 36.6f)));
         sf2 = Min(1.f, Max(0.f,sf2));
         float spfert = Min(sf1, sf2);
         m_gngr[i] = m_nsp[i] * spfert;
@@ -534,7 +534,7 @@ void ORYZA::CalRiceGrowth(int i) {
         float m_tmpCov = m_tmpsb;
         float m_tav = (m_tMax[i] + m_tmpCov + m_tMin[i]) *0.5f;
         float m_tavD = (m_tav + m_tMax[i]) *0.5f;
-        float m_co2EFF = (1.f - exp(-0.00305f * m_co2 - 0.222f)) / (1.f - exp(-0.00305f * 340.f - 0.222f));
+        float m_co2EFF = (1.f - CalExp(-0.00305f * m_co2 - 0.222f)) / (1.f - CalExp(-0.00305f * 340.f - 0.222f));
         if (0.f < m_tavD && m_tavD <= 10.f) {
             m_eff = 0.54f * m_co2EFF; // compute eff use linear_interp
         } else {
@@ -605,7 +605,7 @@ void ORYZA::CalRiceGrowth(int i) {
             m_lstr = 0.f;
         }
         // Maintenance requirements
-        m_teff = pow(m_q10, (m_tav - m_tref) *0.1f);
+        m_teff = CalPow(m_q10, (m_tav - m_tref) *0.1f);
         float mnDVS = m_wlvg[i] / (m_wlvg[i] + m_wlvd[i]);
         float rmcr = (m_wlvg[i] * m_mainLV + m_wst[i] * m_mainST + m_wso[i] *
             m_mainSO + m_wrt[i] * m_mainRT) * m_teff * mnDVS;
@@ -639,7 +639,7 @@ void ORYZA::CalRiceGrowth(int i) {
 
         CalSpikeletAndGrainRate(i);
 
-        m_sla[i] = m_aSLA + m_bSLA * exp(m_cSLA * (m_dvs[i] - m_dSLA));
+        m_sla[i] = m_aSLA + m_bSLA * CalExp(m_cSLA * (m_dvs[i] - m_dSLA));
         m_sla[i] = Min(m_slaMX, m_sla[i]);
         LAI(i);
 
@@ -708,14 +708,14 @@ void ORYZA::CalPlantETAndWStress(int i) {
             if (m_soilStorage[i][j] >= m_soilAWC[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_sol_sat[i][j] - m_soilStorage[i][j]) / (m_sol_sat[i][j] - m_soilAWC[i][j]
                 )));
-                musc[j] = pow(10.f, fact[j] * 2.f);
+                musc[j] = CalPow(10.f, fact[j] * 2.f);
             } else if (m_soilStorage[i][j] >= m_soilWP[i][j] && m_soilStorage[i][j] < m_soilAWC[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_soilStorage[i][j] - m_soilWP[i][j]) / (m_soilAWC[i][j] - m_soilWP[i][
                     j])));
-                musc[j] = pow(10.f, 4.2f - fact[j] * 2.2f);
+                musc[j] = CalPow(10.f, 4.2f - fact[j] * 2.2f);
             } else if (m_soilStorage[i][j] < m_soilWP[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_soilStorage[i][j] - 0.01f) / (m_soilWP[i][j] - 0.01f)));
-                musc[j] = pow(10.f, 7.f - fact[j] * 2.8f);
+                musc[j] = CalPow(10.f, 7.f - fact[j] * 2.8f);
             }
 
             mskpa[j] = musc[j] / 10.f;
@@ -736,7 +736,7 @@ void ORYZA::CalPlantETAndWStress(int i) {
             if (mskpa[j] >= 10000.f) {
                 trr = 0.f;
             } else {
-                trr = 2.f / (1.f + exp(0.003297f * mskpa[j]));
+                trr = 2.f / (1.f + CalExp(0.003297f * mskpa[j]));
             }
             trr = Min(0.f, Max(1.f, trr));
 
@@ -846,7 +846,7 @@ int ORYZA::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         /// calculate albedo in current day
         float cej = -5.e-5f, eaj = 0.f;
-        eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+        eaj = CalExp(cej * (m_rsdCovSoil[i] + 0.1f));
         if (m_snowAcc[i] < 0.5f) {
             m_alb[i] = m_soilALB[i];
             if (m_lai[i] > 0.f)

@@ -45,14 +45,14 @@ public:
      * \brief Set raster data if needed
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */
-    virtual void setRasterData(map<string, FloatRaster *>& sceneRsMap) {
+    virtual void setRasterData(map<string, IntRaster *>& sceneRsMap) {
     };
 
     /*!
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    virtual float* GetRasterData() { return nullptr; }
+    virtual int* GetRasterData() { return nullptr; }
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.

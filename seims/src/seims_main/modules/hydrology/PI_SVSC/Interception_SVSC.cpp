@@ -5,7 +5,7 @@
 
 clsPI_SVSC::clsPI_SVSC(void) : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
                              m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
-    
+
 #ifndef STORM_MODE
     m_evaporationLoss = NULL;
 #else
@@ -110,7 +110,7 @@ int clsPI_SVSC::Execute() {
             /// For water, min and max are both 0, then no need for specific handling.
             float min = m_minSt[i];
             float max = m_maxSt[i];
-            float capacity = min + (max - min) * pow(0.5f + 0.5f * sin(degree), m_Pi_b);
+            float capacity = min + (max - min) * CalPow(0.5f + 0.5f * sin(degree), m_Pi_b);
 
             //interception, currently, m_st[i] is storage of (t-1) time step
             float availableSpace = capacity - m_st[i];

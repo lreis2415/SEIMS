@@ -27,22 +27,21 @@ int SoilTemperatureFINPL::Execute() {
     size_t errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; i++) {
-        float t = m_meanTemp[i];
-        float t1 = m_meanTempPre1[i];
-        float t2 = m_meanTempPre2[i];
-        if ((t > 60.f || t < -90.f) || (t1 > 60.f || t1 < -90.f) || (t2 > 60.f || t2 < -90.f)) {
+        FLTPT t = m_meanTemp[i];
+        FLTPT t1 = m_meanTempPre1[i];
+        FLTPT t2 = m_meanTempPre2[i];
+        if ((t > 60. || t < -90.) || (t1 > 60. || t1 < -90.) || (t2 > 60. || t2 < -90.)) {
             cout << "cell index: " << i << ", t1: " << t1 << ", t2: " << t2 << endl;
             errCount++;
         } else {
-            if (FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_WATR)) {
-                /// if current landuse is water
+            if (m_landUse[i] == LANDUSE_ID_WATR) { /// if current landuse is water
                 m_soilTemp[i] = t;
             } else {
-                float t10 = m_a0 + m_a1 * t2 + m_a2 * t1 + m_a3 * t
+                FLTPT t10 = m_a0 + m_a1 * t2 + m_a2 * t1 + m_a3 * t
                         + m_b1 * sin(radWt * m_dayOfYear) + m_d1 * cos(radWt * m_dayOfYear)
-                        + m_b2 * sin(2.f * radWt * m_dayOfYear) + m_d2 * cos(2.f * radWt * m_dayOfYear);
+                        + m_b2 * sin(2. * radWt * m_dayOfYear) + m_d2 * cos(2. * radWt * m_dayOfYear);
                 m_soilTemp[i] = t10 * m_kSoil10 + m_soilTempRelFactor10[i];
-                if (m_soilTemp[i] > 60.f || m_soilTemp[i] < -90.f) {
+                if (m_soilTemp[i] > 60. || m_soilTemp[i] < -90.) {
                     cout << "The calculated soil temperature at cell (" << i
                             << ") is out of reasonable range: " << m_soilTemp[i]
                             << ". JulianDay: " << m_dayOfYear << ",t: " << t << ", t1: "
@@ -78,7 +77,7 @@ bool SoilTemperatureFINPL::CheckInputData() {
     return true;
 }
 
-void SoilTemperatureFINPL::SetValue(const char* key, const float value) {
+void SoilTemperatureFINPL::SetValue(const char* key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, VAR_SOL_TA0[0])) m_a0 = value;
     else if (StringMatch(sk, VAR_SOL_TA1[0])) m_a1 = value;
@@ -91,18 +90,26 @@ void SoilTemperatureFINPL::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_K_SOIL10[0])) m_kSoil10 = value;
 }
 
-void SoilTemperatureFINPL::Set1DData(const char* key, const int n, float* data) {
+void SoilTemperatureFINPL::Set1DData(const char* key, const int n, int* data) {
     CheckInputSize(M_STP_FP[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SOIL_T10[0])) m_soilTempRelFactor10 = data;
-    else if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = data;
-    else if (StringMatch(sk, VAR_LANDUSE[0])) m_landUse = data;
+    if (StringMatch(sk, VAR_LANDUSE[0])) m_landUse = data;
     else {
         throw ModelException(M_STP_FP[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void SoilTemperatureFINPL::Get1DData(const char* key, int* n, float** data) {
+void SoilTemperatureFINPL::Set1DData(const char* key, const int n, FLTPT* data) {
+    CheckInputSize(M_STP_FP[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_SOIL_T10[0])) m_soilTempRelFactor10 = data;
+    else if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = data;
+    else {
+        throw ModelException(M_STP_FP[0], "Set1DData", "Parameter " + sk + " does not exist.");
+    }
+}
+
+void SoilTemperatureFINPL::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
@@ -110,7 +117,7 @@ void SoilTemperatureFINPL::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_TMEAN1[0])) *data = m_meanTempPre1;
     else if (StringMatch(sk, VAR_TMEAN2[0])) *data = m_meanTempPre2;
     else {
-        throw ModelException(M_STP_FP[0], "Get1DData", "Parameter " + sk + " does not exist in current module.");
+        throw ModelException(M_STP_FP[0], "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -124,6 +131,6 @@ void SoilTemperatureFINPL::InitialOutputs() {
         Initialize1DArray(m_nCells, m_meanTempPre2, m_meanTemp);
     }
     if (nullptr == m_soilTemp) {
-        Initialize1DArray(m_nCells, m_soilTemp, 0.f);
+        Initialize1DArray(m_nCells, m_soilTemp, 0.);
     }
 }

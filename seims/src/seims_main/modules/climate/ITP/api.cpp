@@ -16,15 +16,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_ITP[0]);
     mdi.SetName(M_ITP[0]);
-    mdi.SetVersion("2.0");
+    mdi.SetVersion("2.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
+    mdi.AddParameter(VAR_TSD_DT[0], UNIT_NON_DIM, VAR_TSD_DT[1], File_Config, DT_SingleInt);
     // from parameter database, e.g., Weight_P, Weight_PET, Weight_T.
-    // mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array1D);
     mdi.AddParameter(Tag_Weight[0], UNIT_NON_DIM, Tag_Weight[1], Source_ParameterDB, DT_Array2D);
     // from config.fig, e.g. Interpolation_P_1
-    mdi.AddParameter(Tag_VerticalInterpolation[0], UNIT_NON_DIM, Tag_VerticalInterpolation[1], File_Config, DT_Single);
+    mdi.AddParameter(Tag_VerticalInterpolation[0], UNIT_NON_DIM, Tag_VerticalInterpolation[1], File_Config, DT_SingleInt);
     // these three parameters are just read when it will do vertical interpolation
     //  from spatial database
     mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, VAR_DEM[1], Source_ParameterDB_Optional, DT_Raster1D);

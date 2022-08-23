@@ -4,9 +4,10 @@
  *
  * Changelog:
  *   - 1. 2017-05-30 - lj - Refactor and DeCoupling with Database I/O.
+ *   - 2. 2022-08-19 - lj - Separate integer and floating point of parameter, input, output, and inoutput.
  *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
+ * \version 2.1
  */
 #ifndef SEIMS_MODULE_FACTORY_H
 #define SEIMS_MODULE_FACTORY_H
@@ -47,11 +48,16 @@ public:
                   vector<DLLINSTANCE>& dllHandles,
                   map<string, InstanceFunction>& instanceFuncs,
                   map<string, MetadataFunction>& metadataFuncs,
-                  map<string, vector<ParamInfo *> >& moduleParameters,
-                  map<string, vector<ParamInfo *> >& moduleInputs,
-                  map<string, vector<ParamInfo *> >& moduleOutputs,
-                  map<string, vector<ParamInfo *> >& moduleInOutputs,
-                  vector<ParamInfo *>& tfValueInputs,
+                  map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
+                  map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
+                  map<string, vector<ParamInfo<FLTPT>*> >& moduleInputs,
+                  map<string, vector<ParamInfo<int>*> >& moduleInputsInt,
+                  map<string, vector<ParamInfo<FLTPT>*> >& moduleOutputs,
+                  map<string, vector<ParamInfo<int>*> >& moduleOutputsInt,
+                  map<string, vector<ParamInfo<FLTPT>*> >& moduleInOutputs,
+                  map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
+                  vector<ParamInfo<FLTPT> *>& tfValueInputs,
+                  vector<ParamInfo<int>*>& tfValueInputsInt,
                   int mpi_rank = 0, int mpi_size = -1);
     /*!
      * \brief Initialization for exception-safe constructor
@@ -68,8 +74,8 @@ public:
     //! Get value from dependency modules
     void GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules);
 
-    //! Find outputID parameter's module. Return Module index iModule and its ParamInfo
-    void FindOutputParameter(string& outputID, int& iModule, ParamInfo*& paraInfo);
+    //! Find outputID parameter's module. Return Module index iModule and its ParamInfo<FLTPT>
+    bool FindOutputParameter(string& outputID, int& iModule, ParamInfo<FLTPT>*& paraInfo);
 
     //! Get Module ID by index
     string GetModuleID(int i) const { return m_moduleIDs[i]; }
@@ -81,22 +87,40 @@ public:
     map<string, SEIMSModuleSetting *>& GetModuleSettings() { return m_settings; }
 
     //! Get Parameters of modules
-    map<string, vector<ParamInfo *> >& GetModuleParameters() { return m_moduleParameters; }
+    map<string, vector<ParamInfo<FLTPT> *> >& GetModuleParams() { return m_moduleParams; }
+
+    //! Get integer parameters of modules
+    map<string, vector<ParamInfo<int>*> >& GetModuleParamsInt() { return m_moduleParamsInt; }
 
     //! Get Input of modules, from other modules
-    map<string, vector<ParamInfo *> >& GetModuleInputs() { return m_moduleInputs; }
+    map<string, vector<ParamInfo<FLTPT> *> >& GetModuleInputs() { return m_moduleInputs; }
+
+    //! Get integer input of modules, from other modules
+    map<string, vector<ParamInfo<int>*> >& GetModuleInputsInt() { return m_moduleInputsInt; }
 
     //! Get Output of modules, out from current module
-    map<string, vector<ParamInfo *> >& GetModuleOutputs() { return m_moduleOutputs; }
+    map<string, vector<ParamInfo<FLTPT>*> >& GetModuleOutputs() { return m_moduleOutputs; }
+
+    //! Get integer Output of modules, out from current module
+    map<string, vector<ParamInfo<int>*> >& GetModuleOutputsInt() { return m_moduleOutputsInt; }
 
     //! Get InOutput of modules, in and out from current module
-    map<string, vector<ParamInfo *> >& GetModuleInOutputs() { return m_moduleInOutputs; }
+    map<string, vector<ParamInfo<FLTPT> *> >& GetModuleInOutputs() { return m_moduleInOutputs; }
+
+    //! Get integer InOutput of modules, in and out from current module
+    map<string, vector<ParamInfo<int>*> >& GetModuleInOutputsInt() { return m_moduleInOutputsInt; }
 
     //! Get transferred single value inputs across subbasins
-    vector<ParamInfo*>& GetTransferredInputs() { return m_tfValueInputs; }
+    vector<ParamInfo<FLTPT>*>& GetTransferredInputs() { return m_tfValueInputs; }
+
+    //! Get transferred single integer value inputs across subbasins
+    vector<ParamInfo<int>*>& GetTransferredInputsInt() { return m_tfValueInputsInt; }
 
     //! Get the count of transferred single value inputs
     int GetTransferredInputsCount() { return CVT_INT(m_tfValueInputs.size()); }
+
+    //! Get the count of transferred single integer value inputs
+    int GetTransferredInputsIntCount() { return CVT_INT(m_tfValueInputsInt.size()); }
 
     //! Load modules setting from file
     static bool LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings);
@@ -113,17 +137,20 @@ public:
 
     /*!
      * \brief Load and parse module libraries
-     * \param module_path
-     * \param moduleIDs
-     * \param moduleSettings
-     * \param dllHandles
-     * \param instanceFuncs
-     * \param metadataFuncs
-     * \param moduleParameters
-     * \param moduleInputs
-     * \param moduleOutputs
-     * \param moduleInOutputs
-     * \param tfValueInputs
+     * \param module_path 
+     * \param moduleIDs 
+     * \param moduleSettings 
+     * \param dllHandles 
+     * \param instanceFuncs 
+     * \param metadataFuncs 
+     * \param moduleParams  
+     * \param moduleParamsInt 
+     * \param moduleInputs 
+     * \param moduleInputsInt 
+     * \param moduleOutputs 
+     * \param moduleOutputsInt 
+     * \param moduleInOutputs 
+     * \param tfValueInputs 
      * \return True if succeed, else throw exception and return false.
      */
     static bool LoadParseLibrary(const string& module_path, vector<string>& moduleIDs,
@@ -131,11 +158,16 @@ public:
                                  vector<DLLINSTANCE>& dllHandles,
                                  map<string, InstanceFunction>& instanceFuncs,
                                  map<string, MetadataFunction>& metadataFuncs,
-                                 map<string, vector<ParamInfo *> >& moduleParameters,
-                                 map<string, vector<ParamInfo *> >& moduleInputs,
-                                 map<string, vector<ParamInfo *> >& moduleOutputs,
-                                 map<string, vector<ParamInfo *> >& moduleInOutputs,
-                                 vector<ParamInfo*>& tfValueInputs);
+                                 map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
+                                 map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
+                                 map<string, vector<ParamInfo<FLTPT>*> >& moduleInputs,
+                                 map<string, vector<ParamInfo<int>*> >& moduleInputsInt,
+                                 map<string, vector<ParamInfo<FLTPT> *> >& moduleOutputs,
+                                 map<string, vector<ParamInfo<int>*> >& moduleOutputsInt,
+                                 map<string, vector<ParamInfo<FLTPT>*> >& moduleInOutputs,
+                                 map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
+                                 vector<ParamInfo<FLTPT>*>& tfValueInputs,
+                                 vector<ParamInfo<int>*>& tfValueInputsInt);
 
     //! Load function pointers from .DLL or .so
     static void ReadDLL(const string& module_path, const string& id, const string& dllID,
@@ -144,31 +176,38 @@ public:
                         map<string, MetadataFunction>& metadataFuncs);
 
     //! Get module instance by moduleID
-    SimulationModule* GetInstance(string& moduleID) { return m_instanceFuncs[moduleID](); }
+    SimulationModule* GetInstance(const string& moduleID) { return m_instanceFuncs[moduleID](); }
 
     //! Match data type, e.g., 1D array
-    static dimensionTypes MatchType(string strType);
+    static dimensionTypes MatchType(const string &strType);
 
     //! Match data transfer type, e.g., TF_SingleValue
-    static transferTypes MatchTransferType(string tfType);
+    static transferTypes MatchTransferType(const string& tfType);
 
     //! Is constant input?
-    static bool IsConstantInputFromName(string& name);
+    static bool IsConstantInputFromName(const string& name);
 
     //! Read module's parameters setting from XML string
     static void ReadParameterSetting(string& moduleID, TiXmlDocument& doc, SEIMSModuleSetting* setting,
-                                     map<string, vector<ParamInfo *> >& moduleParameters);
+                                     map<string, vector<ParamInfo<FLTPT> *> >& moduleParams,
+                                     map<string, vector<ParamInfo<int>*> >& moduleParamsInt);
 
     //! Read module's input, output, and in/output setting from XML string
     static void ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSModuleSetting* setting,
-                              const string& header, const string& title, map<string, vector<ParamInfo *> >& variables);
+                              const string& header, const string& title,
+                              map<string, vector<ParamInfo<FLTPT>*> >& vars,
+                              map<string, vector<ParamInfo<int>*> >& varsInt);
 
     //! Get comparable name after underscore if necessary, e.g., T_PET => use PET
     static string GetComparableName(string& paraName);
 
     //! Find dependent parameters
-    static ParamInfo* FindDependentParam(ParamInfo* paramInfo, vector<string>& moduleIDs,
-                                         map<string, vector<ParamInfo *> >& moduleOutputs);
+    static ParamInfo<FLTPT>* FindDependentParam(ParamInfo<FLTPT>* paramInfo, vector<string>& moduleIDs,
+                                                map<string, vector<ParamInfo<FLTPT> *> >& moduleOutputs);
+
+    //! Find dependent parameters
+    static ParamInfo<int>* FindDependentParam(ParamInfo<int>* paramInfo, vector<string>& moduleIDs,
+                                              map<string, vector<ParamInfo<int>*> >& moduleOutputs);
 
 public:
     //! Rank ID for MPI, starts from 0 to mpi_size_ - 1
@@ -188,15 +227,25 @@ private:
     vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
     map<string, SEIMSModuleSetting *> m_settings;
-    //! Parameters of modules, from #m_parametersInDB
-    map<string, vector<ParamInfo *> > m_moduleParameters;
+    //! Parameters of modules, from database
+    map<string, vector<ParamInfo<FLTPT>*> > m_moduleParams;
+    //! Integer parameters of modules, from database
+    map<string, vector<ParamInfo<int>*> > m_moduleParamsInt;
     //! Input of modules, from other modules
-    map<string, vector<ParamInfo *> > m_moduleInputs;
+    map<string, vector<ParamInfo<FLTPT>*> > m_moduleInputs;
+    //! Integer input of modules, from other modules
+    map<string, vector<ParamInfo<int>*> > m_moduleInputsInt;
     //! Output of modules, out from current module
-    map<string, vector<ParamInfo *> > m_moduleOutputs;
+    map<string, vector<ParamInfo<FLTPT>*> > m_moduleOutputs;
+    //! Integer output of modules, out from current module
+    map<string, vector<ParamInfo<int>*> > m_moduleOutputsInt;
     //! InOutput of modules, out from current module, and from current module(i.e., other instance) meanwhile
-    map<string, vector<ParamInfo *> > m_moduleInOutputs;
+    map<string, vector<ParamInfo<FLTPT>*> > m_moduleInOutputs;
+    //! Integer InOutput of modules, out from current module, and from current module meanwhile
+    map<string, vector<ParamInfo<int>*> > m_moduleInOutputsInt;
     //! transferred single value across subbasins
-    vector<ParamInfo *> m_tfValueInputs;
+    vector<ParamInfo<FLTPT> *> m_tfValueInputs;
+    //! transferred single integer value across subbasins
+    vector<ParamInfo<int>*> m_tfValueInputsInt;
 };
 #endif /* SEIMS_MODULE_FACTORY_H */

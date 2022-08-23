@@ -13,6 +13,8 @@
 #define SEIMS_HEADER
 
 #include "data_raster.hpp"
+using namespace ccgl;
+using namespace data_raster;
 
 /*!
  * \enum LayeringMethod
@@ -110,26 +112,39 @@ const FLTPT _8div3 = 2.6666666666666665; ///< 8. / 3.
 const FLTPT SQ2 = 1.4142135623730951; ///< sqrt(2.0)
 const FLTPT deg2rad = 0.017453292519943295; ///< PI / 180.
 const FLTPT rad2deg = 57.29577951308232; ///< 180. / PI
+const FLTPT radWt = 0.01721420632103996f; /// PI * 2 / 365;
 
 const FLTPT MIN_FLUX = 1e-12; ///< \def minimum flux (m3/s) in kinematic wave
 const int MAX_ITERS_KW = 10; ///< \def maximum iterate number in kinematic wave method
 const FLTPT MIN_SLOPE = 1e-4;  ///< \def minimum slope (tan value)
 
+#ifdef IntRaster
+#undef IntRaster
+#endif
 #ifndef IntRaster
 /*! Integer-typed raster */
 #define IntRaster   ccgl::data_raster::clsRasterData<int>
 #endif
+#ifdef FloatRaster
+#undef FloatRaster
+#endif
 #ifndef FloatRaster
-/*! Float-typed raster */
-#define FloatRaster ccgl::data_raster::clsRasterData<FLTPT>
+/*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
+#define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
 #endif
-#ifndef IntMaskedRaster
-/*! Int-typed raster with int-typed mask */
-#define IntMaskedRaster ccgl::data_raster::clsRasterData<int, int>
-#endif
-#ifndef FloatMaskedRaster
-/*! Float-typed raster with int-typed mask */
-#define FloatMaskedRaster ccgl::data_raster::clsRasterData<FLTPT, int>
-#endif
+//#ifdef FltIntRaster
+//#undef FltIntRaster
+//#endif
+//#ifndef FltIntRaster
+///*! Float-typed raster with int-typed mask */
+//#define FltIntRaster ccgl::data_raster::clsRasterData<FLTPT, int>
+//#endif
+//#ifdef IntFltRaster
+//#undef IntFltRaster
+//#endif
+//#ifndef IntFltRaster
+///*! Int-typed raster with Flt-typed mask */
+//#define IntFltRaster ccgl::data_raster::clsRasterData<int, FLTPT>
+//#endif
 
 #endif /* SEIMS_HEADER */

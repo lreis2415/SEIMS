@@ -76,38 +76,38 @@ bool MUSK_CH::CheckInputData() {
 void MUSK_CH::InitialOutputs() {
     CHECK_POSITIVE(M_MUSK_CH[0], m_nreach);
     if (nullptr != m_qRchOut) return; // DO NOT Initial Outputs repeatedly.
-    if (m_mskX < 0.f) m_mskX = 0.2f;
-    if (m_mskCoef1 < 0.f || m_mskCoef1 > 1.f) {
-        m_mskCoef1 = 0.75f;
-        m_mskCoef2 = 0.25f;
+    if (m_mskX < 0.) m_mskX = 0.2;
+    if (m_mskCoef1 < 0. || m_mskCoef1 > 1.) {
+        m_mskCoef1 = 0.75;
+        m_mskCoef2 = 0.25;
     } else {
         // There is no need to use mskCoef2 as input parameter.
         // Make sure m_mskCoef1 + m_mskCoef2 = 1.
-        //float msk1 = m_mskCoef1 / (m_mskCoef1 + m_mskCoef2);
-        //float msk2 = m_mskCoef2 / (m_mskCoef1 + m_mskCoef2);
+        //FLTPT msk1 = m_mskCoef1 / (m_mskCoef1 + m_mskCoef2);
+        //FLTPT msk2 = m_mskCoef2 / (m_mskCoef1 + m_mskCoef2);
         //m_mskCoef1 = msk1;
         //m_mskCoef2 = msk2;
     }
-    m_mskCoef2 = 1.f - m_mskCoef1;
+    m_mskCoef2 = 1. - m_mskCoef1;
 
-    m_flowIn = new(nothrow) float[m_nreach + 1];
-    m_flowOut = new(nothrow) float[m_nreach + 1];
-    m_seepage = new(nothrow) float[m_nreach + 1];
+    m_flowIn = new(nothrow) FLTPT[m_nreach + 1];
+    m_flowOut = new(nothrow) FLTPT[m_nreach + 1];
+    m_seepage = new(nothrow) FLTPT[m_nreach + 1];
 
-    m_qRchOut = new(nothrow) float[m_nreach + 1];
-    m_qsRchOut = new(nothrow) float[m_nreach + 1];
-    m_qiRchOut = new(nothrow) float[m_nreach + 1];
-    m_qgRchOut = new(nothrow) float[m_nreach + 1];
+    m_qRchOut = new(nothrow) FLTPT[m_nreach + 1];
+    m_qsRchOut = new(nothrow) FLTPT[m_nreach + 1];
+    m_qiRchOut = new(nothrow) FLTPT[m_nreach + 1];
+    m_qgRchOut = new(nothrow) FLTPT[m_nreach + 1];
 
-    m_chSto = new(nothrow) float[m_nreach + 1];
-    m_rteWtrIn = new(nothrow) float[m_nreach + 1];
-    m_rteWtrOut = new(nothrow) float[m_nreach + 1];
-    m_bankSto = new(nothrow) float[m_nreach + 1];
+    m_chSto = new(nothrow) FLTPT[m_nreach + 1];
+    m_rteWtrIn = new(nothrow) FLTPT[m_nreach + 1];
+    m_rteWtrOut = new(nothrow) FLTPT[m_nreach + 1];
+    m_bankSto = new(nothrow) FLTPT[m_nreach + 1];
 
-    m_chWtrDepth = new(nothrow) float[m_nreach + 1];
-    m_chWtrWth = new(nothrow) float[m_nreach + 1];
-    m_chBtmWth = new(nothrow) float[m_nreach + 1];
-    m_chCrossArea = new(nothrow) float[m_nreach + 1];
+    m_chWtrDepth = new(nothrow) FLTPT[m_nreach + 1];
+    m_chWtrWth = new(nothrow) FLTPT[m_nreach + 1];
+    m_chBtmWth = new(nothrow) FLTPT[m_nreach + 1];
+    m_chCrossArea = new(nothrow) FLTPT[m_nreach + 1];
 
     for (int i = 1; i <= m_nreach; i++) {
         m_qRchOut[i] = m_olQ2Rch[i];
@@ -116,38 +116,38 @@ void MUSK_CH::InitialOutputs() {
             m_qRchOut[i] += m_ifluQ2Rch[i];
             m_qiRchOut[i] = m_ifluQ2Rch[i];
         } else {
-            m_qiRchOut[i] = 0.f;
+            m_qiRchOut[i] = 0.;
         }
         if (nullptr != m_gndQ2Rch) {
             m_qRchOut[i] += m_gndQ2Rch[i];
             m_qgRchOut[i] = m_gndQ2Rch[i];
         } else {
-            m_qgRchOut[i] = 0.f;
+            m_qgRchOut[i] = 0.;
         }
-        m_seepage[i] = 0.f;
+        m_seepage[i] = 0.;
         m_bankSto[i] = m_Bnk0 * m_chLen[i];
         m_chBtmWth[i] = ChannleBottomWidth(m_chWth[i], m_chSideSlope[i], m_chDepth[i]);
         m_chCrossArea[i] = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
         m_chWtrDepth[i] = m_chDepth[i] * m_Chs0_perc;
-        m_chWtrWth[i] = m_chBtmWth[i] + 2.f * m_chSideSlope[i] * m_chWtrDepth[i];
+        m_chWtrWth[i] = m_chBtmWth[i] + 2. * m_chSideSlope[i] * m_chWtrDepth[i];
         m_chSto[i] = m_chLen[i] * m_chWtrDepth[i] * (m_chBtmWth[i] + m_chSideSlope[i] * m_chWtrDepth[i]);
         m_flowIn[i] = m_chSto[i];
         m_flowOut[i] = m_chSto[i];
-        m_rteWtrIn[i] = 0.f;
-        m_rteWtrOut[i] = 0.f;
+        m_rteWtrIn[i] = 0.;
+        m_rteWtrOut[i] = 0.;
     }
     /// initialize point source loadings
     if (nullptr == m_ptSub) {
-        Initialize1DArray(m_nreach + 1, m_ptSub, 0.f);
+        Initialize1DArray(m_nreach + 1, m_ptSub, 0.);
     }
 }
 
 void MUSK_CH::PointSourceLoading() {
     /// load point source water discharge (m3/s) on current day from Scenario
     for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); ++it) {
-        /// reset point source loading water to 0.f
+        /// reset point source loading water to 0.
         for (int i = 0; i <= m_nreach; i++) {
-            m_ptSub[i] = 0.f;
+            m_ptSub[i] = 0.;
         }
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
         vector<int>& ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
@@ -164,13 +164,13 @@ void MUSK_CH::PointSourceLoading() {
                 }
             }
             // 1.2 Otherwise, get the water volume
-            float per_wtrVol = curPtMgt->GetWaterVolume(); /// m3/'size'/day
+            FLTPT per_wtrVol = curPtMgt->GetWaterVolume(); /// m3/'size'/day
             // 1.3 Sum up all point sources
             for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
                 if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
                     PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
-                    m_ptSub[curSubID] += per_wtrVol * curPtLoc->GetSize() / 86400.f; /// m3/'size'/day ==> m3/s
+                    m_ptSub[curSubID] += per_wtrVol * curPtLoc->GetSize() / 86400.; /// m3/'size'/day ==> m3/s
                 }
             }
         }
@@ -205,12 +205,9 @@ int MUSK_CH::Execute() {
     return 0;
 }
 
-void MUSK_CH::SetValue(const char* key, const float value) {
+void MUSK_CH::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = CVT_INT(value);
-    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-    else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = CVT_INT(value);
-    else if (StringMatch(sk, VAR_EP_CH[0])) m_Epch = value;
+    if (StringMatch(sk, VAR_EP_CH[0])) m_Epch = value;
     else if (StringMatch(sk, VAR_BNK0[0])) m_Bnk0 = value;
     else if (StringMatch(sk, VAR_CHS0_PERC[0])) m_Chs0_perc = value;
     else if (StringMatch(sk, VAR_A_BNK[0])) m_aBank = value;
@@ -218,11 +215,22 @@ void MUSK_CH::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_MSK_X[0])) m_mskX = value;
     else if (StringMatch(sk, VAR_MSK_CO1[0])) m_mskCoef1 = value;
     else {
-        throw ModelException(M_MUSK_CH[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "SetValue",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void MUSK_CH::SetValueByIndex(const char* key, const int index, const float value) {
+void MUSK_CH::SetValue(const char* key, const int value) {
+    string sk(key);
+    if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
+    else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = value;
+    else {
+        throw ModelException(M_MUSK_CH[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+void MUSK_CH::SetValueByIndex(const char* key, const int index, const FLTPT value) {
     if (m_inputSubbsnID == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
     if (nullptr == m_qRchOut) InitialOutputs();
@@ -234,16 +242,14 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     else if (StringMatch(sk, VAR_QI[0])) m_qiRchOut[index] = value;
     else if (StringMatch(sk, VAR_QG[0])) m_qgRchOut[index] = value;
     else {
-        throw ModelException(M_MUSK_CH[0], "SetValueByIndex", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "SetValueByIndex",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
+void MUSK_CH::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
-    //check the input data
-    if (StringMatch(sk, VAR_SUBBSN[0])) {
-        m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_SBPET[0])) {
+    if (StringMatch(sk, VAR_SBPET[0])) {
         CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_petSubbsn = data;
     } else if (StringMatch(sk, VAR_SBGS[0])) {
@@ -259,11 +265,22 @@ void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
         CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
         m_gndQ2Rch = data;
     } else {
-        throw ModelException(M_MUSK_CH[0], "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_MUSK_CH[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void MUSK_CH::GetValue(const char* key, float* value) {
+void MUSK_CH::Set1DData(const char* key, const int n, int* data) {
+    string sk(key);
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
+        m_subbsnID = data;
+    } else {
+        throw ModelException(M_MUSK_CH[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void MUSK_CH::GetValue(const char* key, FLTPT* value) {
     InitialOutputs();
     string sk(key);
     /// IN/OUTPUT variables
@@ -276,7 +293,7 @@ void MUSK_CH::GetValue(const char* key, float* value) {
     }
 }
 
-void MUSK_CH::Get1DData(const char* key, int* n, float** data) {
+void MUSK_CH::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
@@ -354,7 +371,12 @@ void MUSK_CH::SetReaches(clsReaches* reaches) {
     if (nullptr == m_chMan) reaches->GetReachesSingleProperty(REACH_MANNING, &m_chMan);
     if (nullptr == m_Kbank) reaches->GetReachesSingleProperty(REACH_BNKK, &m_Kbank);
     if (nullptr == m_Kchb) reaches->GetReachesSingleProperty(REACH_BEDK, &m_Kchb);
-    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_reachDownStream) {
+        FLTPT* tmp = nullptr;
+        reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &tmp);
+        Initialize1DArray(m_nreach + 1, m_reachDownStream, tmp);
+        Release1DArray(tmp);
+    }
 
     m_reachUpStream = reaches->GetUpStreamIDs();
     m_rteLyrs = reaches->GetReachLayers();
@@ -362,28 +384,28 @@ void MUSK_CH::SetReaches(clsReaches* reaches) {
 
 bool MUSK_CH::ChannelFlow(const int i) {
     // 1. first add all the inflow water
-    float qIn = 0.f; /// Water entering reach on current day from both current subbasin and upstreams
+    FLTPT qIn = 0.; /// Water entering reach on current day from both current subbasin and upstreams
     // 1.1. water from this subbasin
     qIn += m_olQ2Rch[i]; /// surface flow
-    float qiSub = 0.f;   /// interflow flow
-    if (nullptr != m_ifluQ2Rch && m_ifluQ2Rch[i] >= 0.f) {
+    FLTPT qiSub = 0.;   /// interflow flow
+    if (nullptr != m_ifluQ2Rch && m_ifluQ2Rch[i] >= 0.) {
         qiSub = m_ifluQ2Rch[i];
         qIn += qiSub;
     }
-    float qgSub = 0.f; /// groundwater flow
-    if (nullptr != m_gndQ2Rch && m_gndQ2Rch[i] >= 0.f) {
+    FLTPT qgSub = 0.; /// groundwater flow
+    if (nullptr != m_gndQ2Rch && m_gndQ2Rch[i] >= 0.) {
         qgSub = m_gndQ2Rch[i];
         qIn += qgSub;
     }
-    float ptSub = 0.f; /// point sources flow
-    if (nullptr != m_ptSub && m_ptSub[i] >= 0.f) {
+    FLTPT ptSub = 0.; /// point sources flow
+    if (nullptr != m_ptSub && m_ptSub[i] >= 0.) {
         ptSub = m_ptSub[i];
         qIn += ptSub;
     }
     // 1.2. water from upstream reaches
-    float qsUp = 0.f;
-    float qiUp = 0.f;
-    float qgUp = 0.f;
+    FLTPT qsUp = 0.;
+    FLTPT qiUp = 0.;
+    FLTPT qgUp = 0.;
     for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
         if (m_qsRchOut[*upRchID] != m_qsRchOut[*upRchID]) {
             cout << "DayOfYear: " << m_dayOfYear << ", rchID: " << i << ", upRchID: " << *upRchID <<
@@ -400,9 +422,9 @@ bool MUSK_CH::ChannelFlow(const int i) {
                     ", groundwater part illegal!" << endl;
             return false;
         }
-        if (m_qsRchOut[*upRchID] > 0.f) qsUp += m_qsRchOut[*upRchID];
-        if (m_qiRchOut[*upRchID] > 0.f) qiUp += m_qiRchOut[*upRchID];
-        if (m_qgRchOut[*upRchID] > 0.f) qgUp += m_qgRchOut[*upRchID];
+        if (m_qsRchOut[*upRchID] > 0.) qsUp += m_qsRchOut[*upRchID];
+        if (m_qiRchOut[*upRchID] > 0.) qiUp += m_qiRchOut[*upRchID];
+        if (m_qgRchOut[*upRchID] > 0.) qgUp += m_qgRchOut[*upRchID];
     }
     qIn += qsUp + qiUp + qgUp;
 #ifdef PRINT_DEBUG
@@ -411,47 +433,47 @@ bool MUSK_CH::ChannelFlow(const int i) {
         ", UPsurfaceQ: " << qsUp << ", UPsubsurface: " << qiUp << ", UPground: " << qgUp << endl;
 #endif
     // 1.3. water from bank storage
-    float bankOut = m_bankSto[i] * (1.f - exp(-m_aBank));
+    FLTPT bankOut = m_bankSto[i] * (1. - CalExp(-m_aBank));
     m_bankSto[i] -= bankOut;
     qIn += bankOut / m_dt;
 
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
-    float bankOutGw = m_bankSto[i] * (1.f - exp(-m_bBank));
+    FLTPT bankOutGw = m_bankSto[i] * (1. - CalExp(-m_bBank));
     m_bankSto[i] -= bankOutGw;
     if (nullptr != m_gwSto) {
-        m_gwSto[i] += bankOutGw / m_chArea[i] * 1000.f; // updated groundwater storage
+        m_gwSto[i] += bankOutGw / m_chArea[i] * 1000.; // updated groundwater storage
     }
 
     // Compute storage time constant (ratio of storage to discharge) for reach
     // Wetting perimeter at bankfull
-    float wet_perimeter = ChannelWettingPerimeter(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
+    FLTPT wet_perimeter = ChannelWettingPerimeter(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
     // Cross-sectional area at bankfull
-    float cross_area = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
+    FLTPT cross_area = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
     // Hydraulic radius
-    float radius = cross_area / wet_perimeter;
+    FLTPT radius = cross_area / wet_perimeter;
     // The storage time constant calculated for the reach segment with bankfull flows.
-    float k_bankfull = StorageTimeConstant(m_chMan[i], m_chSlope[i], m_chLen[i], radius); // Hour
+    FLTPT k_bankfull = StorageTimeConstant(m_chMan[i], m_chSlope[i], m_chLen[i], radius); // Hour
 
     // The storage time constant calculated for the reach segment with one-tenth of the bankfull flows.
-    float wet_perimeter2 = ChannelWettingPerimeter(m_chBtmWth[i], 0.1f * m_chDepth[i], m_chSideSlope[i]);
-    float cross_area2 = ChannelCrossSectionalArea(m_chBtmWth[i], 0.1f * m_chDepth[i], m_chSideSlope[i]);
-    float radius2 = cross_area2 / wet_perimeter2;
-    float k_bankfull2 = StorageTimeConstant(m_chMan[i], m_chSlope[i], m_chLen[i], radius2); // Hour
+    FLTPT wet_perimeter2 = ChannelWettingPerimeter(m_chBtmWth[i], 0.1 * m_chDepth[i], m_chSideSlope[i]);
+    FLTPT cross_area2 = ChannelCrossSectionalArea(m_chBtmWth[i], 0.1 * m_chDepth[i], m_chSideSlope[i]);
+    FLTPT radius2 = cross_area2 / wet_perimeter2;
+    FLTPT k_bankfull2 = StorageTimeConstant(m_chMan[i], m_chSlope[i], m_chLen[i], radius2); // Hour
 
-    float xkm = k_bankfull * m_mskCoef1 + k_bankfull2 * m_mskCoef2;
+    FLTPT xkm = k_bankfull * m_mskCoef1 + k_bankfull2 * m_mskCoef2;
     // Eq. 7:1.4.9 in SWAT Theory 2009.
     // Check Muskingum numerical stability
-    float detmax = 2.f * xkm * (1.f - m_mskX);
-    float detmin = 2.f * xkm * m_mskX;
+    FLTPT detmax = 2. * xkm * (1. - m_mskX);
+    FLTPT detmin = 2. * xkm * m_mskX;
     // Discretize time interval to meet the stability criterion
-    float det = 24.f; // hours, time step
+    FLTPT det = 24.; // hours, time step
     int nn = 0;       // number of subdaily computation points for stable routing
     if (det > detmax) {
-        if (det / 2.f <= detmax) {
-            det = 12.f;
+        if (det / 2. <= detmax) {
+            det = 12.;
             nn = 2;
-        } else if (det / 4.f <= detmax) {
-            det = 6.f;
+        } else if (det / 4. <= detmax) {
+            det = 6.;
             nn = 4;
         } else {
             det = 1;
@@ -462,48 +484,48 @@ bool MUSK_CH::ChannelFlow(const int i) {
         nn = 1;
     }
     // get coefficients of Muskingum
-    float temp = detmax + det;
-    float c1 = (det - detmin) / temp;
-    float c2 = (det + detmin) / temp;
-    float c3 = (detmax - det) / temp;
+    FLTPT temp = detmax + det;
+    FLTPT c1 = (det - detmin) / temp;
+    FLTPT c2 = (det + detmin) / temp;
+    FLTPT c3 = (detmax - det) / temp;
     // make sure any coefficient is positive. Not sure whether this is needed.
     //if (c1 < 0) {
     //    c2 += c1;
-    //    c1 = 0.f;
+    //    c1 = 0.;
     //}
     //if (c3 < 0) {
     //    c2 += c1;
-    //    c3 = 0.f;
+    //    c3 = 0.;
     //}
 
 #ifdef PRINT_DEBUG
     cout << " chStorage before routing " << m_chStorage[i] << endl;
 #endif
     m_rteWtrOut[i] = qIn * m_dt;   // m^3
-    float wtrin = qIn * m_dt / nn; // Inflow during a sub time interval, m^3
-    float vol = 0.f;               // volume of water in reach, m^3
-    float volrt = 0.f;             // flow rate, m^3/s
-    float max_rate = 0.f;          // maximum flow capacity of the channel at bank full (m^3/s)
-    float sdti = 0.f;              // average flow on day in reach, m^3/s, i.e., m_qRchOut
-    float vc = 0.f;                // average flow velocity in channel, m/s
-    float rchp = 0.f;              // wet perimeter, m
-    float rcharea = 0.f;           // cross-sectional area, m^2
-    float rchradius = 0.f;         // hydraulic radius
-    float rtwtr = 0.f;             // water leaving reach on day, m^3, i.e., m_rteWtrOut
-    float rttlc = 0.f;             // transmission losses from reach on day, m^3
-    float qinday = 0.f;            // m^3
-    float qoutday = 0.f;           // m^3
+    FLTPT wtrin = qIn * m_dt / nn; // Inflow during a sub time interval, m^3
+    FLTPT vol = 0.;               // volume of water in reach, m^3
+    FLTPT volrt = 0.;             // flow rate, m^3/s
+    FLTPT max_rate = 0.;          // maximum flow capacity of the channel at bank full (m^3/s)
+    FLTPT sdti = 0.;              // average flow on day in reach, m^3/s, i.e., m_qRchOut
+    FLTPT vc = 0.;                // average flow velocity in channel, m/s
+    FLTPT rchp = 0.;              // wet perimeter, m
+    FLTPT rcharea = 0.;           // cross-sectional area, m^2
+    FLTPT rchradius = 0.;         // hydraulic radius
+    FLTPT rtwtr = 0.;             // water leaving reach on day, m^3, i.e., m_rteWtrOut
+    FLTPT rttlc = 0.;             // transmission losses from reach on day, m^3
+    FLTPT qinday = 0.;            // m^3
+    FLTPT qoutday = 0.;           // m^3
 
     // Iterate for the day
     for (int ii = 0; ii < nn; ii++) {
         // Calculate volume of water in reach
         vol = m_chSto[i] + wtrin; // m^3
         // Find average flowrate in a sub time interval, m^3/s
-        volrt = vol / (86400.f / nn);
+        volrt = vol / (86400. / nn);
         // Find maximum flow capacity of the channel at bank full, m^3/s
         max_rate = manningQ(cross_area, radius, m_chMan[i], m_chSlope[i]);
-        sdti = 0.f;
-        m_chWtrDepth[i] = 0.f;
+        sdti = 0.;
+        m_chWtrDepth[i] = 0.;
         // If average flowrate is greater than the channel capacity at bank full,
         //   then simulate flood plain flow, else simulate the regular channel flow.
         if (volrt > max_rate) {
@@ -512,11 +534,11 @@ bool MUSK_CH::ChannelFlow(const int i) {
             // Find the cross-sectional area and depth for volrt by iteration method at 1cm interval depth.
             // Find the depth until the discharge rate is equal to volrt
             while (sdti < volrt) {
-                m_chWtrDepth[i] += 0.01f; // Increase 1cm at each interation
+                m_chWtrDepth[i] += 0.01; // Increase 1cm at each interation
                 rcharea = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
-                                                    m_chSideSlope[i], m_chWth[i], 4.f);
+                                                    m_chSideSlope[i], m_chWth[i], 4.);
                 rchp = ChannelWettingPerimeter(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
-                                               m_chSideSlope[i], m_chWth[i], 4.f);
+                                               m_chSideSlope[i], m_chWth[i], 4.);
                 radius = rcharea / rchp;
                 sdti = manningQ(rcharea, radius, m_chMan[i], m_chSlope[i]);
             }
@@ -525,7 +547,7 @@ bool MUSK_CH::ChannelFlow(const int i) {
             // Find the cross-sectional area and depth for volrt by iteration method at 1cm interval depth
             // Find the depth until the discharge rate is equal to volrt.
             while (sdti < volrt) {
-                m_chWtrDepth[i] += 0.01f;
+                m_chWtrDepth[i] += 0.01;
                 rcharea = ChannelCrossSectionalArea(m_chBtmWth[i], m_chWtrDepth[i], m_chSideSlope[i]);
                 rchp = ChannelWettingPerimeter(m_chBtmWth[i], m_chWtrDepth[i], m_chSideSlope[i]);
                 rchradius = rcharea / rchp;
@@ -535,30 +557,30 @@ bool MUSK_CH::ChannelFlow(const int i) {
         }
         // Calculate top width of channel at water level, topw in SWAT
         if (m_chWtrDepth[i] <= m_chDepth[i]) {
-            m_chWtrWth[i] = m_chBtmWth[i] + 2.f * m_chWtrDepth[i] * m_chSideSlope[i];
+            m_chWtrWth[i] = m_chBtmWth[i] + 2. * m_chWtrDepth[i] * m_chSideSlope[i];
         } else {
-            m_chWtrWth[i] = 5.f * m_chWth[i] + 2.f * (m_chWtrDepth[i] - m_chDepth[i]) * 4.f;
+            m_chWtrWth[i] = 5. * m_chWth[i] + 2. * (m_chWtrDepth[i] - m_chDepth[i]) * 4.;
         }
-        if (sdti > 0.f) {
+        if (sdti > 0.) {
             // Calculate velocity and travel time
             vc = sdti / rcharea;                       // vel_chan(:) in SWAT
-            float rttime = m_chLen[i] / (3600.f * vc); // reach travel time, hr
+            FLTPT rttime = m_chLen[i] / (3600. * vc); // reach travel time, hr
             // Compute water leaving reach on day
             rtwtr = c1 * wtrin + c2 * m_flowIn[i] + c3 * m_flowOut[i];
-            if (rtwtr < 0.f) rtwtr = 0.f;
+            if (rtwtr < 0.) rtwtr = 0.;
             rtwtr = Min(rtwtr, wtrin + m_chSto[i]);
             // Calculate amount of water in channel at end of day
             m_chSto[i] += wtrin - rtwtr;
             // Add if statement to keep m_chStorage from becoming negative
-            if (m_chSto[i] < 0.f) m_chSto[i] = 0.f;
+            if (m_chSto[i] < 0.) m_chSto[i] = 0.;
 
             // Transmission and evaporation losses are proportionally taken from the channel storage
             //   and from volume flowing out
-            if (rtwtr > 0.f) {
+            if (rtwtr > 0.) {
                 // Total time in hours to clear the water
-                rttlc = det * m_Kchb[i] * 0.001f * m_chLen[i] * rchp; // m^3
-                float rttlc2 = rttlc * m_chSto[i] / (rtwtr + m_chSto[i]);
-                float rttlc1 = 0.f;
+                rttlc = det * m_Kchb[i] * 0.001 * m_chLen[i] * rchp; // m^3
+                FLTPT rttlc2 = rttlc * m_chSto[i] / (rtwtr + m_chSto[i]);
+                FLTPT rttlc1 = 0.;
                 if (m_chSto[i] <= rttlc2) {
                     rttlc2 = Min(rttlc2, m_chSto[i]);
                 }
@@ -571,12 +593,12 @@ bool MUSK_CH::ChannelFlow(const int i) {
                 rttlc = rttlc1 + rttlc2; // Total water loss by transmission
             }
             // Calculate evaporation
-            float rtevp = 0.f;
-            float rtevp1 = 0.f;
-            float rtevp2 = 0.f;
-            if (rtwtr > 0.f) {
+            FLTPT rtevp = 0.;
+            FLTPT rtevp1 = 0.;
+            FLTPT rtevp2 = 0.;
+            if (rtwtr > 0.) {
                 /// In SWAT source code, line 306 of rtmusk.f, I think aaa should be divided by nn! By lj.
-                float aaa = m_Epch * m_petSubbsn[i] * 0.001f / nn; // m
+                FLTPT aaa = m_Epch * m_petSubbsn[i] * 0.001 / nn; // m
                 if (m_chWtrDepth[i] <= m_chDepth[i]) {
                     rtevp = aaa * m_chLen[i] * m_chWtrWth[i]; // m^3
                 } else {
@@ -584,7 +606,7 @@ bool MUSK_CH::ChannelFlow(const int i) {
                         rtevp = aaa * m_chLen[i] * m_chWtrWth[i];
                     } else {
                         rtevp = aaa;
-                        m_chWtrWth[i] = m_chBtmWth[i] + 2.f * m_chDepth[i] * m_chSideSlope[i];
+                        m_chWtrWth[i] = m_chBtmWth[i] + 2. * m_chDepth[i] * m_chSideSlope[i];
                         rtevp *= m_chLen[i] * m_chWtrWth[i]; // m^3
                     }
                 }
@@ -609,30 +631,30 @@ bool MUSK_CH::ChannelFlow(const int i) {
             // Total outflow for the day
             rtwtr = qoutday;
         } else {
-            rtwtr = 0.f;
-            sdti = 0.f;
-            m_chSto[i] = 0.f;
-            m_flowIn[i] = 0.f;
-            m_flowOut[i] = 0.f;
+            rtwtr = 0.;
+            sdti = 0.;
+            m_chSto[i] = 0.;
+            m_flowIn[i] = 0.;
+            m_flowOut[i] = 0.;
         }
     } /* Iterate for the day */
-    if (rtwtr < 0.f) rtwtr = 0.f;
-    if (m_chSto[i] < 0.f) m_chSto[i] = 0.f;
-    if (m_chSto[i] < 10.f) {
+    if (rtwtr < 0.) rtwtr = 0.;
+    if (m_chSto[i] < 0.) m_chSto[i] = 0.;
+    if (m_chSto[i] < 10.) {
         rtwtr += m_chSto[i];
-        m_chSto[i] = 0.f;
+        m_chSto[i] = 0.;
     }
     m_qRchOut[i] = sdti;
     m_rteWtrOut[i] = rtwtr;
     m_chCrossArea[i] = rcharea;
 
-    float qInSum = m_olQ2Rch[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
+    FLTPT qInSum = m_olQ2Rch[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
     if (qInSum < UTIL_ZERO) {
         // In case of divided by zero.
-        m_qsRchOut[i] = 0.f;
-        m_qiRchOut[i] = 0.f;
-        m_qgRchOut[i] = 0.f;
-        m_qRchOut[i] = 0.f;
+        m_qsRchOut[i] = 0.;
+        m_qiRchOut[i] = 0.;
+        m_qgRchOut[i] = 0.;
+        m_qRchOut[i] = 0.;
     } else {
         // In my opinion, these lines should use `qIn` instead of `qInSum`. By lj.
         m_qsRchOut[i] = m_qRchOut[i] * (m_olQ2Rch[i] + qsUp) / qIn;
@@ -641,14 +663,14 @@ bool MUSK_CH::ChannelFlow(const int i) {
     }
 
     // Add transmission losses to bank storage/deep aquifer (i.e., groundwater in current version)
-    if (rttlc > 0.f) {
-        float trnsrch = 0.5f;
-        if (rchp > 0.f) {
+    if (rttlc > 0.) {
+        FLTPT trnsrch = 0.5;
+        if (rchp > 0.) {
             trnsrch = m_chBtmWth[i] / rchp; // Use bottom width / wetting perimeter to estimate.
         }
-        m_bankSto[i] += rttlc * (1.f - trnsrch); // m^3
+        m_bankSto[i] += rttlc * (1. - trnsrch); // m^3
         if (nullptr != m_gwSto) {
-            m_gwSto[i] += rttlc * trnsrch / m_chArea[i] * 1000.f; // mm
+            m_gwSto[i] += rttlc * trnsrch / m_chArea[i] * 1000.; // mm
         }
     }
 

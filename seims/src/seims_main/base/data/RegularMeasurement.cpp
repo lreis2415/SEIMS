@@ -33,7 +33,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     for (int i = 0; i < nSites; i++) {
         BSON_APPEND_INT32(site_array, ValueToString(i).c_str(), m_siteIDList[i]);
     }
-    StatusMessage(bson_as_json(site_array, NULL));
+    // StatusMessage(bson_as_json(site_array, NULL));
     vint st = CVT_VINT(startTime) * 1000;
     vint et = CVT_VINT(endTime) * 1000;
 
@@ -47,7 +47,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                   MONG_HYDRO_DATA_UTC, BCON_INT32(1),
                              "}");
 
-    StatusMessage(bson_as_json(q, NULL));
+    // StatusMessage(bson_as_json(q, NULL));
 
     // perform query and read measurement data
     std::unique_ptr<MongoCollection>
@@ -60,7 +60,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
         mongoc_cursor_destroy(cursor);
         throw ModelException("RegularMeasurement", "Constructor", "Query error! ");
     }
-    float value;
+    FLTPT value;
     int stationIDLast = -1;
     int stationID = -1;
     int iSite = -1;
@@ -82,8 +82,8 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
         }
 
         if (m_siteData.size() < index + 1) {
-            float* tmpData = nullptr;
-            utils_array::Initialize1DArray(nSites, tmpData, 0.f);
+            FLTPT* tmpData = nullptr;
+            Initialize1DArray(nSites, tmpData, 0.f);
             m_siteData.emplace_back(tmpData);
         }
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
@@ -125,7 +125,7 @@ RegularMeasurement::~RegularMeasurement() {
     m_siteData.clear();
 }
 
-float* RegularMeasurement::GetSiteDataByTime(const time_t t) {
+FLTPT* RegularMeasurement::GetSiteDataByTime(const time_t t) {
     int index = CVT_INT((t - m_startTime) / m_interval);
     if (index < 0) {
         index = 0;

@@ -8,6 +8,7 @@
  *   - 2. 2017-8-23 - lj - Solve inconsistent results when using openmp to reducing
  *                           raster data according to subbasin ID.
  *   - 3. 2021-04-07 - lj - Support different flow direction algorithms
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Zhiqiang Yu, Junzhi Liu, Liangjun Zhu
  */
@@ -34,11 +35,17 @@ public:
 
     ~SSR_DA();
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char *key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char *key, int nrows, float *data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set1DData(const char *key, int nrows, FLTPT *data) OVERRIDE;
+
+    void Set1DData(const char* key, int nrows, int* data) OVERRIDE;
+
+    void Set2DData(const char *key, int nrows, int ncols, FLTPT **data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, int** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -46,12 +53,12 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char *key, int *n, FLTPT **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
+    void Get2DData(const char *key, int *nrows, int *ncols, FLTPT ***data) OVERRIDE;
 
 private:
-    float GetFlowInFraction(int id, int up_idx);
+    FLTPT GetFlowInFraction(int id, int up_idx);
 
     bool FlowInSoil(int id);
 
@@ -60,13 +67,13 @@ private:
     /// valid cell numbers
     int m_nCells;
     /// width of cell (m)
-    float m_CellWth;
+    FLTPT m_CellWth;
     /// max number of soil layers
     int m_maxSoilLyrs;
     /// number of soil layers of each cell
-    float *m_nSoilLyrs;
+    int *m_nSoilLyrs;
     /// soil thickness
-    float **m_soilThk;
+    FLTPT **m_soilThk;
 
     ///// depth of the up soil layer
     //float m_upSoilDepth;
@@ -76,50 +83,50 @@ private:
     /// timestep
     int m_dt;
     /// Interflow scale factor
-    float m_ki;
+    FLTPT m_ki;
     /// soil freezing temperature threshold, deg C
-    float m_soilFrozenTemp;
+    FLTPT m_soilFrozenTemp;
     /// slope (tan)
-    float *m_slope;
+    FLTPT *m_slope;
     /// conductivity
-    float **m_ks;
+    FLTPT **m_ks;
     ///// porosity (mm/mm)
     //float **m_porosity;
 
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_soilSat;
+    FLTPT **m_soilSat;
     /// pore size distribution index
-    float **m_poreIdx;
+    FLTPT **m_poreIdx;
 
     /// amount of water available to plants in soil layer at field capacity (AWC=FC-WP), mm
-    float **m_soilFC;
+    FLTPT **m_soilFC;
     /// water content of soil at -1.5 MPa (wilting point) mm H2O
-    float **m_soilWP;
+    FLTPT **m_soilWP;
     /// soil water storage (mm)
-    float **m_soilWtrSto;
+    FLTPT **m_soilWtrSto;
     /// soil water storage in soil profile (mm)
-    float *m_soilWtrStoPrfl;
+    FLTPT *m_soilWtrStoPrfl;
     /// soil temperature, deg C
-    float *m_soilTemp;
+    FLTPT *m_soilTemp;
 
     /// channel width, m
-    float *m_chWidth;
+    FLTPT *m_chWidth;
     /// stream link
-    float *m_rchID;
+    int *m_rchID;
 
     /*!
      * \brief 2d array recording indexes of flow in cells
      *
      *	The first element in each sub-array is the number of flow in cells in this sub-array
      */
-    float **m_flowInIdx;
+    int **m_flowInIdx;
 
     /*!
      * \brief Flow fractions of flow in cells to the current cell
      *
      * It has the same data structure as m_flowInIndex.
      */
-    float **m_flowInFrac;
+    FLTPT **m_flowInFrac;
 
     /*!
      * \brief Routing layers according to the flow direction
@@ -127,22 +134,22 @@ private:
      *  There are not flow relationships within each layer.
      *  The first element in each layer is the number of cells in the layer
      */
-    float **m_rteLyrs;
+    int **m_rteLyrs;
     /// number of routing layers
     int m_nRteLyrs;
     /// number of subbasin
     int m_nSubbsns;
     /// subbasin grid (ID of subbasin)
-    float *m_subbsnID;
+    int *m_subbsnID;
 
     // outputs
 
     /// subsurface runoff (mm), VAR_SSRU
-    float **m_subSurfRf;
+    FLTPT **m_subSurfRf;
     /// subsurface runoff volume (m^3), VAR_SSRUVOL
-    float **m_subSurfRfVol;
+    FLTPT **m_subSurfRfVol;
     /// subsurface to streams from each subbasin, the first element is the whole watershed, m^3/s, VAR_SBIF
-    float *m_ifluQ2Rch;
+    FLTPT *m_ifluQ2Rch;
 };
 
 #endif /* SEIMS_MODULE_SSR_DA_H */

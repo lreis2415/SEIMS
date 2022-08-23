@@ -12,6 +12,7 @@
  *        -# Add m_VPD, m_dayLen as outputs, which will be used in PG_EPIC module
  *        -# change m_vpd2 and m_gsi from DT_Single to DT_Raster1D, see readplant.f of SWAT
  *        -# Add m_phuBase as outputs, which will be used in MGT_SWAT module
+ *   - 3. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -40,9 +41,11 @@ public:
 
     ~PETPenmanMonteith();
 
-    void Set1DData(const char* key, int n, float* value) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* value) OVERRIDE;
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void Set1DData(const char* key, int n, int* value) OVERRIDE;
+
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -50,66 +53,66 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     /// Mean air temperature for a given day (deg C)
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     /// Minimum air temperature for a given day (deg C)
-    float* m_minTemp;
+    FLTPT* m_minTemp;
     /// Maximum air temperature for a given day (deg C)
-    float* m_maxTemp;
+    FLTPT* m_maxTemp;
     /// solar radiation(MJ/m2/d)
-    float* m_sr;
+    FLTPT* m_sr;
     /// relative humidity(%)
-    float* m_rhd;
+    FLTPT* m_rhd;
     /// wind speed
-    float* m_ws;
+    FLTPT* m_ws;
     /// elevation(m)
-    float* m_dem;
+    FLTPT* m_dem;
     /// annual PHU
-    float* m_phuAnn;
+    FLTPT* m_phuAnn;
     /**
     * @brief land cover status code
     *
     * 0 no land cover currently growing
     * 1 land cover growing
     */
-    float* m_igro;
+    int* m_igro;
     /// canopy height for the day(m)
-    float* m_canHgt;
+    FLTPT* m_canHgt;
     /// leaf area index(m2/m2)
-    float* m_lai;
+    FLTPT* m_lai;
     /// albedo in the day
-    float* m_alb;
+    FLTPT* m_alb;
     /// valid cells number
     int m_nCells;
     ///latitude of each valid cells
-    float* m_cellLat;
+    FLTPT* m_cellLat;
 
     /// CO2 concentration(ppmv)
-    float m_co2Conc;
+    FLTPT m_co2Conc;
     /// rate of decline in stomatal conductance per unit increase in vapor pressure deficit(m/s/kPa)
-    float* m_vpd2;
+    FLTPT* m_vpd2;
     /// maximum stomatal conductance(m/s) at high solar radiation and low vpd
-    float* m_gsi;
+    FLTPT* m_gsi;
     /// vapor pressure deficit(kPa) corresponding to the second point on the stomatal conductance curve
-    float* m_vpdfr;
+    FLTPT* m_vpdfr;
     /// fraction of maximum stomatal conductance corresponding to the second point on the stomatal conductance curve
-    float* m_frgmax;
+    FLTPT* m_frgmax;
     ///The temperature of snow melt
-    float m_snowTemp;
+    FLTPT m_snowTemp;
     /// Correction Factor for PET
-    float m_petFactor;
+    FLTPT m_petFactor;
     /// output pet array
-    float* m_pet;
+    FLTPT* m_pet;
     /// maximum amount of transpiration (plant et)  that can occur on current day in HRU
-    float* m_maxPltET;
+    FLTPT* m_maxPltET;
     /// vapor pressure deficit
-    float* m_vpd;
+    FLTPT* m_vpd;
     /// day length
-    float* m_dayLen;
+    FLTPT* m_dayLen;
     /// base zero total heat units (used when no land cover is growing)
-    float* m_phuBase;
+    FLTPT* m_phuBase;
 };
 #endif /* SEIMS_MODULE_PET_PM_H */

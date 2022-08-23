@@ -59,7 +59,7 @@ int PER_PI::Execute() {
                 } else {
                     /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
                     float dcIndex = 2.f * m_poreIdx[i][j] + 3.f;          // pore disconnectedness index
-                    k = m_ks[i][j] * pow(swater / maxSoilWater, dcIndex); // mm/h
+                    k = m_ks[i][j] * CalPow(swater / maxSoilWater, dcIndex); // mm/h
                 }
 
                 m_soilPerco[i][j] = k * m_dt / 3600.f; // mm

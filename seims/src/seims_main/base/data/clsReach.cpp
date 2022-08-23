@@ -47,16 +47,16 @@ clsReach::clsReach(const bson_t*& bson_table):
     // Note: The check of maximum and minimum values will be done in `clsReaches::Update`.
     int i = 0;
     while(*REACH_PARAM_NAME[i] != '\0') {
-        float tmp_param;
+        FLTPT tmp_param;
         if (bson_iter_init_find(&iterator, bson_table, REACH_PARAM_NAME[i]) &&
             GetNumericFromBsonIterator(&iterator, tmp_param)) {
             // Existed in database and is numerical value
             // specific parameters that should be handled
-            if (StringMatch(REACH_PARAM_NAME[i], REACH_BOD) && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BOD) && tmp_param < 1.e-6) tmp_param = 1.e-6;
         } else {
             // Not existed in database, then set default values
-            if (StringMatch(REACH_PARAM_NAME[i], REACH_BEDTC)) tmp_param = 0.f;
-            if (StringMatch(REACH_PARAM_NAME[i], REACH_BNKTC)) tmp_param = 0.f;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BEDTC)) tmp_param = 0.;
+            if (StringMatch(REACH_PARAM_NAME[i], REACH_BNKTC)) tmp_param = 0.;
         }
 #ifdef HAS_VARIADIC_TEMPLATES
         param_map_.emplace(REACH_PARAM_NAME[i], tmp_param);
@@ -76,7 +76,7 @@ clsReach::clsReach(const bson_t*& bson_table):
         cout << "No Coordinate fields found, or split for coordinate values failed, or "
                 "length mismathched between x and y coordinates!" << endl;
     }
-    // read group informations, DO NOT THROW EXCEPTION!
+    // read group information, DO NOT THROW EXCEPTION!
     if (!bson_iter_init_find(&iterator, bson_table, REACH_GROUP)) {
         cout << "No GROUP field found!" << endl;
         return;
@@ -115,7 +115,12 @@ clsReach::clsReach(const bson_t*& bson_table):
     }
 }
 
-float clsReach::Get(const string& key) {
+clsReach::~clsReach() {
+    if (nullptr != positions_) { Release1DArray(positions_); }
+}
+
+
+FLTPT clsReach::Get(const string& key) {
     auto it = param_map_.find(key);
     if (it != param_map_.end()) {
         return it->second;
@@ -131,7 +136,7 @@ int clsReach::GetGroupIndex(const string& method, const int size) {
     return tmp.at(size);
 }
 
-void clsReach::Set(const string& key, const float value) {
+void clsReach::Set(const string& key, const FLTPT value) {
     auto it = param_map_.find(key);
     if (it != param_map_.end()) {
         param_map_.at(key) = value;
@@ -144,7 +149,7 @@ void clsReach::Set(const string& key, const float value) {
     }
 }
 
-void clsReach::SetPositions(FloatRaster* mask_raster) {
+void clsReach::SetPositions(IntRaster* mask_raster) {
     if (coor_x_.empty() || coor_y_.empty() || cells_num_ <= 0 || nullptr != positions_) return;
     Initialize1DArray(cells_num_, positions_, -9999);
     for (int i = 0; i < cells_num_; i++) {
@@ -152,53 +157,52 @@ void clsReach::SetPositions(FloatRaster* mask_raster) {
     }
 }
 
-
 void clsReach::DerivedParameters() {
-    float bnksize = 0.f; // Unit: millimeters
-    float fr_sand = 0.f;
-    float fr_silt = 0.f;
-    float fr_clay = 0.f;
-    float fr_gravel = 0.f;
-    float tc = 0.f; // An estimate of Critical shear stress if it is not given (N/m^2), Julian and Torres(2005)
-    float kd = 0.f;
+    FLTPT bnksize = 0.; // Unit: millimeters
+    FLTPT fr_sand = 0.;
+    FLTPT fr_silt = 0.;
+    FLTPT fr_clay = 0.;
+    FLTPT fr_gravel = 0.;
+    FLTPT tc = 0.; // An estimate of Critical shear stress if it is not given (N/m^2), Julian and Torres(2005)
+    FLTPT kd = 0.;
     // An estimate of channel bank erodibility coefficient if it is not available, Hanson and Simon(2001)
 
     ////////// Bank related //////////
     if (param_map_.find(REACH_BNKD50) == param_map_.end()) {
-        bnksize = 0.05f;
+        bnksize = 0.05;
 #ifdef HAS_VARIADIC_TEMPLATES
-        param_map_.emplace(REACH_BNKD50, 50.f);
+        param_map_.emplace(REACH_BNKD50, 50.);
 #else
-        param_map_.insert(make_pair(REACH_BNKD50, 50.f));
+        param_map_.insert(make_pair(REACH_BNKD50, 50.));
 #endif
     } else {
-        bnksize = param_map_.at(REACH_BNKD50) / 1000.f;
+        bnksize = param_map_.at(REACH_BNKD50) / 1000.;
     }
     // Channel bank sediment particle size distribution
-    if (bnksize <= 0.005f) {
+    if (bnksize <= 0.005) {
         // clayey bank
-        fr_clay = 0.65f;
-        fr_silt = 0.15f;
-        fr_sand = 0.15f;
-        fr_gravel = 0.05f;
-    } else if (bnksize > 0.005f && bnksize <= 0.05f) {
+        fr_clay = 0.65;
+        fr_silt = 0.15;
+        fr_sand = 0.15;
+        fr_gravel = 0.05;
+    } else if (bnksize > 0.005 && bnksize <= 0.05) {
         // silty bank
-        fr_silt = 0.65f;
-        fr_clay = 0.15f;
-        fr_sand = 0.15f;
-        fr_gravel = 0.05f;
-    } else if (bnksize > 0.05f && bnksize <= 2.f) {
+        fr_silt = 0.65;
+        fr_clay = 0.15;
+        fr_sand = 0.15;
+        fr_gravel = 0.05;
+    } else if (bnksize > 0.05 && bnksize <= 2.) {
         // sand bank
-        fr_sand = 0.65f;
-        fr_silt = 0.15f;
-        fr_clay = 0.15f;
-        fr_gravel = 0.05f;
+        fr_sand = 0.65;
+        fr_silt = 0.15;
+        fr_clay = 0.15;
+        fr_gravel = 0.05;
     } else {
         // gravel bank
-        fr_gravel = 0.65f;
-        fr_sand = 0.15f;
-        fr_silt = 0.15f;
-        fr_clay = 0.05f;
+        fr_gravel = 0.65;
+        fr_sand = 0.15;
+        fr_silt = 0.15;
+        fr_clay = 0.05;
     }
 #ifdef HAS_VARIADIC_TEMPLATES
     param_map_.emplace(REACH_BNKSAND, fr_sand);
@@ -216,8 +220,8 @@ void clsReach::DerivedParameters() {
         tc = param_map_.at(REACH_BNKTC);
     }
     if (tc <= UTIL_ZERO) {
-        float sc = (fr_silt + fr_clay) * 100.f;
-        tc = (0.1f + 0.1779f * sc + 0.0028f * sc * sc - 2.34e-05f * sc * sc * sc) * param_map_.at(REACH_BNKCOV);
+        FLTPT sc = (fr_silt + fr_clay) * 100.;
+        tc = (0.1 + 0.1779 * sc + 0.0028 * sc * sc - 2.34e-05 * sc * sc * sc) * param_map_.at(REACH_BNKCOV);
         if (param_map_.find(REACH_BNKTC) != param_map_.end()) {
             param_map_.at(REACH_BNKTC) = tc;
         } else {
@@ -234,9 +238,9 @@ void clsReach::DerivedParameters() {
     }
     if (kd <= UTIL_ZERO) {
         if (tc <= UTIL_ZERO) {
-            kd = 0.2f;
+            kd = 0.2;
         } else {
-            kd = 0.2f / sqrt(tc);
+            kd = 0.2 / sqrt(tc);
         }
         if (param_map_.find(REACH_BNKEROD) != param_map_.end()) {
             param_map_.at(REACH_BNKEROD) = kd;
@@ -251,40 +255,40 @@ void clsReach::DerivedParameters() {
 
     ////////// Bed related //////////
     if (param_map_.find(REACH_BEDD50) == param_map_.end()) {
-        bnksize = 0.5f;
+        bnksize = 0.5;
 #ifdef HAS_VARIADIC_TEMPLATES
-        param_map_.emplace(REACH_BEDD50, 500.f);
+        param_map_.emplace(REACH_BEDD50, 500.);
 #else
-        param_map_.insert(make_pair(REACH_BEDD50, 500.f));
+        param_map_.insert(make_pair(REACH_BEDD50, 500.));
 #endif
     } else {
-        bnksize = param_map_.at(REACH_BEDD50) / 1000.f;
+        bnksize = param_map_.at(REACH_BEDD50) / 1000.;
     }
     // Channel bank sediment particle size distribution
-    if (bnksize <= 0.005f) {
+    if (bnksize <= 0.005) {
         // clayey bank
-        fr_clay = 0.65f;
-        fr_silt = 0.15f;
-        fr_sand = 0.15f;
-        fr_gravel = 0.05f;
-    } else if (bnksize > 0.005f && bnksize <= 0.05f) {
+        fr_clay = 0.65;
+        fr_silt = 0.15;
+        fr_sand = 0.15;
+        fr_gravel = 0.05;
+    } else if (bnksize > 0.005 && bnksize <= 0.05) {
         // silty bank
-        fr_silt = 0.65f;
-        fr_clay = 0.15f;
-        fr_sand = 0.15f;
-        fr_gravel = 0.05f;
-    } else if (bnksize > 0.05f && bnksize <= 2.f) {
+        fr_silt = 0.65;
+        fr_clay = 0.15;
+        fr_sand = 0.15;
+        fr_gravel = 0.05;
+    } else if (bnksize > 0.05 && bnksize <= 2.) {
         // sand bank
-        fr_sand = 0.65f;
-        fr_silt = 0.15f;
-        fr_clay = 0.15f;
-        fr_gravel = 0.05f;
+        fr_sand = 0.65;
+        fr_silt = 0.15;
+        fr_clay = 0.15;
+        fr_gravel = 0.05;
     } else {
         // gravel bank
-        fr_gravel = 0.65f;
-        fr_sand = 0.15f;
-        fr_silt = 0.15f;
-        fr_clay = 0.05f;
+        fr_gravel = 0.65;
+        fr_sand = 0.15;
+        fr_silt = 0.15;
+        fr_clay = 0.05;
     }
 #ifdef HAS_VARIADIC_TEMPLATES
     param_map_.emplace(REACH_BEDSAND, fr_sand);
@@ -302,8 +306,8 @@ void clsReach::DerivedParameters() {
         tc = param_map_.at(REACH_BEDTC);
     }
     if (tc <= UTIL_ZERO) {
-        float sc = (fr_silt + fr_clay) * 100.f;
-        tc = (0.1f + 0.1779f * sc + 0.0028f * sc * sc - 2.34e-05f * sc * sc * sc) * param_map_.at(REACH_BEDCOV);
+        FLTPT sc = (fr_silt + fr_clay) * 100.;
+        tc = (0.1 + 0.1779 * sc + 0.0028 * sc * sc - 2.34e-05 * sc * sc * sc) * param_map_.at(REACH_BEDCOV);
         if (param_map_.find(REACH_BEDTC) != param_map_.end()) {
             param_map_.at(REACH_BEDTC) = tc;
         } else {
@@ -320,9 +324,9 @@ void clsReach::DerivedParameters() {
     }
     if (kd <= UTIL_ZERO) {
         if (tc <= UTIL_ZERO) {
-            kd = 0.2f;
+            kd = 0.2;
         } else {
-            kd = 0.2f / sqrt(tc);
+            kd = 0.2 / sqrt(tc);
         }
         if (param_map_.find(REACH_BEDEROD) != param_map_.end()) {
             param_map_.at(REACH_BEDEROD) = kd;
@@ -335,7 +339,6 @@ void clsReach::DerivedParameters() {
         }
     }
 }
-
 
 clsReaches::clsReaches(MongoClient* conn, const string& db_name,
                        const string& collection_name, const LayeringMethod mtd /* = UP_DOWN */) {
@@ -410,7 +413,6 @@ clsReaches::~clsReaches() {
                 delete iter->second;
                 iter->second = nullptr;
             }
-            // reaches_obj_.erase(iter++);
         }
         reaches_obj_.clear();
     }
@@ -419,7 +421,6 @@ clsReaches::~clsReaches() {
             if (nullptr != iter->second) {
                 Release1DArray(iter->second);
             }
-            // reaches_properties_.erase(iter++);
         }
         reaches_properties_.clear();
     }
@@ -432,12 +433,12 @@ clsReach* clsReaches::GetReachByID(const int id) {
     return nullptr;
 }
 
-void clsReaches::GetReachesSingleProperty(const string& key, float** data) {
+void clsReaches::GetReachesSingleProperty(const string& key, FLTPT** data) {
     auto iter = reaches_properties_.find(key);
     if (iter == reaches_properties_.end()) {
-        float* values = nullptr;
-        Initialize1DArray(reach_num_ + 1, values, 0.f);
-        values[0] = CVT_FLT(reach_num_);
+        FLTPT* values = nullptr;
+        Initialize1DArray(reach_num_ + 1, values, 0.);
+        values[0] = reach_num_;
         for (auto it = reaches_obj_.begin(); it != reaches_obj_.end(); ++it) {
             values[it->first] = it->second->Get(key);
         }
@@ -447,13 +448,13 @@ void clsReaches::GetReachesSingleProperty(const string& key, float** data) {
     }
 }
 
-void clsReaches::Update(map<string, ParamInfo *>& caliparams_map, FloatRaster* mask_raster) {
+void clsReaches::Update(map<string, ParamInfo<FLTPT> *>& caliparams_map, IntRaster* mask_raster) {
     int i = 0;
     while (*REACH_PARAM_NAME[i] != '\0') {
         auto it = caliparams_map.find(REACH_PARAM_NAME[i]);
         if (it != caliparams_map.end()) {
             for (auto it2 = reaches_obj_.begin(); it2 != reaches_obj_.end(); ++it2) {
-                float pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
+                FLTPT pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
                 if (FloatEqual(pre_value, NODATA_VALUE)) continue;
                 it2->second->Set(REACH_PARAM_NAME[i], it->second->GetAdjustedValue(pre_value));
             }
@@ -467,11 +468,11 @@ void clsReaches::Update(map<string, ParamInfo *>& caliparams_map, FloatRaster* m
         // Update width-depth-ratio according to reach width and reach depth.
         if (itrch->second->Get(REACH_DEPTH) <= UTIL_ZERO) {
             cout << "WARNING: Reach ID " << itrch->first << " has a negative depth, set to default 1.5!" << endl;
-            itrch->second->Set(REACH_DEPTH, 1.5f);
+            itrch->second->Set(REACH_DEPTH, 1.5);
         }
         if (itrch->second->Get(REACH_WIDTH) <= UTIL_ZERO) {
             cout << "WARNING: Reach ID " << itrch->first << " has a negative width, set to default 5!" << endl;
-            itrch->second->Set(REACH_WIDTH, 5.f);
+            itrch->second->Set(REACH_WIDTH, 5.);
         }
         itrch->second->Set(REACH_WDRATIO, itrch->second->Get(REACH_WIDTH) / itrch->second->Get(REACH_DEPTH));
         // Update positions of each reach

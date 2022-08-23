@@ -40,7 +40,6 @@ BMPPointSrcFactory::~BMPPointSrcFactory() {
                 delete it->second;
                 it->second = nullptr;
             }
-            // m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
     }
@@ -50,7 +49,6 @@ BMPPointSrcFactory::~BMPPointSrcFactory() {
                 delete it->second;
                 it->second = nullptr;
             }
-            // m_pointSrcMgtMap.erase(it++);
         }
         m_pointSrcMgtMap.clear();
     }
@@ -150,7 +148,7 @@ void BMPPointSrcFactory::Dump(std::ostream* fs) {
 /************************************************************************/
 
 PointSourceMgtParams::PointSourceMgtParams(const bson_t*& bsonTable, bson_iter_t& iter)
-    : m_name(""), m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f),
+    : m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f),
       m_TNConc(0.f), m_NO3Conc(0.f), m_NH4Conc(0.f), m_OrgNConc(0.f), m_TPConc(0.f), m_SolPConc(0.f),
       m_OrgPConc(0.f), m_COD(0.f) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
@@ -189,7 +187,12 @@ PointSourceMgtParams::PointSourceMgtParams(const bson_t*& bsonTable, bson_iter_t
     if (bson_iter_init_find(&iter, bsonTable, BMP_PTSRC_FLD_COD)) {
         GetNumericFromBsonIterator(&iter, m_COD);
     }
-    int sYear = -1, sMonth = -1, sDay = -1, eYear = -1, eMonth = -1, eDay = -1;
+    int sYear = -1;
+    int sMonth = -1;
+    int sDay = -1;
+    int eYear = -1;
+    int eMonth = -1;
+    int eDay = -1;
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SYEAR)) {
         GetNumericFromBsonIterator(&iter, sYear);
     }
