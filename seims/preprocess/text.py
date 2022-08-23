@@ -146,6 +146,7 @@ class ModelParamFields(object):
     max = 'MAX'
     min = 'MIN'
     type = 'TYPE'
+    dtype = 'DTYPE'  # data type, can be FLT or INT
     # available values
     change_vc = 'VC'
     change_rc = 'RC'

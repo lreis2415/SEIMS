@@ -66,7 +66,8 @@ class ImportParam2Mongo(object):
                            ModelParamFields.change: 'NC',
                            ModelParamFields.max: DEFAULT_NODATA,
                            ModelParamFields.min: DEFAULT_NODATA,
-                           ModelParamFields.type: ''}
+                           ModelParamFields.type: '',
+                           ModelParamFields.dtype: ''}
             for k, v in list(data_import.items()):
                 idx = field_names.index(k)
                 if cur_data_item[idx] == '':
@@ -204,7 +205,8 @@ class ImportParam2Mongo(object):
                    ModelParamFields.change: ModelParamFields.change_nc,
                    ModelParamFields.max: DEFAULT_NODATA,
                    ModelParamFields.min: DEFAULT_NODATA,
-                   ModelParamFields.type: 'SUBBASIN'}
+                   ModelParamFields.type: 'SUBBASIN',
+                   ModelParamFields.dtype: 'INT'}
             curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
             # print(dic, curfilter)
             cfg.maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
