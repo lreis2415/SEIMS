@@ -230,12 +230,10 @@ double ApprSqrt(double z);
 
 template<typename T>
 T CalSqrt(T val) {
-#if defined(USE_NATIVE_MATH)
-    return sqrt(val);
-#elif defined(USE_APPR_PAL_MATH)
+#if defined(USE_APPR_PAL_MATH)
     return ApprSqrt(val);
 #else
-    return ApprSqrt(val);
+    return sqrt(val);
 #endif
 }
 
@@ -286,12 +284,10 @@ static inline T ApprExp(const T x) {
 
 template<typename T>
 T CalExp(T val) {
-#if defined(USE_NATIVE_MATH)
-    return exp(val);
-#elif defined(USE_APPR_PAL_MATH)
+#if defined(USE_APPR_PAL_MATH)
     return ApprExp(val);
 #else
-    return ApprExp(val);
+    return exp(val);
 #endif
 }
 
@@ -304,12 +300,10 @@ double ApprLn(double z);
 
 template<typename T>
 T CalLn(T val) {
-#if defined(USE_NATIVE_MATH)
-    return log(val);
-#elif defined(USE_APPR_PAL_MATH)
+#if defined(USE_APPR_PAL_MATH)
     return ApprLn(val);
 #else
-    return ApprLn(val);
+    return log(val);
 #endif
 }
 
@@ -331,14 +325,12 @@ float inline ApprPow(float a, float b) {
     return pow_lookup(b, ApprLn(a));
 };
 
-template<typename T>
-T CalPow(T a, T b) {
-#if defined(USE_NATIVE_MATH)
-    return pow(a,b);
-#elif defined(USE_APPR_PAL_MATH)
-    return ApprPow(CVT_FLT(a), CVT_FLT(b));
+template<typename T1, typename T2>
+double CalPow(T1 a, T2 b) {
+#if defined(USE_APPR_PAL_MATH)
+    return CVT_DBL(ApprPow(CVT_FLT(a), CVT_FLT(b)));
 #else
-    return ApprPow(CVT_FLT(a), CVT_FLT(b));
+    return pow(CVT_DBL(a),CVT_DBL(b));
 #endif
 }
 
