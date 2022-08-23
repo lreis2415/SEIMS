@@ -82,6 +82,17 @@ template <typename T, typename INI_T>
 bool Initialize2DArray(int row, int col, T**& data, INI_T** init_data);
 
 /*!
+ * \brief Initialize irregular DT_Array2D data based on an existed 1D array
+ * \param[in] init_data Initial 1D array
+ * \param[out] rows Rows count
+ * \param[out] max_cols Maximum cols count
+ * \param[out] data Irregular 2D array
+ * \return True if succeed, else false and the error message will print as well.
+ */
+template <typename T1, typename T2>
+bool Initialize2DArray(T1* init_data, int& rows, int& max_cols, T2**& data);
+
+/*!
  * \brief Release DT_Array1D data
  * \param[in] data
  */
@@ -411,6 +422,38 @@ bool Initialize2DArray(const int row, const int col, T**& data,
             data[i][j] = static_cast<T>(init_data[i][j]);
         }
     }
+    return true;
+}
+
+template <typename T1, typename T2>
+bool Initialize2DArray(T1* init_data, int& rows, int& max_cols, T2**& data) {
+    int idx = 0;
+    rows = CVT_INT(init_data[idx++]);
+    data = new(nothrow) T2* [rows];
+    if (nullptr == data) {
+        delete[] data;
+        cout << "Bad memory allocated during initialize rows of the 2D array!" << endl;
+        return false;
+    }
+    T2* pool = nullptr;
+    // Get actual data length of init_data, excluding the first element which is 'rows'
+    int* cols = new int[rows];
+    max_cols = -1;
+    for (int i = 0; i < rows; i++) {
+        cols[i] = CVT_INT(init_data[idx]);
+        idx += cols[i] + 1;
+        if (cols[i] > max_cols) { max_cols = cols[i]; }
+    }
+    int length = idx - 1;
+    // New a 1d array to store data
+    Initialize1DArray(length, pool, init_data + 1);
+    // Now point the row pointers to the appropriate positions in the data pool
+    int pos = 0;
+    for (int i = 0; i < rows; ++i) {
+        data[i] = pool + pos;
+        pos += cols[i] + 1;
+    }
+    delete[] cols;
     return true;
 }
 

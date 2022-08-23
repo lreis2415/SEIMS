@@ -18,7 +18,8 @@ FROM alpine:${ALPINE_VERSION} as builder
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
 # Replace alpine repository source cdn to accelarate access speed
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && apk update && apk upgrade
 
 # Setup build env
 RUN apk add --no-cache cmake make g++
@@ -46,7 +47,8 @@ RUN cd /CCGL \
 FROM alpine:${ALPINE_VERSION} as runner
 
 # Replace alpine repository source cdn
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && apk update && apk upgrade
 
 # Add gnu standard C++ library and OpenMP library for running apps based on CCGL
 RUN apk add --no-cache libstdc++ libgomp

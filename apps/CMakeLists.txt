@@ -17,7 +17,6 @@ SET(APPS_TARGETS mask_rasterio
                 )
 
 foreach (c_target ${APPS_TARGETS})
-    # set_target_properties(${c_target} PROPERTIES OUTPUT_NAME ${c_target}${CMAKE_BUILD_POSTFIX})
     SET_TARGET_PROPERTIES(${c_target} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     target_link_libraries(${c_target} ${TARGET_VISIBILITY} ${CCGLNAME})
     IF (MONGOC_FOUND)
