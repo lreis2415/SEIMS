@@ -42,11 +42,11 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
 
-        FltMaskFltRaster* rsTime = FltMaskFltRaster::Init(gfs, tName.c_str(), true,
+        FloatRaster* rsTime = FloatRaster::Init(gfs, tName.c_str(), true,
                                                           rsMask, true, NODATA_VALUE, opts);
-        FltMaskFltRaster* rsDelta = FltMaskFltRaster::Init(gfs, deltaName.c_str(), true,
+        FloatRaster* rsDelta = FloatRaster::Init(gfs, deltaName.c_str(), true,
                                                            rsMask, true, NODATA_VALUE, opts);
-        FltMaskFltRaster* rsLandcover = FltMaskFltRaster::Init(gfs, landcoverName.c_str(), true,
+        FloatRaster* rsLandcover = FloatRaster::Init(gfs, landcoverName.c_str(), true,
                                                                rsMask, true, NODATA_VALUE, opts);
         if (nullptr == rsTime || nullptr == rsDelta || nullptr == rsLandcover) {
             cout << "Required input raster cannot be satisfied!\n";

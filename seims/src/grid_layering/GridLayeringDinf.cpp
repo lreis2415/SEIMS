@@ -58,9 +58,9 @@ bool GridLayeringDinf::LoadData() {
         mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(), true,
+        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(), true,
                                           mask_, true, NODATA_VALUE, opts);
-        flow_fraction_ = FltMaskFltRaster::Init(gfs_, flowfrac_name_.c_str(), true,
+        flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_name_.c_str(), true,
                                                 mask_, true, NODATA_VALUE, opts);
 #else
         return false;
@@ -72,9 +72,9 @@ bool GridLayeringDinf::LoadData() {
         } else {
             has_mask_ = true;
             mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FltMaskFltRaster::Init(flowdir_name_, true, mask_, true);
+            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
         }
-        flow_fraction_ = FltMaskFltRaster::Init(flowfrac_name_, true, mask_, true);
+        flow_fraction_ = FloatRaster::Init(flowfrac_name_, true, mask_, true);
     }
     if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
 

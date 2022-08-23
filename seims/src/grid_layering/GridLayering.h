@@ -33,11 +33,11 @@ using namespace data_raster;
 #ifndef FloatRaster
 #define FloatRaster clsRasterData<float>
 #endif
-#ifndef FloatMaskedRaster
-#define FloatMaskedRaster clsRasterData<float, int>
+#ifndef FltIntRaster
+#define FltIntRaster clsRasterData<float, int>
 #endif
-#ifndef FltMaskFltRaster
-#define FltMaskFltRaster clsRasterData<float, float>
+#ifndef IntFltRaster
+#define IntFltRaster clsRasterData<int, float>
 #endif
 
 /*!
@@ -70,7 +70,7 @@ vector<int> uncompress_flow_directions(int compressed_fd);
 bool read_stream_vertexes_as_rowcol(string stream_file, FloatRaster* mask,
                                     vector<vector<ROW_COL> >& stream_rc);
 
-void print_flow_fractions_mfdmd(FltMaskFltRaster* ffrac, int row, int col);
+void print_flow_fractions_mfdmd(FloatRaster* ffrac, int row, int col);
 
 class GridLayering: Interface {
 public:
@@ -187,7 +187,7 @@ protected:
     int* pos_index_;         ///< Valid cell's index
     int** pos_rowcol_;       ///< Positions of valid cells, e.g., (row, col) coordinates
     FloatRaster* mask_;      ///< Mask raster data
-    FltMaskFltRaster* flowdir_; ///< Flow direction raster data, e.g., `int` for D8
+    FloatRaster* flowdir_; ///< Flow direction raster data, e.g., `int` for D8
     float* flowdir_matrix_;     ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
     float* reverse_dir_;        ///< Compressed reversed direction
     int* flow_in_num_;          ///< Count of flow in cells
@@ -264,7 +264,7 @@ public:
 
 private:
     string flowfrac_name_;             ///< Flow fraction raster file recording the fraction of first direction
-    FltMaskFltRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
+    FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
     float* flowfrac_matrix_;           ///< Flow fraction of the first flow out direction (valid cell number)
     float* flowin_fracs_;              ///< Flow in fraction
     float* flowout_fracs_;             ///< Flow fractions of each cell's flow in
@@ -291,7 +291,7 @@ public:
 private:
     string flowfrac_corename_;         ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     vector<string> flowfrac_names_;    ///< Flow fraction raster files recording the fractions of each direction by ccw
-    FltMaskFltRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
+    FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
     float** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
     float* flowin_fracs_;              ///< Flow in fraction
     float* flowout_fracs_;             ///< Flow fractions of each cell's flow in

@@ -123,7 +123,7 @@ bool read_stream_vertexes_as_rowcol(string stream_file, FloatRaster* mask, vecto
     return true;
 }
 
-void print_flow_fractions_mfdmd(FltMaskFltRaster* ffrac, int row, int col) {
+void print_flow_fractions_mfdmd(FloatRaster* ffrac, int row, int col) {
     for (int i = 1; i <= 8; i++) {
         cout << ffrac->GetValue(row, col, i) << ",";
     }
@@ -176,7 +176,7 @@ GridLayering::~GridLayering() {
 bool GridLayering::Execute() {
     if (!LoadData()) return false;
     CalPositionIndex();
-    return OutputFlowOut() && OutputFlowIn() && 
+    return OutputFlowOut() && OutputFlowIn() &&
             GridLayeringFromSource() && GridLayeringFromOutlet() && GridLayeringEvenly();
 }
 
@@ -362,8 +362,8 @@ bool GridLayering::OutputFlowIn() {
     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_, 
-                                        n_valid_cells_ + flow_in_count_ + 1, 
+        done = done && OutputArrayAsGfs(flowin_index_name_,
+                                        n_valid_cells_ + flow_in_count_ + 1,
                                         flow_in_cells_);
 #endif
     }
@@ -586,7 +586,7 @@ bool GridLayering::GridLayeringEvenly() {
     for (auto itcopy = n_layer_cells_updown_.begin();
          itcopy != n_layer_cells_updown_.end(); ++itcopy) {
         n_layer_cells_evenly_.emplace_back(vector<int>(itcopy->size()));
-        for (auto itvalue = itcopy->begin(); 
+        for (auto itvalue = itcopy->begin();
              itvalue != itcopy->end(); ++itvalue) {
             n_layer_cells_evenly_[itcopy - n_layer_cells_updown_.begin()][itvalue - itcopy->begin()] = *itvalue;
         }
@@ -651,7 +651,7 @@ bool GridLayering::GridLayeringEvenly() {
             // only move cells to downstream layers with max_lyrdiff once!
             int maxdiff_count = CVT_INT(lyrdiff_cells[max_lyrdiff].size());
             set<int> first_tobechanged;
-            if (max_change >= maxdiff_count) { 
+            if (max_change >= maxdiff_count) {
                 max_change = maxdiff_count;
                 for (int i = 0; i < max_change; i++) {
                     first_tobechanged.insert(i);
@@ -666,7 +666,7 @@ bool GridLayering::GridLayeringEvenly() {
             vector<int> changed;
             vector<int>& max_lyrdiff_cells = lyrdiff_cells[max_lyrdiff];
             // Other cells will be moved to the next layer, and their lyrdiff be updated (minus 1)
-            for (set<int>::iterator it_change = first_tobechanged.begin(); 
+            for (set<int>::iterator it_change = first_tobechanged.begin();
                  it_change != first_tobechanged.end(); ++it_change) {
                 int ichange_cell = max_lyrdiff_cells[*it_change];
                 if (find(changed.begin(), changed.end(), ichange_cell) == changed.end()) {
@@ -689,7 +689,7 @@ bool GridLayering::GridLayeringEvenly() {
                 vector<int>& cur_lyr_cells = n_layer_cells_evenly_[cur_cell_lyr];
                 // Erasing using iterator from 'find' or 'remove'?
                 // Refers to https://stackoverflow.com/a/24011727/4837280
-                vector<int>::iterator it_erase = find(cur_lyr_cells.begin(), 
+                vector<int>::iterator it_erase = find(cur_lyr_cells.begin(),
                                                       cur_lyr_cells.end(), cur_cell);
                 if (it_erase != cur_lyr_cells.end()) {
                     *it_erase = std::move(cur_lyr_cells.back());

@@ -14,9 +14,9 @@ using namespace utils_math;
 #endif
 
 SubbasinIUHCalculator::SubbasinIUHCalculator(const int t, FloatRaster* rsMask,
-                                             FltMaskFltRaster* rsLanduse,
-                                             FltMaskFltRaster* rsTime, 
-                                             FltMaskFltRaster* rsDelta,
+                                             FloatRaster* rsLanduse,
+                                             FloatRaster* rsTime,
+                                             FloatRaster* rsDelta,
                                              MongoGridFs* grdfs)
     : dt(t), gfs(grdfs), mt(30), maxtSub(0) {
     nRows = rsMask->GetRows();
