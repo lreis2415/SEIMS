@@ -570,7 +570,7 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
     }
     if (StringMatch(param->Name, Tag_CellSize[0])) {
         // valid cells number, do not be confused with Tag_CellWidth
-        param->Value = CVT_FLT(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
+        param->Value = mask_raster_->GetCellNumber(); // old code is ->Size();  they have the same function
     } else if (StringMatch(param->Name, Tag_SubbasinId)) {
         param->Value = subbasin_id_;
     } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
@@ -580,9 +580,9 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
         param->Value = CVT_INT(input_->getDtChannel());
     } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
-        param->Value = CVT_INT(lyr_method_);
+        param->Value = lyr_method_;
     } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
-        param->Value = CVT_INT(fdir_method_);
+        param->Value = fdir_method_;
     }
     else {
         if (init_params_int_.find(GetUpper(param->Name)) != init_params_int_.end()) {
