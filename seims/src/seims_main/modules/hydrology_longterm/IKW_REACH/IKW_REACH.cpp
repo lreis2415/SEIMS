@@ -175,7 +175,7 @@ void IKW_REACH::SetValue(const char *key, float value) {
     //} else
     //if (StringMatch(sk, Tag_LayeringMethod[0])) {
     //    m_layeringMethod = (LayeringMethod) int(value);
-    //} else 
+    //} else
     if (StringMatch(sk, Tag_ChannelTimeStep[0])) {
         m_dt = int(value);
     } else if (StringMatch(sk, VAR_EP_CH[0])) {
@@ -195,7 +195,7 @@ void IKW_REACH::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, VAR_MSK_CO1[0])) {
         m_co1 = value;
     } else {
-        throw ModelException("IKW_REACH", "SetSingleData", 
+        throw ModelException("IKW_REACH", "SetSingleData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 
@@ -327,11 +327,11 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
     }
 
     /* common terms */
-    ab_pQ = alpha * beta * pow(((qLast + qIn) / 2), beta - 1);
+    ab_pQ = alpha * beta * CalPow(((qLast + qIn) / 2), beta - 1);
     // derivative of diagonal average (space-time)
 
     dtX = dt / dx;
-    C = dtX * qIn + alpha * pow(qLast, beta) + dt * surplus;
+    C = dtX * qIn + alpha * CalPow(qLast, beta) + dt * surplus;
     //dt/dx*Q = m3/s*s/m=m2; a*Q^b = A = m2; surplus*dt = s*m2/s = m2
     //C is unit volume of water
     // first gues Qkx
@@ -348,8 +348,8 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * CalPow(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * CalPow(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
         Qkx = Max(Qkx, MIN_FLUX);
         count++;
@@ -396,7 +396,7 @@ void IKW_REACH::ChannelFlow(int i) {
     // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
 
     // 3. water from bank storage
-    float bankOut = m_bankStorage[i] * (1 - exp(-m_aBank));
+    float bankOut = m_bankStorage[i] * (1 - CalExp(-m_aBank));
 
     m_bankStorage[i] -= bankOut;
     qIn += bankOut / m_dt;
@@ -438,7 +438,7 @@ void IKW_REACH::ChannelFlow(int i) {
     }
     // water balance of the bank storage
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
-    float bankOutGw = m_bankStorage[i] * (1 - exp(-m_bBank));
+    float bankOutGw = m_bankStorage[i] * (1 - CalExp(-m_bBank));
     bankOutGw = 0.f;
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
@@ -480,14 +480,14 @@ void IKW_REACH::ChannelFlow(int i) {
 
         float h = m_chStorage[i] / m_chWidth[i] / m_chLen[i];
         float Perim = 2.f * h + m_chWidth[i];
-        float sSin = sqrt(sin(m_chSlope[i]));
-        float alpha = pow(m_chManning[i] / sSin * pow(Perim, _2div3), 0.6f);
+        float sSin = CalSqrt(sin(m_chSlope[i]));
+        float alpha = CalPow(m_chManning[i] / sSin * CalPow(Perim, _2div3), 0.6f);
 
         float lossRate = -totalLoss / m_dt / m_chWidth[i];
         //lossRate = 0.f;
         m_qOut[i] = GetNewQ(qIn, m_qOut[i], lossRate, alpha, m_dt, m_chLen[i]);
 
-        float hNew = (alpha * pow(m_qOut[i], 0.6f)) / m_chWidth[i]; // unit m
+        float hNew = (alpha * CalPow(m_qOut[i], 0.6f)) / m_chWidth[i]; // unit m
 
         m_chStorage[i] += (qIn - m_qOut[i]) * m_dt;
         //float hTest = h + (qIn-m_qOut[i])*m_dt/m_chWidth[i]/m_chLen[i];

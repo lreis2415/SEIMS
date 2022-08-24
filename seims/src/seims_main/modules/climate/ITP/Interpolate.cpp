@@ -10,8 +10,7 @@ Interpolate::Interpolate() :
     m_itpOutput(nullptr) {
 }
 
-void Interpolate::SetClimateDataType(const float value) {
-    int data_type = CVT_INT(value);
+void Interpolate::SetClimateDataType(const int data_type) {
     if (data_type == 1) {
         m_dataType = 0; /// Precipitation
     } else if (data_type == 2 || data_type == 3 || data_type == 4) {
@@ -20,25 +19,25 @@ void Interpolate::SetClimateDataType(const float value) {
         m_dataType = 2; /// PET
     } else if (data_type == 6 || data_type == 7 || data_type == 8) {
         m_dataType = 3; /// Meteorology
+    } else {
+        m_dataType = -1; /// Unknown
     }
 }
 
 Interpolate::~Interpolate() {
-    if (m_itpOutput != nullptr) Release1DArray(m_itpOutput);
+    if (m_itpOutput != nullptr) { Release1DArray(m_itpOutput); }
 }
 
 int Interpolate::Execute() {
     CheckInputData();
     if (nullptr == m_itpOutput) {
-        Initialize1DArray(m_nCells, m_itpOutput, 0.f);
+        Initialize1DArray(m_nCells, m_itpOutput, 0.);
     }
     size_t err_count = 0;
 #pragma omp parallel for reduction(+: err_count)
     for (int i = 0; i < m_nCells; i++) {
-        // int index = 0;
-        float value = 0.f;
+        FLTPT value = 0.;
         for (int j = 0; j < m_nStations; j++) {
-            // index = i * m_nStations + j;
             value += m_stationData[j] * m_itpWeights[i][j];
             if (value != value) {
                 err_count++;
@@ -46,22 +45,22 @@ int Interpolate::Execute() {
                         ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
             }
             if (m_itpVertical) {
-                float delta = m_dem[i] - m_hStations[j];
-                float factor = m_lapseRate[m_month - 1][m_dataType];
-                float adjust = m_itpWeights[i][j] * delta * factor * 0.01f;
+                FLTPT delta = m_dem[i] - m_hStations[j];
+                FLTPT factor = m_lapseRate[m_month - 1][m_dataType];
+                FLTPT adjust = m_itpWeights[i][j] * delta * factor * 0.01;
                 value += adjust;
             }
         }
         m_itpOutput[i] = value;
     }
     if (err_count > 0) {
-        throw ModelException(M_ITP[0], "Execute", 
+        throw ModelException(M_ITP[0], "Execute",
                              "Error occurred in interpolation based on weight data of stations!");
     }
     return true;
 }
 
-void Interpolate::SetValue(const char* key, const float value) {
+void Interpolate::SetValue(const char* key, const int value) {
     string sk(key);
     if (StringMatch(sk, VAR_TSD_DT[0])) {
         SetClimateDataType(value);
@@ -72,7 +71,7 @@ void Interpolate::SetValue(const char* key, const float value) {
     }
 }
 
-void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, float** data) {
+void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
@@ -88,16 +87,13 @@ void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols,
     }
 }
 
-void Interpolate::Set1DData(const char* key, const int n, float* data) {
+void Interpolate::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEM[0])) {
         if (m_itpVertical) {
             CheckInputSize(M_ITP[0], key, n, m_nCells);
             m_dem = data;
         }
-    //} else if (StringMatch(sk, Tag_Weight[0])) {
-    //    CheckInputSize(M_ITP[0], key, n, m_nCells);
-    //    m_itpWeights = data;
     } else if (StringMatch(sk, Tag_Elevation_Precipitation) || StringMatch(sk, Tag_Elevation_Meteorology)
         || StringMatch(sk, Tag_Elevation_Temperature) || StringMatch(sk, Tag_Elevation_PET)) {
         if (m_itpVertical) {
@@ -128,7 +124,7 @@ bool Interpolate::CheckInputData() {
     return true;
 }
 
-void Interpolate::Get1DData(const char* key, int* n, float** data) {
+void Interpolate::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEM[0])) {
         *n = m_nCells;

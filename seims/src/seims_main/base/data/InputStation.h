@@ -2,8 +2,8 @@
  * \file InputStation.h
  * \brief HydroClimate site information
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
+ * \version 1.2
+ * \date Aug., 2022
  */
 #ifndef SEIMS_CLIMATE_STATION_H
 #define SEIMS_CLIMATE_STATION_H
@@ -14,6 +14,7 @@
 #include "db_mongoc.h"
 
 #include "Measurement.h"
+#include <seims.h>
 
 using namespace ccgl;
 using namespace db_mongoc;
@@ -36,10 +37,10 @@ public:
     int NumberOfSites(const char* site_type) const { return m_numSites.at(site_type); }
 
     //! Get elevations of given site type
-    float* GetElevation(const char* type) const { return m_elevation.at(type); }
+    FLTPT* GetElevation(const char* type) const { return m_elevation.at(type); }
 
     //! Get latitudes of given site type
-    float* GetLatitude(const char* type) const { return m_latitude.at(type); }
+    FLTPT* GetLatitude(const char* type) const { return m_latitude.at(type); }
 
     /*!
      * \brief Get time series data
@@ -49,7 +50,7 @@ public:
      * \param[out] nRow data item number
      * \param[out] data time series data
      */
-    void GetTimeSeriesData(time_t time, const string& type, int* nRow, float** data);
+    void GetTimeSeriesData(time_t time, const string& type, int* nRow, FLTPT** data);
 
     /*!
      * \brief Read data of each site type
@@ -73,7 +74,7 @@ private:
      * \param[in] siteType site type, "P" or "M"
      * \param[in] query \a bson_t
      */
-    void build_query_bson(int nSites, vector<int>& siteIDList, const string& siteType, bson_t* query);
+    void build_query_bson(int nSites, const vector<int>& siteIDList, const string& siteType, bson_t* query);
 
     /*!
      * \brief Read HydroClimate sites information from HydroClimateDB (MongoDB)
@@ -94,9 +95,9 @@ private:
     //! Measurement object of each data type
     map<string, Measurement *> m_measurement;
     //! Site ID: elevation
-    map<string, float *> m_elevation;
+    map<string, FLTPT*> m_elevation;
     //! Site ID: latitude
-    map<string, float *> m_latitude;
+    map<string, FLTPT*> m_latitude;
     //! site numbers of each site type
     map<string, int> m_numSites;
 };

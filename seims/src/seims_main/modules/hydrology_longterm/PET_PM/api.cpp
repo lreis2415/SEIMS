@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PET_PM[0]);
     mdi.SetName(M_PET_PM[0]);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -35,7 +35,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_FRGMAX[0], UNIT_NON_DIM, VAR_FRGMAX[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PHUTOT[0], UNIT_HOUR, VAR_PHUTOT[1], Source_ParameterDB, DT_Raster1D);
     //Now, grow code is prepared as an input parameters, together with LAI_INTI, BIO_INIT, CURYR_INIT, etc.
-    mdi.AddParameter(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_IGRO[0], UNIT_NON_DIM, VAR_IGRO[1], Source_ParameterDB, DT_Raster1DInt);
 
     // set the input from other modules
     mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);

@@ -14,9 +14,9 @@ using namespace utils_math;
 #endif
 
 SubbasinIUHCalculator::SubbasinIUHCalculator(const int t, FloatRaster* rsMask,
-                                             FltMaskFltRaster* rsLanduse,
-                                             FltMaskFltRaster* rsTime, 
-                                             FltMaskFltRaster* rsDelta,
+                                             FloatRaster* rsLanduse,
+                                             FloatRaster* rsTime,
+                                             FloatRaster* rsDelta,
                                              MongoGridFs* grdfs)
     : dt(t), gfs(grdfs), mt(30), maxtSub(0) {
     nRows = rsMask->GetRows();
@@ -53,7 +53,8 @@ int SubbasinIUHCalculator::calCell(const int id) {
     string remoteFilename = oss.str();
     BSON_APPEND_UTF8(&p, "ID", remoteFilename.c_str());
     BSON_APPEND_UTF8(&p, "DESCRIPTION", type);
-    BSON_APPEND_DOUBLE(&p, "NUMBER", nCells);
+    BSON_APPEND_INT32(&p, "NUMBER", nCells);
+    BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
 
     /// If the file is already existed in MongoDB, if existed, then delete it!
     gfs->RemoveFile(remoteFilename);

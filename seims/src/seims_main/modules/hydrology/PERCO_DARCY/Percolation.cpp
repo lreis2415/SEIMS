@@ -60,9 +60,9 @@ int Percolation_DARCY::Execute() {
 
 				// recharge capacity (mm)
 				float dcIndex = 3.f + 2.f / m_Poreindex[i][j]; // pore disconnectedness index
-				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * pow((moisture - m_Residual[i])/temp, dcIndex);
+				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
 				float rechargeCap =
-					m_Conductivity[i][j] / 3600.f * m_timestep * pow(moisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
+					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(moisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
 				float availableWater = (m_Moisture[i][j] - m_FieldCapacity[i][j]) * m_rootDepth[i][j];
 				if (rechargeCap >= availableWater) {
 					rechargeCap = availableWater;

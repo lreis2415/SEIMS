@@ -6,6 +6,7 @@
  */
 #ifndef SEIMS_CHANNEL_ROUTING_COMMON_H
 #define SEIMS_CHANNEL_ROUTING_COMMON_H
+#include <seims.h>
 
 /*!
  * \defgroup ChannelRouting
@@ -25,7 +26,7 @@
  * \param[in] x4 average slope of channel, m/m.
  * \return flow rate or flow velocity, m^3/s or m/s.
  */
-float manningQ(float x1, float x2, float x3, float x4);
+FLTPT manningQ(FLTPT x1, FLTPT x2, FLTPT x3, FLTPT x4);
 
 /*!
  * \ingroup ChannelRouting
@@ -36,7 +37,7 @@ float manningQ(float x1, float x2, float x3, float x4);
  * \param[in,out] ch_depth Channel depth, which maybe updated when bottom width < 0
  * \return Channel bottom width
  */
-float ChannleBottomWidth(float ch_wth, float& ch_sideslp, float& ch_depth);
+FLTPT ChannleBottomWidth(FLTPT ch_wth, FLTPT& ch_sideslp, FLTPT& ch_depth);
 
 /*!
  * \ingroup ChannelRouting
@@ -49,8 +50,8 @@ float ChannleBottomWidth(float ch_wth, float& ch_sideslp, float& ch_depth);
  * \param[in] fps The inverse of floodplain side slope (default is 4, slope = 0.25)
  * \return Channel wetting perimeter
  */
-float ChannelWettingPerimeter(float ch_btmwth, float ch_depth, float wtr_depth,
-                              float ch_sideslp, float ch_wth, float fps = 4.f);
+FLTPT ChannelWettingPerimeter(FLTPT ch_btmwth, FLTPT ch_depth, FLTPT wtr_depth,
+                              FLTPT ch_sideslp, FLTPT ch_wth, FLTPT fps = 4.);
 
 /*!
  * \ingroup ChannelRouting
@@ -60,7 +61,7 @@ float ChannelWettingPerimeter(float ch_btmwth, float ch_depth, float wtr_depth,
  * \param[in] ch_sideslp The inverse of channel side slope (default is 2, slope = 0.5)
  * \return Channel wetting perimeter
  */
-float ChannelWettingPerimeter(float ch_btmwth, float wtr_depth, float ch_sideslp);
+FLTPT ChannelWettingPerimeter(FLTPT ch_btmwth, FLTPT wtr_depth, FLTPT ch_sideslp);
 
 /*!
  * \ingroup ChannelRouting
@@ -73,8 +74,8 @@ float ChannelWettingPerimeter(float ch_btmwth, float wtr_depth, float ch_sideslp
  * \param[in] fps The inverse of floodplain side slope (default is 4, slope = 0.25)
  * \return Channel cross-sectional area
  */
-float ChannelCrossSectionalArea(float ch_btmwth, float ch_depth, float wtr_depth,
-                                float ch_sideslp, float ch_wth, float fps = 4.f);
+FLTPT ChannelCrossSectionalArea(FLTPT ch_btmwth, FLTPT ch_depth, FLTPT wtr_depth,
+                                FLTPT ch_sideslp, FLTPT ch_wth, FLTPT fps = 4.);
 
 /*!
  * \ingroup ChannelRouting
@@ -84,7 +85,7 @@ float ChannelCrossSectionalArea(float ch_btmwth, float ch_depth, float wtr_depth
  * \param[in] ch_sideslp The inverse of channel side slope (default is 2, slope = 0.5)
  * \return Channel cross-sectional area
  */
-float ChannelCrossSectionalArea(float ch_btmwth, float wtr_depth, float ch_sideslp);
+FLTPT ChannelCrossSectionalArea(FLTPT ch_btmwth, FLTPT wtr_depth, FLTPT ch_sideslp);
 
 /*!
  * \ingroup ChannelRouting
@@ -95,7 +96,7 @@ float ChannelCrossSectionalArea(float ch_btmwth, float wtr_depth, float ch_sides
  * \param[in] radius Hydraulic radius, m
  * \return Storage time constant
  */
-float StorageTimeConstant(float ch_manning, float ch_slope, float ch_len,
-                          float radius);
+FLTPT StorageTimeConstant(FLTPT ch_manning, FLTPT ch_slope, FLTPT ch_len,
+                          FLTPT radius);
 
 #endif /* SEIMS_CHANNEL_ROUTING_COMMON_H */

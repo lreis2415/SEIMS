@@ -20,18 +20,18 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(M_SEDR_SBAGNOLD[0]);
     mdi.SetName(M_SEDR_SBAGNOLD[0]);
-    mdi.SetVersion("2.0");
+    mdi.SetVersion("2.1");
     mdi.SetWebsite(SEIMS_SITE);
 
     // Input parameters from database
 
-    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
 #ifdef STORM_MODE
-    mdi.AddParameter(Tag_ChannelTimeStep,UNIT_SECOND,Tag_TimeStep[1],File_Input,DT_Single);
+    mdi.AddParameter(Tag_ChannelTimeStep,UNIT_SECOND,Tag_TimeStep[1],File_Input,DT_SingleInt);
 #else
-    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single); // daily model
+    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_SingleInt); // daily model
 #endif /* STORM_MODE */
-    mdi.AddParameter(VAR_VCD[0], UNIT_NON_DIM, VAR_VCD[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_VCD[0], UNIT_NON_DIM, VAR_VCD[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_P_RF[0], UNIT_NON_DIM, VAR_P_RF[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SPCON[0], UNIT_NON_DIM, VAR_SPCON[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SPEXP[0], UNIT_NON_DIM, VAR_SPEXP[1], Source_ParameterDB, DT_Single);

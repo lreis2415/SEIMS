@@ -16,13 +16,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetDescription(M_AET_PTH[1]);
     mdi.SetID(M_AET_PTH[0]);
     mdi.SetName(M_AET_PTH[0]);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
     mdi.AddParameter(VAR_ESCO[0], UNIT_NON_DIM, VAR_ESCO[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);

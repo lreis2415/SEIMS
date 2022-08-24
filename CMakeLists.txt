@@ -18,7 +18,7 @@
 #     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Jul. 21, 2019
+#  Latest updated: Jul. 6, 2022
 #
 #  Copyright (C) 2013-2019 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
@@ -30,20 +30,19 @@ FATAL: In-source builds are not allowed.
 ENDIF()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
 
-if(POLICY CMP0015)
-    cmake_policy(SET CMP0015 NEW)
-endif()
-if(POLICY CMP0054)
-    cmake_policy(SET CMP0054 NEW)
-endif()
-if(POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
-endif()
+cmake_policy(SET CMP0015 NEW)
+cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0079 NEW)
+SET(CMAKE_SH "CMAKE_SH-NOTFOUND")
 
 ### Set coding language
 PROJECT(SEIMS_ALL CXX C)
 ### SEIMS Version.
 SET(PRJNAME "SEIMS")
+
+
 ### Build Postfix
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
@@ -83,19 +82,22 @@ IF(MSVC)
     INCLUDE(CRTLinkage)
 ENDIF(MSVC)
 
-### Set default or specified installation directory.
-IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
-ELSE()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
-ENDIF ()
-SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc" CACHE PATH "Path to the documentation")
-
 ### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
+### Set default or specified installation directory.
+IF (INSTALL_PREFIX)
+    SET(INSTALL_DIR ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+ELSE()
+    IF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        SET(INSTALL_DIR ${PROJECT_BINARY_DIR} CACHE PATH "Set specified install path" FORCE)
+    ELSE ()
+        SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
+    ENDIF ()
+ENDIF ()
+SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
+SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
 
 ### Allow project folders in MSVC and Xcode.
 IF(MSVC OR XCODE)
@@ -137,35 +139,43 @@ FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
   SET(WITH_MPI 1)
   SET(PRJNAME ${PRJNAME}_MPI)
+  INCLUDE(SetFlagMPI)
   MESSAGE(STATUS "Compiling with MPI...")
 ELSE()
   MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
 ENDIF()
 
 ### Find OMP which is optional
-IF(XCODE)
-  # To use OpenMP in Xcode built by CMake, the recommended way is to
-  #   install llvm by 'brew install llvm', which has builtin 'libomp'
-  IF (NOT LLVM_ROOT_DIR)
-    SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
+# Refers to https://mac.r-project.org/openmp/ for further method to handle openmp in AppleClang
+IF(NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+  IF(CV_CLANG)
+    message(STATUS "Find OpenMP from LLVM")
+    # To use OpenMP in Clang built by CMake, the recommended way is to
+    #   install llvm alone by 'brew install llvm', which has builtin 'libomp'
+    IF (NOT LLVM_ROOT_DIR)
+        SET(LLVM_ROOT_DIR "/opt/homebrew/opt/llvm")
+    ENDIF ()
+    FIND_PACKAGE(LLVM)
+    IF(LLVM_VERSION_MAJOR)
+        geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
+        SET(OpenMP_CXX_FLAGS "-fopenmp")
+        SET(OpenMP_C_FLAGS "-fopenmp")
+        FIND_LIBRARY(OpenMP_LIBRARY
+            NAMES "omp"
+            HINTS ${LLVM_LIBRARY_DIRS})
+        SET(OPENMP_FOUND 1)
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+    ENDIF ()
+  ELSE ()
+    FIND_PACKAGE(OpenMP)
   ENDIF ()
-  FIND_PACKAGE(LLVM)
-  IF(LLVM_FOUND)
-    geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
-	SET(OpenMP_CXX_FLAGS "-fopenmp")
-    SET(OpenMP_C_FLAGS "-fopenmp")
-	FIND_LIBRARY(OpenMP_LIBRARY
-		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS})
-    SET(OPENMP_FOUND 1)
-  ENDIF ()
-ELSE ()
-  FIND_PACKAGE(OpenMP)
 ENDIF ()
+
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
   SET(PRJNAME ${PRJNAME}_OMP)
+  INCLUDE(SetFlagOpenMP)
   MESSAGE(STATUS "Compiling with OpenMP...")
 ENDIF()
 SET(PRJNAME ${PRJNAME}_ALL)
@@ -176,15 +186,10 @@ FIND_PACKAGE(GDAL REQUIRED)
 IF (GDAL_FOUND)
   SET(WITH_GDAL 1)
   ADD_DEFINITIONS(-DUSE_GDAL)
+  INCLUDE(SetFlagGDAL)
 ELSE ()
   MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
 ENDIF ()
-
-
-### Set specific packages.
-INCLUDE(SetFlagMPI)
-INCLUDE(SetFlagOpenMP)
-INCLUDE(SetFlagGDAL)
 
 ### Bson and MongoC.
 IF(BSON_ROOT)
@@ -199,6 +204,11 @@ IF(MONGOC_ROOT)
 ENDIF()
 INCLUDE(FindBson)
 INCLUDE(FindMongoC)
+
+### Set bits of float pointing number, i.e., float32 or float64(double)
+IF(FLOAT64)
+  add_definitions(-DUSE_FLOAT64)
+ENDIF()
 
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)

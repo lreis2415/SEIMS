@@ -161,3 +161,6 @@ bin
 # Clion
 cmake-build*/
 .idea
+
+# tmp results of test data
+/data/result*

@@ -160,7 +160,7 @@ void DoFieldsPartition(const char* dirName, const char* LanduName, const char* m
     string dir = GetPathFromFullName(demName);
     std::ostringstream oss;
     oss.str("");
-    //oss << dir << "field_"<<threshod<<"."<<GetLower(GetSuffix(dirName));
+    //oss << dir << "field_"<<threshold<<"."<<GetLower(GetSuffix(dirName));
     oss << dir << "fields_" << threshod << ".tif";
     string rsfieldFile = oss.str();
 

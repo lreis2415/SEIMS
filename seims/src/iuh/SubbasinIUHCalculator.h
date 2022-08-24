@@ -25,18 +25,18 @@ using namespace data_raster;
 #ifndef FloatRaster
 #define FloatRaster clsRasterData<float>
 #endif
-#ifndef FloatMaskedRaster
-#define FloatMaskedRaster clsRasterData<float, int>
+#ifndef FltIntRaster
+#define FltIntRaster clsRasterData<float, int>
 #endif
-#ifndef FltMaskFltRaster
-#define FltMaskFltRaster clsRasterData<float, float>
+#ifndef IntFltRaster
+#define IntFltRaster clsRasterData<int, float>
 #endif
 
 
 class SubbasinIUHCalculator: Interface {
 public:
-    SubbasinIUHCalculator(int t, FloatRaster* rsMask, FltMaskFltRaster* rsLanduse,
-                          FltMaskFltRaster* rsTime, FltMaskFltRaster* rsDelta, MongoGridFs* grdfs);
+    SubbasinIUHCalculator(int t, FloatRaster* rsMask, FloatRaster* rsLanduse,
+                          FloatRaster* rsTime, FloatRaster* rsDelta, MongoGridFs* grdfs);
 
 private:
     vector<vector<double> > uhCell, uh1; //IUH from cell to watershed outlet

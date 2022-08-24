@@ -8,6 +8,7 @@
  *                          subbasins, for both mpi version and omp version.
  *   - 3. 2018-03-26 - lj - Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
  *   - 4. 2018-05-14 - lj - Code review and reformat.
+ *   - 5. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
  */
@@ -36,17 +37,21 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
     void InitialOutputs() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     /// time step (sec)
@@ -54,35 +59,35 @@ private:
     /// validate cells number
     int m_nCells;
     /// cell width of the grid (m)
-    float m_CellWidth;
+    FLTPT m_CellWidth;
     /// cell area
-    float m_cellArea;
+    FLTPT m_cellArea;
     /// the total number of subbasins
     int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// subbasin grid (subbasins ID)
-    float* m_subbsnID;
+    int* m_subbsnID;
 
     /// IUH of each grid cell (1/s)
-    float** m_iuhCell;
+    FLTPT** m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// sediment yield in each cell
-    float* m_sedYield;
+    FLTPT* m_sedYield;
 
     //temporary
 
     /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
     /// store the sediment of each cell in each day between min time and max time
-    float** m_cellSed;
+    FLTPT** m_cellSed;
 
     //////////////////////////////////////////////////////////////////////
     //output
     /// sediment to streams
-    float* m_sedtoCh;
+    FLTPT* m_sedtoCh;
     /// sediment to channel at each cell at current time step
-    float* m_olWtrEroSed;
+    FLTPT* m_olWtrEroSed;
 };
 #endif /* SEIMS_MODULE_IUH_SED_OL_H */

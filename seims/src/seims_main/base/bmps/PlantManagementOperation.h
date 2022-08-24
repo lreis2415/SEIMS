@@ -9,6 +9,7 @@
 
 #include "basic.h"
 #include "BMPText.h"
+#include <seims.h>
 
 using namespace ccgl;
 using std::ostream;
@@ -35,15 +36,14 @@ public:
      * \param[in] day
      * \param[in] parameters
      */
-    PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-             float* parameters);
+    PltMgtOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     //! Output
     virtual void dump(std::ostream* fs) = 0;
 
     bool UseBaseHUSC() { return m_useBaseHUSC; }
 
-    float GetHUFraction() { return m_frHU; }
+    FLTPT GetHUFraction() { return m_frHU; }
 
     int GetMonth() { return m_month; }
 
@@ -55,7 +55,7 @@ protected:
     /// use base hu or plant accumulated hu
     bool m_useBaseHUSC;
     /// husc
-    float m_frHU;
+    FLTPT m_frHU;
     /// year
     int m_year;
     /// month
@@ -65,7 +65,7 @@ protected:
     /// management operation code
     int m_mgtOp;
     /// parameters, mgt1~mgt10
-    float* m_parameters;
+    FLTPT* m_parameters;
 };
 
 /*!
@@ -74,36 +74,36 @@ protected:
  */
 class PltOp: public PltMgtOp {
 public:
-    PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PltOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int PlantID() { return m_plantID; }
 
-    float CurYearMaturity() { return m_curYrMat; }
+    FLTPT CurYearMaturity() { return m_curYrMat; }
 
-    float HeatUnits() { return m_heatUnits; }
+    FLTPT HeatUnits() { return m_heatUnits; }
 
-    float LAIInit() { return m_laiInit; }
+    FLTPT LAIInit() { return m_laiInit; }
 
-    float BIOInit() { return m_bioInit; }
+    FLTPT BIOInit() { return m_bioInit; }
 
-    float HITarg() { return m_hiTarg; }
+    FLTPT HITarg() { return m_hiTarg; }
 
-    float BIOTarg() { return m_bioTarg; }
+    FLTPT BIOTarg() { return m_bioTarg; }
 
-    float CNOP() { return m_CNOP; }
+    FLTPT CNOP() { return m_CNOP; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_plantID;
-    float m_curYrMat;
-    float m_heatUnits;
-    float m_laiInit;
-    float m_bioInit;
-    float m_hiTarg;
-    float m_bioTarg;
-    float m_CNOP;
+    FLTPT m_curYrMat;
+    FLTPT m_heatUnits;
+    FLTPT m_laiInit;
+    FLTPT m_bioInit;
+    FLTPT m_hiTarg;
+    FLTPT m_bioTarg;
+    FLTPT m_CNOP;
 };
 
 /*!
@@ -112,29 +112,29 @@ private:
  */
 class IrrOp: public PltMgtOp {
 public:
-    IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    IrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int IRRSource() { return m_irrSrc; }
 
     int IRRNo() { return m_irrNo; }
 
-    float IRRApplyDepth() { return m_irrAmt; }
+    FLTPT IRRApplyDepth() { return m_irrAmt; }
 
-    float IRRSalt() { return m_irrSalt; }
+    FLTPT IRRSalt() { return m_irrSalt; }
 
-    float IRREfficiency() { return m_irrEfm; }
+    FLTPT IRREfficiency() { return m_irrEfm; }
 
-    float IRRSQfrac() { return m_irrSq; }
+    FLTPT IRRSQfrac() { return m_irrSq; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_irrSrc;
-    float m_irrAmt;
-    float m_irrSalt;
-    float m_irrEfm;
-    float m_irrSq;
+    FLTPT m_irrAmt;
+    FLTPT m_irrSalt;
+    FLTPT m_irrEfm;
+    FLTPT m_irrSq;
     int m_irrNo;
 };
 
@@ -144,23 +144,23 @@ private:
  */
 class FertOp: public PltMgtOp {
 public:
-    FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    FertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int FertilizerID() { return m_fertID; }
 
-    float FertilizerKg_per_ha() { return m_frtKgHa; }
+    FLTPT FertilizerKg_per_ha() { return m_frtKgHa; }
 
-    float FertilizerSurfaceFrac() { return m_frtSurface; }
+    FLTPT FertilizerSurfaceFrac() { return m_frtSurface; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_fertID;
-    float m_frtKgHa;
+    FLTPT m_frtKgHa;
     /// fraction of fertilizer which is applied to the top 10 mm of soil (the remaining
     /// fraction is applied to first soil layer defined by user)
-    float m_frtSurface;
+    FLTPT m_frtSurface;
 };
 
 /*!
@@ -169,21 +169,21 @@ private:
  */
 class PestOp: public PltMgtOp {
 public:
-    PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int PesticideID() { return m_pestID; }
 
-    float PesticideKg() { return m_pstKg; }
+    FLTPT PesticideKg() { return m_pstKg; }
 
-    float PesticideDepth() { return m_pstDep; }
+    FLTPT PesticideDepth() { return m_pstDep; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_pestID;
-    float m_pstKg;
-    float m_pstDep;
+    FLTPT m_pstKg;
+    FLTPT m_pstDep;
 };
 
 /*!
@@ -192,22 +192,21 @@ private:
  */
 class HvstKillOp: public PltMgtOp {
 public:
-    HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    HvstKillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
-    float CNOP() { return m_CNOP; }
+    FLTPT CNOP() { return m_CNOP; }
 
-    float HarvestIndexOverride() { return m_hiOvr; }
+    FLTPT HarvestIndexOverride() { return m_hiOvr; }
 
-    float StoverFracRemoved() { return m_fracHarvk; }
+    FLTPT StoverFracRemoved() { return m_fracHarvk; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
-    float m_CNOP;
-    float m_hiOvr;
-    float m_fracHarvk;
+    FLTPT m_CNOP;
+    FLTPT m_hiOvr;
+    FLTPT m_fracHarvk;
 };
 
 /*!
@@ -216,9 +215,9 @@ private:
  */
 class TillOp: public PltMgtOp {
 public:
-    TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    TillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
-    float CNOP() { return m_CNOP; }
+    FLTPT CNOP() { return m_CNOP; }
 
     int TillageID() { return m_tillID; }
 
@@ -227,7 +226,7 @@ public:
 
 private:
     int m_tillID;
-    float m_CNOP;
+    FLTPT m_CNOP;
 };
 
 /*!
@@ -236,22 +235,21 @@ private:
  */
 class HvstOnlyOp: public PltMgtOp {
 public:
-    HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    HvstOnlyOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
-    float HarvestEfficiency() { return m_harvEff; }
+    FLTPT HarvestEfficiency() { return m_harvEff; }
 
-    float HarvestIndexResidue() { return m_hiRsd; }
+    FLTPT HarvestIndexResidue() { return m_hiRsd; }
 
-    float HarvestIndexBiomass() { return m_hiBms; }
+    FLTPT HarvestIndexBiomass() { return m_hiBms; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
-    float m_harvEff;
-    float m_hiRsd;
-    float m_hiBms;
+    FLTPT m_harvEff;
+    FLTPT m_hiRsd;
+    FLTPT m_hiBms;
 };
 
 /*!
@@ -260,7 +258,7 @@ private:
  */
 class KillOp: public PltMgtOp {
 public:
-    KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    KillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -272,17 +270,17 @@ public:
  */
 class GrazOp: public PltMgtOp {
 public:
-    GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    GrazOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int GrazingDays() { return m_grzDays; }
 
     int ManureID() { return m_manureID; }
 
-    float BiomassConsumed() { return m_bioEat; }
+    FLTPT BiomassConsumed() { return m_bioEat; }
 
-    float BiomassTrampled() { return m_bioTrmp; }
+    FLTPT BiomassTrampled() { return m_bioTrmp; }
 
-    float ManureDeposited() { return m_manureKg; }
+    FLTPT ManureDeposited() { return m_manureKg; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -290,9 +288,9 @@ public:
 private:
     int m_grzDays;
     int m_manureID;
-    float m_bioEat;
-    float m_bioTrmp;
-    float m_manureKg;
+    FLTPT m_bioEat;
+    FLTPT m_bioTrmp;
+    FLTPT m_manureKg;
 };
 
 /*!
@@ -301,8 +299,7 @@ private:
  */
 class AutoIrrOp: public PltMgtOp {
 public:
-    AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-              float* parameters);
+    AutoIrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int WaterStrsIdent() { return m_wstrsID; }
 
@@ -310,13 +307,13 @@ public:
 
     int AutoIrrSrcLocs() { return m_irrNoa; }
 
-    float AutoWtrStrsThrsd() { return m_autoWstrs; }
+    FLTPT AutoWtrStrsThrsd() { return m_autoWstrs; }
 
-    float IrrigationEfficiency() { return m_irrEff; }
+    FLTPT IrrigationEfficiency() { return m_irrEff; }
 
-    float IrrigationWaterApplied() { return m_irrMx; }
+    FLTPT IrrigationWaterApplied() { return m_irrMx; }
 
-    float SurfaceRunoffRatio() { return m_irrAsq; }
+    FLTPT SurfaceRunoffRatio() { return m_irrAsq; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -324,11 +321,11 @@ public:
 private:
     int m_wstrsID;
     int m_irrSrc;
-    float m_autoWstrs;
+    FLTPT m_autoWstrs;
     int m_irrNoa;
-    float m_irrEff;
-    float m_irrMx;
-    float m_irrAsq;
+    FLTPT m_irrEff;
+    FLTPT m_irrMx;
+    FLTPT m_irrAsq;
 };
 
 /*!
@@ -337,22 +334,21 @@ private:
  */
 class AutoFertOp: public PltMgtOp {
 public:
-    AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    AutoFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int FertilizerID() { return m_afertID; }
 
     int NitrogenMethod() { return m_NStress; }
 
-    float NitrogenStrsFactor() { return m_autoNStrs; }
+    FLTPT NitrogenStrsFactor() { return m_autoNStrs; }
 
-    float MaxMineralN() { return m_autoNAPP; }
+    FLTPT MaxMineralN() { return m_autoNAPP; }
 
-    float MaxMineralNYearly() { return m_autoNYR; }
+    FLTPT MaxMineralNYearly() { return m_autoNYR; }
 
-    float FertEfficiency() { return m_autoEff; }
+    FLTPT FertEfficiency() { return m_autoEff; }
 
-    float SurfaceFracApplied() { return m_afrtSurface; }
+    FLTPT SurfaceFracApplied() { return m_afrtSurface; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -360,11 +356,11 @@ public:
 private:
     int m_afertID;
     int m_NStress;
-    float m_autoNStrs;
-    float m_autoNAPP;
-    float m_autoNYR;
-    float m_autoEff;
-    float m_afrtSurface;
+    FLTPT m_autoNStrs;
+    FLTPT m_autoNAPP;
+    FLTPT m_autoNYR;
+    FLTPT m_autoEff;
+    FLTPT m_afrtSurface;
 };
 
 /*!
@@ -373,25 +369,24 @@ private:
  */
 class RelImpndOp: public PltMgtOp {
 public:
-    RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    RelImpndOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int ImpoundTriger() { return m_impTrig; }
 
-    float MaxPondDepth() { return m_maxPondDepth; }
+    FLTPT MaxPondDepth() { return m_maxPondDepth; }
 
-    float MaxFitDepth() { return m_maxFitDepth; }
+    FLTPT MaxFitDepth() { return m_maxFitDepth; }
 
-    float MinFitDepth() { return m_minFitDepth; }
+    FLTPT MinFitDepth() { return m_minFitDepth; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_impTrig;
-    float m_maxPondDepth; ///< Maximum ponding depth, mm
-    float m_maxFitDepth;  ///< Maximum fitting depth, mm
-    float m_minFitDepth;  ///< Minimum fitting depth, mm
+    FLTPT m_maxPondDepth; ///< Maximum ponding depth, mm
+    FLTPT m_maxFitDepth;  ///< Maximum fitting depth, mm
+    FLTPT m_minFitDepth;  ///< Minimum fitting depth, mm
 };
 
 /*!
@@ -400,8 +395,7 @@ private:
  */
 class ContFertOp: public PltMgtOp {
 public:
-    ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    ContFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int FertilizerID() { return m_cfertID; }
 
@@ -409,7 +403,7 @@ public:
 
     int FertilizerDays() { return m_fertDays; }
 
-    float FertilizerKg() { return m_cfrtKg; }
+    FLTPT FertilizerKg() { return m_cfrtKg; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -417,7 +411,7 @@ public:
 private:
     int m_cfertID;
     int m_fertDays;
-    float m_cfrtKg;
+    FLTPT m_cfrtKg;
     int m_ifrtFreq;
 };
 
@@ -427,14 +421,13 @@ private:
  */
 class ContPestOp: public PltMgtOp {
 public:
-    ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-               float* parameters);
+    ContPestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
     int PesticideID() { return m_ipstID; }
 
     int PesticideFrequency() { return m_pstFreq; }
 
-    float PesticideKg() { return m_cpstKg; }
+    FLTPT PesticideKg() { return m_cpstKg; }
 
     int PesticideDays() { return m_pstDays; }
 
@@ -444,7 +437,7 @@ public:
 private:
     int m_ipstID;
     int m_pstDays;
-    float m_cpstKg;
+    FLTPT m_cpstKg;
     int m_pstFreq;
 };
 
@@ -454,15 +447,15 @@ private:
  */
 class BurnOp: public PltMgtOp {
 public:
-    BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    BurnOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
 
-    float FractionLeft() { return m_burnFrlb; }
+    FLTPT FractionLeft() { return m_burnFrlb; }
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 
 private:
-    float m_burnFrlb;
+    FLTPT m_burnFrlb;
 };
 
 } /* plant_management */

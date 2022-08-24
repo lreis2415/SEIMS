@@ -9,6 +9,7 @@
  *        -# Add m_snowCoverMax and m_snowCover50 to adjust for areal extent of snow cover
  *        -# ReWrite the execute code according to snom.f of SWAT
  *        -# In this version, snow melt is added to net precipitation.
+ *   - 3. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Zhiqiang Yu, Liangjun Zhu
  */
@@ -38,9 +39,9 @@ public:
     //! Destructor
     ~SNO_SP();
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, FLTPT data) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -48,19 +49,19 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     //! Valid cells number
     int m_nCells;
     //! Mean air temperature at which snow melt will occur, sub_smtmp
-    float m_t0;
+    FLTPT m_t0;
     //! fraction coefficient of precipitation as snow
-    float m_kblow;
+    FLTPT m_kblow;
     //! Snowfall temperature, i.e., precipitation as snow
-    float m_snowTemp;
+    FLTPT m_snowTemp;
     //! Initial snow water equivalent
-    //float m_swe0;
+    //FLTPT m_swe0;
 
     /*Snow pack temperature lag factor (0-1), sub_timp in SWAT
     * 1 = no lag (snow pack temp=current day air temp)
@@ -68,19 +69,19 @@ private:
     * temperature will be less influenced by the current day's
     * air temperature
     */
-    float m_lagSnow;
+    FLTPT m_lagSnow;
     //! Maximum melt rate for snow during year, sub_smfmx
-    float m_csnow6;
+    FLTPT m_csnow6;
     //! Minimum melt rate for snow during year, sub_smfmn
-    float m_csnow12;
+    FLTPT m_csnow12;
     //! Minimum snow water content that corresponds to 100% snow cover, mm H2O, SNOCOVMX
-    float m_snowCoverMax;
+    FLTPT m_snowCoverMax;
     //! Fraction of SNOCOVMX that corresponds to 50% snow cover, SNO50COV
-    float m_snowCover50;
+    FLTPT m_snowCover50;
     //! 1st shape parameter for snow cover equation
-    float m_snowCoverCoef1;
+    FLTPT m_snowCoverCoef1;
     //! 2nd shape parameter for snow cover equation
-    float m_snowCoverCoef2;
+    FLTPT m_snowCoverCoef2;
 
     //! average snow accumulation of the watershed
     //float m_swe;
@@ -88,25 +89,25 @@ private:
     //float m_lastSWE;
 
     //! Mean temperature
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     //! Max temperature
-    float* m_maxTemp;
+    FLTPT* m_maxTemp;
     //! Net precipitation
-    float* m_netPcp;
+    FLTPT* m_netPcp;
 
     //! snow redistribution
-    float* m_snowAccum;
+    FLTPT* m_snowAccum;
     //! snow sublimation, snoev in SWAT in etact.f
-    float* m_SE;
+    FLTPT* m_SE;
 
     //! temperature of snow pack, snotmp in SWAT
-    float* m_packT;
+    FLTPT* m_packT;
 
     /// outputs
 
     //! amount of water in snow melt, snomlt in SWAT
-    float* m_snowMelt;
+    FLTPT* m_snowMelt;
     //! snow accumulation, sno_hru in SWAT
-    float* m_SA;
+    FLTPT* m_SA;
 };
 #endif /* SEIMS_MODULE_SNO_SP_H */

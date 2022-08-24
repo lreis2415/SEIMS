@@ -24,7 +24,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
         PrintInfo* pi = m_printInfosMap[(*iter).outputID];
 
         bool isRaster = false;
-        if (StringMatch(suffix, string(GTiffExtension))) {
+        if (StringMatch(suffix.c_str(), data_raster::GTiffExtension)) {
             if (m_subbasinID == 9999) {
                 /// For field-version model, all spatial outputs should be text!
                 (*iter).outFileName = coreFileName + "." + TextExtension;
@@ -95,47 +95,22 @@ SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, 
 
 SettingsOutput::~SettingsOutput() {
     CLOG(TRACE, LOG_RELEASE) << "Start to release SettingsOutput ...";
-    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end();) {
+    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ++it) {
         if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
         }
-        m_printInfosMap.erase(it++);
+        // m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
-    for (auto it = m_printInfos.begin(); it != m_printInfos.end();) {
+    for (auto it = m_printInfos.begin(); it != m_printInfos.end(); ++it) {
         *it = nullptr;
-        it = m_printInfos.erase(it);
+        // it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
     CLOG(TRACE, LOG_RELEASE) << "End to release SettingsOutput.";
 }
-
-/* This function has been deprecated and replaced by DataCenter::UpdateOutputDate(). The code should be removed later. -LJ.
-void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
-    // if (m_mpi_rank > 0) return; // Only log warning messages to master rank for MPI. The subbasin 0 may not assigned to rank 0!
-    if (m_subbasinID > 1 && m_subbasinID != 9999) return; // Only log once (subbasin 1) for one rank (the rank ID is casual)
-
-    for (auto it = m_printInfos.begin(); it < m_printInfos.end(); ++it) {
-        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
-            if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
-                (*itemIt)->setStartTime(startTime);
-                LOG(WARNING) << "The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
-                << ConvertToString(startTime) << ", and will be updated.";
-            }
-            if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
-                (*itemIt)->setEndTime(endTime);
-                LOG(WARNING) << "The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
-                << ConvertToString(endTime) << ", and will be updated.";
-            }
-            break; // To avoid print several logs with the same output ID for different aggregated type
-        }
-    }
-}
-*/
 
 void SettingsOutput::Dump(const string& fileName) {
     std::ofstream fs;

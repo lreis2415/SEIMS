@@ -90,17 +90,17 @@ class ImportWeightData(object):
         """Generate some parameters dependent on weight data and only should be calculated once.
             Such as PHU0 (annual average total potential heat units)
                 TMEAN0 (annual average temperature)
-            added by Liangjun, 2016-6-17
         """
         spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
-        mask_name = '%d_MASK' % subbsn_id
+        mask_name = '%d_SUBBASIN' % subbsn_id
+        mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
         # is MASK existed in Database?
-        if not spatial_gfs.exists(filename=mask_name):
+        if not spatial_gfs.exists(mask_query):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
         # read WEIGHT_M file from mongodb
         weight_m_name = '%d_WEIGHT_M' % subbsn_id
-        mask = maindb[DBTableNames.gridfs_spatial].files.find({'filename': mask_name})[0]
+        mask = maindb[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
         weight_m = maindb[DBTableNames.gridfs_spatial].files.find({'filename': weight_m_name})[0]
         num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
@@ -151,10 +151,10 @@ class ImportWeightData(object):
         ysize = int(mask['metadata'][RasterMetadata.nrows])
         xsize = int(mask['metadata'][RasterMetadata.ncols])
         nodata_value = mask['metadata'][RasterMetadata.nodata]
-        mask_data = spatial_gfs.get(mask['_id'])
-        total_len = xsize * ysize
+        maskgfs_data = spatial_gfs.get(mask['_id'])
+        total_len = xsize * ysize  # INCLUDE_NODATA: TRUE
         fmt = '%df' % (total_len,)
-        mask_data = unpack(fmt, mask_data.read())
+        mask_data = unpack(fmt, maskgfs_data.read())
         fname = '%d_%s' % (subbsn_id, DataType.phu0)
         fname2 = '%d_%s' % (subbsn_id, DataType.mean_tmp0)
         if spatial_gfs.exists(filename=fname):
@@ -167,18 +167,22 @@ class ImportWeightData(object):
         meta_dic['TYPE'] = DataType.phu0
         meta_dic['ID'] = fname
         meta_dic['DESCRIPTION'] = DataType.phu0
+        meta_dic['INCLUDE_NODATA'] = 'FALSE'
+        meta_dic['CELLSNUM'] = num_cells
 
         meta_dic2 = copy.deepcopy(mask['metadata'])
         meta_dic2['TYPE'] = DataType.mean_tmp0
         meta_dic2['ID'] = fname2
         meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
+        meta_dic2['INCLUDE_NODATA'] = 'FALSE'
+        meta_dic2['CELLSNUM'] = num_cells
 
         myfile = spatial_gfs.new_file(filename=fname, metadata=meta_dic)
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
         vaild_count = 0
+        cur_row = list()
+        cur_row2 = list()
         for i in range(0, ysize):
-            cur_row = list()
-            cur_row2 = list()
             for j in range(0, xsize):
                 index = i * xsize + j
                 if abs(mask_data[index] - nodata_value) > UTIL_ZERO:
@@ -186,11 +190,12 @@ class ImportWeightData(object):
                     cur_row2.append(tmean0_data[vaild_count])
                     vaild_count += 1
                 else:
-                    cur_row.append(nodata_value)
-                    cur_row2.append(nodata_value)
-            fmt = '%df' % xsize
-            myfile.write(pack(fmt, *cur_row))
-            myfile2.write(pack(fmt, *cur_row2))
+                    # cur_row.append(nodata_value)
+                    # cur_row2.append(nodata_value)
+                    continue
+        fmt = '%df' % vaild_count
+        myfile.write(pack(fmt, *cur_row))
+        myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
         print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
@@ -208,10 +213,11 @@ class ImportWeightData(object):
         """
         spatial_gfs = GridFS(db_model, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
-        mask_name = str(subbsn_id) + '_MASK'
-        if not spatial_gfs.exists(filename=mask_name):
+        mask_name = '%d_SUBBASIN' % subbsn_id
+        mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
+        if not spatial_gfs.exists(mask_query):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
-        mask = db_model[DBTableNames.gridfs_spatial].files.find({'filename': mask_name})[0]
+        mask = db_model[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
         ysize = int(mask['metadata'][RasterMetadata.nrows])
         xsize = int(mask['metadata'][RasterMetadata.ncols])
         nodata_value = mask['metadata'][RasterMetadata.nodata]
@@ -219,11 +225,11 @@ class ImportWeightData(object):
         xll = mask['metadata'][RasterMetadata.xll]
         yll = mask['metadata'][RasterMetadata.yll]
 
-        data = spatial_gfs.get(mask['_id'])
+        gfsdata = spatial_gfs.get(mask['_id'])
 
         total_len = xsize * ysize
         fmt = '%df' % (total_len,)
-        data = unpack(fmt, data.read())
+        data = unpack(fmt, gfsdata.read())
         # print(data[0], len(data), type(data))
 
         # count number of valid cells
@@ -234,7 +240,8 @@ class ImportWeightData(object):
 
         # read stations information from database
         metadic = {RasterMetadata.subbasin: subbsn_id,
-                   RasterMetadata.cellnum: num}
+                   RasterMetadata.cellnum: num,
+                   RasterMetadata.inc_nodata: 'FALSE'}
         site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
         site_list = next(site_lists)
         clim_db_name = site_list[FieldNames.db]
@@ -254,7 +261,6 @@ class ImportWeightData(object):
         # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
         #     type_list = [DataType.p]
         #     site_lists = [p_list]
-
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
             if spatial_gfs.exists(filename=fname):
@@ -272,7 +278,8 @@ class ImportWeightData(object):
                 cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
 
                 # meteorology station can also be used as precipitation station
-                if cursor.count() == 0 and type_list[type_i] == DataType.p:
+                if hydro_clim_db[DBTableNames.sites].count_documents(q_dic) == 0 and\
+                    type_list[type_i] == DataType.p:
                     q_dic = {StationFields.id.upper(): {'$in': site_list},
                              StationFields.type.upper(): DataType.m}
                     cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
@@ -303,31 +310,27 @@ class ImportWeightData(object):
                 myfile.close()
 
     @staticmethod
-    def workflow(cfg, conn, n_subbasins):
+    def workflow(cfg, n_subbasins):
         """Workflow"""
-        db_model = conn[cfg.spatial_db]
         subbasin_start_id = 0  # default is for OpenMP version
         if n_subbasins > 0:
             subbasin_start_id = 1
-            n_subbasins = MongoQuery.get_init_parameter_value(db_model, SubbsnStatsName.subbsn_num)
+            n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
 
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
-            ImportWeightData.climate_itp_weight_thiessen(conn, db_model, subbsn_id,
+            ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
                                                          cfg.dirs.geodata2db)
-            ImportWeightData.generate_weight_dependent_parameters(conn, db_model, subbsn_id)
+            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
 
-    ImportWeightData.workflow(seims_cfg, conn, 0)
+    ImportWeightData.workflow(seims_cfg, 0)
 
-    client.close()
 
 
 if __name__ == "__main__":

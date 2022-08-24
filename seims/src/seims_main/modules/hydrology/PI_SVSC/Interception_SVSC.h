@@ -68,7 +68,7 @@ private:
     /* Results */
 
     //! current interception storage, the initial value equal to 0, mm
-    float *m_st;
+    FLTPT *m_st;
     //! Interception loss, mm
     float *m_interceptionLoss;
 #ifndef STORM_MODE

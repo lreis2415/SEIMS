@@ -20,18 +20,18 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(M_MUSK_CH[0]);
     mdi.SetName(M_MUSK_CH[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_Single);
-    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_OUTLETID[0], UNIT_NON_DIM, VAR_OUTLETID[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_SingleInt);
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(VAR_OUTLETID[0], UNIT_NON_DIM, VAR_OUTLETID[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_EP_CH[0], UNIT_WTRDLT_MMH, VAR_EP_CH[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_BNK0[0], UNIT_STRG_M3M, VAR_BNK0[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CHS0_PERC[0], UNIT_NON_DIM, VAR_CHS0_PERC[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_A_BNK[0], UNIT_NON_DIM, VAR_A_BNK[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_B_BNK[0], UNIT_NON_DIM, VAR_B_BNK[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_MSK_X[0], UNIT_NON_DIM, VAR_MSK_X[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_MSK_CO1[0], UNIT_NON_DIM, VAR_MSK_CO1[1], Source_ParameterDB, DT_Single);
     // add reach information

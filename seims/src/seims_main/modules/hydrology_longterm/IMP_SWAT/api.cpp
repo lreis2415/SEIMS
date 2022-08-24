@@ -17,22 +17,22 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetDescription(M_IMP_SWAT[1]);
     mdi.SetID(M_IMP_SWAT[0]);
     mdi.SetName(M_IMP_SWAT[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.3");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
-    mdi.AddParameter(Tag_ROUTING_LAYERS[0], UNIT_NON_DIM, Tag_ROUTING_LAYERS[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(Tag_ROUTING_LAYERS[0], UNIT_NON_DIM, Tag_ROUTING_LAYERS[1], Source_ParameterDB, DT_Array2DInt);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_TimeStep[0], UNIT_DAY, Tag_TimeStep[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(Tag_TimeStep[0], UNIT_SECOND, Tag_TimeStep[1], Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_EVLAI[0], UNIT_AREA_RATIO, VAR_EVLAI[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_POT_TILEMM[0], UNIT_DEPTH_MM, VAR_POT_TILEMM[1], Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter(VAR_POT_TILE[0], UNIT_DEPTH_MM, VAR_POT_TILE[1], Source_ParameterDB_Optional, DT_Single);
     mdi.AddParameter(VAR_POT_NO3DECAY[0], UNIT_PER_DAY, VAR_POT_NO3DECAY[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_POT_SOLPDECAY[0], UNIT_PER_DAY, VAR_POT_SOLPDECAY[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOL_SUMAWC[0], UNIT_DEPTH_MM, VAR_SOL_SUMAWC[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_UL[0], UNIT_DEPTH_MM, VAR_SOL_UL[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOILTHICK[0], UNIT_DEPTH_MM, VAR_SOILTHICK[1], Source_ParameterDB, DT_Raster2D);
@@ -43,7 +43,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_POT_K[0], UNIT_WTRDLT_MMH, VAR_POT_K[1], Source_ParameterDB, DT_Single);
 
     /// set input from other modules
-    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module, DT_Raster1DInt);
     mdi.AddInput(VAR_POT_VOLMAXMM[0], UNIT_DEPTH_MM, VAR_POT_VOLMAXMM[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_POT_VOLLOWMM[0], UNIT_DEPTH_MM, VAR_POT_VOLLOWMM[1], Source_Module, DT_Raster1D);
     //mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);// m_pNet

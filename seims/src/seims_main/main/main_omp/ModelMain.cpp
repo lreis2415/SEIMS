@@ -42,7 +42,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     /// Create module list
     m_factory->CreateModuleList(m_simulationModules, m_dataCenter->GetThreadNumber());
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
-    m_readFileTime = m_dataCenter->LoadDataForModules(m_simulationModules);
+    m_readFileTime = m_dataCenter->LoadParametersForModules(m_simulationModules);
     int n = CVT_INT(m_simulationModules.size());
     m_executeTime.resize(n, 0.);
     for (int i = 0; i < n; i++) {
@@ -152,7 +152,7 @@ void ModelMain::Execute() {
         // update bmp parameters with variable effectiveness
         if (m_dataCenter->UpdateScenarioParametersDynamic(m_dataCenter->GetSubbasinID(), t)){
             for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();
-                it != m_simulationModules.end(); ++it) {
+                 it != m_simulationModules.end(); ++it) {
                 (*it)->SetReCalIntermediates(true);
             }
         }
@@ -174,13 +174,13 @@ void ModelMain::Execute() {
     OutputExecuteTime();
 }
 
-void ModelMain::GetTransferredValue(float* tfvalues) {
+void ModelMain::GetTransferredValue(FLTPT* tfvalues) {
     for (int i = 0; i < m_nTFValues; i++) {
         m_simulationModules[m_tfValueFromModuleIdxs[i]]->GetValue(m_tfValueNames[i].c_str(), &tfvalues[i]);
     }
 }
 
-void ModelMain::SetTransferredValue(const int index, float* tfvalues) {
+void ModelMain::SetTransferredValue(const int index, const FLTPT* tfvalues) {
     if (m_firstRunChannel) {
         for (auto it = m_channelModules.begin(); it != m_channelModules.end(); ++it) {
             m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
@@ -243,7 +243,7 @@ void ModelMain::AppendOutputData(const time_t time) {
     for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); ++it) {
         int iModule = (*it)->m_moduleIndex;
         //find the corresponding output variable and module
-        ParamInfo* param = (*it)->m_param;
+        ParamInfo<FLTPT>* param = (*it)->m_param;
         if (nullptr == param) {
             throw ModelException("ModelMain", "Output",
                                  "Output id " + (*it)->getOutputID() + " does not have corresponding output variable.");
@@ -262,7 +262,7 @@ void ModelMain::AppendOutputData(const time_t time) {
                 continue;
             }
             if (param->Dimension == DT_Single) {
-                float value;
+                FLTPT value;
                 module->GetValue(keyName, &value);
                 item->TimeSeriesData[time] = value;
             }
@@ -273,7 +273,7 @@ void ModelMain::AppendOutputData(const time_t time) {
                 if (index < 0) index = 0;
 
                 int n;
-                float* data;
+                FLTPT* data;
                 module->Get1DData(keyName, &n, &data);
                 item->TimeSeriesData[time] = data[index];
             } else if (param->Dimension == DT_Array2D) {
@@ -301,12 +301,12 @@ void ModelMain::AppendOutputData(const time_t time) {
                         throw ModelException("ModelMain", "Output",
                                              "Can't find subbasin " + string(s) + " in input sites.");
                     }
-                    float** data;
+                    FLTPT** data;
                     int nRows, nCols;
                     module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
                     item->add1DTimeSeriesResult(time, nCols, data[subbasinIndex]);
                 } else {
-                    float** data;
+                    FLTPT** data;
                     int nRows, nCols;
                     module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
                     item->AggregateData2D(time, nRows, nCols, data);
@@ -314,14 +314,14 @@ void ModelMain::AppendOutputData(const time_t time) {
             } else if (param->Dimension == DT_Raster1D) {
                 //spatial distribution, calculate average,sum,min or max
                 int n;
-                float* data;
+                FLTPT* data;
                 //cout << keyName << " " << n << endl;
                 module->Get1DData(keyName, &n, &data);
                 item->AggregateData(time, n, data);
             } else if (param->Dimension == DT_Raster2D) {
                 // spatial distribution with layers
                 int n, lyrs;
-                float** data;
+                FLTPT** data;
                 module->Get2DData(keyName, &n, &lyrs, &data);
                 item->AggregateData2D(time, n, lyrs, data);
             }

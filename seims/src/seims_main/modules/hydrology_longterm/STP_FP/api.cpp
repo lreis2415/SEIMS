@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_STP_FP[0]);
     mdi.SetName(M_STP_FP[0]);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -34,7 +34,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_K_SOIL10[0], UNIT_NON_DIM, VAR_K_SOIL10[1], Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_SOIL_T10[0], UNIT_NON_DIM, VAR_SOIL_T10[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1DInt);
     /// mean air temperature
     mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
 

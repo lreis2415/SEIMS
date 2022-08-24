@@ -15,12 +15,10 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetDescription(M_TSD_RD[1]);
     mdi.SetID(M_TSD_RD[0]);
     mdi.SetName(M_TSD_RD[0]);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
-
-    mdi.AddParameter(VAR_TSD_DT[0], UNIT_NON_DIM, VAR_TSD_DT[1], File_Config, DT_Single);
 
     /// set the input variables (time series), and T means time series. D means distribution.
     mdi.AddInput(DataType_Prefix_TS, UNIT_NON_DIM, DESC_TSD_CLIMATE, Source_HydroClimateDB, DT_Array1D);

@@ -69,7 +69,7 @@ public:
     void Dump(std::ostream* fs);
 
     //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
-    map<string, FloatRaster *>& getSceneRasterDataMap() { return m_sceneRsMap; }
+    map<string, IntRaster *>& getSceneRasterDataMap() { return m_sceneRsMap; }
 
     //! set raster data for BMPs
     void setRasterForEachBMP();
@@ -84,7 +84,7 @@ private:
     /*!
      * \brief Map of spatial data of scenario data, both 1D and 2D
      */
-    map<string, FloatRaster *> m_sceneRsMap;
+    map<string, IntRaster *> m_sceneRsMap;
 
     /// Load scenario information
     void loadScenario();

@@ -20,6 +20,7 @@
  *             by the meantime, this can avoid runtime error when SnowMelt module is not configured.
  *        -# Change the unit of soil moisture from mm H2O/mm Soil to mm H2O, which is more rational.
  *        -# Change soil moisture to soil storage which is coincident with SWAT, and do not include wilting point.
+ *   - 7. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Zhiqiang Yu, Liangjun Zhu
  */
@@ -46,11 +47,15 @@ public:
 
     ~SUR_MR();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -58,64 +63,64 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
 private:
     /// Hillslope time step (second)
-    float m_dt;
+    int m_dt;
     /// count of valid cells
     int m_nCells;
     /// net precipitation of each cell (mm)
-    float* m_netPcp;
+    FLTPT* m_netPcp;
     /// potential runoff coefficient
-    float* m_potRfCoef;
+    FLTPT* m_potRfCoef;
 
     /// number of soil layers, i.e., the maximum soil layers of all soil types
     int m_maxSoilLyrs;
     /// soil layers number of each cell
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
 
     /// mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
-    float** m_soilFC;
+    FLTPT** m_soilFC;
     /// mm H2O: (sol_ul) amount of water held in the soil layer at saturation (sat - wp water)
-    float** m_soilSat;
+    FLTPT** m_soilSat;
     /// amount of water held in the soil layer at saturation (sat - wp water), mm H2O, sol_sumul of SWAT
-    float* m_soilSumSat;
+    FLTPT* m_soilSumSat;
     /// initial soil water storage fraction related to field capacity (FC-WP)
-    float* m_initSoilWtrStoRatio;
+    FLTPT* m_initSoilWtrStoRatio;
 
     /// Runoff exponent for a near zero rainfall intensity
-    float m_rfExp;
+    FLTPT m_rfExp;
     /// Rainfall intensity corresponding to a surface runoff exponent (m_rfExp) of 1
-    float m_maxPcpRf;
+    FLTPT m_maxPcpRf;
     /// depression storage (mm)
-    float* m_deprSto; // SD(t-1) from the depression storage module
+    FLTPT* m_deprSto; // SD(t-1) from the depression storage module
 
     /// mean air temperature (deg C)
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
 
     /// threshold soil freezing temperature (deg C)
-    float m_soilFrozenTemp;
+    FLTPT m_soilFrozenTemp;
     /// frozen soil moisture relative to saturation above which no infiltration occur
     /// (m3/m3 or mm H2O/ mm Soil)
-    float m_soilFrozenWtrRatio;
+    FLTPT m_soilFrozenWtrRatio;
     /// soil temperature obtained from the soil temperature module (deg C)
-    float* m_soilTemp;
+    FLTPT* m_soilTemp;
 
     /// pothole volume, mm
-    float* m_potVol;
+    FLTPT* m_potVol;
     /// impound trigger
-    float* m_impndTrig;
+    int* m_impndTrig;
     // output
     /// the excess precipitation (mm) of the total nCells, which could be depressed or generated surface runoff
-    float* m_exsPcp;
+    FLTPT* m_exsPcp;
     /// infiltration map of watershed (mm) of the total nCells
-    float* m_infil;
+    FLTPT* m_infil;
     /// soil water storage (mm)
-    float** m_soilWtrSto;
+    FLTPT** m_soilWtrSto;
     /// soil water storage in soil profile (mm)
-    float* m_soilWtrStoPrfl;
+    FLTPT* m_soilWtrStoPrfl;
 };
 #endif /* SEIMS_MODULE_SUR_MR_H */

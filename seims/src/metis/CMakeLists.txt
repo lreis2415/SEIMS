@@ -5,6 +5,17 @@ set(GKLIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/GKlib" CACHE PATH "path to GKlib")
 set(SHARED FALSE CACHE BOOL "build a shared library")
 
 set(METIS_INSTALL TRUE)
+### Set default or specified installation directory.
+IF (INSTALL_PREFIX)
+    SET(INSTALL_DIR ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+ELSE()
+    IF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        SET(INSTALL_DIR ${PROJECT_BINARY_DIR} CACHE PATH "Set specified install path" FORCE)
+    ELSE ()
+        SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
+    ENDIF ()
+ENDIF ()
+
 # Configure libmetis library.
 if (SHARED)
     set(METIS_LIBRARY_TYPE SHARED)
@@ -20,9 +31,5 @@ include_directories(include)
 add_subdirectory("include")
 add_subdirectory("libmetis")
 add_subdirectory("programs")
-### For CLion to implement the "make install" command
-add_custom_target(install_${PROJECT_NAME}
-        $(MAKE) install
-        DEPENDS ${PROJECT_NAME}
-        COMMENT "Installing ${PROJECT_NAME}")
+
 MESSAGE(STATUS "    Compiling METIS done")

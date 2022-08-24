@@ -56,7 +56,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
                 collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
-        float value;
+        FLTPT value;
         time_t dt;
         bool hasData = false;
         const bson_t* doc;
@@ -72,7 +72,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
             }
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
-                dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter) * 0.001f);
+                dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter) * 0.001);
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The Value field: " + string(MONG_HYDRO_DATA_UTC) +
@@ -95,10 +95,10 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
     }
 }
 
-float* NotRegularMeasurement::GetSiteDataByTime(const time_t t) {
+FLTPT* NotRegularMeasurement::GetSiteDataByTime(const time_t t) {
     for (int iSite = 0; iSite < CVT_INT(m_siteIDList.size()); iSite++) {
         vector<time_t>& tlist = m_timeList[iSite];
-        vector<float>& vlist = m_valueList[iSite];
+        vector<FLTPT>& vlist = m_valueList[iSite];
         size_t curIndex = size_t(m_curIndexList[iSite]);
         // find the index for current time
         // the nearest record before t

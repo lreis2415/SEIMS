@@ -8,7 +8,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     // inputs
     flowdir_name_ = prefix + "_FLOW_DIR_MFDMD";
     flowfrac_corename_ = prefix + "_FLOW_FRACTION_MFDMD";
-    mask_name_ = prefix + "_MASK";
+    mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
     // outputs
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
@@ -22,7 +22,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
 #endif
 
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const char* fraction_file,
-                                     const char* mask_file, const char* stream_file, 
+                                     const char* mask_file, const char* stream_file,
                                      const char* out_dir) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
@@ -58,10 +58,12 @@ bool GridLayeringMFDmd::LoadData() {
 #ifdef USE_MONGODB
         has_mask_ = true;
         mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
-        flowdir_ = FltMaskFltRaster::Init(gfs_, flowdir_name_.c_str(),
-                                          true, mask_, true);
-        flow_fraction_ = FltMaskFltRaster::Init(gfs_, flowfrac_corename_.c_str(),
-                                                true, mask_, true);
+        STRING_MAP opts;
+        UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(),
+                                          true, mask_, true, NODATA_VALUE, opts);
+        flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_corename_.c_str(),
+                                                true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
@@ -78,9 +80,9 @@ bool GridLayeringMFDmd::LoadData() {
         } else {
             has_mask_ = true;
             mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FltMaskFltRaster::Init(flowdir_name_, true, mask_, true);
+            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
         }
-        flow_fraction_ = FltMaskFltRaster::Init(flowfrac_names_, true, mask_, true);
+        flow_fraction_ = FloatRaster::Init(flowfrac_names_, true, mask_, true);
     }
     if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
 

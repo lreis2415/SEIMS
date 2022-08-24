@@ -24,14 +24,14 @@ public:
 
     ~clsTSD_RD();
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     /// data row number, i.e., number of stations
     int m_nStations;
     /// time series data
-    float* m_stationData;
+    FLTPT* m_stationData;
 };
 #endif /* SEIMS_MODULE_TSD_RD_H */

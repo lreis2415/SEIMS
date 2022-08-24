@@ -21,11 +21,11 @@
 # - UNIX - Linux | MacOSX | ANDROID
 # - ANDROID                                     [NOT USED]
 # - IOS                                         [NOT USED]
-# - APPLE - MacOSX | iOS                        [NOT TESTED]
+# - APPLE - MacOSX
 # ----------------------------------------------------------------------------
 
 
-# CMAKE_CL is discouraged by offical CMake, use CMAKE_SIZEOF_VOID_P instead.
+# CMAKE_CL is discouraged by official CMake, use CMAKE_SIZEOF_VOID_P instead.
 # https://cmake.org/cmake/help/latest/variable/CMAKE_CL_64.html
 #IF(CMAKE_CL_64)
 #  SET(MSVC64 1)
@@ -38,8 +38,8 @@ if(NOT DEFINED CV_GCC AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 if(NOT DEFINED CV_CLANG AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or AppleClang (see CMP0025)
   set(CV_CLANG 1)
-  set(CMAKE_COMPILER_IS_CLANGCXX 1)  # TODO next release: remove this
-  set(CMAKE_COMPILER_IS_CLANGCC 1)   # TODO next release: remove this
+#  set(CMAKE_COMPILER_IS_CLANGCXX 1)  # TODO next release: remove this
+#  set(CMAKE_COMPILER_IS_CLANGCC 1)   # TODO next release: remove this
 endif()
 
 function(access_CMAKE_COMPILER_IS_CLANGCXX)
@@ -51,17 +51,19 @@ function(access_CMAKE_COMPILER_IS_CLANGCXX)
 ")
   endif()
 endfunction()
-variable_watch(CMAKE_COMPILER_IS_CLANGCXX access_CMAKE_COMPILER_IS_CLANGCXX)
-variable_watch(CMAKE_COMPILER_IS_CLANGCC access_CMAKE_COMPILER_IS_CLANGCXX)
+#variable_watch(CMAKE_COMPILER_IS_CLANGCXX access_CMAKE_COMPILER_IS_CLANGCXX)
+#variable_watch(CMAKE_COMPILER_IS_CLANGCC access_CMAKE_COMPILER_IS_CLANGCXX)
 
 
 IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   SET(CMAKE_COMPILER_IS_GNUCXX 1)
   SET(CMAKE_COMPILER_IS_CLANGCXX 1)
+  SET(CV_CLANG 1)
 ENDIF()
 IF(CMAKE_C_COMPILER_ID MATCHES "Clang")
   SET(CMAKE_COMPILER_IS_GNUCC 1)
   SET(CMAKE_COMPILER_IS_CLANGCC 1)
+  SET(CV_CLANG 1)
 ENDIF()
 IF("${CMAKE_CXX_COMPILER};${CMAKE_C_COMPILER}" MATCHES "ccache")
   SET(CMAKE_COMPILER_IS_CCACHE 1)

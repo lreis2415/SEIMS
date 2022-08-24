@@ -10,6 +10,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
+from pygeoc.TauDEM import TauDEMExtFiles
 
 
 # This is intended to be deprecated, since one database is desirable
@@ -55,7 +56,7 @@ class DirNameUtils(object):
     _LayerInfo = 'layering_info'
     _Metis = 'metis_output'
     _Import2DB = 'imported_monogodb'
-    _Lookup = 'lookup_tables'
+    # _Lookup = 'lookup_tables'  # No longer needed, deleted in next revision.
 
     def __init__(self, pre_dir):
         """prepare output directories"""
@@ -66,7 +67,7 @@ class DirNameUtils(object):
         self.layerinfo = pre_dir + SEP + DirNameUtils._LayerInfo
         self.metis = pre_dir + SEP + DirNameUtils._Metis
         self.import2db = pre_dir + SEP + DirNameUtils._Import2DB
-        self.lookup = pre_dir + SEP + DirNameUtils._Lookup
+        # self.lookup = pre_dir + SEP + DirNameUtils._Lookup
 
 
 class ModelParamDataUtils(object):
@@ -91,7 +92,7 @@ class ModelParamDataUtils(object):
                    'USLE_C', 'GSI', 'VPDFR', 'FRGMAX', 'WAVP', 'CO2HI', 'BIOEHI',
                    'RSDCO_PL', 'OV_N', 'CN2A', 'CN2B', 'CN2C', 'CN2D', 'FERTFIELD',
                    'ALAI_MIN', 'BIO_LEAF', 'MAT_YRS', 'BMX_TREES', 'EXT_COEF', 'BM_DIEOFF']
-    landuse_fields = ['LANDUSE_ID', 'CN2A', 'CN2B', 'CN2C', 'CN2D', 'ROOTDEPTH', 'MANNING',
+    landuse_fields = ['CN2A', 'CN2B', 'CN2C', 'CN2D', 'ROOTDEPTH', 'MANNING',
                       'INTERC_MAX', 'INTERC_MIN', 'SHC', 'SOIL_T10',
                       'PET_FR', 'PRC_ST1', 'PRC_ST2', 'PRC_ST3', 'PRC_ST4',
                       'PRC_ST5', 'PRC_ST6', 'PRC_ST7', 'PRC_ST8', 'PRC_ST9',
@@ -99,7 +100,7 @@ class ModelParamDataUtils(object):
                       'SC_ST3', 'SC_ST4', 'SC_ST5', 'SC_ST6', 'SC_ST7', 'SC_ST8',
                       'SC_ST9', 'SC_ST10', 'SC_ST11', 'SC_ST12', 'DSC_ST1', 'DSC_ST2',
                       'DSC_ST3', 'DSC_ST4', 'DSC_ST5', 'DSC_ST6', 'DSC_ST7', 'DSC_ST8',
-                      'DSC_ST9', 'DSC_ST10', 'DSC_ST11', 'DSC_ST12']
+                      'DSC_ST9', 'DSC_ST10', 'DSC_ST11', 'DSC_ST12']  # primary key: 'LANDUSE_ID'
     # Metadata field names for lookup gridfs
     item_count = 'ITEM_COUNT'
     field_count = 'FIELD_COUNT'
@@ -145,6 +146,7 @@ class ModelParamFields(object):
     max = 'MAX'
     min = 'MIN'
     type = 'TYPE'
+    dtype = 'DTYPE'  # data type, can be FLT or INT
     # available values
     change_vc = 'VC'
     change_rc = 'RC'
@@ -238,94 +240,107 @@ class FieldNames(object):
     site_pet = 'SITELISTPET'
 
 
+class TauDEMbasedNames(TauDEMExtFiles):
+    """predefined extended TauDEM based files"""
+    _D8FLOWDIR_ESRI = 'flowDirD8_ESRI.tif'
+    _FLOWDIRDINFUPD = 'flowDirDinfTauUpd.tif'
+
+    def __init__(self, tau_dir):
+        """assign taudem resulted file path"""
+        TauDEMExtFiles.__init__(self, tau_dir)
+
+        self.dinf_upd = self.workspace + SEP + self._FLOWDIRDINFUPD
+
+
 class SpatialNamesUtils(object):
     """predefined raster file names which are ready for importing to database"""
-    _MASK_TO_EXT = 'mask.tif'
+    _MASK_TO_EXT = 'MASK'
     # output to mongoDB file names after rearrangement according to upstream-downstream
-    _SUBBASINOUT = 'subbasin.tif'
-    _FLOWDIROUT = 'flow_dir.tif'
-    _STREAMLINKOUT = 'stream_link.tif'
-    _HILLSLOPEOUT = 'hillslope.tif'
+    _SUBBASINOUT = 'SUBBASIN'
+    _FLOWDIROUT = 'FLOW_DIR'
+    _STREAMLINKOUT = 'STREAM_LINK'
+    _HILLSLOPEOUT = 'HILLSLOPE'
     # masked and output to mongoDB file names
-    _SLOPEM = 'slope.tif'
-    _FILLEDDEMM = 'dem.tif'
-    _ACCM = 'acc.tif'
-    _STREAMORDERM = 'stream_order.tif'
-    _FLOWDIRDINFM = 'flow_dir_angle_dinf.tif'
-    _SLOPEDINFM = 'slope_dinf.tif'
-    _DIRCODEDINFM = 'flow_dir_dinf.tif'
-    _WEIGHTDINFM = 'weight_dinf.tif'
-    _FLOWDIRDINFMUPD = 'flow_dir_angle_dinf_upd.tif'
-    _DIRCODEMFDMD = 'flow_dir_mfdmd.tif'
-    _FLOWFRACTIONMFDMD = 'flow_fraction_mfdmd.tif'
-    _CELLLAT = 'celllat.tif'
-    _DAYLMIN = 'dayLenMin.tif'
-    _DORMHR = 'dormhr.tif'
-    _DIST2STREAMD8M = 'dist2Stream.tif'
-    _DIST2STREAMDINFM = 'dist2Stream_dinf.tif'
-    _CHWIDTH = 'ch_width.tif'
-    _CHDEPTH = 'ch_depth.tif'
-    _LANDUSEMFILE = 'landuse.tif'
-    _CROPMFILE = 'LANDCOVER.tif'  # added by LJ.
-    _SOILTYPEMFILE = 'soiltype.tif'
-    # _MGTFIELDMFILE = 'mgt_fields.tif'
-    _SOILTEXTURE = 'SOIL_TEXTURE.tif'
-    _HYDROGROUP = 'HYDRO_GROUP.tif'
-    _USLEK = 'USLE_K.tif'
-    _INITSOILMOIST = 'moist_in.tif'
-    _DEPRESSIONFILE = 'depression.tif'
-    _CN2FILE = 'CN2.tif'
-    _RADIUSFILE = 'radius.tif'
-    _MANNINGFILE = 'MANNING.tif'
-    _VELOCITYFILE = 'velocity.tif'
+    _SLOPEM = 'SLOPE'
+    _FILLEDDEMM = 'DEM'
+    _ACCM = 'ACC'
+    _STREAMORDERM = 'STREAM_ORDER'
+    _FLOWDIRDINFM = 'FLOW_DIR_ANGLE_DINF'
+    _SLOPEDINFM = 'SLOPE_DINF'
+    _DIRCODEDINFM = 'FLOW_DIR_DINF'
+    _WEIGHTDINFM = 'WEIGHT_DINF'
+    _FLOWDIRDINFMUPD = 'FLOW_DIR_ANGLE_DINF_UPD'
+    _DIRCODEMFDMD = 'FLOW_DIR_MFDMD'
+    _FLOWFRACTIONMFDMD = 'FLOW_FRACTION_MFDMD'
+    _CELLLAT = 'CELLLAT'
+    _DAYLMIN = 'DAYLENMIN'
+    _DORMHR = 'DORMHR'
+    _DIST2STREAMD8M = 'DIST2STREAM'
+    _DIST2STREAMDINFM = 'DIST2STREAM_DINF'
+    _CHWIDTH = 'CH_WIDTH'
+    _CHDEPTH = 'CH_DEPTH'
+    _LANDUSEMFILE = 'LANDUSE'
+    _CROPMFILE = 'LANDCOVER'  # added by LJ.
+    _SOILTYPEMFILE = 'SOILTYPE'
+    # _MGTFIELDMFILE = 'mgt_fields'
+    _SOILTEXTURE = 'SOIL_TEXTURE'
+    _HYDROGROUP = 'HYDRO_GROUP'
+    _USLEK = 'USLE_K'
+    _INITSOILMOIST = 'MOIST_IN'
+    _DEPRESSIONFILE = 'DEPRESSION'
+    _CN2FILE = 'CN2'
+    _RADIUSFILE = 'RADIUS'
+    _MANNINGFILE = 'MANNING'
+    _VELOCITYFILE = 'VELOCITY'
     # flow time to the main river from each grid cell
-    _T0_SFILE = 't0_s.tif'
+    _T0_SFILE = 'T0_S'
     # standard deviation of t0_s
-    _DELTA_SFILE = 'delta_s.tif'
+    _DELTA_SFILE = 'DELTA_S'
     # potential runoff coefficient
-    _RUNOFF_COEFFILE = 'runoff_co.tif'
+    _RUNOFF_COEFFILE = 'RUNOFF_CO'
 
     def __init__(self, spa_dir):
         """assign spatial data file paths"""
-        self.mask = spa_dir + SEP + self._MASK_TO_EXT
-        self.subbsn = spa_dir + SEP + self._SUBBASINOUT
-        self.d8flow = spa_dir + SEP + self._FLOWDIROUT
-        self.stream_link = spa_dir + SEP + self._STREAMLINKOUT
-        self.hillslope = spa_dir + SEP + self._HILLSLOPEOUT
-        self.slope = spa_dir + SEP + self._SLOPEM
-        self.filldem = spa_dir + SEP + self._FILLEDDEMM
-        self.d8acc = spa_dir + SEP + self._ACCM
-        self.stream_order = spa_dir + SEP + self._STREAMORDERM
-        self.dinf = spa_dir + SEP + self._FLOWDIRDINFM
-        self.dinf_slp = spa_dir + SEP + self._SLOPEDINFM
-        self.dinf_d8dir = spa_dir + SEP + self._DIRCODEDINFM
-        self.dinf_weight = spa_dir + SEP + self._WEIGHTDINFM
-        self.dinf_upd = spa_dir + SEP + self._FLOWDIRDINFMUPD
-        self.mfdmd_d8dir = spa_dir + SEP + self._DIRCODEMFDMD
-        self.mfdmd_fraction = spa_dir + SEP + self._FLOWFRACTIONMFDMD
-        self.cell_lat = spa_dir + SEP + self._CELLLAT
-        self.dayl_min = spa_dir + SEP + self._DAYLMIN
-        self.dorm_hr = spa_dir + SEP + self._DORMHR
-        self.dist2stream_d8 = spa_dir + SEP + self._DIST2STREAMD8M
-        self.dist2stream_dinf = spa_dir + SEP + self._DIST2STREAMDINFM
-        self.chwidth = spa_dir + SEP + self._CHWIDTH
-        self.chdepth = spa_dir + SEP + self._CHDEPTH
-        self.landuse = spa_dir + SEP + self._LANDUSEMFILE
-        self.crop = spa_dir + SEP + self._CROPMFILE
-        self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE
+        self.mask = spa_dir + SEP + self._MASK_TO_EXT + '.tif'
+        self.subbsn = spa_dir + SEP + self._SUBBASINOUT + '.tif'
+        self.d8flow = spa_dir + SEP + self._FLOWDIROUT + '.tif'
+        self.stream_link = spa_dir + SEP + self._STREAMLINKOUT + '.tif'
+        self.hillslope = spa_dir + SEP + self._HILLSLOPEOUT + '.tif'
+        self.slope = spa_dir + SEP + self._SLOPEM + '.tif'
+        self.filldem = spa_dir + SEP + self._FILLEDDEMM + '.tif'
+        self.d8acc = spa_dir + SEP + self._ACCM + '.tif'
+        self.stream_order = spa_dir + SEP + self._STREAMORDERM + '.tif'
+        self.dinf = spa_dir + SEP + self._FLOWDIRDINFM + '.tif'
+        self.dinf_slp = spa_dir + SEP + self._SLOPEDINFM + '.tif'
+        self.dinf_d8dir = spa_dir + SEP + self._DIRCODEDINFM + '.tif'
+        self.dinf_weight = spa_dir + SEP + self._WEIGHTDINFM + '.tif'
+        self.dinf_upd = spa_dir + SEP + self._FLOWDIRDINFMUPD + '.tif'
+        self.mfdmd_d8dir = spa_dir + SEP + self._DIRCODEMFDMD + '.tif'
+        self.mfdmd_fraction = spa_dir + SEP + self._FLOWFRACTIONMFDMD + '.tif'
+        self.cell_lat = spa_dir + SEP + self._CELLLAT + '.tif'
+        self.dayl_min = spa_dir + SEP + self._DAYLMIN + '.tif'
+        self.dorm_hr = spa_dir + SEP + self._DORMHR + '.tif'
+        self.dist2stream_d8 = spa_dir + SEP + self._DIST2STREAMD8M + '.tif'
+        self.dist2stream_dinf = spa_dir + SEP + self._DIST2STREAMDINFM + '.tif'
+        self.chwidth = spa_dir + SEP + self._CHWIDTH + '.tif'
+        self.chdepth = spa_dir + SEP + self._CHDEPTH + '.tif'
+        self.landuse = spa_dir + SEP + self._LANDUSEMFILE + '.tif'
+        self.crop = spa_dir + SEP + self._CROPMFILE + '.tif'
+        self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE + '.tif'
         # self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
-        self.soil_texture = spa_dir + SEP + self._SOILTEXTURE
-        self.hydro_group = spa_dir + SEP + self._HYDROGROUP
-        self.usle_k = spa_dir + SEP + self._USLEK
-        self.init_somo = spa_dir + SEP + self._INITSOILMOIST
-        self.depression = spa_dir + SEP + self._DEPRESSIONFILE
-        self.cn2 = spa_dir + SEP + self._CN2FILE
-        self.radius = spa_dir + SEP + self._RADIUSFILE
-        self.manning = spa_dir + SEP + self._MANNINGFILE
-        self.velocity = spa_dir + SEP + self._VELOCITYFILE
-        self.t0_s = spa_dir + SEP + self._T0_SFILE
-        self.delta_s = spa_dir + SEP + self._DELTA_SFILE
-        self.runoff_coef = spa_dir + SEP + self._RUNOFF_COEFFILE
+        self.mgt_field = list()
+        self.soil_texture = spa_dir + SEP + self._SOILTEXTURE + '.tif'
+        self.hydro_group = spa_dir + SEP + self._HYDROGROUP + '.tif'
+        self.usle_k = spa_dir + SEP + self._USLEK + '.tif'
+        self.init_somo = spa_dir + SEP + self._INITSOILMOIST + '.tif'
+        self.depression = spa_dir + SEP + self._DEPRESSIONFILE + '.tif'
+        self.cn2 = spa_dir + SEP + self._CN2FILE + '.tif'
+        self.radius = spa_dir + SEP + self._RADIUSFILE + '.tif'
+        self.manning = spa_dir + SEP + self._MANNINGFILE + '.tif'
+        self.velocity = spa_dir + SEP + self._VELOCITYFILE + '.tif'
+        self.t0_s = spa_dir + SEP + self._T0_SFILE + '.tif'
+        self.delta_s = spa_dir + SEP + self._DELTA_SFILE + '.tif'
+        self.runoff_coef = spa_dir + SEP + self._RUNOFF_COEFFILE + '.tif'
 
 
 class VectorNameUtils(object):
@@ -360,7 +375,10 @@ class LogNameUtils(object):
     _STATUS_EXTRACTTERRAINPARAM = 'status_ExtractTerrainParameters.txt'
     _STATUS_MONGO = 'status_BuildMongoDB.txt'
     _CONFIG_MASKRASTERS = 'config_maskDelineatedRaster.txt'
-    _CONFIG_RECLASSIFYLU = 'config_reclassLanduseConfig.txt'
+    _CONFIG_RECLASSIFYSOIL = 'config_reclassSoil.txt'
+    _CONFIG_RECLASSIFYLU = 'config_reclassLanduse.txt'
+    _CONFIG_RECLASSIFYLC = 'config_reclassLandcoverSpecific.txt'
+    _CONFIG_RECLASSIFYLC_DEF = 'config_reclassLandcoverDefault.txt'
 
     def __init__(self, log_dir):
         """assign log file path"""
@@ -370,12 +388,17 @@ class LogNameUtils(object):
         self.extract_terrain = log_dir + SEP + LogNameUtils._STATUS_EXTRACTTERRAINPARAM
         self.build_mongo = log_dir + SEP + LogNameUtils._STATUS_MONGO
         self.mask_cfg = log_dir + SEP + LogNameUtils._CONFIG_MASKRASTERS
+        self.reclasssoil_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL
         self.reclasslu_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLU
+        self.reclasslc_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLC
+        self.reclasslc_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLC
+        self.reclasslc_def_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLC_DEF
 
 
 class RasterMetadata(object):
     """Header information of raster data (Derived from Mask.tif)"""
     tab_name = 'Header'
+    inc_nodata = 'INCLUDE_NODATA'
     nodata = 'NODATA_VALUE'
     xll = 'XLLCENTER'
     yll = 'YLLCENTER'
@@ -383,7 +406,7 @@ class RasterMetadata(object):
     ncols = 'NCOLS'
     cellsize = 'CELLSIZE'
     subbasin = 'SUBBASIN'
-    cellnum = 'NUM_CELLS'
+    cellnum = 'CELLSNUM'
     # for weight data
     site_num = 'NUM_SITES'
     srs = 'SRS'

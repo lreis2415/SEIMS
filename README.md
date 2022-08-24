@@ -1,9 +1,6 @@
 ## SEIMS: A modular and parallelized watershed modeling framework
 
-Copyright (C) 2013-2021 [Lreis](http://www.lreis.ac.cn),
-[IGSNRR](http://english.igsnrr.cas.cn),
-[CAS](http://english.cas.cn), and
-[NJNU](http://en.njnu.edu.cn). All rights reserved.
+Copyright (C) 2013-2022 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations
@@ -14,12 +11,7 @@ Copyright (C) 2013-2021 [Lreis](http://www.lreis.ac.cn),
 
 ## Build Status
 
-+ Windows-MSVC 2013-64bit with MSMPI-v8:
-[![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master)
-+ Linux(Ubuntu xenial)-GCC-5.4.0 with OpenMPI-1.10.2:
-[![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc&label=linux_gcc)](https://travis-ci.org/lreis2415/SEIMS)
-+ macOS(10.13.3)_AppleClang-10.0 with GDAL-2.3.1, mongo-c-driver-1.14.0, and OpenMPI-4.0.1:
-[![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=osx_clang&label=osx_clang)](https://travis-ci.org/crazyzlj/CCGL)
+TODO: Use Github Actions for CI.
 
 ## Brief Introduction
 
@@ -43,6 +35,23 @@ Algorithms are integrated from SWAT, LISEM, WetSpa Extension, DHSVM, CASC2D, etc
 
 SEIMS is still being developing and any constructive feedback
 (issues or push requests) will be welcome and appreciated.
+
+## Installation
+
+Install Python environment for running pySEIMS,
+including preprocess, postprocess, parameters_sensitivity,
+calibration, and scenario_analysis
+
+We recommend to use Python3.x, although Python2.7 is still supported.
+
+```bash
+cd SEIMS/seims
+conda env create -f environment_py39.yml
+conda activate py39_seims
+pip install --timeout 1000 "https://github.com/keszybz/deap/archive/2to3.zip"
+pip install --timeout 1000 "https://github.com/soravux/scoop/archive/master.zip"
+pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
+```
 
 ## Selected peer-reviewed papers
 
@@ -83,4 +92,5 @@ SEIMS is an open source software. Support is provided through the Github issues 
 + Issues: https://github.com/lreis2415/SEIMS/issues
 + Emails of present developers:
   + Dr. Liang-Jun Zhu (zlj@lreis.ac.cn)
-  + Dr. Junzhi Liu (liujunzhi@njnu.edu.cn)
+  + Asso. Prof. Junzhi Liu (liujunzhi@njnu.edu.cn)
+

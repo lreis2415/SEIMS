@@ -19,10 +19,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(M_SUR_MR[0]);
     mdi.SetName(M_SUR_MR[0]);
-    mdi.SetVersion("1.5");
+    mdi.SetVersion("1.6");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_K_RUN[0], UNIT_NON_DIM, VAR_K_RUN[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_P_MAX[0], UNIT_DEPTH_MM, VAR_P_MAX[1], Source_ParameterDB, DT_Single);
@@ -30,7 +30,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     mdi.AddParameter(VAR_RUNOFF_CO[0], UNIT_NON_DIM, VAR_RUNOFF_CO[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_MOIST_IN[0], UNIT_PERCENT, VAR_MOIST_IN[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_UL[0], UNIT_DEPTH_MM, VAR_SOL_UL[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_SUMSAT[0], UNIT_DEPTH_MM, VAR_SOL_SUMSAT[1], Source_ParameterDB, DT_Raster1D);
@@ -39,7 +39,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SOTE[0], UNIT_TEMP_DEG, VAR_SOTE[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1DInt);
     mdi.AddInput(VAR_POT_VOL[0], UNIT_DEPTH_MM, VAR_POT_VOL[1], Source_Module_Optional, DT_Raster1D);
 
     mdi.AddOutput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], DT_Raster1D);

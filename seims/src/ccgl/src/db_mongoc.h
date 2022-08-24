@@ -3,14 +3,14 @@
  * \brief Simple wrappers of the API of MongoDB C driver `mongo-c-driver`,
  * see <a href="http://mongoc.org/">MongoDB C Driver</a> for more information.
  *
- * Changelog:
+ * \remarks
  *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
  *   - 2. 2018-05-02 - lj - Make part of CCGL.
  *   - 3. 2019-08-16 - lj - Simplify brief desc. and move detail desc. to implementation.
  *
  * \note No exceptions will be thrown.
- * \author Liangjun Zhu (zlj@lreis.ac.cn)
- * \version 1.1
+ * \author Liangjun Zhu, zlj(at)lreis.ac.cn
+ * \version 1.2
  */
 #ifndef CCGL_DB_MONGOC_H
 #define CCGL_DB_MONGOC_H
@@ -151,10 +151,11 @@ public:
 
     /*! Get GridFS file by name */
     mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
-                                  STRING_MAP opts = STRING_MAP());
+                                  const STRING_MAP& opts = STRING_MAP());
 
-    /*! Remove GridFS file by name */
-    bool RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
+    /*! Remove GridFS all matching files and their data chunks. */
+    bool RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
+                    STRING_MAP opts = STRING_MAP());
 
     /*! Get GridFS file names */
     void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL);
@@ -164,12 +165,12 @@ public:
                             STRING_MAP opts = STRING_MAP());
 
     /*! Get stream data of a given GridFS file name */
-    bool GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
+    bool GetStreamData(string const& gfilename, char*& databuf, vint& datalength,
                        mongoc_gridfs_t* gfs = NULL,
                        STRING_MAP opts = STRING_MAP());
 
     /*! Write stream data to a GridFS file */
-    bool WriteStreamData(const string& gfilename, char*& buf, size_t length,
+    bool WriteStreamData(const string& gfilename, char*& buf, vint length,
                          const bson_t* p, mongoc_gridfs_t* gfs = NULL);
 
 private:
@@ -177,7 +178,8 @@ private:
 };
 
 /*! Append options to `bson_t` */
-void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts);
+void AppendStringOptionsToBson(bson_t* bson_opts, const STRING_MAP& opts,
+                               const string& prefix = string());
 
 /*!
  * \brief Get numeric value from the iterator (`bson_iter_t`) of `bson_t`according to a given key

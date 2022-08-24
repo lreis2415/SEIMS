@@ -19,9 +19,9 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
 }
 
 ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
-    Release2DArray(m_chNumber, m_hCh);
-    Release2DArray(m_chNumber, m_qCh);
-    Release2DArray(m_chNumber, m_flowLen);
+    Release2DArray(m_hCh);
+    Release2DArray(m_qCh);
+    Release2DArray(m_flowLen);
 
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_qSubbasin);
@@ -55,11 +55,11 @@ float ImplicitKinematicWave_CH::GetNewQ(float qIn, float qLast, float surplus, f
     }
 
     /* common terms */
-    ab_pQ = alpha * beta * pow(((qLast + qIn) / 2), beta - 1);
+    ab_pQ = alpha * beta * CalPow(((qLast + qIn) / 2), beta - 1);
     // derivative of diagonal average (space-time)
 
     dtX = dt / dx;
-    C = dtX * qIn + alpha * pow(qLast, beta) + dt * surplus;
+    C = dtX * qIn + alpha * CalPow(qLast, beta) + dt * surplus;
     //dt/dx*Q = m3/s*s/m=m2; a*Q^b = A = m2; surplus*dt = s*m2/s = m2
     //C is unit volume of water
     // first gues Qkx
@@ -283,16 +283,16 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
 
     float Perim = 2.f * m_hCh[iReach][iCell] + m_chWidth[id];
 
-    float sSin = sqrt(sin(m_sRadian[id]));
-    float alpha = pow(m_reachN[iReach] / sSin * pow(Perim, _2div3), 0.6f);
+    float sSin = CalSqrt(sin(m_sRadian[id]));
+    float alpha = CalPow(m_reachN[iReach] / sSin * CalPow(Perim, _2div3), 0.6f);
 
     float qIn = m_qCh[iReach][iCell];
 
     m_qCh[iReach][iCell] = GetNewQ(qUp, qIn, 0.f, alpha, m_dt, dx);
 
     float hTest = m_hCh[iReach][iCell] + (qUp - m_qCh[iReach][iCell]) * m_dt / m_chWidth[id] / dx;
-    float hNew = (alpha * pow(m_qCh[iReach][iCell], 0.6f)) / m_chWidth[id]; // unit m
-    m_hCh[iReach][iCell] = (alpha * pow(m_qCh[iReach][iCell], 0.6f)) / m_chWidth[id]; // unit m
+    float hNew = (alpha * CalPow(m_qCh[iReach][iCell], 0.6f)) / m_chWidth[id]; // unit m
+    m_hCh[iReach][iCell] = (alpha * CalPow(m_qCh[iReach][iCell], 0.6f)) / m_chWidth[id]; // unit m
 }
 
 int ImplicitKinematicWave_CH::Execute() {
@@ -438,7 +438,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
         int reachId = it->second[0];
         *data = m_qCh[reachId];
     } else {
-        throw ModelException(M_IKW_CH[0], "Get1DData", 
+        throw ModelException(M_IKW_CH[0], "Get1DData",
                              "Output " + sk + " does not exist.");
     }
 }

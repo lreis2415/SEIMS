@@ -9,8 +9,9 @@
 
 #include "basic.h"
 #include "BMPText.h"
+#include "seims.h"
 
-using namespace ccgl;
+//using namespace ccgl;
 
 /*!
  * \defgroup PlantGrowthCommon
@@ -26,7 +27,7 @@ using namespace ccgl;
  * \ingroup PlantGrowthCommon
  * \brief Get N/P shape parameter, See readplant.f of SWAT
  */
-void GetNPShapeParameter(float fr1, float fr2, float fr3, float* shape1, float* shape2);
+void GetNPShapeParameter(FLTPT fr1, FLTPT fr2, FLTPT fr3, FLTPT* shape1, FLTPT* shape2);
 
 /*!
  * \ingroup PlantGrowthCommon
@@ -34,14 +35,14 @@ void GetNPShapeParameter(float fr1, float fr2, float fr3, float* shape1, float* 
  *
  *  The equation \f$x=\frac{y}{y+exp(S_1+S_2^y)}\f$ give two \f$(x,y)\f$ points along the curve.
  */
-void GetScurveShapeParameter(float x_mid, float x_end, float y_mid, float y_end,
-                             float* shape1, float* shape2);
+void GetScurveShapeParameter(FLTPT x_mid, FLTPT x_end, FLTPT y_mid, FLTPT y_end,
+                             FLTPT* shape1, FLTPT* shape2);
 
 /*!
  * \ingroup PlantGrowthCommon
  * \brief Biomass fraction
  */
-float NPBiomassFraction(float x1, float x2, float x3, float fr_phu);
+FLTPT NPBiomassFraction(FLTPT x1, FLTPT x2, FLTPT x3, FLTPT fr_phu);
 
 /*!
  * \ingroup PlantGrowthCommon
@@ -49,25 +50,25 @@ float NPBiomassFraction(float x1, float x2, float x3, float fr_phu);
  *
  * Plant nitrogen/phosphorus equation, p300 5:2.3.1/p305 5:2.3.19
  */
-float GetNPFraction(float fr1, float fr3, float shape1, float shape2, float fr_phu);
+FLTPT GetNPFraction(FLTPT fr1, FLTPT fr3, FLTPT shape1, FLTPT shape2, FLTPT fr_phu);
 
 /*!
  * \ingroup PlantGrowthCommon
  * \brief Heat unit accumulation
  */
-float DoHeatUnitAccumulation(float potential_heat_unit, float t_min, float t_max, float t_base);
+FLTPT DoHeatUnitAccumulation(FLTPT potential_heat_unit, FLTPT t_min, FLTPT t_max, FLTPT t_base);
 
 /*!
  * \ingroup PlantGrowthCommon
  * \brief the adjusted radiation-use efficiency by vapor pressure deficit
  */
-float RadiationUseEfficiencyAdjustByVPD(float vpd, float rad_use_eff_dec_rate_with_vpd);
+FLTPT RadiationUseEfficiencyAdjustByVPD(FLTPT vpd, FLTPT rad_use_eff_dec_rate_with_vpd);
 
 /*!
  * \ingroup PlantGrowthCommon
  * \brief Normalization
  */
-float GetNormalization(float distribution);
+FLTPT GetNormalization(FLTPT distribution);
 
 /*!
  * \ingroup PlantGrowthCommon
@@ -129,6 +130,6 @@ inline bool IsPlant(const int lu_id) {
  * \brief Calculates the plant stress factor caused by limited supply of nitrogen or phosphorus.
  *        From ntus.f of SWAT, rev 637
  */
-void CalPlantStressByLimitedNP(float u1, float u2, float* uu);
+void CalPlantStressByLimitedNP(FLTPT u1, FLTPT u2, FLTPT* uu);
 
 #endif /* SEIMS_PLANTGROWTH_COMMON_H */

@@ -41,25 +41,25 @@ public:
     string GetPointSourceName() { return m_name; }
 
     /// Lat
-    float GetLat() { return m_lat; }
+    FLTPT GetLat() { return m_lat; }
 
     /// Lon
-    float GetLon() { return m_lon; }
+    FLTPT GetLon() { return m_lon; }
 
     /// localX
-    float GetLocalX() { return m_localX; }
+    FLTPT GetLocalX() { return m_localX; }
 
     /// localY
-    float GetLocalY() { return m_localY; }
+    FLTPT GetLocalY() { return m_localY; }
 
     /// Located subbasin ID
     int GetSubbasinID() { return m_subbasinID; }
 
     /// size
-    float GetSize() { return m_size; }
+    FLTPT GetSize() { return m_size; }
 
     /// Distance to the downstream reach
-    float GetDistanceDown() { return m_distDown; }
+    FLTPT GetDistanceDown() { return m_distDown; }
 
 private:
     /// ID of point source
@@ -67,19 +67,19 @@ private:
     /// name
     string m_name;
     /// Lat
-    float m_lat;
+    FLTPT m_lat;
     /// Lon
-    float m_lon;
+    FLTPT m_lon;
     /// localX
-    float m_localX;
+    FLTPT m_localX;
     /// localY
-    float m_localY;
+    FLTPT m_localY;
     /// Located subbasin ID
     int m_subbasinID;
     /// size
-    float m_size;
+    FLTPT m_size;
     /// Distance to the downstream reach
-    float m_distDown;
+    FLTPT m_distDown;
 };
 
 /*!
@@ -115,34 +115,34 @@ public:
     string GetSubScenarioName() { return m_name; }
 
     /// Get water volume
-    float GetWaterVolume() { return m_waterVolume; }
+    FLTPT GetWaterVolume() { return m_waterVolume; }
 
     /// Get sediment concentration
-    float GetSedment() { return m_sedimentConc; }
+    FLTPT GetSedment() { return m_sedimentConc; }
 
     /// Get sediment concentration
-    float GetTN() { return m_TNConc; }
+    FLTPT GetTN() { return m_TNConc; }
 
     /// Get NO3 concentration
-    float GetNO3() { return m_NO3Conc; }
+    FLTPT GetNO3() { return m_NO3Conc; }
 
     /// Get NH4 concentration
-    float GetNH4() { return m_NH4Conc; }
+    FLTPT GetNH4() { return m_NH4Conc; }
 
     /// Get OrgN concentration
-    float GetOrgN() { return m_OrgNConc; }
+    FLTPT GetOrgN() { return m_OrgNConc; }
 
     /// Get TP concentration
-    float GetTP() { return m_TPConc; }
+    FLTPT GetTP() { return m_TPConc; }
 
     /// Get SolP concentration
-    float GetSolP() { return m_SolPConc; }
+    FLTPT GetSolP() { return m_SolPConc; }
 
     /// Get OrgP concentration
-    float GetOrgP() { return m_OrgPConc; }
+    FLTPT GetOrgP() { return m_OrgPConc; }
 
     /// Get COD concentration
-    float GetCOD() { return m_COD; }
+    FLTPT GetCOD() { return m_COD; }
 
 private:
     /// subSecenario name
@@ -154,25 +154,25 @@ private:
     /// End date
     time_t m_endDate;
     ///  Q	Water volume	m3/'size'/day ('Size' may be one cattle or one pig, depends on PTSRC code)
-    float m_waterVolume;
+    FLTPT m_waterVolume;
     /// Sed	Sediment concentration	g/cm3, or Mg/m3
-    float m_sedimentConc;
+    FLTPT m_sedimentConc;
     ///	TN	Total Nitrogen concentration mg/L
-    float m_TNConc;
+    FLTPT m_TNConc;
     ///	NO3	Nitrate Nitrogen concentration	mg/L
-    float m_NO3Conc;
+    FLTPT m_NO3Conc;
     /// NH4	Ammonium Nitrogen concentration	mg/L
-    float m_NH4Conc;
+    FLTPT m_NH4Conc;
     ///	ORGN	Organic Nitrogen concentration	mg/L
-    float m_OrgNConc;
+    FLTPT m_OrgNConc;
     ///	TP	Total phosphorus concentration	mg/L
-    float m_TPConc;
+    FLTPT m_TPConc;
     ///	SOLP	Soluble phosphorus concentration	mg/L
-    float m_SolPConc;
+    FLTPT m_SolPConc;
     ///	ORGP	Organic phosphorus concentration	mg/L
-    float m_OrgPConc;
+    FLTPT m_OrgPConc;
     /// COD  mg/L
-    float m_COD;
+    FLTPT m_COD;
 };
 
 /*!

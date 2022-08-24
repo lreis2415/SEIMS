@@ -16,12 +16,13 @@ SubbasinStruct::SubbasinStruct(const int sid, const int gidx) :
 SubbasinStruct::~SubbasinStruct() {
     if (transfer_values != nullptr) { Release1DArray(transfer_values); }
     if (!up_streams.empty()) {
-        for (auto it = up_streams.begin(); it != up_streams.end();) {
+        for (auto it = up_streams.begin(); it != up_streams.end(); ++it) {
             if (*it != nullptr) *it = nullptr;
-            it = up_streams.erase(it);
+            // it = up_streams.erase(it);
         }
+        up_streams.clear();
     }
-    if (down_stream != nullptr) down_stream = nullptr;
+    if (down_stream != nullptr) { down_stream = nullptr; }
 }
 
 

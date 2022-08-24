@@ -7,9 +7,9 @@ StormGreenAmpt::StormGreenAmpt() :
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilDepth(nullptr), m_soilPor(nullptr),
     m_soilClay(nullptr), m_soilSand(nullptr), m_ks(nullptr),
-    m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr), 
+    m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr),
     m_meanTmp(nullptr), m_netPcp(nullptr), m_deprSto(nullptr),
-    m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr), 
+    m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
     m_capillarySuction(nullptr), m_accumuDepth(nullptr),
     m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr) {
 
@@ -18,7 +18,7 @@ StormGreenAmpt::StormGreenAmpt() :
 StormGreenAmpt::~StormGreenAmpt() {
     if (m_capillarySuction != nullptr) Release1DArray(m_capillarySuction);
     if (m_accumuDepth != nullptr) Release1DArray(m_accumuDepth);
-    if (m_soilWtrSto != nullptr) Release2DArray(m_nCells, m_soilWtrSto);
+    if (m_soilWtrSto != nullptr) Release2DArray(m_soilWtrSto);
     if (m_infil != nullptr) Release1DArray(m_infil);
     if (m_infilCapacitySurplus != nullptr) Release1DArray(m_infilCapacitySurplus);
 }
@@ -110,8 +110,8 @@ int StormGreenAmpt::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j], 
-                                                                  m_soilClay[i][j] * 100, 
+                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j],
+                                                                  m_soilClay[i][j] * 100,
                                                                   m_soilSand[i][j] * 100);
             }
         }
@@ -155,7 +155,7 @@ int StormGreenAmpt::Execute() {
             float p1 = ks * dt - 2.f * infilDepth;
             float p2 = ks * (infilDepth + matricPotential);
             // infiltration rate (m/s)
-            float infilRate = (p1 + sqrt(pow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
+            float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
 
             float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
 
@@ -207,11 +207,11 @@ int StormGreenAmpt::Execute() {
 
 //this function calculated the wetting front matric potential (mm)
 float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float sand) {
-    float cs = 10.0f * exp(6.5309f - 7.32561f * por + 0.001583f * pow(clay, 2) + 3.809479f * pow(por, 2)
+    float cs = 10.0f * CalExp(6.5309f - 7.32561f * por + 0.001583f * CalPow(clay, 2) + 3.809479f * CalPow(por, 2)
                            + 0.000344f * sand * clay - 0.049837f * por * sand
-                           + 0.001608f * pow(por, 2) * pow(sand, 2)
-                           + 0.001602f * pow(por, 2) * pow(clay, 2) - 0.0000136f * pow(sand, 2) * clay -
-                           0.003479f * pow(clay, 2) * por - 0.000799f * pow(sand, 2) * por);
+                           + 0.001608f * CalPow(por, 2) * CalPow(sand, 2)
+                           + 0.001602f * CalPow(por, 2) * CalPow(clay, 2) - 0.0000136f * CalPow(sand, 2) * clay -
+                           0.003479f * CalPow(clay, 2) * por - 0.000799f * CalPow(sand, 2) * por);
 
     return cs;
 }

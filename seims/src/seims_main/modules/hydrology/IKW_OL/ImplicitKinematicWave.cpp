@@ -151,11 +151,11 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
     }
 
     /* common terms */
-    ab_pQ = alpha * beta * pow(((qLast + qIn) / 2), beta - 1);
+    ab_pQ = alpha * beta * CalPow(((qLast + qIn) / 2), beta - 1);
     // derivative of diagonal average (space-time)
 
     dtX = dt / dx;
-    C = dtX * qIn + alpha * pow(qLast, beta) + dt * surplus;
+    C = dtX * qIn + alpha * CalPow(qLast, beta) + dt * surplus;
     //dt/dx*Q = m3/s*s/m=m2; a*Q^b = A = m2; surplus*dt = s*m2/s = m2
     //C is unit volume of water
     // first gues Qkx
@@ -202,16 +202,16 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         r = h * m_flowWidth[id] / Perim;
     }
 
-    float sSin = sqrt(sin(m_sRadian[id]));
-    m_alpha[id] = pow(m_n[id] / sSin * pow(Perim, _2div3), beta);
+    float sSin = CalSqrt(sin(m_sRadian[id]));
+    m_alpha[id] = CalPow(m_n[id] / sSin * CalPow(Perim, _2div3), beta);
 
     if (m_alpha[id] > 0) {
-        m_q[id] = pow((m_flowWidth[id] * h) / m_alpha[id], beta1);
+        m_q[id] = CalPow((m_flowWidth[id] * h) / m_alpha[id], beta1);
     } else {
         m_q[id] = 0;
     }
 
-    m_vel[id] = pow(r, _2div3) * sSin / m_n[id];
+    m_vel[id] = CalPow(r, _2div3) * sSin / m_n[id];
 
     float flowWidth = m_flowWidth[id]; //(little question: why not use m_flowWidth[[id]? by Gao)
     float flowLen = m_flowLen[id];
@@ -248,7 +248,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float qIn = m_q[id];
     m_q[id] = GetNewQ(qUp, qIn, surplus, m_alpha[id], m_dtStorm, flowLen);
 
-    float hNew = (m_alpha[id] * pow(m_q[id], 0.6f)) / flowWidth; // unit m
+    float hNew = (m_alpha[id] * CalPow(m_q[id], 0.6f)) / flowWidth; // unit m
     //float hTest = h + (qUp - m_q[id])*m_dtStorm/(flowWidth*flowLen);
     m_sr[id] = hNew * 1000;
 
@@ -321,7 +321,7 @@ bool ImplicitKinematicWave_OL::CheckInputSize(const char *key, int n) {
         else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << 
+            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
                     ". The origin size is " << m_nCells << ".\n";
             throw ModelException(M_IKW_OL[0], "CheckInputSize", oss.str());
         }

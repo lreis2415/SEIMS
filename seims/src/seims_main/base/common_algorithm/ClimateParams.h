@@ -10,6 +10,7 @@
 #define SEIMS_CLIMATE_PARAMS_H
 
 #include <ctime>
+#include "seims.h"
 
 using std::time_t;
 
@@ -25,7 +26,7 @@ using std::time_t;
  * \param[in] tmean Mean temperature
  * \return Latent heat of vaporization
  */
-float LatentHeatVapor(float tmean);
+FLTPT LatentHeatVapor(FLTPT tmean);
 
 /*!
  * \ingroup ClimateParameters
@@ -35,7 +36,7 @@ float LatentHeatVapor(float tmean);
  * \param[out] day_l day length (hr)
  * \param[out] max_sr The max solar radiation
  */
-void MaxSolarRadiation(int day, float lat, float& day_l, float& max_sr);
+void MaxSolarRadiation(int day, FLTPT lat, FLTPT& day_l, FLTPT& max_sr);
 
 /*!
  * \ingroup ClimateParameters
@@ -43,7 +44,7 @@ void MaxSolarRadiation(int day, float lat, float& day_l, float& max_sr);
  * \param[in] elev elevation of current cell or site
  * \return mean atmospheric pressure (kPa)
  */
-float MeanBarometricPressure(float elev);
+FLTPT MeanBarometricPressure(FLTPT elev);
 
 /*!
  * \ingroup ClimateParameters
@@ -54,7 +55,7 @@ float MeanBarometricPressure(float elev);
  * \sa LatentHeatVapor()
  * \return Psychrometric constant
  */
-float PsychrometricConst(float tmean, float elev);
+FLTPT PsychrometricConst(FLTPT tmean, FLTPT elev);
 
 /*!
  * \ingroup ClimateParameters
@@ -62,6 +63,6 @@ float PsychrometricConst(float tmean, float elev);
  * \param[in] mean_tmp Mean air temperature(deg C)
  * \return saturation vapor pressure(kPa)
 */
-float SaturationVaporPressure(float mean_tmp);
+FLTPT SaturationVaporPressure(FLTPT mean_tmp);
 
 #endif /* SEIMS_CLIMATE_PARAMS_H */

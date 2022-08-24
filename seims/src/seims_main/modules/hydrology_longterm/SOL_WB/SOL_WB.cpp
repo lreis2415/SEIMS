@@ -13,12 +13,12 @@ SOL_WB::SOL_WB() :
 }
 
 SOL_WB::~SOL_WB() {
-    if (m_soilWtrBal != nullptr) Release2DArray(m_nSubbsns + 1, m_soilWtrBal);
+    if (m_soilWtrBal != nullptr) Release2DArray(m_soilWtrBal);
 }
 
 void SOL_WB::InitialOutputs() {
     CHECK_POSITIVE(M_SOL_WB[0], m_nSubbsns);
-    if (m_soilWtrBal == nullptr) Initialize2DArray(m_nSubbsns + 1, 16, m_soilWtrBal, 0.f);
+    if (m_soilWtrBal == nullptr) Initialize2DArray(m_nSubbsns + 1, 16, m_soilWtrBal, 0.);
 }
 
 int SOL_WB::Execute() {
@@ -26,11 +26,12 @@ int SOL_WB::Execute() {
     return 0;
 }
 
-void SOL_WB::SetValue(const char* key, float value) {
+void SOL_WB::SetValue(const char* key, int value) {
     string s(key);
-    if (StringMatch(s, VAR_SUBBSNID_NUM[0])) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(s, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
     else {
-        throw ModelException(M_SOL_WB[0], "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SOL_WB[0], "SetValue",
+                             "Integer Parameter " + s + " does not exist.");
     }
 }
 
@@ -40,18 +41,28 @@ void SOL_WB::SetValueToSubbasins() {
             Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
             int* cells = curSub->GetCells();
             int cellsNum = curSub->GetCellCount();
-            float ratio = 1.f / CVT_FLT(cellsNum);
-            float ri = 0.f; // total subsurface runoff of soil profile (mm)
-            float sm = 0.f; // total soil moisture of soil profile (mm)
-            float pcp = 0.f, netPcp = 0.f, depET = 0.f, infil = 0.f;
-            float itpET = 0.f, netPerc = 0.f, r = 0.f, revap = 0.f;
-            float rs = 0.f, meanT = 0.f, soilT = 0.f, es = 0.f, totalET = 0.f;
+            FLTPT ratio = 1. / CVT_FLT(cellsNum);
+            FLTPT ri = 0.; // total subsurface runoff of soil profile (mm)
+            FLTPT sm = 0.; // total soil moisture of soil profile (mm)
+            FLTPT pcp = 0.;
+            FLTPT netPcp = 0.;
+            FLTPT depET = 0.;
+            FLTPT infil = 0.;
+            FLTPT itpET = 0.;
+            FLTPT netPerc = 0.;
+            FLTPT r = 0.;
+            FLTPT revap = 0.;
+            FLTPT rs = 0.;
+            FLTPT meanT = 0.;
+            FLTPT soilT = 0.;
+            FLTPT es = 0.;
+            FLTPT totalET = 0.;
 
             for (int i = 0; i < cellsNum; i++) {
                 // loop cells of current subbasin
                 int cell = cells[i];
-                ri = 0.f;
-                sm = 0.f;
+                ri = 0.;
+                sm = 0.;
                 for (int j = 0; j < CVT_INT(m_nSoilLyrs[cell]); j++) {
                     ri += m_subSurfRf[cell][j] * ratio;
                     sm += m_soilWtrSto[cell][j] * ratio;
@@ -70,7 +81,7 @@ void SOL_WB::SetValueToSubbasins() {
                 rs += m_surfRf[cell] * ratio;
                 r += (m_surfRf[cell] + ri) * ratio;
             }
-            float rg = m_RG[*it];
+            FLTPT rg = m_RG[*it];
             r += rg;
 
             m_soilWtrBal[*it][0] = pcp;
@@ -93,7 +104,7 @@ void SOL_WB::SetValueToSubbasins() {
     }
 }
 
-void SOL_WB::Set1DData(const char* key, const int nrows, float* data) {
+void SOL_WB::Set1DData(const char* key, const int nrows, FLTPT* data) {
     string s(key);
     if (StringMatch(s, VAR_RG[0])) {
         m_RG = data;
@@ -104,9 +115,7 @@ void SOL_WB::Set1DData(const char* key, const int nrows, float* data) {
         return;
     }
     CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
-    if (StringMatch(s, VAR_SOILLAYERS[0])) {
-        m_nSoilLyrs = data;
-    } else if (StringMatch(s, VAR_SOL_ZMX[0])) {
+    if (StringMatch(s, VAR_SOL_ZMX[0])) {
         m_soilMaxRootD = data;
     } else if (StringMatch(s, VAR_NEPR[0])) {
         m_netPcp = data;
@@ -135,11 +144,23 @@ void SOL_WB::Set1DData(const char* key, const int nrows, float* data) {
     } else if (StringMatch(s, VAR_SOTE[0])) {
         m_soilTemp = data;
     } else {
-        throw ModelException(M_SOL_WB[0], "Set1DData", "Parameter " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Set1DData",
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
-void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+void SOL_WB::Set1DData(const char* key, const int nrows, int* data) {
+    string s(key);
+    CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
+    if (StringMatch(s, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
+    } else {
+        throw ModelException(M_SOL_WB[0], "Set1DData",
+                             "Integer Parameter " + s + " does not exist in current module.");
+    }
+}
+
+void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     CheckInputSize2D(M_SOL_WB[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
     if (StringMatch(s, VAR_PERCO[0])) {
@@ -151,7 +172,8 @@ void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, float*
     } else if (StringMatch(s, VAR_SOILTHICK[0])) {
         m_soilThk = data;
     } else {
-        throw ModelException(M_SOL_WB[0], "Set2DData", "Parameter " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Set2DData",
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
@@ -163,7 +185,7 @@ void SOL_WB::SetSubbasins(clsSubbasins* subbasins) {
     }
 }
 
-void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SOWB[0])) {
@@ -172,7 +194,8 @@ void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
         *nCols = 16;
         *data = m_soilWtrBal;
     } else {
-        throw ModelException(M_SOL_WB[0], "Get2DData", "Result " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Get2DData",
+                             "Result " + s + " does not exist in current module.");
     }
 }
 

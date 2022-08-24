@@ -7,15 +7,15 @@ NPS_Management::NPS_Management() :
     m_mgtFields(nullptr), m_soilWtrSto(nullptr),
     m_soilNO3(nullptr), m_soilNH4(nullptr), m_soilSolP(nullptr),
     m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr) {
-    
+
     m_arealSrcFactory.clear();
 }
 
 NPS_Management::~NPS_Management() {
     if (!m_arealSrcFactory.empty()) {
-        for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end();) {
+        for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end(); ++it) {
             delete it->second;
-            m_arealSrcFactory.erase(it++);
+            // m_arealSrcFactory.erase(it++);
         }
         m_arealSrcFactory.clear();
     }

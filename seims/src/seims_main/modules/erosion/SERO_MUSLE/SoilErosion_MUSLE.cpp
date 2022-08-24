@@ -3,7 +3,7 @@
 #include "text.h"
 
 SERO_MUSLE::SERO_MUSLE() :
-    m_nCells(-1), m_cellWth(-1.f), m_maxSoilLyrs(-1), m_soilRock(nullptr),
+    m_nCells(-1), m_cellWth(-1.), m_maxSoilLyrs(-1), m_soilRock(nullptr),
     m_usleK(nullptr), m_usleP(nullptr),
     m_flowAccm(nullptr), m_slope(nullptr), m_slpLen(nullptr),
     m_rchID(nullptr), m_detSand(nullptr), m_detSilt(nullptr), m_detClay(nullptr),
@@ -63,29 +63,29 @@ bool SERO_MUSLE::CheckInputData() {
 
 void SERO_MUSLE::InitialOutputs() {
     CHECK_POSITIVE(M_SERO_MUSLE[0], m_nCells);
-    if (nullptr == m_eroSed) Initialize1DArray(m_nCells, m_eroSed, 0.f);
-    if (nullptr == m_eroSand) Initialize1DArray(m_nCells, m_eroSand, 0.f);
-    if (nullptr == m_eroSilt) Initialize1DArray(m_nCells, m_eroSilt, 0.f);
-    if (nullptr == m_eroClay) Initialize1DArray(m_nCells, m_eroClay, 0.f);
-    if (nullptr == m_eroSmAgg) Initialize1DArray(m_nCells, m_eroSmAgg, 0.f);
-    if (nullptr == m_eroLgAgg) Initialize1DArray(m_nCells, m_eroLgAgg, 0.f);
-    if (nullptr == m_usleC) Initialize1DArray(m_nCells, m_usleC, 0.f);
+    if (nullptr == m_eroSed) Initialize1DArray(m_nCells, m_eroSed, 0.);
+    if (nullptr == m_eroSand) Initialize1DArray(m_nCells, m_eroSand, 0.);
+    if (nullptr == m_eroSilt) Initialize1DArray(m_nCells, m_eroSilt, 0.);
+    if (nullptr == m_eroClay) Initialize1DArray(m_nCells, m_eroClay, 0.);
+    if (nullptr == m_eroSmAgg) Initialize1DArray(m_nCells, m_eroSmAgg, 0.);
+    if (nullptr == m_eroLgAgg) Initialize1DArray(m_nCells, m_eroLgAgg, 0.);
+    if (nullptr == m_usleC) Initialize1DArray(m_nCells, m_usleC, 0.);
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_rchID[i] > 0) {
-            m_usleC[i] = 0.f;
+            m_usleC[i] = 0.;
             continue;
         }
         m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
 
-        if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
-            m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
+        if (m_aveAnnUsleC[i] < 1.e-4 || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
+            m_aveAnnUsleC[i] = 0.001; // line 289 of readplant.f of SWAT source
         }
         if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
             // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
             //  the minimum value of the USLE_C for the land cover
-            m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
+            m_aveAnnUsleC[i] = CalLn(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
         }
     }
 }
@@ -95,16 +95,16 @@ void SERO_MUSLE::InitialIntermediates() {
 
     // m_cellAreaKM put here is for future improvement of cells -> arbitrary polygons
     if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {
-        m_cellAreaKM = m_cellWth * m_cellWth * 0.000001f;
-        m_cellAreaKM1 = 3.79f * pow(m_cellAreaKM, 0.7f);
-        m_cellAreaKM2 = 0.903f * pow(m_cellAreaKM, 0.017f);
+        m_cellAreaKM = m_cellWth * m_cellWth * 0.000001;
+        m_cellAreaKM1 = 3.79 * CalPow(m_cellAreaKM, 0.7);
+        m_cellAreaKM2 = 0.903 * CalPow(m_cellAreaKM, 0.017);
     }
 
     if (nullptr == m_usleMult) {
-        Initialize1DArray(m_nCells, m_usleL, 0.f);
-        Initialize1DArray(m_nCells, m_usleS, 0.f);
-        Initialize1DArray(m_nCells, m_slopeForPq, 0.f);
-        Initialize1DArray(m_nCells, m_usleMult, 0.f);
+        Initialize1DArray(m_nCells, m_usleL, 0.);
+        Initialize1DArray(m_nCells, m_usleS, 0.);
+        Initialize1DArray(m_nCells, m_slopeForPq, 0.);
+        Initialize1DArray(m_nCells, m_usleMult, 0.);
     }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -124,36 +124,36 @@ void SERO_MUSLE::InitialIntermediates() {
         // The calculation of LS factor follows the equation of McCool et al.(1989) used in RUSLE.
         // Also refers to Zhang et al.(2013), C&G, 52, 177-188.
         //                Liu et al.(2015), C&G, 78, 110-122.
-        float slp_rad = atan(m_slope[i]);
-        float slp_deg = slp_rad * 180.f / PI;
-        float sin_slp = sin(slp_rad);
-        float beta = sin_slp / 0.0896f / (3.f * pow(sin_slp, 0.8f) + 0.56f);
-        float m = beta / (1.f + beta);
-        float S = 0.f;
-        if (slp_deg < 5.f) S = 10.8f * sin_slp + 0.03f;
-        else if (slp_deg >= 5.f && slp_deg <= 14.f) S = 16.8f * sin_slp - 0.5f;
-        else S = 21.91f * sin_slp - 0.96f;
-        // float xm = 0.6f * (1.f - exp(-35.835f * m_slope[i])); // eq. of SWAT
+        FLTPT slp_rad = atan(m_slope[i]);
+        FLTPT slp_deg = slp_rad * rad2deg; // rad2deg = 180. / PI;
+        FLTPT sin_slp = sin(slp_rad);
+        FLTPT beta = sin_slp / 0.0896 / (3. * CalPow(sin_slp, 0.8) + 0.56);
+        FLTPT m = beta / (1. + beta);
+        FLTPT S = 0.;
+        if (slp_deg < 5.) S = 10.8 * sin_slp + 0.03;
+        else if (slp_deg >= 5. && slp_deg <= 14.) S = 16.8 * sin_slp - 0.5;
+        else S = 21.91 * sin_slp - 0.96;
+        // float xm = 0.6f * (1.f - CalExp(-35.835f * m_slope[i])); // eq. of SWAT
         // float s = 65.41f * sin_slp * sin_slp + 4.56f * sin_slp + 0.065f; // eq. of SWAT
         // If m_slpLen is not provided, use the equation developed by Renard et al.(1997) and the extended
         //    variation by Desmet and Govers (1996).
-        float L = 0.f;
+        FLTPT L = 0.;
         if (nullptr == m_slpLen) {
-            float up_lambda = m_flowAccm[i] * m_cellWth;
-            float slope_lambda = up_lambda + m_cellWth;
-            L = pow(slope_lambda, m + 1.f) - pow(up_lambda, m + 1.f);
-            L /= m_cellWth * pow(22.13f, m);
+            FLTPT up_lambda = m_flowAccm[i] * m_cellWth;
+            FLTPT slope_lambda = up_lambda + m_cellWth;
+            L = CalPow(slope_lambda, m + 1.) - CalPow(up_lambda, m + 1.);
+            L /= m_cellWth * CalPow(22.13, m);
         } else {
-            L = pow(m_slpLen[i] / 22.13f, m);
+            L = CalPow(m_slpLen[i] / 22.13, m);
         }
 
-        if (m_usleP[i] < 0.f) m_usleP[i] = 0.f;
-        if (m_usleP[i] > 1.f) m_usleP[i] = 1.f;
-        m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
+        if (m_usleP[i] < 0.) m_usleP[i] = 0.;
+        if (m_usleP[i] > 1.) m_usleP[i] = 1.;
+        m_slopeForPq[i] = CalPow(m_slope[i] * 1000., 0.16);
         m_usleL[i] = L;
         m_usleS[i] = S;
         // line 111-113 of soil_phys.f of SWAT source.
-        m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
+        m_usleMult[i] = 11.8 * CalExp(-0.053 * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
     }
 
     m_reCalIntermediates = false;
@@ -165,57 +165,57 @@ int SERO_MUSLE::Execute() {
     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        if (m_surfRf[i] < 0.0001f || m_rchID[i] > 0) {
-            m_eroSed[i] = 0.f;
-            m_eroSand[i] = 0.f;
-            m_eroSilt[i] = 0.f;
-            m_eroClay[i] = 0.f;
-            m_eroSmAgg[i] = 0.f;
-            m_eroLgAgg[i] = 0.f;
+        if (m_surfRf[i] < 0.0001 || m_rchID[i] > 0) {
+            m_eroSed[i] = 0.;
+            m_eroSand[i] = 0.;
+            m_eroSilt[i] = 0.;
+            m_eroClay[i] = 0.;
+            m_eroSmAgg[i] = 0.;
+            m_eroLgAgg[i] = 0.;
             continue;
         }
         // Update C factor
         if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
+            if (m_landCover[i] > 0. && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // exclude WATER
                 // ln(0.8) = -0.2231435513142097
-                m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
-                                 exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+                m_usleC[i] = CalExp((-0.223144 - m_aveAnnUsleC[i]) *
+                                 CalExp(-0.00115 * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
             } else {
-                if (m_rsdCovSoil[i] > 1.e-4f) {
-                    m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
+                if (m_rsdCovSoil[i] > 1.e-4) {
+                    m_usleC[i] = CalExp(-0.223144 * CalExp(-0.00115 * m_rsdCovSoil[i]));
                 } else {
-                    m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
+                    m_usleC[i] = 0.; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
-            if (m_landCover[i] > 0.f && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
+            if (m_landCover[i] > 0. && !FloatEqual(m_landCover[i], LANDUSE_ID_WATR)) {
                 // exclude WATER
                 // new calculation method from RUSLE with the minimum C factor value
                 //! fraction of cover by residue
-                float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);
+                FLTPT rsd_frcov = CalExp(-m_rsdCovCoef * m_rsdCovSoil[i]);
                 //! fraction of cover by biomass as function of lai
-                float grcov_fr = m_lai[i] / (m_lai[i] + exp(1.748f - 1.748f * m_lai[i]));
+                FLTPT grcov_fr = m_lai[i] / (m_lai[i] + CalExp(1.748 - 1.748 * m_lai[i]));
                 //! fraction of cover by biomass - adjusted for canopy height
-                float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
-                m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
+                FLTPT bio_frcov = 1. - grcov_fr * CalExp(-0.01 * m_canHgt[i]);
+                m_usleC[i] = Max(1.e-10, rsd_frcov * bio_frcov);
             } else {
-                m_usleC[i] = 0.f;
+                m_usleC[i] = 0.;
             }
         }
-        if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
-        if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
+        if (m_usleC[i] > 1.) m_usleC[i] = 1.;
+        if (m_usleC[i] < 0.) m_usleC[i] = 0.;
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
-        float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);
+        FLTPT q = m_cellAreaKM1 * m_slopeForPq[i] * CalPow(m_surfRf[i] * 0.03937007874015748, m_cellAreaKM2);
         // sediment yield, unit: tons, eq. 4:1.1.1 in SWAT theory 2009.
-        float sed_yld = m_usleMult[i] * m_usleC[i] * pow(m_surfRf[i] * m_cellAreaKM * 1000.0f * q, 0.56f);
+        FLTPT sed_yld = m_usleMult[i] * m_usleC[i] * CalPow(m_surfRf[i] * m_cellAreaKM * 1000.0 * q, 0.56);
         // the snow pack effect
-        if (m_snowAccum[i] > 0.0001f) {
-            sed_yld /= exp(3.f * m_snowAccum[i] * 0.03937007874015748f);
+        if (m_snowAccum[i] > 0.0001) {
+            sed_yld /= CalExp(3. * m_snowAccum[i] * 0.03937007874015748);
         }
-        m_eroSed[i] = sed_yld * 1000.f; /// kg
+        m_eroSed[i] = sed_yld * 1000.; /// kg
 
         /// particle size distribution of sediment yield
         m_eroSand[i] = m_eroSed[i] * m_detSand[i];
@@ -230,25 +230,32 @@ int SERO_MUSLE::Execute() {
     return 0;
 }
 
-void SERO_MUSLE::SetValue(const char* key, const float value) {
+void SERO_MUSLE::SetValue(const char* key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth[0])) {
         m_cellWth = value;
     } else if (StringMatch(sk, VAR_RSDCOV_COEF[0])) {
         m_rsdCovCoef = value;
-    } else if (StringMatch(sk, VAR_ICFAC[0])) {
-        m_iCfac = CVT_INT(value);
     } else {
         throw ModelException(M_SERO_MUSLE[0], "SetValue",
                              "Parameter " + sk + " does not exist in current module.");
     }
 }
 
-void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
+void SERO_MUSLE::SetValue(const char* key, const int value) {
+    string sk(key);
+    if (StringMatch(sk, VAR_ICFAC[0])) {
+        m_iCfac = value;
+    } else {
+        throw ModelException(M_SERO_MUSLE[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist in current module.");
+    }
+}
+
+void SERO_MUSLE::Set1DData(const char* key, const int n, FLTPT* data) {
     CheckInputSize(M_SERO_MUSLE[0], key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_USLE_C[0])) m_aveAnnUsleC = data;
-    else if (StringMatch(s, VAR_LANDCOVER[0])) m_landCover = data;
     else if (StringMatch(s, VAR_SOL_COV[0])) m_rsdCovSoil = data;
     else if (StringMatch(s, VAR_CHT[0])) m_canHgt = data;
     else if (StringMatch(s, VAR_LAIDAY[0])) m_lai = data;
@@ -258,7 +265,6 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(s, VAR_SLPLEN[0])) m_slpLen = data;
     else if (StringMatch(s, VAR_SURU[0])) m_surfRf = data;
     else if (StringMatch(s, VAR_SNAC[0])) m_snowAccum = data;
-    else if (StringMatch(s, VAR_STREAM_LINK[0])) m_rchID = data;
     else if (StringMatch(s, VAR_DETACH_SAND[0])) m_detSand = data;
     else if (StringMatch(s, VAR_DETACH_SILT[0])) m_detSilt = data;
     else if (StringMatch(s, VAR_DETACH_CLAY[0])) m_detClay = data;
@@ -270,7 +276,18 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+void SERO_MUSLE::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_SERO_MUSLE[0], key, n, m_nCells);
+    string s(key);
+    if (StringMatch(s, VAR_LANDCOVER[0])) m_landCover = data;
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) m_rchID = data;
+    else {
+        throw ModelException(M_SERO_MUSLE[0], "Set1DData",
+                             "Integer Parameter " + s + " does not exist.");
+    }
+}
+
+void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     CheckInputSize2D(M_SERO_MUSLE[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
     m_maxSoilLyrs = ncols;
@@ -282,7 +299,7 @@ void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, fl
     }
 }
 
-void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
+void SERO_MUSLE::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_USLE_L[0])) *data = m_usleL;
@@ -301,7 +318,7 @@ void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
     *n = m_nCells;
 }
 
-void SERO_MUSLE::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
+void SERO_MUSLE::Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) {
     InitialOutputs();
     string sk(key);
     *nrows = m_nCells;

@@ -24,17 +24,17 @@ public:
     SEIMSModuleSetting(string& module_id, string& setting);
 
     ///< data type
-    float dataType();
+    int dataType();
 
     ///< climate data type for TSD and ITP
-    string dataTypeString() { return dataType2String(dataType()); };
+    string dataTypeString() { return dataType2String(dataType()); }
 
     ///< vertical interpolation information for ITP
     bool needDoVerticalInterpolation();
 
-    static float dataTypeString2Float(const string& data_type);
+    static int dataTypeString2Int(const string& data_type);
 
-    static string dataType2String(float data_type);
+    static string dataType2String(int data_type);
 
 private:
     string m_moduleId;         ///< module's ID

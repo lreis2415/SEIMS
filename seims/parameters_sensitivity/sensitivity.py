@@ -25,10 +25,13 @@ from copy import deepcopy
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-import matplotlib
+import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+        mpl.use('Agg', warn=False)
+    except TypeError:
+        mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
 from typing import List

@@ -11,6 +11,7 @@ from __future__ import absolute_import, unicode_literals
 from io import open
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -20,6 +21,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass, is_string
 
 from utility import status_output, read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
+from utility import mask_rasterio
 from preprocess.text import ModelParamDataUtils
 
 
@@ -31,51 +33,56 @@ class LanduseUtilClass(object):
         pass
 
     @staticmethod
-    def export_landuse_lookup_files_from_mongodb(cfg, maindb):
-        """export landuse lookup tables to txt file from MongoDB."""
-        lookup_dir = cfg.dirs.lookup
-        property_namelist = ModelParamDataUtils.landuse_fields
-        property_map = dict()
-        property_namelist.append('USLE_P')
-        query_result = maindb['LANDUSELOOKUP'].find()
+    def lookup_landuse_parameters_from_mongodb(cfg):
+        """Lookup landuse parameters from MongoDB.
+
+        Returns:
+            recls_dict: dict, e.g., {'MANNING': '1:0.15,2:0.15,10:0.2'}
+        """
+        query_result = cfg.maindb['LANDUSELOOKUP'].find()
         if query_result is None:
-            raise RuntimeError('LanduseLoop Collection is not existed or empty!')
-        count = 0
+            raise RuntimeError('LanduseLookup Collection is not existed or empty!')
+        lu_dict = dict()
+        parm_dict = dict()
         for row in query_result:
             # print(row)
             value_map = dict()
-            for i, p_name in enumerate(property_namelist):
-                if StringClass.string_match(p_name, 'USLE_P'):
-                    # Currently, USLE_P is set as 1 for all landuse.
-                    value_map[p_name] = 1
-                else:
-                    # I do not know why manning * 10 here. Just uncommented now. lj
-                    # if StringClass.string_match(p_name, "Manning"):
-                    #     value_map[p_name] = row.get(p_name) * 10
-                    # else:
-                    v = row.get(p_name)
-                    if is_string(v):
-                        v = StringClass.extract_numeric_values_from_string(v)[0]
-                    value_map[p_name] = v
-            count += 1
-            property_map[count] = value_map
+            luid = -1
+            for k, v in row.items():
+                upperk = k.upper()
+                if upperk == 'LANDUSE_ID':
+                    luid = int(v)
+                    continue
+                if upperk not in ModelParamDataUtils.landuse_fields:
+                    continue
+                if is_string(v):
+                    v = StringClass.extract_numeric_values_from_string(v)[0]
+                value_map[upperk] = v
+                if upperk not in parm_dict:
+                    parm_dict[upperk] = dict()
+            if luid < 0:
+                continue
+            lu_dict[luid] = value_map
 
-        n = len(property_map)
-        UtilClass.rmmkdir(lookup_dir)
-        for propertyName in property_namelist:
-            with open('%s/%s.txt' % (lookup_dir, propertyName,), 'w', encoding='utf-8') as f:
-                f.write('%d\n' % n)
-                for prop_id in property_map:
-                    s = '%d %f\n' % (int(property_map[prop_id]['LANDUSE_ID']),
-                                     property_map[prop_id][propertyName])
-                    f.write('%s' % s)
+        avail_keys = parm_dict.keys()
+        for luid, param_kv in lu_dict.items():
+            for param_k, param_v in param_kv.items():
+                if param_k not in avail_keys:
+                    continue
+                parm_dict[param_k][luid] = param_v
+        recls_dict = dict()
+        for avail_k, lu_kv in parm_dict.items():
+            recls_dict[avail_k] = ','.join('%s:%s' % (repr(k), repr(v)) for k, v in lu_kv.items())
+
+        return recls_dict
 
     @staticmethod
     def reclassify_landuse_parameters(bin_dir, config_file, dst_dir, landuse_file, lookup_dir,
                                       landuse_attr_list, default_landuse_id):
         """
         Reclassify landuse parameters by lookup table.
-        TODO(LJ): this function should be replaced by replaceByDict() function!
+
+        Deprecated: remove in next revision
         """
         # prepare reclassify configuration file
         with open(config_file, 'w', encoding='utf-8') as f_reclass_lu:
@@ -89,9 +96,10 @@ class LanduseUtilClass(object):
         UtilClass.run_command(s)
 
     @staticmethod
-    def initialize_landcover_parameters(landcover_file, landcover_initial_fields_file, dst_dir):
-        """generate initial landcover_init_param parameters"""
-        lc_data_items = read_data_items_from_txt(landcover_initial_fields_file)
+    def lookup_specific_landcover_parameters(cfg):
+        """generate user-specific landcover related parameters"""
+        # read user-specific initial parameters
+        lc_data_items = read_data_items_from_txt(cfg.landcover_init_param)
         # print(lc_data_items)
         field_names = lc_data_items[0]
         lu_id = -1
@@ -103,47 +111,54 @@ class LanduseUtilClass(object):
         replace_dicts = dict()
         for item in data_items:
             for i, v in enumerate(item):
-                if i != lu_id:
-                    if field_names[i].upper() not in list(replace_dicts.keys()):
-                        replace_dicts[field_names[i].upper()] = {float(item[lu_id]): float(v)}
-                    else:
-                        replace_dicts[field_names[i].upper()][float(item[lu_id])] = float(v)
+                if i == lu_id:
+                    continue
+                if field_names[i].upper() not in list(replace_dicts.keys()):
+                    replace_dicts[field_names[i].upper()] = {int(item[lu_id]): float(v)}
+                else:
+                    replace_dicts[field_names[i].upper()][int(item[lu_id])] = float(v)
         # print(replace_dicts)
-
-        # Generate GTIFF
-        for item, v in list(replace_dicts.items()):
-            filename = dst_dir + os.path.sep + item + '.tif'
-            print(filename)
-            RasterUtilClass.raster_reclassify(landcover_file, v, filename)
-        return list(replace_dicts['LANDCOVER'].values())
+        for avail_k, lu_kv in replace_dicts.items():
+            replace_dicts[avail_k] = ','.join('%s:%s' % (repr(k), repr(v))
+                                              for k, v in lu_kv.items())
+        return replace_dicts
 
     @staticmethod
-    def read_crop_lookup_table(crop_lookup_file):
+    def read_crop_lookup_table(cfg):
         """read crop lookup table"""
-        FileClass.check_file_exists(crop_lookup_file)
-        data_items = read_data_items_from_txt(crop_lookup_file)
+        FileClass.check_file_exists(cfg.paramcfgs.crop_file)
+        data_items = read_data_items_from_txt(cfg.paramcfgs.crop_file)
         attr_dic = dict()
         fields = data_items[0]
         n = len(fields)
+        select_idx = list()
         for i in range(n):
-            attr_dic[fields[i]] = dict()
+            fld = fields[i].upper()
+            if fld not in ModelParamDataUtils.crop_fields:
+                continue
+            select_idx.append(i)
+            attr_dic[fld] = dict()
+
         for items in data_items[1:]:
             cur_id = int(items[0])
-
-            for i in range(n):
-                dic = attr_dic[fields[i]]
+            for i in select_idx:
+                dic = attr_dic[fields[i].upper()]
                 try:
                     dic[cur_id] = float(items[i])
                 except ValueError:
                     dic[cur_id] = items[i]
+        for avail_k, lc_kv in attr_dic.items():
+            attr_dic[avail_k] = ','.join('%s:%s' % (repr(k), repr(v))
+                                         for k, v in lc_kv.items())
         return attr_dic
 
     @staticmethod
     def reclassify_landcover_parameters(landuse_file, landcover_file, landcover_initial_fields_file,
                                         landcover_lookup_file, attr_names, dst_dir):
         """reclassify landcover_init_param parameters"""
-        land_cover_codes = LanduseUtilClass.initialize_landcover_parameters(
-                landuse_file, landcover_initial_fields_file, dst_dir)
+        recls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(
+            landcover_initial_fields_file)
+        land_cover_codes = list(recls_dict['LANDCOVER'].values())
         attr_map = LanduseUtilClass.read_crop_lookup_table(landcover_lookup_file)
         n = len(attr_names)
         replace_dicts = list()
@@ -208,8 +223,8 @@ class LanduseUtilClass(object):
                                          lu_r.srs, nodata_value, GDT_Float32)
 
     @staticmethod
-    def generate_runoff_coefficent(maindb, landuse_file, slope_file, soil_texture_file,
-                                   runoff_coeff_file, imper_perc=0.3):
+    def generate_runoff_coefficient(maindb, landuse_file, slope_file, soil_texture_file,
+                                    runoff_coeff_file, imper_perc=0.3):
         """Generate potential runoff coefficient."""
         # read landuselookup table from MongoDB
         prc_fields = ['PRC_ST%d' % (i,) for i in range(1, 13)]
@@ -267,57 +282,72 @@ class LanduseUtilClass(object):
                                          GDT_Float32)
 
     @staticmethod
-    def parameters_extraction(cfg, maindb):
+    def parameters_extraction(cfg):
         """Landuse spatial parameters extraction."""
         f = cfg.logs.extract_lu
-        # 1. Generate landuse lookup tables
-        status_output("Generating landuse lookup tables from MongoDB...", 10, f)
-        LanduseUtilClass.export_landuse_lookup_files_from_mongodb(cfg, maindb)
-        # 2. Reclassify landuse parameters by lookup tables
-        status_output("Generating landuse attributes...", 20, f)
-        lookup_lu_config_file = cfg.logs.reclasslu_cfg
-        LanduseUtilClass.reclassify_landuse_parameters(cfg.seims_bin, lookup_lu_config_file,
-                                                       cfg.dirs.geodata2db,
-                                                       cfg.spatials.landuse, cfg.dirs.lookup,
-                                                       ModelParamDataUtils.landuse_fields,
-                                                       cfg.default_landuse)
-        # 3. Generate crop parameters
-        status_output("Generating crop/landcover_init_param attributes...", 30, f)
-        crop_lookup_file = cfg.paramcfgs.crop_file
-        LanduseUtilClass.reclassify_landcover_parameters(cfg.spatials.landuse,
-                                                         cfg.spatials.crop,
-                                                         cfg.landcover_init_param,
-                                                         crop_lookup_file,
-                                                         ModelParamDataUtils.crop_fields,
-                                                         cfg.dirs.geodata2db)
-        # 4. Generate Curve Number according to landuse
-        status_output("Calculating CN numbers...", 40, f)
-        hg_file = cfg.spatials.hydro_group
-        cn2_filename = cfg.spatials.cn2
-        LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename)
-        # 5. Generate runoff coefficient
-        status_output("Calculating potential runoff coefficient...", 50, f)
-        slope_file = cfg.spatials.slope
-        soil_texture_raster = cfg.spatials.soil_texture
-        runoff_coef_file = cfg.spatials.runoff_coef
-        LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
-                                                    soil_texture_raster,
-                                                    runoff_coef_file, cfg.imper_perc_in_urban)
-        status_output("Landuse/Landcover related spatial parameters extracted done!", 100, f)
+        status_output('Getting reclassification from landuse lookup tables...', 10, f)
+        lurecls_dict = LanduseUtilClass.lookup_landuse_parameters_from_mongodb(cfg)
+
+        status_output('Decomposing landuse parameters excluding nodata to MongoDB...', 30, f)
+        inoutcfg = list()
+        for k, v in lurecls_dict.items():
+            inoutcfg.append([cfg.spatials.landuse, k,
+                             DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
+        mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
+        mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                      maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslu_cfg,
+                      include_nodata=False, mode='MASKDEC')
+
+        status_output('Getting user-specific landcover parameters...', 50, f)
+        lcrecls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(cfg)
+        status_output('Decomposing user-specific landcover parameters to MongoDB...', 60, f)
+        lcinoutcfg = list()
+        for k, v in lcrecls_dict.items():
+            lcinoutcfg.append([cfg.spatials.landuse, k,
+                               DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
+        mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
+                      maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_cfg,
+                      include_nodata=False, mode='MASKDEC')
+
+        status_output('Getting default landcover parameters...', 70, f)
+        lcrecls_dict2 = LanduseUtilClass.read_crop_lookup_table(cfg)
+        status_output('Decomposing default landcover parameters to MongoDB...', 80, f)
+        lcinoutcfg2 = list()
+        for k, v in lcrecls_dict2.items():
+            lcinoutcfg2.append(['0_LANDCOVER', k, DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
+        mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
+                      maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_def_cfg,
+                      include_nodata=False, mode='MASKDEC')
+
+        # other LUCC related parameters
+        # To make use of old code, we have to export some raster from MongoDB
+        mask_rasterio(cfg.seims_bin,
+                      [['0_HYDRO_GROUP', cfg.spatials.hydro_group],
+                       ['0_SOIL_TEXTURE', cfg.spatials.soil_texture]],
+                      mongoargs=mongoargs, maskfile=cfg.spatials.subbsn,
+                      include_nodata=False, mode='MASK')
+
+        status_output('Calculating Curve Number according to landuse...', 90, f)
+        LanduseUtilClass.generate_cn2(cfg.maindb, cfg.spatials.landuse,
+                                      cfg.spatials.hydro_group, cfg.spatials.cn2)
+
+        status_output('Calculating potential runoff coefficient...', 95, f)
+        LanduseUtilClass.generate_runoff_coefficient(cfg.maindb,
+                                                     cfg.spatials.landuse,
+                                                     cfg.spatials.slope,
+                                                     cfg.spatials.soil_texture,
+                                                     cfg.spatials.runoff_coef,
+                                                     cfg.imper_perc_in_urban)
+        status_output('Landuse/Landcover related spatial parameters extracted done!', 100, f)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    main_db = conn[seims_cfg.spatial_db]
 
-    LanduseUtilClass.parameters_extraction(seims_cfg, main_db)
-
-    client.close()
+    LanduseUtilClass.parameters_extraction(seims_cfg)
 
 
 if __name__ == '__main__':

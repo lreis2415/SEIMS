@@ -144,8 +144,8 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 		}
 
 		// calculate effective hydraulic conductivity (mm/h -> m/s)
-		//float k = m_ks[id]/1000/3600 * pow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
-		float k = m_ks[id][j] / 1000 / 3600 * pow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
+		//float k = m_ks[id]/1000/3600 * CalPow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
+		float k = m_ks[id][j] / 1000 / 3600 * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
 		// calculate interflow (m3/s)
 		m_q[id] = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
 
