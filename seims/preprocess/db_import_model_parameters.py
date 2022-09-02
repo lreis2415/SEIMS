@@ -309,8 +309,11 @@ class ImportParam2Mongo(object):
             data_import = read_output_item(user_out_field_array, iitem)
             data_import[ModelCfgFields.use] = 1
             cur_filter = dict()
-            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
-            bulk.find(cur_filter).update({'$set': data_import})
+            if data_import[ModelCfgFields.output_id] == 'SED_OL' and data_import[ModelCfgFields.filename] != 'SED_OL.tif':
+                bulk.insert(data_import)
+            else:
+                cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
+                bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
         MongoUtil.run_bulk(bulk, 'No operations to execute when import the desired outputs.')
 
