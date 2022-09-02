@@ -51,18 +51,22 @@ class SAConfig(object):
         self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
         self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
         self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
-        self.implementation_period = cf.getfloat('Scenario_Common', 'implementation_period')
-        self.effectiveness_changeable = cf.getboolean('Scenario_Common', 'effectiveness_changeable')
-        self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
-        self.change_times = int(self.implementation_period/self.change_frequency)
-        self.enable_investment_quota = cf.getboolean('Scenario_Common', 'enable_investment_quota')
-        self.investment_each_period = eval(cf.get('Scenario_Common', 'investment_each_period'))
-        self.discount_rate = cf.getfloat('Scenario_Common', 'discount_rate')
+        if cf.has_option('Scenario_Common', 'implementation_period') and cf.has_option('Scenario_Common', 'effectiveness_changeable') and \
+         cf.has_option('Scenario_Common', 'change_frequency') and cf.has_option('Scenario_Common', 'enable_investment_quota') and \
+         cf.has_option('Scenario_Common', 'investment_each_period') and cf.has_option('Scenario_Common', 'discount_rate') and \
+         cf.has_option('Scenario_Common', 'selected_scenario_file'):
+            self.implementation_period = cf.getfloat('Scenario_Common', 'implementation_period')
+            self.effectiveness_changeable = cf.getboolean('Scenario_Common', 'effectiveness_changeable')
+            self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
+            self.change_times = int(self.implementation_period/self.change_frequency)
+            self.enable_investment_quota = cf.getboolean('Scenario_Common', 'enable_investment_quota')
+            self.investment_each_period = eval(cf.get('Scenario_Common', 'investment_each_period'))
+            self.discount_rate = cf.getfloat('Scenario_Common', 'discount_rate')
+            self.selected_scenario_file = cf.get('Scenario_Common', 'selected_scenario_file')
         if cf.has_option('Scenario_Common', 'export_scenario_txt'):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
-        self.selected_scenario_file = cf.get('Scenario_Common', 'selected_scenario_file')
 
         # 3. Application specific setting section [BMPs]
         # Selected BMPs, the key is BMPID, and value is the BMP information dict

@@ -1,0 +1,14 @@
+StationID,Name,Type,Lat,Lon,LocalX,LocalY,Unit,Elevation,isOutlet
+# StationID为唯一正整数编号，对应于observed_*.txt中的SiteID
+# Name为监测点名称
+# Type为观测值类型，可选输入为 Q, SED, NO3, NH4, NO2, ORGP, ORGN, SOLP, TN, TP (如有其他也可添加)
+# Lat，Lon，LocalX，LocalY
+# Unit为观测值单位，MUST BE UNIQUE, 浓度单位一律为mg/L, 泥沙浓度为g/L, 重量单位为kg, 流量单位为m3/s
+# Elevation为测点高程值
+# isOutlet
+#        0: 其他观测点
+#        1: 流域出口观测点
+#        2: 子流域出口观测点
+#        3: 子流域交叉口观测点（即多个子流域出口交叉口，其测量值为多个子流域出口之和）
+1,hetianzhan,SED,25.680207,116.406401,440409.511725,2841541.17804,g/L,280,1
+1,hetianzhan,Q,25.680207,116.406401,440409.511725,2841541.17804,m3/s,280,1

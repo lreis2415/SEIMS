@@ -507,7 +507,7 @@ class SUScenario(Scenario):
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * actual_years
-                    income += luarea * bmpparam['INCOME'] * actual_years
+                    income += luarea * bmpparam['INCOME'][-1] * actual_years
 
         # self.economy = capex
         # self.economy = capex + opex
