@@ -1234,7 +1234,7 @@ def extra_process_for_last_generation(log_filename, last_gen, output_path, expor
                 items = target_line.split('\t')
                 sceid = int(items[1])
                 print('output %d' % (sceid,))
-                gene_values = ast.literal_eval(items[7][11:-2])
+                gene_values = ast.literal_eval(items[9][11:-2])
                 output_tif = '{}/Scenario_{}.tif'.format(output_path, sceid)
 
                 # instantiate scenario
@@ -1269,6 +1269,8 @@ def extra_process_for_last_generation(log_filename, last_gen, output_path, expor
                 sce_dict['sed_sum'] = float(items[4])
                 sce_dict['sed_pp'] = ast.literal_eval(items[5])
                 sce_dict['net_cost_pp'] = ast.literal_eval(items[6])
+                sce_dict['cost_pp'] = ast.literal_eval(items[7])
+                sce_dict['income_pp'] = ast.literal_eval(items[8])
                 sce_dict['gene_values'] = gene_values
                 sce_dict['periods'] = sce.statistics_by_period_bmp()
                 sce_dict['net_cost_cumul'] = cumulative(sce_dict['net_cost_pp'])
@@ -1504,10 +1506,9 @@ if __name__ == '__main__':
     # test_func()
 
     extra_process_for_last_generation(
-        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log',
+        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt25/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log',
         100,
-        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt21/Scenarios/')
-    extra_process_for_last_generation('D:/TempData/runtime-3.log', 100, 'D:/TempData/Scenarios-3/')
+        'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt25/Scenarios/')
 
 # cf = get_config_parser()
 # # cfg = SAConfig(cf)  # type: SAConfig

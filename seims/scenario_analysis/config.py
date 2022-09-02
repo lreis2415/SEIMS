@@ -62,6 +62,7 @@ class SAConfig(object):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
+        self.selected_scenario_file = cf.get('Scenario_Common', 'selected_scenario_file')
 
         # 3. Application specific setting section [BMPs]
         # Selected BMPs, the key is BMPID, and value is the BMP information dict

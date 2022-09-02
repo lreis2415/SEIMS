@@ -412,27 +412,25 @@ def main(scenario_obj):
 if __name__ == "__main__":
     in_cf = get_config_parser()
     base_cfg = SAConfig(in_cf)  # type: SAConfig
-
-    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
-        sa_cfg = SASlpPosConfig(in_cf)
-    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
-        sa_cfg = SAConnFieldConfig(in_cf)
-    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
-        sa_cfg = SACommUnitConfig(in_cf)
+    sa_cfg = SASlpPosConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
     sce = SUScenario(sa_cfg)
 
-    sce.set_unique_id()
-    gvalues = [0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0,
-               2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0,
-               0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    selectedScenarioFile = sa_cfg.model.model_dir+os.sep+sa_cfg.selected_scenario_file
+    with open(selectedScenarioFile) as fp:
+        for line in fp.readlines():
+            items = line.split(':')
+            if items[0] == 'Scenario ID':
+                sceid = int(items[1])
+            elif items[0] == 'Gene number':
+                geneNum = int(items[1])
+            elif items[0] == 'Gene values':
+                gvalues = [float(v.strip()) for v in items[1].split(',')]
+            else:
+                pass
+
+    sce.set_unique_id(sceid)
     sce.initialize(input_genes=gvalues)
-    # sce.economy = selected_indv.fitness.values[0]
-    # sce.environment = selected_indv.fitness.values[1]
-    # sce.export_scenario_to_txt()
-    # sce.export_scenario_to_gtiff()
     print('The ID of the selected scenario that provided spatial configuration: ' + str(sce.ID))
     print('The genes of the selected scenario: ' + str(gvalues))
 
