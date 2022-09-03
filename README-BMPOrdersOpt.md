@@ -64,29 +64,32 @@ python main_nsga2.py -ini ~/Programs/SEIMS/data/youwuzhen/workspace/scenario_ana
 
 Starting scenario information must be provided as text in the model folder containing the Scenario ID, Gene number, and Gene values. For demo data, please refer to the file 'Scenario_196508708.txt' in the model folder.
 
-> Scenario ID: 196508708
-> Gene number: 105
-> Gene values: 0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0
+```
+Scenario ID: 196508708
+Gene number: 105
+Gene values: 0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0
+```
 
 #### 6.2 Configuration file
 
 The configuration file scenario_analysis_bmps_order.ini adds some configuration items for the BMPs implementation orders, which are explained as follows.
 
-
-> # implementation periods (in year)
-> implementation_period = 5
-> # whether BMPs effectiveness variable and, if so, what is the change frequency (in year)
-> effectiveness_changeable = True
-> change_frequency = 1
-> # whether to consider stepwise investment and, if so, what are the respective investment limits.
-> enable_investment_quota = False
-> investment_each_period = [90, 70, 30, 20, 20]
-> # the discount rate during the stepwise investment periods
-> discount_rate = 0.1
-> # starting scenario to optimize BMP implementation oders 
-> selected_scenario_file = Scenario_196508708.txt
-> # average annual sediment yield and annual sediment yield of the baseline scenario
-> Eval_info = {"OUTPUTID": "SED_OL", "ENVEVAL": "SED_OL_SUM.tif", "BASE_ENV": 1688493,"BASE_SED_PERIODS":[1347426, 818153, 1009664, 3634481, 1632739]}
+```
+# implementation periods (in year)
+implementation_period = 5
+# whether BMPs effectiveness variable and, if so, what is the change frequency (in year)
+effectiveness_changeable = True
+change_frequency = 1
+# whether to consider stepwise investment and, if so, what are the respective investment limits.
+enable_investment_quota = False
+investment_each_period = [90, 70, 30, 20, 20]
+# the discount rate during the stepwise investment periods
+discount_rate = 0.1
+# starting scenario to optimize BMP implementation oders 
+selected_scenario_file = Scenario_196508708.txt
+# average annual sediment yield and annual sediment yield of the baseline scenario
+Eval_info = {"OUTPUTID": "SED_OL", "ENVEVAL": "SED_OL_SUM.tif", "BASE_ENV": 1688493,"BASE_SED_PERIODS":[1347426, 818153, 1009664, 3634481, 1632739]}
+```
 
 #### 6.3 Run the optimization of implementation orders of BMPs
 
