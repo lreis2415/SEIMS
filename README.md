@@ -85,6 +85,12 @@ _Journal of Soil and Water Conservation_ 73(5), 504–517.
 [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8).
 _Water Resource Management_ 32, 155–177.
 
+
+### Data sets
+
++ Liu, J., Fang, P., Que, Y., Zhu, L.-J., Duan, Z., Tang, G., Liu, P., Ji, M., Liu, Y., **2022**. [A dataset of lake-catchment characteristics for the Tibetan Plateau](https://doi.org/10.5194/essd-14-3791-2022). Earth Syst. Sci. Data, 14, 3791–3805.
+
+
 ## Support
 
 SEIMS is an open source software. Support is provided through the Github issues and Email of present developers.
@@ -92,5 +98,5 @@ SEIMS is an open source software. Support is provided through the Github issues 
 + Issues: https://github.com/lreis2415/SEIMS/issues
 + Emails of present developers:
   + Dr. Liang-Jun Zhu (zlj@lreis.ac.cn)
-  + Asso. Prof. Junzhi Liu (liujunzhi@njnu.edu.cn)
+  + Prof. Junzhi Liu (liujunzhi@lzu.edu.cn)
 
