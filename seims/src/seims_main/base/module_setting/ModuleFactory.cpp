@@ -45,7 +45,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)
     map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
-    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
+    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;// 读取.cfg模型运行模块配置文件
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
@@ -57,7 +57,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     map<string, vector<ParamInfo *> > moduleOutputs; // Output of current module
     map<string, vector<ParamInfo *> > moduleInOutputs; // InOutput of current module
     vector<ParamInfo*> tfValueInputs; // transferred single value across subbasins
-    try {
+    try {// 根据moduleIDs加载dll文件，并调用dll中的api，获取输入、输出、参数等元数据信息
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
                          metadataFuncs, moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
     } catch (ModelException& e) {
@@ -196,10 +196,10 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
         // parse the metadata
         TiXmlDocument doc;
         doc.Parse(current_metadata);
-        ReadParameterSetting(id, doc, moduleSettings[id], moduleParameters);
-        ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs);
-        ReadIOSetting(id, doc, moduleSettings[id], TagOutputs, TagOutputVariable, moduleOutputs);
-        ReadIOSetting(id, doc, moduleSettings[id], TagInOutputs, TagInOutputVariable, moduleInOutputs);
+        ReadParameterSetting(id, doc, moduleSettings[id], moduleParameters);// 获取dll中的参数信息
+        ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs);// 获取dll中的输入信息
+        ReadIOSetting(id, doc, moduleSettings[id], TagOutputs, TagOutputVariable, moduleOutputs);//获取dll中的输出信息
+        ReadIOSetting(id, doc, moduleSettings[id], TagInOutputs, TagInOutputVariable, moduleInOutputs); 
     }
     map<string, vector<ParamInfo *> >(moduleParameters).swap(moduleParameters);
     map<string, vector<ParamInfo *> >(moduleInputs).swap(moduleInputs);
@@ -300,7 +300,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
     if (handle == nullptr) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
     instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));
-    metadataFuncs[id] = MetadataFunction(GetProcAddress(HMODULE(handle), "MetadataInformation"));
+    metadataFuncs[id] = MetadataFunction(GetProcAddress(HMODULE(handle), "MetadataInformation"));// 调用dll中的MetadataInformation方法，获取参数、输入、输出等元数据信息
 #else
     void *handle = dlopen(moduleFileName.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
@@ -565,7 +565,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
         DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
         DataType_RelativeAirMoisture
-    };
+    };// 气象数据类型：降雨P，温度T等
     for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
@@ -580,7 +580,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         if (tokens[0].empty() || tokens.size() < 4) continue;
         // there is something to add so resize the header list to append it
         size_t sz = settings.size(); // get the current number of rows
-        if (tokens[3].find(MID_ITP) != string::npos ||
+        if (tokens[3].find(MID_ITP) != string::npos ||	// 对于降雨和插值模块
             tokens[3].find(MID_TSD_RD) != string::npos) {
             settings.resize(sz + 7);
             for (size_t j = 0; j < 7; j++) {
@@ -606,7 +606,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
                     // For time series data reading modules, e.g.:
                     //   0 | TimeSeries | | TSD_RD
                     // will be updated as:
-                    //   0 | TimeSeries_P | | TSD_RD, etc.
+                    //   0 | TimeSeries_P | | TSD_RD, etc. 降雨模块后边拼接气象数据类型，例如“P”
                     tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
@@ -646,7 +646,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.emplace_back(module);
+                moduleIDs.emplace_back(module);// 模块id = .cfg文件中的MODULE ID + "d"  + "_" + 数据类型"P", eg."TSD_RDd_P" ，"TSD_RDd_TMEAN"
             }
         }
     } catch (...) {

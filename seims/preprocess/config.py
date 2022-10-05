@@ -117,11 +117,11 @@ class PreprocessConfig(object):
 
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
-        self.vecs = VectorNameUtils(self.dirs.geoshp)
+        self.vecs = VectorNameUtils(self.dirs.geoshp)               # workspace\spatial_shp
         self.taudems = TauDEMFilesUtils(self.dirs.taudem)
-        self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
+        self.spatials = SpatialNamesUtils(self.dirs.geodata2db)     # workspace\spatial_raster
         self.modelcfgs = ModelCfgUtils(self.model_dir)
-        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database')
+        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database') # PREPROC_SCRIPT_DIR = F:\program\seims\SEIMS\seims\preprocess
 
         if not FileClass.is_dir_exists(self.clim_dir):
             print('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')

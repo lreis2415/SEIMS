@@ -37,6 +37,23 @@
  * \brief A simple fill and spill method method to calculate depression storage
  *
  */
+/*
+* 此模块描述过载降雨（扣除截留、下渗）减去蒸发量后，产生地表径流和洼地蓄水
+* 参数:
+*			VAR_DEPREIN 洼地初始蓄水系数 无单位
+*			VAR_DEPRESSION 洼地深度 mm
+* 输入：
+*			VAR_INET 植被截留的蒸发量 mm
+*			VAR_PET	日潜在蒸发量 mm
+*			VAR_EXCP 过载降雨量 mm
+*			VAR_IMPOUND_TRIG 一个参数
+*			VAR_POT_VOL 洼地蓄水深度 mm	 
+*			VAR_INET 植被截留的蒸发量
+* 输出：
+*			VAR_DPST 洼地蓄水深度 mm
+*			VAR_DEET 洼地蓄水的蒸发深度 mm
+*			VAR_SURU 地表径流深度 mm
+*/
 class DepressionFSDaily: public SimulationModule {
 public:
     DepressionFSDaily();
@@ -87,11 +104,11 @@ private:
 
     // state variables (output)
 
-    /// depression storage
+    /// depression storage  洼地蓄水深度
     float* m_sd;
     /// evaporation from depression storage
     float* m_ed;
-    /// surface runoff
+    /// surface runoff  地表径流深度
     float* m_sr;
 };
 #endif /* SEIMS_MODULE_DEP_LINSLEY_H */

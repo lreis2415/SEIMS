@@ -200,10 +200,12 @@
 #define REACH_AREA                             "CH_AREA"
 #define REACH_SIDESLP                          "CH_SSLP"
 #define REACH_SLOPE                            "CH_SLP"
+#define REACH_SINUOSITY					"CH_SINUOSITY"	
 // Hydrological related parameters
 #define REACH_MANNING                          "CH_N" // Manning's "n" value
 #define REACH_BEDK                             "CH_BED_K" /// hydraulic conductivity of the channel bed
 #define REACH_BNKK                             "CH_BNK_K" /// hydraulic conductivity of the channel bank
+
 // Erosion related parameters
 #define REACH_BEDBD                            "CH_BED_BD" // Bulk density of channel bed sediment
 #define REACH_BNKBD                            "CH_BNK_BD" // Bulk density of channel bed sediment
@@ -275,7 +277,8 @@
 #define TFType_Whole                           "TFWhole"
 #define TFType_Single                          "TFSINGLE"
 #define TFType_Array1D                         "TFARRAY1D"
-
+// Raster Position Data
+#define Type_RasterPositionData				"RASTERPOSITION"
 //////////////////////////////////////////////////////////////////////////
 /// Define models' ID and description in SEIMS  //////////////////////////
 /// By LiangJun Zhu, Apr. 26, 2016  //////////////////////////////////////
@@ -446,6 +449,7 @@
 #define MDESC_IKW_CH                           "Channel routing using 4-point implicit finite difference method for kinematic wave."
 #define MID_MUSK_CH                            "MUSK_CH"
 #define MDESC_MUSK_CH                          "Channel routing using Muskingum-Cunge method of longterm model."
+
 /// Sediment routing related modules
 #define MCLS_SED_ROUTING                       "Sediment routing"
 #define MCLSDESC_SED_ROUTING                   "Sediment channel routing modules."
@@ -488,7 +492,6 @@
 
 #define MID_NUTRCH_QUAL2E                      "NutrCH_QUAL2E"
 #define MDESC_NUTRCH_QUAL2E                    "In-stream nutrient transformations"
-
 
 //////////////////////////////////////////////////////////////////////////
 /// Define unit names common used in SEIMS, in case of inconsistency /////
@@ -582,6 +585,7 @@
 #define VAR_CHCROSSAREA "chCrossArea" // m_chCrossArea, channel cross-sectional area, m^2
 #define VAR_CHWIDTH "CH_WIDTH" // m_chWth, channel width at bankfull
 #define VAR_CHWTRDEPTH "CHWTRDEPTH" /// m_chWtrDepth, channel water depth
+#define VAR_REACH_DEPTH_SPATIAL	"CH_DEPTH" /// channel depth from SPATIAL collection,every cell has a depth for this
 #define VAR_CLAY "CLAY" /// m_soilClay, Percent of clay content
 #define VAR_CMN "cmn" /// m_minrlCoef, Rate coefficient for mineralization of the humus active organic nutrients
 #define VAR_CN2 "CN2" /// m_cn2, Curve Number value under moisture condition II
@@ -1114,6 +1118,7 @@
 #define VAR_SUR_SOLP_TOCH "sur_solp_ToCh" /// m_surfRfSolPToCh, amount of soluble phosphorus in surface runoff to channel, kg
 #define VAR_SUR_COD_TOCH "sur_cod_ToCH" /// m_surfRfCodToCh, amount of COD to reach in surface runoff (kg)
 #define VAR_SURU "SURU" /// m_surfRf, surface runoff
+#define VAR_SUR_SDEP "SUR_SDEP"// m_surSdep, initail water depth of surface and channel
 #define VAR_SWE "SWE"
 #define VAR_SWE0 "swe0"
 #define VAR_T_BASE "T_BASE" /// m_pgTempBase, minimum temperature for plant growth (degree C)
@@ -1590,6 +1595,7 @@
 #define DESC_RCH_DEPSAG "Small aggregate deposition in channel"
 #define DESC_RCH_DEPLAG "Large aggregate deposition in channel"
 #define DESC_RCH_DEPGRAVEL "Gravel deposition in channel"
+#define DESC_REACH_DEPTH_SPATIAL "Reach depth from a field of spatial data in db"
 #define DESC_FLDPLN_DEP "Floodplain Deposition"
 #define DESC_FLDPLN_DEPNEW "New deposits on floodplain"
 #define DESC_FLDPLN_DEPSILT "Deposition silt on floodplain"
@@ -1865,6 +1871,7 @@
 #define DESC_SUR_SOLP_ToCH "amount of soluble phosphorus from surface runoff to channel"
 #define DESC_SUR_COD_ToCH "amount of COD to reach in surface runoff"
 #define DESC_SURU "surface runoff"
+#define DESC_SUR_SDEP "initail water depth of surface and channel"
 #define DESC_SWE "average snow accumulation of the watershed"
 #define DESC_SWE0 "Initial snow water equivalent"
 #define DESC_T_BASE "base or minimum temperature for plant growth"
@@ -1936,7 +1943,7 @@
 
 #define DESC_A_DAYS "days since P Application"
 #define DESC_B_DAYS "days since P deficit"
-
+#define DESC_RasterPositionData				"A 2D-Array which stores the position data of Raster like mask,subbasin..."
 //////////////////////////////////////////////////////////////////////////
 /// Define MongoDB related constant strings used in SEIMS and preprocess//
 /// By LiangJun Zhu, May. 4, 2016  ///////////////////////////////////////

@@ -29,7 +29,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     spatial_gridfs_(nullptr) {
     spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
     if (DataCenterMongoDB::GetFileInStringVector()) {
-        input_ = SettingsInput::Init(file_in_strs_);
+        input_ = SettingsInput::Init(file_in_strs_);// 初始化并从数据库读取模拟start_date,模拟end_date,山坡模拟时间步长dtHs,河道模拟时间步长dtCh,次降水/日降水isStormModel
         if (nullptr == input_) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_input!");
         }
@@ -49,7 +49,8 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_OUT!");
     }
     /// Check the existence of all required and optional data
-    if (!DataCenterMongoDB::CheckModelPreparedData()) {
+	// 从数据库中读取模型需要的数据和参数
+    if (!DataCenterMongoDB::CheckModelPreparedData()) {	
         throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "Model data has not been set up!");
     }
 }
@@ -115,11 +116,18 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     oss << subbasin_id_ << "_" << VAR_SLOPE;
     LoadAdjustRasterData(VAR_SLOPE, GetUpper(oss.str()));
 
+	/// 6.1 read reach depth data from SPATIAL collection
+	/// todo: make it optional.  config if  need
+	oss.str("");
+	oss << subbasin_id_ << "_" << VAR_REACH_DEPTH_SPATIAL;
+	LoadAdjustRasterData(VAR_REACH_DEPTH_SPATIAL, GetUpper(oss.str()));
+
     subbasins_ = clsSubbasins::Init(rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
+	// 用seims\preprocess\database\model_param_ini.csv中读取出来的属性初始值更新河道属性
     reaches_->Update(init_params_);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
@@ -431,6 +439,7 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     }
     assert(nullptr != raster_data);
     /// using emplace() if possible or insert() to make sure the successful insertion.
+	/// 将（栅格文件名,栅格数据）存入rs_map_，后面会将rs_map_中的raster传给模块
 #ifdef HAS_VARIADIC_TEMPLATES
     if (!rs_map_.emplace(remote_filename, raster_data).second) {
 #else

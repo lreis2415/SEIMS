@@ -50,13 +50,13 @@ class ImportMongodbClass(object):
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
         if subbasin_num == 0:  # the whole basin!
-            subbasin_file = cfg.spatials.mask
+            subbasin_file = cfg.spatials.mask       # mask.tif
         else:
-            subbasin_file = cfg.spatials.subbsn
-        str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
-                                                            cfg.dirs.geodata2db,
-                                                            cfg.spatial_db,
-                                                            DBTableNames.gridfs_spatial,
+            subbasin_file = cfg.spatials.subbsn     # subbasin.tif
+        str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,   # subbasin_file :subbasin.tif
+                                                            cfg.dirs.geodata2db,            # geodata2db : spatial_raster
+                                                            cfg.spatial_db,                 # spatial_db: spatialdbname eg: demo_youwuzhen30m_longterm_model
+                                                            DBTableNames.gridfs_spatial,    # gridfs_spatial: SPATIAL
                                                             cfg.hostname, cfg.port)
         UtilClass.run_command(str_cmd)
 
@@ -105,7 +105,7 @@ class ImportMongodbClass(object):
 
         # import stream parameters
         status_output('Generating reach table with initialized parameters...', 40, f)
-        ImportReaches2Mongo.generate_reach_table(cfg, maindb)
+        ImportReaches2Mongo.generate_reach_table(cfg, maindb)                           # 将河道数据导入到数据库REACHS表中
 
         # import raster data to MongoDB
         status_output('Importing raster to MongoDB....', 50, f)

@@ -617,7 +617,7 @@ class MainSEIMS(object):
         if self.out_stime and self.out_etime:
             self.ResetOutputsPeriod(self.OutputIDs, self.out_stime, self.out_etime)
         try:
-            self.runlogs = UtilClass.run_command(self.Command)
+            self.runlogs = UtilClass.run_command(self.Command)  # Command is like 'F:\\program\\seims\\SEIMS\\bin\\seims_omp.exe -wp F:\\program\\seims\\SEIMS\\data\\youwuzhen\\demo_youwuzhen30m_longterm_model -thread 4 -lyr 1 -host 127.0.0.1 -port 27017 -sce 0 -id 0'
             with open(self.OutputDirectory + os.sep + 'runlogs.txt', 'w', encoding='utf-8') as f:
                 f.write('\n'.join(self.runlogs))
             self.ParseTimespan(self.runlogs)

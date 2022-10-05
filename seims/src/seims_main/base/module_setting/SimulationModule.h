@@ -177,6 +177,18 @@ public:
     //! Change the status of setting inputs parameters
     void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
+	// set 1D Array which contains position data of raster 
+	virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
+		throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
+			"Set function of parameter " + string(key) + " is not implemented.");
+	}
+
+	// set 1D Array which stores reach depth data in each cell of raster 
+	virtual void SetReachDepthData(FloatRaster* ch_depth) {
+		throw ModelException("SimulationModule", "SetReachDepthData",
+			"Set SetReachDepthData function is not implemented.");
+	}
+
 protected:
     /// date time
     time_t m_date;

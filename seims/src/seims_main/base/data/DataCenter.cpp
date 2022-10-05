@@ -14,7 +14,7 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int 
     output_path_(""),
     model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
-    reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
+    reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr), ch_depth_(nullptr){
     /// Clean output folder
     if (scenario_id_ >= 0) {
         // -1 means no BMPs scenario will be simulated
@@ -284,10 +284,14 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
 double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
+	// module_settings key是模块id，value是该模块的参数列表
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
+	// module_parameters key是模块id，value是该模块的参数列表
     map<string, vector<ParamInfo*> >& module_parameters = factory_->GetModuleParameters();
+	// 遍历所有模块，加载参数、1DData、2DData等
     for (size_t i = 0; i < module_ids.size(); i++) {
         string id = module_ids[i];
+		// 获取当前模块的参数并遍历
         vector<ParamInfo*>& parameters = module_parameters[id];
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo* param = parameters[j];
@@ -295,6 +299,7 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
+			// 为当前参数赋值
             SetData(module_settings[id], param, modules[i]);
         }
     }
@@ -355,6 +360,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Subbasin: SetSubbasins(p_module);
             break;
+		case DT_CH_DEPTH:SetReachDepthData(p_module);
+			break;
         default: break;
     }
 #ifdef _DEBUG
@@ -455,6 +462,7 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
         return; // when encounter optional parameters
     }
     raster = rs_map_.at(remote_filename);
+
     if (raster->Is2DRaster()) {
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
@@ -465,6 +473,16 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
         p_module->Set1DData(para_name.c_str(), n, data);
+		// 如果参数名中含有RASTERPOSITION，就给模块设置存储位置的数组
+		if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
+			int** positions = raster->GetRasterPositionDataPointer();
+			p_module->SetRasterPositionDataPointer(para_name.c_str(),positions);
+		}
+		//
+		//if (StringMatch(para_name.c_str(), VAR_REACH_DEPTH_SPATIAL)) {
+		//	int** positions = raster->GetRasterPositionDataPointer();
+		//	p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
+		//}
     }
 }
 
@@ -487,6 +505,13 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
         throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
     }
     p_module->SetSubbasins(subbasins_);
+}
+
+void DataCenter::SetReachDepthData(SimulationModule* p_module) {
+	//if (nullptr == subbasins_ && nullptr == GetSubbasinData()) {
+	//	throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
+	//}
+	p_module->SetReachDepthData(ch_depth_);
 }
 
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {

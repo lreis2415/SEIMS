@@ -46,14 +46,14 @@ class ImportParam2Mongo(object):
         """
         # delete if existed, initialize if not existed
         c_list = maindb.collection_names()
-        if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
+        if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):  # 是否存在表名 = 'PARAMETERS'的表
             maindb.create_collection(DBTableNames.main_parameter)
         else:
             maindb.drop_collection(DBTableNames.main_parameter)
         # initialize bulk operator
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
-        data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
+        data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file) # _INIT_PARAM_NAME = F:\program\seims\SEIMS\seims\preprocess\model_param_ini.csv
         field_names = data_items[0][0:]
         # print(field_names)
         for i, cur_data_item in enumerate(data_items):
@@ -71,7 +71,7 @@ class ImportParam2Mongo(object):
                            ModelParamFields.type: ''}
             for k, v in list(data_import.items()):
                 idx = field_names.index(k)
-                if cur_data_item[idx] == '':
+                if cur_data_item[idx] == '':                # change 列
                     if StringClass.string_match(k, ModelParamFields.change_ac):
                         data_import[k] = 0
                     elif StringClass.string_match(k, ModelParamFields.change_rc):
@@ -317,7 +317,7 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
             maindb: workflow model database
         """
-        for tablename, txt_file in list(cfg.paramcfgs.lookup_tabs_dict.items()):
+        for tablename, txt_file in list(cfg.paramcfgs.lookup_tabs_dict.items()):  # lookup_tabs_dict就是SoilLookup.csv、LanduseLookup.csv...
             # import each lookup table as a collection and GridFS file.
             c_list = maindb.collection_names()
             if not StringClass.string_in_list(tablename.upper(), c_list):
@@ -333,11 +333,11 @@ class ImportParam2Mongo(object):
                 spatial.delete(x._id)
 
             # read data items
-            data_items = read_data_items_from_txt(txt_file)
-            field_names = data_items[0][0:]
+            data_items = read_data_items_from_txt(txt_file)     # 读取查找表的csv文件
+            field_names = data_items[0][0:]                     # 读取表头
             item_values = list()  # import as gridfs file
             for i, cur_data_item in enumerate(data_items):
-                if i == 0:
+                if i == 0:                                      # 跳过表头
                     continue
                 data_import = dict()  # import as Collection
                 item_value = list()  # import as gridfs file
@@ -348,17 +348,17 @@ class ImportParam2Mongo(object):
                         item_value.append(tmp_value)
                     else:
                         data_import[fld] = cur_data_item[idx]
-                bulk.insert(data_import)
+                bulk.insert(data_import)                        # 查找表数据入库
                 if len(item_value) > 0:
                     item_values.append(item_value)
             MongoUtil.run_bulk(bulk, 'No operations during import %s.' % tablename)
             # begin import gridfs file
-            n_row = len(item_values)
+            n_row = len(item_values)                            # 行数
             # print(item_values)
             if n_row >= 1:
                 n_col = len(item_values[0])
                 for i in range(n_row):
-                    if n_col != len(item_values[i]):
+                    if n_col != len(item_values[i]):            # 根据每行的列数更新每行的第0个元素（列数）
                         raise ValueError('Please check %s to make sure each item has '
                                          'the same numeric dimension. The size of first '
                                          'row is: %d, and the current data item is: %d' %
@@ -372,9 +372,9 @@ class ImportParam2Mongo(object):
                 header = [n_row]
                 fmt = '%df' % 1
                 s = pack(fmt, *header)
-                cur_lookup_gridfs.write(s)
+                cur_lookup_gridfs.write(s)                      # 将行号写入gridfs头
                 fmt = '%df' % (n_col + 1)
-                for i in range(n_row):
+                for i in range(n_row):                          # 将查找表数据写入gridfs
                     s = pack(fmt, *item_values[i])
                     cur_lookup_gridfs.write(s)
                 cur_lookup_gridfs.close()
@@ -382,11 +382,11 @@ class ImportParam2Mongo(object):
     @staticmethod
     def workflow(cfg, maindb):
         """Workflow"""
-        ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
-        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
+        ImportParam2Mongo.initial_params_from_txt(cfg, maindb)  # 读取model_param_ini.csv，存入PARAMETER COLLECTION中
+        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb) # 获取校准参数
         ImportParam2Mongo.model_io_configuration(cfg, maindb)
-        ImportParam2Mongo.subbasin_statistics(cfg, maindb)
-        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
+        ImportParam2Mongo.subbasin_statistics(cfg, maindb) # 获取subbasin栅格数据的统计信息：行列数、径流数据、流向数据等
+        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb) # 将查找表数据导入数据库和gridfs中
 
 
 def main():

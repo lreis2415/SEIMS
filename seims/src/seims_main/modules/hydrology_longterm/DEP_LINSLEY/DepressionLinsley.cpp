@@ -47,10 +47,12 @@ int DepressionFSDaily::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         //////////////////////////////////////////////////////////////////////////
         // runoff
+		// 如果洼地深度为0，m_sr = m_pe过量降雨深度，洼地蓄水深度 = 0
         if (m_depCap[i] < 0.001f) {
             m_sr[i] = m_pe[i];
             m_sd[i] = 0.f;
         } else if (m_pe[i] > 0.f) {
+			// 如果洼地深度> 0，且日潜在蒸散深度 > 0，地表径流深度 = 降雨 - 填洼量，洼地蓄水 = 填洼量
             float pc = m_pe[i] - m_depCap[i] * log(1.f - m_sd[i] / m_depCap[i]);
             float deltaSd = m_pe[i] * exp(-pc / m_depCap[i]);
             if (deltaSd > m_depCap[i] - m_sd[i]) {
@@ -59,22 +61,27 @@ int DepressionFSDaily::Execute() {
             m_sd[i] += deltaSd;
             m_sr[i] = m_pe[i] - deltaSd;
         } else {
+			// 如果洼地深度> 0，且日潜在蒸散深度 = 0，则地表径流深度 = 0，洼地蓄水深度 = 洼地蓄水深度 + 过量降雨深度
             m_sd[i] += m_pe[i];
             m_sr[i] = 0.f;
         }
 
         //////////////////////////////////////////////////////////////////////////
         // evaporation
+		// 如果洼地蓄水深度 > 0
         if (m_sd[i] > 0) {
             /// TODO: Is this logically right? PET is just potential, which include
             ///       not only ET from surface water, but also from plant and soil.
             ///       Please Check the corresponding theory. By LJ.
             // evaporation from depression storage
+			// 如果日潜在蒸散深度 - 植被截流的蒸发量 < 洼地蓄水深度，洼地蒸发 = 日潜在蒸散深度 - 植被截流的蒸发量
+			// 如果日潜在蒸散深度 - 植被截流的蒸发量 > 洼地蓄水深度，洼地蒸发 = 洼地蓄水深度(全部蒸发)
             if (m_pet[i] - m_ei[i] < m_sd[i]) {
                 m_ed[i] = m_pet[i] - m_ei[i];
             } else {
                 m_ed[i] = m_sd[i];
             }
+			// 洼地蓄水深度 - 洼地蒸发深度
             m_sd[i] -= m_ed[i];
         } else {
             m_ed[i] = 0.f;
@@ -104,17 +111,17 @@ void DepressionFSDaily::Set1DData(const char* key, const int n, float* data) {
     CheckInputSize(MID_DEP_LINSLEY, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION)) {
-        m_depCap = data;
+        m_depCap = data;		// 洼地深度
     } else if (StringMatch(sk, VAR_INET)) {
-        m_ei = data;
+        m_ei = data;					// 植被拦截降雨中的蒸发深度
     } else if (StringMatch(sk, VAR_PET)) {
-        m_pet = data;
+        m_pet = data;				//	日潜在蒸散深度
     } else if (StringMatch(sk, VAR_EXCP)) {
-        m_pe = data;
+        m_pe = data;				// 过量降雨
     } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) {
-        m_impoundTriger = data;
+        m_impoundTriger = data;	// 
     } else if (StringMatch(sk, VAR_POT_VOL)) {
-        m_potVol = data;
+        m_potVol = data;		// 洼地蓄水深度
     } else {
         throw ModelException(MID_DEP_LINSLEY, "Set1DData", "Parameter " + sk + " does not exist.");
     }

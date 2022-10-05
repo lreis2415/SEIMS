@@ -49,18 +49,18 @@ int FindBoundingBox(IntRaster* rs_subbasin, map<int, SubBasin>& bbox_map) {
     int n_ysize = rs_subbasin->GetRows();
 
     int* p_data = rs_subbasin->GetRasterDataPointer();
-    int nodata_value = rs_subbasin->GetNoDataValue();
+    int nodata_value = rs_subbasin->GetNoDataValue();// NODATA_VALUE    (-9999.0f)
     // find bounding box for each subbasin
     for (int i = 0; i < n_ysize; i++) {
         for (int j = 0; j < n_xsize; j++) {
-            int id = p_data[i * n_xsize + j];
+            int id = p_data[i * n_xsize + j];		// 栅格的id标识
             if (nodata_value != id) {
-                if (bbox_map.find(id) == bbox_map.end()) {
-                    bbox_map[id] = SubBasin(j, i, j, i);
+                if (bbox_map.find(id) == bbox_map.end()) {	// 如果没找到
+                    bbox_map[id] = SubBasin(j, i, j, i);				// 将当前id的子流域范围设置为(j, i, j, i)，即当前的栅格单元
                 } else {
-                    if (j < bbox_map[id].x_min) {
+                    if (j < bbox_map[id].x_min) {						// 寻找最小的列号x_min
                         bbox_map[id].x_min = j;
-                    } else if (j > bbox_map[id].x_max) {
+                    } else if (j > bbox_map[id].x_max) {				// 寻找最大的列号x_max
                         bbox_map[id].x_max = j;
                     }
                     if (i > bbox_map[id].y_max) {
@@ -96,7 +96,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
 
     string core_name = GetCoreFileName(dst_file);
 
-    for (auto it = bbox_map.begin(); it != bbox_map.end(); ++it) {
+    for (auto it = bbox_map.begin(); it != bbox_map.end(); ++it) {	// 遍历所有子流域
         int id = it->first;
         int subbasin_id = id;
         if (bbox_map.size() == 1) {
@@ -123,7 +123,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
         }
 
         std::ostringstream remote_filename;
-        remote_filename << id << "_" << GetUpper(core_name);
+        remote_filename << id << "_" << GetUpper(core_name);	// 例如"0_SOL_SOLP"
         float cell_size = CVT_FLT(rs->GetCellWidth());
         MongoGridFs().RemoveFile(remote_filename.str(), gfs);
 
@@ -142,7 +142,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
         BSON_APPEND_DOUBLE(&p, "CELLSNUM", subbasin.cell_count);
         BSON_APPEND_UTF8(&p, "SRS", rs->GetSrsString().c_str());
 
-        char* databuf = reinterpret_cast<char *>(sub_data);
+        char* databuf = reinterpret_cast<char *>(sub_data);			//reinterpret_cast强制类型转换为char*
         size_t datalength = sizeof(float) * sub_xsize * sub_ysize;
         MongoGridFs().WriteStreamData(remote_filename.str(), databuf, datalength, &p, gfs);
         if (NULL == MongoGridFs().GetFile(remote_filename.str(), gfs)) {
@@ -182,7 +182,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
     ///cout << nXSize << "\t" << nYSize << endl;
     float** rss_data = rss->Get2DRasterDataPointer();
     int* subbasin_data = rs_subbasin->GetRasterDataPointer();
-    for (auto it = bbox_map.begin(); it != bbox_map.end(); ++it) {
+    for (auto it = bbox_map.begin(); it != bbox_map.end(); ++it) {	// 遍历每个子流域
         int id = it->first;
         int subbasin_id = id;
         if (bbox_map.size() == 1) {
@@ -194,18 +194,26 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
         int sub_cell_num = sub_xsize * sub_ysize;
         float* sub_2ddata = nullptr;
         Initialize1DArray(sub_cell_num * col_num, sub_2ddata, nodata_value);
+		cout << "子流域id: " << subbasin_id << endl;
+
 #pragma omp parallel for
         for (int i = subbasin.y_min; i <= subbasin.y_max; i++) {
-            for (int j = subbasin.x_min; j <= subbasin.x_max; j++) {
-                int index = i * n_xsize + j;
-                int sub_index = (i - subbasin.y_min) * sub_xsize + (j - subbasin.x_min);
-                if (subbasin_data[index] == subbasin_id) {
-                    for (int k = 0; k < col_num; k++) {
-                        sub_2ddata[sub_index * col_num + k] = rss_data[index][k];
-                    }
+            for (int j = subbasin.x_min; j <= subbasin.x_max; j++) {		// 遍历子流域中的每个栅格单元
+                int index = i * n_xsize + j;// 总流域中的栅格单元索引
+                int sub_index = (i - subbasin.y_min) * sub_xsize + (j - subbasin.x_min);// 子流域中的栅格单元索引
+				cout << " i: " << i << " j: " << j << " index: " << index << " sub_index: " << sub_index << " subbasin_id: " << subbasin_id << " 栅格像元值: " << subbasin_data[index] << endl;
+				if (subbasin_data[index] == subbasin_id) {//如果表示子流域id的栅格的像元值（即子流域id） == 当前子流域的id
+					for (int k = 0; k < col_num; k++) {// 第k个图层
+                        sub_2ddata[sub_index * col_num + k] = rss_data[index][k];// sub_index * col_num + k这样是为了在一维数组中保存col_num个图层
+						cout << "sub_index: " << sub_index <<" sub_2ddata[" << sub_index * col_num + k << "]: " << sub_2ddata[sub_index * col_num + k] << endl;
+					}
                 }
             }
         }
+		for (int i = 0; i < 1000; i++)
+		{
+			cout << "sub_2ddata[" << i << "]: " << sub_2ddata[i];
+		}
         std::ostringstream remote_filename;
         remote_filename << id << "_" << GetUpper(core_name);
         float cell_size = CVT_FLT(rss->GetCellWidth());
@@ -253,8 +261,8 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
  * \param[in] tmp_folder Folder to store the separated raster data file
  */
 int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
-                      const char* dst_file, const char* tmp_folder) {
-    FloatRaster* rs = FloatRaster::Init(dst_file, false);
+                      const char* dst_file, const char* tmp_folder) {	// dst_file是文件名的指针
+    FloatRaster* rs = FloatRaster::Init(dst_file, false);				// 从tif文件构建float类型的栅格
     if (nullptr == rs) exit(-1);
 
     int n_xsize = rs->GetCols();
@@ -268,15 +276,15 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 
     string core_name = GetCoreFileName(dst_file);
     for (auto it = bbox_map.begin(); it != bbox_map.end(); ++it) {
-        int id = it->first;
+        int id = it->first;						// 键 subbasin id 值 subbasin对象
         int subbasin_id = id;
         if (bbox_map.size() == 1) {
             // means not for Cluster
             id = 0;
         }
         SubBasin& subbasin = it->second;
-        int subXSize = subbasin.x_max - subbasin.x_min + 1;
-        int subYSize = subbasin.y_max - subbasin.y_min + 1;
+        int subXSize = subbasin.x_max - subbasin.x_min + 1; //X轴跨度
+        int subYSize = subbasin.y_max - subbasin.y_min + 1; //Y轴跨度
 
         std::ostringstream oss;
         oss << tmp_folder << "/" << id;
@@ -291,7 +299,7 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 #endif /* WINDOWS */
         }
         oss << "/" << GetUpper(core_name) << ".tif";
-        string subbasin_file = oss.str();
+        string subbasin_file = oss.str();						// 要写入的目标文件
         //cout << subbasinFile << endl;
         // create a new raster for the subbasin
         char** papsz_options = nullptr;
@@ -300,10 +308,10 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 
         float* sub_data = reinterpret_cast<float *>(CPLMalloc(sizeof(float) * subXSize * subYSize));
 #pragma omp parallel for
-        for (int i = subbasin.y_min; i <= subbasin.y_max; i++) {
+        for (int i = subbasin.y_min; i <= subbasin.y_max; i++) {									// 把二维栅格数据读取到一维数组中
             for (int j = subbasin.x_min; j <= subbasin.x_max; j++) {
                 int index = i * n_xsize + j;
-                int sub_index = (i - subbasin.y_min) * subXSize + (j - subbasin.x_min);
+                int sub_index = (i - subbasin.y_min) * subXSize + (j - subbasin.x_min);	// 新下标 = 列号 * 每行的列数 + 列号
                 if (subbasin_data[index] == subbasin_id) {
                     sub_data[sub_index] = rs_data[index];
                 } else {
@@ -314,8 +322,8 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 
         //write the data to new file
         GDALRasterBand* po_dst_band = po_dst_ds->GetRasterBand(1);
-        po_dst_band->RasterIO(GF_Write, 0, 0, subXSize, subYSize,
-                              sub_data, subXSize, subYSize, GDT_Float32, 0, 0);
+        po_dst_band->RasterIO(GF_Write, 0, 0, subXSize, subYSize,		// 参数含义：写数据、0,0左上角x,y坐标、subXSize，subYSize写入图像数据的窗口大小
+                              sub_data, subXSize, subYSize, GDT_Float32, 0, 0);// 要写入的数据指针,subXSize, subYSize缓冲区的大小
         po_dst_band->SetNoDataValue(nodata_value);
 
         double geo_trans[6];
@@ -346,10 +354,10 @@ int main(int argc, char** argv) {
     /// set default OpenMP thread number to improve compute efficiency
     SetDefaultOpenMPThread();
 
-    const char* subbasin_file = argv[1];
-    const char* folder = argv[2];
-    const char* model_name = argv[3];
-    const char* gridfs_name = argv[4];
+    const char* subbasin_file = argv[1];	// spatial_raster/subbasin.tif
+    const char* folder = argv[2];				// spatial_raster
+    const char* model_name = argv[3];	// demo_youwuzhen30m_longterm_model
+    const char* gridfs_name = argv[4];		// SPATIAL
     const char* hostname = argv[5];
     char* strend = nullptr;
     int port = strtol(argv[6], &strend, 10);
@@ -359,30 +367,30 @@ int main(int argc, char** argv) {
         out_tif_folder = argv[7];
     }
     vector<string> dst_files;
-    FindFiles(folder, "*.tif", dst_files);
+    FindFiles(folder, "*.tif", dst_files);									// 从workspace/spatial_raster中查找所有tif文件
     cout << "File number:" << dst_files.size() << endl;
     /// Identify Array1D and Array2D dstFiles, respectively
     vector<string> core_file_names;
     vector<string> array1d_files;
     map<string, vector<string> > array2d_files;
     map<string, vector<string> >::iterator array2d_iter;
-    for (auto it = dst_files.begin(); it != dst_files.end(); ++it) {
-        string tmp_core_name = GetCoreFileName(*it);
-        core_file_names.push_back(tmp_core_name);
-        vector<string> tokens = SplitString(tmp_core_name, '_');
-        int length = CVT_INT(tokens.size());
+    for (auto it = dst_files.begin(); it != dst_files.end(); ++it) {		//	遍历tif文件
+        string tmp_core_name = GetCoreFileName(*it);					// 获取tif文件的名称，例如SOL_SOLP_1.tif就会截取SOL_SOLP_1
+        core_file_names.push_back(tmp_core_name);					//	tif文件名称存入core_file_names verctor中
+        vector<string> tokens = SplitString(tmp_core_name, '_');	//	[SOL,SOLP,1]
+        int length = CVT_INT(tokens.size());									// 3
 
-        if (length <= 1) {
-            array1d_files.push_back(*it);
+        if (length <= 1) {																	// 名称中含1个以下“_”的是1D数据，含有2个“_”的是2D数据
+            array1d_files.push_back(*it);											// 如果是1D文件，就将其存入1D的vector
         } else if (length >= 2) {
             /// there are more than one underscore exist
             string::size_type end = tmp_core_name.find_last_of('_');
-            string core_var_name = tmp_core_name.substr(0, end);
-            if (strtol(tokens[length - 1].c_str(), &strend, 10)) {
+            string core_var_name = tmp_core_name.substr(0, end);// 最后一个“_”之前的部分代表变量名SOL_SOLP
+            if (strtol(tokens[length - 1].c_str(), &strend, 10)) {			// 取名称中的最后一个数字；base为10时，合法字符为0,1...9；strend中存储不满足条件的部分；如果没有满足条件的结果，则返回0值
                 array2d_iter = array2d_files.find(core_var_name);
-                if (array2d_iter != array2d_files.end()) {
+                if (array2d_iter != array2d_files.end()) {						// 一个变量对应多个tif文件，如果在array2d_files 的key中找到了变量名，就把tif文件名的指针存入map的vector
                     array2d_files[core_var_name].push_back(*it);
-                } else {
+                } else {																			// 否则创建新vector，并将变量名的指针存入vector，将vector存入map
                     vector<string> tmp_file_name;
                     tmp_file_name.push_back(*it);
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -397,22 +405,22 @@ int main(int argc, char** argv) {
         }
     }
     vector<string> del_var_names;
-    for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {
-        if (array2d_iter->second.size() == 1) {
-            array1d_files.push_back(array2d_iter->second.at(0));
-            del_var_names.push_back(array2d_iter->first);
+    for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {	// 遍历2D文件
+        if (array2d_iter->second.size() == 1) {								// (*it).second会得到value，如果哪个2D变量名称只对应一个文件
+            array1d_files.push_back(array2d_iter->second.at(0));		// 将该2D名文件存入1D vector中
+            del_var_names.push_back(array2d_iter->first);				// 从2D map中清除该变量名
         } else {
-            sort(array2d_iter->second.begin(), array2d_iter->second.end());
+            sort(array2d_iter->second.begin(), array2d_iter->second.end());	// 否则对2D文件名进行排序
         }
     }
-    for (auto it = del_var_names.begin(); it != del_var_names.end(); ++it) {
+    for (auto it = del_var_names.begin(); it != del_var_names.end(); ++it) {	// // 从2D map中清除1D变量名
         array2d_files.erase(*it);
     }
-    vector<string>(array1d_files).swap(array1d_files);
+    vector<string>(array1d_files).swap(array1d_files);					// 释放多余的内存空间
 
     //////////////////////////////////////////////////////////////////////////
     // read the subbasin file, and find the bounding box of each subbasin
-    IntRaster* rs_subbasin = IntRaster::Init(subbasin_file, false);
+    IntRaster* rs_subbasin = IntRaster::Init(subbasin_file, false);	// 读取subbasin.tif
     if (nullptr == rs_subbasin) exit(-1);
     map<int, SubBasin> bbox_map;
     FindBoundingBox(rs_subbasin, bbox_map);
@@ -427,18 +435,18 @@ int main(int argc, char** argv) {
     mongoc_gridfs_t* gfs = client->GetGridFs(string(model_name), string(gridfs_name));
 
     cout << "Importing spatial data to MongoDB...\n";
-    for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {
-        vector<string> tmp_file_names = array2d_iter->second;
-        for (auto it = tmp_file_names.begin(); it != tmp_file_names.end(); ++it) {
+    for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {	// 遍历2D文件，把2D文件转为1D数组，存入mongodb
+        vector<string> tmp_file_names = array2d_iter->second;											
+        for (auto it = tmp_file_names.begin(); it != tmp_file_names.end(); ++it) {				// 遍历变量名对应的文件名集合
             cout << "\t" << *it << endl;
-            if (nullptr != out_tif_folder) {
-                DecompositeRaster(bbox_map, rs_subbasin, it->c_str(), out_tif_folder);
+            if (nullptr != out_tif_folder) {																				// 如果传入的参数个数<8，则未指定输出tif的位置，跳过这一步
+                DecompositeRaster(bbox_map, rs_subbasin, it->c_str(), out_tif_folder);		//  it->c_str()是指向it的指针
             }
         }
         int loop = 1;
         while (loop < 3) {
-            if (!Decomposite2DRasterToMongoDB(bbox_map, rs_subbasin, array2d_iter->first,
-                                              tmp_file_names, conn, gfs)) {
+            if (!Decomposite2DRasterToMongoDB(bbox_map, rs_subbasin, array2d_iter->first,// array2d_iter->first变量名
+                                              tmp_file_names, conn, gfs)) {// tmp_file_names1个变量名对应的多个文件名
                 cout << "Import " << array2d_iter->first << " failed, try time: " << loop << endl;
                 loop++;
             } else {
@@ -456,7 +464,7 @@ int main(int argc, char** argv) {
             DecompositeRaster(bbox_map, rs_subbasin, array1d_files[i].c_str(), out_tif_folder);
         }
         int loop = 1;
-        while (loop < 3) {
+        while (loop < 3) {// 尝试3次
             if (!DecompositeRasterToMongoDB(bbox_map, rs_subbasin, array1d_files[i].c_str(), gfs)) {
                 cout << "Import " << array1d_files[i] << " failed, try time: " << loop << endl;
                 loop++;

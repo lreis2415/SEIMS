@@ -44,12 +44,12 @@ void DepressionFS:: InitialOutputs() {
         throw ModelException(MID_DEP_FS, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
     if (m_sd == NULL) {
-        m_sd = new float[m_nCells];
-        m_sr = new float[m_nCells];
+        m_sd = new float[m_nCells];//洼地蓄水深度 mm
+        m_sr = new float[m_nCells];//地表径流深度 mm
         m_storageCapSurplus = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            m_sd[i] = m_depCo * m_depCap[i];
+            m_sd[i] = m_depCo * m_depCap[i];// 洼地初始蓄水系数 * 洼地深度
             m_sr[i] = 0.0f;
         }
     }
@@ -66,14 +66,14 @@ int DepressionFS::Execute() {
     for (int i = 0; i < m_nCells; ++i) {
         // sr is temporarily used to stored the water depth including the depression storage
         float hWater = m_sr[i];
-        if (hWater <= m_depCap[i]) {
-            m_sd[i] = hWater;
-            m_sr[i] = 0.f;
+        if (hWater <= m_depCap[i]) {// 地表径流深度 <= 洼地深度
+            m_sd[i] = hWater;				// 洼地水深 = 地表径流深度
+            m_sr[i] = 0.f;						// 地表径流深度 = 0
         } else {
-            m_sd[i] = m_depCap[i];
-            m_sr[i] = hWater - m_depCap[i];
+            m_sd[i] = m_depCap[i];					// 洼地水深 = 洼地深度
+            m_sr[i] = hWater - m_depCap[i];	// 地表径流深度 = 地表径流深度 - 洼地深度
         }
-        m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
+        m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];// 过剩存储容量 = 洼地深度 - 洼地水深
     }
     return 0;
 }

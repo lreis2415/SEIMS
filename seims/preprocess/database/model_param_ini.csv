@@ -1,6 +1,6 @@
-# ALL INITIAL MODEL PARAMETERS.
-# Table title (columns are split by COMMA and each element should not contain COMMA!)
-# Last updated: 2018-8-21
+# ALL INITIAL MODEL PARAMETERS.,,,,,,,,,
+# Table title (columns are split by COMMA and each element should not contain COMMA!),,,,,,,,,
+# Last updated: 2018-8-21,,,,,,,,,
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
 Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0
@@ -171,7 +171,7 @@ Snow,T_wind,temperature at which wind transport of snow is most favorable,deg C,
 Snow,T0,Snowmelt temperature,deg C,ALL,1,0,AC,3,-1
 Snow,U0,Wind speed over Ut at which WWi=1,m/s,SRD_MB,10,0,AC,1,0.2
 Snow,Ut0,Threshold wind speed at -27 degree,m/s,SRD_MB,6.98,0,AC,10,4
-WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1.0,0
+WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1,0
 WaterBalance,CN2,Curve number in condition II,none,ALL,-9999,1,RC,1.3,0.7
 WaterBalance,Conductivity,Saturated hydraulic conductivity,mm/hr,ALL,-9999,1,RC,2000,0
 WaterBalance,Density,Soil bulk density,mg/cm3,ALL,-9999,1,RC,1.2,0.8
@@ -187,7 +187,7 @@ WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
 WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
 WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0
 WaterBalance,s_frozen,Frozen moisture relative to porosity with no infiltration,none,ALL,0.5,0,AC,1,0.1
-WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1.0,0.0
+WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1,0
 WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,-9999,0
 WaterBalance,soil_t10,soil temperature relative to short grass cover,deg C,STP_FP,-9999,1,RC,2,0
 WaterBalance,soil_ta0,Empirical coefficient for estimating soil temperature,deg C,STP_FP,4.768,0,AC,10,0

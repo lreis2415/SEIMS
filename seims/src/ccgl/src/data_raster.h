@@ -1552,13 +1552,15 @@ bool clsRasterData<T, MASK_T>::Get2DRasterData(int* n_cells, int* n_lyrs, T*** d
     *data = nullptr;
     return false;
 }
-
+// 获取存储栅格的一维数组的下标位置信息
 template <typename T, typename MASK_T>
 void clsRasterData<T, MASK_T>::GetRasterPositionData(int* datalength, int*** positiondata) {
+	// 如果之前已经计算得出了位置数组，则直接返回位置数组
     if (nullptr != raster_pos_data_) {
         *datalength = n_cells_;
         *positiondata = raster_pos_data_;
     } else {
+		// 否则重新计算位置数组并返回
         // reCalculate position data
         if (!ValidateRasterData()) {
             *datalength = -1;
@@ -1994,7 +1996,9 @@ void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGrid
                 }
             }
         }
+		//将存储有效栅格数据的1维数组写入mongodb
         WriteStreamDataAsGridfs(gfs, core_name, headers_, data_1d, datalength, options_);
+		// todo 将存储栅格数据位置的2维数组写入mongodb
         Release1DArray(data_1d);
     } else {
         // 3.2 1D raster data
@@ -2098,22 +2102,22 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
         HEADER_RS_NCOLS, HEADER_RS_NROWS, HEADER_RS_XLL, HEADER_RS_YLL, HEADER_RS_CELLSIZE,
         HEADER_RS_NODATA, HEADER_RS_LAYERS, HEADER_RS_CELLSNUM
     };
-    // Loop the metadata, add to `headers_` or `options_`
+    // Loop the metadata, add to `headers_` or `options_`	读取SPATIAL.files的元数据，提取headers和option信息
     bson_iter_t iter;
     if (bson_iter_init(&iter, bmeta)) {
         while (bson_iter_next(&iter)) {
-            const char* key = bson_iter_key(&iter);
+            const char* key = bson_iter_key(&iter);	// 遍历SPATIAL.FILE的各个字段SUBBASIN，TYPE，ID等
             bool is_header = false;
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++) {							// 如果是规定的8个字段之一，例如NROWS，NCOLS等
                 if (StringMatch(key, raster_headers[i])) {
-                    GetNumericFromBsonIterator(&iter, headers_[raster_headers[i]]);
+                    GetNumericFromBsonIterator(&iter, headers_[raster_headers[i]]);	// 将字段的值赋给header数组对应的位置
                     is_header = true;
                     break;
                 }
             }
             if (!is_header) {
 #ifdef HAS_VARIADIC_TEMPLATES
-                options_.emplace(key, GetStringFromBsonIterator(&iter));
+                options_.emplace(key, GetStringFromBsonIterator(&iter));	// SUBBASIN、TYPE、ID等
 #else
                 options_.insert(make_pair(key, GetStringFromBsonIterator(&iter)));
 #endif
@@ -2145,6 +2149,8 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     }
     // 3. Store data.
     // check the valid values count and determine whether can read directly.
+	// 如果不是mask栅格，则获取有效栅格的位置数组raster_pos_data_；
+	// 如果是mask栅格，则跳过该逻辑
     bool re_build_data = true;
     if (validcount <= n_cells_ && calc_pos_ && use_mask_ext_ &&
         nullptr != mask_ && validcount == mask_->GetCellNumber()) {
@@ -2152,15 +2158,19 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
         store_pos_ = false;
         mask_->GetRasterPositionData(&n_cells_, &raster_pos_data_);
     }
-    // read data directly
+    // 读取栅格数据
     if (n_lyrs_ == 1) {
         float* tmpdata = reinterpret_cast<float *>(buf);
+		//n_cells_是栅格长度，raster_是存储栅格数据的一维数组，此方法将raster_初始化为no_data_value_
         Initialize1DArray(n_cells_, raster_, no_data_value_);
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {
             int tmpidx = i;
+			// re_build_data为true，mask数据；re_build_data为false，非mask数据
+			// 如果该栅格数据不是mask，计算i对应的buf中的下标tmpidx(行号*cols+列号)，将tmpidx位置的数据存入i的位置（压缩）
             if (!re_build_data) tmpidx = raster_pos_data_[i][0] * GetCols() + raster_pos_data_[i][1];
-            raster_[i] = static_cast<T>(tmpdata[tmpidx]);
+			// 如果该栅格数据是mask，则直接将buf中的数据直接存入raster_
+			raster_[i] = static_cast<T>(tmpdata[tmpidx]);
         }
         Release1DArray(tmpdata);
         is_2draster = false;
@@ -2181,6 +2191,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     }
     buf = nullptr;
     CheckDefaultValue();
+	// 如果是mask，则计算有效栅格单元的下标，并存入raster_pos_data_数组
     if (re_build_data) {
         MaskAndCalculateValidPosition();
     }
@@ -2598,12 +2609,12 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
         for (int j = 0; j < ncols; ++j) {
             int idx = i * ncols + j;
             T tmp_value;
-            if (is_2draster) {
+            if (is_2draster) {// 如果是2d栅格（多图层的栅格），一般的栅格是1d
                 tmp_value = raster_2d_[idx][0];
             } else {
                 tmp_value = raster_[idx];
             }
-            if (FloatEqual(tmp_value, static_cast<T>(no_data_value_))) continue;
+            if (FloatEqual(tmp_value, static_cast<T>(no_data_value_))) continue;// 如果是nodata则跳过该栅格
             values.emplace_back(tmp_value);
             if (is_2draster && n_lyrs_ > 1) {
                 vector<T> tmpv(n_lyrs_ - 1);
@@ -2612,8 +2623,8 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
                 }
                 values_2d.emplace_back(tmpv);
             }
-            pos_rows.emplace_back(i);
-            pos_cols.emplace_back(j);
+            pos_rows.emplace_back(i);// 如果(i,j)的像元值不是nodata，则将i储存到pos_rows
+            pos_cols.emplace_back(j);// 如果(i,j)的像元值不是nodata，则将j储存到pos_cols
         }
     }
     // swap vector to save memory
@@ -2637,7 +2648,7 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
     // raster_pos_data_ is nullptr till now.
     Initialize2DArray(n_cells_, 2, raster_pos_data_, 0);
     store_pos_ = true;
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < n_cells_; ++i) {
         if (is_2draster) {
             raster_2d_[i][0] = values.at(i);
@@ -2647,10 +2658,10 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
                 }
             }
         } else {
-            raster_[i] = values.at(i);
+            raster_[i] = values.at(i);// raster_最初用来存储未经压缩的栅格像元值，现在用来存储压缩后的栅格像元值，其数组长度会变小
         }
-        raster_pos_data_[i][0] = pos_rows.at(i);
-        raster_pos_data_[i][1] = pos_cols.at(i);
+        raster_pos_data_[i][0] = pos_rows.at(i);// raster_pos_data_[i][0]存放有效栅格像元的行号
+        raster_pos_data_[i][1] = pos_cols.at(i);// raster_pos_data_[i][1]存放有效栅格像元的列号
     }
     calc_pos_ = true;
 }
@@ -2659,8 +2670,9 @@ template <typename T, typename MASK_T>
 void clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
     int oldcellnumber = n_cells_;
     if (nullptr == mask_) {
+		// 如果本次读取的栅格就是mask，则遍历栅格像元，根据no_data_value计算有效单元的数组下标，并将HEADER_RS_CELLSNUM更新为有效栅格数
         if (calc_pos_) {
-            CalculateValidPositionsFromGridDate();
+            CalculateValidPositionsFromGridDate();		
         } else {
             n_cells_ = GetRows() * GetCols();
             headers_.at(HEADER_RS_CELLSNUM) = n_cells_;
