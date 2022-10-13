@@ -101,6 +101,7 @@ private:
 	//! reach depth data from SPATIAL collection
 	//FloatRaster* m_reachDepth;
 	float* m_reachDepth;
+
 	/**** problems ***/
 	/*
 	1. 在这里降雨使用了下渗模块输出的VAR_EXCP，在casc_2d中m_rint却是只扣除了植被截留的降雨，
