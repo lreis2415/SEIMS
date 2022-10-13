@@ -184,10 +184,11 @@ public:
 	}
 
 	// set 1D Array which stores reach depth data in each cell of raster 
-	virtual void SetReachDepthData(FloatRaster* ch_depth) {
-		throw ModelException("SimulationModule", "SetReachDepthData",
-			"Set SetReachDepthData function is not implemented.");
-	}
+	//virtual void SetReachDepthData(FloatRaster* ch_depth) {
+	//	throw ModelException("SimulationModule", "SetReachDepthData",
+	//		"Set SetReachDepthData function is not implemented.");
+	//}
+
 
 protected:
     /// date time

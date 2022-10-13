@@ -30,6 +30,8 @@ public:
 
     virtual void Set1DData(const char *key, int n, float *data);
 
+	virtual void Set2DData(const char* key, const int n, const int col, float** data);
+
     virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void SetValue(const char *key, float value);
@@ -104,7 +106,7 @@ private:
 
     /// parameters used in GA method
     /// saturated hydraulic conductivity from parameter database (m/s)
-    float *m_ks;
+    float **m_ks;
     /// percent of clay content from parameter database
     float *m_clay;
     /// percent of sand content from parameter database

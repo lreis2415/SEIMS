@@ -33,7 +33,8 @@ from postprocess.config import PostConfig
 from parameters_sensitivity.config import PSAConfig
 from calibration.config import CaliConfig
 
-DEMO_MODELS = {'youwuzhen': 'demo_youwuzhen30m_longterm_model'}
+DEMO_MODELS = {'youwuzhen': 'demo_youwuzhen30m_longterm_model',
+               'test7':'test7_longterm_model'}
 
 
 def get_watershed_name(desc='Specify watershed name to run this script.'):
@@ -119,8 +120,8 @@ def write_runmodel_config_file(mpaths, org_file_name):
     with open(org_cfg_file, 'r', encoding='utf-8') as f:
         for line in f.readlines():
             cfg_items.append(line.strip())
-    cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
-    cfg_items.append('BIN_DIR = %s' % mpaths.bin_dir)
+    # cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
+    # cfg_items.append('BIN_DIR = %s' % mpaths.bin_dir)
 
     with open(runmodel_cfg_file, 'w', encoding='utf-8') as f:
         for item in cfg_items:

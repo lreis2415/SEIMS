@@ -360,8 +360,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Subbasin: SetSubbasins(p_module);
             break;
-		case DT_CH_DEPTH:SetReachDepthData(p_module);
-			break;
+		//case DT_CH_DEPTH:SetReachDepthData(p_module);
+		//	break;
         default: break;
     }
 #ifdef _DEBUG
@@ -456,13 +456,26 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     float** data2d = nullptr;
     FloatRaster* raster = nullptr;
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
-        LoadAdjustRasterData(para_name, remote_filename, is_optional);
+		// 如果参数名中含有RASTERPOSITION，就给调用SetRasterPositionDataPointer给模块设置存储位置的数组
+		if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
+			if (rs_map_.size() > 0)
+			{
+				raster = rs_map_.begin()->second;
+				int** positions = raster->GetRasterPositionDataPointer();
+				p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
+				return;
+			}
+
+		}
+		else
+		{
+			LoadAdjustRasterData(para_name, remote_filename, is_optional);
+		}
     }
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
         return; // when encounter optional parameters
     }
     raster = rs_map_.at(remote_filename);
-
     if (raster->Is2DRaster()) {
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
@@ -473,16 +486,8 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
         p_module->Set1DData(para_name.c_str(), n, data);
-		// 如果参数名中含有RASTERPOSITION，就给模块设置存储位置的数组
-		if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
-			int** positions = raster->GetRasterPositionDataPointer();
-			p_module->SetRasterPositionDataPointer(para_name.c_str(),positions);
-		}
-		//
-		//if (StringMatch(para_name.c_str(), VAR_REACH_DEPTH_SPATIAL)) {
-		//	int** positions = raster->GetRasterPositionDataPointer();
-		//	p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
-		//}
+
+		
     }
 }
 
@@ -507,12 +512,12 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
     p_module->SetSubbasins(subbasins_);
 }
 
-void DataCenter::SetReachDepthData(SimulationModule* p_module) {
-	//if (nullptr == subbasins_ && nullptr == GetSubbasinData()) {
-	//	throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
-	//}
-	p_module->SetReachDepthData(ch_depth_);
-}
+//void DataCenter::SetReachDepthData(SimulationModule* p_module) {
+//	//if (nullptr == subbasins_ && nullptr == GetSubbasinData()) {
+//	//	throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
+//	//}
+//	p_module->SetReachDepthData(ch_depth_);
+//}
 
 void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {
     vector<string>& module_ids = factory_->GetModuleIDs();

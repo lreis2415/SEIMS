@@ -107,3 +107,7 @@ node_modules
 /data/youwuzhen/data_prepare/spatial/outlet_beijing1954.shp.DESKTOP-J6KPEKV.22368.14728.sr.lock
 /data/youwuzhen/demo_youwuzhen30m_longterm_model/config.fig.bakk
 /data/youwuzhen/youwuzhen.mxd
+
+# xdw add data
+data
+*.gitignore

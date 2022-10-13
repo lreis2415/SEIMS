@@ -209,7 +209,7 @@ int StormGreenAmpt::Execute(void) {
         // effective matric potential (m)
         float matricPotential = (m_porosity[i] - m_initSoilMoisture[i]) * m_capillarySuction[i] / 1000.f;
         // algorithm of Li, 1996, uesd in C2SC2D
-        float ks = m_ks[i] / 1000.f / 3600.f; // mm/h -> m/s
+        float ks = m_ks[0][i] / 1000.f / 3600.f; // mm/h -> m/s
         float dt = m_dt;
         float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
 
@@ -303,6 +303,13 @@ void StormGreenAmpt::SetValue(const char *key, float value) {
 
 }
 
+void StormGreenAmpt::Set2DData(const char* key, const int n, const int col, float** data) {
+	string sk(key);
+	if (StringMatch(sk, VAR_CONDUCT)) {
+		m_ks = data;
+	}
+}
+
 void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
     if (data == NULL) {
         return;
@@ -349,9 +356,11 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         m_initSoilMoisture = data;
     } else if (StringMatch(sk, VAR_POROST)) {
         m_porosity = data;
-    } else if (StringMatch(sk, VAR_CONDUCT)) {
-        m_ks = data;
-    } else if (StringMatch(sk, VAR_CLAY)) {
+    }
+	//else if (StringMatch(sk, VAR_CONDUCT)) {
+ //       m_ks = data;
+ //   }
+	else if (StringMatch(sk, VAR_CLAY)) {
         m_clay = data;
     } else if (StringMatch(sk, VAR_SAND)) {
         m_sand = data;

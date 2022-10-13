@@ -190,7 +190,7 @@ public:
     //! Set Subbasins information
     void SetSubbasins(SimulationModule* p_module);
 
-	void SetReachDepthData(SimulationModule* p_module);
+	//void SetReachDepthData(SimulationModule* p_module);
 
     //! Update inputs, such climate data.
     void UpdateInput(vector<SimulationModule *>& modules, time_t t);

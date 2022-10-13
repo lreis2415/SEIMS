@@ -118,9 +118,9 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 
 	/// 6.1 read reach depth data from SPATIAL collection
 	/// todo: make it optional.  config if  need
-	oss.str("");
-	oss << subbasin_id_ << "_" << VAR_REACH_DEPTH_SPATIAL;
-	LoadAdjustRasterData(VAR_REACH_DEPTH_SPATIAL, GetUpper(oss.str()));
+	//oss.str("");
+	//oss << subbasin_id_ << "_" << VAR_REACH_DEPTH_SPATIAL;
+	//LoadAdjustRasterData(VAR_REACH_DEPTH_SPATIAL, GetUpper(oss.str()));
 
     subbasins_ = clsSubbasins::Init(rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);

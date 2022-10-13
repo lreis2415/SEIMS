@@ -2,7 +2,10 @@
 #include "text.h"
 
 CASC2D_OF::CASC2D_OF() :
-    m_nCells(-1),m_nSoilLyrs(nullptr),m_ks(nullptr),m_soilWtrStoPrfl(nullptr) {
+    m_nCells(-1),m_nSoilLyrs(nullptr),m_ks(nullptr),m_soilWtrStoPrfl(nullptr),
+	m_surfRf(nullptr), m_surSdep(nullptr), m_ManningN(nullptr), m_streamLink(nullptr), m_dem(nullptr) ,
+	m_flowOutIndex(nullptr) , m_Slope(nullptr), m_chWidth(nullptr) {
+
 }
 
 CASC2D_OF::~CASC2D_OF() {
@@ -10,7 +13,6 @@ CASC2D_OF::~CASC2D_OF() {
 
 // set 
 void CASC2D_OF::SetValue(const char* key, float value) {
-	/* m, n */
 	string sk(key);
 	if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
 		m_dt = value;
@@ -26,13 +28,13 @@ void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
 	/* todo 将外部接收的降雨强度一维转二维，赋值给m_rint** */
 	if (!CheckInputSize("CASC2D_OF", key, n, m_nCells)) return;
 	string sk(key);
-	if (StringMatch(sk, VAR_EXCP)) {
-		m_exsPcp = data;
-	}else if (StringMatch(sk, VAR_SURU)) {
+	 if (StringMatch(sk, VAR_SURU)) {
 		m_surfRf = data;  
-	}else if (StringMatch(sk, VAR_SUR_SDEP)) {
-		m_surSdep = data;
-	}else if (StringMatch(sk, VAR_MANNING)){
+	}
+	// else if (StringMatch(sk, VAR_SUR_SDEP)) {
+	//	m_surSdep = data;
+	//}
+	else if (StringMatch(sk, VAR_MANNING)){
 		m_ManningN = data;
 	}else if (StringMatch(sk, VAR_STREAM_LINK)) {
 		m_streamLink = data;
@@ -50,8 +52,9 @@ void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
 		m_Slope = data;
 	}else if (StringMatch(sk, VAR_CHWIDTH)) {
 		m_chWidth = data;
-	}
-	else
+	}else if (StringMatch(sk, REACH_DEPTH)) {
+		 m_reachDepth = data;
+	}else
 	{
 		throw ModelException("CASC2D_OF", "Set1DData", "parameter " + string(key) + " is not exist");
 	}
@@ -90,8 +93,10 @@ bool CASC2D_OF::CheckInputData() {
 
 
 void CASC2D_OF::InitialOutputs() {
-	if (nullptr == m_soilWtrStoPrfl) Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.f);
+	if (nullptr == m_chQ) Initialize1DArray(m_nCells, m_chQ, 0.f);
+	if (nullptr == m_surSdep) Initialize1DArray(m_nCells, m_surSdep, 0.f);
 }
+
 
 int CASC2D_OF::Execute() {
 	InitialOutputs();
@@ -112,6 +117,7 @@ TimeStepType CASC2D_OF::GetTimeStepType() {
 }
 
 
+
 void CASC2D_OF::GetValue(const char* key, float* value) {
 }
 
@@ -129,9 +135,10 @@ void CASC2D_OF::SetRasterPositionDataPointer(const char* key, int** positions) {
 	m_RasterPostion = positions;
 }
 
-void CASC2D_OF::SetReachDepthData( FloatRaster* positions) {
-	m_reachDepth = positions;
-}
+//void CASC2D_OF::SetReachDepthData( FloatRaster* positions) {
+//	m_reachDepth = positions;
+//}
+
 
 /*************************更新地表径流深度*******************************/
 void CASC2D_OF::OvrlDepth()
@@ -427,7 +434,8 @@ void CASC2D_OF::chnchn(int curReachIndex,int nReaches,int iCell, vector<int> cur
 	/* Channel characteristics :																		*/
 
 	wch = m_chWidth[curCellIndex];				/* width						*/
-	dch = m_reachDepth[curCellIndex];				/* depth						*/
+	dch = m_reachDepth[curCellIndex];
+	//dch = m_reachDepth->GetRasterDataPointer()[curCellIndex];				/* depth						*/
 	sslope = m_Slope[curCellIndex];					/* side slope					*/
 	rmanch = m_ManningN[curCellIndex];		/* manning's n				*/
 	sfactor = m_chSinuosity[curReachIndex];	/* sinuosity factor,use the reach's sinuosity instead of that on every cell of reach temporary	*/
@@ -450,14 +458,18 @@ void CASC2D_OF::chnchn(int curReachIndex,int nReaches,int iCell, vector<int> cur
 			vector<int> reachCells = m_reachs[reachIndex];
 			if (nextCellIndex == reachCells[0])
 			{
+				//so = (m_dem[curCellIndex] - dch - m_dem[nextCellIndex] + m_reachDepth->GetRasterDataPointer()[reachCells[0]]) / (m_cellWth*sfactor);
 				so = (m_dem[curCellIndex] - dch - m_dem[nextCellIndex] + m_reachDepth[reachCells[0]]) / (m_cellWth*sfactor);
+				
 				ijun = reachIndex;
 			}
 		}
 
 	}
 	/* hch[j][k]栅格单元上的河道水深，dhdx是水力坡度*/
+	//dhdx = (m_reachDepth->GetRasterDataPointer()[nextCellIndex] - m_reachDepth->GetRasterDataPointer()[curCellIndex] / (m_cellWth*sfactor));
 	dhdx = (m_reachDepth[nextCellIndex] - m_reachDepth[curCellIndex] / (m_cellWth*sfactor));
+
 	/* 摩擦坡度*/
 	sf = (float)(so - dhdx + 1e-30);
 

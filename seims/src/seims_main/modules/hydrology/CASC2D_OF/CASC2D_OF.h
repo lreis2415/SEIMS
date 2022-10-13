@@ -60,7 +60,7 @@ public:
 
 	void SetRasterPositionDataPointer(const char* key, int** positions) OVERRIDE;
 
-	void SetReachDepthData( FloatRaster* positions) OVERRIDE;
+	//void SetReachDepthData( FloatRaster* positions) OVERRIDE;
 
 	void OvrlDepth();
 
@@ -99,7 +99,8 @@ private:
 	//! All subbasins information
 	clsSubbasins* m_subbasinsInfo;
 	//! reach depth data from SPATIAL collection
-	FloatRaster* m_reachDepth;
+	//FloatRaster* m_reachDepth;
+	float* m_reachDepth;
 	/**** problems ***/
 	/*
 	1. 在这里降雨使用了下渗模块输出的VAR_EXCP，在casc_2d中m_rint却是只扣除了植被截留的降雨，
@@ -124,7 +125,7 @@ private:
 	map<int, int> m_downStreamReachId;	/* 储存上、下游河道id的映射关系*/
 	float *m_reachDownStream;/// downstream id (The value is 0 if there if no downstream reach)
 	/**** 输入一维数组 ***/
-	float* m_exsPcp;				/* m_rint栅格单元上的过载降雨强度 mm/s */		/* VAR_EXCP from MUR_MR module*/
+	//float* m_exsPcp;					/* m_rint栅格单元上的过载降雨强度 mm/s */		/* VAR_EXCP from MUR_MR module*/
 	float *m_surfRf;					/* h栅格单元上的地表水深m*/								/* VAR_SURU from DepressionFS module */
 	float* m_chDepth;				/* chp[i][j][3] 栅格单元上的河道深度 全河道一个值*/
 	float* m_chWidth;				/* chp[i][j][2] 栅格单元上的河道宽度*/

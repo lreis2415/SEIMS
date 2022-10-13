@@ -4,7 +4,8 @@
 0 | TimeSeries | | TSD_RD
 0 | Interpolation_0 | Thiessen | ITP
 ### Surface processes
-# 0 | PET | PenmanMonteith | PET_PM
+0 | Soil temperature | Finn Plauborg | STP_FP
+0 | PET | PenmanMonteith | PET_H
 0 | Interception | Maximum Canopy Storage | PI_MCS
 0 | Water overland routing | IUH | IUH_OL
 0 | Functional test | | CASC2D_OF
