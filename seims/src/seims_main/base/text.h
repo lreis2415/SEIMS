@@ -813,7 +813,7 @@
 #define VAR_OLFLOW "OL_Flow" /// m_surfRf, overland flow in each cell calculated during overland routing
 #define VAR_QG "QG" /// m_qgRchOut, Groundwater discharge at each reach outlet and at each time step
 #define VAR_QI "QI" /// m_qiRchOut, Interflow at each reach outlet and at each time step
-#define VAR_QOVERLAND "QOverland"
+#define VAR_QOVERLAND "QOverland"/// flow speed of each grid in subbasin 
 #define VAR_QRECH "QRECH" /// m_qRchOut, Discharge at reach outlet of each time step
 #define VAR_QS "QS" /// m_qsRchOut, Overland discharge at each reach outlet and at each time step
 #define VAR_QSOIL "QSoil"
@@ -1119,6 +1119,10 @@
 #define VAR_SUR_COD_TOCH "sur_cod_ToCH" /// m_surfRfCodToCh, amount of COD to reach in surface runoff (kg)
 #define VAR_SURU "SURU" /// m_surfRf, surface runoff
 #define VAR_SUR_SDEP "SUR_SDEP"// m_surSdep, initail water depth of surface and channel
+#define VAR_SUR_WRT_DEPTH "SUR_WRT_DEPTH" /// m_surWtrDepth, surface runoff depth(spatially for output of casc2d module)
+#define VAR_CH_WRT_DEPTH "CH_WRT_DEPTH" /// m_chWtrDepth, channel water depth(spatially for output of casc2d module)
+#define VAR_OUTLET_Q "OUTLET_Q" /// m_outQ, outlet flow speed(spatially for output of casc2d module)
+#define VAR_OUTLET_V "OUTLET_V" ///  m_outV, outlet flow volume(spatially for output of casc2d module)
 #define VAR_SWE "SWE"
 #define VAR_SWE0 "swe0"
 #define VAR_T_BASE "T_BASE" /// m_pgTempBase, minimum temperature for plant growth (degree C)
@@ -1872,6 +1876,10 @@
 #define DESC_SUR_COD_ToCH "amount of COD to reach in surface runoff"
 #define DESC_SURU "surface runoff"
 #define DESC_SUR_SDEP "initail water depth of surface and channel"
+#define DESC_SUR_WRT_DEPTH "surface runoff depth(spatially for output of casc2d module)"
+#define DESC_CH_WRT_DEPTH "channel water depth(spatially for output of casc2d module)"
+#define DESC_OUTLET_Q "outlet flow speed(spatially for output of casc2d module)"
+#define DESC_OUTLET_V "outlet flow volume(spatially for output of casc2d module)"
 #define DESC_SWE "average snow accumulation of the watershed"
 #define DESC_SWE0 "Initial snow water equivalent"
 #define DESC_T_BASE "base or minimum temperature for plant growth"

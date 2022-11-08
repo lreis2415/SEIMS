@@ -19,6 +19,9 @@ from __future__ import absolute_import, unicode_literals
 from math import exp, sqrt
 import os
 import sys
+
+from preprocess.text import SpatialNamesUtils
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -485,7 +488,11 @@ class TerrainUtilClass(object):
         soil_texture_file = cfg.spatials.soil_texture
         landuse_file = cfg.spatials.landuse
         depression_file = cfg.spatials.depression
-        TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
+        # xdw -- landuse数据有问题，使用landcover
+        landcover = os.path.join(cfg.dirs.geodata2db, SpatialNamesUtils._CROPMFILE)
+        # TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
+        #                                      slope_file, depression_file, cfg.imper_perc_in_urban)
+        TerrainUtilClass.depression_capacity(maindb, landcover, soil_texture_file,
                                              slope_file, depression_file, cfg.imper_perc_in_urban)
         # 2. Calculate inputs for IUH
         status_output('Prepare parameters for IUH...', 30, f)

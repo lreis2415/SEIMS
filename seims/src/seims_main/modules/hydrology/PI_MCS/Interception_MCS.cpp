@@ -7,7 +7,9 @@ clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
     m_intcpStoCapExp(-1.f), m_initIntcpSto(0.f), m_maxIntcpStoCap(nullptr),
     m_minIntcpStoCap(nullptr),
-    m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
+	//xdw修改，次降水模拟中暂时不考虑蒸散
+    //m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
+	m_pcp(nullptr),  m_canSto(nullptr),
     m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
@@ -142,11 +144,13 @@ int clsPI_MCS::Execute() {
         }
 #ifndef STORM_MODE
         //evaporation
-        if (m_canSto[i] > m_pet[i]) {
-            m_IntcpET[i] = m_pet[i];
-        } else {
-            m_IntcpET[i] = m_canSto[i];
-        }
+		//xdw 暂时注释掉，在次降水模拟中，暂时不考虑蒸散；
+        //if (m_canSto[i] > m_pet[i]) {
+        //    m_IntcpET[i] = m_pet[i];
+        //} else {
+        //    m_IntcpET[i] = m_canSto[i];
+        //}
+		m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
 #endif
     }

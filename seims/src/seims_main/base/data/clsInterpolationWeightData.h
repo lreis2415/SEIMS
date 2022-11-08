@@ -39,8 +39,9 @@ public:
      * \param[out] n Rows
      * \param[out] data
      */
-    void GetWeightData(int* n, float** data);
-
+    //void GetWeightData(int* n, float** data);
+	// xdw modify, to support multi-stations itp weight data, we have to get the length of itp weight data array so that initialize it
+	void GetWeightData(int* n, float** data, int *itp_weight_data_length);
     /*!
      * \brief Output the weight data to \a ostream
      *

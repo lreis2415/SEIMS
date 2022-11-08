@@ -29,9 +29,14 @@ void StormGreenAmpt:: InitialOutputs() {
         m_infil = new float[m_nCells];
         m_infilCapacitySurplus = new float[m_nCells];
         m_soilMoisture = new float[m_nCells];
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i];
+			//printf("i=%d, m_fieldCap[i]=%lf\n", i, m_fieldCap[0][i]);
+			//if (abs(m_fieldCap[0][i]) < 0.00001)
+			//{
+			//	m_fieldCap[0][i] = 0.0f;
+			//}
+            m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i][0];
             m_soilMoisture[i] = m_initSoilMoisture[i];
         }
     }
@@ -171,7 +176,7 @@ int StormGreenAmpt::Execute(void) {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_accumuDepth[i] = 0.0f;
-            m_capillarySuction[i] = CalculateCapillarySuction(m_porosity[i], m_clay[i] * 100, m_sand[i] * 100);
+            m_capillarySuction[i] = CalculateCapillarySuction(m_porosity[i][0], m_clay[i][0] * 100, m_sand[i][0] * 100);
         }
     }
 
@@ -207,9 +212,9 @@ int StormGreenAmpt::Execute(void) {
         hWater += m_sr[i];
 
         // effective matric potential (m)
-        float matricPotential = (m_porosity[i] - m_initSoilMoisture[i]) * m_capillarySuction[i] / 1000.f;
+        float matricPotential = (m_porosity[i][0] - m_initSoilMoisture[i]) * m_capillarySuction[i] / 1000.f;
         // algorithm of Li, 1996, uesd in C2SC2D
-        float ks = m_ks[0][i] / 1000.f / 3600.f; // mm/h -> m/s
+        float ks = m_ks[i][0] / 1000.f / 3600.f; // mm/h -> m/s
         float dt = m_dt;
         float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
 
@@ -217,8 +222,10 @@ int StormGreenAmpt::Execute(void) {
         float p2 = ks * (infilDepth + matricPotential);
         // infiltration rate (m/s)
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
-
-        float infilCap = (m_porosity[i] - m_soilMoisture[i]) * m_rootDepth[i];
+		//printf("m_soilMoisture[%d]:%lf", i, m_soilMoisture[i]);
+		//printf("m_rootDepth[%d][0]:%lf",i, m_rootDepth[i][0]);
+		//printf("m_porosity[%d][0]:%lf", i, m_porosity[i][0]);
+        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][0];
 
         if (hWater > 0) {
             // for frozen soil
@@ -228,7 +235,7 @@ int StormGreenAmpt::Execute(void) {
             //	m_infil[i] = 0.0f;
             //}
             //for saturation overland flow
-            if (m_soilMoisture[i] > m_porosity[i]) {
+            if (m_soilMoisture[i] > m_porosity[i][0]) {
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = 0.f;
             } else {
@@ -250,7 +257,7 @@ int StormGreenAmpt::Execute(void) {
                     m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
 
                 if (m_rootDepth != NULL) {
-                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i];
+                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][0];
                 }
             }
         } else {
@@ -307,6 +314,28 @@ void StormGreenAmpt::Set2DData(const char* key, const int n, const int col, floa
 	string sk(key);
 	if (StringMatch(sk, VAR_CONDUCT)) {
 		m_ks = data;
+	}else if (StringMatch(sk, VAR_POROST)) {
+		m_porosity = data;
+		//for (int i = 0; i < m_nCells; i++) {
+		//	printf("i=%d, m_porosity[i][0]=%lf\n", i, m_porosity[i][0]);
+		//}
+	}else if (StringMatch(sk, VAR_CLAY)) {
+		m_clay = data;
+	}else if (StringMatch(sk, VAR_SAND)) {
+		m_sand = data;
+	}else if (StringMatch(sk, VAR_FIELDCAP)) {
+		m_fieldCap = data;
+		//for (int i = 0; i < m_nCells; i++) {
+		//	printf("i=%d, data[i]=%lf\n", i, data[i][0]);
+		//	if (abs(m_fieldCap[i][0]) < 0.00001 || m_fieldCap[i][0] < 0.00001 )
+		//	{
+		//		m_fieldCap[i][0] = 0.0f;
+		//	}
+		//	printf("i=%d, m_fieldCap[i]=%lf\n", i, m_fieldCap[i][0]);
+		//}
+		//printf("okokok");
+	}else if (StringMatch(sk, VAR_SOILDEPTH)) {
+		m_rootDepth = data;
 	}
 }
 
@@ -335,11 +364,13 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         m_sd = data;
     } else if (StringMatch(sk, VAR_SURU)) {
         m_sr = data;
-    } else if (StringMatch(sk, VAR_SOILDEPTH)) {
-        m_rootDepth = data;
-    } else if (StringMatch(sk, VAR_FIELDCAP)) {
-        m_fieldCap = data;
     }
+	//else if (StringMatch(sk, VAR_SOILDEPTH)) {
+ //       m_rootDepth = data;
+ //   }
+	//else if (StringMatch(sk, VAR_FIELDCAP)) {
+ //       m_fieldCap = data;
+ //   }
         //else if (StringMatch(sk,"D_SOTE"))
         //{
         //	m_soilTemp = data;
@@ -354,17 +385,20 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         //}
     else if (StringMatch(sk, VAR_MOIST_IN)) {
         m_initSoilMoisture = data;
-    } else if (StringMatch(sk, VAR_POROST)) {
-        m_porosity = data;
     }
+	//else if (StringMatch(sk, VAR_POROST)) {
+ //       m_porosity = data;
+ //   }
 	//else if (StringMatch(sk, VAR_CONDUCT)) {
  //       m_ks = data;
  //   }
-	else if (StringMatch(sk, VAR_CLAY)) {
-        m_clay = data;
-    } else if (StringMatch(sk, VAR_SAND)) {
-        m_sand = data;
-    } else {
+	//else if (StringMatch(sk, VAR_CLAY)) {
+ //       m_clay = data;
+ //   }
+	//else if (StringMatch(sk, VAR_SAND)) {
+ //       m_sand = data;
+ //   }
+	else {
         throw ModelException(MID_SUR_SGA, "SetValue",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }

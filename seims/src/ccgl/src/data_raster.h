@@ -2163,7 +2163,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
         float* tmpdata = reinterpret_cast<float *>(buf);
 		//n_cells_是栅格长度，raster_是存储栅格数据的一维数组，此方法将raster_初始化为no_data_value_
         Initialize1DArray(n_cells_, raster_, no_data_value_);
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < n_cells_; i++) {
             int tmpidx = i;
 			// re_build_data为true，mask数据；re_build_data为false，非mask数据
@@ -2648,7 +2648,7 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
     // raster_pos_data_ is nullptr till now.
     Initialize2DArray(n_cells_, 2, raster_pos_data_, 0);
     store_pos_ = true;
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < n_cells_; ++i) {
         if (is_2draster) {
             raster_2d_[i][0] = values.at(i);

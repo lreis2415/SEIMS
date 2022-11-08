@@ -76,12 +76,15 @@ private:
     /// precipitation of each cell
     float *m_pNet;
 
-    /// soil porosity
-    float *m_porosity;
+    ///// soil porosity
+    //float *m_porosity;
+	/// soil porosity
+	float ** m_porosity;
     /// soil moisture
     float *m_soilMoisture;
     /// root depth
-    float *m_rootDepth;
+    //float *m_rootDepth;
+	float **m_rootDepth;
 
     /// depression storage -- SD(t-1) from the depression storage module
     float *m_sd;
@@ -108,13 +111,16 @@ private:
     /// saturated hydraulic conductivity from parameter database (m/s)
     float **m_ks;
     /// percent of clay content from parameter database
-    float *m_clay;
+    //float *m_clay;
+	float **m_clay;
     /// percent of sand content from parameter database
-    float *m_sand;
+    //float *m_sand;
+	float **m_sand;
     /// initial soil moisture
     float *m_initSoilMoisture;
     /// field capacity
-    float *m_fieldCap;
+    //float *m_fieldCap;
+	float **m_fieldCap;
     /// surface water depth
     float *m_sr;
 

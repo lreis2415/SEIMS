@@ -154,7 +154,9 @@ class ImportHydroClimateSites(object):
     def find_sites(maindb, clim_dbname, subbsn_file, subbsn_field_id,
                    thissen_file_list, thissen_field_id, site_type_list):
         """Find meteorology and precipitation sites in study area"""
-        mode = 'DAILY'
+        # xdw修改--暂时修改为storm模式
+        # mode = 'DAILY'
+        mode = 'STORM'
         # if is_storm:  # todo: Do some compatible work to support DAILY and STORM simultaneously.
         #     mode = 'STORM'
         subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file,

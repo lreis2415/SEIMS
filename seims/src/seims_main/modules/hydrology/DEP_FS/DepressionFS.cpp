@@ -2,7 +2,9 @@
 #include "text.h"
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
-                                   m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
+									//xdw修改, DEP_FS模块没有用到PET蒸散数据，暂时注释掉
+                                   //m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
+									m_depCo(NODATA_VALUE), m_depCap(NULL),  m_ei(NULL),
                                    m_sd(NULL), m_sr(NULL), m_checkInput(true) {
 }
 
@@ -28,13 +30,14 @@ bool DepressionFS::CheckInputData(void) {
                              "The parameter: depression storage capacity has not been set.");
     }
 #ifndef STORM_MODE
-    if (m_pet == NULL) {
-        throw ModelException(MID_DEP_FS, "CheckInputData", "The parameter: PET has not been set.");
-    }
-    if (m_ei == NULL) {
-        throw ModelException(MID_DEP_FS, "CheckInputData",
-                             "The parameter: evaporation from the interception storage has not been set.");
-    }
+	//xdw修改, DEP_FS模块没有用到PET蒸散数据，暂时注释掉
+    //if (m_pet == NULL) {
+    //    throw ModelException(MID_DEP_FS, "CheckInputData", "The parameter: PET has not been set.");
+    //}
+    //if (m_ei == NULL) {
+    //    throw ModelException(MID_DEP_FS, "CheckInputData",
+    //                         "The parameter: evaporation from the interception storage has not been set.");
+    //}
 #endif /* not STORM_MODE */
     return true;
 }
@@ -112,9 +115,11 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION)) {
         m_depCap = data;
-    } else if (StringMatch(sk, VAR_PET)) {
-        m_pet = data;
-    } else {
+    }
+	//else if (StringMatch(sk, VAR_PET)) {
+	//       m_pet = data;
+	//   }
+	else {
         throw ModelException(MID_DEP_FS, "Set1DData", "Parameter " + sk
             + " does not exist in current module. Please contact the module developer.");
     }

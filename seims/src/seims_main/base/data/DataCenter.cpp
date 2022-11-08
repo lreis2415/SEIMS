@@ -462,6 +462,11 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
 			{
 				raster = rs_map_.begin()->second;
 				int** positions = raster->GetRasterPositionDataPointer();
+				int rows = raster->GetRows();
+				int cols = raster->GetCols();
+				// 把行列数也一起传给模块，主要是CASC2D_OF模块用到此功能
+				p_module->SetValue(HEADER_RS_NROWS, rows);
+				p_module->SetValue(HEADER_RS_NCOLS, cols);
 				p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
 				return;
 			}
@@ -526,6 +531,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     size_t n = module_ids.size();
     for (size_t i = 0; i < n; i++) {
         string id = module_ids[i];
+		//cout << "processing module:" << id << endl;
         SimulationModule* p_module = modules[i];
         vector<ParamInfo*>& inputs = module_inputs[id];
         string data_type = module_settings[id]->dataTypeString();

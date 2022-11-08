@@ -195,7 +195,6 @@ mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
     //#endif /* MONGOC_CHECK_VERSION */
     return cursor;
 }
-
 int MongoCollection::QueryRecordsCount() {
     const bson_t* q_count = bson_new();
     bson_error_t* err = NULL;
@@ -428,7 +427,10 @@ bool GetBoolFromBson(bson_t* bmeta, const char* key) {
 time_t GetDatetimeFromBsonIterator(bson_iter_t* iter) {
     const bson_value_t* vv = bson_iter_value(iter);
     if (vv->value_type == BSON_TYPE_DATE_TIME) {
-        return CVT_TIMET(vv->value.v_datetime);
+		string str_milisec = std::to_string(vv->value.v_datetime);
+		string str_second = str_milisec.substr(0, str_milisec.length() - 3);
+		int intStr = atoi(str_second.c_str());
+        return CVT_TIMET(intStr);
     }
     if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp_time_str = vv->value.v_utf8.str;

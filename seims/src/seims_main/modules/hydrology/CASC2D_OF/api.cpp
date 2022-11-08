@@ -33,7 +33,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     //mdi.AddParameter("2DRasterParam", "UNIT", "DESC", Source_ParameterDB, DT_Raster2D);
 
     /// Parameters with complex data types
-   
+	mdi.AddParameter(VAR_DEM, UNIT_NON_DIM, DESC_DEM, Source_ParameterDB, DT_Raster1D);
 	mdi.AddParameter(VAR_MANNING, UNIT_NON_DIM, DESC_MANNING, Source_ParameterDB, DT_Raster1D);
 	mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_DT_HS, File_Input, DT_Single);
 	mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
@@ -53,6 +53,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     /// Set output variables of the current module
 	mdi.AddOutput(VAR_QOVERLAND, UNIT_FLOW_CMS, DESC_QOVERLAND, DT_Raster1D);
+	mdi.AddOutput(VAR_OUTLET_Q, UNIT_FLOW_CMS, DESC_OUTLET_Q, DT_Single);
+	mdi.AddOutput(VAR_OUTLET_V, UNIT_VOL_M3, DESC_OUTLET_V, DT_Single);
+	mdi.AddOutput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, DT_Raster1D);
+	mdi.AddOutput(VAR_CH_WRT_DEPTH, UNIT_DEPTH_MM, DESC_CH_WRT_DEPTH, DT_Raster1D);
     /// Set In/Output variables with transferred data type
 
 

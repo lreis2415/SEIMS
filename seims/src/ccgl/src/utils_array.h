@@ -50,6 +50,8 @@ bool Initialize1DArray(int row, T*& data, INI_T init_value);
 template <typename T, typename INI_T>
 bool Initialize1DArray(int row, T*& data, INI_T* init_data);
 
+template <typename T, typename INI_T>
+bool Initialize1DArray4ItpWeight(int row, T*& data, INI_T* init_data, int itp_weight_data_length);
 /*!
  * \brief Initialize DT_Array2D data
  * \param[in] row
@@ -235,10 +237,35 @@ bool Initialize1DArray(const int row, T*& data, INI_T* const init_data) {
         return false;
     }
 #pragma omp parallel for
-    for (int i = 0; i < row; i++) {
-        data[i] = static_cast<T>(init_data[i]);
-    }
+	for (int i = 0; i < row; i++) {
+		data[i] = static_cast<T>(init_data[i]);
+	}
+
+
     return true;
+}
+
+template <typename T, typename INI_T>
+bool Initialize1DArray4ItpWeight(const int row, T*& data, INI_T* const init_data, int itp_weight_data_length) {
+	if (nullptr != data) {
+		cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
+		return false;
+	}
+	data = new(nothrow) T[itp_weight_data_length];
+	if (nullptr == data) {
+		delete[] data;
+		cout << "Bad memory allocated during 1D array initialization!" << endl;
+		return false;
+	}
+	if (nullptr == init_data) {
+		cout << "The input parameter init_data MUST NOT be nullptr!" << endl;
+		return false;
+	}
+#pragma omp parallel for
+	for (int i = 0; i < itp_weight_data_length; i++) {
+		data[i] = static_cast<T>(init_data[i]);
+	}
+	return true;
 }
 
 template <typename T, typename INI_T>

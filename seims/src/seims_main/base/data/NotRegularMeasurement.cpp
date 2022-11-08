@@ -54,13 +54,16 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
         // perform query and read measurement data
         std::unique_ptr<MongoCollection>
                 collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
-        mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
-
+		mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+		int size = 0;
         float value;
         time_t dt;
         bool hasData = false;
         const bson_t* doc;
+		vector<time_t> m_times;
+		vector<float> m_values;
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
+			size++;
             hasData = true;
             bson_iter_t iter;
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
@@ -70,18 +73,20 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
                                      "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
                                      " does not exist in DataValues table.");
             }
-
+			// xdw modify, *0.001f will causes accuracy issues, so use string clip to convert milisecond to second
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
-                dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter) * 0.001f);
+                //dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter) * 0.001f);
+				dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter));
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The Value field: " + string(MONG_HYDRO_DATA_UTC) +
                                      " does not exist in DataValues table.");
             }
-
-            m_timeList[iSite].emplace_back(dt);
-            m_valueList[iSite].emplace_back(value);
+			m_times.emplace_back(dt);
+			m_values.emplace_back(value);
         }
+		m_timeList.emplace_back(m_times);
+		m_valueList.emplace_back(m_values);
         bson_destroy(query);
         mongoc_cursor_destroy(cursor);
 
@@ -93,6 +98,23 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
             throw ModelException("NotRegularMeasurement", "Constructor", oss.str());
         }
     }
+}
+string mutiple(string num1, int num2) {
+
+	string res;
+	int c = 0;
+	for (int i = num1.size() - 1; i >= 0; i--) {
+		int tmp = (num1[i] - '0') * num2 + c;
+		c = tmp / 10;
+		tmp = tmp % 10;
+		res.insert(res.begin(), tmp + '0');
+	}
+	while (c) {
+		int tmp = c % 10;
+		c = c / 10;
+		res.insert(res.begin(), tmp + '0');
+	}
+	return res;
 }
 
 float* NotRegularMeasurement::GetSiteDataByTime(const time_t t) {

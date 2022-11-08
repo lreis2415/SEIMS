@@ -459,8 +459,11 @@ void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& nu
         return;
     }
     float* tmpdata = nullptr;
-    weight_data->GetWeightData(&num, &tmpdata);
-    Initialize1DArray(num, data, tmpdata);
+	// 专门用此变量保存权重数据的长度，不再使用num，否则在多站点权重数据初始化时，程序会误以为权重数据长度和有效栅格单元数组长度一样，实际上有几个站点，权重数组长度就是有效栅格数组长度的几倍
+	int itp_weight_data_length;
+    weight_data->GetWeightData(&num, &tmpdata,&itp_weight_data_length);
+    //Initialize1DArray(num, data, tmpdata);
+	Initialize1DArray4ItpWeight(num, data, tmpdata, itp_weight_data_length);
     delete weight_data;
 }
 

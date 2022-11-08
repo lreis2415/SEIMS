@@ -20,8 +20,8 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass, is_string
 
 from utility import status_output, read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
-from preprocess.text import ModelParamDataUtils
-
+from preprocess.text import ModelParamDataUtils, SpatialNamesUtils
+import threading
 
 class LanduseUtilClass(object):
     """Landuse/Landcover related utility functions."""
@@ -270,6 +270,7 @@ class LanduseUtilClass(object):
     def parameters_extraction(cfg, maindb):
         """Landuse spatial parameters extraction."""
         f = cfg.logs.extract_lu
+        landcover = os.path.join(cfg.dirs.geodata2db,SpatialNamesUtils._CROPMFILE)
         # 1. Generate landuse lookup tables
         status_output("Generating landuse lookup tables from MongoDB...", 10, f)
         LanduseUtilClass.export_landuse_lookup_files_from_mongodb(cfg, maindb)
@@ -294,13 +295,17 @@ class LanduseUtilClass(object):
         status_output("Calculating CN numbers...", 40, f)
         hg_file = cfg.spatials.hydro_group
         cn2_filename = cfg.spatials.cn2
-        LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename)
+        # LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename)
+        LanduseUtilClass.generate_cn2(maindb, landcover, hg_file, cn2_filename)
         # 5. Generate runoff coefficient
         status_output("Calculating potential runoff coefficient...", 50, f)
         slope_file = cfg.spatials.slope
         soil_texture_raster = cfg.spatials.soil_texture
         runoff_coef_file = cfg.spatials.runoff_coef
-        LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
+        # LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
+        #                                             soil_texture_raster,
+        #                                             runoff_coef_file, cfg.imper_perc_in_urban)
+        LanduseUtilClass.generate_runoff_coefficent(maindb, landcover, slope_file,
                                                     soil_texture_raster,
                                                     runoff_coef_file, cfg.imper_perc_in_urban)
         status_output("Landuse/Landcover related spatial parameters extracted done!", 100, f)

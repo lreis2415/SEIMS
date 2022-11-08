@@ -183,6 +183,16 @@ public:
 			"Set function of parameter " + string(key) + " is not implemented.");
 	}
 
+	//virtual void SetRasterRows( int rows) {
+	//	throw ModelException("SimulationModule", "SetRasterRows",
+	//		"Set function of parameter rows is not implemented.");
+	//}
+
+	//virtual void SetRasterCols( int cols) {
+	//	throw ModelException("SimulationModule", "SetRasterCols",
+	//		"Set function of parameter cols is not implemented.");
+	//}
+
 	// set 1D Array which stores reach depth data in each cell of raster 
 	//virtual void SetReachDepthData(FloatRaster* ch_depth) {
 	//	throw ModelException("SimulationModule", "SetReachDepthData",

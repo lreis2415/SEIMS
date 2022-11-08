@@ -105,22 +105,22 @@ class ImportMongodbClass(object):
 
         # import stream parameters
         status_output('Generating reach table with initialized parameters...', 40, f)
-        ImportReaches2Mongo.generate_reach_table(cfg, maindb)                           # 将河道数据导入到数据库REACHS表中
+        # ImportReaches2Mongo.generate_reach_table(cfg, maindb)                           # 将河道数据导入到数据库REACHS表中
 
         # import raster data to MongoDB
         status_output('Importing raster to MongoDB....', 50, f)
-        ImportMongodbClass.spatial_rasters(cfg, 0)
-        ImportMongodbClass.spatial_rasters(cfg, n_subbasins)
+        # ImportMongodbClass.spatial_rasters(cfg, 0)
+        # ImportMongodbClass.spatial_rasters(cfg, n_subbasins)
 
         # Import IUH
         status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60, f)
-        ImportMongodbClass.iuh(cfg, 0)
-        ImportMongodbClass.iuh(cfg, n_subbasins)
+        # ImportMongodbClass.iuh(cfg, 0)
+        # ImportMongodbClass.iuh(cfg, n_subbasins)
 
         # Import grid layering data
         status_output('Generating and importing grid layering....', 70, f)
-        ImportMongodbClass.grid_layering(cfg, 0)
-        ImportMongodbClass.grid_layering(cfg, n_subbasins)
+        # ImportMongodbClass.grid_layering(cfg, 0)
+        # ImportMongodbClass.grid_layering(cfg, n_subbasins)
 
         # Import hydro-climate data
         status_output('Import climate data....', 80, f)
