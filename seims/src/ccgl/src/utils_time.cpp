@@ -72,6 +72,43 @@ string ConvertToString2(const time_t date, const bool utc_time /* = true */) {
     delete date_info;
     return s;
 }
+/// format: 2022_11_17_092000
+string ConvertToString3(const time_t date, const bool utc_time /* = true */) {
+	static int month_days[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	struct tm* date_info = new tm();
+	GetDateTime(date, date_info, utc_time);
+	if (date_info->tm_isdst > 0) {
+		if (date_info->tm_hour != 0) {
+			date_info->tm_hour -= 1;
+		}
+		else {
+			date_info->tm_hour = 23;
+			date_info->tm_mday -= 1;
+			if (date_info->tm_mday == 0) {
+				date_info->tm_mon -= 1;
+
+				if (date_info->tm_mon == 0) {
+					date_info->tm_year -= 1;
+					date_info->tm_mon = 12;
+					date_info->tm_mday = 31;
+				}
+				else {
+					if (IsLeapYear(date_info->tm_year)) {
+						date_info->tm_mday = month_days[date_info->tm_mon] + 1;
+					}
+					else {
+						date_info->tm_mday = month_days[date_info->tm_mon];
+					}
+				}
+			}
+		}
+	}
+	char date_string[30];
+	strftime(date_string, 30, "%Y_%m_%d_%H%M%S", date_info);
+	string s(date_string);
+	delete date_info;
+	return s;
+}
 
 time_t ConvertToTime(const string& str_date, string const& format, const bool include_hour,
                      const bool utc_time /* = true */) {

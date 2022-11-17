@@ -103,6 +103,7 @@
 #define Tag_Minimum                            "MIN"
 #define Tag_Maximum                            "MAX"
 #define Tag_SpecificCells                      "SPECIFIC"
+#define Tag_TimeSeries							"TS"
 
 #define TAG_OUT_QOUTLET                        "QOUTLET"
 #define TAG_OUT_QTOTAL                         "QTotal"

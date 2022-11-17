@@ -299,6 +299,8 @@ void ModelMain::AppendOutputData(const time_t time) {
                     //cout << keyName << " " << n << endl;
                     module->Get1DData(keyName, &n, &data);
                     item->AggregateData(time, n, data);
+					// 添加1DRaster的时间序列tif
+					//item->add1DRasterTimeSeriesResult(time, n, data);
                 } else if (param->Dimension == DT_Raster2D) {
                     // spatial distribution with layers
                     int n, lyrs;

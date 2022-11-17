@@ -33,9 +33,10 @@ Surface Runoff,EXCP,Excess precipitation,mm,SUM,1970/1/1 0:00,1970/1/1 0:00,-999
 Surface Runoff,SOLST,Soil storage of each soil layer,mm/mm,SUM-AVE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,SOLST.tif,0
 Surface Runoff,SOLSW,Soil storage of soil profile,mm/mm,SUM,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,SOLSW.tif,0
 Surface Runoff,SURU,Surface Runoff,mm,AVE-MAX-MIN,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,ALL,SURU.tif,0
-Surface Runoff,OUTLET_Q,outlet flow speed,m3/s,NONE,2016/6/17 0:00,2016/6/18 0:00,7200,SEC,OUTLET,OUTLET_Q.txt,0
-Surface Runoff,OUTLET_V,outlet flow volume,m3,NONE,2016/6/17 0:00,2016/6/18 0:00,7200,SEC,OUTLET,OUTLET_V.txt,0
-Surface Runoff,QOverland,QOverland,m3/s,SUM-AVE,2016/6/17 0:00,2016/6/18 0:00,7200,SEC,ALL,Qoverland.tif,0
+Surface Runoff,OUTLET_Q,outlet flow speed,m3/s,NONE,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,OUTLET,OUTLET_Q.txt,0
+Surface Runoff,OUTLET_V,outlet flow volume,m3,NONE,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,OUTLET,OUTLET_V.txt,0
+Surface Runoff,QOverland,QOverland,m3/s,AVE-MAX-MIN,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,ALL,Qoverland.tif,0
+Surface Runoff,SUR_WRT_DEPTH,surface runoff depth(spatially for output of casc2d module),mm,AVE-MAX-MIN,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,ALL,SUR_WRT_DEPTH.tif,0
 Depression,DPST,Depression storage,mm,SUM,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,DPST.tif,0
 Depression,DEET,Depression ET,mm,SUM,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,DEET.tif,0
 Percolation,PERCO,Percolation,mm,SUM-AVE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,PERCO.tif,0
@@ -135,9 +136,9 @@ ChannelRouting,QI,Interflow at each reach outlet,m3/s,NONE,1970/1/1 0:00,1970/1/
 ChannelRouting,QG,Groundwater discharge at each reach outlet,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,QG.txt,0
 ChannelRouting,CHST,channel storage,m3,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CHST.txt,0
 ChannelRouting,SEEPAGE,seepage,m3,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,SEEPAGE.txt,0
-ChannelRouting,CHWTRDEPTH,channel water depth,m,NONE,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,OUTLET,CHWTRDEPTH.txt,0
+ChannelRouting,CHWTRDEPTH,channel water depth,m,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CHWTRDEPTH.txt,0
 ChannelRouting,CHWTRWIDTH,channel water width,m,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CHWTRWIDTH.txt,0
-ChannelRouting,CH_WRT_DEPTH,channel water depth,mm,AVE-MAX-MIN,2016/6/17 0:00,2016/6/18 0:00,7200,SEC,ALL,CH_WRT_DEPTH.tif,0
+ChannelRouting,CH_WRT_DEPTH,channel water depth,mm,AVE-MAX-MIN,2016/6/17 0:00,2016/6/18 0:00,-9999,-9999,ALL,CH_WRT_DEPTH.tif,0
 NutrientTransport,CH_CHLORAConc,chlorophyll-a concentration in reach,mg/L,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CH_CHLORAConc.txt,0
 NutrientTransport,CH_CODConc,carbonaceous oxygen demand in reach,mg/L,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CH_CODConc.txt,0
 NutrientTransport,CH_SOLPConc,dissolved phosphorus concentration in reach,mg/L,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,CH_SOLPConc.txt,0

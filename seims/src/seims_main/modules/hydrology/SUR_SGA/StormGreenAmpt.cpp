@@ -170,45 +170,51 @@ int StormGreenAmpt::Execute(void) {
 
     // allocate intermediate variables
     if (m_capillarySuction == NULL) {
+		// 土壤毛细吸头
         m_capillarySuction = new float[m_nCells];
+		// 累积渗透深度
         m_accumuDepth = new float[m_nCells];
 
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_accumuDepth[i] = 0.0f;
+			// 根据第1层土壤的孔隙度、粘土占比、沙土占比计算土壤毛细吸头
             m_capillarySuction[i] = CalculateCapillarySuction(m_porosity[i][0], m_clay[i][0] * 100, m_sand[i][0] * 100);
         }
     }
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         float t = 10.f;
         /// TODO change to m_tMean
+		// 最高温度、最低温度, 计算平均温度
         if (m_tMax != NULL && m_tMin != NULL) {
             t = (m_tMax[i] + m_tMin[i]) / 2.f;
         }
+		// 融雪径流，optional
         float snowMelt = 0.f;
         float snowAcc = 0.f;
         if (m_snowMelt != NULL) {
             snowMelt = m_snowMelt[i];
         }
+		// 融雪积累，optional
         if (m_snowAccu != NULL) {
             snowAcc = m_snowAccu[i];
         }
-
+		// 水深=降雨深度
         float hWater = m_pNet[i];
         //account for the effects of snow melt and soil temperature
         // snow, without snow melt
         if (t <= m_tSnow) {
             hWater = 0.0f;
         }
-            // rain on snow, no snow melt
+        // rain on snow, no snow melt
         else if (t > m_tSnow && t <= m_t0 && snowAcc > hWater) {
             hWater = 0.0f;
         } else {
             hWater = m_pNet[i] + m_sd[i] + snowMelt;
         }
-
+		// 水深=降雨深度+地表径流水深
         hWater += m_sr[i];
 
         // effective matric potential (m)
@@ -222,6 +228,7 @@ int StormGreenAmpt::Execute(void) {
         float p2 = ks * (infilDepth + matricPotential);
         // infiltration rate (m/s)
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
+		//cout << " " << infilRate*3600*1000 << " ";
 		//printf("m_soilMoisture[%d]:%lf", i, m_soilMoisture[i]);
 		//printf("m_rootDepth[%d][0]:%lf",i, m_rootDepth[i][0]);
 		//printf("m_porosity[%d][0]:%lf", i, m_porosity[i][0]);
@@ -265,6 +272,10 @@ int StormGreenAmpt::Execute(void) {
             m_infil[i] = 0.0f;
             m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
         }
+		//if (i % 100 == 0)
+		//{
+		//	cout << "m_pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << " hWater: " << hWater << " m_infil: " << m_infil[i] <<  " Surplus: " << m_infilCapacitySurplus[i] << endl;
+		//}
     }
 
     return 0;

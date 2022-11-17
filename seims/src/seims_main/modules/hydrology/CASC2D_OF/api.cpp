@@ -39,10 +39,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 	mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
 	mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
 	mdi.AddParameter(Tag_FLOWOUT_INDEX_D8, UNIT_NON_DIM, DESC_FLOWOUT_INDEX_D8, Source_ParameterDB, DT_Array1D);
+	mdi.AddParameter(Tag_FLOWIN_INDEX_D8, UNIT_NON_DIM, DESC_FLOWIN_INDEX_D8, Source_ParameterDB, DT_Array2D);
+	mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
+
 	//暂时初始化为0，不从外部读入
 	//mdi.AddParameter(VAR_SUR_SDEP, UNIT_DEPTH_MM, DESC_SUR_SDEP, Source_ParameterDB, DT_Array1D);
 	mdi.AddParameter(REACH_DEPTH, UNIT_NON_DIM, DESC_REACH_DEPTH_SPATIAL, Source_ParameterDB, DT_Raster1D);
+	mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);
 	mdi.AddParameter(Type_RasterPositionData, UNIT_NON_DIM, DESC_RasterPositionData, Source_ParameterDB, DT_Raster1D);
+	mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
 
 	/// Set inputs from other modules (Source_Module or Source_Module_Optional)
 
@@ -55,8 +60,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 	mdi.AddOutput(VAR_QOVERLAND, UNIT_FLOW_CMS, DESC_QOVERLAND, DT_Raster1D);
 	mdi.AddOutput(VAR_OUTLET_Q, UNIT_FLOW_CMS, DESC_OUTLET_Q, DT_Single);
 	mdi.AddOutput(VAR_OUTLET_V, UNIT_VOL_M3, DESC_OUTLET_V, DT_Single);
-	mdi.AddOutput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, DT_Raster1D);
-	mdi.AddOutput(VAR_CH_WRT_DEPTH, UNIT_DEPTH_MM, DESC_CH_WRT_DEPTH, DT_Raster1D);
+	mdi.AddOutput(VAR_SUR_WRT_DEPTH, UNIT_DEPTH_MM, DESC_SURU, DT_Raster1D);
+	mdi.AddOutput(VAR_CH_WRT_DEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, DT_Raster1D);
     /// Set In/Output variables with transferred data type
 
 

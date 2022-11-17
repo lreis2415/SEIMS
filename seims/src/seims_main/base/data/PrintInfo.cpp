@@ -57,6 +57,15 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
+void PrintInfoItem::add1DRasterTimeSeriesResult(time_t t, int n, const float* data) {
+	float* temp = new float[n];
+	for (int i = 0; i < n; i++) {
+		temp[i] = data[i];
+	}
+	TimeSeriesDataForRaster[t] = temp;
+	TimeSeriesDataForRasterCount = n;
+}
+
 void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     /*   Currently, I cannot find a way to store GridFS files with the same filename but with
@@ -134,6 +143,16 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         }
         return;
     }
+	if (!TimeSeriesDataForRaster.empty() && SubbasinID != -1)
+	{
+		//time series data for .tif
+		for (auto it = TimeSeriesDataForRaster.begin(); it != TimeSeriesDataForRaster.end(); ++it) {
+			//for (int i = 0; i < TimeSeriesDataForRasterCount; i++) {}
+			string filename = Filename + "_" + ConvertToString3(it->first);
+			// todo 为啥没有输出
+			FloatRaster(templateRaster, it->second).OutputToFile(projectPath + filename + "." + Suffix);
+		}
+	}
     if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) {
         //time series data for subbasin
         std::ofstream fs;
@@ -378,9 +397,18 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
                         }
                     }
                     break;
+				//case AT_TimeSeries:
+				//	if (!FloatEqual(data[rw], NODATA_VALUE)) {
+				//		m_1DData[rw] = data[rw];
+				//	}
+				//	break;
                 default: break;
             }
         }
+		if (m_AggregationType == AT_TimeSeries)
+		{
+			add1DRasterTimeSeriesResult(time, m_nRows, data);
+		}
         m_Counter++;
     }
 }
@@ -491,6 +519,9 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
     if (StringMatch(type, Tag_SpecificCells)) {
         res = AT_SpecificCells;
     }
+	if (StringMatch(type, Tag_TimeSeries)) {
+		res = AT_TimeSeries;
+	}
     return res;
 }
 

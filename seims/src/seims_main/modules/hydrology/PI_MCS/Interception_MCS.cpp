@@ -31,7 +31,9 @@ clsPI_MCS::~clsPI_MCS() {
 void clsPI_MCS::Set1DData(const char* key, int nrows, float* data) {
     CheckInputSize(MID_PI_MCS, key, nrows, m_nCells);
     string s(key);
-    if (StringMatch(s, VAR_PCP)) m_pcp = data;
+	if (StringMatch(s, VAR_PCP)){
+		m_pcp = data;
+	}
     else if (StringMatch(s, VAR_PET)) {
 #ifndef STORM_MODE
         m_pet = data;
@@ -100,8 +102,9 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+		// 如果当前时间步长的降雨量>0
         if (m_pcp[i] > 0.f) {
 #ifdef STORM_MODE
             /// correction for slope gradient, water spreads out over larger area
@@ -115,45 +118,72 @@ int clsPI_MCS::Execute() {
             float max = m_maxIntcpStoCap[i];
             float capacity = min + (max - min) * pow(0.5f + 0.5f * sin(degree), m_intcpStoCapExp);
 
+			// capacity是最大截留能力,m_canSto[i]是截止当前累计的截留量(林冠截留能力),availableSpace是剩余的截留容量
             //interception, currently, m_st[i] is storage of (t-1) time step
             float availableSpace = capacity - m_canSto[i];
             if (availableSpace < 0) {
                 availableSpace = 0.f;
             }
-
+			// 如果剩余的截留容量 < 当前时间步长的降雨量
             if (availableSpace < m_pcp[i]) {
+				// 令 截留损失 = 剩余的截留容量，即把剩余的截留容量耗光
                 m_intcpLoss[i] = availableSpace;
-                //if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
+				// 如果土地利用类型是稻田，就默认把15%的降雨分配给路堤区域
+                // if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
                 if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
-                    //water added into ditches from low embankment, should be added to somewhere else.
+					// m_embnkFr 落入路堤的降雨百分比(default 15%)
+					// m_pcp2CanalFr 落入路堤的降雨中，进入沟渠的百分比(default 50%)
+                    // water added into ditches from low embankment, should be added to somewhere else.
                     float pcp2canal = m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
+					// 净雨量 = 降雨 - 冠层截留损失 - 落入路堤且进入沟渠的降雨
                     m_netPcp[i] = m_pcp[i] - m_intcpLoss[i] - pcp2canal;
                 } else {
                     //net precipitation
+					//净雨量 = 降雨 - 冠层截留损失
                     m_netPcp[i] = m_pcp[i] - m_intcpLoss[i];
                 }
             } else {
+				// 如果剩余的截留容量 >= 当前时间步长的降雨量，令截留损失 = 当前时间步长的降雨量
                 m_intcpLoss[i] = m_pcp[i];
+				// 净雨量 = 0
                 m_netPcp[i] = 0.f;
             }
-
+			// 累计截留量 加上 截留损失
             m_canSto[i] += m_intcpLoss[i];
         } else {
+			// 如果当前时间步长的降雨量=0,则截留损失=0，净雨量=0
             m_intcpLoss[i] = 0.f;
             m_netPcp[i] = 0.f;
         }
+		//if (i % 100 == 0)
+		//{
+		//	cout << "m_pcp: " << m_pcp[i] << " m_intcpLoss: " << m_intcpLoss[i] << " m_canSto: " << m_canSto[i] << " m_netPcp: " << m_netPcp[i] << endl;
+		//}
 #ifndef STORM_MODE
         //evaporation
 		//xdw 暂时注释掉，在次降水模拟中，暂时不考虑蒸散；
-        //if (m_canSto[i] > m_pet[i]) {
-        //    m_IntcpET[i] = m_pet[i];
-        //} else {
-        //    m_IntcpET[i] = m_canSto[i];
-        //}
+		//如果累计截留量 > 日潜在蒸散,则令蒸发损失=日潜在蒸散
+		/*
+        if (m_canSto[i] > m_pet[i]) {
+            m_IntcpET[i] = m_pet[i];
+        } else {
+			//否则令蒸发损失=累计截留量
+            m_IntcpET[i] = m_canSto[i];
+        }
 		m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
+		*/
 #endif
     }
+	float total_netPcp = 0.0;
+	float ave_netPcp = 0.0;
+	// 计算当前时间步长上的平均净雨量
+	for (int i = 0; i < m_nCells; i++)
+	{
+		total_netPcp += m_netPcp[i];
+	}
+	ave_netPcp = total_netPcp / m_nCells;
+	cout << "average net precipation: " << ave_netPcp << "mm" << endl;
     return 0;
 }
 

@@ -77,7 +77,7 @@ public:
 
 	void ChannRout();
 
-	void chnchn(int reachIndex, int nReaches, int iCell, vector<int> vecCells);
+	void chnchn(int reachIndex, int curReachId, int nReaches, int iCell, vector<int> vecCells);
 
 	void RoutOutlet();
 
@@ -103,6 +103,23 @@ private:
 	vector<int> m_subbasinIDs;
 	//! All subbasins information
 	clsSubbasins* m_subbasinsInfo;
+
+	/// id of source cells of reaches
+	/// 河道的
+	int *m_sourceCellIds;
+	/**
+	*	@brief 2d array of flow in cells
+	*
+	*	The first element in each sub-array is the number of flow in cells in this sub-array
+	*   存储每个栅格单元的入流单元
+	*   例如:
+	*          [[2, 100,200],[3,101,201,202]]
+	*          表示第一个栅格单元的入流单元有2个，id分别为100和200；第二个栅格单元的入流单元有3个，id分别为101，201，202
+	*/
+	float **m_flowInIndex;
+
+	/// map from subbasin id to index of the array
+	map<int, int> m_idToIndex;
 	//! reach depth data from SPATIAL collection
 	//FloatRaster* m_reachDepth;
 	//float* m_chDepth;

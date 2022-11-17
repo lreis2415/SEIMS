@@ -28,7 +28,8 @@ enum AggregationType {
     AT_Average = 2,      ///< average
     AT_Minimum = 3,      ///< minimum
     AT_Maximum = 4,      ///< maximum
-    AT_SpecificCells = 5 ///< specific cells
+    AT_SpecificCells = 5, ///< specific cells
+	AT_TimeSeries = 6              /// raster time series
 };
 
 /*!
@@ -63,9 +64,16 @@ public:
     map<time_t, float *> TimeSeriesDataForSubbasin;
     //! Count of #TimeSeriesDataForSubbasin
     int TimeSeriesDataForSubbasinCount;
+	//! For time series data of DT_Raster1D(output some .tif files. Distinct from TimeSeriesDataForSubbasin,which output some .txt files)
+	map<time_t, float *> TimeSeriesDataForRaster;
+	//! Count of #TimeSeriesDataForRaster
+	int TimeSeriesDataForRasterCount;
 
     //! Add 1D time series data result to #TimeSeriesDataForSubbasin
     void add1DTimeSeriesResult(time_t, int n, const float* data);
+
+	//! Add 1D time series data result to #TimeSeriesDataForRaster
+	void add1DRasterTimeSeriesResult(time_t, int n, const float* data);
 
     //! used only by PET_TS???
     ///< The site id

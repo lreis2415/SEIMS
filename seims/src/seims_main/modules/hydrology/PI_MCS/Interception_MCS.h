@@ -81,6 +81,7 @@ private:
     /* Results */
 
     //! current interception storage, the initial value equal to 0, mm
+	// 累计截留量，即林冠截留能力
     float* m_canSto;
     //! Interception loss, mm
     float* m_intcpLoss;
