@@ -940,10 +940,14 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
     // SNMN = 0.f, PN4 = 0.f, ALMCO2 = 0.f, ALSLCO2 = 0.f, ALSLNCO2 = 0.f, LSLNCAT = 0.f . NOT used in this module
     // XBMT = 0.f, XLSLF = 0.f, LSLF = 0.f, LSF = 0.f, LMF = 0.f, x3 = 0.f
     /// calculate tillage factor using DSSAT
-    if (FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
-        m_tillFactor[i] = 1.6f;
-    } else {
-        m_tillFactor[i] = 1.f;
+    if (m_tillDays != nullptr)
+    {
+        if (FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
+            m_tillFactor[i] = 1.6f;
+        }
+        else {
+            m_tillFactor[i] = 1.f;
+        }
     }
 
     /// calculate C/N dynamics for each soil layer
@@ -973,7 +977,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             //compute tillage factor (x1)
             x1 = 1.f;
             // calculate tillage factor using DSSAT
-            if (FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
+            if (m_tillDays != nullptr && FloatEqual(m_tillSwitch[i], 1.f) && m_tillDays[i] <= 30.f) {
                 if (k == 1) {
                     x1 = 1.6f;
                 } else {

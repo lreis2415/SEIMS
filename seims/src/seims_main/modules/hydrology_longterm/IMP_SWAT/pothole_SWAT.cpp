@@ -211,7 +211,7 @@ int IMP_SWAT::Execute() {
 #pragma omp parallel for
         for (int icell = 1; icell <= ncells; icell++) {
             int id = CVT_INT(m_rteLyrs[ilyr][icell]); // cell index
-            if (FloatEqual(m_impoundTrig[id], 0.f)) {
+            if (nullptr != m_impoundTrig && FloatEqual(m_impoundTrig[id], 0.f)) {
                 /// if impounding trigger on
                 PotholeSimulate(id);
             } else {

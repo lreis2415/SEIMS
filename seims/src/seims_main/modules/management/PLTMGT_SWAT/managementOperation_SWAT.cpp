@@ -788,7 +788,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
             if (vmm > vmxi) vmm = vmxi;
             vol = vmm * cnv;
             float pot_fr = 0.f;
-            if (FloatEqual(m_impndTrig[i], 0.f) && m_potVol != nullptr) {
+            if (m_potVol != nullptr && m_impndTrig != nullptr && FloatEqual(m_impndTrig[i], 0.f)) {
                 /// m_impoundTrig equals to 0 means pot_fr is 1.
                 /// and m_impoundArea is set to m_cellArea.
                 pot_fr = 1.f;
