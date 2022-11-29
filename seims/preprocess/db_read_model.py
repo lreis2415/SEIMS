@@ -58,13 +58,15 @@ class ReadModelData(object):
         # type: (...) -> AnyStr
         climtbl = self.maindb[DBTableNames.main_sitelist]
         allitems = climtbl.find()
-        if not allitems.count():
-            raise RuntimeError('%s Collection is not existed or empty!' %
-                               DBTableNames.main_sitelist)
+        found_flag = False
         for item in allitems:
             if FieldNames.db in item:
                 self._climdb_name = item.get(FieldNames.db)
+                found_flag = True
                 break
+        if not found_flag:
+            raise RuntimeError('%s Collection is not existed or empty!' %
+                               DBTableNames.main_sitelist)
         return self._climdb_name
 
     @property
@@ -72,13 +74,15 @@ class ReadModelData(object):
         # type: (...) -> AnyStr
         scentbl = self.maindb[DBTableNames.main_scenario]
         allitems = scentbl.find()
-        if not allitems.count():
-            raise RuntimeError('%s Collection is not existed or empty!' %
-                               DBTableNames.main_scenario)
+        found_flag = False
         for item in allitems:
             if FieldNames.db in item:
                 self._scenariodb_name = item.get(FieldNames.db)
+                found_flag = True
                 break
+        if not found_flag:
+            raise RuntimeError('%s Collection is not existed or empty!' %
+                               DBTableNames.main_scenario)
         return self._scenariodb_name
 
     @property

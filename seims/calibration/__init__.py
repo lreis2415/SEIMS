@@ -3,7 +3,7 @@ Calibration by optimization algorithms e.g. NSGA-II.
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018-2021 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *

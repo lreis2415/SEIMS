@@ -22,7 +22,7 @@ import numpy
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3.
         mpl.use('Agg', warn=False)
     except TypeError:
         mpl.use('Agg')
@@ -31,6 +31,7 @@ import matplotlib.pyplot as plt
 
 from typing import Optional
 from pygeoc.utils import StringClass, is_string
+from pymongo import MongoClient
 
 from utility import save_png_eps, PlotConfig
 import global_mongoclient as MongoDBObj
@@ -39,7 +40,7 @@ from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 
 def write_param_values_to_mongodb(spatial_db, param_defs, param_values):
     # update Parameters collection in MongoDB
-    conn = MongoDBObj.client
+    conn = MongoDBObj.client  # type: MongoClient
     db = conn[spatial_db]
     collection = db['PARAMETERS']
     collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})

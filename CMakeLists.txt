@@ -18,9 +18,9 @@
 #     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Jul. 6, 2022
+#  Latest updated: Nov. 29, 2022
 #
-#  Copyright (C) 2013-2019 Lreis, IGSNRR, CAS, and NJNU
+#  Copyright (C) 2013-2022 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -96,7 +96,10 @@ ELSE()
         SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
     ENDIF ()
 ENDIF ()
+
+SET(INSTALL_PREFIX ${INSTALL_DIR})
 SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
+
 SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
 
 ### Allow project folders in MSVC and Xcode.

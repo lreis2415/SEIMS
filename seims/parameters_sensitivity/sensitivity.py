@@ -28,7 +28,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3.
         mpl.use('Agg', warn=False)
     except TypeError:
         mpl.use('Agg')
@@ -36,6 +36,7 @@ import matplotlib.pyplot as plt
 import numpy
 from typing import List
 from pygeoc.utils import FileClass, UtilClass
+from pymongo import MongoClient
 # Morris screening method
 from SALib.sample.morris import sample as morris_spl
 from SALib.analyze.morris import analyze as morris_alz
@@ -93,7 +94,7 @@ class Sensitivity(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.model.db_name]
         stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
@@ -130,7 +131,7 @@ class Sensitivity(object):
                     self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
                 return
         # read param_range_def file and output to json file
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.model.db_name]
         collection = db['PARAMETERS']
 
@@ -144,8 +145,7 @@ class Sensitivity(object):
             if len(item) < 3:
                 continue
             # find parameter name, print warning message if not existed
-            cursor = collection.find({'NAME': item[0]}, no_cursor_timeout=True)
-            if not cursor.count():
+            if collection.count_documents({'NAME': item[0]}) <= 0:
                 print('WARNING: parameter %s is not existed!' % item[0])
                 continue
             num_vars += 1
@@ -211,7 +211,7 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.model.db_name]
         collection = db['PARAMETERS']
         collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})

@@ -15,26 +15,21 @@ networkx>=1.10,<=2.2;python_version<'3.5'
 networkx>=1.10;python_version>='3.5'
 pathlib2>=2.0.0
 six
+future
 
 # Python 2.7.x only
 configparser;python_version<'3'
 
-# scoop>=0.7.1.1
+# scoop, latest
 https://github.com/soravux/scoop/archive/master.zip
 
-# Avoid the error: use_2to3 is invalid when install from DEAP/deap,
-#   we should install setuptools==57.5.0 manually, since use_2to3 was deprecated ever since.
-#setuptools==57.5.0
-#https://github.com/DEAP/deap/archive/master.zip
-#
-# Alternatively, we can install the revised deap from https://github.com/keszybz/deap
-#
-https://github.com/keszybz/deap/archive/2to3.zip
+# DEAP, latest
+https://github.com/DEAP/deap/archive/master.zip
 
 #SALib>=1.2;python_version>'3'
 # SALib uses PyScaffold which is not compatible with Py27 since version 3.
 #   So, I decided to use SALib 1.2 for Py27.
 SALib<1.3;python_version<'3'
 
-# PyGeoC
+# PyGeoC, latest
 https://github.com/lreis2415/PyGeoC/archive/master.zip

@@ -23,7 +23,7 @@ from numpy import zeros as np_zeros
 from preprocess.db_mongodb import MongoQuery
 from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
-from preprocess.utility import UTIL_ZERO
+from utility import UTIL_ZERO
 
 
 class ImportWeightData(object):
@@ -270,11 +270,11 @@ class ImportWeightData(object):
                 cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
 
                 # meteorology station can also be used as precipitation station
-                if cursor.count() == 0 and type_list[type_i] == DataType.p:
+                if hydro_clim_db[DBTableNames.sites].count_documents(q_dic).count() == 0 and\
+                    type_list[type_i] == DataType.p:
                     q_dic = {StationFields.id.upper(): {'$in': site_list},
                              StationFields.type.upper(): DataType.m}
-                    cursor = hydro_clim_db[DBTableNames.sites].find(q_dic). \
-                        sort(StationFields.id, 1)
+                    cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
 
                 # get site locations
                 id_list = list()
@@ -286,7 +286,7 @@ class ImportWeightData(object):
                 # print('loclist', locList)
                 # interpolate using the locations
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,subbsn_id,
+                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id,
                                                     type_list[type_i]), 'w') as f_test:
                     for y in range(0, ysize):
                         for x in range(0, xsize):
@@ -301,7 +301,6 @@ class ImportWeightData(object):
                                 fmt = '%df' % (len(loc_list))
                                 f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
                 myfile.close()
-
 
     @staticmethod
     def workflow(cfg, conn, n_subbasins):

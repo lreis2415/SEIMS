@@ -38,20 +38,26 @@ SEIMS is still being developing and any constructive feedback
 
 ## Installation
 
+### Python environment
 Install Python environment for running pySEIMS,
 including preprocess, postprocess, parameters_sensitivity,
 calibration, and scenario_analysis
 
 We recommend to use Python3.x, although Python2.7 is still supported.
+`Conda` is highly recommended to run pySEIMS.
+Please use the following commands in Anaconda shell to config python environment for SEIMS.
 
 ```bash
 cd SEIMS/seims
-conda env create -f environment_py39.yml
-conda activate py39_seims
-pip install --timeout 1000 "https://github.com/keszybz/deap/archive/2to3.zip"
+conda env create -f pyseims_env.yml
+conda activate pyseims
 pip install --timeout 1000 "https://github.com/soravux/scoop/archive/master.zip"
+pip install --timeout 1000 "https://github.com/DEAP/deap/archive/master.zip"
 pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
 ```
+
+### C++ compilation
+TODO.
 
 ## Selected peer-reviewed papers
 

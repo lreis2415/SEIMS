@@ -62,7 +62,7 @@ class ModelPaths(object):
 
     def __init__(self, bpath, data_dir_name, model_dir_name):
         self.mpi_bin = None
-        self.bin_dir = bpath + os.path.sep + 'bin'
+        self.bin_dir = bpath + os.path.sep + 'build' + os.path.sep + 'bin'
         self.prescript_dir = bpath + os.path.sep + 'seims' + os.path.sep + 'preprocess'
         self.base_dir = bpath + os.path.sep + 'data' + os.path.sep + data_dir_name
         self.cfg_dir = self.base_dir + os.path.sep + 'model_configs'
