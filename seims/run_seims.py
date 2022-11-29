@@ -369,7 +369,7 @@ class MainSEIMS(object):
         """Should be invoked outset of this script and followed by `UnsetMongoClient`
         """
         if self.mongoclient is None:
-            self.mongoclient = MongoDBObj.client
+            self.mongoclient = MongoDBObj.client  # type: MongoClient
 
     def ConnectMongoDB(self):
         """Connect to MongoDB if no connected `MongoClient` is available

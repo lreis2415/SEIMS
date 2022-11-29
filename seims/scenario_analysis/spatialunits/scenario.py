@@ -25,6 +25,7 @@ from gridfs import GridFS
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser, is_string
 from pymongo.errors import NetworkTimeout
+from pymongo import MongoClient
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
@@ -66,9 +67,7 @@ class SUScenario(Scenario):
         Each BMP is stored in Collection as one item identified by 'SUBSCENARIO' field,
         so the `self.bmps_params` is dict with BMP_ID ('SUBSCENARIO') as key.
         """
-        # client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
-        # conn = client.get_conn()
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         scenariodb = conn[self.scenario_db]
 
         bmpcoll = scenariodb[self.cfg.bmps_coll]
@@ -104,11 +103,13 @@ class SUScenario(Scenario):
                         v = [int(abs(nv)) for nv in v]
                     self.bmps_params[curid][k] = v[:]
                 elif k == 'INCOME':
-                    v = StringClass.extract_numeric_values_from_string(v)
+                    if isinstance(v, int) or isinstance(v, float):
+                        v = [v]
+                    else:
+                        v = StringClass.extract_numeric_values_from_string(v)
                     self.bmps_params[curid][k] = v[:]
                 else:
                     self.bmps_params[curid][k] = v
-        # client.close()
 
     def get_suitable_bmps(self, types='LANDUSE'):
         # type: (Union[AnyStr, List[AnyStr]]) -> None
@@ -651,8 +652,6 @@ class SUScenario(Scenario):
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin
             # read dist_name from MongoDB
-            # client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
-            # conn = client.get_conn()
             conn = MongoDBObj.client
             maindb = conn[self.modelcfg.db_name]
             spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
@@ -665,7 +664,6 @@ class SUScenario(Scenario):
                                                                          no_cursor_timeout=True)[0]
             except NetworkTimeout or Exception:
                 # In case of unexpected raise
-                # client.close()
                 return
 
             ysize = int(slpposf['metadata'][RasterMetadata.nrows])
@@ -704,7 +702,6 @@ class SUScenario(Scenario):
                 outpath = self.scenario_dir + os.path.sep + 'Scenario_%d.tif' % self.ID
             RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
                                              srs, nodata_value)
-            # client.close()
 
     def calculate_profits_by_period(self):
         bmp_costs_by_period = [0.] * self.cfg.change_times
