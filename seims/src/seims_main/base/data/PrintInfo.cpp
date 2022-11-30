@@ -341,6 +341,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
     m_Counter++;
 }
 
+
 void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
@@ -405,10 +406,6 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
                 default: break;
             }
         }
-		if (m_AggregationType == AT_TimeSeries)
-		{
-			add1DRasterTimeSeriesResult(time, m_nRows, data);
-		}
         m_Counter++;
     }
 }

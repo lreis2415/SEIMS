@@ -89,6 +89,8 @@ public:
 
 
 private:
+	int counter;
+	fstream  Summ_file_fptr;
     int m_nCells; ///< valid cells number
 	int m_maxSoilLyrs;
 	float* m_nSoilLyrs;

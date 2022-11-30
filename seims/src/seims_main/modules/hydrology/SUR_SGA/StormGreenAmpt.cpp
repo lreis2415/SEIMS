@@ -226,13 +226,15 @@ int StormGreenAmpt::Execute(void) {
 
         float p1 = (float) (ks * dt - 2.0 * infilDepth);
         float p2 = ks * (infilDepth + matricPotential);
-        // infiltration rate (m/s)
+        // infiltration rate (m/s) 根据累计入渗深度计算出来的当前时间步长的下渗能力（最大下渗速率）
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
 		//cout << " " << infilRate*3600*1000 << " ";
 		//printf("m_soilMoisture[%d]:%lf", i, m_soilMoisture[i]);
 		//printf("m_rootDepth[%d][0]:%lf",i, m_rootDepth[i][0]);
 		//printf("m_porosity[%d][0]:%lf", i, m_porosity[i][0]);
-        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][0];
+		//infilCap是当前时间步长土壤还能容纳的最大入渗最大深度
+        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][4];
+		//cout << "m_ks: " << m_ks[i][0] << " ks: " << ks << " infilDepth: " << infilDepth << " infilRate: " << infilRate << " infilCap: " << infilCap << endl;
 
         if (hWater > 0) {
             // for frozen soil
@@ -242,10 +244,13 @@ int StormGreenAmpt::Execute(void) {
             //	m_infil[i] = 0.0f;
             //}
             //for saturation overland flow
+			// 当前的土壤湿度 > 土壤孔隙度，代表土壤水饱和了，则不下渗了；土壤湿度会随着下渗量的增加而增加
             if (m_soilMoisture[i] > m_porosity[i][0]) {
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = 0.f;
             } else {
+				// 取较小值的意思是，如果入渗能力*时间步长 < 最大入渗深度，就代表在当前时间步长下，土壤还能容纳这么多水的下渗（入渗能力*时间步长）
+				// 如果入渗能力*时间步长 > 最大入渗深度，就代表在当前时间步长下，土壤已经容纳不了这么多水的下渗（入渗能力*时间步长）
                 m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
 
                 //cout << m_infil[i] << endl;

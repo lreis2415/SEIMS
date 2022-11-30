@@ -66,7 +66,7 @@ int DepressionFS::Execute() {
         m_checkInput = false;
     }
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
 
         // sr is temporarily used to stored the water depth including the depression storage
@@ -109,35 +109,35 @@ int DepressionFS::Execute() {
 		//	m_depCap[i] = 0.f;
 		//}
     }
-	float total_Sd = 0.0;
-	float total_Sr = 0.0;
-	float total_StCS = 0.0;
-	float ave_Sd = 0.0;
-	float ave_Sr = 0.0;
-	float ave_StCS = 0.0;
+	//float total_Sd = 0.0;
+	//float total_Sr = 0.0;
+	//float total_StCS = 0.0;
+	//float ave_Sd = 0.0;
+	//float ave_Sr = 0.0;
+	//float ave_StCS = 0.0;
 
 	// 计算当前时间步长上的平均洼地水深，平均地表水深，平均剩余存储容量
-	for (int i = 0; i < m_nCells; i++)
-	{
-		total_Sd += m_sd[i];
-		total_Sr += m_sr[i];
-		total_StCS += m_storageCapSurplus[i];
-	}
-	if (total_Sd < 0.00001)
-	{
-		total_Sd = 0.f;
-	}
-	ave_Sd = total_Sd / m_nCells;
-	if (total_Sr < 0.00001)
-	{
-		total_Sr = 0.f;
-	}
-	ave_Sr = total_Sr / m_nCells;
-	if (total_StCS < 0.00001)
-	{
-		total_StCS = 0.f;
-	}
-	ave_StCS = total_StCS / m_nCells;
+	//for (int i = 0; i < m_nCells; i++)
+	//{
+	//	total_Sd += m_sd[i];
+	//	total_Sr += m_sr[i];
+	//	total_StCS += m_storageCapSurplus[i];
+	//}
+	//if (total_Sd < 0.00001)
+	//{
+	//	total_Sd = 0.f;
+	//}
+	//ave_Sd = total_Sd / m_nCells;
+	//if (total_Sr < 0.00001)
+	//{
+	//	total_Sr = 0.f;
+	//}
+	//ave_Sr = total_Sr / m_nCells;
+	//if (total_StCS < 0.00001)
+	//{
+	//	total_StCS = 0.f;
+	//}
+	//ave_StCS = total_StCS / m_nCells;
 	//cout << "average storage depression: " << ave_Sd << "mm" << endl;
 	//cout << "average surface runoff: " << ave_Sr << "mm" << endl;
 	//cout << "average storage surplus: " << ave_StCS << "mm" << endl;

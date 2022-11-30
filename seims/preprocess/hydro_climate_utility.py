@@ -113,6 +113,16 @@ class HydroClimateUtilClass(object):
         return time_sys, time_zone
 
     @staticmethod
+    def get_utcdatetime(value, tsys, tzone=None):
+        dt = StringClass.get_datetime(value)
+        if not StringClass.string_match(tsys, 'UTCTIME'):
+            if tzone is None:
+                tzone = time.timezone // 3600  # positive value for WEST
+            dt += timedelta(minutes=tzone * 60)
+        return dt
+
+
+    @staticmethod
     def get_utcdatetime_from_field_values(flds, values, tsys, tzone=None):
         """Get datetime from field-value lists.
 

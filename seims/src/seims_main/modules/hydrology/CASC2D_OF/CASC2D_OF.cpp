@@ -173,6 +173,8 @@ void CASC2D_OF::InitialOutputs() {
 	//m_outQ = 0.0;
 	//m_outV = 0.0;
 	if (m_InitialInputs) {
+
+		counter = 0;
 		// find source cells the reaches
 		m_sourceCellIds = new int[m_nreach];
 		//m_qsInput = new float[m_chNumber+1];
@@ -265,8 +267,26 @@ void CASC2D_OF::InitialOutputs() {
 
 
 int CASC2D_OF::Execute() {
+	//char Summ_file[80] = "F:\program\seims\SEIMS\data\test7\test7_longterm_model\OUTPUT0\Summ_file.txt";
+	string Summ_file = "F:\\program\\Summ_file.txt";
+
+	
 	CheckInputData();
 	InitialOutputs();
+	if (counter == 0 &&_access(Summ_file.c_str(), 0) == 0) {//文件存在删除
+		if (remove(Summ_file.c_str()) == 0) {
+			cout << "succeed to delete file.  " << endl;
+		}
+		else {
+			cout << "failed to delete file.  " << endl;
+		}
+	}
+	counter++;
+
+	//if (!Summ_file_fptr.is_open()) {
+	//	Summ_file_fptr.open(Summ_file, ios::app);
+	//	Summ_file_fptr << "timestamp " << counter << endl;
+	//}
 	/* Overland and channel depth updating												*/
 	double sub_t1 = TimeCounting();
 	OvrlDepth();
@@ -291,6 +311,7 @@ int CASC2D_OF::Execute() {
 	double sub_t6 = TimeCounting();
 	//cout << "route outlet  end, cost time: " << sub_t6 - sub_t5 << endl;
 	cout << "timestamp  end, cost time: " << sub_t6 - sub_t1 << endl;
+	//Summ_file_fptr.close();
 	return 0;
 }
 
@@ -312,7 +333,8 @@ void CASC2D_OF::OvrlDepth()
 	/* Applying the Rainfall to each Grid Cell within the Watershed */
 	// 遍历流域内的每个栅格单元
 	for (int i = 0; i < m_nCells; i++) {
-		/* 栅格单元上个时间步长（变化的）的地表水深度 = 上个时间步长的水流速率 * 时间单元 / 栅格面积	*/
+		/* dqov[j][k]是波速 m3/s */
+		/* hov 波高 = 波速 * 时间 / 栅格面积  m */
 		hov = m_chQ[i] * m_dt / (m_cellWth*m_cellWth);
 		/*逻辑变更：h的更新删去降雨、截留和下渗的影响，因为其他模块已经计算过，这里仅考虑径流速度引起的水深变化*/
 		//if (i % 100 == 0)
@@ -320,6 +342,15 @@ void CASC2D_OF::OvrlDepth()
 		//	cout << "m_chQ: " << m_chQ[i] << " m_surWtrDepth: " << m_surWtrDepth[i] << " hov: " << hov << " hov-new: " << hov + m_surWtrDepth[i] << endl;
 		//}
 		hov = hov + m_surWtrDepth[i] / 1000.f; //  mm -> m
+		if (hov < 0.0)
+		{
+			hov = 0.0f;
+			//else
+			//{
+			//	cout << "warning: hov: " << hov << " m_surWtrDepth[" << i << "]: " << m_surWtrDepth[i] << endl;
+			//	//throw ModelException("CASC2D_OF", "OvrlDepth", "hov at cell " + to_string(i) +  " is " + to_string(hov) +  " less than -0.0001");
+			//}
+		}
 		/* 更新全局地表水深*/
 		m_surWtrDepth[i] = hov * 1000.f;			// m -> mm
 		/* 将当前时间步长内的地表流速变化设为0*/
@@ -397,8 +428,13 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 
 	so = (m_dem[icell] - m_dem[rbCell]) / m_cellWth;			/* 河床坡度*/
 
-	dhdx = (m_surWtrDepth[rbCell] - m_surWtrDepth[icell]) / 1000.0f / m_cellWth;		/* dh/dx, 地表水深/栅格单元宽度，即地表水深坡度*/
+	dhdx = (m_surWtrDepth[rbCell] - m_surWtrDepth[icell]) / 1000.0f / m_cellWth;		/* 水力坡度*/
 
+	/* 在casc2d里sf翻译为摩擦比降，实际含义是附加比降。
+	  * 附加比降 = 波体水面比降 - 稳定流水面比降 ≈ 波体水面比降 - 河道坡度比降
+	  * 附加比降 < 0，代表涨洪，即对于波前，附加比降为正
+	  * 附加比降 > 0，代表落洪，即对于波后，附加比降为负
+	 */
 	sf = so - dhdx + (float)(1e-30);	/* 摩擦坡度*/
 
 	hh = m_surWtrDepth[icell] /1000.0f;                  /* 地表径流水深*/
@@ -410,10 +446,10 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 	if (!FloatEqual(m_streamLink[icell], NODATA_VALUE))
 	{
 		/* 如果栅格单元上的蓄水深度 > 河道深度，则河道上方的地表水深=栅格单元上的总蓄水深度-河道深度，否则地表水深=0.0*/
-		if (m_surSdep[icell] > m_chDepth[icell])
+		if (m_surSdep[icell] / 1000.0f > m_chDepth[icell])
 		{
-			/* 地表水深 = 河道内栅格单元上的总蓄水深度 - 河道深度（即高出河道部分的深度）*/
-			stordepth = (m_surSdep[icell] - m_chDepth[icell]) / 1000.0f;
+			/* 稳定流深度 = 河道内栅格单元上的总蓄水深度 - 河道深度（即高出河道部分的深度）*/
+			stordepth = m_surSdep[icell] / 1000.0f - m_chDepth[icell] ;
 			//cout << "stordepth >: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 		}
 		else
@@ -423,7 +459,7 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 
 		}
 	}
-	/* 在河道外，地表水深 = 栅格单元上的蓄水深度*/
+	/* 在河道外，稳定流深度 = 栅格单元上的蓄水深度*/
 	else
 	{
 		stordepth = m_surSdep[icell] / 1000.0f;
@@ -431,13 +467,17 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 
 	}
 
-	/* 摩擦比降 < 0，说明两个栅格单元之间的水流速度发生改变，因此要计算下个栅格单元的地表水深*/
+	/* 在casc2d里sf翻译为摩擦比降，实际含义是附加比降。
+	  * 附加比降 = 波体水面比降 - 稳定流水面比降 ≈ 波体水面比降 - 河道坡度比降
+	  * 附加比降 > 0，代表涨洪，即对于波前，附加比降为正
+	  * 附加比降 < 0，代表落洪，即对于波后，附加比降为负
+	  */
 	if (sf < 0)
 	{
 		/* 下一个地表单元的地表径流水深*/
 		hh = m_surWtrDepth[rbCell] / 1000.0f;		// mm -> m
 
-		if (hh <= 0.000001)
+		if (hh <= 0.0001)
 		{
 			hh = 0.0f;
 		}
@@ -448,11 +488,11 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 			//if (chancheck == 1 && link[jj][kk] > 0)
 		{
 			/* 下一个栅格单元上的蓄水深度 > 河道深度，理解为下一个河道地表单元的河道内已经蓄满水*/
-			if (m_surSdep[rbCell] > m_chDepth[rbCell])
+			if (m_surSdep[rbCell] / 1000.0f > m_chDepth[rbCell])
 			{
 				/* 下一个地表单元的地表水深*/
 				stordepth =
-					(m_surSdep[rbCell] - m_chDepth[rbCell]) / 1000.0f;
+					m_surSdep[rbCell] / 1000.0f - m_chDepth[rbCell];
 			}
 			else
 			{
@@ -466,7 +506,7 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//cout << "stordepth sf: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 
 	}
-	if (stordepth <= 0.000001)
+	if (stordepth <= 0.0001)
 	{
 		stordepth = 0.0f;
 	}
@@ -495,6 +535,20 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		m_chQ[icell] = m_chQ[icell] - dqq;
 
 		m_chQ[rbCell] = m_chQ[rbCell] + dqq;
+		float hov1 = m_chQ[icell] * m_dt / (m_cellWth*m_cellWth);
+		float hov = hov1 + m_surWtrDepth[icell] / 1000.f;
+
+		//fprintf(Summ_file_fptr,
+		//	"icell: %f,  hov: %f,  m_surWtrDepth: %f, m_chQ: %f,  dqq: %f,  hh-stordepth: %f, alfa: %f  \n",
+		//	icell,hov, m_surWtrDepth[icell], m_chQ[icell], dqq, hh - stordepth, alfa);
+		//Summ_file_fptr << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+		//cout << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+		
+		hov = m_chQ[rbCell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[rbCell] / 1000.f;
+		//if (hov < -1 || hov > 100)
+		//{
+		//	cout << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+		//}
 
 		//cout << "m_chQ[icell]: " << m_chQ[icell] << " m_chQ[rbCell]: " << m_chQ[rbCell]  << endl;
 
@@ -797,7 +851,7 @@ void CASC2D_OF::RoutOutlet()
 		hout = m_chWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet];
 
 		qoutch = chnDischarge(m_chWtrDepth[m_idOutlet], hout, m_chWidth[m_idOutlet], m_chDepth[m_idOutlet],
-			m_surSdep[m_idOutlet], m_ManningN[m_idOutlet], 1, m_Slope[m_idOutlet], m_chSinuosity[m_idOutlet]);
+			m_surSdep[m_idOutlet], m_ManningN[m_idOutlet], 1, m_Slope[m_idOutlet], 1);
 
 		m_chQ[m_idOutlet] = m_chQ[m_idOutlet] - qoutch;
 	}
