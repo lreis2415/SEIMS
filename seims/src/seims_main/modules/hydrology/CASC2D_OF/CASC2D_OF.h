@@ -90,7 +90,7 @@ public:
 
 private:
 	int counter;
-	fstream  Summ_file_fptr;
+	std::ofstream  Summ_file_fptr;
     int m_nCells; ///< valid cells number
 	int m_maxSoilLyrs;
 	float* m_nSoilLyrs;
@@ -168,6 +168,7 @@ private:
 	float m_outV;						/* vout 出水口栅格单元的地表出流量 立方米*/
 	/**** 其他变量 ***/
 	bool m_InitialInputs = true;				/* 是否检测输入数据*/
+	map<int, vector<int>> m_rbcellsMap; /* 存放栅格单元右、下方的单元下标，key栅格单元在一维数组中的下标，value[0]右方栅格的下标(如无右方栅格则是-1)，value[1]下方栅格的下标（如无下方栅格则是-1）*/
 
 	/**** OverDepth.c使用 ***/
 	int m, n;						/* 集水区的行列数 */

@@ -265,13 +265,14 @@ int StormGreenAmpt::Execute(void) {
 
                 //Compute the cumulative depth of infiltration
                 m_accumuDepth[i] += m_infil[i];
-                m_sr[i] = hWater -
-                    m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
 
                 if (m_rootDepth != NULL) {
                     m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][0];
                 }
             }
+			// xdw modify, 把对地表水深的更新挪到这里，因为如果土壤湿度>土壤孔隙度，也需要更新地表水深
+			m_sr[i] = hWater -
+				m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
         } else {
             m_sr[i] = 0.0f;
             m_infil[i] = 0.0f;

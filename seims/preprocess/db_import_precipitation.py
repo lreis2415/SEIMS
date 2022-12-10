@@ -219,8 +219,8 @@ class ImportPrecipitation(object):
     def workflow(cfg, clim_db):
         """Workflow"""
         print('Import Daily Precipitation Data... ')
-        ImportPrecipitation.regular_data_from_txt(clim_db, cfg.prec_data)
-        #ImportPrecipitation.storm_data_from_txt(clim_db, cfg.prec_data)
+        # ImportPrecipitation.regular_data_from_txt(clim_db, cfg.prec_data)
+        ImportPrecipitation.storm_data_from_txt(clim_db, cfg.prec_data)
 
 
 def main():

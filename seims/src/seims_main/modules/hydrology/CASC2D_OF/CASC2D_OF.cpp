@@ -237,6 +237,43 @@ void CASC2D_OF::InitialOutputs() {
 				iCell = (int)m_flowOutIndex[iCell];
 			}
 		}
+
+		// 初始化每个栅格对应得右、下方栅格
+		for (int iCell = 0; iCell < m_nCells; iCell++) {
+			int curRow = m_RasterPostion[iCell][0];
+			int curCol = m_RasterPostion[iCell][1];
+			int rightRow = curRow;
+			int rightCol = curCol + 1;
+			int rightCell = -1;
+			bool isRightExists = false;
+			int belowRow = curRow + 1;
+			int belowCol = curCol;
+			int belowCell = -1;
+			bool isBelowExists = false;
+			vector<int> rbCells(2);
+			// 如果右方有栅格，则下标一定是iCell+1
+			if (iCell + 1 < m_nCells && rightCol < m_ncols &&  m_RasterPostion[iCell + 1][0] == rightRow && m_RasterPostion[iCell + 1][1] == rightCol) {
+				isRightExists = true;
+				rightCell = iCell + 1;
+			}
+			rbCells[0] = rightCell;
+
+			// 如果下方有栅格，则下标一定小于等于iCell+列数，只需要从当前栅格单元的下一个栅格单元到第m_ncols个单元范围内查找即可
+			for (int d_col = 1; d_col <= m_ncols; d_col++) {
+				// 找到最后一个栅格就不找了
+				if (iCell + d_col >= m_nCells)
+				{
+					break;
+				}
+				// 找到了就不找了
+				if (m_RasterPostion[iCell + d_col][0] == belowRow && m_RasterPostion[iCell + d_col][1] == belowCol) {
+					belowCell = iCell + d_col;
+					break;
+				}
+			}
+			rbCells[1] = belowCell;
+			m_rbcellsMap.insert(pair<int, vector<int>>(iCell, rbCells));
+		}
 		m_InitialInputs = false;
 
 		//m_hCh = new float *[m_nreach];
@@ -269,8 +306,6 @@ void CASC2D_OF::InitialOutputs() {
 int CASC2D_OF::Execute() {
 	//char Summ_file[80] = "F:\program\seims\SEIMS\data\test7\test7_longterm_model\OUTPUT0\Summ_file.txt";
 	string Summ_file = "F:\\program\\Summ_file.txt";
-
-	
 	CheckInputData();
 	InitialOutputs();
 	if (counter == 0 &&_access(Summ_file.c_str(), 0) == 0) {//文件存在删除
@@ -283,27 +318,27 @@ int CASC2D_OF::Execute() {
 	}
 	counter++;
 
-	//if (!Summ_file_fptr.is_open()) {
-	//	Summ_file_fptr.open(Summ_file, ios::app);
-	//	Summ_file_fptr << "timestamp " << counter << endl;
-	//}
+	if (!Summ_file_fptr.is_open()) {
+		Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
+		Summ_file_fptr << "timestamp " << counter << endl;
+	}
 	/* Overland and channel depth updating												*/
 	double sub_t1 = TimeCounting();
 	OvrlDepth();
-	double sub_t2 = TimeCounting();
+	//double sub_t2 = TimeCounting();
 	//cout << "overland depth end, cost time: " << sub_t2 - sub_t1 << endl;
 
 	ChannDepth();
-	double sub_t3 = TimeCounting();
+	//double sub_t3 = TimeCounting();
 	//cout << "channel depth  end, cost time: " << sub_t3 - sub_t2 << endl;
 
 	/* Overland and channel flow routing												*/
 	OvrlRout();
-	double sub_t4 = TimeCounting();
+	//double sub_t4 = TimeCounting();
 	//cout << "overland route  end, cost time: " << sub_t4 - sub_t3 << endl;
 
 	ChannRout();
-	double sub_t5 = TimeCounting();
+	//double sub_t5 = TimeCounting();
 	//cout << "channel route  end, cost time: " << sub_t5 - sub_t4 << endl;
 
 	/* Flow routing at the outlet																*/
@@ -311,7 +346,7 @@ int CASC2D_OF::Execute() {
 	double sub_t6 = TimeCounting();
 	//cout << "route outlet  end, cost time: " << sub_t6 - sub_t5 << endl;
 	cout << "timestamp  end, cost time: " << sub_t6 - sub_t1 << endl;
-	//Summ_file_fptr.close();
+	Summ_file_fptr.close();
 	return 0;
 }
 
@@ -342,7 +377,7 @@ void CASC2D_OF::OvrlDepth()
 		//	cout << "m_chQ: " << m_chQ[i] << " m_surWtrDepth: " << m_surWtrDepth[i] << " hov: " << hov << " hov-new: " << hov + m_surWtrDepth[i] << endl;
 		//}
 		hov = hov + m_surWtrDepth[i] / 1000.f; //  mm -> m
-		if (hov < 0.0)
+		if (hov < 0.0 && hov > -0.01)
 		{
 			hov = 0.0f;
 			//else
@@ -370,46 +405,32 @@ void CASC2D_OF::OvrlRout()
 		//cout << "iCell " << iCell << endl;
 		int curRow = m_RasterPostion[iCell][0];
 		int curCol = m_RasterPostion[iCell][1];
-		int rightRow = curRow;
-		int rightCol = curCol + 1;
-		int rightCell = -1;
-		bool isRightExists = false;
-		int belowRow = curRow + 1;
-		int belowCol = curCol;
-		int belowCell = -1;
-		bool isBelowExists = false;
 		//double sub_t1 = TimeCounting();
-		// 如果右方有栅格，则下标一定是iCell+1
-		if (iCell + 1 < m_nCells && iCell < m_RasterPostion[iCell + 1][0] == rightRow && m_RasterPostion[iCell + 1][1] == rightCol) {
-			isRightExists = true;
-			rightCell = iCell + 1;
-		}
-		// 如果下方有栅格，则下标一定小于等于iCell+列数，只需要从当前栅格单元的下一个栅格单元到第m_ncols个单元范围内查找即可
-		for (int d_col = 1; d_col <= m_ncols; d_col++) {
-			// 找到最后一个栅格就不找了
-			if (iCell + d_col >= m_nCells)
+		map<int,vector<int>>::iterator it;
+		it = m_rbcellsMap.find(iCell);
+		if (it != m_rbcellsMap.end())
+		{
+
+			int rightCell;
+			// 如果右方栅格单元不为空，计算右方栅格单元
+			if ((it ->second)[0] != -1)
 			{
-				break;
+				rightCell = (it->second)[0];
+				//double sub_t2 = TimeCounting();
+				//cout << "find right and below costs: " << sub_t2 - sub_t1 << endl;
+				ovrl(iCell, rightCell);
+				//double sub_t3 = TimeCounting();
+				//cout << "calculate right and below costs: " << sub_t3 - sub_t2 << endl;
 			}
-			// 找到了就不找了
-			if (m_RasterPostion[iCell + d_col][0] == belowRow && m_RasterPostion[iCell + d_col][1] == belowCol) {
-				isBelowExists = true;
-				belowCell = iCell + d_col;
-				break;
+			int belowCell;
+			// 如果下方栅格单元不为空，计算下方栅格单元
+			if ((it->second)[1] != -1)
+			{
+				belowCell = (it->second)[1];
+				ovrl(iCell, belowCell);
 			}
 		}
-		//double sub_t2 = TimeCounting();
-		//cout << "find right and below costs: " << sub_t2 - sub_t1 << endl;
-		// 如果右方栅格单元不为空，计算右方栅格单元
-		if (isRightExists)
-		{
-			ovrl(iCell, rightCell);
-		}
-		// 如果下方栅格单元不为空，计算下方栅格单元
-		if (isBelowExists)
-		{
-			ovrl(iCell, belowCell);
-		}
+		
 		//double sub_t3 = TimeCounting();
 		//cout << "ovrl costs: " << sub_t3 - sub_t2 << endl;
 	}
@@ -417,7 +438,7 @@ void CASC2D_OF::OvrlRout()
 
 void CASC2D_OF::ovrl(int icell, int rbCell)
 {
-	double sub_t1 = TimeCounting();
+	//double sub_t1 = TimeCounting();
 	int jfrom, kfrom, jto, kto;
 
 	float a = 1.0;
@@ -466,7 +487,8 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//cout << "stordepth out: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 
 	}
-
+	//double sub_t2 = TimeCounting();
+	//cout << "cal t2 costs: " << sub_t2 - sub_t1 << endl;
 	/* 在casc2d里sf翻译为摩擦比降，实际含义是附加比降。
 	  * 附加比降 = 波体水面比降 - 稳定流水面比降 ≈ 波体水面比降 - 河道坡度比降
 	  * 附加比降 > 0，代表涨洪，即对于波前，附加比降为正
@@ -506,6 +528,8 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//cout << "stordepth sf: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 
 	}
+	//double sub_t3 = TimeCounting();
+	//cout << "cal t3 costs: " << sub_t3 - sub_t2 << endl;
 	if (stordepth <= 0.0001)
 	{
 		stordepth = 0.0f;
@@ -541,19 +565,30 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//fprintf(Summ_file_fptr,
 		//	"icell: %f,  hov: %f,  m_surWtrDepth: %f, m_chQ: %f,  dqq: %f,  hh-stordepth: %f, alfa: %f  \n",
 		//	icell,hov, m_surWtrDepth[icell], m_chQ[icell], dqq, hh - stordepth, alfa);
-		//Summ_file_fptr << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-		//cout << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+
+		if (hov < -1 || hov > 100)
+		{
+			if (Summ_file_fptr.is_open()) {
+				Summ_file_fptr << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+			}
+			//cout << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+		}
 		
 		hov = m_chQ[rbCell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[rbCell] / 1000.f;
-		//if (hov < -1 || hov > 100)
-		//{
-		//	cout << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-		//}
+		if (hov < -1 || hov > 100)
+		{
+			if (Summ_file_fptr.is_open()) {
+				Summ_file_fptr << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+			}
+			//cout << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+		}
 
 		//cout << "m_chQ[icell]: " << m_chQ[icell] << " m_chQ[rbCell]: " << m_chQ[rbCell]  << endl;
 
 
 	}	/* End of HH >= STORDEPTH */
+	//double sub_t4 = TimeCounting();
+	//cout << "cal t4 costs: " << sub_t4 - sub_t3 << endl;
 
 }   /* End of OVRL */
 
