@@ -139,6 +139,14 @@ def main(scenario_obj):
     unit_to_gene = scenario_obj.cfg.unit_to_gene
     updown_units = scenario_obj.cfg.updown_units
 
+    # import json
+    # with open('gene_to_unit.json', 'w',encoding="utf-8") as gtu:
+    #     # json.dump(gene_to_unit, gtu,ensure_ascii=False)
+    #     gtu.write(unicode(json.dumps(gene_to_unit, ensure_ascii=False)))
+    # with open('unit_to_gene.json', 'w') as utg:
+    #     utg.write(unicode(json.dumps(unit_to_gene, ensure_ascii=False)))
+    #     # json.dump(unit_to_gene, utg,ensure_ascii=False)
+
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
 
