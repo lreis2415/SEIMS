@@ -43,13 +43,6 @@ void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
 		m_ManningN = data;
 	}else if (StringMatch(sk, VAR_STREAM_LINK)) {
 		m_streamLink = data;
-		//for (size_t i = 0; i < 300000; i++)
-		//{
-		//	if (m_streamLink[i] > 0)
-		//	{
-		//		cout << i << ":" << m_streamLink[i] << endl;
-		//	}
-		//}
 	}else if (StringMatch(sk, VAR_DEM)) {
 		m_dem = data;
 	}else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
@@ -93,7 +86,6 @@ void CASC2D_OF::SetReaches(clsReaches* rches) {
 void CASC2D_OF::SetSubbasins(clsSubbasins* subbsns) {
 	if (m_subbasinsInfo == nullptr) {
 		m_subbasinsInfo = subbsns;
-		// m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()! lj
 		m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
 	}
 }
@@ -137,29 +129,8 @@ TimeStepType CASC2D_OF::GetTimeStepType() {
 	return TIMESTEP_HILLSLOPE;
 }
 
-//void CASC2D_OF::SetReachDepthData( FloatRaster* positions) {
-//	m_reachDepth = positions;
-//}
-
 bool CASC2D_OF::CheckInputData() {
 
-	// 河道内的河道水深初始化为河道的初始水深
-	//if (m_InitialInputs)
-	//{
-	//	for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
-	//		int nReaches = it->second.size();
-	//		for (int i = 0; i < nReaches; ++i) {
-	//			int reachIndex = it->second[i]; // index in the array, from 0
-	//			vector<int> &curReachCells = m_reachs[reachIndex];
-	//			int n = curReachCells.size();
-	//			for (int iCell = 0; iCell < n; ++iCell) {
-	//				int cellIndex = curReachCells[iCell];
-	//				m_chWtrDepth[cellIndex] = m_surSdep[cellIndex];
-	//			}
-	//		}
-	//	}
-	//	m_InitialInputs = false;
-	//}
     return true;
 }
 
@@ -170,18 +141,14 @@ void CASC2D_OF::InitialOutputs() {
 	// 初始化河道水深,其实这里将河道内外的初始水深都暂时设为0
 	// 河道外的河道初始水深设为0
 	if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
-	//m_outQ = 0.0;
-	//m_outV = 0.0;
 	if (m_InitialInputs) {
 
 		counter = 0;
 		// find source cells the reaches
 		m_sourceCellIds = new int[m_nreach];
-		//m_qsInput = new float[m_chNumber+1];
 
 		for (int i = 0; i < m_nreach; ++i) {
 			m_sourceCellIds[i] = -1;
-			//m_qsInput[i] = 0.f;
 		}
 		int reachIndex = 0;
 		for (int i = 0; i < m_nCells; i++) {
@@ -221,10 +188,6 @@ void CASC2D_OF::InitialOutputs() {
 				reachIndex++;
 			}
 		}
-
-		//for(int i = 0; i < m_chNumber; i++)
-		//    cout << m_sourceCellIds[i] << endl;
-
 		// get the cells in reaches according to flow direction
 		for (int iCh = 0; iCh < m_nreach; iCh++) {
 			// 当前河道的源头
@@ -276,38 +239,14 @@ void CASC2D_OF::InitialOutputs() {
 		}
 		m_InitialInputs = false;
 
-		//m_hCh = new float *[m_nreach];
-		//m_qCh = new float *[m_nreach];
-
-		////m_flowLen = new float *[m_chNumber];
-
-		//m_qSubbasin = new float[m_chNumber];
-		//for (int i = 0; i < m_chNumber; ++i) {
-		//	int n = m_reachs[i].size();
-		//	m_hCh[i] = new float[n];
-		//	m_qCh[i] = new float[n];
-
-		//	//m_flowLen[i] = new float[n];
-
-		//	m_qSubbasin[i] = 0.f;
-
-		//	//int id;
-		//	//float dx;
-		//	for (int j = 0; j < n; ++j) {
-		//		m_hCh[i][j] = 0.f;
-		//		m_qCh[i][j] = 0.f;
-		//	}
-		//}
-
 	}
 }
 
 
 int CASC2D_OF::Execute() {
-	//char Summ_file[80] = "F:\program\seims\SEIMS\data\test7\test7_longterm_model\OUTPUT0\Summ_file.txt";
-	string Summ_file = "F:\\program\\Summ_file.txt";
-	CheckInputData();
 	InitialOutputs();
+	# ifdef IS_DEBUG
+	string Summ_file = "F:\\program\\Summ_file.txt";
 	if (counter == 0 &&_access(Summ_file.c_str(), 0) == 0) {//文件存在删除
 		if (remove(Summ_file.c_str()) == 0) {
 			cout << "succeed to delete file.  " << endl;
@@ -316,36 +255,21 @@ int CASC2D_OF::Execute() {
 			cout << "failed to delete file.  " << endl;
 		}
 	}
-	counter++;
-
 	if (!Summ_file_fptr.is_open()) {
 		Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
 		Summ_file_fptr << "timestamp " << counter << endl;
 	}
-	/* Overland and channel depth updating												*/
+	# endif
+	counter++;
+
 	double sub_t1 = TimeCounting();
 	OvrlDepth();
-	//double sub_t2 = TimeCounting();
-	//cout << "overland depth end, cost time: " << sub_t2 - sub_t1 << endl;
-
 	ChannDepth();
-	//double sub_t3 = TimeCounting();
-	//cout << "channel depth  end, cost time: " << sub_t3 - sub_t2 << endl;
-
-	/* Overland and channel flow routing												*/
 	OvrlRout();
-	//double sub_t4 = TimeCounting();
-	//cout << "overland route  end, cost time: " << sub_t4 - sub_t3 << endl;
-
 	ChannRout();
-	//double sub_t5 = TimeCounting();
-	//cout << "channel route  end, cost time: " << sub_t5 - sub_t4 << endl;
-
-	/* Flow routing at the outlet																*/
 	RoutOutlet();
-	double sub_t6 = TimeCounting();
-	//cout << "route outlet  end, cost time: " << sub_t6 - sub_t5 << endl;
-	cout << "timestamp  end, cost time: " << sub_t6 - sub_t1 << endl;
+	double sub_t2 = TimeCounting();
+	cout << "casc2d_sed  end, cost time: " << sub_t2 - sub_t1 << endl;
 	Summ_file_fptr.close();
 	return 0;
 }
@@ -372,10 +296,6 @@ void CASC2D_OF::OvrlDepth()
 		/* hov 波高 = 波速 * 时间 / 栅格面积  m */
 		hov = m_chQ[i] * m_dt / (m_cellWth*m_cellWth);
 		/*逻辑变更：h的更新删去降雨、截留和下渗的影响，因为其他模块已经计算过，这里仅考虑径流速度引起的水深变化*/
-		//if (i % 100 == 0)
-		//{
-		//	cout << "m_chQ: " << m_chQ[i] << " m_surWtrDepth: " << m_surWtrDepth[i] << " hov: " << hov << " hov-new: " << hov + m_surWtrDepth[i] << endl;
-		//}
 		hov = hov + m_surWtrDepth[i] / 1000.f; //  mm -> m
 		if (hov < 0.0 && hov > -0.01)
 		{
@@ -416,11 +336,7 @@ void CASC2D_OF::OvrlRout()
 			if ((it ->second)[0] != -1)
 			{
 				rightCell = (it->second)[0];
-				//double sub_t2 = TimeCounting();
-				//cout << "find right and below costs: " << sub_t2 - sub_t1 << endl;
 				ovrl(iCell, rightCell);
-				//double sub_t3 = TimeCounting();
-				//cout << "calculate right and below costs: " << sub_t3 - sub_t2 << endl;
 			}
 			int belowCell;
 			// 如果下方栅格单元不为空，计算下方栅格单元
@@ -430,15 +346,11 @@ void CASC2D_OF::OvrlRout()
 				ovrl(iCell, belowCell);
 			}
 		}
-		
-		//double sub_t3 = TimeCounting();
-		//cout << "ovrl costs: " << sub_t3 - sub_t2 << endl;
 	}
 }
 
 void CASC2D_OF::ovrl(int icell, int rbCell)
 {
-	//double sub_t1 = TimeCounting();
 	int jfrom, kfrom, jto, kto;
 
 	float a = 1.0;
@@ -463,7 +375,6 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 	rman = m_ManningN[icell];		 /* 曼宁系数*/
 
 	/* 在河道内*/
-	//if (chancheck == 1 && link[j][k] > 0)
 	if (!FloatEqual(m_streamLink[icell], NODATA_VALUE))
 	{
 		/* 如果栅格单元上的蓄水深度 > 河道深度，则河道上方的地表水深=栅格单元上的总蓄水深度-河道深度，否则地表水深=0.0*/
@@ -487,8 +398,7 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//cout << "stordepth out: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 
 	}
-	//double sub_t2 = TimeCounting();
-	//cout << "cal t2 costs: " << sub_t2 - sub_t1 << endl;
+
 	/* 在casc2d里sf翻译为摩擦比降，实际含义是附加比降。
 	  * 附加比降 = 波体水面比降 - 稳定流水面比降 ≈ 波体水面比降 - 河道坡度比降
 	  * 附加比降 > 0，代表涨洪，即对于波前，附加比降为正
@@ -513,8 +423,7 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 			if (m_surSdep[rbCell] / 1000.0f > m_chDepth[rbCell])
 			{
 				/* 下一个地表单元的地表水深*/
-				stordepth =
-					m_surSdep[rbCell] / 1000.0f - m_chDepth[rbCell];
+				stordepth =	m_surSdep[rbCell] / 1000.0f - m_chDepth[rbCell];
 			}
 			else
 			{
@@ -528,8 +437,6 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		//cout << "stordepth sf: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
 
 	}
-	//double sub_t3 = TimeCounting();
-	//cout << "cal t3 costs: " << sub_t3 - sub_t2 << endl;
 	if (stordepth <= 0.0001)
 	{
 		stordepth = 0.0f;
@@ -541,54 +448,38 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		/* alfa是根据曼宁阻力和坡底摩阻比降计算出的流态参数*/
 		alfa = (float)((pow(fabs(sf), 0.5)) / rman);
 
-		/*	Note : The variable "a" represents the sign of the				*/
-		/*	Friction Slope (Sf)	Computing Overland Flow								*/
-
+		/*	Note : The variable "a" represents the sign of the	Friction Slope (Sf)	Computing Overland Flow	*/
 		if (sf >= 0) a = 1.0;
 
 		if (sf < 0) a = -1.0;
 		/* dqq 时间步长内地表径流速率的变化量 = alfa * h的(5/3)次方*/
 		dqq = (float)(a*m_cellWth*alfa*pow((hh - stordepth), 1.667));
-
 		int i = icell;
-		//if (i % 100 == 0)
-		//{
-		//	cout << "icell: " << icell << " rbCell: " << rbCell << " m_chQ: " << m_chQ[i] << " m_chQ-new: " << m_chQ[i] - dqq << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " alfa: " << alfa << endl;
-		//}
 		/* 输出栅格单元上时间步长内的地表径流速率*/
 		m_chQ[icell] = m_chQ[icell] - dqq;
 
 		m_chQ[rbCell] = m_chQ[rbCell] + dqq;
-		float hov1 = m_chQ[icell] * m_dt / (m_cellWth*m_cellWth);
-		float hov = hov1 + m_surWtrDepth[icell] / 1000.f;
-
-		//fprintf(Summ_file_fptr,
-		//	"icell: %f,  hov: %f,  m_surWtrDepth: %f, m_chQ: %f,  dqq: %f,  hh-stordepth: %f, alfa: %f  \n",
-		//	icell,hov, m_surWtrDepth[icell], m_chQ[icell], dqq, hh - stordepth, alfa);
-
+		# ifdef IS_DEBUG
+		float hov = m_chQ[icell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[icell] / 1000.f;
 		if (hov < -1 || hov > 100)
 		{
 			if (Summ_file_fptr.is_open()) {
-				Summ_file_fptr << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+				Summ_file_fptr << "icell: " << icell << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
 			}
 			//cout << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
 		}
-		
-		hov = m_chQ[rbCell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[rbCell] / 1000.f;
+
+		float hov = m_chQ[rbCell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[rbCell] / 1000.f;
 		if (hov < -1 || hov > 100)
 		{
 			if (Summ_file_fptr.is_open()) {
-				Summ_file_fptr << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
+				Summ_file_fptr << "rbCell: " << " hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
 			}
 			//cout << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
 		}
-
-		//cout << "m_chQ[icell]: " << m_chQ[icell] << " m_chQ[rbCell]: " << m_chQ[rbCell]  << endl;
-
+		#endif // IS_DEBUG
 
 	}	/* End of HH >= STORDEPTH */
-	//double sub_t4 = TimeCounting();
-	//cout << "cal t4 costs: " << sub_t4 - sub_t3 << endl;
 
 }   /* End of OVRL */
 
@@ -737,18 +628,13 @@ void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, 
 
 	wch = m_chWidth[curCellIndex];				/* width						*/
 	dch = m_chDepth[curCellIndex];					/* depth						*/
-	//dch = m_reachDepth->GetRasterDataPointer()[curCellIndex];				
-	sslope = m_Slope[curCellIndex];					/* side slope					*/
+	sslope = m_Slope[curCellIndex];					/* side slope				*/
 	rmanch = m_ManningN[curCellIndex];		/* manning's n				*/
 	//sfactor = m_chSinuosity[curReachIndex];	/* sinuosity factor,use the reach's sinuosity instead of that on every cell of reach temporary	*/
 	sfactor = 1;
 	stordep = m_surSdep[curCellIndex];			/* Storage depth			*/
 	hchan = m_chWtrDepth[curCellIndex];		/* Channel water depth*/
 	hh = m_chWtrDepth[curCellIndex] - stordep;
-
-	/* Channel slope																								*/
-	/* row and column of following node in link IC									*/
-	/* index of following node in link curReachIndex*/
 	// 当前河道当前节点的下一个节点的点号
 	int nextCellIndex = -1;
 	// 如果当前节点不是当前河道的最后一个节点
@@ -771,7 +657,6 @@ void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, 
 			int nextReachFistCellIndex = nextReachCells[0];
 			nextCellIndex = nextReachFistCellIndex;
 			so = (m_dem[curCellIndex] - dch - m_dem[nextCellIndex] + m_chDepth[nextCellIndex]) / (m_cellWth*sfactor);
-			//ijun = nextReachIndex;
 		}
 		// 如果当前河道是最下游的河道
 		else
@@ -784,7 +669,6 @@ void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, 
 	if (nextCellIndex > -1)
 	{
 		/* hch[j][k]栅格单元上的河道水深，dhdx是水力坡度*/
-		//dhdx = (m_reachDepth->GetRasterDataPointer()[nextCellIndex] - m_reachDepth->GetRasterDataPointer()[curCellIndex] / (m_cellWth*sfactor));
 		dhdx = (m_chWtrDepth[nextCellIndex] - m_chWtrDepth[curCellIndex]) / (m_cellWth*sfactor);
 
 		/* 摩擦坡度*/
@@ -874,13 +758,10 @@ void CASC2D_OF::RoutOutlet()
 			(float)(m_cellWth*alfa*pow((m_surWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet]), 1.667));
 	}
 
-	/* Overland water depth at outlet cell is reduced after taking	*/
-	/* the outflow out of the cell														*/
-
+	/* Overland water depth at outlet cell is reduced after taking the outflow out of the cell*/
 	m_surWtrDepth[m_idOutlet] = (float)(m_surWtrDepth[m_idOutlet] - qoutov * m_dt / (pow(m_cellWth, 2.0)));
 
 	/* SECOND:calculate the flow going out from the channel portion	*/
-	//if (chancheck == 1 && hch[jout][kout] > sdep[jout][kout])
 	if (m_chWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
 	{
 		hout = m_chWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet];

@@ -264,6 +264,7 @@
 #define Tag_Mode                               "MODE"
 #define Tag_Mode_Storm                         "STORM"
 #define Tag_Mode_Daily                         "DAILY"
+#define STORM_MODE                        "STORM"
 
 #define Type_Scenario                          "SCENARIO"
 #define Type_Reach                             "REACH"

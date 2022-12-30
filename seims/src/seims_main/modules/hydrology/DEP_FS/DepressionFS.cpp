@@ -2,9 +2,7 @@
 #include "text.h"
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
-									//xdw修改, DEP_FS模块没有用到PET蒸散数据，暂时注释掉
-                                   //m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
-									m_depCo(NODATA_VALUE), m_depCap(NULL),  m_ei(NULL),
+                                   m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
                                    m_sd(NULL), m_sr(NULL), m_checkInput(true) {
 }
 
@@ -30,7 +28,6 @@ bool DepressionFS::CheckInputData(void) {
                              "The parameter: depression storage capacity has not been set.");
     }
 #ifndef STORM_MODE
-	//xdw修改, DEP_FS模块没有用到PET蒸散数据，暂时注释掉
     //if (m_pet == NULL) {
     //    throw ModelException(MID_DEP_FS, "CheckInputData", "The parameter: PET has not been set.");
     //}
@@ -50,12 +47,11 @@ void DepressionFS:: InitialOutputs() {
         m_sd = new float[m_nCells];//洼地蓄水深度 mm
         m_sr = new float[m_nCells];//地表径流深度 mm
         m_storageCapSurplus = new float[m_nCells];// 剩余存储深度(洼地水表面距离洼地上表面的距离)
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_sd[i] = m_depCo * m_depCap[i];// 洼地蓄水深度 = 洼地初始蓄水系数 * 洼地深度
             m_sr[i] = 0.0f;
         }
-		cout << endl;
     }
 }
 
@@ -88,59 +84,8 @@ int DepressionFS::Execute() {
         }
 		// 剩余存储容量 = 洼地深度 - 洼地水深
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
-		//if (i % 100 == 0)
-		//{
-		//	cout << "hWater: " << hWater << " m_sr: " << m_sr[i] << " m_depCap: " << m_depCap[i] << " m_storageCapSurplus: " << m_storageCapSurplus[i] << endl;
-		//}
-		//if (m_sr[i] < 0.000001)
-		//{
-		//	m_sr[i] = 0.f;
-		//}
-		//if (m_sd[i] < 0.000001)
-		//{
-		//	m_sd[i] = 0.f;
-		//}
-		//if (m_storageCapSurplus[i] < 0.000001)
-		//{
-		//	m_storageCapSurplus[i] = 0.f;
-		//}
-		//if (m_depCap[i] < 0.000001)
-		//{
-		//	m_depCap[i] = 0.f;
-		//}
-    }
-	//float total_Sd = 0.0;
-	//float total_Sr = 0.0;
-	//float total_StCS = 0.0;
-	//float ave_Sd = 0.0;
-	//float ave_Sr = 0.0;
-	//float ave_StCS = 0.0;
 
-	// 计算当前时间步长上的平均洼地水深，平均地表水深，平均剩余存储容量
-	//for (int i = 0; i < m_nCells; i++)
-	//{
-	//	total_Sd += m_sd[i];
-	//	total_Sr += m_sr[i];
-	//	total_StCS += m_storageCapSurplus[i];
-	//}
-	//if (total_Sd < 0.00001)
-	//{
-	//	total_Sd = 0.f;
-	//}
-	//ave_Sd = total_Sd / m_nCells;
-	//if (total_Sr < 0.00001)
-	//{
-	//	total_Sr = 0.f;
-	//}
-	//ave_Sr = total_Sr / m_nCells;
-	//if (total_StCS < 0.00001)
-	//{
-	//	total_StCS = 0.f;
-	//}
-	//ave_StCS = total_StCS / m_nCells;
-	//cout << "average storage depression: " << ave_Sd << "mm" << endl;
-	//cout << "average surface runoff: " << ave_Sr << "mm" << endl;
-	//cout << "average storage surplus: " << ave_StCS << "mm" << endl;
+    }
     return 0;
 }
 
@@ -186,9 +131,9 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
 			}
 		}
     }
-	//else if (StringMatch(sk, VAR_PET)) {
-	//       m_pet = data;
-	//   }
+	else if (StringMatch(sk, VAR_PET)) {
+	       m_pet = data;
+	   }
 	else {
         throw ModelException(MID_DEP_FS, "Set1DData", "Parameter " + sk
             + " does not exist in current module. Please contact the module developer.");

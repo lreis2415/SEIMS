@@ -29,7 +29,7 @@ void StormGreenAmpt:: InitialOutputs() {
         m_infil = new float[m_nCells];
         m_infilCapacitySurplus = new float[m_nCells];
         m_soilMoisture = new float[m_nCells];
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
 			//printf("i=%d, m_fieldCap[i]=%lf\n", i, m_fieldCap[0][i]);
 			//if (abs(m_fieldCap[0][i]) < 0.00001)
@@ -228,11 +228,8 @@ int StormGreenAmpt::Execute(void) {
         float p2 = ks * (infilDepth + matricPotential);
         // infiltration rate (m/s) 根据累计入渗深度计算出来的当前时间步长的下渗能力（最大下渗速率）
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
-		//cout << " " << infilRate*3600*1000 << " ";
-		//printf("m_soilMoisture[%d]:%lf", i, m_soilMoisture[i]);
-		//printf("m_rootDepth[%d][0]:%lf",i, m_rootDepth[i][0]);
-		//printf("m_porosity[%d][0]:%lf", i, m_porosity[i][0]);
-		//infilCap是当前时间步长土壤还能容纳的最大入渗最大深度
+
+		//infilCap是当前时间步长土壤还能容纳的最大入渗最大深度,这里m_rootDepth取第4层，因为第4层的深度比较合适，第1层的深度太小了
         float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][4];
 		//cout << "m_ks: " << m_ks[i][0] << " ks: " << ks << " infilDepth: " << infilDepth << " infilRate: " << infilRate << " infilCap: " << infilCap << endl;
 
@@ -253,7 +250,6 @@ int StormGreenAmpt::Execute(void) {
 				// 如果入渗能力*时间步长 > 最大入渗深度，就代表在当前时间步长下，土壤已经容纳不了这么多水的下渗（入渗能力*时间步长）
                 m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
 
-                //cout << m_infil[i] << endl;
                 //check if the infiltration potential exceeds the available water
                 if (m_infil[i] > hWater) {
                     m_infilCapacitySurplus[i] = m_infil[i] - hWater;
@@ -278,10 +274,6 @@ int StormGreenAmpt::Execute(void) {
             m_infil[i] = 0.0f;
             m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
         }
-		//if (i % 100 == 0)
-		//{
-		//	cout << "m_pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << " hWater: " << hWater << " m_infil: " << m_infil[i] <<  " Surplus: " << m_infilCapacitySurplus[i] << endl;
-		//}
     }
 
     return 0;
@@ -333,24 +325,12 @@ void StormGreenAmpt::Set2DData(const char* key, const int n, const int col, floa
 		m_ks = data;
 	}else if (StringMatch(sk, VAR_POROST)) {
 		m_porosity = data;
-		//for (int i = 0; i < m_nCells; i++) {
-		//	printf("i=%d, m_porosity[i][0]=%lf\n", i, m_porosity[i][0]);
-		//}
 	}else if (StringMatch(sk, VAR_CLAY)) {
 		m_clay = data;
 	}else if (StringMatch(sk, VAR_SAND)) {
 		m_sand = data;
 	}else if (StringMatch(sk, VAR_FIELDCAP)) {
 		m_fieldCap = data;
-		//for (int i = 0; i < m_nCells; i++) {
-		//	printf("i=%d, data[i]=%lf\n", i, data[i][0]);
-		//	if (abs(m_fieldCap[i][0]) < 0.00001 || m_fieldCap[i][0] < 0.00001 )
-		//	{
-		//		m_fieldCap[i][0] = 0.0f;
-		//	}
-		//	printf("i=%d, m_fieldCap[i]=%lf\n", i, m_fieldCap[i][0]);
-		//}
-		//printf("okokok");
 	}else if (StringMatch(sk, VAR_SOILDEPTH)) {
 		m_rootDepth = data;
 	}

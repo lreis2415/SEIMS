@@ -1,18 +1,18 @@
-#include "Interception_MCS.h"
 
 #include "text.h"
+#include "Interception_MCS.h"
+
 #include "utils_time.h"
 
 clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
     m_intcpStoCapExp(-1.f), m_initIntcpSto(0.f), m_maxIntcpStoCap(nullptr),
     m_minIntcpStoCap(nullptr),
-	//xdw修改，次降水模拟中暂时不考虑蒸散
-    //m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
-	m_pcp(nullptr),  m_canSto(nullptr),
-    m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
+    m_pcp(nullptr), m_canSto(nullptr),
+    m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1){
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
+	m_pet = nullptr;
 #else
     m_hilldt = -1.f;
     m_slope = nullptr;
@@ -41,6 +41,7 @@ void clsPI_MCS::Set1DData(const char* key, int nrows, float* data) {
     } else if (StringMatch(s, VAR_INTERC_MAX)) m_maxIntcpStoCap = data;
     else if (StringMatch(s, VAR_INTERC_MIN)) m_minIntcpStoCap = data;
     else if (StringMatch(s, VAR_LANDUSE)) m_landUse = data;
+	else if (StringMatch(s, VAR_SLOPE)) m_slope = data;
     else {
         throw ModelException(MID_PI_MCS, "Set1DData", "Parameter " + s + " does not exist.");
     }
@@ -53,7 +54,7 @@ void clsPI_MCS::SetValue(const char* key, const float value) {
     else if (StringMatch(s, VAR_PCP2CANFR_PR)) m_pcp2CanalFr = value;
     else if (StringMatch(s, VAR_EMBNKFR_PR)) m_embnkFr = value;
 #ifdef STORM_MODE
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) m_hilldt = data;
+    else if (StringMatch(s, Tag_HillSlopeTimeStep)) m_hilldt = value;
 #endif // STORM_MODE
     else {
         throw ModelException(MID_PI_MCS, "SetValue", "Parameter " + s + " does not exist.");
@@ -102,14 +103,14 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
 		// 如果当前时间步长的降雨量>0
         if (m_pcp[i] > 0.f) {
 #ifdef STORM_MODE
             /// correction for slope gradient, water spreads out over larger area
             /// 1. / 3600. = 0.0002777777777777778
-            m_P[i] = m_P[i] * m_hilldt * 0.0002777777777777778f * cos(atan(m_slope[i]));
+            m_pcp[i] = m_pcp[i] * m_hilldt * 0.0002777777777777778f * cos(atan(m_slope[i]));
 #endif // STORM_MODE
             //interception storage capacity, 1. / 365. = 0.0027397260273972603
             float degree = 2.f * PI * (m_dayOfYear - 87.f) * 0.0027397260273972603f;
@@ -155,15 +156,9 @@ int clsPI_MCS::Execute() {
             m_intcpLoss[i] = 0.f;
             m_netPcp[i] = 0.f;
         }
-		//if (i % 100 == 0)
-		//{
-		//	cout << "m_pcp: " << m_pcp[i] << " m_intcpLoss: " << m_intcpLoss[i] << " m_canSto: " << m_canSto[i] << " m_netPcp: " << m_netPcp[i] << endl;
-		//}
 #ifndef STORM_MODE
         //evaporation
-		//xdw 暂时注释掉，在次降水模拟中，暂时不考虑蒸散；
 		//如果累计截留量 > 日潜在蒸散,则令蒸发损失=日潜在蒸散
-		/*
         if (m_canSto[i] > m_pet[i]) {
             m_IntcpET[i] = m_pet[i];
         } else {
@@ -172,7 +167,7 @@ int clsPI_MCS::Execute() {
         }
 		m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
-		*/
+		
 #endif
     }
 	//float total_netPcp = 0.0;
@@ -194,8 +189,8 @@ bool clsPI_MCS::CheckInputData() {
 #ifndef STORM_MODE
     CHECK_POINTER(MID_PI_MCS, m_pet);
 #else
-    CHECK_POINTER(MID_PI_MCS, m_slope);
-    CHECK_POINTER(MID_PI_MCS, m_hilldt);
+    //CHECK_POINTER(MID_PI_MCS, m_slope);
+    //CHECK_POINTER(MID_PI_MCS, m_hilldt);
 #endif
     CHECK_POINTER(MID_PI_MCS, m_maxIntcpStoCap);
     CHECK_POINTER(MID_PI_MCS, m_minIntcpStoCap);
