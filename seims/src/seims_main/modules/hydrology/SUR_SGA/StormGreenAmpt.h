@@ -6,8 +6,10 @@
 #ifndef SEIMS_SUR_SGA_H
 #define SEIMS_SUR_SGA_H
 
-#include "SimulationModule.h"
 
+
+#include "SimulationModule.h"
+#define IS_DEBUG 0
 using namespace std;
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
@@ -140,6 +142,10 @@ private:
     * else surplus = infilPotential - pNet
     */
     float *m_infilCapacitySurplus;
+
+	int output_icell;
+	int counter;
+	std::ofstream  Summ_file_fptr;
 
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);

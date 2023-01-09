@@ -1,5 +1,6 @@
 #include "CASC2D_OF.h"
 #include "text.h"
+using namespace std;
 
 CASC2D_OF::CASC2D_OF() :
     m_nCells(-1),m_nSoilLyrs(nullptr),m_ks(nullptr),m_soilWtrStoPrfl(nullptr),
@@ -137,12 +138,15 @@ bool CASC2D_OF::CheckInputData() {
 
 void CASC2D_OF::InitialOutputs() {
 	if (nullptr == m_chQ) Initialize1DArray(m_nCells, m_chQ, 0.f);
+	// m_surSdep(m)
 	if (nullptr == m_surSdep) Initialize1DArray(m_nCells, m_surSdep, 0.f);
 	// 初始化河道水深,其实这里将河道内外的初始水深都暂时设为0
-	// 河道外的河道初始水深设为0
+	// 河道外的河道初始水深设为0(m)
 	if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
 	if (m_InitialInputs) {
-
+		output_icell = 50676;
+		output_icell_min = 835;
+		output_icell_max = 860;
 		counter = 0;
 		// find source cells the reaches
 		m_sourceCellIds = new int[m_nreach];
@@ -246,18 +250,41 @@ void CASC2D_OF::InitialOutputs() {
 int CASC2D_OF::Execute() {
 	InitialOutputs();
 	# ifdef IS_DEBUG
-	string Summ_file = "F:\\program\\Summ_file.txt";
-	if (counter == 0 &&_access(Summ_file.c_str(), 0) == 0) {//文件存在删除
-		if (remove(Summ_file.c_str()) == 0) {
-			cout << "succeed to delete file.  " << endl;
-		}
-		else {
-			cout << "failed to delete file.  " << endl;
-		}
-	}
-	if (!Summ_file_fptr.is_open()) {
+	std::ostringstream oss;
+	//oss << "F:\\program\\lisflood\\test\\Summ_file_" << counter << ".txt";
+	//string Summ_file = oss.str();
+	oss << "F:\\program\\\seims\\\data\\log\\flow_" << counter << ".txt";
+	string Summ_file = oss.str();
+	//string Summ_file = "F:\\program\\lisflood\\test\\position.txt";            // 输出每个栅格单元的行列位置
+
+	//string Summ_file = "F:\\program\\lisflood\\test\\Summ_file.txt";       
+
+	//文件存在则删除
+	//if (_access(Summ_file.c_str(), 0) == 0) {
+	//	if (remove(Summ_file.c_str()) == 0) {
+	//		cout << "succeed to delete casc2d output file " << Summ_file.c_str() << endl;
+	//	}
+	//	else {
+	//		cout << "failed to delete casc2d output file.  " << Summ_file.c_str() << endl;
+	//	}
+	//}
+	//输出位置数据
+	//if (counter == 0) {
+	//	Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
+	//	OutputPosition();
+	//}
+	// 指定迭代次数之后开始输出
+	//if ((counter >= output_icell_min && counter <= output_icell_max) && !Summ_file_fptr.is_open()) {
+	//	Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
+	//}
+	// 第一次迭代就开始输出
+	if ( !Summ_file_fptr.is_open()) {
 		Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
-		Summ_file_fptr << "timestamp " << counter << endl;
+	}
+
+	if (counter == 0)
+	{
+		buildPositionIndex();
 	}
 	# endif
 	counter++;
@@ -268,14 +295,198 @@ int CASC2D_OF::Execute() {
 	OvrlRout();
 	ChannRout();
 	RoutOutlet();
+	//printFlow();
+	//if (counter >= output_icell_min && counter <= output_icell_max)
+	//{
+	//	printFlow();
+	//}
 	double sub_t2 = TimeCounting();
 	cout << "casc2d_sed  end, cost time: " << sub_t2 - sub_t1 << endl;
-	Summ_file_fptr.close();
+	if (Summ_file_fptr.is_open()) {
+		Summ_file_fptr.close();
+	}
 	return 0;
 }
 
+// 输出行列对应的iCell信息
+void CASC2D_OF::OutputPosition() {
+	int last_row = -1;
+	int start_col = 0;
+	for (int iCell = 0; iCell < m_nCells; iCell++) {
+		int curRow = m_RasterPostion[iCell][0];
+		int curCol = m_RasterPostion[iCell][1];
+		if (iCell == 0)
+		{
+			for (int i = 1; i <= m_ncols; i++)
+			{
+				Summ_file_fptr << std::left << setw(7) << setfill(' ') << i;
+			}
+		}
+		// 换行
+		if (last_row != curRow)
+		{
+			Summ_file_fptr << endl;
+			// 输出缩进
+			for (int i = 1; i < curCol; i++)
+			{
+				Summ_file_fptr << setfill(' ') << setw(7) << ' ';
+			}
+		}
+		Summ_file_fptr << std::left << setw(7) << setfill(' ') << iCell;
+		last_row = curRow;
+	}
+}
 
+void CASC2D_OF::printFlow() {
+	int last_row = -1;
+	int start_col = 0;
+	int cols = 0;
+	int lastrow_firstcol = 0;
+	for (int iCell = 0; iCell < m_nCells; iCell++) {
+		int curRow = m_RasterPostion[iCell][0];
+		int curCol = m_RasterPostion[iCell][1];
+		// 打印列号
+		if (iCell == 0)
+		{
+			for (int i = 1; i <= m_ncols; i++)
+			{
+				Summ_file_fptr << std::left << setfill(' ') << setw(26) << i;
+			}
+		}
+		// 换行打印换行符和缩进
+		if (last_row != curRow)
+		{
+			// 换行以后打印y方向流量,dqq>0向上流,第一行之上不输出方向
+			if (last_row != -1)
+			{
+				Summ_file_fptr << endl;
+				// 输出缩进
+				for (int i = 1; i < lastrow_firstcol; i++)
+				{
+					Summ_file_fptr << setfill(' ') << setw(26) << ' ';
+				}
+				for (int i = 1; i <= cols; i++)
+				{
+					// todo: 解决向下的缩进不正确问题
+					if (m_RasterNeighbor[iCell][5] > 0)
+					{
+						Summ_file_fptr << "↑" << std::left << setw(11) << setfill(' ') << m_RasterNeighbor[iCell][5];
+					}
+					else if(m_RasterNeighbor[iCell][5] == 0)
+					{
+						Summ_file_fptr << "|" << std::left << setw(11) << setfill(' ') << m_RasterNeighbor[iCell][5];
+					}
+					else {
+						Summ_file_fptr << "↓" << std::left << setw(11) << setfill(' ') << -m_RasterNeighbor[iCell][5];
+					}
+					Summ_file_fptr << setfill(' ') << setw(14) << ' ';
+				}
+				cols = 0;
+			}
 
+			Summ_file_fptr << endl;
+			// 输出缩进
+			for (int i = 1; i < curCol; i++)
+			{
+				Summ_file_fptr << setfill(' ') << setw(26) << ' ';
+			}
+			lastrow_firstcol = curCol;
+		}
+		// 打印位置
+		Summ_file_fptr << std::left << setw(7) << setfill(' ') << iCell;
+		// 打印水深
+		Summ_file_fptr << std::left << setw(7) << setfill(' ') << m_surWtrDepth[iCell];
+		// 打印x方向流量,dqq>0向左流
+		if (m_RasterNeighbor[iCell][4] > 0)
+		{
+			Summ_file_fptr << "←" << std::left << setw(11) << setfill(' ') << m_RasterNeighbor[iCell][4];
+		}
+		else if (m_RasterNeighbor[iCell][4] == 0) {
+			Summ_file_fptr << "--" << std::left << setw(10) << setfill(' ') << m_RasterNeighbor[iCell][4];
+		}
+		else
+		{
+			Summ_file_fptr << "→" << std::left << setw(11) << setfill(' ') << -m_RasterNeighbor[iCell][4];
+		}
+		cols++;
+		last_row = curRow;
+	}
+}
+
+// 建立位置索引及dqq数组，上下左右 对应 0123，右dqq对应4，下dqq对应5
+void CASC2D_OF::buildPositionIndex() {
+	// 位置
+	m_RasterNeighbor = new int* [m_nCells];
+	for (int i = 0; i < m_nCells; i++) {
+		m_RasterNeighbor[i] = new int[6];
+		for (int j = 0; j < 6; j++)
+		{
+			m_RasterNeighbor[i][j] = -1;
+		}
+	}
+	for (int iCell = 0; iCell < m_nCells; iCell++) {
+		int curRow = m_RasterPostion[iCell][0];
+		int curCol = m_RasterPostion[iCell][1];
+		
+		// 如果有上位置
+		if (curRow != 0)
+		{
+			for (int i = iCell - 1; i >= iCell - m_ncols; i--)
+			{
+				// 防止数组越界
+				if (i < 0)
+				{
+					break;
+				}
+				if ( m_RasterPostion[i][0] == (curRow - 1) && m_RasterPostion[i][1] == curCol)
+				{
+					m_RasterNeighbor[iCell][0] = i;
+					break;
+				}
+			}
+		}
+
+		// 如果有下位置
+		if (curRow != m_nrows - 1)
+		{
+			for (int i = iCell + 1; i <= iCell + m_ncols; i++)
+			{
+				// 防止数组越界
+				if (i > m_nCells - 1)
+				{
+					break;
+				}
+				if (m_RasterPostion[i][0] == (curRow + 1) && m_RasterPostion[i][1] == curCol)
+				{
+					m_RasterNeighbor[iCell][1] = i;
+					break;
+				}
+			}
+		}
+
+		// 如果有左位置(如果左边有，则一定是上一个)
+		if (iCell != 0 &&  curRow == m_RasterPostion[iCell - 1][0] && (curCol -1) == m_RasterPostion[iCell - 1][1])
+		{
+			m_RasterNeighbor[iCell][2] = iCell - 1;
+		}
+		// 如果有右位置(如果右边有，则一定是下一个)
+		if (iCell != (m_nCells -1) && curRow == m_RasterPostion[iCell + 1][0] && (curCol + 1) == m_RasterPostion[iCell + 1][1])
+		{
+			m_RasterNeighbor[iCell][3] = iCell + 1;
+		}
+
+	}
+}
+
+void CASC2D_OF::traceSource(int icell) {
+	while (hasSource(icell)) {
+
+	}
+}
+
+bool CASC2D_OF::hasSource(int icell) {
+	return true;
+}
 
 
 
@@ -300,17 +511,21 @@ void CASC2D_OF::OvrlDepth()
 		if (hov < 0.0 && hov > -0.01)
 		{
 			hov = 0.0f;
-			//else
-			//{
-			//	cout << "warning: hov: " << hov << " m_surWtrDepth[" << i << "]: " << m_surWtrDepth[i] << endl;
-			//	//throw ModelException("CASC2D_OF", "OvrlDepth", "hov at cell " + to_string(i) +  " is " + to_string(hov) +  " less than -0.0001");
-			//}
 		}
 		/* 更新全局地表水深*/
 		m_surWtrDepth[i] = hov * 1000.f;			// m -> mm
 		/* 将当前时间步长内的地表流速变化设为0*/
 		m_chQ[i] = 0.0;
-
+		//# ifdef IS_DEBUG
+		//if (i == output_icell && Summ_file_fptr.is_open()) {
+		//	Summ_file_fptr << "icell: " << output_icell << " surWtrDepth: " << m_surWtrDepth[i] << " m_surWtrDepth: " <<  endl;
+		//}
+		//if (isnan(hov) || isnan(m_surWtrDepth[i]) || isnan(m_chQ[i]) || isinf(hov) || isinf(m_surWtrDepth[i]) || isinf(m_chQ[i])) {
+		//	if (Summ_file_fptr.is_open()) {
+		//		Summ_file_fptr << " i: " << i << " m_surWtrDepth[i]: " << m_surWtrDepth[i] << " m_chQ[i]: " << m_chQ[i] << endl;
+		//	}
+		//}
+		//#endif // IS_DEBUG
 	}
 	
 }
@@ -320,36 +535,86 @@ void CASC2D_OF::OvrlRout()
 {
 
 	int j, k, jj, kk, l;
+	int lastRow = 0;
 	/* 遍历栅格单元*/
 	for (int iCell = 0; iCell < m_nCells; iCell++) {
-		//cout << "iCell " << iCell << endl;
 		int curRow = m_RasterPostion[iCell][0];
 		int curCol = m_RasterPostion[iCell][1];
-		//double sub_t1 = TimeCounting();
+		//# ifdef IS_DEBUG
+		//if (iCell == 0)
+		//{
+		//	for (int i = 1; i <= m_ncols; i++)
+		//	{
+		//		Summ_file_fptr<< std::left << setw(20) << i;
+		//	}
+		//	Summ_file_fptr << endl;
+		//}
+		//if (iCell == 0)
+		//{
+		//	for (int i = 0; i < curCol; i++)
+		//	{
+		//		Summ_file_fptr << std::left << setw(20);
+		//	}
+		//}
+		//if (lastRow != curRow)
+		//{
+		//	Summ_file_fptr << endl;
+		//	for (int i = 0; i < curCol; i++)
+		//	{
+		//		Summ_file_fptr << std::left << setw(20);
+		//	}
+		//}
+		//#endif // IS_DEBUG
 		map<int,vector<int>>::iterator it;
 		it = m_rbcellsMap.find(iCell);
 		if (it != m_rbcellsMap.end())
 		{
-
+			int dqq = 0.0f;
 			int rightCell;
 			// 如果右方栅格单元不为空，计算右方栅格单元
-			if ((it ->second)[0] != -1)
+			if ((it->second)[0] != -1)
 			{
 				rightCell = (it->second)[0];
-				ovrl(iCell, rightCell);
+# ifdef IS_DEBUG
+				//if (counter >= 838 && Summ_file_fptr.is_open()) {
+				//	Summ_file_fptr << "[ I:" << iCell << std::left << setw(2) << "r:" << rightCell << " " << std::left << setw(8) << dqq << "]";
+				//}
+				//if (counter >= 600 && Summ_file_fptr.is_open()) {
+				//	Summ_file_fptr << "ic: " << iCell << " dep: " << m_surWtrDepth[iCell]  << " rc: " << rightCell << " dep: " << m_surWtrDepth[rightCell];
+				//}
+#endif // IS_DEBUG
+				dqq = ovrl(iCell, rightCell);
+				m_RasterNeighbor[iCell][4] = dqq;
 			}
+
 			int belowCell;
 			// 如果下方栅格单元不为空，计算下方栅格单元
 			if ((it->second)[1] != -1)
 			{
 				belowCell = (it->second)[1];
-				ovrl(iCell, belowCell);
+				# ifdef IS_DEBUG
+				//if (counter >= 600 && Summ_file_fptr.is_open()) {
+				//	Summ_file_fptr << "ic: " << iCell << " dep: " << m_surWtrDepth[iCell] << " bc: " << belowCell << " dep: " << m_surWtrDepth[belowCell] << " row: " << curRow << " col: " << curCol;
+				//}
+				#endif // IS_DEBUG
+				dqq = ovrl(iCell, belowCell);
+				m_RasterNeighbor[iCell][5] = dqq;
+				//if (counter >= 838 && Summ_file_fptr.is_open()) {
+				//	Summ_file_fptr << "[ I:"<< iCell << std::left << setw(2) <<  "b:" << belowCell << " " << std::left << setw(8)<< dqq << "]";
+				//}
+
 			}
 		}
+		# ifdef IS_DEBUG
+
+		lastRow = curRow;
+		#endif // IS_DEBUG
+
+
 	}
 }
 
-void CASC2D_OF::ovrl(int icell, int rbCell)
+float CASC2D_OF::ovrl(int icell, int rbCell)
 {
 	int jfrom, kfrom, jto, kto;
 
@@ -357,7 +622,7 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 
 	float vel = 0.0;
 
-	float so, sf, dhdx, hh, rman, alfa, dqq, stordepth;
+	float so = 0.0f, sf = 0.0f, dhdx = 0.0f, hh = 0.0f, rman = 0.0f, alfa = 0.0f, dqq = 0.0f, stordepth = 0.0f;
 
 	so = (m_dem[icell] - m_dem[rbCell]) / m_cellWth;			/* 河床坡度*/
 
@@ -368,35 +633,36 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 	  * 附加比降 < 0，代表涨洪，即对于波前，附加比降为正
 	  * 附加比降 > 0，代表落洪，即对于波后，附加比降为负
 	 */
-	sf = so - dhdx + (float)(1e-30);	/* 摩擦坡度*/
+	sf = so - dhdx + (float)(1e-30);	
+	/* hh(m)，地表径流水深*/
+	hh = m_surWtrDepth[icell] /1000.0f;                 
+	/* 曼宁系数*/
+	rman = m_ManningN[icell];		
 
-	hh = m_surWtrDepth[icell] /1000.0f;                  /* 地表径流水深*/
-
-	rman = m_ManningN[icell];		 /* 曼宁系数*/
-
+	//if (isnan(dhdx) || isnan(m_surWtrDepth[rbCell]) || isnan(m_surWtrDepth[icell]) || isinf(dhdx) || isinf(m_surWtrDepth[rbCell]) || isinf(m_surWtrDepth[icell])) {
+	//	if (Summ_file_fptr.is_open()) {
+	//		Summ_file_fptr << " icell: " << icell << " m_surWtrDepth[icell]: " << m_surWtrDepth[icell] << " m_surWtrDepth[rbCell]: " << m_surWtrDepth[rbCell] << endl;
+	//	}
+	//}
+	
 	/* 在河道内*/
 	if (!FloatEqual(m_streamLink[icell], NODATA_VALUE))
 	{
 		/* 如果栅格单元上的蓄水深度 > 河道深度，则河道上方的地表水深=栅格单元上的总蓄水深度-河道深度，否则地表水深=0.0*/
-		if (m_surSdep[icell] / 1000.0f > m_chDepth[icell])
+		if (m_surSdep[icell] > m_chDepth[icell])
 		{
 			/* 稳定流深度 = 河道内栅格单元上的总蓄水深度 - 河道深度（即高出河道部分的深度）*/
-			stordepth = m_surSdep[icell] / 1000.0f - m_chDepth[icell] ;
-			//cout << "stordepth >: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
+			stordepth = m_surSdep[icell] - m_chDepth[icell] ;
 		}
 		else
 		{
 			stordepth = 0.0f;
-			//cout << "stordepth zero: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
-
 		}
 	}
 	/* 在河道外，稳定流深度 = 栅格单元上的蓄水深度*/
 	else
 	{
-		stordepth = m_surSdep[icell] / 1000.0f;
-		//cout << "stordepth out: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
-
+		stordepth = m_surSdep[icell];
 	}
 
 	/* 在casc2d里sf翻译为摩擦比降，实际含义是附加比降。
@@ -417,13 +683,12 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		rman = m_ManningN[rbCell];
 		/* 下一个地表单元在河道内*/
 		if (!FloatEqual(m_streamLink[rbCell], NODATA_VALUE))
-			//if (chancheck == 1 && link[jj][kk] > 0)
 		{
 			/* 下一个栅格单元上的蓄水深度 > 河道深度，理解为下一个河道地表单元的河道内已经蓄满水*/
-			if (m_surSdep[rbCell] / 1000.0f > m_chDepth[rbCell])
+			if (m_surSdep[rbCell] > m_chDepth[rbCell])
 			{
 				/* 下一个地表单元的地表水深*/
-				stordepth =	m_surSdep[rbCell] / 1000.0f - m_chDepth[rbCell];
+				stordepth =	m_surSdep[rbCell] - m_chDepth[rbCell];
 			}
 			else
 			{
@@ -432,10 +697,8 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		}
 		else
 		{
-			stordepth = m_surSdep[rbCell] / 1000.0f;
+			stordepth = m_surSdep[rbCell];
 		}
-		//cout << "stordepth sf: " << stordepth << " m_surSdep: " << m_surSdep[icell] << " m_chDepth: " << m_chDepth[icell] << endl;
-
 	}
 	if (stordepth <= 0.0001)
 	{
@@ -454,33 +717,32 @@ void CASC2D_OF::ovrl(int icell, int rbCell)
 		if (sf < 0) a = -1.0;
 		/* dqq 时间步长内地表径流速率的变化量 = alfa * h的(5/3)次方*/
 		dqq = (float)(a*m_cellWth*alfa*pow((hh - stordepth), 1.667));
-		int i = icell;
-		/* 输出栅格单元上时间步长内的地表径流速率*/
+		//if (counter >= 600 && Summ_file_fptr.is_open())
+		//{
+		//	Summ_file_fptr << " dq: " << dqq << " h: " << hh << "  sto： " << stordepth << " alfa: " << alfa << endl;
+		//}
+		
+		/* 输出栅格单元上时间步长内的地表径流速率, dqq为正则水流向右、下方，dqq为负则水从右、下方流向当前单元*/
 		m_chQ[icell] = m_chQ[icell] - dqq;
 
 		m_chQ[rbCell] = m_chQ[rbCell] + dqq;
-		# ifdef IS_DEBUG
-		float hov = m_chQ[icell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[icell] / 1000.f;
-		if (hov < -1 || hov > 100)
-		{
-			if (Summ_file_fptr.is_open()) {
-				Summ_file_fptr << "icell: " << icell << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-			}
-			//cout << "icell: " << icell << " hov1: " << hov1 << " hov: " << hov << " m_surWtrDepth: " << m_surWtrDepth[icell] / 1000.f << " m_chQ: " << m_chQ[icell] << " dqq: " << dqq << " hh: " << hh << " stordepth: " << stordepth << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-		}
-
-		float hov = m_chQ[rbCell] * m_dt / (m_cellWth*m_cellWth) + m_surWtrDepth[rbCell] / 1000.f;
-		if (hov < -1 || hov > 100)
-		{
-			if (Summ_file_fptr.is_open()) {
-				Summ_file_fptr << "rbCell: " << " hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-			}
-			//cout << "rbCell " << "hov: " << hov << "m_surWtrDepth: " << m_surWtrDepth[rbCell] / 1000.f << "m_chQ[" << rbCell << "]: " << m_chQ[rbCell] << " dqq: " << dqq << " hh - stordepth: " << hh - stordepth << " alfa: " << alfa << endl;
-		}
-		#endif // IS_DEBUG
 
 	}	/* End of HH >= STORDEPTH */
-
+	//# ifdef IS_DEBUG
+	//if (icell == output_icell && Summ_file_fptr.is_open()) {
+	//	Summ_file_fptr <<  " exchange: " << -dqq << endl;
+	//}
+	//else if (rbCell == output_icell && Summ_file_fptr.is_open()) {
+	//	Summ_file_fptr << " exchange: " << dqq << endl;
+	//}
+	//if (isnan(dqq) || isnan(m_chQ[icell]) || isnan(dhdx)) {
+	//	if (Summ_file_fptr.is_open()) {
+	//		Summ_file_fptr << " icell: " << icell << " dqq: " << dqq << " m_chQ[icell]: " << m_chQ[icell] << " m_chQ[rbCell]: " << m_chQ[rbCell]
+	//			<< " hh:" << hh << " stordepth: " << stordepth << " alfa: " << alfa << endl;
+	//	}
+	//}
+	//#endif // IS_DEBUG
+	return dqq;
 }   /* End of OVRL */
 
 /*************************更新河道径流深度*******************************/

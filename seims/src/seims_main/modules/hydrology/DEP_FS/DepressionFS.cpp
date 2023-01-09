@@ -62,7 +62,7 @@ int DepressionFS::Execute() {
         m_checkInput = false;
     }
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
 
         // sr is temporarily used to stored the water depth including the depression storage

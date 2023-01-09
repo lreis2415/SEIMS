@@ -8,7 +8,7 @@
  */
 #ifndef SEIMS_MODULE_TEMPLATE_H
 #define SEIMS_MODULE_TEMPLATE_H
-
+#define IS_DEBUG 0
 //#define IS_DEBUG 1
 #include "SimulationModule.h"
 
@@ -65,7 +65,7 @@ public:
 
 	void OvrlRout();
 
-	void ovrl(int icell, int rbCell);
+	float ovrl(int icell, int rbCell);
 
 	void ChannRout();
 
@@ -79,6 +79,15 @@ public:
 	float chnDischarge(float hchan, float hh, float wch, float dch,
 		float stordep, float rmanch, float a, float sf, float sfactor);
 
+	void OutputPosition();
+
+	void CASC2D_OF::buildPositionIndex();
+
+	void CASC2D_OF::printFlow();
+
+	void CASC2D_OF::traceSource(int icell);
+
+	bool CASC2D_OF::hasSource(int icell);
 
 private:
 	int counter;
@@ -137,6 +146,10 @@ private:
 	/**** 其他变量 ***/
 	bool m_InitialInputs = true;						/* 是否检测输入数据*/
 	map<int, vector<int>> m_rbcellsMap;  /* 存放栅格单元右、下方的单元下标，key栅格单元在一维数组中的下标，value[0]右方栅格的下标(如无右方栅格则是-1)，value[1]下方栅格的下标（如无下方栅格则是-1）*/
+	int output_icell;
+	int output_icell_max;
+	int output_icell_min;
+	int** m_RasterNeighbor;		/* 储存栅格位置数据的数组*/
 
 	/**** OverDepth.c使用 ***/
 	int m, n;						/* 集水区的行列数 */

@@ -103,14 +103,14 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
 		// 如果当前时间步长的降雨量>0
         if (m_pcp[i] > 0.f) {
 #ifdef STORM_MODE
             /// correction for slope gradient, water spreads out over larger area
             /// 1. / 3600. = 0.0002777777777777778
-            m_pcp[i] = m_pcp[i] * m_hilldt * 0.0002777777777777778f * cos(atan(m_slope[i]));
+            //m_p[i] = m_p[i] * m_hilldt * 0.0002777777777777778f * cos(atan(m_slope[i]));
 #endif // STORM_MODE
             //interception storage capacity, 1. / 365. = 0.0027397260273972603
             float degree = 2.f * PI * (m_dayOfYear - 87.f) * 0.0027397260273972603f;

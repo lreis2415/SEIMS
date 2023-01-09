@@ -1987,4 +1987,5 @@
 #define HEADER_RS_LAYERS                       "LAYERS"
 #define HEADER_RS_SRS                          "SRS"
 
+#define OUTPUT_ICELL 1000;
 #endif

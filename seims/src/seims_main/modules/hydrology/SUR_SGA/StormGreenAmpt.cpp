@@ -24,6 +24,8 @@ StormGreenAmpt::~StormGreenAmpt(void) {
 void StormGreenAmpt:: InitialOutputs() {
     // allocate the output variable
     if (m_infil == NULL) {
+		output_icell = 50676;
+		counter = 0;
         CheckInputData();
 
         m_infil = new float[m_nCells];
@@ -166,7 +168,22 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
 
 int StormGreenAmpt::Execute(void) {
     InitialOutputs();
-
+# ifdef IS_DEBUG
+	string Summ_file = "F:\\program\\seims\\data\\log\\Summ_file.txt";
+	if (counter == 0 && _access(Summ_file.c_str(), 0) == 0) {//文件存在删除
+		if (remove(Summ_file.c_str()) == 0) {
+			cout << "succeed to delete file.  " << endl;
+		}
+		else {
+			cout << "failed to delete file.  " << endl;
+		}
+	}
+	counter++;
+	if (!Summ_file_fptr.is_open()) {
+		Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
+		Summ_file_fptr << "timestamp " << counter << endl;
+	}
+# endif
 
     // allocate intermediate variables
     if (m_capillarySuction == NULL) {
@@ -263,7 +280,7 @@ int StormGreenAmpt::Execute(void) {
                 m_accumuDepth[i] += m_infil[i];
 
                 if (m_rootDepth != NULL) {
-                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][0];
+                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][4];
                 }
             }
 			// xdw modify, 把对地表水深的更新挪到这里，因为如果土壤湿度>土壤孔隙度，也需要更新地表水深
@@ -274,6 +291,9 @@ int StormGreenAmpt::Execute(void) {
             m_infil[i] = 0.0f;
             m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
         }
+		if (i == output_icell && Summ_file_fptr.is_open()) {
+			Summ_file_fptr << "icell: " << i << " infil: " << m_infil[i] << " accum_infil: " << m_accumuDepth[i] << " pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << endl;
+		}
     }
 
     return 0;
