@@ -247,7 +247,7 @@ int StormGreenAmpt::Execute(void) {
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
 
 		//infilCap是当前时间步长土壤还能容纳的最大入渗最大深度,这里m_rootDepth取第4层，因为第4层的深度比较合适，第1层的深度太小了
-        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][4];
+        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][5];
 		//cout << "m_ks: " << m_ks[i][0] << " ks: " << ks << " infilDepth: " << infilDepth << " infilRate: " << infilRate << " infilCap: " << infilCap << endl;
 
         if (hWater > 0) {
@@ -280,7 +280,7 @@ int StormGreenAmpt::Execute(void) {
                 m_accumuDepth[i] += m_infil[i];
 
                 if (m_rootDepth != NULL) {
-                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][4];
+                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][5];
                 }
             }
 			// xdw modify, 把对地表水深的更新挪到这里，因为如果土壤湿度>土壤孔隙度，也需要更新地表水深

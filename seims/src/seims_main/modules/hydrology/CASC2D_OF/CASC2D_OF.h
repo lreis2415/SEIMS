@@ -8,7 +8,7 @@
  */
 #ifndef SEIMS_MODULE_TEMPLATE_H
 #define SEIMS_MODULE_TEMPLATE_H
-#define IS_DEBUG 0
+#define IS_DEBUG 1
 //#define IS_DEBUG 1
 #include "SimulationModule.h"
 
@@ -84,14 +84,15 @@ public:
 	void CASC2D_OF::buildPositionIndex();
 
 	void CASC2D_OF::printFlow();
-
+	void CASC2D_OF::deleteExistFile(string file);
 	void CASC2D_OF::traceSource(int icell);
 
 	bool CASC2D_OF::hasSource(int icell);
 
 private:
 	int counter;
-	std::ofstream  Summ_file_fptr;
+	std::ofstream  flow_file_fptr;
+	std::ofstream  position_file_fptr;
     int m_nCells;
 	int m_maxSoilLyrs;
 	float* m_nSoilLyrs;

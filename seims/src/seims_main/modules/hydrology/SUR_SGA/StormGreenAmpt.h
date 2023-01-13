@@ -9,7 +9,7 @@
 
 
 #include "SimulationModule.h"
-#define IS_DEBUG 0
+#define IS_DEBUG 1
 using namespace std;
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
