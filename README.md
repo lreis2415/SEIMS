@@ -1,6 +1,6 @@
 ## SEIMS: A modular and parallelized watershed modeling framework
 
-Copyright (C) 2013-2022 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
+Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations
