@@ -24,7 +24,8 @@ StormGreenAmpt::~StormGreenAmpt(void) {
 void StormGreenAmpt:: InitialOutputs() {
     // allocate the output variable
     if (m_infil == NULL) {
-		output_icell = 50676;
+		output_icell_min = 53450;
+		output_icell_max = 53460;
 		counter = 0;
         CheckInputData();
 
@@ -169,7 +170,7 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
 int StormGreenAmpt::Execute(void) {
     InitialOutputs();
 # ifdef IS_DEBUG
-	string Summ_file = "F:\\program\\seims\\data\\log\\Summ_file.txt";
+	string Summ_file = "G:\\program\\seims\\data\\log\\infiltration.txt";
 	if (counter == 0 && _access(Summ_file.c_str(), 0) == 0) {//文件存在删除
 		if (remove(Summ_file.c_str()) == 0) {
 			cout << "succeed to delete file.  " << endl;
@@ -247,7 +248,7 @@ int StormGreenAmpt::Execute(void) {
         float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
 
 		//infilCap是当前时间步长土壤还能容纳的最大入渗最大深度,这里m_rootDepth取第4层，因为第4层的深度比较合适，第1层的深度太小了
-        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][4];
+        float infilCap = (m_porosity[i][0] - m_soilMoisture[i]) * m_rootDepth[i][5];
 		//cout << "m_ks: " << m_ks[i][0] << " ks: " << ks << " infilDepth: " << infilDepth << " infilRate: " << infilRate << " infilCap: " << infilCap << endl;
 
         if (hWater > 0) {
@@ -280,7 +281,7 @@ int StormGreenAmpt::Execute(void) {
                 m_accumuDepth[i] += m_infil[i];
 
                 if (m_rootDepth != NULL) {
-                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][4];
+                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i][5];
                 }
             }
 			// xdw modify, 把对地表水深的更新挪到这里，因为如果土壤湿度>土壤孔隙度，也需要更新地表水深
@@ -291,11 +292,11 @@ int StormGreenAmpt::Execute(void) {
             m_infil[i] = 0.0f;
             m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
         }
-		if (i == output_icell && Summ_file_fptr.is_open()) {
+		if (i >= output_icell_min && i <= output_icell_max && Summ_file_fptr.is_open()) {
 			Summ_file_fptr << "icell: " << i << " infil: " << m_infil[i] << " accum_infil: " << m_accumuDepth[i] << " pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << endl;
 		}
     }
-
+	Summ_file_fptr.close();
     return 0;
 }
 

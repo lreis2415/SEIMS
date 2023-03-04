@@ -95,7 +95,8 @@ class ImportMongodbClass(object):
 
         # import model parameters information to MongoDB
         status_output('Import model parameters', 10, f)
-        ImportParam2Mongo.workflow(cfg, maindb)
+        ImportParam2Mongo.workflow(
+            cfg, maindb)
         n_subbasins = MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.subbsn_num)
         print('Number of subbasins: %d' % n_subbasins)
 

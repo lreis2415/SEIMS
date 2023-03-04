@@ -143,7 +143,8 @@ private:
     */
     float *m_infilCapacitySurplus;
 
-	int output_icell;
+	int output_icell_max;
+	int output_icell_min;
 	int counter;
 	std::ofstream  Summ_file_fptr;
 

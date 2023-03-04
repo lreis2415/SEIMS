@@ -201,19 +201,19 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
             for (int j = subbasin.x_min; j <= subbasin.x_max; j++) {		// 遍历子流域中的每个栅格单元
                 int index = i * n_xsize + j;// 总流域中的栅格单元索引
                 int sub_index = (i - subbasin.y_min) * sub_xsize + (j - subbasin.x_min);// 子流域中的栅格单元索引
-				cout << " i: " << i << " j: " << j << " index: " << index << " sub_index: " << sub_index << " subbasin_id: " << subbasin_id << " 栅格像元值: " << subbasin_data[index] << endl;
+				//cout << " i: " << i << " j: " << j << " index: " << index << " sub_index: " << sub_index << " subbasin_id: " << subbasin_id << " 栅格像元值: " << subbasin_data[index] << endl;
 				if (subbasin_data[index] == subbasin_id) {//如果表示子流域id的栅格的像元值（即子流域id） == 当前子流域的id
 					for (int k = 0; k < col_num; k++) {// 第k个图层
                         sub_2ddata[sub_index * col_num + k] = rss_data[index][k];// sub_index * col_num + k这样是为了在一维数组中保存col_num个图层
-						cout << "sub_index: " << sub_index <<" sub_2ddata[" << sub_index * col_num + k << "]: " << sub_2ddata[sub_index * col_num + k] << endl;
+						//cout << "sub_index: " << sub_index <<" sub_2ddata[" << sub_index * col_num + k << "]: " << sub_2ddata[sub_index * col_num + k] << endl;
 					}
                 }
             }
         }
-		for (int i = 0; i < 1000; i++)
-		{
-			cout << "sub_2ddata[" << i << "]: " << sub_2ddata[i];
-		}
+		//for (int i = 0; i < 1000; i++)
+		//{
+		//	cout << "sub_2ddata[" << i << "]: " << sub_2ddata[i];
+		//}
         std::ostringstream remote_filename;
         remote_filename << id << "_" << GetUpper(core_name);
         float cell_size = CVT_FLT(rss->GetCellWidth());
@@ -435,29 +435,31 @@ int main(int argc, char** argv) {
     mongoc_gridfs_t* gfs = client->GetGridFs(string(model_name), string(gridfs_name));
 
     cout << "Importing spatial data to MongoDB...\n";
-    for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {	// 遍历2D文件，把2D文件转为1D数组，存入mongodb
-        vector<string> tmp_file_names = array2d_iter->second;											
-        for (auto it = tmp_file_names.begin(); it != tmp_file_names.end(); ++it) {				// 遍历变量名对应的文件名集合
-            cout << "\t" << *it << endl;
-            if (nullptr != out_tif_folder) {																				// 如果传入的参数个数<8，则未指定输出tif的位置，跳过这一步
-                DecompositeRaster(bbox_map, rs_subbasin, it->c_str(), out_tif_folder);		//  it->c_str()是指向it的指针
-            }
-        }
-        int loop = 1;
-        while (loop < 3) {
-            if (!Decomposite2DRasterToMongoDB(bbox_map, rs_subbasin, array2d_iter->first,// array2d_iter->first变量名
-                                              tmp_file_names, conn, gfs)) {// tmp_file_names1个变量名对应的多个文件名
-                cout << "Import " << array2d_iter->first << " failed, try time: " << loop << endl;
-                loop++;
-            } else {
-                break;
-            }
-        }
-        if (loop == 3) {
-            cout << "ERROR! Exceed the max. try times please check and rerun!" << endl;
-            exit(EXIT_FAILURE);
-        }
-    }
+	// 将2D Raster存入mongodb
+    //for (array2d_iter = array2d_files.begin(); array2d_iter != array2d_files.end(); ++array2d_iter) {	// 遍历2D文件，把2D文件转为1D数组，存入mongodb
+    //    vector<string> tmp_file_names = array2d_iter->second;											
+    //    for (auto it = tmp_file_names.begin(); it != tmp_file_names.end(); ++it) {				// 遍历变量名对应的文件名集合
+    //        cout << "\t" << *it << endl;
+    //        if (nullptr != out_tif_folder) {																				// 如果传入的参数个数<8，则未指定输出tif的位置，跳过这一步
+    //            DecompositeRaster(bbox_map, rs_subbasin, it->c_str(), out_tif_folder);		//  it->c_str()是指向it的指针
+    //        }
+    //    }
+    //    int loop = 1;
+    //    while (loop < 3) {
+    //        if (!Decomposite2DRasterToMongoDB(bbox_map, rs_subbasin, array2d_iter->first,// array2d_iter->first变量名
+    //                                          tmp_file_names, conn, gfs)) {// tmp_file_names1个变量名对应的多个文件名
+    //            cout << "Import " << array2d_iter->first << " failed, try time: " << loop << endl;
+    //            loop++;
+    //        } else {
+    //            break;
+    //        }
+    //    }
+    //    if (loop == 3) {
+    //        cout << "ERROR! Exceed the max. try times please check and rerun!" << endl;
+    //        exit(EXIT_FAILURE);
+    //    }
+    //}
+	// 将1D Raster存入mongodb
     for (size_t i = 0; i < array1d_files.size(); ++i) {
         cout << "\t" << array1d_files[i] << endl;
         if (out_tif_folder != nullptr) {
