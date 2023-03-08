@@ -141,6 +141,7 @@ bool CASC2D_OF::CheckInputData() {
 void CASC2D_OF::InitialOutputs() {
 	if (nullptr == m_chQ) Initialize1DArray(m_nCells, m_chQ, 0.f);
 	if (nullptr == m_ovQ) Initialize1DArray(m_nCells, m_ovQ, 0.f);
+	//if (nullptr == cellWtrDep) Initialize1DArray(30000, cellWtrDep, 0.f);
 	// m_surSdep(m)
 	if (nullptr == m_surSdep) Initialize1DArray(m_nCells, m_surSdep, 0.f);
 	// 初始化河道水深,其实这里将河道内外的初始水深都暂时设为0
@@ -148,10 +149,10 @@ void CASC2D_OF::InitialOutputs() {
 	if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
 	if (m_InitialInputs) {
 		output_icell = 50676;
-		printIOvFlowMinT = 10000;
-		printOvFlowMaxT = 960;
-		printChFlowMinT = 10000;
-		printChFlowMaxT = 14000;
+		printIOvFlowMinT = 23970;
+		printOvFlowMaxT = 24630;
+		printChFlowMinT = 23970;
+		printChFlowMaxT = 24630;
 		counter = 0;
 		// find source cells the reaches
 		m_sourceCellIds = new int[m_nreach];
@@ -266,6 +267,20 @@ int CASC2D_OF::Execute() {
 	chflowOss << baseOutputPath << "ch_flow_" << counter << ".txt";
 	string chFlowFile = chflowOss.str();
 
+	// 坡面水深异常值
+	std::ostringstream wtrDepOss;
+	wtrDepOss << baseOutputPath << "ov_wtrdep" <<  ".txt";
+	string wtrDepFile = wtrDepOss.str();
+	if (counter == 0)
+	{
+		deleteExistFile(wtrDepFile);
+		if (!wtrDepFptr.is_open())
+		{
+			wtrDepFptr.open(wtrDepFile.c_str(), std::ios::out | std::ios::app);
+		}
+	}
+	wtrDepFptr << counter << endl;
+
 	// 输出每个栅格单元的行列位置
 	std::ostringstream positionOss;
 	positionOss << baseOutputPath << "position.txt";
@@ -286,6 +301,7 @@ int CASC2D_OF::Execute() {
 	}
 
 	# endif
+
 	counter++;
 
 	double sub_t1 = TimeCounting();
@@ -309,6 +325,10 @@ int CASC2D_OF::Execute() {
 	if (chFlowFptr.is_open()) {
 		chFlowFptr.close();
 	}
+	if (counter >= 25000 && wtrDepFptr.is_open()) {
+		chFlowFptr.close();
+	}
+	
 	# endif
 	double sub_t2 = TimeCounting();
 	cout << "casc2d_sed timestamp  end, cost time: " << sub_t2 - sub_t1 << endl;
@@ -696,11 +716,12 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 	  * 附加比降 < 0，代表涨洪，即对于波前，附加比降为正
 	  * 附加比降 > 0，代表落洪，即对于波后，附加比降为负
 	 */
-	sf = so - dhdx + (float)(1e-30);	
+	sf = so - dhdx + (float)(1e-30);
+
 	/* hh(m)，地表径流水深*/
 	hh = m_surWtrDepth[icell] /1000.0f;                 
 	/* 曼宁系数*/
-	rman = m_ManningN[icell];		
+	rman = m_ManningN[icell];		 
 
 	//if (isnan(dhdx) || isnan(m_surWtrDepth[rbCell]) || isnan(m_surWtrDepth[icell]) || isinf(dhdx) || isinf(m_surWtrDepth[rbCell]) || isinf(m_surWtrDepth[icell])) {
 	//	if (ovFlowFptr.is_open()) {
@@ -779,8 +800,21 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 
 		if (sf < 0) a = -1.0;
 		/* dqq 时间步长内地表径流速率的变化量 = alfa * h的(5/3)次方*/
-		dqq = (float)(a*m_cellWth*alfa*pow((hh - stordepth), 1.667));
-		
+		float newH = hh - stordepth;
+		if (newH < 0.0)
+		{
+			newH = 0.0;
+		}
+		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667));
+		# ifdef IS_DEBUG
+		if (isnan(dqq) || isinf(dqq) || isnan(dhdx) || isinf(dhdx) || isnan(sf) || isinf(sf))
+		{
+
+			wtrDepFptr << "m_surWtrDepth[" << icell << "]: " << m_surWtrDepth[icell] << " m_surWtrDepth[" << rbCell << "]: " << m_surWtrDepth[rbCell]
+				<< " sf: " << sf << " so: " << so << " dhdx: " << dhdx << " rman: " << "dqq: " << dqq
+				<< " alfa: " << alfa << " hh - stordepth: " << hh - stordepth << endl;
+		}
+		#endif // IS_DEBUG
 		/* 输出栅格单元上时间步长内的地表径流速率, dqq为正则水流向右、下方，dqq为负则水从右、下方流向当前单元*/
 
 		m_ovQ[icell] = m_ovQ[icell] - dqq;

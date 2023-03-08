@@ -8,8 +8,8 @@
  */
 #ifndef SEIMS_MODULE_TEMPLATE_H
 #define SEIMS_MODULE_TEMPLATE_H
-#define IS_DEBUG 0
-//#define IS_DEBUG 1
+//#define IS_DEBUG 0
+#define IS_DEBUG 1
 #include "SimulationModule.h"
 
 using namespace std;
@@ -97,6 +97,7 @@ private:
 	std::ofstream  ovFlowFptr;
 	std::ofstream  chFlowFptr;
 	std::ofstream  position_Fptr;
+	std::ofstream  wtrDepFptr;
 	
     int m_nCells;
 	int m_maxSoilLyrs;
@@ -163,6 +164,7 @@ private:
 	int printChFlowMinT;
 	int** m_RasterNeighbor;		/* 储存栅格位置数据的数组*/
 	float ** m_Dqq;
+	float * cellWtrDep;
 };
 
 #endif /* SEIMS_MODULE_TEMPLATE_H */
