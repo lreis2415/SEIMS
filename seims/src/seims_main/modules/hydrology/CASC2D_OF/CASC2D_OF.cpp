@@ -669,10 +669,11 @@ void CASC2D_OF::OvrlRout()
 			if ((it->second)[0] != -1)
 			{
 				rightCell = (it->second)[0];
-# ifdef IS_DEBUG
-#endif // IS_DEBUG
 				dqq = ovrl(iCell, rightCell);
+				# ifdef IS_DEBUG
 				m_Dqq[iCell][0] = dqq;
+				#endif // IS_DEBUG
+				
 			}
 
 			int belowCell;
@@ -680,12 +681,10 @@ void CASC2D_OF::OvrlRout()
 			if ((it->second)[1] != -1)
 			{
 				belowCell = (it->second)[1];
-				# ifdef IS_DEBUG
-				#endif // IS_DEBUG
-
 				dqq = ovrl(iCell, belowCell);
+				# ifdef IS_DEBUG
 				m_Dqq[iCell][1] = dqq;
-
+				#endif // IS_DEBUG
 			}
 		}
 		# ifdef IS_DEBUG
@@ -817,9 +816,9 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 		#endif // IS_DEBUG
 		/* 输出栅格单元上时间步长内的地表径流速率, dqq为正则水流向右、下方，dqq为负则水从右、下方流向当前单元*/
 
-		m_ovQ[icell] = m_ovQ[icell] - dqq;
+		m_ovQ[icell] = m_ovQ[icell] - 0.5 * dqq;
 
-		m_ovQ[rbCell] = m_ovQ[rbCell] + dqq;
+		m_ovQ[rbCell] = m_ovQ[rbCell] + 0.5 * dqq;
 
 	}	/* End of HH >= STORDEPTH */
 	//#endif // IS_DEBUG
