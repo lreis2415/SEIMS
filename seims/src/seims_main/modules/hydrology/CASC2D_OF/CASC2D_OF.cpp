@@ -149,10 +149,10 @@ void CASC2D_OF::InitialOutputs() {
 	if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
 	if (m_InitialInputs) {
 		output_icell = 50676;
-		printIOvFlowMinT = 23970;
+		printIOvFlowMinT = 239700;
 		printOvFlowMaxT = 24630;
-		printChFlowMinT = 23970;
-		printChFlowMaxT = 24630;
+		printChFlowMinT = 39000;
+		printChFlowMaxT = 39090;
 		counter = 0;
 		// find source cells the reaches
 		m_sourceCellIds = new int[m_nreach];
@@ -293,9 +293,9 @@ int CASC2D_OF::Execute() {
 	}
 	//输出位置数据
 	if (counter == 0) {
-		deleteExistFile(positionFile);
-		position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
-		printPosition();
+		//deleteExistFile(positionFile);
+		//position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
+		//printPosition();
 		// 建立位置索引及dqq数组
 		buildPositionIndex();
 	}
@@ -804,11 +804,12 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 		{
 			newH = 0.0;
 		}
-		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667));
+		// todo: 想清楚dqq到底要不要除以dt
+		//dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) / m_dt;
+		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) ;
 		# ifdef IS_DEBUG
 		if (isnan(dqq) || isinf(dqq) || isnan(dhdx) || isinf(dhdx) || isnan(sf) || isinf(sf))
 		{
-
 			wtrDepFptr << "m_surWtrDepth[" << icell << "]: " << m_surWtrDepth[icell] << " m_surWtrDepth[" << rbCell << "]: " << m_surWtrDepth[rbCell]
 				<< " sf: " << sf << " so: " << so << " dhdx: " << dhdx << " rman: " << "dqq: " << dqq
 				<< " alfa: " << alfa << " hh - stordepth: " << hh - stordepth << endl;
@@ -857,30 +858,35 @@ void CASC2D_OF::ChannDepth()
 					/* 超出河道深度的水流深度*/
 					// 这里感觉逻辑不通，为什么总是拿初始水深在这比？
 					if (m_surSdep[idCell] / 1000.0f > dch)
-						sdep_ov = m_surSdep[idCell] / 1000.0f - dch;
+						sdep_ov = m_surSdep[idCell]  - dch * 1000.0f;
 					else
 						sdep_ov = 0.0;
 					/* 当前时间步长来自地表单元的水流体积*/
 					vol_ov_in = 0;
-
-					if (m_surWtrDepth[idCell] / 1000.0f > sdep_ov)
+					float wtrDepthTmp = m_surWtrDepth[idCell];
+					if (m_surWtrDepth[idCell]  > sdep_ov)
 					{
-						vol_ov_in = (m_surWtrDepth[idCell] / 1000.0f - sdep_ov)*m_cellWth*m_cellWth;
-						m_surWtrDepth[idCell] = sdep_ov * 1000.0f;
+						// 地表水流进入河道后，将地表水流重置为地表初始稳定水深深度（0）
+						vol_ov_in = (m_surWtrDepth[idCell]  - sdep_ov) / 1000.0f *m_cellWth*m_cellWth;
+						m_surWtrDepth[idCell] = sdep_ov;
 					}
 					# ifdef IS_DEBUG
 					if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
-						chFlowFptr << "RCH_ID: " << std::left << setw(4) << setfill(' ') << reachId
-							<< "DOWNSTREAM_ID: " << std::left << setw(4) << setfill(' ') << m_downStreamReachId[reachId]
-							<< "CELL_ID: " << std::left << setw(8) << setfill(' ') << idCell
+						chFlowFptr << "RCH_ID: " << std::left << setw(4) << setfill(' ') << reachId << " "
+							<< "DOWN_ID: " << std::left << setw(4) << setfill(' ') << m_downStreamReachId[reachId] << " "
+							<< "CELL_ID: " << std::left << setw(8) << setfill(' ') << idCell << " "
+							<< "S_DEP: " << std::left << setw(8) << setfill(' ') << wtrDepthTmp << " "
 							<< "WCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << wch << " "
 							<< "DCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << dch << " "
-							<< "INFLOW: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << inflowVol << " "
-							<< "OV_IN: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << vol_ov_in << " ";
+							<< "CH_Q: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chQ[idCell] << " "
+							<< "CH_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << inflowVol << " "
+							<< "OV_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_ov_in << " ";
 					}
 					# endif
-
 					m_chWtrDepth[idCell] = newChnDepth(wch, dch, sfactor, idCell, (inflowVol + vol_ov_in));   // m
+
+
+					
 					/* Negative Depth in the Channel --> EXIT program					*/
 
 					if (m_chWtrDepth[idCell] < 0.0)
@@ -930,12 +936,12 @@ float CASC2D_OF::newChnDepth(float wch, float dch, float sfactor,int idCell, flo
 	if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
 
 		chFlowFptr
-			<< "VOL_ADD: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << addedVolume
-			<< "AREA_INIT: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << area_init
-			<< "VOL_INIT: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << vol_init
-			<< "VO_FIN: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << vol_final
-			<< "OLD_DEP: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << m_chWtrDepth[idCell]
-			<< "NEW_DEP: " << std::left << setw(7) << setfill(' ') << fixed << setprecision(3) << newdepth << endl
+			<< "VOL_ADD: " << std::left << setw(13) << setfill(' ') << fixed << setprecision(3) << addedVolume
+			<< "AREA_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << area_init
+			<< "VOL_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_init
+			<< "VO_FIN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_final
+			<< "OLD_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chWtrDepth[idCell]
+			<< "NEW_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << newdepth << endl;
 			;
 	}
 	# endif
@@ -957,6 +963,10 @@ void CASC2D_OF::ChannRout()
 				reachIndex = iter->second;
 				vector<int> &curReachCells = m_reachs[reachIndex];
 				int n = curReachCells.size();
+				//if (counter == 26010 && reachId == 35)
+				//{
+				//	cout << endl;
+				//}
 				for (int iCell = 0; iCell < n; ++iCell) {
 					int cellIndex = curReachCells[iCell];
 					chnchn
@@ -1036,7 +1046,7 @@ void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, 
 		dhdx = (m_chWtrDepth[nextCellIndex] - m_chWtrDepth[curCellIndex]) / (m_cellWth*sfactor);
 
 		/* 摩擦坡度*/
-		sf = (float)(so - dhdx + 1e-30);
+		sf = (float)(so + dhdx + 1e-30);
 
 		/* Nota de Jorge: Sf se deberia quedar con el mismo signo */
 		/* sf 应该保持相同的符号，即sf绝对值如果很小，则视sf为正值*/
@@ -1044,7 +1054,9 @@ void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, 
 
 		if (sf < 0.0)
 		{
-			a = (float)(-1.0*a);
+			// 河道内只允许向前流
+			/*a = (float)(-1.0*a);*/
+			a = (float)(1.0*a);
 
 			/* 如果当前节点是当前河道的最后一个节点，则获取下游河道的第一个节点的属性*/
 			if (iCell >= curReachCells.size() - 1)
@@ -1119,11 +1131,11 @@ void CASC2D_OF::RoutOutlet()
 	if (m_surWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
 	{
 		qoutov =
-			(float)(m_cellWth*alfa*pow((m_surWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet]), 1.667));
+			(float)(m_cellWth*alfa*pow((m_surWtrDepth[m_idOutlet] / 1000.0 - m_surSdep[m_idOutlet]), 1.667));
 	}
 
 	/* Overland water depth at outlet cell is reduced after taking the outflow out of the cell*/
-	m_surWtrDepth[m_idOutlet] = (float)(m_surWtrDepth[m_idOutlet] - qoutov * m_dt / (pow(m_cellWth, 2.0)));
+	m_surWtrDepth[m_idOutlet] = (float)((m_surWtrDepth[m_idOutlet] / 1000.0 - qoutov * m_dt / (pow(m_cellWth, 2.0)))) * 1000.0;
 
 	/* SECOND:calculate the flow going out from the channel portion	*/
 	if (m_chWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
@@ -1178,12 +1190,16 @@ float CASC2D_OF::chnDischarge(float hchan, float hh, float wch, float dch, float
 	}
 	else
 	{
+		// 河道断面面积 + 河道上底以上的部分面积
 		area = wch * (dch - stordep) + m_cellWth * (hchan - dch);
+		// 河宽 + 2* 河道深度 + 2*（栅格宽 - 河宽）+ 2*（水深 - 河道深）
 		wp = (float)(wch + 2 * (dch - stordep) + 2 * (m_cellWth - wch) + 2 * (hchan - dch));
 	}
 
+	//dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
+	//	(pow(area, 1.6667)) / (pow(wp, 0.6667))) / m_dt;
 	dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
-		(pow(area, 1.6667)) / (pow(wp, 0.6667)));
+		(pow(area, 1.6667)) / (pow(wp, 0.6667))) ;
 
 	/* Limit the outflow by availability														*/
 	/* 限制最大出流量*/

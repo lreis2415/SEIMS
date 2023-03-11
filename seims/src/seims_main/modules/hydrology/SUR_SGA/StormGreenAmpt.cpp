@@ -24,8 +24,10 @@ StormGreenAmpt::~StormGreenAmpt(void) {
 void StormGreenAmpt:: InitialOutputs() {
     // allocate the output variable
     if (m_infil == NULL) {
-		output_icell_min = 53450;
-		output_icell_max = 53460;
+		output_icell_min = 0;
+		output_icell_max = 10000000;
+		printInfilMinT = 39000;
+		printInfilMaxT = 39090;
 		counter = 0;
         CheckInputData();
 
@@ -167,22 +169,39 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
     return true;
 }
 
+void StormGreenAmpt::deleteExistFile(string file) {
+	if (_access(file.c_str(), 0) == 0) {
+		if (remove(file.c_str()) == 0) {
+			cout << "succeed to delete infil output file " << file.c_str() << endl;
+		}
+		else {
+			cout << "failed to delete infil output file.  " << file.c_str() << endl;
+		}
+	}
+}
+
 int StormGreenAmpt::Execute(void) {
     InitialOutputs();
 # ifdef IS_DEBUG
-	string Summ_file = "G:\\program\\seims\\data\\log\\infiltration.txt";
-	if (counter == 0 && _access(Summ_file.c_str(), 0) == 0) {//文件存在删除
-		if (remove(Summ_file.c_str()) == 0) {
-			cout << "succeed to delete file.  " << endl;
-		}
-		else {
-			cout << "failed to delete file.  " << endl;
-		}
-	}
+	string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
+	// 坡面流量
+	std::ostringstream infiltOss;
+	infiltOss << baseOutputPath << "infilt_" << counter << ".txt";
+	string infiltFile = infiltOss.str();
+
+	//if (counter == 0 && _access(infiltFile.c_str(), 0) == 0) {//文件存在删除
+	//	if (remove(infiltFile.c_str()) == 0) {
+	//		cout << "succeed to delete infiltration  file.  " << endl;
+	//	}
+	//	else {
+	//		cout << "failed to delete infiltration file.  " << endl;
+	//	}
+	//}
 	counter++;
-	if (!Summ_file_fptr.is_open()) {
-		Summ_file_fptr.open(Summ_file.c_str(), std::ios::out | std::ios::app);
-		Summ_file_fptr << "timestamp " << counter << endl;
+	if ((counter >= printInfilMinT && counter <= printInfilMaxT) && !infiltFileFptr.is_open()) {
+		deleteExistFile(infiltFile);
+		infiltFileFptr.open(infiltFile.c_str(), std::ios::out | std::ios::app);
+		infiltFileFptr << "timestamp " << counter << endl;
 	}
 # endif
 
@@ -292,11 +311,16 @@ int StormGreenAmpt::Execute(void) {
             m_infil[i] = 0.0f;
             m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
         }
-		if (i >= output_icell_min && i <= output_icell_max && Summ_file_fptr.is_open()) {
-			Summ_file_fptr << "icell: " << i << " infil: " << m_infil[i] << " accum_infil: " << m_accumuDepth[i] << " pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << endl;
+		# ifdef IS_DEBUG
+		if ((counter >= printInfilMinT && counter <= printInfilMaxT))
+		{
+			if (i >= output_icell_min && i <= output_icell_max && infiltFileFptr.is_open()) {
+				infiltFileFptr << "icell: " << i << " infil: " << m_infil[i] << " acc: " << m_accumuDepth[i] << " pNet: " << m_pNet[i] << " m_sr: " << m_sr[i] << endl;
+			}
 		}
+		# endif
     }
-	Summ_file_fptr.close();
+	infiltFileFptr.close();
     return 0;
 }
 

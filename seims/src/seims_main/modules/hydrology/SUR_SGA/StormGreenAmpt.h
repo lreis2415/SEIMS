@@ -68,6 +68,9 @@ private:
 
     void clearInputs(void);
 
+
+	void deleteExistFile(string file);
+
 private:
 
     /// time step(seconds)
@@ -145,8 +148,10 @@ private:
 
 	int output_icell_max;
 	int output_icell_min;
+	int printInfilMinT;
+	int printInfilMaxT;
 	int counter;
-	std::ofstream  Summ_file_fptr;
+	std::ofstream  infiltFileFptr;
 
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);

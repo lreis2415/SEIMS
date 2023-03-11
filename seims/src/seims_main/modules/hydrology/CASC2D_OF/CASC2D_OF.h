@@ -9,7 +9,7 @@
 #ifndef SEIMS_MODULE_TEMPLATE_H
 #define SEIMS_MODULE_TEMPLATE_H
 //#define IS_DEBUG 0
-//#define IS_DEBUG 1
+#define IS_DEBUG 1
 #include "SimulationModule.h"
 
 using namespace std;
