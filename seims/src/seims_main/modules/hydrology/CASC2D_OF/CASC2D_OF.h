@@ -155,7 +155,7 @@ private:
 	float qoutov;						/* 出水口栅格单元每个时间步长的出流量（来自地表径流） 立方米/s */	
 	float sovout;						/* 出水口栅格单元的坡度 */										
 	/**** 其他变量 ***/
-	bool m_InitialInputs = true;						/* 是否检测输入数据*/
+	bool m_InitialInputs;						/* 是否检测输入数据*/
 	map<int, vector<int>> m_rbcellsMap;  /* 存放栅格单元右、下方的单元下标，key栅格单元在一维数组中的下标，value[0]右方栅格的下标(如无右方栅格则是-1)，value[1]下方栅格的下标（如无下方栅格则是-1）*/
 	int output_icell;
 	int printOvFlowMaxT;

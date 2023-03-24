@@ -5,7 +5,9 @@ using namespace std;
 CASC2D_OF::CASC2D_OF() :
     m_nCells(-1),m_nSoilLyrs(nullptr),m_ks(nullptr),m_soilWtrStoPrfl(nullptr),
 	m_surWtrDepth(nullptr), m_chWtrDepth(nullptr),m_surSdep(nullptr), m_ManningN(nullptr), m_streamLink(nullptr), m_dem(nullptr) ,
-	m_flowOutIndex(nullptr) , m_Slope(nullptr), m_chWidth(nullptr) , m_chSinuosity(nullptr), m_ovQ(nullptr), m_chQ(nullptr), m_outQ(0.0), m_outV(0.0){
+	m_flowOutIndex(nullptr) , m_Slope(nullptr), m_chWidth(nullptr) , m_chSinuosity(nullptr), m_ovQ(nullptr), m_chQ(nullptr), m_outQ(0.0), m_outV(0.0),
+    m_InitialInputs(true)
+{
 
 }
 
@@ -792,7 +794,7 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 	if (hh >= stordepth)
 	{
 		/* alfa是根据曼宁阻力和坡底摩阻比降计算出的流态参数*/
-		alfa = (float)((pow(fabs(sf), 0.5)) / rman);
+		alfa = (float)((pow(fabs(sf), 0.5f)) / rman);
 
 		/*	Note : The variable "a" represents the sign of the	Friction Slope (Sf)	Computing Overland Flow	*/
 		if (sf >= 0) a = 1.0;
@@ -806,7 +808,7 @@ float CASC2D_OF::ovrl(int icell, int rbCell)
 		}
 		// todo: 想清楚dqq到底要不要除以dt
 		//dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) / m_dt;
-		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) ;
+		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667f)) ;
 		# ifdef IS_DEBUG
 		if (isnan(dqq) || isinf(dqq) || isnan(dhdx) || isinf(dhdx) || isnan(sf) || isinf(sf))
 		{
@@ -1135,7 +1137,7 @@ void CASC2D_OF::RoutOutlet()
 	}
 
 	/* Overland water depth at outlet cell is reduced after taking the outflow out of the cell*/
-	m_surWtrDepth[m_idOutlet] = (float)((m_surWtrDepth[m_idOutlet] / 1000.0 - qoutov * m_dt / (pow(m_cellWth, 2.0)))) * 1000.0;
+	m_surWtrDepth[m_idOutlet] = (float)((m_surWtrDepth[m_idOutlet] / 1000.0 - qoutov * m_dt / (pow(m_cellWth, 2.0f)))) * 1000.0;
 
 	/* SECOND:calculate the flow going out from the channel portion	*/
 	if (m_chWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
@@ -1199,7 +1201,7 @@ float CASC2D_OF::chnDischarge(float hchan, float hh, float wch, float dch, float
 	//dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
 	//	(pow(area, 1.6667)) / (pow(wp, 0.6667))) / m_dt;
 	dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
-		(pow(area, 1.6667)) / (pow(wp, 0.6667))) ;
+		(pow(area, 1.6667f)) / (pow(wp, 0.6667f))) ;
 
 	/* Limit the outflow by availability														*/
 	/* 限制最大出流量*/
