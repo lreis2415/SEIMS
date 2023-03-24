@@ -269,7 +269,9 @@ int CASC2D_OF::Execute() {
     wtrDepOss << baseOutputPath << "ov_wtrdep" <<  ".txt";
     string wtrDepFile = wtrDepOss.str();
     if (counter == 0) {
-        deleteExistFile(wtrDepFile);
+        if (DeleteExistedFile (wtrDepFile) == 0) {
+            cout << "succeed to delete casc2d output file " << wtrDepFile << endl;
+        }
         if (!wtrDepFptr.is_open()) {
             wtrDepFptr.open(wtrDepFile.c_str(), std::ios::out | std::ios::app);
         }
@@ -282,12 +284,14 @@ int CASC2D_OF::Execute() {
     string positionFile = positionOss.str();
     // 输出河道流量//
     if ((counter >= printChFlowMinT && counter <= printChFlowMaxT) && !chFlowFptr.is_open()) {
-        deleteExistFile(chFlowFile);
+        if (DeleteExistedFile (chFlowFile) == 0) {
+            cout << "succeed to delete casc2d output file " << chFlowFile << endl;
+        }
         chFlowFptr.open(chFlowFile.c_str(), std::ios::out | std::ios::app);
     }
     //输出位置数据//
     if (counter == 0) {
-        //deleteExistFile(positionFile);
+        //DeleteExistedFile(positionFile);
         //position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
         //printPosition();
         // 建立位置索引及dqq数组//
@@ -308,7 +312,9 @@ int CASC2D_OF::Execute() {
 # ifdef _DEBUG
     // 输出坡面流量//
     if ((counter >= printIOvFlowMinT && counter <= printOvFlowMaxT) && !ovFlowFptr.is_open()) {
-        deleteExistFile(ovFlowFile);
+        if (DeleteExistedFile (ovFlowFile) == 0) {
+            cout << "succeed to delete casc2d output file " << ovFlowFile << endl;
+        }
         ovFlowFptr.open(ovFlowFile.c_str(), std::ios::out | std::ios::app);
         printOvFlow();
         if (ovFlowFptr.is_open()) {
@@ -327,17 +333,6 @@ int CASC2D_OF::Execute() {
     cout << "casc2d_sed timestamp  end, cost time: " << sub_t2 - sub_t1 << endl;
 
     return 0;
-}
-
-void CASC2D_OF::deleteExistFile(string file) {
-    if (_access(file.c_str(), 0) == 0) {
-        if (remove(file.c_str()) == 0) {
-            cout << "succeed to delete casc2d output file " << file.c_str() << endl;
-        }
-        else {
-            cout << "failed to delete casc2d output file.  " << file.c_str() << endl;
-        }
-    }
 }
 
 // 输出行列对应的iCell信息//

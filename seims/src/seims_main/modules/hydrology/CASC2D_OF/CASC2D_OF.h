@@ -89,7 +89,6 @@ public:
     void printCellFlow(int iCell);
     void printCellArrow(int iCell, int lastCol, int curCol);
     void printArrow(int iCell);
-    void deleteExistFile(string file);
 
 
 private:

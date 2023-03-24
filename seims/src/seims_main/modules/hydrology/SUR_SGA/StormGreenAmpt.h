@@ -48,9 +48,6 @@ public:
 
     void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
-
-    void deleteExistFile(string file);
-
     ///**
     //*	@brief check the output data. Make sure all the output data is available.
     //*

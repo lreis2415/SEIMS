@@ -105,16 +105,6 @@ bool StormGreenAmpt::CheckInputData() {
     return true;
 }
 
-void StormGreenAmpt::deleteExistFile(string file) {
-    if (_access(file.c_str(), 0) == 0) {
-        if (remove(file.c_str()) == 0) {
-            cout << "succeed to delete infil output file " << file.c_str() << endl;
-        }
-        else {
-            cout << "failed to delete infil output file.  " << file.c_str() << endl;
-        }
-    }
-}
 int StormGreenAmpt::Execute(void) {
     InitialOutputs();
 # ifdef _DEBUG
@@ -133,7 +123,9 @@ int StormGreenAmpt::Execute(void) {
     //}
     counter++;
     if ((counter >= printInfilMinT && counter <= printInfilMaxT) && !infiltFileFptr.is_open()) {
-        deleteExistFile(infiltFile);
+        if (DeleteExistedFile(infiltFile) == 0) {
+            cout << "Deleted " << infiltFile << endl;
+        }
         infiltFileFptr.open(infiltFile.c_str(), std::ios::out | std::ios::app);
         infiltFileFptr << "timestamp " << counter << endl;
     }
