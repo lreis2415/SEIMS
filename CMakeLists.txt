@@ -9,10 +9,10 @@
 #       $ mkdir -p build
 #       $ cd build
 #       $ cmake ..
-#       $ make && make install
+#       $ make
+#       $ ctest --rerun-failed --output-on-failure
 #     Optional cmake options:
 #       -DUNITTEST=1  means run unittest based gtest/gmock
-#       -DFORCEDOWNGTEST=1 means download and compile gtest no matter it has existed or not
 #       -DCODE_COVERAGE=1 means run code coverage based gcov and lcov
 #       -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /opt/homebrew/opt/llvm
 #       -DBUILD_DOC=1 means build CCGL documentation based on doxygen
@@ -25,8 +25,8 @@
 #              mongo-c-driver-1.16.2, GDAL-3.3.3 (brew installed and framework by kyngchaos.com)
 #
 #  Created and maintained by Liangjun Zhu, zlj(a)lreis.ac.cn
-#  Latest updated: May. 12, 2022
-#  Copyright (C) 2017-2022 Lreis, IGSNRR, CAS
+#  Latest updated: Mar. 23, 2023
+#  Copyright (C) 2017-2023 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF (" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -87,6 +87,8 @@ ELSE()
         SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
     ENDIF ()
 ENDIF ()
+
+SET(INSTALL_PREFIX ${INSTALL_DIR})
 SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
 SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
 
@@ -254,35 +256,24 @@ IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
     SET(UNITTEST 1)
 ENDIF ()
 
-### unittest based on gtest/gmock, which is optional.
-SET(GTestTAG release-1.8.1)
-IF(MSVC_VERSION LESS 1900)
-    SET(GTestTAG release-1.8.0)
-ENDIF()
-### Find or build Googletest if UNITTEST is set as True or 1
-SET(DOWNLOAD_GTEST 0)
+### Build Googletest if UNITTEST is set as True or 1
 IF (UNITTEST STREQUAL 1)
     ADD_DEFINITIONS(-DUNITTEST)
-    IF (FORCEDOWNGTEST STREQUAL 1)
-        SET(DOWNLOAD_GTEST 1)
-    ELSE ()
-        find_package(GTest)
-        IF (GTEST_FOUND)
-            geo_include_directories(${GTEST_INCLUDE_DIRS})
-        ELSE ()
-            SET(DOWNLOAD_GTEST 1)
-        ENDIF ()
-    ENDIF ()
-ENDIF()
-IF (DOWNLOAD_GTEST)
+    ### unittest based on gtest/gmock, which is optional.
+    SET(GTestTAG release-1.8.1)
+    IF(MSVC_VERSION LESS 1900)
+        SET(GTestTAG release-1.8.0)
+    ENDIF()
     MESSAGE(STATUS "GoogleTest Version: ${GTestTAG}")
     geo_include_directories(${CCGL_BASE_DIR})
     ### Download and compile googletest using FetchContent supported officially by CMake 3.11+
     # https://google.github.io/googletest/quickstart-cmake.html
+    # Because download from github often failed, I decided to include googletest tags in src directory.
     include(FetchContent)
     FetchContent_Declare(
       googletest
-      URL https://github.com/google/googletest/archive/refs/tags/${GTestTAG}.zip
+      URL "file://${CCGL_BASE_DIR}/src/googletest_tags_zip/${GTestTAG}.zip"
+      #URL https://github.com/google/googletest/archive/refs/tags/${GTestTAG}.zip
       )
     IF (WIN32)
         # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -300,7 +291,7 @@ IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
 ENDIF ()
 
 ### Copy test data to install directory!
-MAKE_DIRECTORY(${INSTALL_DIR})
+FILE(MAKE_DIRECTORY ${INSTALL_DIR})
 FILE(COPY ${CCGL_BASE_DIR}/data/ DESTINATION ${INSTALL_DIR}/share/ccgl)
 
 IF (UNITTEST STREQUAL 1)
@@ -308,7 +299,7 @@ IF (UNITTEST STREQUAL 1)
     enable_testing()
     ADD_SUBDIRECTORY(${TEST_DIR})
     # For the convenient of debugging in MSVC and CLion
-    IF (MSVC OR XCODE)
+    IF (CMAKE_GENERATOR MATCHES "Visual Studio" OR CMAKE_GENERATOR MATCHES "XCode")
         FILE(COPY ${CCGL_BASE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Debug)
         FILE(COPY ${CCGL_BASE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Release)
     ELSE ()
@@ -390,10 +381,6 @@ STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
 STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
-
-IF(UNITTEST STREQUAL 1)
-STATUS("    Use GTest:"   GTEST_FOUND    THEN "YES (LIB: ${GTEST_BOTH_LIBRARIES}, INC: ${GTEST_INCLUDE_DIRS})" ELSE "NO")
-ENDIF()
 
 ### Auxiliary.
 STATUS("")

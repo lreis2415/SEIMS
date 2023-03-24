@@ -35,6 +35,8 @@ cmake-build*
 # IDE related
 .idea/
 .vscode
+.vs
+CMakeSettings.json
 
 # office temp file
 ~$*
