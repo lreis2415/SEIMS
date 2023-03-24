@@ -393,7 +393,7 @@ void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string&
 double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
-	// module_settings key��ģ��id��value�Ǹ�ģ��Ĳ����б�
+    // module_settings
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
     // floating point number
     map<string, vector<ParamInfo<FLTPT>*> >& module_parameters = factory_->GetModuleParams();
@@ -414,7 +414,6 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
-			// Ϊ��ǰ������ֵ
             SetData(module_settings[id], param, modules[i]);
         }
     }
@@ -710,26 +709,21 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     FLTPT** data2d = nullptr;
     FloatRaster* raster = nullptr;
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
-		// ����������к���RASTERPOSITION���͸�����SetRasterPositionDataPointer��ģ�����ô洢λ�õ�����
-		if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
-			if (rs_map_.size() > 0)
-			{
-				raster = rs_map_.begin()->second;
-				int** positions = raster->GetRasterPositionDataPointer();
-				int rows = raster->GetRows();
-				int cols = raster->GetCols();
-				// ��������Ҳһ�𴫸�ģ�飬��Ҫ��CASC2D_OFģ���õ��˹���
-				p_module->SetValue(HEADER_RS_NROWS, rows);
-				p_module->SetValue(HEADER_RS_NCOLS, cols);
-				p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
-				return;
-			}
-
-		}
-		else
-		{
-			LoadAdjustRasterData(para_name, remote_filename, is_optional);
-		}
+        if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
+            if (!rs_map_.empty()) {
+                raster = rs_map_.begin()->second;
+                int** positions = raster->GetRasterPositionDataPointer();
+                int rows = raster->GetRows();
+                int cols = raster->GetCols();
+                p_module->SetValue(HEADER_RS_NROWS, rows);
+                p_module->SetValue(HEADER_RS_NCOLS, cols);
+                p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
+                return;
+            }
+        }
+        else {
+            LoadAdjustRasterData(para_name, remote_filename, is_optional);
+        }
     }
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
         return; // when encounter optional parameters
@@ -745,8 +739,6 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
         p_module->Set1DData(para_name.c_str(), n, data);
-
-
     }
 }
 
@@ -827,7 +819,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     size_t n = module_ids.size();
     for (size_t i = 0; i < n; i++) {
         string id = module_ids[i];
-		//cout << "processing module:" << id << endl;
+        //cout << "processing module:" << id << endl;
         SimulationModule* p_module = modules[i];
         vector<ParamInfo<FLTPT>*>& inputs = module_inputs[id];
         string data_type = module_settings[id]->dataTypeString();
@@ -1032,34 +1024,12 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                             rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                             count = iter3->second->Adjust2DRasterWithImpactIndexes(nsize, lyr, data2d, mgtunits,
                                 sel_ids, unitUpdateTimes, ludata, suitablelu);
-                            //#ifdef _DEBUG
-                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-                            //                            {
-                            //                                std::stringstream ss;
-                            //                                for (int x = 0; x < nsize; x++)
-                            //                                {
-                            //                                    ss << data2d[x][0] << ' ';
-                            //                                }
-                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str();
-                            //                            }
-                            //#endif
                         }
                         else {
                             FLTPT* data = nullptr;
                             rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                             count = iter3->second->Adjust1DRasterWithImpactIndexes(nsize, data, mgtunits, sel_ids,
                                 unitUpdateTimes, ludata, suitablelu);
-                            //#ifdef _DEBUG
-                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-                            //                            {
-                            //                                std::stringstream ss;
-                            //                                for (int x = 0; x < nsize; x++)
-                            //                                {
-                            //                                    ss << data[x] << ' ';
-                            //                                }
-                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
-                            //                            }
-                            //#endif
                         }
                         cout << "      A total of " << count << " has been updated for " <<
                                 remote_filename << endl;

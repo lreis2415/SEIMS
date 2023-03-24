@@ -1,4 +1,3 @@
-
 #include "text.h"
 #include "Interception_MCS.h"
 
@@ -13,7 +12,7 @@ clsPI_MCS::clsPI_MCS() :
 
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
-	m_pet = nullptr;
+    m_pet = nullptr;
 #else
     m_hilldt = -1;
     m_slope = nullptr;
@@ -138,18 +137,14 @@ int clsPI_MCS::Execute() {
             FLTPT min = m_minIntcpStoCap[i];
             FLTPT max = m_maxIntcpStoCap[i];
             FLTPT capacity = min + (max - min) * CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
-
-			// capacity������������,m_canSto[i]�ǽ�ֹ��ǰ�ۼƵĽ�����(�ֹڽ�������),availableSpace��ʣ��Ľ�������
+            
             //interception, currently, m_st[i] is storage of (t-1) time step
             FLTPT availableSpace = capacity - m_canSto[i];
             if (availableSpace < 0) {
                 availableSpace = 0.;
             }
-			// ���ʣ��Ľ������� < ��ǰʱ�䲽���Ľ�����
             if (availableSpace < m_pcp[i]) {
-				// �� ������ʧ = ʣ��Ľ�������������ʣ��Ľ��������Ĺ�
                 m_intcpLoss[i] = availableSpace;
-				// ����������������ǵ����Ĭ�ϰ�15%�Ľ�������·������
                 // if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
                 if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
                     //water added into ditches from low embankment, should be added to somewhere else.
@@ -157,15 +152,12 @@ int clsPI_MCS::Execute() {
                     m_netPcp[i] = m_pcp[i] - m_intcpLoss[i] - pcp2canal;
                 } else {
                     //net precipitation
-					//������ = ���� - �ڲ������ʧ
                     m_netPcp[i] = m_pcp[i] - m_intcpLoss[i];
                 }
             } else {
-				// ���ʣ��Ľ������� >= ��ǰʱ�䲽���Ľ��������������ʧ = ��ǰʱ�䲽���Ľ�����
                 m_intcpLoss[i] = m_pcp[i];
                 m_netPcp[i] = 0.;
             }
-			// �ۼƽ����� ���� ������ʧ
             m_canSto[i] += m_intcpLoss[i];
         } else {
             m_intcpLoss[i] = 0.;
@@ -173,27 +165,24 @@ int clsPI_MCS::Execute() {
         }
 #ifndef STORM_MODE
         //evaporation
-		//����ۼƽ����� > ��Ǳ����ɢ,����������ʧ=��Ǳ����ɢ
         if (m_canSto[i] > m_pet[i]) {
             m_IntcpET[i] = m_pet[i];
         } else {
-			//������������ʧ=�ۼƽ�����
             m_IntcpET[i] = m_canSto[i];
         }
-		m_IntcpET[i] = m_canSto[i];
+        m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
 
 #endif
     }
-	//float total_netPcp = 0.0;
-	//float ave_netPcp = 0.0;
-	//// ���㵱ǰʱ�䲽���ϵ�ƽ��������
-	//for (int i = 0; i < m_nCells; i++)
-	//{
-	//	total_netPcp += m_netPcp[i];
-	//}
-	//ave_netPcp = total_netPcp / m_nCells;
-	//cout << "average net precipation: " << ave_netPcp << "mm" << endl;
+    //float total_netPcp = 0.0;
+    //float ave_netPcp = 0.0;
+    //for (int i = 0; i < m_nCells; i++)
+    //{
+    //	total_netPcp += m_netPcp[i];
+    //}
+    //ave_netPcp = total_netPcp / m_nCells;
+    //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
     return 0;
 }
 

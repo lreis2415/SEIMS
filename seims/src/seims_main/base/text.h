@@ -1048,6 +1048,9 @@ CONST_CHARS_LIST VAR_SUR_SOLP[] = {"sur_solp", "amount of solution phosphorus in
 CONST_CHARS_LIST VAR_SUR_SOLP_TOCH[] = {"sur_solp_ToCh", "amount of soluble phosphorus from surface runoff to channel"}; /// m_surfRfSolPToCh
 CONST_CHARS_LIST VAR_SUR_COD_TOCH[] = {"sur_cod_ToCH", "amount of COD to reach in surface runoff"}; /// m_surfRfCodToCh
 CONST_CHARS_LIST VAR_SURU[] = {"SURU", "surface runoff"}; /// m_surfRf
+CONST_CHARS_LIST VAR_SUR_SDEP[] = { "SUR_SDEP", "initail water depth of surface and channel" }; // m_surSdep
+CONST_CHARS_LIST VAR_SUR_WRT_DEPTH[] = { "SUR_WRT_DEPTH", "surface runoff depth(spatially for output of casc2d module)" }; /// m_surWtrDepth
+CONST_CHARS_LIST VAR_CH_WRT_DEPTH[] = { "CH_WRT_DEPTH", "channel water depth(spatially for output of casc2d module)" }; /// m_chWtrDepth
 CONST_CHARS_LIST VAR_SWE[] = {"SWE", "average snow accumulation of the watershed"};
 CONST_CHARS_LIST VAR_SWE0[] = {"swe0", "Initial snow water equivalent"};
 CONST_CHARS_LIST VAR_T_BASE[] = {"T_BASE", "base or minimum temperature for plant growth"}; /// m_pgTempBase
@@ -1208,14 +1211,14 @@ CONST_CHARS MONG_SITELIST_DB =                      "DB";
 /// Define Raster/ related constant strings used in SEIMS and preprocess//
 /// By LiangJun Zhu, May. 5, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-#define HEADER_RS_NODATA                       "NODATA_VALUE"
-#define HEADER_RS_XLL                          "XLLCENTER"
-#define HEADER_RS_YLL                          "YLLCENTER"
-#define HEADER_RS_NROWS                        "NROWS"
-#define HEADER_RS_NCOLS                        "NCOLS"
-#define HEADER_RS_CELLSIZE                     "CELLSIZE"
-#define HEADER_RS_LAYERS                       "LAYERS"
-#define HEADER_RS_SRS                          "SRS"
+//#define HEADER_RS_NODATA                       "NODATA_VALUE"
+//#define HEADER_RS_XLL                          "XLLCENTER"
+//#define HEADER_RS_YLL                          "YLLCENTER"
+//#define HEADER_RS_NROWS                        "NROWS"
+//#define HEADER_RS_NCOLS                        "NCOLS"
+//#define HEADER_RS_CELLSIZE                     "CELLSIZE"
+//#define HEADER_RS_LAYERS                       "LAYERS"
+//#define HEADER_RS_SRS                          "SRS"
 
 #define OUTPUT_ICELL 1000;
 #endif

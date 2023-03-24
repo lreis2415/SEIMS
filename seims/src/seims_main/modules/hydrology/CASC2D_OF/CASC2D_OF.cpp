@@ -1,11 +1,11 @@
-#include "CASC2D_OF.h"
+ï»¿#include "CASC2D_OF.h"
 #include "text.h"
 using namespace std;
 
 CASC2D_OF::CASC2D_OF() :
     m_nCells(-1),m_nSoilLyrs(nullptr),m_ks(nullptr),m_soilWtrStoPrfl(nullptr),
-	m_surWtrDepth(nullptr), m_chWtrDepth(nullptr),m_surSdep(nullptr), m_ManningN(nullptr), m_streamLink(nullptr), m_dem(nullptr) ,
-	m_flowOutIndex(nullptr) , m_Slope(nullptr), m_chWidth(nullptr) , m_chSinuosity(nullptr), m_ovQ(nullptr), m_chQ(nullptr), m_outQ(0.0), m_outV(0.0),
+    m_ManningN(nullptr), m_streamLink(nullptr),m_flowOutIndex(nullptr), m_surSdep(nullptr), m_surWtrDepth(nullptr), m_chWidth(nullptr) ,
+    m_chSinuosity(nullptr) , m_dem(nullptr), m_chWtrDepth(nullptr) , m_Slope(nullptr), m_chQ(nullptr), m_ovQ(nullptr), m_outQ(0.0), m_outV(0.0),
     m_InitialInputs(true)
 {
 
@@ -14,124 +14,119 @@ CASC2D_OF::CASC2D_OF() :
 CASC2D_OF::~CASC2D_OF() {
 }
 
-// set 
+// TODO, separate integer and float
 void CASC2D_OF::SetValue(const char* key, float value) {
-	string sk(key);
-	if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
-		m_dt = value;
-	}else if (StringMatch(sk, Tag_CellWidth)) {
-		m_cellWth = value;
-	}else if (StringMatch(sk, HEADER_RS_NROWS)){
-		m_nrows = value;
-	}else if (StringMatch(sk, HEADER_RS_NCOLS))
-	{
-		m_ncols = value;
-	}
+    string sk(key);
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+        m_dt = value;
+    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+        m_cellWth = value;
+    } else if (StringMatch(sk, HEADER_RS_NROWS)) {
+        m_nrows = value;
+    } else if (StringMatch(sk, HEADER_RS_NCOLS)) {
+        m_ncols = value;
+    }
 }
 
 void CASC2D_OF::SetValueByIndex(const char* key, int index, float value) {
 }
 
 void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
-	/* todo ½«Íâ²¿½ÓÊÕµÄ½µÓêÇ¿¶ÈÒ»Î¬×ª¶şÎ¬£¬¸³Öµ¸øm_rint** */
-	if (!CheckInputSize("CASC2D_OF", key, n, m_nCells)) return;
-	string sk(key);
-	 if (StringMatch(sk, VAR_SURU)) {
-		m_surWtrDepth = data;  
-	}
-	// else if (StringMatch(sk, VAR_SUR_SDEP)) {
-	//	m_surSdep = data;
-	//}
-	else if (StringMatch(sk, VAR_MANNING)){
-		m_ManningN = data;
-	}else if (StringMatch(sk, VAR_STREAM_LINK)) {
-		m_streamLink = data;
-	}else if (StringMatch(sk, VAR_DEM)) {
-		m_dem = data;
-	}else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
-		m_flowOutIndex = data;
-		for (int i = 0; i < m_nCells; i++) {
-			if (m_flowOutIndex[i] < 0) {
-				m_idOutlet = i;
-				break;
-			}
-		}
-	}else if (StringMatch(sk, VAR_SLOPE)) {
-		m_Slope = data;
-	}else if (StringMatch(sk, VAR_CHWIDTH)) {
-		m_chWidth = data;
-	}else if (StringMatch(sk, REACH_DEPTH)) {
-		 m_chDepth = data;
-	}else
-	{
-		throw ModelException("CASC2D_OF", "Set1DData", "parameter " + string(key) + " is not exist");
-	}
+    /* todo Convert 1DArray rainfall data to 2DArray to m_rint** */
+    if (!CheckInputSize("CASC2D_OF", key, n, m_nCells)) return;
+    string sk(key);
+    if (StringMatch(sk, VAR_SURU[0])) {
+        m_surWtrDepth = data;  
+    }
+    // else if (StringMatch(sk, VAR_SUR_SDEP)) {
+    //    m_surSdep = data;
+    //}
+    else if (StringMatch(sk, VAR_MANNING[0])){
+        m_ManningN = data;
+    }else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
+        m_streamLink = data;
+    }else if (StringMatch(sk, VAR_DEM[0])) {
+        m_dem = data;
+    }else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIndex = data;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_flowOutIndex[i] < 0) {
+                m_idOutlet = i;
+                break;
+            }
+        }
+    }else if (StringMatch(sk, VAR_SLOPE[0])) {
+        m_Slope = data;
+    }else if (StringMatch(sk, VAR_CHWIDTH[0])) {
+        m_chWidth = data;
+    }else if (StringMatch(sk, REACH_DEPTH)) {
+        m_chDepth = data;
+    }else
+    {
+        throw ModelException("CASC2D_OF", "Set1DData", "parameter " + string(key) + " is not exist");
+    }
 }
 
 void CASC2D_OF::Set2DData(const char* key, int n, int col, float** data) {
-	if (StringMatch(key, Tag_FLOWIN_INDEX_D8)) {
-		m_flowInIndex = data;
-	}
+    if (StringMatch(key, Tag_FLOWIN_INDEX[0])) {
+        m_flowInIndex = data;
+    }
 }
 
 void CASC2D_OF::SetReaches(clsReaches* rches) {
-	// ºÓµÀÉî¶È
-	if (nullptr == rches) {
-		throw ModelException(MID_MUSK_CH, "SetReaches", "The reaches input can not to be NULL.");
-	}
-	m_nreach = rches->GetReachNumber();
-	m_reachLayers = rches->GetReachLayers();
-	m_downStreamReachId = rches->GetDownStreamID();
-	if (nullptr == m_chSinuosity) rches->GetReachesSingleProperty(REACH_SINUOSITY, &m_chSinuosity);
+    if (nullptr == rches) {
+        throw ModelException("CASC2D_OF", "SetReaches", "The reaches input can not to be NULL.");
+    }
+    m_nreach = rches->GetReachNumber();
+    m_reachLayers = rches->GetReachLayers();
+    m_downStreamReachId = rches->GetDownStreamID();
+    if (nullptr == m_chSinuosity) rches->GetReachesSingleProperty(REACH_SINUOSITY, &m_chSinuosity);
 
 }
 
 void CASC2D_OF::SetSubbasins(clsSubbasins* subbsns) {
-	if (m_subbasinsInfo == nullptr) {
-		m_subbasinsInfo = subbsns;
-		m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
-	}
+    if (m_subbasinsInfo == nullptr) {
+        m_subbasinsInfo = subbsns;
+        m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
+    }
 }
 
 void CASC2D_OF::SetRasterPositionDataPointer(const char* key, int** positions) {
-	m_RasterPostion = positions;
+    m_RasterPostion = positions;
 }
 void CASC2D_OF::SetScenario(Scenario* sce) {
 }
 
 
 void CASC2D_OF::Get1DData(const char* key, int* n, float** data) {
-	string sk(key);
-	*n = m_nCells;
-	if (StringMatch(sk, VAR_QOVERLAND)) {
-		*data = m_ovQ;
-	}else if (StringMatch(sk, VAR_QRECH)) {
-		*data = m_chQ;
-	}else if (StringMatch(sk, VAR_SUR_WRT_DEPTH)) {
-		*data = m_surWtrDepth;
-	}else if (StringMatch(sk, VAR_CH_WRT_DEPTH)){
-		*data = m_chWtrDepth;
-	}
+    string sk(key);
+    *n = m_nCells;
+    if (StringMatch(sk, VAR_QOVERLAND[0])) {
+        *data = m_ovQ;
+    }else if (StringMatch(sk, VAR_QRECH[0])) {
+        *data = m_chQ;
+    }else if (StringMatch(sk, VAR_SUR_WRT_DEPTH[0])) {
+        *data = m_surWtrDepth;
+    }else if (StringMatch(sk, VAR_CH_WRT_DEPTH[0])){
+        *data = m_chWtrDepth;
+    }
 }
 
-void CASC2D_OF::Get2DData(const char* key, int* n, int* col, float*** data) {	//const char* key£¬keyÖ¸ÏòµÄÄÚÈİ²»ÄÜ¸Ä±ä
+void CASC2D_OF::Get2DData(const char* key, int* n, int* col, float*** data) {
 }
 
 
 void CASC2D_OF::GetValue(const char* key, float* value) {
-	string sk(key);
-	// ³öË®¿ÚÁ÷ËÙ
-	if (StringMatch(sk, VAR_OUTLET_Q)) {
-		*value = m_outQ;
-	}
-	// ³öË®¿ÚÁ÷Á¿
-	else if (StringMatch(sk, VAR_OUTLET_V)) {
-		*value = m_outV;
-	}
+    string sk(key);
+    if (StringMatch(sk, "OUTLET_Q")) {
+        *value = m_outQ;
+    } else if (StringMatch(sk, "OUTLET_V")) {
+        *value = m_outV;
+    }
 }
 
 TimeStepType CASC2D_OF::GetTimeStepType() {
-	return TIMESTEP_HILLSLOPE;
+    return TIMESTEP_HILLSLOPE;
 }
 
 bool CASC2D_OF::CheckInputData() {
@@ -141,1075 +136,1051 @@ bool CASC2D_OF::CheckInputData() {
 
 
 void CASC2D_OF::InitialOutputs() {
-	if (nullptr == m_chQ) Initialize1DArray(m_nCells, m_chQ, 0.f);
-	if (nullptr == m_ovQ) Initialize1DArray(m_nCells, m_ovQ, 0.f);
-	//if (nullptr == cellWtrDep) Initialize1DArray(30000, cellWtrDep, 0.f);
-	// m_surSdep(m)
-	if (nullptr == m_surSdep) Initialize1DArray(m_nCells, m_surSdep, 0.f);
-	// ³õÊ¼»¯ºÓµÀË®Éî,ÆäÊµÕâÀï½«ºÓµÀÄÚÍâµÄ³õÊ¼Ë®Éî¶¼ÔİÊ±ÉèÎª0
-	// ºÓµÀÍâµÄºÓµÀ³õÊ¼Ë®ÉîÉèÎª0(m)
-	if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
-	if (m_InitialInputs) {
-		output_icell = 50676;
-		printIOvFlowMinT = 239700;
-		printOvFlowMaxT = 24630;
-		printChFlowMinT = 39000;
-		printChFlowMaxT = 39090;
-		counter = 0;
-		// find source cells the reaches
-		m_sourceCellIds = new int[m_nreach];
+    if (nullptr == m_chQ) Initialize1DArray(m_nCells, m_chQ, 0.f);
+    if (nullptr == m_ovQ) Initialize1DArray(m_nCells, m_ovQ, 0.f);
+    //if (nullptr == cellWtrDep) Initialize1DArray(30000, cellWtrDep, 0.f);
+    // m_surSdep(m)
+    if (nullptr == m_surSdep) Initialize1DArray(m_nCells, m_surSdep, 0.f);
+    // åˆå§‹åŒ–æ²³é“æ°´æ·±,å…¶å®è¿™é‡Œå°†æ²³é“å†…å¤–çš„åˆå§‹æ°´æ·±éƒ½æš‚æ—¶è®¾ä¸º0
+    // æ²³é“å¤–çš„æ²³é“åˆå§‹æ°´æ·±è®¾ä¸º0(m)
+    if (nullptr == m_chWtrDepth) Initialize1DArray(m_nCells, m_chWtrDepth, 0.f);
+    if (m_InitialInputs) {
+        output_icell = 50676;
+        printIOvFlowMinT = 239700;
+        printOvFlowMaxT = 24630;
+        printChFlowMinT = 39000;
+        printChFlowMaxT = 39090;
+        counter = 0;
+        // find source cells the reaches
+        m_sourceCellIds = new int[m_nreach];
 
-		for (int i = 0; i < m_nreach; ++i) {
-			m_sourceCellIds[i] = -1;
-		}
-		int reachIndex = 0;
-		for (int i = 0; i < m_nCells; i++) {
-			if (FloatEqual(m_streamLink[i], NODATA_VALUE)) {
-				continue;
-			}
-			// µ±Ç°ºÓµÀµÄid
-			int reachId = (int)m_streamLink[i];
-			bool isSource = true;
-			// ÅĞ¶Ïµ±Ç°Õ¤¸ñµ¥ÔªµÄÃ¿¸öÈëÁ÷µ¥Ôª£¬ÊÇ·ñºÍµ±Ç°Õ¤¸ñÊôÓÚÍ¬Ò»ÌõºÓµÀ
-			// Èç¹ûÊÇ£¬Ôòµ±Ç°Õ¤¸ñµ¥Ôª²»ÊÇ¸ÃºÓµÀµÄÔ´Í·
-			for (int k = 1; k <= (int)m_flowInIndex[i][0]; ++k) {
-				int flowInId = (int)m_flowInIndex[i][k];
-				int flowInReachId = (int)m_streamLink[flowInId];
-				if (flowInReachId == reachId) {
-					isSource = false;
-					break;
-				}
-			}
-			// Èç¹ûµ±Ç°Õ¤¸ñµ¥ÔªÃ»ÓĞÈëÁ÷µ¥Ôª£¬Ôòµ±Ç°Õ¤¸ñµ¥ÔªÊÇ¸ÃºÓµÀµÄÔ´Í·
-			if ((int)m_flowInIndex[i][0] == 0) {
-				isSource = true;
-			}
-			// reachIdÊÇºÓµÀµÄÊµ¼Êid£¬¿ÉÄÜ²»ÊÇ´Ó0¿ªÊ¼µÄ£¬Ò²²»ÖªµÀÖĞ¼äÊÇ²»ÊÇÓĞ¶Ï¿ª£¬²»·½±ã±éÀú
-			// reachIndexÊÇ¸øºÓµÀ´Ó0¿ªÊ¼µİÔö±àºÅ£¬·½±ã±éÀúºÓµÀ
-			// ½«µ±Ç°Õ¤¸ñµ¥ÔªÉèÎªµ±Ç°ºÓµÀµÄÔ´Í·
-			if (isSource) {
-				// ÓÉÓÚm_idToIndexÃ»ÓĞ³õÊ¼»¯£¬ËùÒÔÕâÀï¼Ó¸ö´¦ÀíÂß¼­
-				// Èç¹ûm_idToIndexÖĞ²»°üº¬µ±Ç°ºÓµÀµÄid,¾Í°ÑreachIdºÍreachIndexµÄÓ³Éä¹ØÏµ¼ÓÈëm_idToIndex
-				if (m_idToIndex.find(reachId) == m_idToIndex.end())
-				{
-					m_idToIndex.insert(pair<int, int>(reachId, reachIndex));
-				}
-				//int reachIndex = m_idToIndex[reachId];
-				// µÚreachIndexÌõºÓµÀµÄÔ´Í·Õ¤¸ñµ¥ÔªidÊÇi
-				m_sourceCellIds[reachIndex] = i;
-				reachIndex++;
-			}
-		}
-		// get the cells in reaches according to flow direction
-		for (int iCh = 0; iCh < m_nreach; iCh++) {
-			// µ±Ç°ºÓµÀµÄÔ´Í·
-			int iCell = m_sourceCellIds[iCh];
-			// ºÓµÀµÄid
-			int reachId = (int)m_streamLink[iCell];
-			// ÑØ×Åµ±Ç°ºÓµÀÏòÏÂÓÎ£¨³öÁ÷£©·½Ïò±éÀú£¬½«¸ÃºÓµÀµÄËùÓĞÕ¤¸ñ·ÅÈëm_reachs[iCh]
-			while ((int)m_streamLink[iCell] == reachId) {
-				m_reachs[iCh].push_back(iCell);
-				iCell = (int)m_flowOutIndex[iCell];
-			}
-		}
+        for (int i = 0; i < m_nreach; ++i) {
+            m_sourceCellIds[i] = -1;
+        }
+        int reachIndex = 0;
+        for (int i = 0; i < m_nCells; i++) {
+            if (FloatEqual(m_streamLink[i], NODATA_VALUE)) {
+                continue;
+            }
+            // å½“å‰æ²³é“çš„id
+            int reachId = (int)m_streamLink[i];
+            bool isSource = true;
+            // åˆ¤æ–­å½“å‰æ …æ ¼å•å…ƒçš„æ¯ä¸ªå…¥æµå•å…ƒï¼Œæ˜¯å¦å’Œå½“å‰æ …æ ¼å±äºåŒä¸€æ¡æ²³é“
+            // å¦‚æœæ˜¯ï¼Œåˆ™å½“å‰æ …æ ¼å•å…ƒä¸æ˜¯è¯¥æ²³é“çš„æºå¤´ //
+            for (int k = 1; k <= (int)m_flowInIndex[i][0]; ++k) {
+                int flowInId = (int)m_flowInIndex[i][k];
+                int flowInReachId = (int)m_streamLink[flowInId];
+                if (flowInReachId == reachId) {
+                    isSource = false;
+                    break;
+                }
+            }
+            // å¦‚æœå½“å‰æ …æ ¼å•å…ƒæ²¡æœ‰å…¥æµå•å…ƒï¼Œåˆ™å½“å‰æ …æ ¼å•å…ƒæ˜¯è¯¥æ²³é“çš„æºå¤´//
+            if ((int)m_flowInIndex[i][0] == 0) {
+                isSource = true;
+            }
+            // reachIdæ˜¯æ²³é“çš„å®é™…idï¼Œå¯èƒ½ä¸æ˜¯ä»0å¼€å§‹çš„ï¼Œä¹Ÿä¸çŸ¥é“ä¸­é—´æ˜¯ä¸æ˜¯æœ‰æ–­å¼€ï¼Œä¸æ–¹ä¾¿éå†
+            // reachIndexæ˜¯ç»™æ²³é“ä»0å¼€å§‹é€’å¢ç¼–å·ï¼Œæ–¹ä¾¿éå†æ²³é“
+            // å°†å½“å‰æ …æ ¼å•å…ƒè®¾ä¸ºå½“å‰æ²³é“çš„æºå¤´//
+            if (isSource) {
+                // ç”±äºm_idToIndexæ²¡æœ‰åˆå§‹åŒ–ï¼Œæ‰€ä»¥è¿™é‡ŒåŠ ä¸ªå¤„ç†é€»è¾‘
+                // å¦‚æœm_idToIndexä¸­ä¸åŒ…å«å½“å‰æ²³é“çš„id,å°±æŠŠreachIdå’ŒreachIndexçš„æ˜ å°„å…³ç³»åŠ å…¥m_idToIndex//
+                if (m_idToIndex.find(reachId) == m_idToIndex.end())
+                {
+                    m_idToIndex.insert(pair<int, int>(reachId, reachIndex));
+                }
+                //int reachIndex = m_idToIndex[reachId];
+                // ç¬¬reachIndexæ¡æ²³é“çš„æºå¤´æ …æ ¼å•å…ƒidæ˜¯i//
+                m_sourceCellIds[reachIndex] = i;
+                reachIndex++;
+            }
+        }
+        // get the cells in reaches according to flow direction
+        for (int iCh = 0; iCh < m_nreach; iCh++) {
+            // å½“å‰æ²³é“çš„æºå¤´//
+            int iCell = m_sourceCellIds[iCh];
+            // æ²³é“çš„id//
+            int reachId = (int)m_streamLink[iCell];
+            // æ²¿ç€å½“å‰æ²³é“å‘ä¸‹æ¸¸ï¼ˆå‡ºæµï¼‰æ–¹å‘éå†ï¼Œå°†è¯¥æ²³é“çš„æ‰€æœ‰æ …æ ¼æ”¾å…¥m_reachs[iCh]//
+            while ((int)m_streamLink[iCell] == reachId) {
+                m_reachs[iCh].push_back(iCell);
+                iCell = (int)m_flowOutIndex[iCell];
+            }
+        }
 
-		// ³õÊ¼»¯Ã¿¸öÕ¤¸ñ¶ÔÓ¦µÃÓÒ¡¢ÏÂ·½Õ¤¸ñ
-		for (int iCell = 0; iCell < m_nCells; iCell++) {
-			int curRow = m_RasterPostion[iCell][0];
-			int curCol = m_RasterPostion[iCell][1];
-			int rightRow = curRow;
-			int rightCol = curCol + 1;
-			int rightCell = -1;
-			bool isRightExists = false;
-			int belowRow = curRow + 1;
-			int belowCol = curCol;
-			int belowCell = -1;
-			bool isBelowExists = false;
-			vector<int> rbCells(2);
-			// Èç¹ûÓÒ·½ÓĞÕ¤¸ñ£¬ÔòÏÂ±êÒ»¶¨ÊÇiCell+1
-			if (iCell + 1 < m_nCells && rightCol < m_ncols &&  m_RasterPostion[iCell + 1][0] == rightRow && m_RasterPostion[iCell + 1][1] == rightCol) {
-				isRightExists = true;
-				rightCell = iCell + 1;
-			}
-			rbCells[0] = rightCell;
+        // åˆå§‹åŒ–æ¯ä¸ªæ …æ ¼å¯¹åº”å¾—å³ã€ä¸‹æ–¹æ …æ ¼//
+        for (int iCell = 0; iCell < m_nCells; iCell++) {
+            int curRow = m_RasterPostion[iCell][0];
+            int curCol = m_RasterPostion[iCell][1];
+            int rightRow = curRow;
+            int rightCol = curCol + 1;
+            int rightCell = -1;
+            bool isRightExists = false;
+            int belowRow = curRow + 1;
+            int belowCol = curCol;
+            int belowCell = -1;
+            bool isBelowExists = false;
+            vector<int> rbCells(2);
+            // å¦‚æœå³æ–¹æœ‰æ …æ ¼ï¼Œåˆ™ä¸‹æ ‡ä¸€å®šæ˜¯iCell+1//
+            if (iCell + 1 < m_nCells && rightCol < m_ncols &&  m_RasterPostion[iCell + 1][0] == rightRow && m_RasterPostion[iCell + 1][1] == rightCol) {
+                isRightExists = true;
+                rightCell = iCell + 1;
+            }
+            rbCells[0] = rightCell;
 
-			// Èç¹ûÏÂ·½ÓĞÕ¤¸ñ£¬ÔòÏÂ±êÒ»¶¨Ğ¡ÓÚµÈÓÚiCell+ÁĞÊı£¬Ö»ĞèÒª´Óµ±Ç°Õ¤¸ñµ¥ÔªµÄÏÂÒ»¸öÕ¤¸ñµ¥Ôªµ½µÚm_ncols¸öµ¥Ôª·¶Î§ÄÚ²éÕÒ¼´¿É
-			for (int d_col = 1; d_col <= m_ncols; d_col++) {
-				// ÕÒµ½×îºóÒ»¸öÕ¤¸ñ¾Í²»ÕÒÁË
-				if (iCell + d_col >= m_nCells)
-				{
-					break;
-				}
-				// ÕÒµ½ÁË¾Í²»ÕÒÁË
-				if (m_RasterPostion[iCell + d_col][0] == belowRow && m_RasterPostion[iCell + d_col][1] == belowCol) {
-					belowCell = iCell + d_col;
-					break;
-				}
-			}
-			rbCells[1] = belowCell;
-			m_rbcellsMap.insert(pair<int, vector<int>>(iCell, rbCells));
-		}
-		m_InitialInputs = false;
+            // å¦‚æœä¸‹æ–¹æœ‰æ …æ ¼ï¼Œåˆ™ä¸‹æ ‡ä¸€å®šå°äºç­‰äºiCell+åˆ—æ•°ï¼Œåªéœ€è¦ä»å½“å‰æ …æ ¼å•å…ƒçš„ä¸‹ä¸€ä¸ªæ …æ ¼å•å…ƒåˆ°ç¬¬m_ncolsä¸ªå•å…ƒèŒƒå›´å†…æŸ¥æ‰¾å³å¯//
+            for (int d_col = 1; d_col <= m_ncols; d_col++) {
+                // æ‰¾åˆ°æœ€åä¸€ä¸ªæ …æ ¼å°±ä¸æ‰¾äº†//
+                if (iCell + d_col >= m_nCells)
+                {
+                    break;
+                }
+                // æ‰¾åˆ°äº†å°±ä¸æ‰¾äº†//
+                if (m_RasterPostion[iCell + d_col][0] == belowRow && m_RasterPostion[iCell + d_col][1] == belowCol) {
+                    belowCell = iCell + d_col;
+                    break;
+                }
+            }
+            rbCells[1] = belowCell;
+            m_rbcellsMap.insert(pair<int, vector<int>>(iCell, rbCells));
+        }
+        m_InitialInputs = false;
 
-	}
+    }
 }
 
 
 int CASC2D_OF::Execute() {
-	InitialOutputs();
-	# ifdef IS_DEBUG
-	string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
-	// ÆÂÃæÁ÷Á¿
-	std::ostringstream ovflowOss;
-	ovflowOss << baseOutputPath << "ov_flow_" << counter << ".txt";
-	string ovFlowFile = ovflowOss.str();
+    InitialOutputs();
+# ifdef _DEBUG
+    string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
+    // å¡é¢æµé‡//
+    std::ostringstream ovflowOss;
+    ovflowOss << baseOutputPath << "ov_flow_" << counter << ".txt";
+    string ovFlowFile = ovflowOss.str();
 
-	// ºÓµÀÁ÷Á¿
-	std::ostringstream chflowOss;
-	chflowOss << baseOutputPath << "ch_flow_" << counter << ".txt";
-	string chFlowFile = chflowOss.str();
+    // æ²³é“æµé‡//
+    std::ostringstream chflowOss;
+    chflowOss << baseOutputPath << "ch_flow_" << counter << ".txt";
+    string chFlowFile = chflowOss.str();
 
-	// ÆÂÃæË®ÉîÒì³£Öµ
-	std::ostringstream wtrDepOss;
-	wtrDepOss << baseOutputPath << "ov_wtrdep" <<  ".txt";
-	string wtrDepFile = wtrDepOss.str();
-	if (counter == 0)
-	{
-		deleteExistFile(wtrDepFile);
-		if (!wtrDepFptr.is_open())
-		{
-			wtrDepFptr.open(wtrDepFile.c_str(), std::ios::out | std::ios::app);
-		}
-	}
-	wtrDepFptr << counter << endl;
+    // å¡é¢æ°´æ·±å¼‚å¸¸å€¼//
+    std::ostringstream wtrDepOss;
+    wtrDepOss << baseOutputPath << "ov_wtrdep" <<  ".txt";
+    string wtrDepFile = wtrDepOss.str();
+    if (counter == 0) {
+        deleteExistFile(wtrDepFile);
+        if (!wtrDepFptr.is_open()) {
+            wtrDepFptr.open(wtrDepFile.c_str(), std::ios::out | std::ios::app);
+        }
+    }
+    wtrDepFptr << counter << endl;
 
-	// Êä³öÃ¿¸öÕ¤¸ñµ¥ÔªµÄĞĞÁĞÎ»ÖÃ
-	std::ostringstream positionOss;
-	positionOss << baseOutputPath << "position.txt";
-	string positionFile = positionOss.str();
-	// Êä³öºÓµÀÁ÷Á¿
-	if ((counter >= printChFlowMinT && counter <= printChFlowMaxT) && !chFlowFptr.is_open())
-	{
-		deleteExistFile(chFlowFile);
-		chFlowFptr.open(chFlowFile.c_str(), std::ios::out | std::ios::app);
-	}
-	//Êä³öÎ»ÖÃÊı¾İ
-	if (counter == 0) {
-		//deleteExistFile(positionFile);
-		//position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
-		//printPosition();
-		// ½¨Á¢Î»ÖÃË÷Òı¼°dqqÊı×é
-		buildPositionIndex();
-	}
+    // è¾“å‡ºæ¯ä¸ªæ …æ ¼å•å…ƒçš„è¡Œåˆ—ä½ç½®//
+    std::ostringstream positionOss;
+    positionOss << baseOutputPath << "position.txt";
+    string positionFile = positionOss.str();
+    // è¾“å‡ºæ²³é“æµé‡//
+    if ((counter >= printChFlowMinT && counter <= printChFlowMaxT) && !chFlowFptr.is_open()) {
+        deleteExistFile(chFlowFile);
+        chFlowFptr.open(chFlowFile.c_str(), std::ios::out | std::ios::app);
+    }
+    //è¾“å‡ºä½ç½®æ•°æ®//
+    if (counter == 0) {
+        //deleteExistFile(positionFile);
+        //position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
+        //printPosition();
+        // å»ºç«‹ä½ç½®ç´¢å¼•åŠdqqæ•°ç»„//
+        buildPositionIndex();
+    }
 
-	# endif
+# endif
 
-	counter++;
+    counter++;
 
-	double sub_t1 = TimeCounting();
-	OvrlDepth();
-	ChannDepth();
-	OvrlRout();
-	ChannRout();
-	RoutOutlet();
+    double sub_t1 = TimeCounting();
+    OvrlDepth();
+    ChannDepth();
+    OvrlRout();
+    ChannRout();
+    RoutOutlet();
 
-	# ifdef IS_DEBUG
-	// Êä³öÆÂÃæÁ÷Á¿
-	if ((counter >= printIOvFlowMinT && counter <= printOvFlowMaxT) && !ovFlowFptr.is_open())
-	{
-		deleteExistFile(ovFlowFile);
-		ovFlowFptr.open(ovFlowFile.c_str(), std::ios::out | std::ios::app);
-		printOvFlow();
-		if (ovFlowFptr.is_open()) {
-			ovFlowFptr.close();
-		}
-	}
-	if (chFlowFptr.is_open()) {
-		chFlowFptr.close();
-	}
-	if (counter >= 25000 && wtrDepFptr.is_open()) {
-		chFlowFptr.close();
-	}
-	
-	# endif
-	double sub_t2 = TimeCounting();
-	cout << "casc2d_sed timestamp  end, cost time: " << sub_t2 - sub_t1 << endl;
+# ifdef _DEBUG
+    // è¾“å‡ºå¡é¢æµé‡//
+    if ((counter >= printIOvFlowMinT && counter <= printOvFlowMaxT) && !ovFlowFptr.is_open()) {
+        deleteExistFile(ovFlowFile);
+        ovFlowFptr.open(ovFlowFile.c_str(), std::ios::out | std::ios::app);
+        printOvFlow();
+        if (ovFlowFptr.is_open()) {
+            ovFlowFptr.close();
+        }
+    }
+    if (chFlowFptr.is_open()) {
+        chFlowFptr.close();
+    }
+    if (counter >= 25000 && wtrDepFptr.is_open()) {
+        chFlowFptr.close();
+    }
+    
+#endif
+    double sub_t2 = TimeCounting();
+    cout << "casc2d_sed timestamp  end, cost time: " << sub_t2 - sub_t1 << endl;
 
-	return 0;
+    return 0;
 }
 
 void CASC2D_OF::deleteExistFile(string file) {
-	if (_access(file.c_str(), 0) == 0) {
-		if (remove(file.c_str()) == 0) {
-			cout << "succeed to delete casc2d output file " << file.c_str() << endl;
-		}
-		else {
-			cout << "failed to delete casc2d output file.  " << file.c_str() << endl;
-		}
-	}
+    if (_access(file.c_str(), 0) == 0) {
+        if (remove(file.c_str()) == 0) {
+            cout << "succeed to delete casc2d output file " << file.c_str() << endl;
+        }
+        else {
+            cout << "failed to delete casc2d output file.  " << file.c_str() << endl;
+        }
+    }
 }
 
-// Êä³öĞĞÁĞ¶ÔÓ¦µÄiCellĞÅÏ¢
+// è¾“å‡ºè¡Œåˆ—å¯¹åº”çš„iCellä¿¡æ¯//
 void CASC2D_OF::printPosition() {
-	int last_row = -1;
-	int last_col = -1;
-	int start_col = 0;
-	for (int iCell = 0; iCell < m_nCells; iCell++) {
-		int curRow = m_RasterPostion[iCell][0];
-		int curCol = m_RasterPostion[iCell][1];
-		if (iCell == 0)
-		{
-			for (int i = 1; i <= m_ncols; i++)
-			{
-				position_Fptr << std::left << setw(7) << setfill(' ') << i;
-			}
-		}
-		// »»ĞĞ
-		if (last_row != curRow)
-		{
-			position_Fptr << endl;
-			// Êä³öËõ½ø
-			for (int i = 1; i < curCol; i++)
-			{
-				position_Fptr << setfill(' ') << setw(7) << ' ';
-			}
-			position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
-		}
-		else
-		{
-			// Èç¹ûµ±Ç°µ¥ÔªÊÇÉÏ¸öµ¥ÔªÓÒ²à½ôÁÚµÄ£¬¾ÍÖ±½ÓÊä³öµ±Ç°µ¥Ôª
-			if (iCell == 0 || curCol == last_col + 1) {
-				position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
-			}
-			else
-			{
-				// Èç¹ûµ±Ç°µ¥ÔªºÍÉÏ¸öµ¥ÔªÖ®¼äÓĞ¼ä¸ô£¬¾ÍÊä³öÕâĞ©¼ä¸ôºó£¬ÔÙÊä³öµ±Ç°µ¥Ôª
-				for (int i = last_col + 1; i < curCol; i++)
-				{
-					position_Fptr << setfill(' ') << setw(7) << ' ';
-				}
-				position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
-			}
-		}
-		last_row = curRow;
-		last_col = curCol;
-	}
+    int last_row = -1;
+    int last_col = -1;
+    int start_col = 0;
+    for (int iCell = 0; iCell < m_nCells; iCell++) {
+        int curRow = m_RasterPostion[iCell][0];
+        int curCol = m_RasterPostion[iCell][1];
+        if (iCell == 0) {
+            for (int i = 1; i <= m_ncols; i++) {
+                position_Fptr << std::left << setw(7) << setfill(' ') << i;
+            }
+        }
+        // æ¢è¡Œ//
+        if (last_row != curRow) {
+            position_Fptr << endl;
+            // è¾“å‡ºç¼©è¿›//
+            for (int i = 1; i < curCol; i++) {
+                position_Fptr << setfill(' ') << setw(7) << ' ';
+            }
+            position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
+        }
+        else {
+            // å¦‚æœå½“å‰å•å…ƒæ˜¯ä¸Šä¸ªå•å…ƒå³ä¾§ç´§é‚»çš„ï¼Œå°±ç›´æ¥è¾“å‡ºå½“å‰å•å…ƒ//
+            if (iCell == 0 || curCol == last_col + 1) {
+                position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
+            }
+            else {
+                // å¦‚æœå½“å‰å•å…ƒå’Œä¸Šä¸ªå•å…ƒä¹‹é—´æœ‰é—´éš”ï¼Œå°±è¾“å‡ºè¿™äº›é—´éš”åï¼Œå†è¾“å‡ºå½“å‰å•å…ƒ//
+                for (int i = last_col + 1; i < curCol; i++) {
+                    position_Fptr << setfill(' ') << setw(7) << ' ';
+                }
+                position_Fptr << std::left << setw(7) << setfill(' ') << iCell;
+            }
+        }
+        last_row = curRow;
+        last_col = curCol;
+    }
 }
 
 void CASC2D_OF::printOvFlow() {
-	int last_row = -1;
-	int last_col = -1;
-	int start_col = 0;
-	int cols = 0;
-	//// ¼ÇÂ¼Ã¿ĞĞµÄµÚ1ÁĞºÍ×îºóÒ»ÁĞµÄÁĞºÅ
-	int lastrow_firstcol = 0;
-	int lastrow_lastcol = 0;
-	int lastrow_firstcell = 0;
-	int lastrow_lastcell = 0;
-	// ¼ÇÂ¼Ã¿ĞĞµÄÄÄĞ©ÁĞ²»Îª¿Õ
-	//int *rowMask = new int[m_ncols];
-	for (int iCell = 0; iCell < m_nCells; iCell++) {
-		int curRow = m_RasterPostion[iCell][0];
-		int curCol = m_RasterPostion[iCell][1];
-		// µÚÒ»ĞĞ´òÓ¡ÁĞºÅ£¬½ô½Ó×Å´òÓ¡»»ĞĞºÍËõ½ø
-		if (iCell == 0)
-		{
-			for (int i = 1; i <= m_ncols; i++)
-			{
-				ovFlowFptr << std::left << setfill(' ') << setw(35) << i;
-			}
-			lastrow_firstcol = curCol;
-			// ´òÓ¡»»ĞĞºÍËõ½ø
-			printLineBreak(lastrow_firstcol);
-			printCellFlow(iCell);
-		}
-		// ´ÓµÚ¶şĞĞ¿ªÊ¼£¬Ã¿´Î»»ĞĞ¶¼´òÓ¡»»ĞĞ·ûºÍËõ½ø£¬y·½ÏòÁ÷Á¿ºÍÏÂÒ»ĞĞµÄµÚÒ»¸öÔªËØ
-		else if (last_row != curRow)
-		{
-			// ´òÓ¡»»ĞĞºÍËõ½ø
-			printLineBreak(lastrow_firstcol);
-			// ¼ÇÂ¼ÉÏÒ»ĞĞ×îºó1ÁĞµÄµ¥ÔªºÅ
-			lastrow_lastcell = iCell - 1;
-			// ¼ÇÂ¼ÉÏÒ»ĞĞ×îºó1ÁĞµÄÁĞºÅ
-			lastrow_lastcol = m_RasterPostion[iCell - 1][1];
-			// Êä³öy·½ÏòÁ÷Á¿£¨dqq>0ÏòÉÏÁ÷£©
-			int last_col = 0;
-			int cur_col = 0;
-			// ´òÓ¡ÉÏÒ»ĞĞµÚ1ÁĞµÄy·½ÏòÁ÷Á¿
-			printArrow(iCell);
-			// ´òÓ¡ÉÏÒ»ĞĞµÚ¶şÁĞ¿ªÊ¼µÄy·½ÏòÁ÷Á¿
-			for (int i = lastrow_firstcell + 1; i <= lastrow_lastcell; i++)
-			{
-				int cur_col = m_RasterPostion[i][1];
-				int last_col = m_RasterPostion[i - 1][1];
-				printCellArrow(i, last_col, cur_col);
-			}
-			cols = 0;
-			// ´òÓ¡»»ĞĞºÍËõ½ø
-			printLineBreak(curCol);
-			// ´òÓ¡ÏÂÒ»ĞĞµÚÒ»¸öµ¥ÔªµÄÁ÷Á¿
-			printCellFlow(iCell);
-			// ¼ÇÂ¼ÉÏÒ»ĞĞµÄµÚ1ÁĞµÄÁĞºÅ
-			lastrow_firstcol = curCol;
-			// ¼ÇÂ¼ÉÏÒ»ĞĞµÄµÚ1ÁĞµÄµ¥ÔªºÅ
-			lastrow_firstcell = iCell;
-		}
-		// ·Ç»»ĞĞ
-		else
-		{
-			// Èç¹ûµ±Ç°µ¥ÔªÊÇÉÏ¸öµ¥ÔªÓÒ²à½ôÁÚµÄ£¬¾ÍÖ±½ÓÊä³öµ±Ç°µ¥Ôª
-			if (curCol == last_col + 1) {
-				printCellFlow(iCell);
-			}
-			else
-			{
-				// Èç¹ûµ±Ç°µ¥ÔªºÍÉÏ¸öµ¥ÔªÖ®¼äÓĞ¼ä¸ô£¬¾ÍÊä³öÕâĞ©¼ä¸ôºó£¬ÔÙÊä³öµ±Ç°µ¥Ôª
-				for (int i = last_col + 1; i < curCol; i++)
-				{
-					ovFlowFptr << setfill(' ') << setw(35) << ' ';
-				}
-				printCellFlow(iCell);
-			}
-			//rowMask[cur_col] = 1;
-			//lineEnd = cur_col;
-		}
+    int last_row = -1;
+    int last_col = -1;
+    int start_col = 0;
+    int cols = 0;
+    //// è®°å½•æ¯è¡Œçš„ç¬¬1åˆ—å’Œæœ€åä¸€åˆ—çš„åˆ—å·//
+    int lastrow_firstcol = 0;
+    int lastrow_lastcol = 0;
+    int lastrow_firstcell = 0;
+    int lastrow_lastcell = 0;
+    // è®°å½•æ¯è¡Œçš„å“ªäº›åˆ—ä¸ä¸ºç©º//
+    //int *rowMask = new int[m_ncols];
+    for (int iCell = 0; iCell < m_nCells; iCell++) {
+        int curRow = m_RasterPostion[iCell][0];
+        int curCol = m_RasterPostion[iCell][1];
+        // ç¬¬ä¸€è¡Œæ‰“å°åˆ—å·ï¼Œç´§æ¥ç€æ‰“å°æ¢è¡Œå’Œç¼©è¿›//
+        if (iCell == 0) {
+            for (int i = 1; i <= m_ncols; i++) {
+                ovFlowFptr << std::left << setfill(' ') << setw(35) << i;
+            }
+            lastrow_firstcol = curCol;
+            // æ‰“å°æ¢è¡Œå’Œç¼©è¿›//
+            printLineBreak(lastrow_firstcol);
+            printCellFlow(iCell);
+        }
+        // ä»ç¬¬äºŒè¡Œå¼€å§‹ï¼Œæ¯æ¬¡æ¢è¡Œéƒ½æ‰“å°æ¢è¡Œç¬¦å’Œç¼©è¿›ï¼Œyæ–¹å‘æµé‡å’Œä¸‹ä¸€è¡Œçš„ç¬¬ä¸€ä¸ªå…ƒç´ //
+        else if (last_row != curRow) {
+            // æ‰“å°æ¢è¡Œå’Œç¼©è¿›//
+            printLineBreak(lastrow_firstcol);
+            // è®°å½•ä¸Šä¸€è¡Œæœ€å1åˆ—çš„å•å…ƒå·//
+            lastrow_lastcell = iCell - 1;
+            // è®°å½•ä¸Šä¸€è¡Œæœ€å1åˆ—çš„åˆ—å·//
+            lastrow_lastcol = m_RasterPostion[iCell - 1][1];
+            // è¾“å‡ºyæ–¹å‘æµé‡ï¼ˆdqq>0å‘ä¸Šæµï¼‰//
+            int last_col = 0;
+            int cur_col = 0;
+            // æ‰“å°ä¸Šä¸€è¡Œç¬¬1åˆ—çš„yæ–¹å‘æµé‡//
+            printArrow(iCell);
+            // æ‰“å°ä¸Šä¸€è¡Œç¬¬äºŒåˆ—å¼€å§‹çš„yæ–¹å‘æµé‡//
+            for (int i = lastrow_firstcell + 1; i <= lastrow_lastcell; i++) {
+                int cur_col = m_RasterPostion[i][1];
+                int last_col = m_RasterPostion[i - 1][1];
+                printCellArrow(i, last_col, cur_col);
+            }
+            cols = 0;
+            // æ‰“å°æ¢è¡Œå’Œç¼©è¿›//
+            printLineBreak(curCol);
+            // æ‰“å°ä¸‹ä¸€è¡Œç¬¬ä¸€ä¸ªå•å…ƒçš„æµé‡//
+            printCellFlow(iCell);
+            // è®°å½•ä¸Šä¸€è¡Œçš„ç¬¬1åˆ—çš„åˆ—å·//
+            lastrow_firstcol = curCol;
+            // è®°å½•ä¸Šä¸€è¡Œçš„ç¬¬1åˆ—çš„å•å…ƒå·//
+            lastrow_firstcell = iCell;
+        }
+        // éæ¢è¡Œ//
+        else {
+            // å¦‚æœå½“å‰å•å…ƒæ˜¯ä¸Šä¸ªå•å…ƒå³ä¾§ç´§é‚»çš„ï¼Œå°±ç›´æ¥è¾“å‡ºå½“å‰å•å…ƒ//
+            if (curCol == last_col + 1) {
+                printCellFlow(iCell);
+            } else {
+                // å¦‚æœå½“å‰å•å…ƒå’Œä¸Šä¸ªå•å…ƒä¹‹é—´æœ‰é—´éš”ï¼Œå°±è¾“å‡ºè¿™äº›é—´éš”åï¼Œå†è¾“å‡ºå½“å‰å•å…ƒ//
+                for (int i = last_col + 1; i < curCol; i++) {
+                    ovFlowFptr << setfill(' ') << setw(35) << ' ';
+                }
+                printCellFlow(iCell);
+            }
+            //rowMask[cur_col] = 1;
+            //lineEnd = cur_col;
+        }
 
-		cols++;
-		last_row = curRow;
-		last_col = curCol;
-	}
+        cols++;
+        last_row = curRow;
+        last_col = curCol;
+    }
 }
 
 void CASC2D_OF::printChFlow() {
-	// todo ´òÓ¡Ã¿¸öÊ±¼ä²½³¤µÄºÓµÀÁ÷Á¿
+    // todo æ‰“å°æ¯ä¸ªæ—¶é—´æ­¥é•¿çš„æ²³é“æµé‡//
 }
 
 void CASC2D_OF::printLineBreak(int lastrow_firstcol) {
-	ovFlowFptr << endl;
-	// Êä³öËõ½ø
-	for (int i = 1; i < lastrow_firstcol; i++)
-	{
-		ovFlowFptr << setfill(' ') << setw(35) << ' ';
-	}
+    ovFlowFptr << endl;
+    // è¾“å‡ºç¼©è¿›//
+    for (int i = 1; i < lastrow_firstcol; i++) {
+        ovFlowFptr << setfill(' ') << setw(35) << ' ';
+    }
 }
 
 void CASC2D_OF::printCellFlow(int iCell) {
-	// ´òÓ¡Î»ÖÃ
-	ovFlowFptr << std::left << setw(7) << setfill(' ') << iCell;
-	// ´òÓ¡Ë®Éî
-	ovFlowFptr << std::left << setw(12) << setfill(' ') << m_surWtrDepth[iCell];
-	// ´òÓ¡x·½ÏòÁ÷Á¿,dqq>0Ïò×óÁ÷
-	if (m_Dqq[iCell][0] > 0)
-	{
-		ovFlowFptr << "¡û" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][0];
-	}
-	else if (m_Dqq[iCell][0] == 0) {
-		ovFlowFptr << "--" << std::left << setw(14) << setfill(' ') << m_Dqq[iCell][0];
-	}
-	else
-	{
-		ovFlowFptr << "¡ú" << std::left << setw(15) << setfill(' ') << -m_Dqq[iCell][0];
-	}
+    // æ‰“å°ä½ç½®//
+    ovFlowFptr << std::left << setw(7) << setfill(' ') << iCell;
+    // æ‰“å°æ°´æ·±//
+    ovFlowFptr << std::left << setw(12) << setfill(' ') << m_surWtrDepth[iCell];
+    // æ‰“å°xæ–¹å‘æµé‡,dqq > 0 å‘å·¦æµ//
+    if (m_Dqq[iCell][0] > 0) {
+        ovFlowFptr << "â†" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][0];
+    }
+    else if (m_Dqq[iCell][0] == 0) {
+        ovFlowFptr << "--" << std::left << setw(14) << setfill(' ') << m_Dqq[iCell][0];
+    }
+    else
+    {
+        ovFlowFptr << "â†’" << std::left << setw(15) << setfill(' ') << -m_Dqq[iCell][0];
+    }
 }
 
 void CASC2D_OF::printCellArrow(int iCell, int last_col, int cur_col) {
-	// ÔİÊ±²»¿¼ÂÇÖĞ¼äÓĞ¼ä¸ôµÄÇé¿ö
-	//printArrow(iCell);
-	// ¿¼ÂÇÖĞ¼äÓĞ¼ä¸ôµÄÇé¿ö
-	if (cur_col == last_col + 1)
-	{
-		printArrow(iCell);
-	}
-	else
-	{
-		for (int i = last_col + 1; i < cur_col; i++)
-		{
-			ovFlowFptr << setfill(' ') << setw(35) << ' ';
-		}
-		printArrow(iCell);
-	}
+    // æš‚æ—¶ä¸è€ƒè™‘ä¸­é—´æœ‰é—´éš”çš„æƒ…å†µ
+    //printArrow(iCell);
+    // è€ƒè™‘ä¸­é—´æœ‰é—´éš”çš„æƒ…å†µ//
+    if (cur_col == last_col + 1) {
+        printArrow(iCell);
+    }
+    else {
+        for (int i = last_col + 1; i < cur_col; i++) {
+            ovFlowFptr << setfill(' ') << setw(35) << ' ';
+        }
+        printArrow(iCell);
+    }
 
 }
 
 void CASC2D_OF::printArrow(int iCell) {
-	if (m_Dqq[iCell][1] > 0)
-	{
-		ovFlowFptr << "¡ü" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][1];
-	}
-	else if (m_Dqq[iCell][1] == 0)
-	{
-		ovFlowFptr << "|" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][1];
-	}
-	else {
-		ovFlowFptr << "¡ı" << std::left << setw(15) << setfill(' ') << -m_Dqq[iCell][1];
-	}
-	ovFlowFptr << setfill(' ') << setw(19) << ' ';
+    if (m_Dqq[iCell][1] > 0)
+    {
+        ovFlowFptr << "â†‘" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][1];
+    }
+    else if (m_Dqq[iCell][1] == 0)
+    {
+        ovFlowFptr << "|" << std::left << setw(15) << setfill(' ') << m_Dqq[iCell][1];
+    }
+    else {
+        ovFlowFptr << "â†“" << std::left << setw(15) << setfill(' ') << -m_Dqq[iCell][1];
+    }
+    ovFlowFptr << setfill(' ') << setw(19) << ' ';
 
 }
 
-// ½¨Á¢Î»ÖÃË÷Òı¼°dqqÊı×é£¬ÉÏÏÂ×óÓÒ ¶ÔÓ¦ 0123£¬ÓÒdqq¶ÔÓ¦4£¬ÏÂdqq¶ÔÓ¦5
+// å»ºç«‹ä½ç½®ç´¢å¼•åŠdqqæ•°ç»„ï¼Œä¸Šä¸‹å·¦å³ å¯¹åº” 0123ï¼Œå³dqqå¯¹åº”4ï¼Œä¸‹dqqå¯¹åº”5//
 void CASC2D_OF::buildPositionIndex() {
-	// Î»ÖÃ
-	m_RasterNeighbor = new int* [m_nCells];
-	m_Dqq = new float*[m_nCells];
-	for (int i = 0; i < m_nCells; i++) {
-		m_RasterNeighbor[i] = new int[4];
-		m_Dqq[i] = new float[2];
-		for (int j = 0; j < 6; j++)
-		{
-			m_RasterNeighbor[i][j] = -1;
-		}
-		for (int j = 0; j < 2; j++)
-		{
-			m_Dqq[i][j] = 0.0;
-		}
-	}
-	for (int iCell = 0; iCell < m_nCells; iCell++) {
-		int curRow = m_RasterPostion[iCell][0];
-		int curCol = m_RasterPostion[iCell][1];
-		
-		// Èç¹ûÓĞÉÏÎ»ÖÃ
-		if (curRow != 0)
-		{
-			for (int i = iCell - 1; i >= iCell - m_ncols; i--)
-			{
-				// ·ÀÖ¹Êı×éÔ½½ç
-				if (i < 0)
-				{
-					break;
-				}
-				if ( m_RasterPostion[i][0] == (curRow - 1) && m_RasterPostion[i][1] == curCol)
-				{
-					m_RasterNeighbor[iCell][0] = i;
-					break;
-				}
-			}
-		}
+    // ä½ç½®//
+    m_RasterNeighbor = new int* [m_nCells];
+    m_Dqq = new float*[m_nCells];
+    for (int i = 0; i < m_nCells; i++) {
+        m_RasterNeighbor[i] = new int[4];
+        m_Dqq[i] = new float[2];
+        for (int j = 0; j < 6; j++)
+        {
+            m_RasterNeighbor[i][j] = -1;
+        }
+        for (int j = 0; j < 2; j++)
+        {
+            m_Dqq[i][j] = 0.0;
+        }
+    }
+    for (int iCell = 0; iCell < m_nCells; iCell++) {
+        int curRow = m_RasterPostion[iCell][0];
+        int curCol = m_RasterPostion[iCell][1];
+        
+        // å¦‚æœæœ‰ä¸Šä½ç½®//
+        if (curRow != 0)
+        {
+            for (int i = iCell - 1; i >= iCell - m_ncols; i--)
+            {
+                // é˜²æ­¢æ•°ç»„è¶Šç•Œ//
+                if (i < 0)
+                {
+                    break;
+                }
+                if ( m_RasterPostion[i][0] == (curRow - 1) && m_RasterPostion[i][1] == curCol)
+                {
+                    m_RasterNeighbor[iCell][0] = i;
+                    break;
+                }
+            }
+        }
 
-		// Èç¹ûÓĞÏÂÎ»ÖÃ
-		if (curRow != m_nrows - 1)
-		{
-			for (int i = iCell + 1; i <= iCell + m_ncols; i++)
-			{
-				// ·ÀÖ¹Êı×éÔ½½ç
-				if (i > m_nCells - 1)
-				{
-					break;
-				}
-				if (m_RasterPostion[i][0] == (curRow + 1) && m_RasterPostion[i][1] == curCol)
-				{
-					m_RasterNeighbor[iCell][1] = i;
-					break;
-				}
-			}
-		}
+        // å¦‚æœæœ‰ä¸‹ä½ç½®//
+        if (curRow != m_nrows - 1)
+        {
+            for (int i = iCell + 1; i <= iCell + m_ncols; i++)
+            {
+                // é˜²æ­¢æ•°ç»„è¶Šç•Œ//
+                if (i > m_nCells - 1)
+                {
+                    break;
+                }
+                if (m_RasterPostion[i][0] == (curRow + 1) && m_RasterPostion[i][1] == curCol)
+                {
+                    m_RasterNeighbor[iCell][1] = i;
+                    break;
+                }
+            }
+        }
 
-		// Èç¹ûÓĞ×óÎ»ÖÃ(Èç¹û×ó±ßÓĞ£¬ÔòÒ»¶¨ÊÇÉÏÒ»¸ö)
-		if (iCell != 0 &&  curRow == m_RasterPostion[iCell - 1][0] && (curCol -1) == m_RasterPostion[iCell - 1][1])
-		{
-			m_RasterNeighbor[iCell][2] = iCell - 1;
-		}
-		// Èç¹ûÓĞÓÒÎ»ÖÃ(Èç¹ûÓÒ±ßÓĞ£¬ÔòÒ»¶¨ÊÇÏÂÒ»¸ö)
-		if (iCell != (m_nCells -1) && curRow == m_RasterPostion[iCell + 1][0] && (curCol + 1) == m_RasterPostion[iCell + 1][1])
-		{
-			m_RasterNeighbor[iCell][3] = iCell + 1;
-		}
+        // å¦‚æœæœ‰å·¦ä½ç½®(å¦‚æœå·¦è¾¹æœ‰ï¼Œåˆ™ä¸€å®šæ˜¯ä¸Šä¸€ä¸ª)//
+        if (iCell != 0 &&  curRow == m_RasterPostion[iCell - 1][0] && (curCol -1) == m_RasterPostion[iCell - 1][1])
+        {
+            m_RasterNeighbor[iCell][2] = iCell - 1;
+        }
+        // å¦‚æœæœ‰å³ä½ç½®(å¦‚æœå³è¾¹æœ‰ï¼Œåˆ™ä¸€å®šæ˜¯ä¸‹ä¸€ä¸ª)//
+        if (iCell != (m_nCells -1) && curRow == m_RasterPostion[iCell + 1][0] && (curCol + 1) == m_RasterPostion[iCell + 1][1])
+        {
+            m_RasterNeighbor[iCell][3] = iCell + 1;
+        }
 
-	}
+    }
 }
 
-/*************************¸üĞÂµØ±í¾¶Á÷Éî¶È*******************************/
+/*************************æ›´æ–°åœ°è¡¨å¾„æµæ·±åº¦*******************************/
 void CASC2D_OF::OvrlDepth()
 {
-	
-	float hov;
+    
+    float hov;
 
-	/**********************************************/
-	/*    Updating overland depth (water balance) */
-	/**********************************************/
+    /**********************************************/
+    /*    Updating overland depth (water balance) */
+    /**********************************************/
 
-	/* Applying the Rainfall to each Grid Cell within the Watershed */
-	// ±éÀúÁ÷ÓòÄÚµÄÃ¿¸öÕ¤¸ñµ¥Ôª
-	for (int i = 0; i < m_nCells; i++) {
-		/* dqov[j][k]ÊÇ²¨ËÙ m3/s */
-		/* hov ²¨¸ß = ²¨ËÙ * Ê±¼ä / Õ¤¸ñÃæ»ı  m */
-		hov = m_ovQ[i] * m_dt / (m_cellWth*m_cellWth);
-		/*Âß¼­±ä¸ü£ºhµÄ¸üĞÂÉ¾È¥½µÓê¡¢½ØÁôºÍÏÂÉøµÄÓ°Ïì£¬ÒòÎªÆäËûÄ£¿éÒÑ¾­¼ÆËã¹ı£¬ÕâÀï½ö¿¼ÂÇ¾¶Á÷ËÙ¶ÈÒıÆğµÄË®Éî±ä»¯*/
-		hov = hov + m_surWtrDepth[i] / 1000.f; //  mm -> m
-		if (hov < 0.0)
-		{
-			hov = 0.0f;
-		}
-		/* ¸üĞÂÈ«¾ÖµØ±íË®Éî*/
-		m_surWtrDepth[i] = hov * 1000.f;			// m -> mm
-		/* ½«µ±Ç°Ê±¼ä²½³¤ÄÚµÄµØ±íÁ÷ËÙ±ä»¯ÉèÎª0*/
-		m_ovQ[i] = 0.0;
-	}
-	
+    /* Applying the Rainfall to each Grid Cell within the Watershed */
+    // éå†æµåŸŸå†…çš„æ¯ä¸ªæ …æ ¼å•å…ƒ//
+    for (int i = 0; i < m_nCells; i++) {
+        /* dqov[j][k]æ˜¯æ³¢é€Ÿ m3/s */
+        /* hov æ³¢é«˜ = æ³¢é€Ÿ * æ—¶é—´ / æ …æ ¼é¢ç§¯  m */
+        hov = m_ovQ[i] * m_dt / (m_cellWth*m_cellWth);
+        /*é€»è¾‘å˜æ›´ï¼šhçš„æ›´æ–°åˆ å»é™é›¨ã€æˆªç•™å’Œä¸‹æ¸—çš„å½±å“ï¼Œå› ä¸ºå…¶ä»–æ¨¡å—å·²ç»è®¡ç®—è¿‡ï¼Œè¿™é‡Œä»…è€ƒè™‘å¾„æµé€Ÿåº¦å¼•èµ·çš„æ°´æ·±å˜åŒ–*/
+        hov = hov + m_surWtrDepth[i] / 1000.f; //  mm -> m
+        if (hov < 0.0)
+        {
+            hov = 0.0f;
+        }
+        /* æ›´æ–°å…¨å±€åœ°è¡¨æ°´æ·±*/
+        m_surWtrDepth[i] = hov * 1000.f;            // m -> mm
+        /* å°†å½“å‰æ—¶é—´æ­¥é•¿å†…çš„åœ°è¡¨æµé€Ÿå˜åŒ–è®¾ä¸º0*/
+        m_ovQ[i] = 0.0;
+    }
+    
 }
 
-/*************************ÆÂÃæ»ãÁ÷*******************************/
+/*************************å¡é¢æ±‡æµ*******************************/
 void CASC2D_OF::OvrlRout()
 {
 
-	int j, k, jj, kk, l;
-	int lastRow = 0;
-	/* ±éÀúÕ¤¸ñµ¥Ôª*/
-	for (int iCell = 0; iCell < m_nCells; iCell++) {
-		int curRow = m_RasterPostion[iCell][0];
-		int curCol = m_RasterPostion[iCell][1];
-		//# ifdef IS_DEBUG
+    int j, k, jj, kk, l;
+    int lastRow = 0;
+    /* éå†æ …æ ¼å•å…ƒ*/
+    for (int iCell = 0; iCell < m_nCells; iCell++) {
+        int curRow = m_RasterPostion[iCell][0];
+        int curCol = m_RasterPostion[iCell][1];
+        //# ifdef IS_DEBUG
 
-		//#endif // IS_DEBUG
-		map<int,vector<int>>::iterator it;
-		it = m_rbcellsMap.find(iCell);
-		if (it != m_rbcellsMap.end())
-		{
-			float dqq;
-			int rightCell;
-			// Èç¹ûÓÒ·½Õ¤¸ñµ¥Ôª²»Îª¿Õ£¬¼ÆËãÓÒ·½Õ¤¸ñµ¥Ôª
-			if ((it->second)[0] != -1)
-			{
-				rightCell = (it->second)[0];
-				dqq = ovrl(iCell, rightCell);
-				# ifdef IS_DEBUG
-				m_Dqq[iCell][0] = dqq;
-				#endif // IS_DEBUG
-				
-			}
+        //#endif // IS_DEBUG
+        map<int,vector<int>>::iterator it;
+        it = m_rbcellsMap.find(iCell);
+        if (it != m_rbcellsMap.end())
+        {
+            float dqq;
+            int rightCell;
+            // å¦‚æœå³æ–¹æ …æ ¼å•å…ƒä¸ä¸ºç©ºï¼Œè®¡ç®—å³æ–¹æ …æ ¼å•å…ƒ
+            if ((it->second)[0] != -1)
+            {
+                rightCell = (it->second)[0];
+                dqq = ovrl(iCell, rightCell);
+                # ifdef IS_DEBUG
+                m_Dqq[iCell][0] = dqq;
+                #endif // IS_DEBUG
+                
+            }
 
-			int belowCell;
-			// Èç¹ûÏÂ·½Õ¤¸ñµ¥Ôª²»Îª¿Õ£¬¼ÆËãÏÂ·½Õ¤¸ñµ¥Ôª
-			if ((it->second)[1] != -1)
-			{
-				belowCell = (it->second)[1];
-				dqq = ovrl(iCell, belowCell);
-				# ifdef IS_DEBUG
-				m_Dqq[iCell][1] = dqq;
-				#endif // IS_DEBUG
-			}
-		}
-		# ifdef IS_DEBUG
+            int belowCell;
+            // å¦‚æœä¸‹æ–¹æ …æ ¼å•å…ƒä¸ä¸ºç©ºï¼Œè®¡ç®—ä¸‹æ–¹æ …æ ¼å•å…ƒ
+            if ((it->second)[1] != -1)
+            {
+                belowCell = (it->second)[1];
+                dqq = ovrl(iCell, belowCell);
+                # ifdef IS_DEBUG
+                m_Dqq[iCell][1] = dqq;
+                #endif // IS_DEBUG
+            }
+        }
+        # ifdef IS_DEBUG
 
-		lastRow = curRow;
-		#endif // IS_DEBUG
+        lastRow = curRow;
+        #endif // IS_DEBUG
 
 
-	}
+    }
 }
 
 float CASC2D_OF::ovrl(int icell, int rbCell)
 {
-	int jfrom, kfrom, jto, kto;
+    int jfrom, kfrom, jto, kto;
 
-	float a = 1.0;
+    float a = 1.0;
 
-	float vel = 0.0;
+    float vel = 0.0;
 
-	float so = 0.0f, sf = 0.0f, dhdx = 0.0f, hh = 0.0f, rman = 0.0f, alfa = 0.0f, dqq = 0.0f, stordepth = 0.0f;
+    float so = 0.0f, sf = 0.0f, dhdx = 0.0f, hh = 0.0f, rman = 0.0f, alfa = 0.0f, dqq = 0.0f, stordepth = 0.0f;
 
-	so = (m_dem[icell] - m_dem[rbCell]) / m_cellWth;			/* ºÓ´²ÆÂ¶È*/
+    so = (m_dem[icell] - m_dem[rbCell]) / m_cellWth;            /* æ²³åºŠå¡åº¦*/
 
-	dhdx = (m_surWtrDepth[rbCell] - m_surWtrDepth[icell]) / 1000.0f / m_cellWth;		/* Ë®Á¦ÆÂ¶È*/
+    dhdx = (m_surWtrDepth[rbCell] - m_surWtrDepth[icell]) / 1000.0f / m_cellWth;        /* æ°´åŠ›å¡åº¦*/
 
-	/* ÔÚcasc2dÀïsf·­ÒëÎªÄ¦²Á±È½µ£¬Êµ¼Êº¬ÒåÊÇ¸½¼Ó±È½µ¡£
-	  * ¸½¼Ó±È½µ = ²¨ÌåË®Ãæ±È½µ - ÎÈ¶¨Á÷Ë®Ãæ±È½µ ¡Ö ²¨ÌåË®Ãæ±È½µ - ºÓµÀÆÂ¶È±È½µ
-	  * ¸½¼Ó±È½µ < 0£¬´ú±íÕÇºé£¬¼´¶ÔÓÚ²¨Ç°£¬¸½¼Ó±È½µÎªÕı
-	  * ¸½¼Ó±È½µ > 0£¬´ú±íÂäºé£¬¼´¶ÔÓÚ²¨ºó£¬¸½¼Ó±È½µÎª¸º
-	 */
-	sf = so - dhdx + (float)(1e-30);
+    /* åœ¨casc2dé‡Œsfç¿»è¯‘ä¸ºæ‘©æ“¦æ¯”é™ï¼Œå®é™…å«ä¹‰æ˜¯é™„åŠ æ¯”é™ã€‚
+      * é™„åŠ æ¯”é™ = æ³¢ä½“æ°´é¢æ¯”é™ - ç¨³å®šæµæ°´é¢æ¯”é™ â‰ˆ æ³¢ä½“æ°´é¢æ¯”é™ - æ²³é“å¡åº¦æ¯”é™
+      * é™„åŠ æ¯”é™ < 0ï¼Œä»£è¡¨æ¶¨æ´ªï¼Œå³å¯¹äºæ³¢å‰ï¼Œé™„åŠ æ¯”é™ä¸ºæ­£
+      * é™„åŠ æ¯”é™ > 0ï¼Œä»£è¡¨è½æ´ªï¼Œå³å¯¹äºæ³¢åï¼Œé™„åŠ æ¯”é™ä¸ºè´Ÿ
+     */
+    sf = so - dhdx + (float)(1e-30);
 
-	/* hh(m)£¬µØ±í¾¶Á÷Ë®Éî*/
-	hh = m_surWtrDepth[icell] /1000.0f;                 
-	/* ÂüÄşÏµÊı*/
-	rman = m_ManningN[icell];		 
+    /* hh(m)ï¼Œåœ°è¡¨å¾„æµæ°´æ·±*/
+    hh = m_surWtrDepth[icell] /1000.0f;                 
+    /* æ›¼å®ç³»æ•°*/
+    rman = m_ManningN[icell];         
 
-	//if (isnan(dhdx) || isnan(m_surWtrDepth[rbCell]) || isnan(m_surWtrDepth[icell]) || isinf(dhdx) || isinf(m_surWtrDepth[rbCell]) || isinf(m_surWtrDepth[icell])) {
-	//	if (ovFlowFptr.is_open()) {
-	//		ovFlowFptr << " icell: " << icell << " m_surWtrDepth[icell]: " << m_surWtrDepth[icell] << " m_surWtrDepth[rbCell]: " << m_surWtrDepth[rbCell] << endl;
-	//	}
-	//}
-	
-	/* ÔÚºÓµÀÄÚ*/
-	if (!FloatEqual(m_streamLink[icell], NODATA_VALUE))
-	{
-		/* Èç¹ûÕ¤¸ñµ¥ÔªÉÏµÄĞîË®Éî¶È > ºÓµÀÉî¶È£¬ÔòºÓµÀÉÏ·½µÄµØ±íË®Éî=Õ¤¸ñµ¥ÔªÉÏµÄ×ÜĞîË®Éî¶È-ºÓµÀÉî¶È£¬·ñÔòµØ±íË®Éî=0.0*/
-		if (m_surSdep[icell] > m_chDepth[icell])
-		{
-			/* ÎÈ¶¨Á÷Éî¶È = ºÓµÀÄÚÕ¤¸ñµ¥ÔªÉÏµÄ×ÜĞîË®Éî¶È - ºÓµÀÉî¶È£¨¼´¸ß³öºÓµÀ²¿·ÖµÄÉî¶È£©*/
-			stordepth = m_surSdep[icell] - m_chDepth[icell] ;
-		}
-		else
-		{
-			stordepth = 0.0f;
-		}
-	}
-	/* ÔÚºÓµÀÍâ£¬ÎÈ¶¨Á÷Éî¶È = Õ¤¸ñµ¥ÔªÉÏµÄĞîË®Éî¶È*/
-	else
-	{
-		stordepth = m_surSdep[icell];
-	}
+    //if (isnan(dhdx) || isnan(m_surWtrDepth[rbCell]) || isnan(m_surWtrDepth[icell]) || isinf(dhdx) || isinf(m_surWtrDepth[rbCell]) || isinf(m_surWtrDepth[icell])) {
+    //    if (ovFlowFptr.is_open()) {
+    //        ovFlowFptr << " icell: " << icell << " m_surWtrDepth[icell]: " << m_surWtrDepth[icell] << " m_surWtrDepth[rbCell]: " << m_surWtrDepth[rbCell] << endl;
+    //    }
+    //}
+    
+    /* åœ¨æ²³é“å†…*/
+    if (!FloatEqual(m_streamLink[icell], NODATA_VALUE))
+    {
+        /* å¦‚æœæ …æ ¼å•å…ƒä¸Šçš„è“„æ°´æ·±åº¦ > æ²³é“æ·±åº¦ï¼Œåˆ™æ²³é“ä¸Šæ–¹çš„åœ°è¡¨æ°´æ·±=æ …æ ¼å•å…ƒä¸Šçš„æ€»è“„æ°´æ·±åº¦-æ²³é“æ·±åº¦ï¼Œå¦åˆ™åœ°è¡¨æ°´æ·±=0.0*/
+        if (m_surSdep[icell] > m_chDepth[icell])
+        {
+            /* ç¨³å®šæµæ·±åº¦ = æ²³é“å†…æ …æ ¼å•å…ƒä¸Šçš„æ€»è“„æ°´æ·±åº¦ - æ²³é“æ·±åº¦ï¼ˆå³é«˜å‡ºæ²³é“éƒ¨åˆ†çš„æ·±åº¦ï¼‰*/
+            stordepth = m_surSdep[icell] - m_chDepth[icell] ;
+        }
+        else
+        {
+            stordepth = 0.0f;
+        }
+    }
+    /* åœ¨æ²³é“å¤–ï¼Œç¨³å®šæµæ·±åº¦ = æ …æ ¼å•å…ƒä¸Šçš„è“„æ°´æ·±åº¦*/
+    else
+    {
+        stordepth = m_surSdep[icell];
+    }
 
-	/* ÔÚcasc2dÀïsf·­ÒëÎªÄ¦²Á±È½µ£¬Êµ¼Êº¬ÒåÊÇ¸½¼Ó±È½µ¡£
-	  * ¸½¼Ó±È½µ = ²¨ÌåË®Ãæ±È½µ - ÎÈ¶¨Á÷Ë®Ãæ±È½µ ¡Ö ²¨ÌåË®Ãæ±È½µ - ºÓµÀÆÂ¶È±È½µ
-	  * ¸½¼Ó±È½µ > 0£¬´ú±íÕÇºé£¬¼´¶ÔÓÚ²¨Ç°£¬¸½¼Ó±È½µÎªÕı
-	  * ¸½¼Ó±È½µ < 0£¬´ú±íÂäºé£¬¼´¶ÔÓÚ²¨ºó£¬¸½¼Ó±È½µÎª¸º
-	  */
-	if (sf < 0)
-	{
-		/* ÏÂÒ»¸öµØ±íµ¥ÔªµÄµØ±í¾¶Á÷Ë®Éî*/
-		hh = m_surWtrDepth[rbCell] / 1000.0f;		// mm -> m
+    /* åœ¨casc2dé‡Œsfç¿»è¯‘ä¸ºæ‘©æ“¦æ¯”é™ï¼Œå®é™…å«ä¹‰æ˜¯é™„åŠ æ¯”é™ã€‚
+      * é™„åŠ æ¯”é™ = æ³¢ä½“æ°´é¢æ¯”é™ - ç¨³å®šæµæ°´é¢æ¯”é™ â‰ˆ æ³¢ä½“æ°´é¢æ¯”é™ - æ²³é“å¡åº¦æ¯”é™
+      * é™„åŠ æ¯”é™ > 0ï¼Œä»£è¡¨æ¶¨æ´ªï¼Œå³å¯¹äºæ³¢å‰ï¼Œé™„åŠ æ¯”é™ä¸ºæ­£
+      * é™„åŠ æ¯”é™ < 0ï¼Œä»£è¡¨è½æ´ªï¼Œå³å¯¹äºæ³¢åï¼Œé™„åŠ æ¯”é™ä¸ºè´Ÿ
+      */
+    if (sf < 0)
+    {
+        /* ä¸‹ä¸€ä¸ªåœ°è¡¨å•å…ƒçš„åœ°è¡¨å¾„æµæ°´æ·±*/
+        hh = m_surWtrDepth[rbCell] / 1000.0f;        // mm -> m
 
-		if (hh <= 0.0001)
-		{
-			hh = 0.0f;
-		}
-		/* ÏÂÒ»¸öµØ±íµ¥ÔªµÄÂüÄşÏµÊı*/
-		rman = m_ManningN[rbCell];
-		/* ÏÂÒ»¸öµØ±íµ¥ÔªÔÚºÓµÀÄÚ*/
-		if (!FloatEqual(m_streamLink[rbCell], NODATA_VALUE))
-		{
-			/* ÏÂÒ»¸öÕ¤¸ñµ¥ÔªÉÏµÄĞîË®Éî¶È > ºÓµÀÉî¶È£¬Àí½âÎªÏÂÒ»¸öºÓµÀµØ±íµ¥ÔªµÄºÓµÀÄÚÒÑ¾­ĞîÂúË®*/
-			if (m_surSdep[rbCell] > m_chDepth[rbCell])
-			{
-				/* ÏÂÒ»¸öµØ±íµ¥ÔªµÄµØ±íË®Éî*/
-				stordepth =	m_surSdep[rbCell] - m_chDepth[rbCell];
-			}
-			else
-			{
-				stordepth = 0.0f;
-			}
-		}
-		else
-		{
-			stordepth = m_surSdep[rbCell];
-		}
-	}
-	if (stordepth <= 0.0001)
-	{
-		stordepth = 0.0f;
-	}
-	/* ¾¶Á÷Éî¶È´óÓÚµØ±íË®Éî*/
-	// todo ²»Àí½âÆäº¬Òå£¿
-	if (hh >= stordepth)
-	{
-		/* alfaÊÇ¸ù¾İÂüÄş×èÁ¦ºÍÆÂµ×Ä¦×è±È½µ¼ÆËã³öµÄÁ÷Ì¬²ÎÊı*/
-		alfa = (float)((pow(fabs(sf), 0.5f)) / rman);
+        if (hh <= 0.0001)
+        {
+            hh = 0.0f;
+        }
+        /* ä¸‹ä¸€ä¸ªåœ°è¡¨å•å…ƒçš„æ›¼å®ç³»æ•°*/
+        rman = m_ManningN[rbCell];
+        /* ä¸‹ä¸€ä¸ªåœ°è¡¨å•å…ƒåœ¨æ²³é“å†…*/
+        if (!FloatEqual(m_streamLink[rbCell], NODATA_VALUE))
+        {
+            /* ä¸‹ä¸€ä¸ªæ …æ ¼å•å…ƒä¸Šçš„è“„æ°´æ·±åº¦ > æ²³é“æ·±åº¦ï¼Œç†è§£ä¸ºä¸‹ä¸€ä¸ªæ²³é“åœ°è¡¨å•å…ƒçš„æ²³é“å†…å·²ç»è“„æ»¡æ°´*/
+            if (m_surSdep[rbCell] > m_chDepth[rbCell])
+            {
+                /* ä¸‹ä¸€ä¸ªåœ°è¡¨å•å…ƒçš„åœ°è¡¨æ°´æ·±*/
+                stordepth =    m_surSdep[rbCell] - m_chDepth[rbCell];
+            }
+            else
+            {
+                stordepth = 0.0f;
+            }
+        }
+        else
+        {
+            stordepth = m_surSdep[rbCell];
+        }
+    }
+    if (stordepth <= 0.0001)
+    {
+        stordepth = 0.0f;
+    }
+    /* å¾„æµæ·±åº¦å¤§äºåœ°è¡¨æ°´æ·±*/
+    // todo ä¸ç†è§£å…¶å«ä¹‰ï¼Ÿ
+    if (hh >= stordepth)
+    {
+        /* alfaæ˜¯æ ¹æ®æ›¼å®é˜»åŠ›å’Œå¡åº•æ‘©é˜»æ¯”é™è®¡ç®—å‡ºçš„æµæ€å‚æ•°*/
+        alfa = (float)((pow(fabs(sf), 0.5f)) / rman);
 
-		/*	Note : The variable "a" represents the sign of the	Friction Slope (Sf)	Computing Overland Flow	*/
-		if (sf >= 0) a = 1.0;
+        /*    Note : The variable "a" represents the sign of the    Friction Slope (Sf)    Computing Overland Flow    */
+        if (sf >= 0) a = 1.0;
 
-		if (sf < 0) a = -1.0;
-		/* dqq Ê±¼ä²½³¤ÄÚµØ±í¾¶Á÷ËÙÂÊµÄ±ä»¯Á¿ = alfa * hµÄ(5/3)´Î·½*/
-		float newH = hh - stordepth;
-		if (newH < 0.0)
-		{
-			newH = 0.0;
-		}
-		// todo: ÏëÇå³şdqqµ½µ×Òª²»Òª³ıÒÔdt
-		//dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) / m_dt;
-		dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667f)) ;
-		# ifdef IS_DEBUG
-		if (isnan(dqq) || isinf(dqq) || isnan(dhdx) || isinf(dhdx) || isnan(sf) || isinf(sf))
-		{
-			wtrDepFptr << "m_surWtrDepth[" << icell << "]: " << m_surWtrDepth[icell] << " m_surWtrDepth[" << rbCell << "]: " << m_surWtrDepth[rbCell]
-				<< " sf: " << sf << " so: " << so << " dhdx: " << dhdx << " rman: " << "dqq: " << dqq
-				<< " alfa: " << alfa << " hh - stordepth: " << hh - stordepth << endl;
-		}
-		#endif // IS_DEBUG
-		/* Êä³öÕ¤¸ñµ¥ÔªÉÏÊ±¼ä²½³¤ÄÚµÄµØ±í¾¶Á÷ËÙÂÊ, dqqÎªÕıÔòË®Á÷ÏòÓÒ¡¢ÏÂ·½£¬dqqÎª¸ºÔòË®´ÓÓÒ¡¢ÏÂ·½Á÷Ïòµ±Ç°µ¥Ôª*/
+        if (sf < 0) a = -1.0;
+        /* dqq æ—¶é—´æ­¥é•¿å†…åœ°è¡¨å¾„æµé€Ÿç‡çš„å˜åŒ–é‡ = alfa * hçš„(5/3)æ¬¡æ–¹*/
+        float newH = hh - stordepth;
+        if (newH < 0.0)
+        {
+            newH = 0.0;
+        }
+        // todo: æƒ³æ¸…æ¥šdqqåˆ°åº•è¦ä¸è¦é™¤ä»¥dt
+        //dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667)) / m_dt;
+        dqq = (float)(a*m_cellWth*alfa*pow((newH), 1.667f)) ;
+        # ifdef IS_DEBUG
+        if (isnan(dqq) || isinf(dqq) || isnan(dhdx) || isinf(dhdx) || isnan(sf) || isinf(sf))
+        {
+            wtrDepFptr << "m_surWtrDepth[" << icell << "]: " << m_surWtrDepth[icell] << " m_surWtrDepth[" << rbCell << "]: " << m_surWtrDepth[rbCell]
+                << " sf: " << sf << " so: " << so << " dhdx: " << dhdx << " rman: " << "dqq: " << dqq
+                << " alfa: " << alfa << " hh - stordepth: " << hh - stordepth << endl;
+        }
+        #endif // IS_DEBUG
+        /* è¾“å‡ºæ …æ ¼å•å…ƒä¸Šæ—¶é—´æ­¥é•¿å†…çš„åœ°è¡¨å¾„æµé€Ÿç‡, dqqä¸ºæ­£åˆ™æ°´æµå‘å³ã€ä¸‹æ–¹ï¼Œdqqä¸ºè´Ÿåˆ™æ°´ä»å³ã€ä¸‹æ–¹æµå‘å½“å‰å•å…ƒ*/
 
-		m_ovQ[icell] = m_ovQ[icell] - 0.5 * dqq;
+        m_ovQ[icell] = m_ovQ[icell] - 0.5 * dqq;
 
-		m_ovQ[rbCell] = m_ovQ[rbCell] + 0.5 * dqq;
+        m_ovQ[rbCell] = m_ovQ[rbCell] + 0.5 * dqq;
 
-	}	/* End of HH >= STORDEPTH */
-	//#endif // IS_DEBUG
-	return dqq;
+    }    /* End of HH >= STORDEPTH */
+    //#endif // IS_DEBUG
+    return dqq;
 }   /* End of OVRL */
 
-/*************************¸üĞÂºÓµÀ¾¶Á÷Éî¶È*******************************/
+/*************************æ›´æ–°æ²³é“å¾„æµæ·±åº¦*******************************/
 void CASC2D_OF::ChannDepth()
 {
-	int ic, j, l, k, jj;
-	float wch, dch, sfactor, sdep_ov, inflowVol, vol_ov_in;
-	for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
-		int nReaches = it->second.size();
-		// ±éÀúµ±Ç°Í¼²ãµÄËùÓĞºÓµÀ
-		for (int i = 0; i < nReaches; ++i) {
-			int reachId = it->second[i];
-			// ¸ù¾İreachId²éÕÒºÓµÀµÄindex£¬indexÊÇºÓµÀÔÚÊı×éÖĞµÄÏÂ±ê£¬´Ó0¿ªÊ¼
-			map<int, int>::iterator iter = m_idToIndex.find(reachId);
-			if (iter != m_idToIndex.end()) {
-				int reachIndex = iter->second;
-				//int reachIndex = m_idToIndex.find(reachId);
-				vector<int> &vecCells = m_reachs[reachIndex];
-				int n = vecCells.size();
-				for (int iCell = 0; iCell < n; ++iCell) {
-					int idCell = vecCells[iCell];
-					/* ºÓµÀ¿í¶È¡¢Éî¶È¡¢ÍäÇú¶È*/
-					wch = m_chWidth[idCell];
-					dch = m_chDepth[idCell];
-					//sfactor = m_chSinuosity[idCell];
-					sfactor = 1;
-					/* Find new channel depth after adding inflow volume				*/
-					/* µ±Ç°Ê±¼ä²½³¤µÄºÓµÀË®Á÷Ìå»ı*/
+    int ic, j, l, k, jj;
+    float wch, dch, sfactor, sdep_ov, inflowVol, vol_ov_in;
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+        int nReaches = it->second.size();
+        // éå†å½“å‰å›¾å±‚çš„æ‰€æœ‰æ²³é“
+        for (int i = 0; i < nReaches; ++i) {
+            int reachId = it->second[i];
+            // æ ¹æ®reachIdæŸ¥æ‰¾æ²³é“çš„indexï¼Œindexæ˜¯æ²³é“åœ¨æ•°ç»„ä¸­çš„ä¸‹æ ‡ï¼Œä»0å¼€å§‹
+            map<int, int>::iterator iter = m_idToIndex.find(reachId);
+            if (iter != m_idToIndex.end()) {
+                int reachIndex = iter->second;
+                //int reachIndex = m_idToIndex.find(reachId);
+                vector<int> &vecCells = m_reachs[reachIndex];
+                int n = vecCells.size();
+                for (int iCell = 0; iCell < n; ++iCell) {
+                    int idCell = vecCells[iCell];
+                    /* æ²³é“å®½åº¦ã€æ·±åº¦ã€å¼¯æ›²åº¦*/
+                    wch = m_chWidth[idCell];
+                    dch = m_chDepth[idCell];
+                    //sfactor = m_chSinuosity[idCell];
+                    sfactor = 1;
+                    /* Find new channel depth after adding inflow volume                */
+                    /* å½“å‰æ—¶é—´æ­¥é•¿çš„æ²³é“æ°´æµä½“ç§¯*/
 
-					inflowVol = m_chQ[idCell] * m_dt;
-					/* ... and the volume coming from the overland	(vol_ov_in) */
-					/* ³¬³öºÓµÀÉî¶ÈµÄË®Á÷Éî¶È*/
-					// ÕâÀï¸Ğ¾õÂß¼­²»Í¨£¬ÎªÊ²Ã´×ÜÊÇÄÃ³õÊ¼Ë®ÉîÔÚÕâ±È£¿
-					if (m_surSdep[idCell] / 1000.0f > dch)
-						sdep_ov = m_surSdep[idCell]  - dch * 1000.0f;
-					else
-						sdep_ov = 0.0;
-					/* µ±Ç°Ê±¼ä²½³¤À´×ÔµØ±íµ¥ÔªµÄË®Á÷Ìå»ı*/
-					vol_ov_in = 0;
-					float wtrDepthTmp = m_surWtrDepth[idCell];
-					if (m_surWtrDepth[idCell]  > sdep_ov)
-					{
-						// µØ±íË®Á÷½øÈëºÓµÀºó£¬½«µØ±íË®Á÷ÖØÖÃÎªµØ±í³õÊ¼ÎÈ¶¨Ë®ÉîÉî¶È£¨0£©
-						vol_ov_in = (m_surWtrDepth[idCell]  - sdep_ov) / 1000.0f *m_cellWth*m_cellWth;
-						m_surWtrDepth[idCell] = sdep_ov;
-					}
-					# ifdef IS_DEBUG
-					if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
-						chFlowFptr << "RCH_ID: " << std::left << setw(4) << setfill(' ') << reachId << " "
-							<< "DOWN_ID: " << std::left << setw(4) << setfill(' ') << m_downStreamReachId[reachId] << " "
-							<< "CELL_ID: " << std::left << setw(8) << setfill(' ') << idCell << " "
-							<< "S_DEP: " << std::left << setw(8) << setfill(' ') << wtrDepthTmp << " "
-							<< "WCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << wch << " "
-							<< "DCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << dch << " "
-							<< "CH_Q: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chQ[idCell] << " "
-							<< "CH_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << inflowVol << " "
-							<< "OV_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_ov_in << " ";
-					}
-					# endif
-					m_chWtrDepth[idCell] = newChnDepth(wch, dch, sfactor, idCell, (inflowVol + vol_ov_in));   // m
+                    inflowVol = m_chQ[idCell] * m_dt;
+                    /* ... and the volume coming from the overland    (vol_ov_in) */
+                    /* è¶…å‡ºæ²³é“æ·±åº¦çš„æ°´æµæ·±åº¦*/
+                    // è¿™é‡Œæ„Ÿè§‰é€»è¾‘ä¸é€šï¼Œä¸ºä»€ä¹ˆæ€»æ˜¯æ‹¿åˆå§‹æ°´æ·±åœ¨è¿™æ¯”ï¼Ÿ
+                    if (m_surSdep[idCell] / 1000.0f > dch)
+                        sdep_ov = m_surSdep[idCell]  - dch * 1000.0f;
+                    else
+                        sdep_ov = 0.0;
+                    /* å½“å‰æ—¶é—´æ­¥é•¿æ¥è‡ªåœ°è¡¨å•å…ƒçš„æ°´æµä½“ç§¯*/
+                    vol_ov_in = 0;
+                    float wtrDepthTmp = m_surWtrDepth[idCell];
+                    if (m_surWtrDepth[idCell]  > sdep_ov)
+                    {
+                        // åœ°è¡¨æ°´æµè¿›å…¥æ²³é“åï¼Œå°†åœ°è¡¨æ°´æµé‡ç½®ä¸ºåœ°è¡¨åˆå§‹ç¨³å®šæ°´æ·±æ·±åº¦ï¼ˆ0ï¼‰
+                        vol_ov_in = (m_surWtrDepth[idCell]  - sdep_ov) / 1000.0f *m_cellWth*m_cellWth;
+                        m_surWtrDepth[idCell] = sdep_ov;
+                    }
+                    # ifdef IS_DEBUG
+                    if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
+                        chFlowFptr << "RCH_ID: " << std::left << setw(4) << setfill(' ') << reachId << " "
+                            << "DOWN_ID: " << std::left << setw(4) << setfill(' ') << m_downStreamReachId[reachId] << " "
+                            << "CELL_ID: " << std::left << setw(8) << setfill(' ') << idCell << " "
+                            << "S_DEP: " << std::left << setw(8) << setfill(' ') << wtrDepthTmp << " "
+                            << "WCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << wch << " "
+                            << "DCH: " << std::left << setw(6) << setfill(' ') << fixed << setprecision(3) << dch << " "
+                            << "CH_Q: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chQ[idCell] << " "
+                            << "CH_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << inflowVol << " "
+                            << "OV_IN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_ov_in << " ";
+                    }
+                    # endif
+                    m_chWtrDepth[idCell] = newChnDepth(wch, dch, sfactor, idCell, (inflowVol + vol_ov_in));   // m
 
 
-					
-					/* Negative Depth in the Channel --> EXIT program					*/
+                    
+                    /* Negative Depth in the Channel --> EXIT program                    */
 
-					if (m_chWtrDepth[idCell] < 0.0)
-					{
-						m_chWtrDepth[idCell] = 0.0;
-					}
+                    if (m_chWtrDepth[idCell] < 0.0)
+                    {
+                        m_chWtrDepth[idCell] = 0.0;
+                    }
 
-					m_chQ[idCell] = 0.0;
-				}
-			}
-		
-		}
-	}
-	
+                    m_chQ[idCell] = 0.0;
+                }
+            }
+        
+        }
+    }
+    
 }
 
 float CASC2D_OF::newChnDepth(float wch, float dch, float sfactor,int idCell, float addedVolume)
 {
-	float area_ch, vol_ch, area_init, vol_init,
-		vol_final, newdepth;
+    float area_ch, vol_ch, area_init, vol_init,
+        vol_final, newdepth;
 
-	/* Channel area and volume																			*/
+    /* Channel area and volume                                                                            */
 
-	area_ch = wch * dch;
-	vol_ch = area_ch * m_cellWth * sfactor;
+    area_ch = wch * dch;
+    vol_ch = area_ch * m_cellWth * sfactor;
 
-	/* Calculates initial area and volume														*/
+    /* Calculates initial area and volume                                                        */
 
-	if (m_chWtrDepth[idCell] <= dch)
-		area_init = wch * m_chWtrDepth[idCell];
-	else
-		area_init = (m_chWtrDepth[idCell] - dch) * m_cellWth + area_ch;
+    if (m_chWtrDepth[idCell] <= dch)
+        area_init = wch * m_chWtrDepth[idCell];
+    else
+        area_init = (m_chWtrDepth[idCell] - dch) * m_cellWth + area_ch;
 
-	vol_init = area_init * m_cellWth * sfactor;
+    vol_init = area_init * m_cellWth * sfactor;
 
-	/* After adding new volume calculates volume										*/
+    /* After adding new volume calculates volume                                        */
 
-	vol_final = vol_init + addedVolume;
+    vol_final = vol_init + addedVolume;
 
-	/* ... and depth corresponding to the final volume							*/
+    /* ... and depth corresponding to the final volume                            */
 
-	if (vol_final > vol_ch)
-		newdepth = dch + (vol_final - vol_ch) / (m_cellWth*m_cellWth*sfactor);
-	else
-		newdepth = vol_final / (wch*m_cellWth*sfactor);
-	# ifdef IS_DEBUG
-	if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
+    if (vol_final > vol_ch)
+        newdepth = dch + (vol_final - vol_ch) / (m_cellWth*m_cellWth*sfactor);
+    else
+        newdepth = vol_final / (wch*m_cellWth*sfactor);
+    # ifdef IS_DEBUG
+    if (counter >= printChFlowMinT && counter <= printChFlowMaxT) {
 
-		chFlowFptr
-			<< "VOL_ADD: " << std::left << setw(13) << setfill(' ') << fixed << setprecision(3) << addedVolume
-			<< "AREA_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << area_init
-			<< "VOL_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_init
-			<< "VO_FIN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_final
-			<< "OLD_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chWtrDepth[idCell]
-			<< "NEW_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << newdepth << endl;
-			;
-	}
-	# endif
-	return(newdepth);
+        chFlowFptr
+            << "VOL_ADD: " << std::left << setw(13) << setfill(' ') << fixed << setprecision(3) << addedVolume
+            << "AREA_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << area_init
+            << "VOL_INIT: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_init
+            << "VO_FIN: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << vol_final
+            << "OLD_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << m_chWtrDepth[idCell]
+            << "NEW_DEP: " << std::left << setw(10) << setfill(' ') << fixed << setprecision(3) << newdepth << endl;
+            ;
+    }
+    # endif
+    return(newdepth);
 
 }
 
 
-/*************************ºÓµÀ»ãÁ÷*******************************/
+/*************************æ²³é“æ±‡æµ*******************************/
 void CASC2D_OF::ChannRout()
 {
-	for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
-		int nReaches = it->second.size();
-		for (int i = 0; i < nReaches; ++i) {
-			int reachId = it->second[i]; // index in the array, from 0
-			int reachIndex = 0;
-			map<int, int>::iterator iter = m_idToIndex.find(reachId);
-			if (iter != m_idToIndex.end()) {
-				reachIndex = iter->second;
-				vector<int> &curReachCells = m_reachs[reachIndex];
-				int n = curReachCells.size();
-				//if (counter == 26010 && reachId == 35)
-				//{
-				//	cout << endl;
-				//}
-				for (int iCell = 0; iCell < n; ++iCell) {
-					int cellIndex = curReachCells[iCell];
-					chnchn
-					(reachIndex, reachId, nReaches, iCell, curReachCells);
-				}
-			}
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+        int nReaches = it->second.size();
+        for (int i = 0; i < nReaches; ++i) {
+            int reachId = it->second[i]; // index in the array, from 0
+            int reachIndex = 0;
+            map<int, int>::iterator iter = m_idToIndex.find(reachId);
+            if (iter != m_idToIndex.end()) {
+                reachIndex = iter->second;
+                vector<int> &curReachCells = m_reachs[reachIndex];
+                int n = curReachCells.size();
+                //if (counter == 26010 && reachId == 35)
+                //{
+                //    cout << endl;
+                //}
+                for (int iCell = 0; iCell < n; ++iCell) {
+                    int cellIndex = curReachCells[iCell];
+                    chnchn
+                    (reachIndex, reachId, nReaches, iCell, curReachCells);
+                }
+            }
 
-		}
-	}
+        }
+    }
 }
 /*
-curReachIndex: ºÓµÀ±àºÅ
-iCell: ºÓµÀÖĞµÄµÚiCell¸ö½Úµã
-curCellIndex: ºÓµÀÖĞµÄµÚiCell¸ö½ÚµãÔÚÕ¤¸ñÊı×éÖĞµÄÏÂ±ê
+curReachIndex: æ²³é“ç¼–å·
+iCell: æ²³é“ä¸­çš„ç¬¬iCellä¸ªèŠ‚ç‚¹
+curCellIndex: æ²³é“ä¸­çš„ç¬¬iCellä¸ªèŠ‚ç‚¹åœ¨æ …æ ¼æ•°ç»„ä¸­çš„ä¸‹æ ‡
 */
 void CASC2D_OF::chnchn(int curReachIndex,int curReachId,int nReaches,int iCell, vector<int> curReachCells)
 {
 
-	float a = 1.0;
-	float vel = 0.0;
-	float wch, dch, sslope, rmanch, sfactor, so, sf, hh, dhdx,dq, stordep, hchan, dq_ov;
+    float a = 1.0;
+    float vel = 0.0;
+    float wch, dch, sslope, rmanch, sfactor, so, sf, hh, dhdx,dq, stordep, hchan, dq_ov;
 
-	int  j, k, jj, kk, jjj, iic, ijun, ill;
-	int curCellIndex = curReachCells[iCell];
-
-
-	/* Note : JJJ is a check to see when the end of									*/
-	/*        a channel link has been reached.											*/
-
-	//int nextNextCell = m_reachs[curReachIndex][iCell + 2];
-	//int nextReachId = m_downStreamReachId.
-	/* Channel characteristics :																		*/
-
-	wch = m_chWidth[curCellIndex];				/* width						*/
-	dch = m_chDepth[curCellIndex];					/* depth						*/
-	sslope = m_Slope[curCellIndex];					/* side slope				*/
-	rmanch = m_ManningN[curCellIndex];		/* manning's n				*/
-	//sfactor = m_chSinuosity[curReachIndex];	/* sinuosity factor,use the reach's sinuosity instead of that on every cell of reach temporary	*/
-	sfactor = 1;
-	stordep = m_surSdep[curCellIndex];			/* Storage depth			*/
-	hchan = m_chWtrDepth[curCellIndex];		/* Channel water depth*/
-	hh = m_chWtrDepth[curCellIndex] - stordep;
-	// µ±Ç°ºÓµÀµ±Ç°½ÚµãµÄÏÂÒ»¸ö½ÚµãµÄµãºÅ
-	int nextCellIndex = -1;
-	// Èç¹ûµ±Ç°½Úµã²»ÊÇµ±Ç°ºÓµÀµÄ×îºóÒ»¸ö½Úµã
-	if (iCell < curReachCells.size() - 1)
-	{
-		nextCellIndex = curReachCells[iCell + 1];
-		so = (m_dem[curCellIndex] - m_dem[nextCellIndex]) / (m_cellWth*sfactor);
-	}
-	// Èç¹ûµ±Ç°½ÚµãÊÇµ±Ç°ºÓµÀµÄ×îºóÒ»¸ö½Úµã
-	else
-	{
-		// ÕÒµ½ÏÂÓÎºÓµÀµÄµÚÒ»¸ö½Úµã
-		int nextReachID = m_downStreamReachId[curReachId];
-		int nextReachIndex = 0;
-		map<int, int>::iterator iter = m_idToIndex.find(nextReachID);
-		// Èç¹ûµ±Ç°ºÓµÀ²»ÊÇ×îÏÂÓÎµÄºÓµÀ£¨´æÔÚÏÂÓÎºÓµÀ£©
-		if (iter != m_idToIndex.end()) {
-			nextReachIndex = iter->second;
-			vector<int> nextReachCells = m_reachs[nextReachIndex];
-			int nextReachFistCellIndex = nextReachCells[0];
-			nextCellIndex = nextReachFistCellIndex;
-			so = (m_dem[curCellIndex] - dch - m_dem[nextCellIndex] + m_chDepth[nextCellIndex]) / (m_cellWth*sfactor);
-		}
-		// Èç¹ûµ±Ç°ºÓµÀÊÇ×îÏÂÓÎµÄºÓµÀ
-		else
-		{
-			nextCellIndex = -1;
-			so = 0.f;
-		}
-	}
-	// nextCellIndex = -1ÒâÎ¶×Å×îºóÒ»¸öºÓµÀµÄ×îºóÒ»¸ö½Úµã£¬Õâ¸ö½ÚµãµÄË®²»²»ÍùÍâÁ÷ÁË
-	if (nextCellIndex > -1)
-	{
-		/* hch[j][k]Õ¤¸ñµ¥ÔªÉÏµÄºÓµÀË®Éî£¬dhdxÊÇË®Á¦ÆÂ¶È*/
-		dhdx = (m_chWtrDepth[nextCellIndex] - m_chWtrDepth[curCellIndex]) / (m_cellWth*sfactor);
-
-		/* Ä¦²ÁÆÂ¶È*/
-		sf = (float)(so + dhdx + 1e-30);
-
-		/* Nota de Jorge: Sf se deberia quedar con el mismo signo */
-		/* sf Ó¦¸Ã±£³ÖÏàÍ¬µÄ·ûºÅ£¬¼´sf¾ø¶ÔÖµÈç¹ûºÜĞ¡£¬ÔòÊÓsfÎªÕıÖµ*/
-		if (fabs(sf) < 1e-20) sf = (float)(1e-20);
-
-		if (sf < 0.0)
-		{
-			// ºÓµÀÄÚÖ»ÔÊĞíÏòÇ°Á÷
-			/*a = (float)(-1.0*a);*/
-			a = (float)(1.0*a);
-
-			/* Èç¹ûµ±Ç°½ÚµãÊÇµ±Ç°ºÓµÀµÄ×îºóÒ»¸ö½Úµã£¬Ôò»ñÈ¡ÏÂÓÎºÓµÀµÄµÚÒ»¸ö½ÚµãµÄÊôĞÔ*/
-			if (iCell >= curReachCells.size() - 1)
-			{
-				/* Take channel chars. of the 1st node of downstream link */
-				// ÑéÖ¤ÕâÀïºÍÉÏÎÄÖĞµÄÏÂÓÎºÓµÀidÊÇ·ñÏàÍ¬£¿ÓÃÊı¾İÔÚarcgisÖĞÑéÖ¤
-				int nextReachID = m_downStreamReachId[curReachIndex];
-				map<int, int>::iterator iter = m_idToIndex.find(nextReachID);
-				if (iter != m_idToIndex.end()) {
-					int nextReachIndex = iter->second;
-					vector<int> nextReachCells = m_reachs[nextReachIndex];
-					int nextReachFistCellIndex = nextReachCells[0];
-					wch = m_chWidth[nextReachFistCellIndex];
-					dch = m_chDepth[nextReachFistCellIndex];
-					sslope = m_Slope[nextReachFistCellIndex];
-					rmanch = m_ManningN[nextReachFistCellIndex];
-					//sfactor = m_chSinuosity[nextReachID];
-					sfactor = 1;
-				}
-
-			}
-			/*Èç¹ûµ±Ç°½Úµã²»ÊÇµ±Ç°ºÓµÀµÄ×îºóÒ»¸ö½Úµã£¬Ôò»ñÈ¡µ±Ç°ºÓµÀµÄÏÂÒ»¸ö½Úµã*/
-			else
-			{
-				/*Take channel chars. of the next node within current link */
-
-				wch = m_chWidth[nextCellIndex];
-				dch = m_chDepth[nextCellIndex];
-				sslope = m_Slope[nextCellIndex];
-				rmanch = m_ManningN[nextCellIndex];
-				//sfactor = m_chSinuosity[curReachIndex];
-				sfactor = 1;
-			}
-
-			/* hh = ºÓµÀË®Éî - ĞîË®Éî¶È£¬hh < 0£º¸ºË®Éî*/
-			stordep = m_surSdep[nextCellIndex];
-			hchan = m_chWtrDepth[nextCellIndex];
-			hh = m_chWtrDepth[nextCellIndex] - stordep;
-
-		}
-
-		/* Determining discharge 																				*/
-		/* ¼ÆËãºÓµÀ³öÁ÷Á¿*/
-		dq = chnDischarge(hchan, hh, wch, dch, stordep, rmanch, a, sf, sfactor);
-
-		/* Transfer flow from cell (j,k) to (jj,kk)											*/
-		/* ºÓµÀ¾¶Á÷ËÙÂÊ Á¢·½Ã×/s*/
-		m_chQ[curCellIndex] = m_chQ[curCellIndex] - dq;
-		m_chQ[nextCellIndex] = m_chQ[nextCellIndex] + dq;
-	}
-
-}		/* End of CHNCHN */
+    int  j, k, jj, kk, jjj, iic, ijun, ill;
+    int curCellIndex = curReachCells[iCell];
 
 
-/*************************ºÓµÀ³öË®*******************************/
+    /* Note : JJJ is a check to see when the end of                                    */
+    /*        a channel link has been reached.                                            */
+
+    //int nextNextCell = m_reachs[curReachIndex][iCell + 2];
+    //int nextReachId = m_downStreamReachId.
+    /* Channel characteristics :                                                                        */
+
+    wch = m_chWidth[curCellIndex];                /* width                        */
+    dch = m_chDepth[curCellIndex];                    /* depth                        */
+    sslope = m_Slope[curCellIndex];                    /* side slope                */
+    rmanch = m_ManningN[curCellIndex];        /* manning's n                */
+    //sfactor = m_chSinuosity[curReachIndex];    /* sinuosity factor,use the reach's sinuosity instead of that on every cell of reach temporary    */
+    sfactor = 1;
+    stordep = m_surSdep[curCellIndex];            /* Storage depth            */
+    hchan = m_chWtrDepth[curCellIndex];        /* Channel water depth*/
+    hh = m_chWtrDepth[curCellIndex] - stordep;
+    // å½“å‰æ²³é“å½“å‰èŠ‚ç‚¹çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„ç‚¹å·
+    int nextCellIndex = -1;
+    // å¦‚æœå½“å‰èŠ‚ç‚¹ä¸æ˜¯å½“å‰æ²³é“çš„æœ€åä¸€ä¸ªèŠ‚ç‚¹
+    if (iCell < curReachCells.size() - 1)
+    {
+        nextCellIndex = curReachCells[iCell + 1];
+        so = (m_dem[curCellIndex] - m_dem[nextCellIndex]) / (m_cellWth*sfactor);
+    }
+    // å¦‚æœå½“å‰èŠ‚ç‚¹æ˜¯å½“å‰æ²³é“çš„æœ€åä¸€ä¸ªèŠ‚ç‚¹
+    else
+    {
+        // æ‰¾åˆ°ä¸‹æ¸¸æ²³é“çš„ç¬¬ä¸€ä¸ªèŠ‚ç‚¹
+        int nextReachID = m_downStreamReachId[curReachId];
+        int nextReachIndex = 0;
+        map<int, int>::iterator iter = m_idToIndex.find(nextReachID);
+        // å¦‚æœå½“å‰æ²³é“ä¸æ˜¯æœ€ä¸‹æ¸¸çš„æ²³é“ï¼ˆå­˜åœ¨ä¸‹æ¸¸æ²³é“ï¼‰
+        if (iter != m_idToIndex.end()) {
+            nextReachIndex = iter->second;
+            vector<int> nextReachCells = m_reachs[nextReachIndex];
+            int nextReachFistCellIndex = nextReachCells[0];
+            nextCellIndex = nextReachFistCellIndex;
+            so = (m_dem[curCellIndex] - dch - m_dem[nextCellIndex] + m_chDepth[nextCellIndex]) / (m_cellWth*sfactor);
+        }
+        // å¦‚æœå½“å‰æ²³é“æ˜¯æœ€ä¸‹æ¸¸çš„æ²³é“
+        else
+        {
+            nextCellIndex = -1;
+            so = 0.f;
+        }
+    }
+    // nextCellIndex = -1æ„å‘³ç€æœ€åä¸€ä¸ªæ²³é“çš„æœ€åä¸€ä¸ªèŠ‚ç‚¹ï¼Œè¿™ä¸ªèŠ‚ç‚¹çš„æ°´ä¸ä¸å¾€å¤–æµäº†
+    if (nextCellIndex > -1)
+    {
+        /* hch[j][k]æ …æ ¼å•å…ƒä¸Šçš„æ²³é“æ°´æ·±ï¼Œdhdxæ˜¯æ°´åŠ›å¡åº¦*/
+        dhdx = (m_chWtrDepth[nextCellIndex] - m_chWtrDepth[curCellIndex]) / (m_cellWth*sfactor);
+
+        /* æ‘©æ“¦å¡åº¦*/
+        sf = (float)(so + dhdx + 1e-30);
+
+        /* Nota de Jorge: Sf se deberia quedar con el mismo signo */
+        /* sf åº”è¯¥ä¿æŒç›¸åŒçš„ç¬¦å·ï¼Œå³sfç»å¯¹å€¼å¦‚æœå¾ˆå°ï¼Œåˆ™è§†sfä¸ºæ­£å€¼*/
+        if (fabs(sf) < 1e-20) sf = (float)(1e-20);
+
+        if (sf < 0.0)
+        {
+            // æ²³é“å†…åªå…è®¸å‘å‰æµ
+            /*a = (float)(-1.0*a);*/
+            a = (float)(1.0*a);
+
+            /* å¦‚æœå½“å‰èŠ‚ç‚¹æ˜¯å½“å‰æ²³é“çš„æœ€åä¸€ä¸ªèŠ‚ç‚¹ï¼Œåˆ™è·å–ä¸‹æ¸¸æ²³é“çš„ç¬¬ä¸€ä¸ªèŠ‚ç‚¹çš„å±æ€§*/
+            if (iCell >= curReachCells.size() - 1)
+            {
+                /* Take channel chars. of the 1st node of downstream link */
+                // éªŒè¯è¿™é‡Œå’Œä¸Šæ–‡ä¸­çš„ä¸‹æ¸¸æ²³é“idæ˜¯å¦ç›¸åŒï¼Ÿç”¨æ•°æ®åœ¨arcgisä¸­éªŒè¯
+                int nextReachID = m_downStreamReachId[curReachIndex];
+                map<int, int>::iterator iter = m_idToIndex.find(nextReachID);
+                if (iter != m_idToIndex.end()) {
+                    int nextReachIndex = iter->second;
+                    vector<int> nextReachCells = m_reachs[nextReachIndex];
+                    int nextReachFistCellIndex = nextReachCells[0];
+                    wch = m_chWidth[nextReachFistCellIndex];
+                    dch = m_chDepth[nextReachFistCellIndex];
+                    sslope = m_Slope[nextReachFistCellIndex];
+                    rmanch = m_ManningN[nextReachFistCellIndex];
+                    //sfactor = m_chSinuosity[nextReachID];
+                    sfactor = 1;
+                }
+
+            }
+            /*å¦‚æœå½“å‰èŠ‚ç‚¹ä¸æ˜¯å½“å‰æ²³é“çš„æœ€åä¸€ä¸ªèŠ‚ç‚¹ï¼Œåˆ™è·å–å½“å‰æ²³é“çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹*/
+            else
+            {
+                /*Take channel chars. of the next node within current link */
+
+                wch = m_chWidth[nextCellIndex];
+                dch = m_chDepth[nextCellIndex];
+                sslope = m_Slope[nextCellIndex];
+                rmanch = m_ManningN[nextCellIndex];
+                //sfactor = m_chSinuosity[curReachIndex];
+                sfactor = 1;
+            }
+
+            /* hh = æ²³é“æ°´æ·± - è“„æ°´æ·±åº¦ï¼Œhh < 0ï¼šè´Ÿæ°´æ·±*/
+            stordep = m_surSdep[nextCellIndex];
+            hchan = m_chWtrDepth[nextCellIndex];
+            hh = m_chWtrDepth[nextCellIndex] - stordep;
+
+        }
+
+        /* Determining discharge                                                                                 */
+        /* è®¡ç®—æ²³é“å‡ºæµé‡*/
+        dq = chnDischarge(hchan, hh, wch, dch, stordep, rmanch, a, sf, sfactor);
+
+        /* Transfer flow from cell (j,k) to (jj,kk)                                            */
+        /* æ²³é“å¾„æµé€Ÿç‡ ç«‹æ–¹ç±³/s*/
+        m_chQ[curCellIndex] = m_chQ[curCellIndex] - dq;
+        m_chQ[nextCellIndex] = m_chQ[nextCellIndex] + dq;
+    }
+
+}        /* End of CHNCHN */
+
+
+/*************************æ²³é“å‡ºæ°´*******************************/
 void CASC2D_OF::RoutOutlet()
 {
-	int ill;
-	float hout, alfa, qoutch;
+    int ill;
+    float hout, alfa, qoutch;
 
-	qoutov = 0.0;
-	qoutch = 0.0;
-	/* FIRST:calculate the flow going out from the overl. portion		*/
-	/* sovout³öË®¿ÚËùÔÚÕ¤¸ñµ¥ÔªÉÏµÄÆÂ¶È*/
-	alfa = (float)(sqrt(sovout) / m_ManningN[m_idOutlet]);
+    qoutov = 0.0;
+    qoutch = 0.0;
+    /* FIRST:calculate the flow going out from the overl. portion        */
+    /* sovoutå‡ºæ°´å£æ‰€åœ¨æ …æ ¼å•å…ƒä¸Šçš„å¡åº¦*/
+    alfa = (float)(sqrt(sovout) / m_ManningN[m_idOutlet]);
 
-	/* Discharge from overland flow.  NOTE: because the water from  */
-	/* this part of the outlet overland cell was already "poured"		*/
-	/* into the channel when updating the channel depth (channDepth)*/
-	/* qoutov = 0 when the channel routing is selected							*/
+    /* Discharge from overland flow.  NOTE: because the water from  */
+    /* this part of the outlet overland cell was already "poured"        */
+    /* into the channel when updating the channel depth (channDepth)*/
+    /* qoutov = 0 when the channel routing is selected                            */
 
-	if (m_surWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
-	{
-		qoutov =
-			(float)(m_cellWth*alfa*pow((m_surWtrDepth[m_idOutlet] / 1000.0 - m_surSdep[m_idOutlet]), 1.667));
-	}
+    if (m_surWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
+    {
+        qoutov =
+            (float)(m_cellWth*alfa*pow((m_surWtrDepth[m_idOutlet] / 1000.0 - m_surSdep[m_idOutlet]), 1.667));
+    }
 
-	/* Overland water depth at outlet cell is reduced after taking the outflow out of the cell*/
-	m_surWtrDepth[m_idOutlet] = (float)((m_surWtrDepth[m_idOutlet] / 1000.0 - qoutov * m_dt / (pow(m_cellWth, 2.0f)))) * 1000.0;
+    /* Overland water depth at outlet cell is reduced after taking the outflow out of the cell*/
+    m_surWtrDepth[m_idOutlet] = (float)((m_surWtrDepth[m_idOutlet] / 1000.0 - qoutov * m_dt / (pow(m_cellWth, 2.0f)))) * 1000.0;
 
-	/* SECOND:calculate the flow going out from the channel portion	*/
-	if (m_chWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
-	{
-		hout = m_chWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet];
+    /* SECOND:calculate the flow going out from the channel portion    */
+    if (m_chWtrDepth[m_idOutlet] > m_surSdep[m_idOutlet])
+    {
+        hout = m_chWtrDepth[m_idOutlet] - m_surSdep[m_idOutlet];
 
-		qoutch = chnDischarge(m_chWtrDepth[m_idOutlet], hout, m_chWidth[m_idOutlet], m_chDepth[m_idOutlet],
-			m_surSdep[m_idOutlet], m_ManningN[m_idOutlet], 1, m_Slope[m_idOutlet], 1);
+        qoutch = chnDischarge(m_chWtrDepth[m_idOutlet], hout, m_chWidth[m_idOutlet], m_chDepth[m_idOutlet],
+            m_surSdep[m_idOutlet], m_ManningN[m_idOutlet], 1, m_Slope[m_idOutlet], 1);
 
-		m_chQ[m_idOutlet] = m_chQ[m_idOutlet] - qoutch;
-	}
+        m_chQ[m_idOutlet] = m_chQ[m_idOutlet] - qoutch;
+    }
 
-	/* The total outflow at the basin's outlet is given by adding		*/
-	/* the outflow from the overland & channel portion of the cell	*/
+    /* The total outflow at the basin's outlet is given by adding        */
+    /* the outflow from the overland & channel portion of the cell    */
 
-	m_outQ = qoutov + qoutch;
+    m_outQ = qoutov + qoutch;
 
-	/* Keeping Track of the Total Outflow Volume										*/
+    /* Keeping Track of the Total Outflow Volume                                        */
 
-	m_outV = m_outV + m_outQ * m_dt;
+    m_outV = m_outV + m_outQ * m_dt;
 
-	/* Checking to see if the Peak Flow has been reached						*/
+    /* Checking to see if the Peak Flow has been reached                        */
 
-	//if (qout > qpeak)
-	//{
-	//	qpeak = qout;
-		//tpeak = (float)(iter*dt / 60.0);  /* ¼ÇÂ¼·åÖµÊ±¼ä*/
-	//}
+    //if (qout > qpeak)
+    //{
+    //    qpeak = qout;
+        //tpeak = (float)(iter*dt / 60.0);  /* è®°å½•å³°å€¼æ—¶é—´*/
+    //}
 
-	/* Populating the Output Flows at the Watershed Outlet					*/
-	/* ¼ÆËãÓÃ»§×Ô¶¨ÒåµÄ³öË®¿ÚµÄÁ÷Á¿£¬ÔİÊ±²»ÓÃ*/
-	//for (ill = 1; ill <= ndis; ill++)
-	//{
-	//	if (jout == iq[ill][1] && kout == iq[ill][2])
-	//	{
-	//		q[ill] = qout;
-	//	}
-	//}
+    /* Populating the Output Flows at the Watershed Outlet                    */
+    /* è®¡ç®—ç”¨æˆ·è‡ªå®šä¹‰çš„å‡ºæ°´å£çš„æµé‡ï¼Œæš‚æ—¶ä¸ç”¨*/
+    //for (ill = 1; ill <= ndis; ill++)
+    //{
+    //    if (jout == iq[ill][1] && kout == iq[ill][2])
+    //    {
+    //        q[ill] = qout;
+    //    }
+    //}
 }
 
-/* ¼ÆËãºÓµÀ³öÁ÷Á¿*/
+/* è®¡ç®—æ²³é“å‡ºæµé‡*/
 float CASC2D_OF::chnDischarge(float hchan, float hh, float wch, float dch, float stordep, float rmanch, float a, float sf, float sfactor)
 {
-	float area, wp, dQ, vol_ch_avail;
+    float area, wp, dQ, vol_ch_avail;
 
-	/* Calculates flow area and wetted perimeter										*/
+    /* Calculates flow area and wetted perimeter                                        */
 
-	if (hchan <= dch)
-	{
-		area = wch * hh;
-		wp = (float)(wch + 2 * hh);
-	}
-	else
-	{
-		// ºÓµÀ¶ÏÃæÃæ»ı + ºÓµÀÉÏµ×ÒÔÉÏµÄ²¿·ÖÃæ»ı
-		area = wch * (dch - stordep) + m_cellWth * (hchan - dch);
-		// ºÓ¿í + 2* ºÓµÀÉî¶È + 2*£¨Õ¤¸ñ¿í - ºÓ¿í£©+ 2*£¨Ë®Éî - ºÓµÀÉî£©
-		wp = (float)(wch + 2 * (dch - stordep) + 2 * (m_cellWth - wch) + 2 * (hchan - dch));
-	}
+    if (hchan <= dch)
+    {
+        area = wch * hh;
+        wp = (float)(wch + 2 * hh);
+    }
+    else
+    {
+        // æ²³é“æ–­é¢é¢ç§¯ + æ²³é“ä¸Šåº•ä»¥ä¸Šçš„éƒ¨åˆ†é¢ç§¯
+        area = wch * (dch - stordep) + m_cellWth * (hchan - dch);
+        // æ²³å®½ + 2* æ²³é“æ·±åº¦ + 2*ï¼ˆæ …æ ¼å®½ - æ²³å®½ï¼‰+ 2*ï¼ˆæ°´æ·± - æ²³é“æ·±ï¼‰
+        wp = (float)(wch + 2 * (dch - stordep) + 2 * (m_cellWth - wch) + 2 * (hchan - dch));
+    }
 
-	//dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
-	//	(pow(area, 1.6667)) / (pow(wp, 0.6667))) / m_dt;
-	dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
-		(pow(area, 1.6667f)) / (pow(wp, 0.6667f))) ;
+    //dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
+    //    (pow(area, 1.6667)) / (pow(wp, 0.6667))) / m_dt;
+    dQ = (float)(a*(sqrt(fabs(sf)) / rmanch)*
+        (pow(area, 1.6667f)) / (pow(wp, 0.6667f))) ;
 
-	/* Limit the outflow by availability														*/
-	/* ÏŞÖÆ×î´ó³öÁ÷Á¿*/
-	vol_ch_avail = area * m_cellWth * sfactor;
+    /* Limit the outflow by availability                                                        */
+    /* é™åˆ¶æœ€å¤§å‡ºæµé‡*/
+    vol_ch_avail = area * m_cellWth * sfactor;
 
-	if (dQ*m_dt > vol_ch_avail) dQ = vol_ch_avail / m_dt;
+    if (dQ*m_dt > vol_ch_avail) dQ = vol_ch_avail / m_dt;
 
-	return(dQ);
+    return(dQ);
 
 }
 

@@ -38,23 +38,6 @@
  * \brief A simple fill and spill method method to calculate depression storage
  *
  */
-/*
-* ��ģ���������ؽ��꣨�۳���������������ȥ�������󣬲����ر��������ݵ���ˮ
-* ����:
-*			VAR_DEPREIN �ݵس�ʼ��ˮϵ�� �޵�λ
-*			VAR_DEPRESSION �ݵ���� mm
-* ���룺
-*			VAR_INET ֲ�������������� mm
-*			VAR_PET	��Ǳ�������� mm
-*			VAR_EXCP ���ؽ����� mm
-*			VAR_IMPOUND_TRIG һ������
-*			VAR_POT_VOL �ݵ���ˮ��� mm
-*			VAR_INET ֲ��������������
-* �����
-*			VAR_DPST �ݵ���ˮ��� mm
-*			VAR_DEET �ݵ���ˮ��������� mm
-*			VAR_SURU �ر�������� mm
-*/
 class DepressionFSDaily: public SimulationModule {
 public:
     DepressionFSDaily();
@@ -81,7 +64,7 @@ public:
      *		depression module, the execute function of depression module
      *		is not executed before getting the outputs. So, the output
      *		variables should be initial in the Get1DData function. This
-     *		initialization is realized by function initalOutputs.
+     *		initialization is realized by function InitialOutputs.
      */
     void InitialOutputs() OVERRIDE;
 
@@ -107,11 +90,11 @@ private:
 
     // state variables (output)
 
-    /// depression storage  �ݵ���ˮ���
+    /// depression storage
     FLTPT* m_sd;
     /// evaporation from depression storage
     FLTPT* m_ed;
-    /// surface runoff  �ر��������
+    /// surface runoff
     FLTPT* m_sr;
 };
 #endif /* SEIMS_MODULE_DEP_LINSLEY_H */

@@ -420,7 +420,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     if (handle == nullptr) throw ModelException("ModuleFactory", "ReadDLL",
                                                 "Could not load " + moduleFileName);
     instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));
-    metadataFuncs[id] = MetadataFunction(GetProcAddress(HMODULE(handle), "MetadataInformation"));// ����dll�е�MetadataInformation��������ȡ���������롢�����Ԫ������Ϣ
+    metadataFuncs[id] = MetadataFunction(GetProcAddress(HMODULE(handle), "MetadataInformation"));
 #else
     void *handle = dlopen(moduleFileName.c_str(), RTLD_LAZY);
     if (handle == nullptr) {

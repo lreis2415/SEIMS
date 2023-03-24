@@ -1,19 +1,19 @@
 #include "DepressionFS.h"
 #include "text.h"
 
-DepressionFS::DepressionFS(void) : m_nCells(-1),
-                                   m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
-                                   m_sd(NULL), m_sr(NULL), m_ed(NULL), m_checkInput(true) {
+DepressionFS::DepressionFS() :
+    m_nCells(-1), m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr), m_ei(nullptr),
+    m_ed(nullptr), m_sd(nullptr), m_sr(nullptr), m_checkInput(true) {
 }
 
-DepressionFS::~DepressionFS(void) {
+DepressionFS::~DepressionFS() {
     Release1DArray(m_sd);
     Release1DArray(m_sr);
     Release1DArray(m_storageCapSurplus);
     Release1DArray(m_ed);
 }
 
-bool DepressionFS::CheckInputData(void) {
+bool DepressionFS::CheckInputData() {
     if (m_date == -1) {
         throw ModelException(M_DEP_FS[0], "CheckInputData", "You have not set the time.");
     }
@@ -88,7 +88,7 @@ int DepressionFS::Execute() {
 			// �ر�ˮ�� = �ر�ˮ�� - �ݵ���ȣ���ʱ�ĵر�ˮ��ָ�ݵ��ϱ������ϵ�ˮ��
             m_sr[i] = hWater - m_depCap[i];
         }
-		// ʣ��洢���� = �ݵ���� - �ݵ�ˮ��
+        // ʣ��洢���� = �ݵ���� - �ݵ�ˮ��
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
         if (m_sd[i] > 0) {
             //This section is taken from DEP_LINSLEY

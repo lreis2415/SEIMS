@@ -49,7 +49,7 @@ public:
     void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 
-	void deleteExistFile(string file);
+    void deleteExistFile(string file);
 
     ///**
     //*	@brief check the output data. Make sure all the output data is available.
@@ -63,14 +63,12 @@ public:
     void clearInputs(void);
 
 private:
-
-
-	int output_icell_max;
-	int output_icell_min;
-	int printInfilMinT;
-	int printInfilMaxT;
-	int counter;
-	std::ofstream  infiltFileFptr;
+    int output_icell_max;
+    int output_icell_min;
+    int printInfilMinT;
+    int printInfilMaxT;
+    int counter;
+    std::ofstream  infiltFileFptr;
 
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);

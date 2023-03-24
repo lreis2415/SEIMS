@@ -57,15 +57,14 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const FLTPT* data) {
 }
 
 void PrintInfoItem::add1DRasterTimeSeriesResult(time_t t, int n, const float* data) {
-	float* temp = new float[n];
-	for (int i = 0; i < n; i++) {
-		temp[i] = data[i];
-	}
-	TimeSeriesDataForRaster[t] = temp;
-	TimeSeriesDataForRasterCount = n;
+    float* temp = new float[n];
+    for (int i = 0; i < n; i++) {
+        temp[i] = data[i];
+    }
+    TimeSeriesDataForRaster[t] = temp;
+    TimeSeriesDataForRasterCount = n;
 }
-
-void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
+void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster* templateRaster, const string& header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     /*   Currently, I cannot find a way to store GridFS files with the same filename but with
     *        different metadata information by mongo-c-driver, which can be done by pymongo.
@@ -146,16 +145,14 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
         }
         return;
     }
-	if (!TimeSeriesDataForRaster.empty() && SubbasinID != -1)
-	{
-		//time series data for .tif
-		for (auto it = TimeSeriesDataForRaster.begin(); it != TimeSeriesDataForRaster.end(); ++it) {
-			//for (int i = 0; i < TimeSeriesDataForRasterCount; i++) {}
-			string filename = Filename + "_" + ConvertToString3(it->first);
-			// todo Ϊɶû�����
-			FloatRaster(templateRaster, it->second).OutputToFile(projectPath + filename + "." + Suffix);
-		}
-	}
+    if (!TimeSeriesDataForRaster.empty() && SubbasinID != -1) {
+        //time series data for .tif
+        for (auto it = TimeSeriesDataForRaster.begin(); it != TimeSeriesDataForRaster.end(); ++it) {
+            //for (int i = 0; i < TimeSeriesDataForRasterCount; i++) {}
+            string filename = Filename + "_" + ConvertToString3(it->first);
+            //IntRaster(templateRaster, it->second).OutputToFile(projectPath + filename + "." + Suffix);
+        }
+    }
     if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) {
         //time series data for subbasin
         std::ofstream fs;
