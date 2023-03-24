@@ -270,7 +270,7 @@ class AutoFuzSlpPosConfig(object):
         self.max_move_dist = self.cf.getfloat(_optdta, 'maxmovedist')
         self.numthresh = self.cf.getint(_optdta, 'numthresh')
         self.d8_stream_thresh = self.cf.getint(_optdta, 'd8streamthreshold')
-        self.d8_down_method = self.cf.get(_optdta, 'd8downmethod')
+        self.d8_down_method = self.cf.get(_optdta, 'distancedownmethod')
         self.d8_stream_tag = self.cf.getint(_optdta, 'd8streamtag')
         self.d8_up_method = self.cf.get(_optdta, 'd8upmethod')
         self.dinf_stream_thresh = self.cf.getint(_optdta, 'dinfstreamthreshold')
@@ -295,7 +295,7 @@ class AutoFuzSlpPosConfig(object):
         distance_method = ['Horizontal', 'Vertical', 'Pythagoras', 'Surface']
         stat_method = ['Average', 'Maximum', 'Minimum']
         if not StringClass.string_in_list(self.d8_down_method, distance_method):
-            self.d8_down_method = 'Surface'
+            self.dist_down_method = 'Surface'
         if self.d8_stream_tag < 0:
             self.d8_stream_tag = 1
         if not StringClass.string_in_list(self.d8_up_method, distance_method):

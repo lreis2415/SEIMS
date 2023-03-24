@@ -256,7 +256,7 @@ int sindexcombined(char *slopefile,
         }
 
         tiffIO *sca_min = NULL;
-        if (*scarminroadfile != NULL) {
+        if (scarminroadfile != NULL && scarminroadfile[0] == '\0') {
             sca_min = new tiffIO(scarminroadfile, FLOAT_TYPE);
             if (!slp.compareTiff(*sca_min)) { //Unhappy error message and error return
                 if (rank == 0) {
@@ -270,7 +270,7 @@ int sindexcombined(char *slopefile,
         }
 
         tiffIO *sca_max = NULL;
-        if (*scarmaxroadfile != NULL) {
+        if (scarmaxroadfile != NULL && scarmaxroadfile[0] == '\0') {
             sca_max = new tiffIO(scarmaxroadfile, FLOAT_TYPE);
             if (!slp.compareTiff(*sca_max)) { //Unhappy error message and error return
                 if (rank == 0) {

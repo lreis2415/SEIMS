@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "SEIMS"
-PROJECT_NUMBER         = 2020
+PROJECT_NUMBER         = 2021
 PROJECT_BRIEF          = "A modular and parallelized watershed modeling framework"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@

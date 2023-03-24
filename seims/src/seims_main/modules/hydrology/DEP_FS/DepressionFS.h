@@ -19,11 +19,13 @@
  *		variables should be initial in the Get1DData function. This
  *		initialization is realized by function initalOutputs.
 */
+#ifndef SEIMS_MODULE_DEP_FS_H
+#define SEIMS_MODULE_DEP_FS_H
 
-#pragma once
 #include "SimulationModule.h"
 
-using namespace std;
+//using namespace std;
+
 /** \defgroup DEP_FS
  * \ingroup Hydrology
  * \brief A simple fill and spill method method to calculate depression storage
@@ -69,7 +71,8 @@ private:
     float *m_pet;
     /// evaporation from the interception storage
     float *m_ei;
-
+    /// evaporation from depression storage
+    float *m_ed; 
     // state variables (output)
     /// depression storage
     float *m_sd;
@@ -80,4 +83,5 @@ private:
     /// whether check inputs, TODO Is it useless? By LJ
     bool m_checkInput;
 };
+#endif
 

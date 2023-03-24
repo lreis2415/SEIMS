@@ -10,22 +10,21 @@ ENDIF ()
 if (UNIX)
     target_link_libraries(metis m)
 endif ()
-### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
-IF(XCODE AND LLVM_FOUND)
+### For LLVM-Clang installed by brew, add link library of OpenMP explicitly.
+IF(NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+IF(CV_CLANG AND LLVM_VERSION_MAJOR)
     TARGET_LINK_LIBRARIES(metis ${OpenMP_LIBRARY})
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
-    SET_TARGET_PROPERTIES(metis PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
+ENDIF()
 ENDIF()
 # refers to https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-metis
 if(WIN32)
-  set(RT_DEST bin)
+  set(RT_DEST "${INSTALL_DIR}/bin")
 else()
-  set(RT_DEST lib)
+  set(RT_DEST "${INSTALL_DIR}/lib")
 endif()
 if (METIS_INSTALL)
     install(TARGETS metis
-            LIBRARY DESTINATION lib
+            LIBRARY DESTINATION "${INSTALL_DIR}/lib"
             RUNTIME DESTINATION ${RT_DEST}
-            ARCHIVE DESTINATION lib)
+            ARCHIVE DESTINATION "${INSTALL_DIR}/lib")
 endif ()

@@ -11,11 +11,6 @@ SEIMS模型主要编程语言为C++和Python，C++代码编译采用CMake管理�
 
 -----------------------------
 
-下图为SEIMS模型总体结构图：
-
-![seims_structure](http://i.imgur.com/uYNK0po.jpg)
-
-
 ## 1. doc
 
 包括代码文档自动生成脚本（基于doxygen），代码格式规范（style），以及中英文帮助文档（en/doc, zh-ch/doc）。

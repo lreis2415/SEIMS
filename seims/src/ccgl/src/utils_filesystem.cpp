@@ -9,7 +9,7 @@
 #ifdef WINDOWS
 #include <io.h>
 #endif
-#ifdef MACOSX
+#if defined(MACOS) || defined(MACOSX)
 #include <libproc.h>
 #endif
 
@@ -32,15 +32,25 @@ bool FileExists(string const& filename) {
 #endif /* WINDOWS */
 }
 
+bool FilesExist(vector<string>& filenames) {
+    if (filenames.empty()) { return false; }
+    for (auto it = filenames.begin(); it != filenames.end(); ++it) {
+        if (!FileExists(*it)) { return false; }
+    }
+    return true;
+}
+
 bool PathExists(string const& fullpath) {
     string abspath = GetAbsolutePath(fullpath);
     const char* path = abspath.c_str();
 #ifdef WINDOWS
     struct _stat file_stat;
-    return _stat(path, &file_stat) == 0 && file_stat.st_mode & _S_IFDIR;
+    return _stat(path, &file_stat) == 0
+            && (file_stat.st_mode & _S_IFDIR || file_stat.st_mode & _S_IFREG);
 #else
     struct stat file_stat;
-    return stat(path, &file_stat) == 0 && S_ISDIR(file_stat.st_mode);
+    return stat(path, &file_stat) == 0
+            && (S_ISDIR(file_stat.st_mode) || S_ISREG(file_stat.st_mode));
 #endif /* WINDOWS */
 }
 
@@ -58,7 +68,7 @@ int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_f
 #ifdef WINDOWS
     char sz_find[MAX_PATH];
     stringcpy(sz_find, newlp_path);
-    stringcat(sz_find, SEP);
+    stringcat(sz_find, SEPSTR);
     stringcat(sz_find, expression);
 
     WIN32_FIND_DATA find_file_data;
@@ -72,7 +82,7 @@ int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_f
         }
         char fullpath[MAX_PATH];
         stringcpy(fullpath, newlp_path);
-        stringcat(fullpath, SEP);
+        stringcat(fullpath, SEPSTR);
         stringcat(fullpath, find_file_data.cFileName);
 
         vec_files.emplace_back(fullpath);
@@ -112,10 +122,28 @@ int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_f
 
 bool DirectoryExists(const string& dirpath) {
     string abspath = GetAbsolutePath(dirpath);
+    const char* path = abspath.c_str();
 #ifdef WINDOWS
-    return ::GetFileAttributes(abspath.c_str()) != INVALID_FILE_ATTRIBUTES;
+    DWORD attr = GetFileAttributes(path);
+    return INVALID_FILE_ATTRIBUTES != attr
+            && 0 != (attr & FILE_ATTRIBUTE_DIRECTORY);
+    // These two method are equivalent theoretically, but failed in VS2010
+    // struct _stat file_stat;
+    // return _stat(path, &file_stat) == 0 && file_stat.st_mode & _S_IFDIR;
 #else
-    return access(abspath.c_str(), F_OK) == 0;
+    struct stat file_stat;
+    return stat(path, &file_stat) == 0 && S_ISDIR(file_stat.st_mode);
+#endif /* WINDOWS */
+}
+
+bool MakeDirectory(const string& dirpath) {
+    string abspath = GetAbsolutePath(dirpath);
+    if (DirectoryExists(abspath)) return true;
+#ifdef WINDOWS
+    LPSECURITY_ATTRIBUTES att = nullptr;
+    return ::CreateDirectory(abspath.c_str(), att);
+#else
+    return mkdir(abspath.c_str(), 0777) == 0;
 #endif /* WINDOWS */
 }
 
@@ -126,19 +154,13 @@ bool CleanDirectory(const string& dirpath) {
             /// empty the directory
             vector<string> existed_files;
             FindFiles(abspath.c_str(), "*.*", existed_files);
+            int err_count = 0;
             for (auto it = existed_files.begin(); it != existed_files.end(); ++it) {
-                remove((*it).c_str());
+                if (remove((*it).c_str()) < 0) { err_count += 1; }
             }
-        } else {
-            /// create new directory
-#ifdef WINDOWS
-            LPSECURITY_ATTRIBUTES att = nullptr;
-            ::CreateDirectory(abspath.c_str(), att);
-#else
-            mkdir(abspath.c_str(), 0777);
-#endif /* WINDOWS */
+            return err_count == 0;
         }
-        return true;
+        return MakeDirectory(abspath);
     } catch (...) {
         cout << "Create or clean directory: " << abspath << " failed!" << endl;
         return false;
@@ -231,7 +253,7 @@ string GetAppPath() {
     TCHAR buffer[PATH_MAX];
     GetModuleFileName(nullptr, buffer, PATH_MAX);
     root_path = CVT_STR(static_cast<char *>(buffer));
-#elif defined MACOSX
+#elif defined(MACOS) || defined(MACOSX)
     /// http://stackoverflow.com/a/8149380/4837280
     int ret;
     pid_t pid;
@@ -255,8 +277,7 @@ string GetAppPath() {
     }
     root_path = buf;
 #endif /* WINDOWS */
-    std::basic_string<char>::size_type idx = root_path.find_last_of(SEP);
-    return root_path.substr(0, idx + 1);
+    return root_path.substr(0, root_path.find_last_of(SEP) + 1);
 }
 
 string GetAbsolutePath(string const& full_filename) {
@@ -265,7 +286,9 @@ string GetAbsolutePath(string const& full_filename) {
     GetFullPathName(full_filename.c_str(), MAX_PATH, full_path, nullptr);
 #else
     char full_path[PATH_MAX];
-    realpath(full_filename.c_str(), full_path);
+    if (nullptr == realpath(full_filename.c_str(), full_path)) {
+        return full_filename; // Error occurs, just return the input!
+    }
 #endif /* WINDOWS */
     return CVT_STR(full_path);
 }
@@ -273,11 +296,16 @@ string GetAbsolutePath(string const& full_filename) {
 string GetCoreFileName(string const& full_filename) {
     string abspath = GetAbsolutePath(full_filename);
     string::size_type start = abspath.find_last_of(SEP);
+    if (start == string::npos) {
+        start = 0;
+    } else {
+        start += 1;
+    }
     string::size_type end = abspath.find_last_of('.');
     if (end == string::npos) {
         end = abspath.length();
     }
-    return abspath.substr(start + 1, end - start - 1);
+    return abspath.substr(start, end - start);
 }
 
 string GetSuffix(string const& full_filename) {
@@ -293,18 +321,52 @@ string ReplaceSuffix(string const& full_filename, string const& new_suffix) {
     string filedir = GetPathFromFullName(full_filename);
     string corename = GetCoreFileName(full_filename);
     string old_suffix = GetSuffix(full_filename);
-    if (filedir.empty() || old_suffix.empty()) return "";
+    if (filedir.empty() || old_suffix.empty()) { return ""; }
     return filedir + corename + "." + new_suffix;
+}
+
+string AppendCoreFileName(string const& full_filename, string const& endstr, char deli /* = '_' */) {
+    string filedir = GetPathFromFullName(full_filename);
+    string corename = GetCoreFileName(full_filename);
+    string old_suffix = GetSuffix(full_filename);
+    return ConcatFullName(filedir, corename + deli + endstr, old_suffix);
+}
+
+string AppendCoreFileName(string const& full_filename, vint endint, char deli /* = '_' */) {
+    return AppendCoreFileName(full_filename, ccgl::utils_string::itoa(endint), deli);
+}
+
+string PrefixCoreFileName(string const& full_filename, string const& prestr, char deli /* = '_' */) {
+    string filedir = GetPathFromFullName(full_filename);
+    string corename = GetCoreFileName(full_filename);
+    string old_suffix = GetSuffix(full_filename);
+    return ConcatFullName(filedir, prestr + deli + corename, old_suffix);
+}
+
+string PrefixCoreFileName(string const& full_filename, vint preint, char deli /* = '_' */) {
+    return PrefixCoreFileName(full_filename, ccgl::utils_string::itoa(preint), deli);
 }
 
 string GetPathFromFullName(string const& full_filename) {
     string abspath = GetAbsolutePath(full_filename);
+    if (DirectoryExists(abspath)) { return abspath; } // already be a directory path
     string::size_type i = abspath.find_last_of(SEP);
     if (i == string::npos) {
         cout << "No valid path in " << full_filename << ", please check!" << endl;
         return "";
     }
     return abspath.substr(0, i + 1);
+}
+
+string ConcatFullName(string const& fdir, string const& corename,
+                      string const& suffix /* = std::string() */) {
+    string concatpath = GetAbsolutePath(fdir);
+    if (concatpath.find_last_of(SEP) != concatpath.length() - 1) {
+        concatpath += SEP;
+    }
+    concatpath += corename;
+    if (!suffix.empty()) { concatpath += "." + suffix; }
+    return concatpath;
 }
 
 bool LoadPlainTextFile(const string& filepath, vector<string>& content_strs) {
@@ -335,6 +397,7 @@ bool LoadPlainTextFile(const string& filepath, vector<string>& content_strs) {
     } catch (...) {
         myfile.close();
         cout << "Load plain text file: " << filepath << " failed!" << endl;
+        b_status = false;
     }
     return b_status;
 }

@@ -2,14 +2,17 @@
 
 #include "utils_time.h"
 #include "text.h"
+#include "Logging.h"
 
 using namespace utils_time;
 
 SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
                                vector<OrgOutItem>& outputItems,
-                               int scenarioID /* = 0 */, int calibrationID /* = -1 */) :
+                               int scenarioID /* = 0 */, int calibrationID /* = -1 */,
+                               const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
     m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID),
-    m_scenarioID(scenarioID), m_calibrationID(calibrationID){
+    m_scenarioID(scenarioID), m_calibrationID(calibrationID),
+    m_mpi_rank(mpi_rank), m_mpi_size(mpi_size) {
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
         string suffix = GetSuffix((*iter).outFileName);
@@ -23,7 +26,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
         PrintInfo* pi = m_printInfosMap[(*iter).outputID];
 
         bool isRaster = false;
-        if (StringMatch(suffix, string(GTiffExtension))) {
+        if (StringMatch(suffix.c_str(), data_raster::GTiffExtension)) {
             if (m_subbasinID == 9999) {
                 /// For field-version model, all spatial outputs should be text!
                 (*iter).outFileName = coreFileName + "." + TextExtension;
@@ -39,14 +42,14 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
                 /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
                 pi->setInterval((*iter).interval);
                 pi->setIntervalUnits((*iter).intervalUnit);
-                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName,
+                pi->AddPrintItem((*iter).sTimet, (*iter).eTimet, coreFileName,
                                  ValueToString(m_outletID), suffix, true);
             }
         } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && (isRaster || m_subbasinID == 9999)) {
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
             /// Output of all subbasins of DT_Raster1D and DT_Raster2D or DT_Array1D and DT_Array2D (field-version)
             for (auto it = aggTypes.begin(); it != aggTypes.end(); ++it) {
-                pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix, m_subbasinID);
+                pi->AddPrintItem(*it, (*iter).sTimet, (*iter).eTimet, coreFileName, suffix, m_subbasinID);
             }
         } else {
             // subbasin IDs is provided
@@ -68,7 +71,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
                     newCoreFileName += "_" + ValueToString(m_subbasinID);
                 }
                 if (m_subbasinID == 0 || StringMatch(*it, ValueToString(m_subbasinID))) {
-                    pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, newCoreFileName, *it, suffix, true);
+                    pi->AddPrintItem((*iter).sTimet, (*iter).eTimet, newCoreFileName, *it, suffix, true);
                 }
             }
         }
@@ -82,53 +85,33 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
 
 SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, const int subbasinID,
                                      vector<OrgOutItem>& outputItems,
-                                     int scenarioID /* = 0 */, int calibrationID /* = -1 */) {
+                                     int scenarioID /* = 0 */, int calibrationID /* = -1 */,
+                                     const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     if (outputItems.empty()) {
+        LOG(ERROR) << "To run SEIMS-based model, at least one output item should be set!";
         return nullptr;
     }
-    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID);
+    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID,
+                              mpi_rank, mpi_size);
 }
 
 SettingsOutput::~SettingsOutput() {
-    StatusMessage("Start to release SettingsOutput ...");
-    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end();) {
+    CLOG(TRACE, LOG_RELEASE) << "Start to release SettingsOutput ...";
+    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ++it) {
         if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
         }
-        m_printInfosMap.erase(it++);
+        // m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
-    for (auto it = m_printInfos.begin(); it != m_printInfos.end();) {
+    for (auto it = m_printInfos.begin(); it != m_printInfos.end(); ++it) {
         *it = nullptr;
-        it = m_printInfos.erase(it);
+        // it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
-    StatusMessage("End to release SettingsOutput ...");
-}
-
-void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
-    for (auto it = m_printInfos.begin(); it < m_printInfos.end(); ++it) {
-        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
-            if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
-                (*itemIt)->setStartTime(startTime);
-                std::ostringstream oss;
-                oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                        << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
-                        << ConvertToString(startTime) << ", and will be updated." << endl;
-                StatusMessage(oss.str().c_str());
-            }
-            if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
-                (*itemIt)->setEndTime(endTime);
-                std::ostringstream oss;
-                oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                        << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
-                        << ConvertToString(endTime) << ", and will be updated." << endl;
-                StatusMessage(oss.str().c_str());
-            }
-        }
-    }
+    CLOG(TRACE, LOG_RELEASE) << "End to release SettingsOutput.";
 }
 
 void SettingsOutput::Dump(const string& fileName) {
@@ -144,8 +127,8 @@ void SettingsOutput::Dump(const string& fileName) {
             for (size_t idx2 = 0; idx2 < info->m_PrintItems.size(); idx2++) {
                 PrintInfoItem* item = info->m_PrintItems.at(idx2);
                 fs << "Type: " << item->getAggregationType() << endl;
-                fs << "Start Time:" << item->StartTime << endl;
-                fs << "End Time:" << item->EndTime << endl;
+                fs << "Start Time:" << ConvertToString2(item->m_startTime) << endl;
+                fs << "End Time:" << ConvertToString2(item->m_endTime) << endl;
                 fs << "File Name:" << item->Filename << endl;
             }
             fs << "-------------------------------------------" << endl;

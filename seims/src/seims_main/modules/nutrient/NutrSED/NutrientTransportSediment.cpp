@@ -4,7 +4,7 @@
 #include "NutrientCommon.h"
 
 NutrientTransportSediment::NutrientTransportSediment() :
-    m_nSubbsns(-1), m_inputSubbsnID(-1), m_cellWth(-1.f), m_cellArea(-1.f), m_nCells(-1),
+    m_nSubbsns(-1), m_inputSubbsnID(-1), m_cellWth(-1.), m_cellArea(-1.), m_nCells(-1),
     m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
     m_soilRock(nullptr), m_soilSat(nullptr), m_cbnModel(0), m_enratio(nullptr),
     m_olWtrEroSed(nullptr), m_surfRf(nullptr), m_soilBD(nullptr), m_soilThk(nullptr), m_soilMass(nullptr),
@@ -29,7 +29,7 @@ NutrientTransportSediment::NutrientTransportSediment() :
 }
 
 NutrientTransportSediment::~NutrientTransportSediment() {
-    if (m_soilMass != nullptr) Release2DArray(m_nCells, m_soilMass);
+    if (m_soilMass != nullptr) Release2DArray(m_soilMass);
     if (m_enratio != nullptr) Release1DArray(m_enratio);
 
     if (m_surfRfSedOrgP != nullptr) Release1DArray(m_surfRfSedOrgP);
@@ -43,168 +43,194 @@ NutrientTransportSediment::~NutrientTransportSediment() {
     if (m_surfRfSedSorbMinPToCh != nullptr) Release1DArray(m_surfRfSedSorbMinPToCh);
 
     /// for CENTURY C/N cycling model outputs
-    if (m_soilIfluCbn != nullptr) Release2DArray(m_nCells, m_soilPercoCbn);
-    if (m_soilPercoCbn != nullptr) Release2DArray(m_nCells, m_soilPercoCbn);
+    if (m_soilIfluCbn != nullptr) Release2DArray(m_soilPercoCbn);
+    if (m_soilPercoCbn != nullptr) Release2DArray(m_soilPercoCbn);
     if (m_soilIfluCbnPrfl != nullptr) Release1DArray(m_soilIfluCbnPrfl);
     if (m_soilPercoCbnPrfl != nullptr) Release1DArray(m_soilPercoCbnPrfl);
     if (m_sedLossCbn != nullptr) Release1DArray(m_sedLossCbn);
 }
 
 bool NutrientTransportSediment::CheckInputData() {
-    CHECK_POSITIVE(MID_NUTRSED, m_nCells);
-    CHECK_POSITIVE(MID_NUTRSED, m_nSubbsns);
-    CHECK_POSITIVE(MID_NUTRSED, m_cellWth);
-    CHECK_POSITIVE(MID_NUTRSED, m_maxSoilLyrs);
-    CHECK_POINTER(MID_NUTRSED, m_nSoilLyrs);
-    CHECK_POINTER(MID_NUTRSED, m_olWtrEroSed);
-    CHECK_POINTER(MID_NUTRSED, m_surfRf);
-    CHECK_POINTER(MID_NUTRSED, m_soilBD);
-    CHECK_POINTER(MID_NUTRSED, m_soilActvMinP);
-    CHECK_POINTER(MID_NUTRSED, m_soilStabOrgN);
-    CHECK_POINTER(MID_NUTRSED, m_soilHumOrgP);
-    CHECK_POINTER(MID_NUTRSED, m_soilStabMinP);
-    CHECK_POINTER(MID_NUTRSED, m_soilActvOrgN);
-    CHECK_POINTER(MID_NUTRSED, m_soilFrshOrgN);
-    CHECK_POINTER(MID_NUTRSED, m_soilFrshOrgP);
-    CHECK_POINTER(MID_NUTRSED, m_subbsnID);
-    CHECK_POINTER(MID_NUTRSED, m_subbasinsInfo);
+    CHECK_POSITIVE(M_NUTRSED[0], m_nCells);
+    CHECK_POSITIVE(M_NUTRSED[0], m_nSubbsns);
+    CHECK_POSITIVE(M_NUTRSED[0], m_cellWth);
+    CHECK_POSITIVE(M_NUTRSED[0], m_maxSoilLyrs);
+    CHECK_POINTER(M_NUTRSED[0], m_nSoilLyrs);
+    CHECK_POINTER(M_NUTRSED[0], m_olWtrEroSed);
+    CHECK_POINTER(M_NUTRSED[0], m_surfRf);
+    CHECK_POINTER(M_NUTRSED[0], m_soilBD);
+    CHECK_POINTER(M_NUTRSED[0], m_soilActvMinP);
+    CHECK_POINTER(M_NUTRSED[0], m_soilStabOrgN);
+    CHECK_POINTER(M_NUTRSED[0], m_soilHumOrgP);
+    CHECK_POINTER(M_NUTRSED[0], m_soilStabMinP);
+    CHECK_POINTER(M_NUTRSED[0], m_soilActvOrgN);
+    CHECK_POINTER(M_NUTRSED[0], m_soilFrshOrgN);
+    CHECK_POINTER(M_NUTRSED[0], m_soilFrshOrgP);
+    CHECK_POINTER(M_NUTRSED[0], m_subbsnID);
+    CHECK_POINTER(M_NUTRSED[0], m_subbasinsInfo);
     if (!(m_cbnModel == 0 || m_cbnModel == 1 || m_cbnModel == 2)) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "Carbon modeling method must be 0, 1, or 2.");
+        throw ModelException(M_NUTRSED[0], "CheckInputData",
+                             "Carbon modeling method must be 0, 1, or 2.");
     }
     return true;
 }
 
 bool NutrientTransportSediment::CheckInputDataCenturyModel() {
-    CHECK_POINTER(MID_NUTRSED, m_sol_LSN);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LMN);
-    CHECK_POINTER(MID_NUTRSED, m_sol_HPN);
-    CHECK_POINTER(MID_NUTRSED, m_sol_HSN);
-    CHECK_POINTER(MID_NUTRSED, m_sol_HPC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_HSC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LMC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LSC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LS);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LM);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LSL);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LSLC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_LSLNC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_BMC);
-    CHECK_POINTER(MID_NUTRSED, m_sol_WOC);
-    CHECK_POINTER(MID_NUTRSED, m_soilPerco);
-    CHECK_POINTER(MID_NUTRSED, m_subSurfRf);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LSN);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LMN);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_HPN);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_HSN);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_HPC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_HSC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LMC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LSC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LS);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LM);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LSL);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LSLC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_LSLNC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_BMC);
+    CHECK_POINTER(M_NUTRSED[0], m_sol_WOC);
+    CHECK_POINTER(M_NUTRSED[0], m_soilPerco);
+    CHECK_POINTER(M_NUTRSED[0], m_subSurfRf);
     return true;
 }
 
 bool NutrientTransportSediment::CheckInputDataCFarmModel() {
-    CHECK_POINTER(MID_NUTRSED, m_soilManP);
+    CHECK_POINTER(M_NUTRSED[0], m_soilManP);
     return true;
 }
 
-void NutrientTransportSediment::SetValue(const char* key, const float value) {
+void NutrientTransportSediment::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
-    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
-    else if (StringMatch(sk, VAR_CSWAT)) m_cbnModel = CVT_INT(value);
+    if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
     else {
-        throw ModelException(MID_NUTRSED, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "SetValue",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientTransportSediment::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_NUTRSED, key, n, m_nCells);
+void NutrientTransportSediment::SetValue(const char* key, const int value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) {
-        m_subbsnID = data;
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        m_nSoilLyrs = data;
-    } else if (StringMatch(sk, VAR_SEDYLD)) {
+    if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
+    else if (StringMatch(sk, VAR_CSWAT[0])) m_cbnModel = value;
+    else {
+        throw ModelException(M_NUTRSED[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void NutrientTransportSediment::Set1DData(const char* key, const int n, FLTPT* data) {
+    CheckInputSize(M_NUTRSED[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_SEDYLD[0])) {
         m_olWtrEroSed = data;
-    } else if (StringMatch(sk, VAR_OLFLOW)) {
+    } else if (StringMatch(sk, VAR_OLFLOW[0])) {
         m_surfRf = data;
     } else {
-        throw ModelException(MID_NUTRSED, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientTransportSediment::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(MID_NUTRSED, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+void NutrientTransportSediment::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_NUTRSED[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
-    else if (StringMatch(sk, VAR_SOL_BD)) m_soilBD = data;
-    else if (StringMatch(sk, VAR_SOL_AORGN)) m_soilActvOrgN = data;
-    else if (StringMatch(sk, VAR_SOL_SORGN)) m_soilStabOrgN = data;
-    else if (StringMatch(sk, VAR_SOL_HORGP)) m_soilHumOrgP = data;
-    else if (StringMatch(sk, VAR_SOL_FORGP)) m_soilFrshOrgP = data;
-    else if (StringMatch(sk, VAR_SOL_FORGN)) m_soilFrshOrgN = data;
-    else if (StringMatch(sk, VAR_SOL_ACTP)) m_soilActvMinP = data;
-    else if (StringMatch(sk, VAR_SOL_STAP)) m_soilStabMinP = data;
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
+        m_subbsnID = data;
+    } else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
+    } else {
+        throw ModelException(M_NUTRSED[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void NutrientTransportSediment::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
+    CheckInputSize2D(M_NUTRSED[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    string sk(key);
+    if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_BD[0])) m_soilBD = data;
+    else if (StringMatch(sk, VAR_SOL_AORGN[0])) m_soilActvOrgN = data;
+    else if (StringMatch(sk, VAR_SOL_SORGN[0])) m_soilStabOrgN = data;
+    else if (StringMatch(sk, VAR_SOL_HORGP[0])) m_soilHumOrgP = data;
+    else if (StringMatch(sk, VAR_SOL_FORGP[0])) m_soilFrshOrgP = data;
+    else if (StringMatch(sk, VAR_SOL_FORGN[0])) m_soilFrshOrgN = data;
+    else if (StringMatch(sk, VAR_SOL_ACTP[0])) m_soilActvMinP = data;
+    else if (StringMatch(sk, VAR_SOL_STAP[0])) m_soilStabMinP = data;
         /// for CENTURY C/Y cycling model, optional inputs
-    else if (StringMatch(sk, VAR_ROCK)) m_soilRock = data;
-    else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
-    else if (StringMatch(sk, VAR_SOL_LSN)) m_sol_LSN = data;
-    else if (StringMatch(sk, VAR_SOL_LMN)) m_sol_LMN = data;
-    else if (StringMatch(sk, VAR_SOL_HPN)) m_sol_HPN = data;
-    else if (StringMatch(sk, VAR_SOL_HSN)) m_sol_HSN = data;
-    else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
-    else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
-    else if (StringMatch(sk, VAR_SOL_LMC)) m_sol_LMC = data;
-    else if (StringMatch(sk, VAR_SOL_LSC)) m_sol_LSC = data;
-    else if (StringMatch(sk, VAR_SOL_LS)) m_sol_LS = data;
-    else if (StringMatch(sk, VAR_SOL_LM)) m_sol_LM = data;
-    else if (StringMatch(sk, VAR_SOL_LSL)) m_sol_LSL = data;
-    else if (StringMatch(sk, VAR_SOL_LSLC)) m_sol_LSLC = data;
-    else if (StringMatch(sk, VAR_SOL_LSLNC)) m_sol_LSLNC = data;
-    else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
-    else if (StringMatch(sk, VAR_SOL_WOC)) m_sol_WOC = data;
-    else if (StringMatch(sk, VAR_PERCO)) m_soilPerco = data;
-    else if (StringMatch(sk, VAR_SSRU)) m_subSurfRf = data;
+    else if (StringMatch(sk, VAR_ROCK[0])) m_soilRock = data;
+    else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
+    else if (StringMatch(sk, VAR_SOL_LSN[0])) m_sol_LSN = data;
+    else if (StringMatch(sk, VAR_SOL_LMN[0])) m_sol_LMN = data;
+    else if (StringMatch(sk, VAR_SOL_HPN[0])) m_sol_HPN = data;
+    else if (StringMatch(sk, VAR_SOL_HSN[0])) m_sol_HSN = data;
+    else if (StringMatch(sk, VAR_SOL_HPC[0])) m_sol_HPC = data;
+    else if (StringMatch(sk, VAR_SOL_HSC[0])) m_sol_HSC = data;
+    else if (StringMatch(sk, VAR_SOL_LMC[0])) m_sol_LMC = data;
+    else if (StringMatch(sk, VAR_SOL_LSC[0])) m_sol_LSC = data;
+    else if (StringMatch(sk, VAR_SOL_LS[0])) m_sol_LS = data;
+    else if (StringMatch(sk, VAR_SOL_LM[0])) m_sol_LM = data;
+    else if (StringMatch(sk, VAR_SOL_LSL[0])) m_sol_LSL = data;
+    else if (StringMatch(sk, VAR_SOL_LSLC[0])) m_sol_LSLC = data;
+    else if (StringMatch(sk, VAR_SOL_LSLNC[0])) m_sol_LSLNC = data;
+    else if (StringMatch(sk, VAR_SOL_BMC[0])) m_sol_BMC = data;
+    else if (StringMatch(sk, VAR_SOL_WOC[0])) m_sol_WOC = data;
+    else if (StringMatch(sk, VAR_PERCO[0])) m_soilPerco = data;
+    else if (StringMatch(sk, VAR_SSRU[0])) m_subSurfRf = data;
         /// for C-FARM one carbon model
-    else if (StringMatch(sk, VAR_SOL_MP)) m_soilManP = data;
+    else if (StringMatch(sk, VAR_SOL_MP[0])) m_soilManP = data;
     else {
-        throw ModelException(MID_NUTRSED, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Set2DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientTransportSediment::InitialOutputs() {
-    CHECK_POSITIVE(MID_NUTRSED, m_nCells);
+    CHECK_POSITIVE(M_NUTRSED[0], m_nCells);
     // initial enrichment ratio
     if (nullptr == m_enratio) {
-        Initialize1DArray(m_nCells, m_enratio, 0.f);
+        Initialize1DArray(m_nCells, m_enratio, 0.);
     }
     if (m_cellArea < 0) {
-        m_cellArea = m_cellWth * m_cellWth * 0.0001f; //Unit is ha
-    }
-    /// initialize m_soilMass
-    if (m_soilMass == nullptr) {
-        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilMass, 0.f);
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
-                m_soilMass[i][k] = 10000.f * m_soilThk[i][k] * m_soilBD[i][k] * (1.f - m_soilRock[i][k] * 0.01f);
-            }
-        }
+        m_cellArea = m_cellWth * m_cellWth * 0.0001; //Unit is ha
     }
     // allocate the output variables
     if (nullptr == m_surfRfSedOrgN) {
-        Initialize1DArray(m_nCells, m_surfRfSedOrgN, 0.f);
-        Initialize1DArray(m_nCells, m_surfRfSedOrgP, 0.f);
-        Initialize1DArray(m_nCells, m_surfRfSedAbsorbMinP, 0.f);
-        Initialize1DArray(m_nCells, m_surfRfSedSorbMinP, 0.f);
+        Initialize1DArray(m_nCells, m_surfRfSedOrgN, 0.);
+        Initialize1DArray(m_nCells, m_surfRfSedOrgP, 0.);
+        Initialize1DArray(m_nCells, m_surfRfSedAbsorbMinP, 0.);
+        Initialize1DArray(m_nCells, m_surfRfSedSorbMinP, 0.);
 
-        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedOrgNToCh, 0.f);
-        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedOrgPToCh, 0.f);
-        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedAbsorbMinPToCh, 0.f);
-        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedSorbMinPToCh, 0.f);
+        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedOrgNToCh, 0.);
+        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedOrgPToCh, 0.);
+        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedAbsorbMinPToCh, 0.);
+        Initialize1DArray(m_nSubbsns + 1, m_surfRfSedSorbMinPToCh, 0.);
     }
     /// for CENTURY C/N cycling model outputs
     if (m_cbnModel == 2 && nullptr == m_soilIfluCbn) {
-        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilIfluCbn, 0.f);
-        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPercoCbn, 0.f);
-        Initialize1DArray(m_nCells, m_soilIfluCbnPrfl, 0.f);
-        Initialize1DArray(m_nCells, m_soilPercoCbnPrfl, 0.f);
-        Initialize1DArray(m_nCells, m_sedLossCbn, 0.f);
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilIfluCbn, 0.);
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPercoCbn, 0.);
+        Initialize1DArray(m_nCells, m_soilIfluCbnPrfl, 0.);
+        Initialize1DArray(m_nCells, m_soilPercoCbnPrfl, 0.);
+        Initialize1DArray(m_nCells, m_sedLossCbn, 0.);
     }
+}
+
+void NutrientTransportSediment::InitialIntermediates() {
+    if (!m_reCalIntermediates) return;
+
+    if (nullptr == m_soilMass) {
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilMass, 0.);
+    }
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+            m_soilMass[i][k] = 10000. * m_soilThk[i][k] * m_soilBD[i][k] * (1. - m_soilRock[i][k] * 0.01);
+        }
+    }
+    m_reCalIntermediates = false;
 }
 
 void NutrientTransportSediment::SetSubbasins(clsSubbasins* subbasins) {
@@ -223,18 +249,19 @@ int NutrientTransportSediment::Execute() {
     if (m_cbnModel == 2) {
         if (!CheckInputDataCenturyModel()) return false;
     }
+    InitialIntermediates();
     InitialOutputs();
     // initial nutrient to channel for each day
     for (int i = 0; i < m_nSubbsns + 1; i++) {
-        m_surfRfSedOrgNToCh[i] = 0.f;
-        m_surfRfSedOrgPToCh[i] = 0.f;
-        m_surfRfSedAbsorbMinPToCh[i] = 0.f;
-        m_surfRfSedSorbMinPToCh[i] = 0.f;
+        m_surfRfSedOrgNToCh[i] = 0.;
+        m_surfRfSedOrgPToCh[i] = 0.;
+        m_surfRfSedAbsorbMinPToCh[i] = 0.;
+        m_surfRfSedSorbMinPToCh[i] = 0.;
     }
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        if (m_olWtrEroSed[i] < 1.e-4f) m_olWtrEroSed[i] = 0.f;
+        if (m_olWtrEroSed[i] < 1.e-4) m_olWtrEroSed[i] = 0.;
         // CREAMS method for calculating enrichment ratio
         m_enratio[i] = CalEnrichmentRatio(m_olWtrEroSed[i], m_surfRf[i], m_cellArea);
 
@@ -253,15 +280,15 @@ int NutrientTransportSediment::Execute() {
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
 #pragma omp parallel
     {
-        float* tmp_orgn2ch = new(nothrow) float[m_nSubbsns + 1];
-        float* tmp_orgp2ch = new(nothrow) float[m_nSubbsns + 1];
-        float* tmp_minpa2ch = new(nothrow) float[m_nSubbsns + 1];
-        float* tmp_minps2ch = new(nothrow) float[m_nSubbsns + 1];
+        FLTPT* tmp_orgn2ch = new(nothrow) FLTPT[m_nSubbsns + 1];
+        FLTPT* tmp_orgp2ch = new(nothrow) FLTPT[m_nSubbsns + 1];
+        FLTPT* tmp_minpa2ch = new(nothrow) FLTPT[m_nSubbsns + 1];
+        FLTPT* tmp_minps2ch = new(nothrow) FLTPT[m_nSubbsns + 1];
         for (int i = 0; i <= m_nSubbsns; i++) {
-            tmp_orgn2ch[i] = 0.f;
-            tmp_orgp2ch[i] = 0.f;
-            tmp_minpa2ch[i] = 0.f;
-            tmp_minps2ch[i] = 0.f;
+            tmp_orgn2ch[i] = 0.;
+            tmp_orgp2ch[i] = 0.;
+            tmp_minpa2ch[i] = 0.;
+            tmp_minps2ch[i] = 0.;
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
@@ -304,31 +331,32 @@ int NutrientTransportSediment::Execute() {
 
 void NutrientTransportSediment::OrgNRemovedInRunoffStaticMethod(const int i) {
     //amount of organic N in first soil layer (orgninfl)
-    float orgninfl = 0.f;
+    FLTPT orgninfl = 0.;
     //conversion factor (wt)
-    float wt = 0.f;
+    FLTPT wt = 0.;
     orgninfl = m_soilStabOrgN[i][0] + m_soilActvOrgN[i][0] + m_soilFrshOrgN[i][0];
-    wt = m_soilBD[i][0] * m_soilThk[i][0] * 0.01f;
+    wt = m_soilBD[i][0] * m_soilThk[i][0] * 0.01;
     //concentration of organic N in soil (concn)
-    float concn = orgninfl * m_enratio[i] / wt;
-    //Calculate the amount of organic nitrogen transported with sediment to the stream, equation 4:2.2.1 in SWAT Theory 2009, p271
-    m_surfRfSedOrgN[i] = 0.001f * concn * m_olWtrEroSed[i] * 0.001f / m_cellArea; /// kg/ha
+    FLTPT concn = orgninfl * m_enratio[i] / wt;
+    //Calculate the amount of organic nitrogen transported with sediment to the stream,
+    //  equation 4:2.2.1 in SWAT Theory 2009, p271
+    m_surfRfSedOrgN[i] = 0.001 * concn * m_olWtrEroSed[i] * 0.001 / m_cellArea; /// kg/ha
     //update soil nitrogen pools
-    if (orgninfl > 1.e-6f) {
+    if (orgninfl > 1.e-6) {
         m_soilActvOrgN[i][0] = m_soilActvOrgN[i][0] - m_surfRfSedOrgN[i] * (m_soilActvOrgN[i][0] / orgninfl);
         m_soilStabOrgN[i][0] = m_soilStabOrgN[i][0] - m_surfRfSedOrgN[i] * (m_soilStabOrgN[i][0] / orgninfl);
         m_soilFrshOrgN[i][0] = m_soilFrshOrgN[i][0] - m_surfRfSedOrgN[i] * (m_soilFrshOrgN[i][0] / orgninfl);
-        if (m_soilActvOrgN[i][0] < 0.f) {
+        if (m_soilActvOrgN[i][0] < 0.) {
             m_surfRfSedOrgN[i] = m_surfRfSedOrgN[i] + m_soilActvOrgN[i][0];
-            m_soilActvOrgN[i][0] = 0.f;
+            m_soilActvOrgN[i][0] = 0.;
         }
-        if (m_soilStabOrgN[i][0] < 0.f) {
+        if (m_soilStabOrgN[i][0] < 0.) {
             m_surfRfSedOrgN[i] = m_surfRfSedOrgN[i] + m_soilStabOrgN[i][0];
-            m_soilStabOrgN[i][0] = 0.f;
+            m_soilStabOrgN[i][0] = 0.;
         }
-        if (m_soilFrshOrgN[i][0] < 0.f) {
+        if (m_soilFrshOrgN[i][0] < 0.) {
             m_surfRfSedOrgN[i] = m_surfRfSedOrgN[i] + m_soilFrshOrgN[i][0];
-            m_soilFrshOrgN[i][0] = 0.f;
+            m_soilFrshOrgN[i][0] = 0.;
         }
     }
 }
@@ -338,32 +366,37 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCFarmOneCarbonModel(const int
 }
 
 void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
-    float totOrgN_lyr0 = 0.f; /// kg N/ha, amount of organic N in first soil layer, i.e., xx in SWAT src.
-    float wt1 = 0.f;          /// conversion factor, mg/kg => kg/ha
-    float er = 0.f;           /// enrichment ratio
-    float conc = 0.f;         /// concentration of organic N in soil
-    float QBC = 0.f;          /// C loss with runoff or lateral flow
-    float VBC = 0.f;          /// C loss with vertical flow
-    float YBC = 0.f;          /// BMC loss with sediment
-    float YOC = 0.f;          /// Organic C loss with sediment
-    float YW = 0.f;           /// Wind erosion, kg
-    float TOT = 0.f;          /// total organic carbon in layer 1
-    float YEW = 0.f;          /// fraction of soil erosion of total soil mass
-    float X1 = 0.f, PRMT_21 = 0.f;
-    float PRMT_44 = 0.f; /// ratio of soluble C concentration in runoff to percolate (0.1 - 1.0)
-    float XX = 0.f, DK = 0.f, V = 0.f, X3 = 0.f;
-    float CO = 0.f; /// the vertical concentration
-    float CS = 0.f; /// the horizontal concentration
-    float perc_clyr = 0.f, latc_clyr = 0.f;
+    FLTPT totOrgN_lyr0 = 0.; /// kg N/ha, amount of organic N in first soil layer, i.e., xx in SWAT src.
+    FLTPT wt1 = 0.;          /// conversion factor, mg/kg => kg/ha
+    FLTPT er = 0.;           /// enrichment ratio
+    FLTPT conc = 0.;         /// concentration of organic N in soil
+    FLTPT QBC = 0.;          /// C loss with runoff or lateral flow
+    FLTPT VBC = 0.;          /// C loss with vertical flow
+    FLTPT YBC = 0.;          /// BMC loss with sediment
+    FLTPT YOC = 0.;          /// Organic C loss with sediment
+    FLTPT YW = 0.;           /// Wind erosion, kg
+    FLTPT TOT = 0.;          /// total organic carbon in layer 1
+    FLTPT YEW = 0.;          /// fraction of soil erosion of total soil mass
+    FLTPT X1 = 0.;
+    FLTPT PRMT_21 = 0.;
+    FLTPT PRMT_44 = 0.; /// ratio of soluble C concentration in runoff to percolate (0.1 - 1.0)
+    FLTPT XX = 0.;
+    FLTPT DK = 0.;
+    FLTPT V = 0.;
+    FLTPT X3 = 0.;
+    FLTPT CO = 0.; /// the vertical concentration
+    FLTPT CS = 0.; /// the horizontal concentration
+    FLTPT perc_clyr = 0.;
+    FLTPT latc_clyr = 0.;
 
     totOrgN_lyr0 = m_sol_LSN[i][0] + m_sol_LMN[i][0] + m_sol_HPN[i][0] + m_sol_HSN[i][0];
-    wt1 = m_soilBD[i][0] * m_soilThk[i][0] * 0.01f;
+    wt1 = m_soilBD[i][0] * m_soilThk[i][0] * 0.01;
     er = m_enratio[i];
     conc = totOrgN_lyr0 * er / wt1;
-    m_surfRfSedOrgN[i] = 0.001f * conc * m_olWtrEroSed[i] * 0.001f / m_cellArea;
+    m_surfRfSedOrgN[i] = 0.001 * conc * m_olWtrEroSed[i] * 0.001 / m_cellArea;
     /// update soil nitrogen pools
     if (totOrgN_lyr0 > UTIL_ZERO) {
-        float xx1 = 1.f - m_surfRfSedOrgN[i] / totOrgN_lyr0;
+        FLTPT xx1 = 1. - m_surfRfSedOrgN[i] / totOrgN_lyr0;
         m_sol_LSN[i][0] *= xx1;
         m_sol_LMN[i][0] *= xx1;
         m_sol_HPN[i][0] *= xx1;
@@ -373,9 +406,9 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
     /// total organic carbon in layer 1
     TOT = m_sol_HPC[i][0] + m_sol_HSC[i][0] + m_sol_LMC[i][0] + m_sol_LSC[i][0];
     /// fraction of soil erosion of total soil mass
-    YEW = Min((m_olWtrEroSed[i] / m_cellArea + YW / m_cellArea) / m_soilMass[i][0], 0.9f);
+    YEW = Min((m_olWtrEroSed[i] / m_cellArea + YW / m_cellArea) / m_soilMass[i][0], 0.9);
 
-    X1 = 1.f - YEW;
+    X1 = 1. - YEW;
     YOC = YEW * TOT;
     m_sol_HSC[i][0] *= X1;
     m_sol_HPC[i][0] *= X1;
@@ -387,17 +420,17 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
     m_sol_LSLC[i][0] *= X1;
     m_sol_LSLNC[i][0] = m_sol_LSC[i][0] - m_sol_LSLC[i][0];
 
-    if (m_sol_BMC[i][0] > 0.01f) {
+    if (m_sol_BMC[i][0] > 0.01) {
         ///KOC FOR CARBON LOSS IN WATER AND SEDIMENT(500._1500.) KD = KOC * C
-        PRMT_21 = 1000.f;
+        PRMT_21 = 1000.;
         m_sol_WOC[i][0] = m_sol_LSC[i][0] + m_sol_LMC[i][0] + m_sol_HPC[i][0] + m_sol_HSC[i][0] + m_sol_BMC[i][0];
-        DK = 0.0001f * PRMT_21 * m_sol_WOC[i][0];
+        DK = 0.0001 * PRMT_21 * m_sol_WOC[i][0];
         X1 = m_soilSat[i][0];
-        if (X1 <= 0.f) X1 = 0.01f;
+        if (X1 <= 0.) X1 = 0.01;
         XX = X1 + DK;
         V = m_surfRf[i] + m_soilPerco[i][0] + m_subSurfRf[i][0];
-        if (V > 1.e-10f) {
-            X3 = m_sol_BMC[i][0] * (1.f - exp(-V / XX)); /// loss of biomass C
+        if (V > 1.e-10) {
+            X3 = m_sol_BMC[i][0] * (1. - CalExp(-V / XX)); /// loss of biomass C
             PRMT_44 = 0.5;
             CO = X3 / (m_soilPerco[i][0] + PRMT_44 * (m_surfRf[i] + m_subSurfRf[i][0]));
             CS = PRMT_44 * CO;
@@ -405,7 +438,7 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
             m_sol_BMC[i][0] -= X3;
             QBC = CS * (m_surfRf[i] + m_subSurfRf[i][0]);
             /// Compute WBMC loss with sediment
-            if (YEW > 0.f) {
+            if (YEW > 0.) {
                 CS = DK * m_sol_BMC[i][0] / XX;
                 YBC = YEW * CS;
             }
@@ -420,12 +453,12 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
     latc_clyr += m_soilIfluCbn[i][0];
     for (int k = 1; k < CVT_INT(m_nSoilLyrs[i]); k++) {
         m_sol_WOC[i][k] = m_sol_LSC[i][k] + m_sol_LMC[i][k] + m_sol_HPC[i][k] + m_sol_HSC[i][k];
-        float Y1 = m_sol_BMC[i][k] + VBC;
-        VBC = 0.f;
-        if (Y1 > 0.01f) {
+        FLTPT Y1 = m_sol_BMC[i][k] + VBC;
+        VBC = 0.;
+        if (Y1 > 0.01) {
             V = m_soilPerco[i][k] + m_subSurfRf[i][k];
-            if (V > 0.f) {
-                VBC = Y1 * (1.f - exp(-V / (m_soilSat[i][k] + 0.0001f * PRMT_21 * m_sol_WOC[i][k])));
+            if (V > 0.) {
+                VBC = Y1 * (1. - CalExp(-V / (m_soilSat[i][k] + 0.0001 * PRMT_21 * m_sol_WOC[i][k])));
             }
         }
         m_soilIfluCbn[i][k] = VBC * (m_subSurfRf[i][k] / (m_subSurfRf[i][k] + m_soilPerco[i][k] + UTIL_ZERO));
@@ -442,17 +475,17 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
 
 void NutrientTransportSediment::OrgPAttachedtoSed(const int i) {
     //amount of phosphorus attached to sediment in soil (sol_attp)
-    float sol_attp = 0.f;
+    FLTPT sol_attp = 0.;
     //fraction of active mineral/organic/stable mineral phosphorus in soil (sol_attp_o, sol_attp_a, sol_attp_s)
-    float sol_attp_o = 0.f;
-    float sol_attp_a = 0.f;
-    float sol_attp_s = 0.f;
+    FLTPT sol_attp_o = 0.;
+    FLTPT sol_attp_a = 0.;
+    FLTPT sol_attp_s = 0.;
     //Calculate sediment
     sol_attp = m_soilHumOrgP[i][0] + m_soilFrshOrgP[i][0] + m_soilActvMinP[i][0] + m_soilStabMinP[i][0];
     if (m_soilManP != nullptr) {
         sol_attp += m_soilManP[i][0];
     }
-    if (sol_attp > 1.e-3f) {
+    if (sol_attp > 1.e-3) {
         sol_attp_o = (m_soilHumOrgP[i][0] + m_soilFrshOrgP[i][0]) / sol_attp;
         if (m_soilManP != nullptr) {
             sol_attp_o += m_soilManP[i][0] / sol_attp;
@@ -461,12 +494,12 @@ void NutrientTransportSediment::OrgPAttachedtoSed(const int i) {
         sol_attp_s = m_soilStabMinP[i][0] / sol_attp;
     }
     //conversion factor (mg/kg => kg/ha) (wt)
-    float wt = m_soilBD[i][0] * m_soilThk[i][0] * 0.01f;
+    FLTPT wt = m_soilBD[i][0] * m_soilThk[i][0] * 0.01;
     //concentration of organic P in soil (concp)
-    float concp = 0.f;
+    FLTPT concp = 0.;
     concp = sol_attp * m_enratio[i] / wt; /// mg/kg
     //total amount of P removed in sediment erosion (sedp)
-    float sedp = 1.e-6f * concp * m_olWtrEroSed[i] / m_cellArea; /// kg/ha
+    FLTPT sedp = 1.e-6 * concp * m_olWtrEroSed[i] / m_cellArea; /// kg/ha
     m_surfRfSedOrgP[i] = sedp * sol_attp_o;
     m_surfRfSedAbsorbMinP[i] = sedp * sol_attp_a;
     m_surfRfSedSorbMinP[i] = sedp * sol_attp_s;
@@ -475,95 +508,97 @@ void NutrientTransportSediment::OrgPAttachedtoSed(const int i) {
     //modify phosphorus pools
 
     //total amount of P in mineral sediment pools prior to sediment removal (psedd)		// Not used
-    //float psedd = 0.f;
+    //FLTPT psedd = 0.;
     //psedd = m_sol_actp[i][0] + m_sol_stap[i][0];
 
     //total amount of P in organic pools prior to sediment removal (porgg)
-    float porgg = 0.f;
+    FLTPT porgg = 0.;
     porgg = m_soilHumOrgP[i][0] + m_soilFrshOrgP[i][0];
-    if (porgg > 1.e-3f) {
+    if (porgg > 1.e-3) {
         m_soilHumOrgP[i][0] = m_soilHumOrgP[i][0] - m_surfRfSedOrgP[i] * (m_soilHumOrgP[i][0] / porgg);
         m_soilFrshOrgP[i][0] = m_soilFrshOrgP[i][0] - m_surfRfSedOrgP[i] * (m_soilFrshOrgP[i][0] / porgg);
     }
     m_soilActvMinP[i][0] = m_soilActvMinP[i][0] - m_surfRfSedAbsorbMinP[i];
     m_soilStabMinP[i][0] = m_soilStabMinP[i][0] - m_surfRfSedSorbMinP[i];
-    if (m_soilHumOrgP[i][0] < 0.f) {
+    if (m_soilHumOrgP[i][0] < 0.) {
         m_surfRfSedOrgP[i] = m_surfRfSedOrgP[i] + m_soilHumOrgP[i][0];
-        m_soilHumOrgP[i][0] = 0.f;
+        m_soilHumOrgP[i][0] = 0.;
     }
-    if (m_soilFrshOrgP[i][0] < 0.f) {
+    if (m_soilFrshOrgP[i][0] < 0.) {
         m_surfRfSedOrgP[i] = m_surfRfSedOrgP[i] + m_soilFrshOrgP[i][0];
-        m_soilFrshOrgP[i][0] = 0.f;
+        m_soilFrshOrgP[i][0] = 0.;
     }
-    if (m_soilActvMinP[i][0] < 0.f) {
+    if (m_soilActvMinP[i][0] < 0.) {
         m_surfRfSedAbsorbMinP[i] = m_surfRfSedAbsorbMinP[i] + m_soilActvMinP[i][0];
-        m_soilActvMinP[i][0] = 0.f;
+        m_soilActvMinP[i][0] = 0.;
     }
-    if (m_soilStabMinP[i][0] < 0.f) {
+    if (m_soilStabMinP[i][0] < 0.) {
         m_surfRfSedSorbMinP[i] = m_surfRfSedSorbMinP[i] + m_soilStabMinP[i][0];
-        m_soilStabMinP[i][0] = 0.f;
+        m_soilStabMinP[i][0] = 0.;
     }
 }
 
-void NutrientTransportSediment::Get1DData(const char* key, int* n, float** data) {
+void NutrientTransportSediment::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SEDORGN)) {
+    if (StringMatch(sk, VAR_SEDORGN[0])) {
         *data = m_surfRfSedOrgN;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SEDORGP)) {
+    } else if (StringMatch(sk, VAR_SEDORGP[0])) {
         *data = m_surfRfSedOrgP;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SEDMINPA)) {
+    } else if (StringMatch(sk, VAR_SEDMINPA[0])) {
         *data = m_surfRfSedAbsorbMinP;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SEDMINPS)) {
+    } else if (StringMatch(sk, VAR_SEDMINPS[0])) {
         *data = m_surfRfSedSorbMinP;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SEDORGN_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDORGN_TOCH[0])) {
         *data = m_surfRfSedOrgNToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SEDORGP_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDORGP_TOCH[0])) {
         *data = m_surfRfSedOrgPToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SEDMINPA_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDMINPA_TOCH[0])) {
         *data = m_surfRfSedAbsorbMinPToCh;
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SEDMINPS_TOCH)) {
+    } else if (StringMatch(sk, VAR_SEDMINPS_TOCH[0])) {
         *data = m_surfRfSedSorbMinPToCh;
         *n = m_nSubbsns + 1;
     }
         /// outputs of CENTURY C/N cycling model
-    else if (StringMatch(sk, VAR_LATERAL_C)) {
+    else if (StringMatch(sk, VAR_LATERAL_C[0])) {
         *data = m_soilIfluCbnPrfl;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_PERCO_C)) {
+    } else if (StringMatch(sk, VAR_PERCO_C[0])) {
         *data = m_soilPercoCbnPrfl;
         *n = m_nCells;
-    } else if (StringMatch(sk, VAR_SEDLOSS_C)) {
+    } else if (StringMatch(sk, VAR_SEDLOSS_C[0])) {
         *data = m_sedLossCbn;
         *n = m_nCells;
     } else {
-        throw ModelException(MID_NUTRSED, "Get1DData", "Parameter " + sk + " does not exist");
+        throw ModelException(M_NUTRSED[0], "Get1DData",
+                             "Parameter " + sk + " does not exist");
     }
 }
 
-void NutrientTransportSediment::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
+void NutrientTransportSediment::Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) {
     InitialOutputs();
     string sk(key);
     *nrows = m_nCells;
     *ncols = m_maxSoilLyrs;
-    if (StringMatch(sk, VAR_SOL_AORGN)) *data = m_soilActvOrgN;
-    else if (StringMatch(sk, VAR_SOL_FORGN)) *data = m_soilFrshOrgN;
-    else if (StringMatch(sk, VAR_SOL_SORGN)) *data = m_soilStabOrgN;
-    else if (StringMatch(sk, VAR_SOL_HORGP)) *data = m_soilHumOrgP;
-    else if (StringMatch(sk, VAR_SOL_FORGP)) *data = m_soilFrshOrgP;
-    else if (StringMatch(sk, VAR_SOL_STAP)) *data = m_soilStabMinP;
-    else if (StringMatch(sk, VAR_SOL_ACTP)) *data = m_soilActvMinP;
+    if (StringMatch(sk, VAR_SOL_AORGN[0])) *data = m_soilActvOrgN;
+    else if (StringMatch(sk, VAR_SOL_FORGN[0])) *data = m_soilFrshOrgN;
+    else if (StringMatch(sk, VAR_SOL_SORGN[0])) *data = m_soilStabOrgN;
+    else if (StringMatch(sk, VAR_SOL_HORGP[0])) *data = m_soilHumOrgP;
+    else if (StringMatch(sk, VAR_SOL_FORGP[0])) *data = m_soilFrshOrgP;
+    else if (StringMatch(sk, VAR_SOL_STAP[0])) *data = m_soilStabMinP;
+    else if (StringMatch(sk, VAR_SOL_ACTP[0])) *data = m_soilActvMinP;
         /// outputs of CENTURY C/N cycling model
-    else if (StringMatch(sk, VAR_SOL_LATERAL_C)) *data = m_soilIfluCbn;
-    else if (StringMatch(sk, VAR_SOL_PERCO_C)) *data = m_soilPercoCbn;
+    else if (StringMatch(sk, VAR_SOL_LATERAL_C[0])) *data = m_soilIfluCbn;
+    else if (StringMatch(sk, VAR_SOL_PERCO_C[0])) *data = m_soilPercoCbn;
     else {
-        throw ModelException(MID_NUTRSED, "Get2DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_NUTRSED[0], "Get2DData",
+                             "Output " + sk + " does not exist.");
     }
 }

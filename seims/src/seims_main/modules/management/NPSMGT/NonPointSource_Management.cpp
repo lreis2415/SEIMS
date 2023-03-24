@@ -7,14 +7,15 @@ NPS_Management::NPS_Management() :
     m_mgtFields(nullptr), m_soilWtrSto(nullptr),
     m_soilNO3(nullptr), m_soilNH4(nullptr), m_soilSolP(nullptr),
     m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr) {
+
     m_arealSrcFactory.clear();
 }
 
 NPS_Management::~NPS_Management() {
     if (!m_arealSrcFactory.empty()) {
-        for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end();) {
+        for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end(); ++it) {
             delete it->second;
-            m_arealSrcFactory.erase(it++);
+            // m_arealSrcFactory.erase(it++);
         }
         m_arealSrcFactory.clear();
     }
@@ -22,30 +23,30 @@ NPS_Management::~NPS_Management() {
 
 void NPS_Management::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_timestep = value;
-    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
+    if (StringMatch(sk, Tag_TimeStep[0])) m_timestep = value;
+    else if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
     else {
-        throw ModelException(MID_NPSMGT, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NPSMGT[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NPS_Management::Set2DData(const char* key, const int n, const int col, float** data) {
-    CheckInputSize(MID_NPSMGT, key, n, m_nCells);
+    CheckInputSize(M_NPSMGT[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SOL_ST)) m_soilWtrSto = data;
-    else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
-    else if (StringMatch(sk, VAR_SOL_NH4)) m_soilNH4 = data;
-    else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
-    else if (StringMatch(sk, VAR_SOL_SORGN)) m_soilStabOrgN = data;
-    else if (StringMatch(sk, VAR_SOL_HORGP)) m_soilHumOrgP = data;
+    if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
+    else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_NH4[0])) m_soilNH4 = data;
+    else if (StringMatch(sk, VAR_SOL_SOLP[0])) m_soilSolP = data;
+    else if (StringMatch(sk, VAR_SOL_SORGN[0])) m_soilStabOrgN = data;
+    else if (StringMatch(sk, VAR_SOL_HORGP[0])) m_soilHumOrgP = data;
     else {
-        throw ModelException(MID_NPSMGT, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_NPSMGT[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NPS_Management::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
-        throw ModelException(MID_MUSK_CH, "SetScenario", "The scenario can not to be nullptr.");
+        throw ModelException(M_MUSK_CH[0], "SetScenario", "The scenario can not to be nullptr.");
     }
     map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
     for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {

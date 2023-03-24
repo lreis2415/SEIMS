@@ -24,7 +24,7 @@ class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
 
     def __init__(self, ip, port, maxPoolSize=None):
-        """initial mongodb client by IP address and port.
+        """initial mongodb client by hostname and port.
 
         Starting with version 3.0 the MongoClient constructor no longer blocks while connecting to
          the server or servers, and it no longer raises ConnectionFailure if they are unavailable,
@@ -77,8 +77,21 @@ class MongoUtil(object):
 
     @staticmethod
     def run_bulk(bulk, errmsg=''):
-        """Execute bulk operations, do not raise exception."""
+        """Execute bulk operations, do not raise exception.
+        Deprecated from v3.5
+        """
         try:
             bulk.execute()
         except InvalidOperation:
             print('WARNING: %s' % errmsg)
+
+    @staticmethod
+    def run_bulk_write(coll, req_list):
+        """Run bulk_write.
+
+        Reference: https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html
+                   #pymongo.collection.Collection.bulk_write
+        """
+        if len(req_list) == 0:
+            return None
+        return coll.bulk_write(req_list)

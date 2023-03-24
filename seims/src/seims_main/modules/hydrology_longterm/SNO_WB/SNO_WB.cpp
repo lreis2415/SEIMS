@@ -2,6 +2,7 @@
 #include "text.h"
 
 SNO_WB::SNO_WB(void) {
+    
     // set default values for member variables
     this->m_nCells = -1;
     this->m_t0 = NODATA_VALUE;
@@ -23,53 +24,53 @@ SNO_WB::~SNO_WB(void) {
 }
 
 bool SNO_WB::CheckInputData(void) {
-    if (this->m_date <= 0) throw ModelException(MID_SNO_WB, "CheckInputData", "You have not set the time.");
+    if (this->m_date <= 0) throw ModelException(M_SNO_WB[0], "CheckInputData", "You have not set the time.");
     if (this->m_nCells <= 0) {
-        throw ModelException(MID_SNO_WB, "CheckInputData",
+        throw ModelException(M_SNO_WB[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (this->m_P == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The precipitation data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The precipitation data can not be NULL.");
     }
     if (this->m_tMean == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The mean temperature data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The mean temperature data can not be NULL.");
     }
     if (this->m_tMax == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The max temperature data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The max temperature data can not be NULL.");
     }
     if (this->m_WindSpeed == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The wind speed data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The wind speed data can not be NULL.");
     }
     if (this->m_kblow == NODATA_VALUE) {
-        throw ModelException(MID_SNO_WB, "CheckInputData",
+        throw ModelException(M_SNO_WB[0], "CheckInputData",
                              "The fraction coefficient of snow blowing into or out of the watershed can not be NULL.");
     }
     if (this->m_t0 == NODATA_VALUE) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The snowmelt threshold temperature can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snowmelt threshold temperature can not be NULL.");
     }
     if (this->m_tsnow == NODATA_VALUE) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The snowfall threshold temperature can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snowfall threshold temperature can not be NULL.");
     }
     if (this->m_swe0 == NODATA_VALUE) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The Initial snow water equivalent can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The Initial snow water equivalent can not be NULL.");
     }
-    //if(this->m_subbasinSelected == NULL)	throw ModelException(MID_SNO_WB,"CheckInputData","The subbasin selected can not be NULL.");
-    //if(this->m_subbasinSelectedCount < 0)	throw ModelException(MID_SNO_WB,"CheckInputData","The number of subbasin selected can not be lower than 0.");
-    //if(this->m_subbasin == NULL)	throw ModelException(MID_SNO_WB,"CheckInputData","The subbasin data can not be NULL.");
+    //if(this->m_subbasinSelected == NULL)	throw ModelException(M_SNO_WB[0],"CheckInputData","The subbasin selected can not be NULL.");
+    //if(this->m_subbasinSelectedCount < 0)	throw ModelException(M_SNO_WB[0],"CheckInputData","The number of subbasin selected can not be lower than 0.");
+    //if(this->m_subbasin == NULL)	throw ModelException(M_SNO_WB[0],"CheckInputData","The subbasin data can not be NULL.");
     if (this->m_Pnet == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The net precipitation data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The net precipitation data can not be NULL.");
     }
-    if (this->m_SM == NULL) throw ModelException(MID_SNO_WB, "CheckInputData", "The snow melt data can not be NULL.");
-    //if(this->m_SR == NULL)			throw ModelException(MID_SNO_WB,"CheckInputData","The snow redistribution data can not be NULL.");
+    if (this->m_SM == NULL) throw ModelException(M_SNO_WB[0], "CheckInputData", "The snow melt data can not be NULL.");
+    //if(this->m_SR == NULL)			throw ModelException(M_SNO_WB[0],"CheckInputData","The snow redistribution data can not be NULL.");
     if (this->m_SE == NULL) {
-        throw ModelException(MID_SNO_WB, "CheckInputData", "The snow sublimation data can not be NULL.");
+        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snow sublimation data can not be NULL.");
     }
     return true;
 }
 
 void SNO_WB:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(MID_SNO_WB, "CheckInputData",
+        throw ModelException(M_SNO_WB[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     /// m_isInitial should be removed and replaced by initialOutputs.By LJ.
@@ -124,7 +125,7 @@ int SNO_WB::Execute() {
             dtmp2 += dPnet;
         }
 
-        this->m_SA[rw] = max(dtmp2, 0.0f);
+        this->m_SA[rw] = Max(dtmp2, 0.0f);
 
         this->m_SWE += this->m_SA[rw];
     }
@@ -135,14 +136,14 @@ int SNO_WB::Execute() {
 
 bool SNO_WB::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_SNO_WB, "CheckInputSize",
+        throw ModelException(M_SNO_WB[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (this->m_nCells != n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
-            throw ModelException(MID_SNO_WB, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_SNO_WB[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -152,13 +153,13 @@ bool SNO_WB::CheckInputSize(const char *key, int n) {
 
 void SNO_WB::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_K_BLOW)) { this->m_kblow = data; }
-    else if (StringMatch(s, VAR_T0)) { this->m_t0 = data; }
-    else if (StringMatch(s, VAR_T_SNOW)) { this->m_tsnow = data; }
-    else if (StringMatch(s, VAR_SWE0)) { this->m_swe0 = data; }
-    else if (StringMatch(s, Tag_CellSize)) { this->m_nCells = (int) data; }
+    if (StringMatch(s, VAR_K_BLOW[0])) { this->m_kblow = data; }
+    else if (StringMatch(s, VAR_T0[0])) { this->m_t0 = data; }
+    else if (StringMatch(s, VAR_T_SNOW[0])) { this->m_tsnow = data; }
+    else if (StringMatch(s, VAR_SWE0[0])) { this->m_swe0 = data; }
+    else if (StringMatch(s, Tag_CellSize[0])) { this->m_nCells = (int) data; }
     else {
-        throw ModelException(MID_SNO_WB, "SetValue", "Parameter " + s
+        throw ModelException(M_SNO_WB[0], "SetValue", "Parameter " + s
             +
                 " does not exist in current module. Please contact the module developer.");
     }
@@ -166,32 +167,32 @@ void SNO_WB::SetValue(const char *key, float data) {
 
 void SNO_WB::Set1DData(const char *key, int n, float *data) {
     string s(key);
-    /*if(StringMatch(s,Tag_SubbasinSelected))
+    /*if(StringMatch(s,Tag_SubbasinSelected[0]))
     {
         this->m_subbasinSelected = data;
         this->m_subbasinSelectedCount = n;
         return;
     }*/
 
-    //if(StringMatch(s, VAR_WS))
+    //if(StringMatch(s, VAR_WS[0]))
     //{
     //	this->m_WindSpeed = data;
     //	this->m_nCells = n;
     //	return;
     //}
     this->CheckInputSize(key, n);
-    if (StringMatch(s, VAR_NEPR)) { this->m_Pnet = data; }
-    else if (StringMatch(s, VAR_SNRD)) { this->m_SR = data; }
-    else if (StringMatch(s, VAR_SNSB)) { this->m_SE = data; }
-    else if (StringMatch(s, VAR_SNME)) { this->m_SM = data; }
-    else if (StringMatch(s, VAR_WS)) { this->m_WindSpeed = data; }
-    else if (StringMatch(s, VAR_TMAX)) { this->m_tMax = data; }
-    else if (StringMatch(s, VAR_TMEAN)) { this->m_tMean = data; }
-    else if (StringMatch(s, VAR_PCP)) {
+    if (StringMatch(s, VAR_NEPR[0])) { this->m_Pnet = data; }
+    else if (StringMatch(s, VAR_SNRD[0])) { this->m_SR = data; }
+    else if (StringMatch(s, VAR_SNSB[0])) { this->m_SE = data; }
+    else if (StringMatch(s, VAR_SNME[0])) { this->m_SM = data; }
+    else if (StringMatch(s, VAR_WS[0])) { this->m_WindSpeed = data; }
+    else if (StringMatch(s, VAR_TMAX[0])) { this->m_tMax = data; }
+    else if (StringMatch(s, VAR_TMEAN[0])) { this->m_tMean = data; }
+    else if (StringMatch(s, VAR_PCP[0])) {
         this->m_P = data;
-        //else if(StringMatch(s, VAR_SUBBSN))		this->m_subbasin = data;
+        //else if(StringMatch(s, VAR_SUBBSN[0]))		this->m_subbasin = data;
     } else {
-        throw ModelException(MID_SNO_WB, "Set1DData", "Parameter " + s
+        throw ModelException(M_SNO_WB[0], "Set1DData", "Parameter " + s
             +
                 " does not exist in current module. Please contact the module developer.");
     }
@@ -201,11 +202,11 @@ void SNO_WB::Set1DData(const char *key, int n, float *data) {
 void SNO_WB::Get1DData(const char *key, int *n, float **data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SNAC)) {
+    if (StringMatch(s, VAR_SNAC[0])) {
         *data = this->m_SA;
         *n = this->m_nCells;
     } else {
-        throw ModelException(MID_SNO_WB, "Get1DData", "Result " + s +
+        throw ModelException(M_SNO_WB[0], "Get1DData", "Result " + s +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -213,9 +214,9 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
 void SNO_WB::GetValue(const char *key, float *data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SWE)) { *data = this->m_SWE; }
+    if (StringMatch(s, VAR_SWE[0])) { *data = this->m_SWE; }
     else {
-        throw ModelException(MID_SNO_WB, "GetValue", "Result " + s +
+        throw ModelException(M_SNO_WB[0], "GetValue", "Result " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }

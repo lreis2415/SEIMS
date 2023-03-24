@@ -8,15 +8,16 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup PERCO_DARCY
  * \ingroup Hydrology
  * \brief Calculate percolation using Darcy law
  */
+
 /*!
  * \class Percolation_DARCY
  * \ingroup PERCO_DARCY
- *
  * \brief Calculate percolation using Darcy law
  *
  */
@@ -28,17 +29,20 @@ private:
     //! Width of cell (m)
     float m_CellWidth;
 
-    float *m_Conductivity;
-    float *m_Porosity;
+    float **m_Conductivity;
+    float **m_Porosity;
     //float* m_Residual;
-    float *m_Poreindex;
-    float *m_Moisture;
-    float *m_FieldCapacity;
-    float *m_rootDepth;
+    float **m_Poreindex;
+    float **m_Moisture;
+    float **m_FieldCapacity;
+    float **m_rootDepth;
     //float* m_SoilT;
     //float  m_ForzenT;
 
     float *m_recharge;
+    //soil layers 
+    int m_maxSoilLyrs;
+    float m_nSoilLyrs;
 
 public:
     //! Constructor
@@ -47,7 +51,9 @@ public:
     //! Destructor
     ~Percolation_DARCY(void);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    //virtual void Set1DData(const char *key, int n, float *data);
+    
+    //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 

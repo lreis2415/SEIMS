@@ -4,6 +4,7 @@
  *
  * Changelog:
  *   - 1. 2016-07-28 - lj - Move subbasin class to base/data/clsSubbasin, to keep consistent with other modules.
+ *   - 2. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Chunping Ou, Liangjun Zhu
  */
@@ -33,11 +34,13 @@ public:
 
     ~SOL_WB();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set1DData(const char* key, int nrows, float* data) OVERRIDE;
+    void Set1DData(const char* key, int nrows, FLTPT* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int nrows, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
@@ -47,7 +50,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
 private:
     /*!
@@ -60,49 +63,49 @@ private:
     //! maximum soil layers number
     int m_maxSoilLyrs;
     //! soil layers number of each cell
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     //! soil thickness of each layer
-    float** m_soilThk;
+    FLTPT** m_soilThk;
     //! the maximum soil depth
-    float* m_soilMaxRootD;
+    FLTPT* m_soilMaxRootD;
 
     //! Net precipitation (include snow melt if stated) (mm)
-    float* m_netPcp;
+    FLTPT* m_netPcp;
     //! infiltration water (mm)
-    float* m_infil;
+    FLTPT* m_infil;
     //! evaporation from the soil water storage, es_day in SWAT (mm)
-    float* m_soilET;
+    FLTPT* m_soilET;
     //! revaporization from groundwater to the last soil layer (mm)
-    float* m_Revap;
+    FLTPT* m_Revap;
     //! subsurface runoff
-    float** m_subSurfRf;
+    FLTPT** m_subSurfRf;
     //! percolation (mm)
-    float** m_soilPerco;
+    FLTPT** m_soilPerco;
     //! soil storage (mm)
-    float** m_soilWtrSto;
+    FLTPT** m_soilWtrSto;
     // Outputs
     // used to output time series result for soil water balance
 
     //! precipitation on the current day (mm)
-    float* m_PCP;
+    FLTPT* m_PCP;
     //! interception loss (mm)
-    float* m_intcpLoss;
+    FLTPT* m_intcpLoss;
     //! evaporation from the interception storage (mm)
-    float* m_IntcpET;
+    FLTPT* m_IntcpET;
     //! depression (mm)
-    float* m_deprSto;
+    FLTPT* m_deprSto;
     //! evaporation from depression storage (mm)
-    float* m_deprStoET;
+    FLTPT* m_deprStoET;
     //! surface runoff generated (mm)
-    float* m_surfRf;
+    FLTPT* m_surfRf;
     //! groundwater runoff
-    float* m_RG;
+    FLTPT* m_RG;
     //! snow sublimation
-    float* m_snowSublim;
+    FLTPT* m_snowSublim;
     //! mean temperature
-    float* m_meanTemp;
+    FLTPT* m_meanTemp;
     //! soil temperature
-    float* m_soilTemp;
+    FLTPT* m_soilTemp;
     //! subbasins number
     int m_nSubbsns;
     //! subbasin IDs
@@ -112,6 +115,6 @@ private:
     /* soil water balance, time series result
     * the row index is subbasinID
     */
-    float** m_soilWtrBal;
+    FLTPT** m_soilWtrBal;
 };
 #endif /* SEIMS_MODULE_SOL_WB_H */

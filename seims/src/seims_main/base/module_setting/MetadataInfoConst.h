@@ -62,22 +62,26 @@ const string TagDependencies = "dependencies";
  */
 enum dimensionTypes {
     DT_Unknown = -1,         /**< Unknown type */
-    DT_Single = 0,           /**< Single numeric */
-    DT_Array1D = 1,          /**< 1D array, e.g., maximum temperature of sites */
-    DT_Array2D = 2,          /**< 2D array */
-    DT_Array1DDateValue = 4, /**< 1D date array */
-    DT_Raster1D = 5,         /**< Raster data, same as DT_Array1D */
-    DT_Raster2D = 6,         /**< 2D raster, e.g., multi-layers of soil properties */
-    DT_Scenario = 7,         /**< Scenario used by BMPs */
-    DT_Reach = 8,            /**< Reach parameters */
-    DT_Subbasin = 9,          /**< Subbasin instances */
-	DT_CH_DEPTH = 10
+    DT_Single = 0,           /**< Single floating point number */
+    DT_SingleInt = 1,        /**< Single integer */
+    DT_Array1DDateValue = 2, /**< 1D date array */
+    DT_Array1D = 3,          /**< 1D floating point array, e.g., maximum temperature of sites */
+    DT_Array1DInt = 4,       /**< 1D integer array */
+    DT_Array2D = 5,          /**< 2D floating point array */
+    DT_Array2DInt = 6,       /**< 2D integer array */
+    DT_Raster1D = 7,         /**< Raster data in floating point number, same as DT_Array1D */
+    DT_Raster1DInt = 8,      /**< Raster data in integer, same as DT_Array1DInt */
+    DT_Raster2D = 9,         /**< 2D raster in floating point number, e.g., multi-layers of soil properties */
+    DT_Raster2DInt = 10,     /**< 2D raster in integer, e.g., multiple flow direction */
+    DT_Scenario = 11,        /**< Scenario used by BMPs */
+    DT_Reach = 12,           /**< Reach parameters */
+    DT_Subbasin = 13         /**< Subbasin instances */
 };
 
 /*!
  * \enum transferTypes
  * \ingroup module_setting
- * \brief Data be transferred across subbasins for MPI version
+ * \brief Float values be transferred across subbasins for MPI version
  */
 enum transferTypes {
     TF_None = 0,        /**< Default, which means no need to be transferred */

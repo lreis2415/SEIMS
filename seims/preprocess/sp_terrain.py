@@ -1,3 +1,4 @@
+# coding:utf-8
 """Terrain related spatial parameters extraction
 
     @author   : Liangjun Zhu, Junzhi Liu
@@ -34,6 +35,7 @@ from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
 from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from utility import mask_rasterio
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 
 sys.setrecursionlimit(10000)
@@ -315,19 +317,21 @@ class TerrainUtilClass(object):
         # 0.2618 rad/hr and 2/0.2618 = 7.6394
         cell_lat_r = RasterUtilClass.read_raster(lat_file)
         lat_data = cell_lat_r.data
-        # daylmn_data = cell_lat_r.data
-        zero = numpy.zeros((cell_lat_r.nRows, cell_lat_r.nCols))
-        # nodata = numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * cell_lat_r.noDataValue
-        # convert degrees to radians (2pi/360=1/57.296)
-        daylmn_data = 0.4348 * numpy.abs(numpy.tan(lat_data / 57.296))
-        condition = daylmn_data < 1.
-        daylmn_data = numpy.where(condition, numpy.arccos(daylmn_data), zero)
-        # condition2 = lat_data != cell_lat_r.noDataValue
-        daylmn_data *= 7.6394
-        daylmn_data = numpy.where(cell_lat_r.validZone, daylmn_data, lat_data)
+        nodata = cell_lat_r.noDataValue
+        nodatas = numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * nodata
+
+        daylmn_data = numpy.where(cell_lat_r.validZone,
+                                  0.4348 * numpy.abs(numpy.tan(lat_data / 57.296)), nodatas)
+        # Caution: DO NOT use numpy.arccos directly in numpy.where, because
+        #           np.arccos(in) will be computed before np.where, which will cause
+        #           RuntimeWarning: invalid value encountered in arccos
+        #   see https://stackoverflow.com/q/61197560/4837280
+        daylmn_data = numpy.where(cell_lat_r.validZone,
+                                  numpy.arccos(numpy.clip(daylmn_data, -1, 1)), nodatas)
+        daylmn_data = numpy.where(cell_lat_r.validZone, daylmn_data * 7.6394, nodatas)
         RasterUtilClass.write_gtiff_file(min_dayl_file, cell_lat_r.nRows, cell_lat_r.nCols,
                                          daylmn_data, cell_lat_r.geotrans, cell_lat_r.srs,
-                                         cell_lat_r.noDataValue, GDT_Float32)
+                                         nodata, GDT_Float32)
 
         def cal_dorm_hr(lat):
             """calculate day length threshold for dormancy"""
@@ -343,7 +347,6 @@ class TerrainUtilClass(object):
 
         cal_dorm_hr_numpy = numpy.frompyfunc(cal_dorm_hr, 1, 1)
 
-        # dormhr_data = numpy.copy(lat_data)
         if dorm_hr < -UTIL_ZERO:
             dormhr_data = cal_dorm_hr_numpy(lat_data)
         else:
@@ -466,58 +469,56 @@ class TerrainUtilClass(object):
         del ds_reach
 
     @staticmethod
-    def parameters_extraction(cfg, maindb):
+    def parameters_extraction(cfg):
         """Main entrance for terrain related spatial parameters extraction."""
         f = cfg.logs.extract_terrain
-        # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
+        # To make use of old code, we have to export some rasters from MongoDB
+        mask_rasterio(cfg.seims_bin,
+                      [['0_MANNING', cfg.spatials.manning]],
+                      mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
+                      maskfile=cfg.spatials.subbsn,
+                      include_nodata=False, mode='MASK')
+
         status_output('Calculate initial channel width and added to reach.shp...', 10, f)
-        acc_file = cfg.spatials.d8acc
-        channel_width_file = cfg.spatials.chwidth
-        channel_depth_file = cfg.spatials.chdepth
-        channel_shp_file = cfg.vecs.reach
-        streamlink_file = cfg.spatials.stream_link
-        TerrainUtilClass.calculate_channel_width_depth(acc_file,
-                                                       channel_width_file,
-                                                       channel_depth_file)
-        TerrainUtilClass.add_channel_width_depth_to_shp(channel_shp_file, streamlink_file,
-                                                        channel_width_file,
-                                                        channel_depth_file)
-        # 2. Initialize depression storage capacity
+        TerrainUtilClass.calculate_channel_width_depth(cfg.spatials.d8acc,
+                                                       cfg.spatials.chwidth,
+                                                       cfg.spatials.chdepth)
+        TerrainUtilClass.add_channel_width_depth_to_shp(cfg.vecs.reach,
+                                                        cfg.spatials.stream_link,
+                                                        cfg.spatials.chwidth,
+                                                        cfg.spatials.chdepth)
+
         status_output('Generating depression storage capacity...', 20, f)
-        slope_file = cfg.spatials.slope
-        soil_texture_file = cfg.spatials.soil_texture
-        landuse_file = cfg.spatials.landuse
-        depression_file = cfg.spatials.depression
-        # xdw -- landuse数据有问题，使用landcover
-        landcover = os.path.join(cfg.dirs.geodata2db, SpatialNamesUtils._CROPMFILE)
-        # TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
-        #                                      slope_file, depression_file, cfg.imper_perc_in_urban)
-        TerrainUtilClass.depression_capacity(maindb, landcover, soil_texture_file,
-                                             slope_file, depression_file, cfg.imper_perc_in_urban)
-        # 2. Calculate inputs for IUH
+        TerrainUtilClass.depression_capacity(cfg.maindb, cfg.spatials.landuse,
+                                             cfg.spatials.soil_texture,
+                                             cfg.spatials.slope,
+                                             cfg.spatials.depression,
+                                             cfg.imper_perc_in_urban)
+
         status_output('Prepare parameters for IUH...', 30, f)
-        radius_file = cfg.spatials.radius
-        TerrainUtilClass.hydrological_radius(acc_file, radius_file, 'T2')
-        manning_file = cfg.spatials.manning
-        velocity_file = cfg.spatials.velocity
-        TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
-        flow_dir_file = cfg.spatials.d8flow
-        t0_s_file = cfg.spatials.t0_s
+        # Note: IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
+        TerrainUtilClass.hydrological_radius(cfg.spatials.d8acc, cfg.spatials.radius, 'T2')
+        TerrainUtilClass.flow_velocity(cfg.spatials.slope, cfg.spatials.radius,
+                                       cfg.spatials.manning, cfg.spatials.velocity)
         flow_model_code = 'ArcGIS'
-        TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
-                                             t0_s_file, flow_model_code)
-        delta_s_file = cfg.spatials.delta_s
-        TerrainUtilClass.std_of_flow_time_to_stream(streamlink_file, flow_dir_file, slope_file,
-                                                    radius_file, velocity_file, delta_s_file,
+        TerrainUtilClass.flow_time_to_stream(cfg.spatials.stream_link,
+                                             cfg.spatials.velocity,
+                                             cfg.spatials.d8flow,
+                                             cfg.spatials.t0_s,
+                                             flow_model_code)
+        TerrainUtilClass.std_of_flow_time_to_stream(cfg.spatials.stream_link,
+                                                    cfg.spatials.d8flow,
+                                                    cfg.spatials.slope,
+                                                    cfg.spatials.radius,
+                                                    cfg.spatials.velocity,
+                                                    cfg.spatials.delta_s,
                                                     flow_model_code)
-        # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
-        # 3. Calculate position (i.e. latitude) related parameters
+
         status_output('Calculate latitude dependent parameters...', 40, f)
-        lat_file = cfg.spatials.cell_lat
-        min_dayl_file = cfg.spatials.dayl_min
-        dormhr_file = cfg.spatials.dorm_hr
-        TerrainUtilClass.calculate_latitude_dependent_parameters(lat_file, min_dayl_file,
-                                                                 dormhr_file, cfg.dorm_hr)
+        TerrainUtilClass.calculate_latitude_dependent_parameters(cfg.spatials.cell_lat,
+                                                                 cfg.spatials.dayl_min,
+                                                                 cfg.spatials.dorm_hr,
+                                                                 cfg.dorm_hr)
 
         status_output('Terrain related spatial parameters extracted done!', 100, f)
 
@@ -525,13 +526,10 @@ class TerrainUtilClass(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
-    seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    main_db = conn[seims_cfg.spatial_db]
 
-    TerrainUtilClass.parameters_extraction(seims_cfg, main_db)
+    seims_cfg = parse_ini_configuration()
+
+    TerrainUtilClass.parameters_extraction(seims_cfg)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@
 
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *

@@ -17,13 +17,17 @@ import os
 import sys
 import random
 import time
+import pickle
 from typing import Dict, List
 from io import open
 
-import matplotlib
+import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+        mpl.use('Agg', warn=False)
+    except TypeError:
+        mpl.use('Agg')
 
 import numpy
 from deap import base
@@ -365,6 +369,10 @@ def main(sceobj):
             output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
+        
+        pklfile_str = 'gen%d.pickle' % (gen,)
+        with open(sceobj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
+            pickle.dump(pop, pklfp)
 
     # Plot hypervolume and newly executed model count
     # Comment out the following plot code if matplotlib does not work.

@@ -1,7 +1,11 @@
 /*!
- * \brief Green Ampt Method to calculate infiltration and excess precipitation
- * \author Junzhi Liu
- * \date Oct. 2011
+ * \brief Green-Ampt Method to calculate infiltration and excess precipitation
+ * \author Junzhi Liu, Liang-Jun Zhu
+ *
+ * Changelog:
+ *   - 1. 2011-10-30 - jz - Original implementation.
+ *   - 2. 2021-10-29 - lj - Update to new SEIMS designs and code styles.
+ *
  */
 #ifndef SEIMS_SUR_SGA_H
 #define SEIMS_SUR_SGA_H
@@ -10,11 +14,11 @@
 
 #include "SimulationModule.h"
 #define IS_DEBUG 1
-using namespace std;
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
  * \brief  Green-Ampt Method to calculate infiltration and excess precipitation
  */
+
 /*!
  * \class StormGreenAmpt
  * \ingroup SUR_SGA
@@ -22,40 +26,30 @@ using namespace std;
  * \brief Green-Ampt Method to calculate infiltration and excess precipitation
  *
  */
-class StormGreenAmpt : public SimulationModule {
+class StormGreenAmpt: public SimulationModule {
 public:
-    //! Constructor
-    StormGreenAmpt(void);
+    StormGreenAmpt();
 
-    //! Destructor
-    ~StormGreenAmpt(void);
+    ~StormGreenAmpt();
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void SetValue(const char* key, float value) OVERRIDE;
 
-	virtual void Set2DData(const char* key, const int n, const int col, float** data);
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    virtual void SetValue(const char *key, float value);
+    bool CheckInputData() OVERRIDE;
 
-    virtual int Execute(void);
+    void InitialOutputs() OVERRIDE;
 
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData(void);
+    int Execute() OVERRIDE;
 
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key: The key of the input data
-    *	@param n: The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int n);
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+
+
+	void deleteExistFile(string file);
 
     ///**
     //*	@brief check the output data. Make sure all the output data is available.
@@ -68,83 +62,8 @@ private:
 
     void clearInputs(void);
 
-
-	void deleteExistFile(string file);
-
 private:
 
-    /// time step(seconds)
-    float m_dt;
-
-    /// count of valid cells
-    int m_nCells;
-    /// precipitation of each cell
-    float *m_pNet;
-
-    ///// soil porosity
-    //float *m_porosity;
-	/// soil porosity
-	float ** m_porosity;
-    /// soil moisture
-    float *m_soilMoisture;
-    /// root depth
-    //float *m_rootDepth;
-	float **m_rootDepth;
-
-    /// depression storage -- SD(t-1) from the depression storage module
-    float *m_sd;
-
-    /// temperature
-    float *m_tMax, *m_tMin;
-    /// snow fall temperature
-    float m_tSnow;
-    /// snow melt threshold temperature
-    float m_t0;
-    /// snow melt from the snow melt module  (mm)
-    float *m_snowMelt;
-    /// snow accumulation from the snow balance module (mm) at t+1 timestep
-    float *m_snowAccu;
-
-    /// threshold soil freezing temperature
-    float m_tSoilFrozen;
-    /// frozen soil moisture relative to saturation above which no infiltration occur (m3/m3)
-    float m_sFrozen;
-    /// soil temperature obtained from the soil temperature module
-    float *m_soilTemp;
-
-    /// parameters used in GA method
-    /// saturated hydraulic conductivity from parameter database (m/s)
-    float **m_ks;
-    /// percent of clay content from parameter database
-    //float *m_clay;
-	float **m_clay;
-    /// percent of sand content from parameter database
-    //float *m_sand;
-	float **m_sand;
-    /// initial soil moisture
-    float *m_initSoilMoisture;
-    /// field capacity
-    //float *m_fieldCap;
-	float **m_fieldCap;
-    /// surface water depth
-    float *m_sr;
-
-    /// intermediate variables
-    /// Soil Capillary Suction Head (m)
-    float *m_capillarySuction;
-    /// cumulative infiltration depth (m)
-    float *m_accumuDepth;
-
-    // output
-    /// infiltration map of watershed (mm) of the total nCells
-    float *m_infil;
-    /**
-    *	@brief surplus of filtration capacity.
-    *
-    * if pNet > infilPotential, surplus = 0
-    * else surplus = infilPotential - pNet
-    */
-    float *m_infilCapacitySurplus;
 
 	int output_icell_max;
 	int output_icell_min;
@@ -156,7 +75,38 @@ private:
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
-    void InitialOutputs(void);
+    // Parameters from database
+    float m_dt;             ///< time step (seconds)
+    int m_nCells;           ///< valid cells number
+    float m_tSnow;          ///< snow fall temperature
+    float m_t0;             ///< snow melt threshold temperature
+    int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
+    float* m_nSoilLyrs;     ///< soil layers
+    float** m_soilDepth;    ///< root depth
+    float** m_soilPor;      ///< soil porosity
+    float** m_soilClay;     ///< percent of clay content
+    float** m_soilSand;     ///< percent of sand content
+    float** m_ks;           ///< saturated hydraulic conductivity
+    ///< initial soil water storage fraction related to field capacity (FC-WP)
+    float* m_initSoilWtrStoRatio;
+    //float** m_soilWtrSto;   ///< initial soil moisture
+    float** m_soilFC;     ///< field capacity
 
+    // Inputs from other modules
+    float* m_meanTmp;  ///< mean temperature
+    float* m_netPcp;   ///< net precipitation
+    float* m_deprSto;  ///< depression storage
+    float* m_snowMelt; ///< snow melt (mm)
+    float* m_snowAccu; ///< snow accumulation (mm)
+    float* m_surfRf;   ///< surface water depth
+
+    // intermediate variables
+    float* m_capillarySuction; ///< Soil Capillary Suction Head (m)
+    float* m_accumuDepth;      ///< cumulative infiltration depth (m)
+
+    // Outputs
+    float** m_soilWtrSto; ///< soil moisture
+    float* m_infil; ///< infiltration
+    float* m_infilCapacitySurplus; ///< surplus of infiltration capacity
 };
 #endif /* SEIMS_SUR_SGA_H */

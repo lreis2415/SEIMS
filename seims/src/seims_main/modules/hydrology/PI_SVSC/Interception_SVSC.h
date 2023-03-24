@@ -11,7 +11,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup PI_SVSC
  * \ingroup Hydrology
  * \brief Module for Precipitation Interception module by Seasonal Variation of Storage Capacity method.
@@ -67,7 +68,7 @@ private:
     /* Results */
 
     //! current interception storage, the initial value equal to 0, mm
-    float *m_st;
+    FLTPT *m_st;
     //! Interception loss, mm
     float *m_interceptionLoss;
 #ifndef STORM_MODE

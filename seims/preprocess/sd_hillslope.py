@@ -41,15 +41,14 @@ class DelineateHillslope(object):
                 maxid + (curid - 1) * 3 + 3]  # left
 
     @staticmethod
-    def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg="taudem",
+    def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg='taudem',
                                    stream_value_method=-1):
         """Algorithm modified from Whitebox GAT v3.4.0.
-           source code: https://github.com/jblindsay/whitebox-geospatial-analysis-tools/
-                                blob/master/HydroTools/src/plugins/Hillslopes.java
+
         Args:
             stream_raster: Stream cell value greater than 0 is identified by stream
                               The input stream are recommended sequenced as 1, 2, 3...
-            flow_dir_raster: D8 flow direction in TauDEM code
+            flow_dir_raster: D8 flow direction whose value dependents on `d8alg`
             hillslope_out: With the sequenced stream IDs, the output hillslope will be numbered:
                                   - Header hillslope: MaxStreamID + (current_id - 1) * 3 + 1
                                   - Right hillslope: MaxStreamID + (current_id - 1) * 3 + 2
@@ -77,12 +76,12 @@ class DelineateHillslope(object):
         flowd8_data = flowd8r.data
         flowd8_nodata = flowd8r.noDataValue
         if flowd8r.nRows != nrows or flowd8r.nCols != ncols:
-            raise ValueError("The input extent of D8 flow direction is not "
-                             "consistent with stream data!")
+            raise ValueError('The input extent of D8 flow direction is not '
+                             'consistent with stream data!')
 
         # definition of utility functions
 
-        def inflow_stream_number(vrow, vcol, flowmodel="taudem"):
+        def inflow_stream_number(vrow, vcol, flowmodel='taudem'):
             """
             Count the inflow stream cell number and coordinates of all inflow cells
             Args:
@@ -95,7 +94,7 @@ class DelineateHillslope(object):
                             than neighb_stream_cell_num
             """
             neighb_stream_cell_num = 0
-            cell_coors = []
+            cell_coors = list()
             for c in range(8):
                 newrow = vrow + FlowModelConst.ccw_drow[c]
                 newcol = vcol + FlowModelConst.ccw_dcol[c]
@@ -108,44 +107,45 @@ class DelineateHillslope(object):
                         neighb_stream_cell_num += 1
             return neighb_stream_cell_num, cell_coors
 
-        def assign_sequenced_stream_ids(c_id, vrow, vcol, flowmodel="taudem"):
+        def assign_sequenced_stream_ids(c_id, vrow, vcol, flowmodel='taudem'):
             """set sequenced stream IDs"""
             in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
-            if in_strm_num == 0:
-                # it's a headwater location so start a downstream flowpath
-                c_id += 1
-                tmp_row = vrow
-                tmp_col = vcol
-                sequenced_stream_d[tmp_row][tmp_col] = c_id
-                searched_flag = True
-                while searched_flag:
-                    # find the downslope neighbour
-                    tmpflowd8 = flowd8_data[tmp_row][tmp_col]
-                    if tmpflowd8 < 0 or tmpflowd8 == flowd8_nodata:
-                        if stream_data[tmp_row][tmp_col] > 0 \
-                                and stream_data[tmp_row][tmp_col] != stream_nodata:
-                            # it is a valid stream cell and probably just has no downslope
-                            # neighbour (e.g. at the edge of the grid)
-                            sequenced_stream_d[tmp_row][tmp_col] = c_id
-                        break
-                    tmp_row, tmp_col = D8Util.downstream_index(tmpflowd8, tmp_row,
-                                                               tmp_col, flowmodel)
-                    if tmp_row < 0 or tmp_row >= nrows or tmp_col < 0 or tmp_col >= ncols:
-                        break
-                    if stream_data[tmp_row][tmp_col] <= 0:
-                        searched_flag = False  # it is not a stream cell
-                    else:
-                        if sequenced_stream_d[tmp_row][tmp_col] > 0:
-                            # run into a larger stream, end the downstream search
-                            break
-                        # is it a confluence (conjunction node)
-                        in_strm_num, in_coors = inflow_stream_number(tmp_row, tmp_col, flowmodel)
-                        if in_strm_num >= 2:
-                            c_id += 1
+            if in_strm_num != 0:
+                return c_id
+            # it's a headwater location so start a downstream flowpath
+            c_id += 1
+            tmp_row = vrow
+            tmp_col = vcol
+            sequenced_stream_d[tmp_row][tmp_col] = c_id
+            searched_flag = True
+            while searched_flag:
+                # find the downslope neighbour
+                tmpflowd8 = flowd8_data[tmp_row][tmp_col]
+                if tmpflowd8 < 0 or tmpflowd8 == flowd8_nodata:
+                    if stream_data[tmp_row][tmp_col] > 0 \
+                            and stream_data[tmp_row][tmp_col] != stream_nodata:
+                        # it is a valid stream cell and probably just has no downslope
+                        # neighbour (e.g. at the edge of the grid)
                         sequenced_stream_d[tmp_row][tmp_col] = c_id
+                    break
+                tmp_row, tmp_col = D8Util.downstream_index(tmpflowd8, tmp_row,
+                                                           tmp_col, flowmodel)
+                if tmp_row < 0 or tmp_row >= nrows or tmp_col < 0 or tmp_col >= ncols:
+                    break
+                if stream_data[tmp_row][tmp_col] <= 0:
+                    searched_flag = False  # it is not a stream cell
+                else:
+                    if sequenced_stream_d[tmp_row][tmp_col] > 0:
+                        # run into a larger stream, end the downstream search
+                        break
+                    # is it a confluence (conjunction node)
+                    in_strm_num, in_coors = inflow_stream_number(tmp_row, tmp_col, flowmodel)
+                    if in_strm_num >= 2:
+                        c_id += 1
+                    sequenced_stream_d[tmp_row][tmp_col] = c_id
             return c_id
 
-        def assign_hillslope_code_of_neighbors(vrow, vcol, flowmodel="taudem"):
+        def assign_hillslope_code_of_neighbors(vrow, vcol, flowmodel='taudem'):
             """set hillslope code for neighbors of current stream cell."""
             stream_coors.append((vrow, vcol))
             in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
@@ -262,7 +262,8 @@ class DelineateHillslope(object):
             stream_data = numpy.copy(sequenced_stream_d)
             stream_nodata = DEFAULT_NODATA
             stream_core = FileClass.get_core_name_without_suffix(stream_raster)
-            stream_seq_file = os.path.dirname(stream_raster) + os.path.sep + stream_core + '_seq.tif'
+            stream_seq_file = os.path.dirname(stream_raster) + os.path.sep + \
+                              stream_core + '_seq.tif'
             RasterUtilClass.write_gtiff_file(stream_seq_file, nrows, ncols, sequenced_stream_d,
                                              geotrans, srs, DEFAULT_NODATA, datatype)
             max_id = current_id

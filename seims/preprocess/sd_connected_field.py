@@ -37,7 +37,7 @@ def connected_field_partition_wu2018(cfg):
     """
     if not cfg.fields_partition:  # Do field partition
         return
-    maskf = cfg.spatials.mask
+    maskf = cfg.spatials.subbsn
     streamf = cfg.spatials.stream_link
     flowf = cfg.spatials.d8flow
     luf = cfg.spatials.landuse
@@ -45,8 +45,7 @@ def connected_field_partition_wu2018(cfg):
     threshs = cfg.fields_partition_thresh
     for thresh in threshs:
         # 1. Run the fieldpartition program
-        #    Note that the flowf is currently converted to ArcGIS flow direction code
-        #      by `post_process_of_delineated_data` function.
+        #    Note that flowf is encoded by ArcGIS flow direction code
         run_field_partition(cfg.seims_bin, maskf, streamf, flowf, luf,
                             demf, thresh, arcgis_code=True)
         fields_tif = cfg.dirs.geodata2db + os.path.sep + 'fields_%d.tif' % thresh
@@ -57,6 +56,7 @@ def connected_field_partition_wu2018(cfg):
         jsonf = cfg.model_dir + os.path.sep + 'connected_field_units_updown_%d.json' % thresh
         generate_fields_json(luf, fields_tif, fields_txt, jsonf)
 
+        cfg.spatials.mgt_field.append(fields_tif)
 
 def run_field_partition(bin_dir, maskf, streamf, flowf, luf, demf, thresh, arcgis_code=True):
     """Run fieldpartition program."""

@@ -8,12 +8,12 @@
  * Changelog:
  *   - 1. 2016-07-15 - lj -
  *      -# Code reformat with common functions, such as Release1DArray.
- *      -# VAR_SNSB should be output other than input.
+ *      -# VAR_SNSB[0] should be output other than input.
  *   - 2. 2018-05-07 - lj - Reformat code style.
  *   - 3. 2018-06-26 - lj - Bug fixed when pet less than intercept ET.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Liang-Jun Zhu
- * \date May 2016
  */
 #ifndef SEIMS_MODULE_AET_PTH_H
 #define SEIMS_MODULE_AET_PTH_H
@@ -25,6 +25,7 @@
  * \brief Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods
  *Actual soil evaporation is also calculated.
  */
+
 /*!
  * \class AET_PT_H
  * \ingroup AET_PTH
@@ -38,9 +39,11 @@ public:
 
     ~AET_PT_H();
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int n, int col, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -48,33 +51,33 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
 private:
     // Parameters from database
     int m_nCells;      ///< valid cells number
     int m_maxSoilLyrs; ///< maximum soil layers, mlyr in SWAT
 
-    float* m_esco;       ///< soil evaporation compensation factor, 0.01-1.0, default of 0.9
-    float* m_nSoilLyrs;  ///< soil layers
-    float** m_soilDepth; ///< soil depth
-    float** m_soilThk;   ///< soil thickness
-    float** m_solFC;     ///< amount of water available to plants in soil layer at field capacity (FC-WP)
-    float* m_rsdCovSoil; ///< amount of residue on soil surface (kg/ha)
-    float** m_solNo3;    ///< amount of nitrogen stored in the nitrate pool
+    FLTPT* m_esco;       ///< soil evaporation compensation factor, 0.01-1.0, default of 0.9
+    int* m_nSoilLyrs;  ///< soil layers
+    FLTPT** m_soilDepth; ///< soil depth
+    FLTPT** m_soilThk;   ///< soil thickness
+    FLTPT** m_solFC;     ///< amount of water available to plants in soil layer at field capacity (FC-WP)
+    FLTPT* m_rsdCovSoil; ///< amount of residue on soil surface (kg/ha)
+    FLTPT** m_solNo3;    ///< amount of nitrogen stored in the nitrate pool
 
     // Inputs from other modules
-    float* m_tMean;          ///< mean air temperature (deg C)
-    float* m_lai;            ///< leaf area index(m^2/m^2)
-    float* m_pet;            ///< potential evapotranspiration
-    float* m_IntcpET;        ///< Evaporation loss from canopy storage
-    float* m_snowAccum;      ///< amount of water in snow
-    float* m_snowSublim;     ///< snow sublimation
-    float** m_soilWtrSto;    ///< soil storage of each soil layer (mm), sol_st in SWAT
-    float* m_soilWtrStoPrfl; ///< soil water storage in soil profile (mm), sol_sw in SWAT
+    FLTPT* m_tMean;          ///< mean air temperature (deg C)
+    FLTPT* m_lai;            ///< leaf area index(m^2/m^2)
+    FLTPT* m_pet;            ///< potential evapotranspiration
+    FLTPT* m_IntcpET;        ///< Evaporation loss from canopy storage
+    FLTPT* m_snowAccum;      ///< amount of water in snow
+    FLTPT* m_snowSublim;     ///< snow sublimation
+    FLTPT** m_soilWtrSto;    ///< soil storage of each soil layer (mm), sol_st in SWAT
+    FLTPT* m_soilWtrStoPrfl; ///< soil water storage in soil profile (mm), sol_sw in SWAT
 
     // Outputs
-    float* m_maxPltET; ///< maximum amount of transpiration (plant et), ep_max in SWAT
-    float* m_soilET;   ///< actual amount of evaporation (soil et), es_day in SWAT
+    FLTPT* m_maxPltET; ///< maximum amount of transpiration (plant et), ep_max in SWAT
+    FLTPT* m_soilET;   ///< actual amount of evaporation (soil et), es_day in SWAT
 };
 #endif /* SEIMS_MODULE_AET_PTH_H */

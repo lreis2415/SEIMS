@@ -2,7 +2,7 @@
  * \brief channel flow routing using ikw method
  * \author Junzhi Liu, Liangjun Zhu
  * \date May 2017
- * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM
+ * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM[0]
  *               Algorithm review and code clean
  */
 #ifndef SEIMS_MODULE_IKW_REACH_H
@@ -10,7 +10,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /*!
  * \defgroup IKW_REACH
  * \ingroup Hydrology_longterm
@@ -73,7 +74,7 @@ private:
     /// reach number (= subbasin number)
     int m_nreach;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    //LayeringMethod m_layeringMethod;
     ///// diversion loss (Vdiv) of the river reach .. m_Vid[id], id is the reach id
     //float *m_Vdiv;
     ///// The point source discharge .. m_Vpoint[id], id is the reach id

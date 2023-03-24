@@ -18,6 +18,7 @@
  *		       initialization is realized by function initalOutputs.
  *        -# Delete input D_INFIL and add input D_EXCP.
  *   - 3. 2016-07-14 - lj - Code review and reformat.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Zhiqiang Yu, Liangjun Zhu
  */
@@ -38,21 +39,21 @@
  *
  */
 /*
-* ´ËÄ£¿éÃèÊö¹ýÔØ½µÓê£¨¿Û³ý½ØÁô¡¢ÏÂÉø£©¼õÈ¥Õô·¢Á¿ºó£¬²úÉúµØ±í¾¶Á÷ºÍÍÝµØÐîË®
-* ²ÎÊý:
-*			VAR_DEPREIN ÍÝµØ³õÊ¼ÐîË®ÏµÊý ÎÞµ¥Î»
-*			VAR_DEPRESSION ÍÝµØÉî¶È mm
-* ÊäÈë£º
-*			VAR_INET Ö²±»½ØÁôµÄÕô·¢Á¿ mm
-*			VAR_PET	ÈÕÇ±ÔÚÕô·¢Á¿ mm
-*			VAR_EXCP ¹ýÔØ½µÓêÁ¿ mm
-*			VAR_IMPOUND_TRIG Ò»¸ö²ÎÊý
-*			VAR_POT_VOL ÍÝµØÐîË®Éî¶È mm	 
-*			VAR_INET Ö²±»½ØÁôµÄÕô·¢Á¿
-* Êä³ö£º
-*			VAR_DPST ÍÝµØÐîË®Éî¶È mm
-*			VAR_DEET ÍÝµØÐîË®µÄÕô·¢Éî¶È mm
-*			VAR_SURU µØ±í¾¶Á÷Éî¶È mm
+* ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ê£¨ï¿½Û³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó£¬²ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½Ë®
+* ï¿½ï¿½ï¿½ï¿½:
+*			VAR_DEPREIN ï¿½ÝµØ³ï¿½Ê¼ï¿½ï¿½Ë®Ïµï¿½ï¿½ ï¿½Þµï¿½Î»
+*			VAR_DEPRESSION ï¿½Ýµï¿½ï¿½ï¿½ï¿½ mm
+* ï¿½ï¿½ï¿½ë£º
+*			VAR_INET Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ mm
+*			VAR_PET	ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ mm
+*			VAR_EXCP ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½ mm
+*			VAR_IMPOUND_TRIG Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*			VAR_POT_VOL ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ mm
+*			VAR_INET Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+* ï¿½ï¿½ï¿½ï¿½ï¿½
+*			VAR_DPST ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ mm
+*			VAR_DEET ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ mm
+*			VAR_SURU ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ mm
 */
 class DepressionFSDaily: public SimulationModule {
 public:
@@ -62,11 +63,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
     /*!
@@ -86,29 +89,29 @@ private:
     /// valid cells number
     int m_nCells;
     /// impound/release
-    float* m_impoundTriger;
+    int* m_impoundTriger;
     /// pothole volume, mm
-    float* m_potVol;
+    FLTPT* m_potVol;
     /// initial depression storage coefficient
-    float m_depCo;
+    FLTPT m_depCo;
     /// depression storage capacity (mm)
-    float* m_depCap;
+    FLTPT* m_depCap;
 
     /// pet
-    float* m_pet;
+    FLTPT* m_pet;
     /// evaporation from the interception storage
-    float* m_ei;
+    FLTPT* m_ei;
 
     /// excess precipitation calculated in the infiltration module
-    float* m_pe;
+    FLTPT* m_pe;
 
     // state variables (output)
 
-    /// depression storage  ÍÝµØÐîË®Éî¶È
-    float* m_sd;
+    /// depression storage  ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½
+    FLTPT* m_sd;
     /// evaporation from depression storage
-    float* m_ed;
-    /// surface runoff  µØ±í¾¶Á÷Éî¶È
-    float* m_sr;
+    FLTPT* m_ed;
+    /// surface runoff  ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    FLTPT* m_sr;
 };
 #endif /* SEIMS_MODULE_DEP_LINSLEY_H */

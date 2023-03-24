@@ -1,3 +1,4 @@
+#coding:utf-8
 """Base class of calibration.
 
     @author   : Liangjun Zhu
@@ -20,6 +21,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from typing import Optional
+from pymongo import MongoClient
 from pygeoc.utils import FileClass
 
 from utility import read_data_items_from_txt
@@ -131,7 +133,7 @@ class Calibration(object):
         if self.param_defs:
             return self.param_defs
         # read param_range_def file and output to json file
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
 
@@ -146,8 +148,7 @@ class Calibration(object):
             if len(item) < 3:
                 continue
             # find parameter name, print warning message if not existed
-            cursor = collection.find({'NAME': item[0]}, no_cursor_timeout=True)
-            if not cursor.count():
+            if collection.count_documents({'NAME': item[0]}) <= 0:
                 print('WARNING: parameter %s is not existed!' % item[0])
                 continue
             num_vars += 1
@@ -158,7 +159,7 @@ class Calibration(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        conn = MongoDBObj.client
+        conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.cfg.model.db_name]
         stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.cfg.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
@@ -214,7 +215,7 @@ def calibration_objectives(cali_obj, ind):
         ind.sim.vars = model_obj.sim_vars[:]
         ind.sim.data = deepcopy(model_obj.sim_value)
     else:
-        model_obj.clean(calibration_id=ind.id)
+        # model_obj.clean(calibration_id=ind.id)
         model_obj.UnsetMongoClient()
         return ind
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
@@ -248,7 +249,7 @@ def calibration_objectives(cali_obj, ind):
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
 
     # delete model output directory for saving storage
-    model_obj.clean(calibration_id=ind.id)
+    # model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
     return ind
 

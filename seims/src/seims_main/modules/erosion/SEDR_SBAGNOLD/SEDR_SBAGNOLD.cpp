@@ -2,9 +2,12 @@
 
 #include "text.h"
 #include "ChannelRoutingCommon.h"
+//#include "Logging.h"
 //#ifndef PRINT_DEBUG
 //#define PRINT_DEBUG
 //#endif
+
+//INITIALIZE_NULL_EASYLOGGINGPP
 
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_dt(-1), m_inputSubbsnID(-1),
@@ -83,74 +86,74 @@ SEDR_SBAGNOLD::~SEDR_SBAGNOLD() {
 }
 
 bool SEDR_SBAGNOLD::CheckInputData() {
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_dt);
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
-    CHECK_NONNEGATIVE(MID_SEDR_SBAGNOLD, m_inputSubbsnID);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_dt);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_nreach);
+    CHECK_NONNEGATIVE(M_SEDR_SBAGNOLD[0], m_inputSubbsnID);
 
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_peakRateAdj);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqCoef);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_sedTransEqExp);
-    CHECK_NODATA(MID_SEDR_SBAGNOLD, m_initChSto);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_peakRateAdj);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_sedTransEqCoef);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_sedTransEqExp);
+    CHECK_NODATA(M_SEDR_SBAGNOLD[0], m_initChSto);
 
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sedtoCh);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sedtoCh);
     // Do not check the optional input variables from other modules
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sandtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_silttoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_claytoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sagtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_lagtoCh);
-    //CHECK_POINTER(MID_SEDR_SBAGNOLD, m_graveltoCh);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_qRchOut);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chSto);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_rteWtrOut);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWtrDepth);
-    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWtrWth);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sandtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_silttoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_claytoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_sagtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_lagtoCh);
+    //CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_graveltoCh);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_qRchOut);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chSto);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_rteWtrOut);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chWtrDepth);
+    CHECK_POINTER(M_SEDR_SBAGNOLD[0], m_chWtrWth);
     return true;
 }
 
 void SEDR_SBAGNOLD::InitialOutputs() {
     // Do not perform repeatedly
     if (m_sedRchOut != nullptr) return;
-    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
+    CHECK_POSITIVE(M_SEDR_SBAGNOLD[0], m_nreach);
     // Note: reach/channel related parameters will be initialized and released by `clsReaches` class.
     //initial channel storage
-    Initialize1DArray(m_nreach + 1, m_sedRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_sedConcRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_sandRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_siltRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_clayRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_sagRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_lagRchOut, 0.f);
-    Initialize1DArray(m_nreach + 1, m_gravelRchOut, 0.f);
+    Initialize1DArray(m_nreach + 1, m_sedRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_sedConcRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_sandRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_siltRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_clayRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_sagRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_lagRchOut, 0.);
+    Initialize1DArray(m_nreach + 1, m_gravelRchOut, 0.);
 
-    Initialize1DArray(m_nreach + 1, m_rchBnkEro, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDeg, 0.f);
+    Initialize1DArray(m_nreach + 1, m_rchBnkEro, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDeg, 0.);
 
-    Initialize1DArray(m_nreach + 1, m_rchDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_preRchDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_dltRchDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepSand, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepSilt, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepClay, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepSag, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepLag, 0.f);
-    Initialize1DArray(m_nreach + 1, m_rchDepGravel, 0.f);
+    Initialize1DArray(m_nreach + 1, m_rchDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_preRchDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_dltRchDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepSand, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepSilt, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepClay, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepSag, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepLag, 0.);
+    Initialize1DArray(m_nreach + 1, m_rchDepGravel, 0.);
 
-    Initialize1DArray(m_nreach + 1, m_fldplnDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_preFldplnDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_dltFldplnDep, 0.f);
-    Initialize1DArray(m_nreach + 1, m_fldplnDepSilt, 0.f);
-    Initialize1DArray(m_nreach + 1, m_fldplnDepClay, 0.f);
+    Initialize1DArray(m_nreach + 1, m_fldplnDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_preFldplnDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_dltFldplnDep, 0.);
+    Initialize1DArray(m_nreach + 1, m_fldplnDepSilt, 0.);
+    Initialize1DArray(m_nreach + 1, m_fldplnDepClay, 0.);
 
-    Initialize1DArray(m_nreach + 1, m_sedSto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_sandSto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_siltSto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_claySto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_sagSto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_lagSto, 0.f);
-    Initialize1DArray(m_nreach + 1, m_gravelSto, 0.f);
+    Initialize1DArray(m_nreach + 1, m_sedSto, 0.);
+    Initialize1DArray(m_nreach + 1, m_sandSto, 0.);
+    Initialize1DArray(m_nreach + 1, m_siltSto, 0.);
+    Initialize1DArray(m_nreach + 1, m_claySto, 0.);
+    Initialize1DArray(m_nreach + 1, m_sagSto, 0.);
+    Initialize1DArray(m_nreach + 1, m_lagSto, 0.);
+    Initialize1DArray(m_nreach + 1, m_gravelSto, 0.);
     /// initialize point source loadings
-    if (nullptr == m_ptSub) Initialize1DArray(m_nreach + 1, m_ptSub, 0.f);
+    if (nullptr == m_ptSub) Initialize1DArray(m_nreach + 1, m_ptSub, 0.);
 }
 
 void SEDR_SBAGNOLD::PointSourceLoading() {
@@ -171,14 +174,14 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
                 }
             }
             // 1.2 Otherwise, get the water volume
-            float per_sed = curPtMgt->GetSedment(); /// g/cm3, or Mg/m3
+            FLTPT per_sed = curPtMgt->GetSedment(); /// g/cm3, or Mg/m3
             // 1.3 Sum up all point sources
             for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
                 if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
                     PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     /// Mg/m3 ==> kg / timestep, 1. / 86400. = 1.1574074074074073e-05
-                    m_ptSub[curSubID] += per_sed * curPtLoc->GetSize() * 1000.f * m_dt * 1.1574074074074073e-05f;
+                    m_ptSub[curSubID] += per_sed * curPtLoc->GetSize() * 1000. * m_dt * 1.1574074074074073e-05;
                 }
             }
         }
@@ -209,127 +212,141 @@ int SEDR_SBAGNOLD::Execute() {
     return 0;
 }
 
-void SEDR_SBAGNOLD::GetValue(const char* key, float* value) {
+void SEDR_SBAGNOLD::GetValue(const char* key, FLTPT* value) {
     InitialOutputs();
     string sk(key);
     // Get value for transferring across subbasins
-    if (StringMatch(sk, VAR_SED_RECH)) *value = m_sedRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SED_RECHConc)) *value = m_sedConcRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SAND_RECH)) *value = m_sandRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SILT_RECH)) *value = m_siltRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_CLAY_RECH)) *value = m_clayRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SAG_RECH)) *value = m_sagRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_LAG_RECH)) *value = m_lagRchOut[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) *value = m_gravelRchOut[m_inputSubbsnID];
+    if (StringMatch(sk, VAR_SED_RECH[0])) *value = m_sedRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) *value = m_sedConcRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) *value = m_sandRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) *value = m_siltRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) *value = m_clayRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) *value = m_sagRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) *value = m_lagRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) *value = m_gravelRchOut[m_inputSubbsnID];
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "GetValue",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void SEDR_SBAGNOLD::SetValue(const char* key, const float value) {
+void SEDR_SBAGNOLD::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
-#ifdef STORM_MODE
-    else if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = CVT_INT(value);
-#else
-    else if (StringMatch(sk, Tag_TimeStep)) m_dt = CVT_INT(value);
-#endif /* STORM_MODE */
-    else if (StringMatch(sk, VAR_P_RF)) m_peakRateAdj = value;
-    else if (StringMatch(sk, VAR_SPCON)) m_sedTransEqCoef = value;
-    else if (StringMatch(sk, VAR_SPEXP)) m_sedTransEqExp = value;
-    else if (StringMatch(sk, VAR_CHS0)) m_initChSto = value;
-    else if (StringMatch(sk, VAR_VCD)) m_vcd = FloatEqual(value, 1.f);
+    if (StringMatch(sk, VAR_P_RF[0])) m_peakRateAdj = value;
+    else if (StringMatch(sk, VAR_SPCON[0])) m_sedTransEqCoef = value;
+    else if (StringMatch(sk, VAR_SPEXP[0])) m_sedTransEqExp = value;
+    else if (StringMatch(sk, VAR_CHS0[0])) m_initChSto = value;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetValue",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const float value) {
+void SEDR_SBAGNOLD::SetValue(const char* key, const int value) {
+    string sk(key);
+    if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
+#ifdef STORM_MODE
+    else if (StringMatch(sk, Tag_ChannelTimeStep)) m_dt = value;
+#else
+    else if (StringMatch(sk, Tag_TimeStep[0])) m_dt = value;
+#endif /* STORM_MODE */
+    else if (StringMatch(sk, VAR_VCD[0])) m_vcd = value == 1;
+    else {
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const FLTPT value) {
     if (m_inputSubbsnID == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
     if (nullptr == m_sedRchOut) InitialOutputs();
     string sk(key);
     // transferred single value in MPI version IN/OUTPUT variables
-    if (StringMatch(sk, VAR_SED_RECH)) m_sedRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SED_RECHConc)) m_sedConcRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SAND_RECH)) m_sandRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SILT_RECH)) m_siltRchOut[index] = value;
-    else if (StringMatch(sk, VAR_CLAY_RECH)) m_clayRchOut[index] = value;
-    else if (StringMatch(sk, VAR_SAG_RECH)) m_sagRchOut[index] = value;
-    else if (StringMatch(sk, VAR_LAG_RECH)) m_lagRchOut[index] = value;
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) m_gravelRchOut[index] = value;
+    if (StringMatch(sk, VAR_SED_RECH[0])) m_sedRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) m_sedConcRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) m_sandRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) m_siltRchOut[index] = value;
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) m_clayRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) m_sagRchOut[index] = value;
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) m_lagRchOut[index] = value;
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) m_gravelRchOut[index] = value;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetValueByIndex", "Parameter " + sk + " does not exist");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetValueByIndex",
+                             "Parameter " + sk + " does not exist");
     }
 }
 
-void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
+void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
-    CheckInputSize(MID_SEDR_SBAGNOLD, key, n - 1, m_nreach);
-    if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh = data; // for longterm model
-    else if (StringMatch(sk, VAR_SAND_TO_CH)) m_sandtoCh = data;
-    else if (StringMatch(sk, VAR_SILT_TO_CH)) m_silttoCh = data;
-    else if (StringMatch(sk, VAR_CLAY_TO_CH)) m_claytoCh = data;
-    else if (StringMatch(sk, VAR_SAG_TO_CH)) m_sagtoCh = data;
-    else if (StringMatch(sk, VAR_LAG_TO_CH)) m_lagtoCh = data;
-    else if (StringMatch(sk, VAR_GRAVEL_TO_CH)) m_graveltoCh = data;
+    CheckInputSize(M_SEDR_SBAGNOLD[0], key, n - 1, m_nreach);
+    if (StringMatch(sk, VAR_SED_TO_CH[0])) m_sedtoCh = data; // for longterm model
+    else if (StringMatch(sk, VAR_SAND_TO_CH[0])) m_sandtoCh = data;
+    else if (StringMatch(sk, VAR_SILT_TO_CH[0])) m_silttoCh = data;
+    else if (StringMatch(sk, VAR_CLAY_TO_CH[0])) m_claytoCh = data;
+    else if (StringMatch(sk, VAR_SAG_TO_CH[0])) m_sagtoCh = data;
+    else if (StringMatch(sk, VAR_LAG_TO_CH[0])) m_lagtoCh = data;
+    else if (StringMatch(sk, VAR_GRAVEL_TO_CH[0])) m_graveltoCh = data;
 
-    else if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
-    else if (StringMatch(sk, VAR_CHST)) m_chSto = data;
-    else if (StringMatch(sk, VAR_RTE_WTROUT)) m_rteWtrOut = data;
-    else if (StringMatch(sk, VAR_CHBTMWIDTH)) m_chBtmWth = data;
-    else if (StringMatch(sk, VAR_CHWTRDEPTH)) m_chWtrDepth = data;
-    else if (StringMatch(sk, VAR_CHWTRWIDTH)) m_chWtrWth = data;
+    else if (StringMatch(sk, VAR_QRECH[0])) m_qRchOut = data;
+    else if (StringMatch(sk, VAR_CHST[0])) m_chSto = data;
+    else if (StringMatch(sk, VAR_RTE_WTROUT[0])) m_rteWtrOut = data;
+    else if (StringMatch(sk, VAR_CHBTMWIDTH[0])) m_chBtmWth = data;
+    else if (StringMatch(sk, VAR_CHWTRDEPTH[0])) m_chWtrDepth = data;
+    else if (StringMatch(sk, VAR_CHWTRWIDTH[0])) m_chWtrWth = data;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "Set1DData", "Parameter " + sk + " does not exist");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "Set1DData",
+                             "Parameter " + sk + " does not exist");
     }
 }
 
-void SEDR_SBAGNOLD::Get1DData(const char* key, int* n, float** data) {
+void SEDR_SBAGNOLD::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
-    if (StringMatch(sk, VAR_SED_RECH)) *data = m_sedRchOut;
-    else if (StringMatch(sk, VAR_SED_RECHConc)) *data = m_sedConcRchOut;
-    else if (StringMatch(sk, VAR_SAND_RECH)) *data = m_sandRchOut;
-    else if (StringMatch(sk, VAR_SILT_RECH)) *data = m_siltRchOut;
-    else if (StringMatch(sk, VAR_CLAY_RECH)) *data = m_clayRchOut;
-    else if (StringMatch(sk, VAR_SAG_RECH)) *data = m_sagRchOut;
-    else if (StringMatch(sk, VAR_LAG_RECH)) *data = m_lagRchOut;
-    else if (StringMatch(sk, VAR_GRAVEL_RECH)) *data = m_gravelRchOut;
+    if (StringMatch(sk, VAR_SED_RECH[0])) *data = m_sedRchOut;
+    else if (StringMatch(sk, VAR_SED_RECHConc[0])) *data = m_sedConcRchOut;
+    else if (StringMatch(sk, VAR_SAND_RECH[0])) *data = m_sandRchOut;
+    else if (StringMatch(sk, VAR_SILT_RECH[0])) *data = m_siltRchOut;
+    else if (StringMatch(sk, VAR_CLAY_RECH[0])) *data = m_clayRchOut;
+    else if (StringMatch(sk, VAR_SAG_RECH[0])) *data = m_sagRchOut;
+    else if (StringMatch(sk, VAR_LAG_RECH[0])) *data = m_lagRchOut;
+    else if (StringMatch(sk, VAR_GRAVEL_RECH[0])) *data = m_gravelRchOut;
 
-    else if (StringMatch(sk, VAR_RCH_BANKERO)) *data = m_rchBnkEro;
-    else if (StringMatch(sk, VAR_RCH_DEG)) *data = m_rchDeg;
+    else if (StringMatch(sk, VAR_RCH_BANKERO[0])) *data = m_rchBnkEro;
+    else if (StringMatch(sk, VAR_RCH_DEG[0])) *data = m_rchDeg;
 
-    else if (StringMatch(sk, VAR_RCH_DEP)) *data = m_rchDep;
-    else if (StringMatch(sk, VAR_RCH_DEPNEW)) *data = m_dltRchDep;
-    else if (StringMatch(sk, VAR_RCH_DEPSAND)) *data = m_rchDepSand;
-    else if (StringMatch(sk, VAR_RCH_DEPSILT)) *data = m_rchDepSilt;
-    else if (StringMatch(sk, VAR_RCH_DEPCLAY)) *data = m_rchDepClay;
-    else if (StringMatch(sk, VAR_RCH_DEPSAG)) *data = m_rchDepSag;
-    else if (StringMatch(sk, VAR_RCH_DEPLAG)) *data = m_rchDepLag;
-    else if (StringMatch(sk, VAR_RCH_DEPGRAVEL)) *data = m_rchDepGravel;
+    else if (StringMatch(sk, VAR_RCH_DEP[0])) *data = m_rchDep;
+    else if (StringMatch(sk, VAR_RCH_DEPNEW[0])) *data = m_dltRchDep;
+    else if (StringMatch(sk, VAR_RCH_DEPSAND[0])) *data = m_rchDepSand;
+    else if (StringMatch(sk, VAR_RCH_DEPSILT[0])) *data = m_rchDepSilt;
+    else if (StringMatch(sk, VAR_RCH_DEPCLAY[0])) *data = m_rchDepClay;
+    else if (StringMatch(sk, VAR_RCH_DEPSAG[0])) *data = m_rchDepSag;
+    else if (StringMatch(sk, VAR_RCH_DEPLAG[0])) *data = m_rchDepLag;
+    else if (StringMatch(sk, VAR_RCH_DEPGRAVEL[0])) *data = m_rchDepGravel;
 
-    else if (StringMatch(sk, VAR_FLDPLN_DEP)) *data = m_fldplnDep;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPNEW)) *data = m_dltFldplnDep;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPSILT)) *data = m_fldplnDepSilt;
-    else if (StringMatch(sk, VAR_FLDPLN_DEPCLAY)) *data = m_fldplnDepClay;
+    else if (StringMatch(sk, VAR_FLDPLN_DEP[0])) *data = m_fldplnDep;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPNEW[0])) *data = m_dltFldplnDep;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPSILT[0])) *data = m_fldplnDepSilt;
+    else if (StringMatch(sk, VAR_FLDPLN_DEPCLAY[0])) *data = m_fldplnDepClay;
 
-    else if (StringMatch(sk, VAR_SEDSTO_CH)) *data = m_sedSto;
-    else if (StringMatch(sk, VAR_SANDSTO_CH)) *data = m_sandSto;
-    else if (StringMatch(sk, VAR_SILTSTO_CH)) *data = m_siltSto;
-    else if (StringMatch(sk, VAR_CLAYSTO_CH)) *data = m_claySto;
-    else if (StringMatch(sk, VAR_SAGSTO_CH)) *data = m_sagSto;
-    else if (StringMatch(sk, VAR_LAGSTO_CH)) *data = m_lagSto;
-    else if (StringMatch(sk, VAR_GRAVELSTO_CH)) *data = m_gravelSto;
+    else if (StringMatch(sk, VAR_SEDSTO_CH[0])) *data = m_sedSto;
+    else if (StringMatch(sk, VAR_SANDSTO_CH[0])) *data = m_sandSto;
+    else if (StringMatch(sk, VAR_SILTSTO_CH[0])) *data = m_siltSto;
+    else if (StringMatch(sk, VAR_CLAYSTO_CH[0])) *data = m_claySto;
+    else if (StringMatch(sk, VAR_SAGSTO_CH[0])) *data = m_sagSto;
+    else if (StringMatch(sk, VAR_LAGSTO_CH[0])) *data = m_lagSto;
+    else if (StringMatch(sk, VAR_GRAVELSTO_CH[0])) *data = m_gravelSto;
     else {
-        throw ModelException(MID_SEDR_SBAGNOLD, "Get1DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "Get1DData",
+                             "Output " + sk + " does not exist.");
     }
 }
 
 void SEDR_SBAGNOLD::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetScenario", "The scenario can not to be NULL.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetScenario",
+                             "The scenario can not to be NULL.");
     }
     map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
     for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
@@ -345,12 +362,23 @@ void SEDR_SBAGNOLD::SetScenario(Scenario* sce) {
 
 void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(M_SEDR_SBAGNOLD[0], "SetReaches",
+                             "The reaches input can not to be NULL.");
     }
     m_nreach = reaches->GetReachNumber();
 
-    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
-    if (nullptr == m_chOrder) reaches->GetReachesSingleProperty(REACH_UPDOWN_ORDER, &m_chOrder);
+    if (nullptr == m_reachDownStream) {
+        FLTPT* tmp = nullptr;
+        reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &tmp);
+        Initialize1DArray(m_nreach + 1, m_reachDownStream, tmp);
+        Release1DArray(tmp);
+    }
+    if (nullptr == m_chOrder) {
+        FLTPT* tmp = nullptr;
+        reaches->GetReachesSingleProperty(REACH_UPDOWN_ORDER, &tmp);
+        Initialize1DArray(m_nreach + 1, m_chOrder, tmp);
+        Release1DArray(tmp);
+    }
     if (nullptr == m_chWth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWth);
     if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
     if (nullptr == m_chWthDepthRt) reaches->GetReachesSingleProperty(REACH_WDRATIO, &m_chWthDepthRt);
@@ -379,31 +407,31 @@ void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
 
 void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     // Reset part of output variables for the current timestep
-    m_sedRchOut[i] = 0.f;
-    m_sedConcRchOut[i] = 0.f;
-    m_sandRchOut[i] = 0.f;
-    m_siltRchOut[i] = 0.f;
-    m_clayRchOut[i] = 0.f;
-    m_sagRchOut[i] = 0.f;
-    m_lagRchOut[i] = 0.f;
-    m_gravelRchOut[i] = 0.f;
+    m_sedRchOut[i] = 0.;
+    m_sedConcRchOut[i] = 0.;
+    m_sandRchOut[i] = 0.;
+    m_siltRchOut[i] = 0.;
+    m_clayRchOut[i] = 0.;
+    m_sagRchOut[i] = 0.;
+    m_lagRchOut[i] = 0.;
+    m_gravelRchOut[i] = 0.;
 
-    m_rchBnkEro[i] = 0.f;
-    m_rchDeg[i] = 0.f;
+    m_rchBnkEro[i] = 0.;
+    m_rchDeg[i] = 0.;
 
-    m_rchDep[i] = 0.f;
-    m_dltRchDep[i] = 0.f;
-    m_rchDepSand[i] = 0.f;
-    m_rchDepSilt[i] = 0.f;
-    m_rchDepClay[i] = 0.f;
-    m_rchDepSag[i] = 0.f;
-    m_rchDepLag[i] = 0.f;
-    m_rchDepGravel[i] = 0.f;
+    m_rchDep[i] = 0.;
+    m_dltRchDep[i] = 0.;
+    m_rchDepSand[i] = 0.;
+    m_rchDepSilt[i] = 0.;
+    m_rchDepClay[i] = 0.;
+    m_rchDepSag[i] = 0.;
+    m_rchDepLag[i] = 0.;
+    m_rchDepGravel[i] = 0.;
 
-    m_fldplnDep[i] = 0.f;
-    m_dltFldplnDep[i] = 0.f;
-    m_fldplnDepSilt[i] = 0.f;
-    m_fldplnDepClay[i] = 0.f;
+    m_fldplnDep[i] = 0.;
+    m_dltFldplnDep[i] = 0.;
+    m_fldplnDepSilt[i] = 0.;
+    m_fldplnDepClay[i] = 0.;
 
     // Do not perform sediment routing when:
     /// 1. whether is no water flow out of channel and water depth is nearly zero
@@ -412,16 +440,16 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     }
 
     // initialize water in reach during time step
-    float qdin = m_chSto[i] + m_rteWtrOut[i]; ///< water in reach during time step, m^3
+    FLTPT qdin = m_chSto[i] + m_rteWtrOut[i]; ///< water in reach during time step, m^3
 
     // initialize sediment in reach during time step
-    float sedin = 0.f;    ///< all sediment, kg, sedin * 1000 in SWAT
-    float sandin = 0.f;   ///< all sand, kg, sanin * 1000 in SWAT
-    float siltin = 0.f;   ///< all silt, kg, silin * 1000 in SWAT
-    float clayin = 0.f;   ///< all clay, kg, clain * 1000 in SWAT
-    float sagin = 0.f;    ///< all small aggregate, kg, sagin * 1000 in SWAT
-    float lagin = 0.f;    ///< all large aggregate, kg, lagin * 1000 in SWAT
-    float gravelin = 0.f; ///< all gravel, kg, grain * 1000 in SWAT
+    FLTPT sedin = 0.;    ///< all sediment, kg, sedin * 1000 in SWAT
+    FLTPT sandin = 0.;   ///< all sand, kg, sanin * 1000 in SWAT
+    FLTPT siltin = 0.;   ///< all silt, kg, silin * 1000 in SWAT
+    FLTPT clayin = 0.;   ///< all clay, kg, clain * 1000 in SWAT
+    FLTPT sagin = 0.;    ///< all small aggregate, kg, sagin * 1000 in SWAT
+    FLTPT lagin = 0.;    ///< all large aggregate, kg, lagin * 1000 in SWAT
+    FLTPT gravelin = 0.; ///< all gravel, kg, grain * 1000 in SWAT
     /// sediment from upstream reaches
     for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
         sedin += m_sedRchOut[*upRchID];
@@ -441,12 +469,12 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     if (m_lagtoCh != nullptr) lagin += m_lagtoCh[i] + m_lagSto[i];
     if (m_graveltoCh != nullptr) gravelin += m_graveltoCh[i] + m_gravelSto[i];
     /// add point source loadings
-    if (nullptr != m_ptSub && m_ptSub[i] > 0.f) {
+    if (nullptr != m_ptSub && m_ptSub[i] > 0.) {
         sedin += m_ptSub[i];
     }
 
     /// 2. If there is nearly no water in channel
-    if (qdin <= 0.01f) {
+    if (qdin <= 0.01) {
         // The flow in sediment should also be stored in channel!
         m_sedSto[i] = sedin;
         m_sandSto[i] = sandin;
@@ -459,20 +487,20 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     }
 
     // initialize reach peak runoff rate and calculate flow velocity.
-    float cross_area = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
-                                                 m_chSideSlope[i], m_chWth[i], 4.f);
-    float peakRfRate = m_qRchOut[i] * m_peakRateAdj; ///< peak runoff rate, unit: m^3/s
-    float peakVel = 0.f;                             ///< peak flow velocity, vc in swat, unit: m/s
-    if (cross_area < 0.01f) {
-        peakVel = 0.01f;
+    FLTPT cross_area = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
+                                                 m_chSideSlope[i], m_chWth[i], 4.);
+    FLTPT peakRfRate = m_qRchOut[i] * m_peakRateAdj; ///< peak runoff rate, unit: m^3/s
+    FLTPT peakVel = 0.;                             ///< peak flow velocity, vc in swat, unit: m/s
+    if (cross_area < 0.01) {
+        peakVel = 0.01;
     } else {
         peakVel = peakRfRate / cross_area;
     }
-    if (peakVel > 5.f) {
-        peakVel = 5.f;
+    if (peakVel > 5.) {
+        peakVel = 5.;
     }
-    float tbase = m_chLen[i] / (m_dt * peakVel); ///< flow duration (fraction of 24 hr)
-    if (tbase > 1.f) tbase = 1.f;
+    FLTPT tbase = m_chLen[i] / (m_dt * peakVel); ///< flow duration (fraction of 24 hr)
+    if (tbase > 1.) tbase = 1.;
 #ifdef PRINT_DEBUG
     cout << "ID: " << i << ", qchOut: " << m_qRchOut[i] << ", qdin: " << qdin <<
             ", chStorage: " << m_chSto[i] <<
@@ -482,98 +510,98 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
 #endif
 
     // New improved method for sediment transport
-    float cyin = 0.f;      ///< concentrate of flow in sediment, kg/m^3
-    float cych = 0.f;      ///< concentrate of sediment in channel
-    float sedDepNet = 0.f; ///< depnet
+    FLTPT cyin = 0.;      ///< concentrate of flow in sediment, kg/m^3
+    FLTPT cych = 0.;      ///< concentrate of sediment in channel
+    FLTPT sedDepNet = 0.; ///< depnet
 
-    float sedDeg1 = 0.f;       ///< deg1
-    float sedDeg1Sand = 0.f;   ///< deg1san
-    float sedDeg1Silt = 0.f;   ///< deg1sil
-    float sedDeg1Clay = 0.f;   ///< deg1cla
-    float sedDeg1Sag = 0.f;    ///< deg1sag, small aggregate
-    float sedDeg1Lag = 0.f;    ///< deg1lag, large aggregate
-    float sedDeg1Gravel = 0.f; ///< deg1gra
+    FLTPT sedDeg1 = 0.;       ///< deg1
+    FLTPT sedDeg1Sand = 0.;   ///< deg1san
+    FLTPT sedDeg1Silt = 0.;   ///< deg1sil
+    FLTPT sedDeg1Clay = 0.;   ///< deg1cla
+    FLTPT sedDeg1Sag = 0.;    ///< deg1sag, small aggregate
+    FLTPT sedDeg1Lag = 0.;    ///< deg1lag, large aggregate
+    FLTPT sedDeg1Gravel = 0.; ///< deg1gra
 
-    float degrte = 0.f;       ///< Potential bed degradation rate in kg per day, degrte in SWAT
-    float sedDegRemain = 0.f; ///< degremain
-    float sedDegSand = 0.f;   ///< degsan
-    float sedDegSilt = 0.f;   ///< degsil
-    float sedDegClay = 0.f;   ///< degcla
-    float sedDegGravel = 0.f; ///< deggra
+    FLTPT degrte = 0.;       ///< Potential bed degradation rate in kg per day, degrte in SWAT
+    FLTPT sedDegRemain = 0.; ///< degremain
+    FLTPT sedDegSand = 0.;   ///< degsan
+    FLTPT sedDegSilt = 0.;   ///< degsil
+    FLTPT sedDegClay = 0.;   ///< degcla
+    FLTPT sedDegGravel = 0.; ///< deggra
 
-    float bnkrte = 0.f;    ///< Potential bank erosion rate in kg per day, bnkrte in SWAT
-    float bnkSand = 0.f;   ///< bnksan
-    float bnkSilt = 0.f;   ///< bnksil
-    float bnkClay = 0.f;   ///< bnkcla
-    float bnkGravel = 0.f; ///< bnkgra
+    FLTPT bnkrte = 0.;    ///< Potential bank erosion rate in kg per day, bnkrte in SWAT
+    FLTPT bnkSand = 0.;   ///< bnksan
+    FLTPT bnkSilt = 0.;   ///< bnksil
+    FLTPT bnkClay = 0.;   ///< bnkcla
+    FLTPT bnkGravel = 0.; ///< bnkgra
 
-    float sedDep = 0.f;       ///< dep
-    float sedDepSand = 0.f;   ///< depsan
-    float sedDepSilt = 0.f;   ///< depsil
-    float sedDepClay = 0.f;   ///< depcla
-    float sedDepSag = 0.f;    ///< depsag
-    float sedDepLag = 0.f;    ///< deplag
-    float sedDepGravel = 0.f; ///< depgra
+    FLTPT sedDep = 0.;       ///< dep
+    FLTPT sedDepSand = 0.;   ///< depsan
+    FLTPT sedDepSilt = 0.;   ///< depsil
+    FLTPT sedDepClay = 0.;   ///< depcla
+    FLTPT sedDepSag = 0.;    ///< depsag
+    FLTPT sedDepLag = 0.;    ///< deplag
+    FLTPT sedDepGravel = 0.; ///< depgra
 
     // Wetting perimeter, bank perimeter
-    float wet_peri = ChannelWettingPerimeter(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
-                                             m_chSideSlope[i], m_chWth[i], 4.f);
-    float pbank = wet_peri - m_chBtmWth[i];
+    FLTPT wet_peri = ChannelWettingPerimeter(m_chBtmWth[i], m_chDepth[i], m_chWtrDepth[i],
+                                             m_chSideSlope[i], m_chWth[i], 4.);
+    FLTPT pbank = wet_peri - m_chBtmWth[i];
 
     // Area ratio of water in flood plain to total cross-sectional area
-    float fpratio = 0.f;
+    FLTPT fpratio = 0.;
     if (m_chWtrDepth[i] > m_chDepth[i]) {
-        float adddep = m_chWtrDepth[i] - m_chDepth[i];
-        float cross_area_bankful = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
-        fpratio = 1.f - (cross_area_bankful + adddep * m_chWth[i]) / cross_area;
-        fpratio = Max(0.f, fpratio);
+        FLTPT adddep = m_chWtrDepth[i] - m_chDepth[i];
+        FLTPT cross_area_bankful = ChannelCrossSectionalArea(m_chBtmWth[i], m_chDepth[i], m_chSideSlope[i]);
+        fpratio = 1. - (cross_area_bankful + adddep * m_chWth[i]) / cross_area;
+        fpratio = Max(0., fpratio);
     }
 
     // Applied bank shear stress, equations from Eaton and Millar (2004)
-    float sfbank = pow(10.f, -1.4026f * log10(m_chBtmWth[i] / pbank + 1.5f) + 2.247f);
-    float tou = 9800.f * m_chWtrDepth[i] * m_chSlope[i];
-    float asinea = 1.f / sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i]);
-    float tbank = tou * sfbank / 100.f * (m_chWtrWth[i] + m_chBtmWth[i]) * asinea / (4.f * m_chWtrDepth[i]);
-    float tbed = tou * (1.f - sfbank / 100.f) * (m_chWtrWth[i] / 2.f / m_chBtmWth[i] + 0.5f);
+    FLTPT sfbank = CalPow(10., -1.4026 * log10(m_chBtmWth[i] / pbank + 1.5) + 2.247);
+    FLTPT tou = 9800. * m_chWtrDepth[i] * m_chSlope[i];
+    FLTPT asinea = 1. / CalSqrt(1. + m_chSideSlope[i] * m_chSideSlope[i]);
+    FLTPT tbank = tou * sfbank / 100. * (m_chWtrWth[i] + m_chBtmWth[i]) * asinea / (4. * m_chWtrDepth[i]);
+    FLTPT tbed = tou * (1. - sfbank / 100.) * (m_chWtrWth[i] / 2. / m_chBtmWth[i] + 0.5);
 
     // Potential bank erosion rate in kg per day
     // Assumed on an average only one bank eroding due to meandering of channel
-    bnkrte = m_chBnkErod[i] * (tbank - m_chBnkTc[i]) * 1.e-6f; // cm^3/N/s * N/m^2 * 1.e-6  = m/s
-    if (bnkrte < 0.f) bnkrte = 0.f;
-    bnkrte *= m_chLen[i] * (m_chWtrDepth[i] * sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i])) *
-            m_chBnkBD[i] * m_dt * 1000.f; // m/s * m * m * g/cm^3 = 1000 kg = tons
+    bnkrte = m_chBnkErod[i] * (tbank - m_chBnkTc[i]) * 1.e-6; // cm^3/N/s * N/m^2 * 1.e-6  = m/s
+    if (bnkrte < 0.) bnkrte = 0.;
+    bnkrte *= m_chLen[i] * (m_chWtrDepth[i] * CalSqrt(1. + m_chSideSlope[i] * m_chSideSlope[i])) *
+            m_chBnkBD[i] * m_dt * 1000.; // m/s * m * m * g/cm^3 = 1000 kg = tons
     // Potential bed degradation rate in kg per day
-    degrte = m_chBedErod[i] * (tbed - m_chBedTc[i]) * 1.e-6f;
-    if (degrte < 0.f) degrte = 0.f;
-    degrte *= m_chLen[i] * m_chBtmWth[i] * m_chBedBD[i] * m_dt * 1000.f;
+    degrte = m_chBedErod[i] * (tbed - m_chBedTc[i]) * 1.e-6;
+    if (degrte < 0.) degrte = 0.;
+    degrte *= m_chLen[i] * m_chBtmWth[i] * m_chBedBD[i] * m_dt * 1000.;
 
     // Relative potential for bank/bed erosion
-    float bnkrt = 1.f;
-    if (bnkrte + degrte > 1.e-6f) {
+    FLTPT bnkrt = 1.;
+    if (bnkrte + degrte > 1.e-6) {
         bnkrt = bnkrte / (bnkrte + degrte);
     }
-    bnkrt = Min(1.f, bnkrt);
-    float bedrt = 1.f - bnkrt; ///< Relative potential for bed erosion
+    bnkrt = Min(1., bnkrt);
+    FLTPT bedrt = 1. - bnkrt; ///< Relative potential for bed erosion
 
     // Incoming sediment concentration
     cyin = sedin / qdin; // kg/m^3
 
     // Streampower for sediment calculated based on Bagnold (1977) concept
-    cych = m_sedTransEqCoef * pow(peakVel, m_sedTransEqExp) * 1000.f; // kg/m^3
+    cych = m_sedTransEqCoef * CalPow(peakVel, m_sedTransEqExp) * 1000.; // kg/m^3
 #ifdef PRINT_DEBUG
     cout << ", cyin: " << cyin << ", cych: " << cych << endl;
 #endif
     // Potential sediment Transport capacity, kg
     sedDepNet = qdin * (cych - cyin);
     if (sedDepNet <= UTIL_ZERO) {
-        sedDepNet = 0.f;
-        bnkrte = 0.f;
-        degrte = 0.f;
+        sedDepNet = 0.;
+        bnkrte = 0.;
+        degrte = 0.;
     } else {
         // First the deposited material will be degraded before channel bed or band erosion
         if (sedDepNet >= m_rchDep[i]) {
             // Effective erosion
-            float effbnkbed = sedDepNet - m_rchDep[i];
+            FLTPT effbnkbed = sedDepNet - m_rchDep[i];
             // Effective bank erosion
             bnkrte = Min(effbnkbed * bnkrt, bnkrte);
             bnkSand = bnkrte * m_chBnkSand[i];
@@ -596,75 +624,75 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
             sedDeg1Lag = m_rchDepLag[i];
             sedDeg1Gravel = m_rchDepGravel[i];
 
-            m_rchDep[i] = 0.f;
-            m_rchDepSand[i] = 0.f;
-            m_rchDepSilt[i] = 0.f;
-            m_rchDepClay[i] = 0.f;
-            m_rchDepSag[i] = 0.f;
-            m_rchDepLag[i] = 0.f;
-            m_rchDepGravel[i] = 0.f;
+            m_rchDep[i] = 0.;
+            m_rchDepSand[i] = 0.;
+            m_rchDepSilt[i] = 0.;
+            m_rchDepClay[i] = 0.;
+            m_rchDepSag[i] = 0.;
+            m_rchDepLag[i] = 0.;
+            m_rchDepGravel[i] = 0.;
         } else {
             // If sedDepNet < m_rchDep[i])
-            bnkrte = 0.f;
-            degrte = 0.f;
-            sedDegSand = 0.f;
-            sedDegSilt = 0.f;
-            sedDegClay = 0.f;
-            sedDegGravel = 0.f;
-            bnkSand = 0.f;
-            bnkSilt = 0.f;
-            bnkClay = 0.f;
-            bnkGravel = 0.f;
+            bnkrte = 0.;
+            degrte = 0.;
+            sedDegSand = 0.;
+            sedDegSilt = 0.;
+            sedDegClay = 0.;
+            sedDegGravel = 0.;
+            bnkSand = 0.;
+            bnkSilt = 0.;
+            bnkClay = 0.;
+            bnkGravel = 0.;
             m_rchDep[i] -= sedDepNet;
             sedDeg1 = sedDepNet;
             if (m_rchDepClay[i] >= sedDepNet) {
                 m_rchDepClay[i] -= sedDepNet;
                 sedDeg1Clay = sedDepNet;
-                sedDegRemain = 0.f;
+                sedDegRemain = 0.;
             } else {
                 sedDegRemain = sedDepNet - m_rchDepClay[i];
                 sedDeg1Clay = m_rchDepClay[i];
-                m_rchDepClay[i] = 0.f;
+                m_rchDepClay[i] = 0.;
                 if (m_rchDepSilt[i] >= sedDegRemain) {
                     m_rchDepSilt[i] -= sedDegRemain;
                     sedDeg1Silt = sedDegRemain;
-                    sedDegRemain = 0.f;
+                    sedDegRemain = 0.;
                 } else {
                     sedDegRemain -= m_rchDepSilt[i];
                     sedDeg1Silt = m_rchDepSilt[i];
-                    m_rchDepSilt[i] = 0.f;
+                    m_rchDepSilt[i] = 0.;
                     if (m_rchDepSag[i] >= sedDegRemain) {
                         m_rchDepSag[i] -= sedDegRemain;
                         sedDeg1Sag = sedDegRemain;
-                        sedDegRemain = 0.f;
+                        sedDegRemain = 0.;
                     } else {
                         sedDegRemain -= m_rchDepSag[i];
                         sedDeg1Sag = m_rchDepSag[i];
-                        m_rchDepSag[i] = 0.f;
+                        m_rchDepSag[i] = 0.;
                         if (m_rchDepSand[i] >= sedDegRemain) {
                             m_rchDepSand[i] -= sedDegRemain;
                             sedDeg1Sand = sedDegRemain;
-                            sedDegRemain = 0.f;
+                            sedDegRemain = 0.;
                         } else {
                             sedDegRemain -= m_rchDepSand[i];
                             sedDeg1Sand = m_rchDepSand[i];
-                            m_rchDepSand[i] = 0.f;
+                            m_rchDepSand[i] = 0.;
                             if (m_rchDepLag[i] >= sedDegRemain) {
                                 m_rchDepLag[i] -= sedDegRemain;
                                 sedDeg1Lag = sedDegRemain;
-                                sedDegRemain = 0.f;
+                                sedDegRemain = 0.;
                             } else {
                                 sedDegRemain -= m_rchDepLag[i];
                                 sedDeg1Lag = m_rchDepLag[i];
-                                m_rchDepLag[i] = 0.f;
+                                m_rchDepLag[i] = 0.;
                                 if (m_rchDepGravel[i] >= sedDegRemain) {
                                     m_rchDepGravel[i] -= sedDegRemain;
                                     sedDeg1Gravel = sedDegRemain;
-                                    sedDegRemain = 0.f;
+                                    sedDegRemain = 0.;
                                 } else {
                                     sedDegRemain -= m_rchDepGravel[i];
                                     sedDeg1Gravel = m_rchDepGravel[i];
-                                    m_rchDepGravel[i] = 0.f;
+                                    m_rchDepGravel[i] = 0.;
                                 } /* m_rchDepGravel */
                             }     /* m_rchDepLag */
                         }         /* m_rchDepSand */
@@ -675,13 +703,13 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     }                             /* sedDepNet > UTIL_ZERO */
 
     if (m_rchDep[i] < UTIL_ZERO) {
-        m_rchDep[i] = 0.f;
-        m_rchDepSand[i] = 0.f;
-        m_rchDepSilt[i] = 0.f;
-        m_rchDepClay[i] = 0.f;
-        m_rchDepSag[i] = 0.f;
-        m_rchDepLag[i] = 0.f;
-        m_rchDepGravel[i] = 0.f;
+        m_rchDep[i] = 0.;
+        m_rchDepSand[i] = 0.;
+        m_rchDepSilt[i] = 0.;
+        m_rchDepClay[i] = 0.;
+        m_rchDepSag[i] = 0.;
+        m_rchDepLag[i] = 0.;
+        m_rchDepGravel[i] = 0.;
     }
 
     // Fall velocity based on equation 1.36 from SWRRB mannual
@@ -693,37 +721,37 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     //vlag = 411.0 * ((0.50)**2.) / (3600.)  ==> 0.02854167f
 
     // Deposition calculated based on Einsten equation
-    float x = 0.f;
+    FLTPT x = 0.;
 
     /// Gravel deposition
-    x = 1.055f * m_chLen[i] * 0.45666667f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepGravel = gravelin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 0.45666667 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepGravel = gravelin * Min(1. - CalExp(-x), 1.);
 
     /// Sand deposition
-    x = 1.055f * m_chLen[i] * 0.00456667f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepSand = sandin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 0.00456667 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepSand = sandin * Min(1. - CalExp(-x), 1.);
 
     /// Silt deposition
-    x = 1.055f * m_chLen[i] * 1.14166667e-05f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepSilt = siltin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 1.14166667e-05 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepSilt = siltin * Min(1. - CalExp(-x), 1.);
 
     /// Clay deposition
-    x = 1.055f * m_chLen[i] * 4.56666667e-07f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepClay = clayin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 4.56666667e-07 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepClay = clayin * Min(1. - CalExp(-x), 1.);
 
     /// Small aggregate deposition
-    x = 1.055f * m_chLen[i] * 0.00010275f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepSag = sagin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 0.00010275 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepSag = sagin * Min(1. - CalExp(-x), 1.);
 
     /// Large aggregate deposition
-    x = 1.055f * m_chLen[i] * 0.02854167f / (peakVel * m_chWtrDepth[i]);
-    if (x > 20.f) x = 20.f;
-    sedDepLag = lagin * Min(1.f - exp(-x), 1.f);
+    x = 1.055 * m_chLen[i] * 0.02854167 / (peakVel * m_chWtrDepth[i]);
+    if (x > 20.) x = 20.;
+    sedDepLag = lagin * Min(1. - CalExp(-x), 1.);
 
     sedDep = sedDepSand + sedDepSilt + sedDepClay + sedDepSag + sedDepLag + sedDepGravel;
 
@@ -734,8 +762,8 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
 
     // Remaining is deposited in the channel
     m_rchDep[i] += sedDep - (sedDepSilt + sedDepClay) * fpratio;
-    m_rchDepSilt[i] += sedDepSilt * (1.f - fpratio);
-    m_rchDepClay[i] += sedDepClay * (1.f - fpratio);
+    m_rchDepSilt[i] += sedDepSilt * (1. - fpratio);
+    m_rchDepClay[i] += sedDepClay * (1. - fpratio);
     m_rchDepSand[i] += sedDepSand;
     m_rchDepSag[i] += sedDepSag;
     m_rchDepLag[i] += sedDepLag;
@@ -750,19 +778,19 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     gravelin += sedDegGravel + bnkGravel + sedDeg1Gravel - sedDepGravel;
 
     if (sedin < UTIL_ZERO) {
-        sedin = 0.f;
-        sandin = 0.f;
-        siltin = 0.f;
-        clayin = 0.f;
-        sagin = 0.f;
-        lagin = 0.f;
-        gravelin = 0.f;
+        sedin = 0.;
+        sandin = 0.;
+        siltin = 0.;
+        clayin = 0.;
+        sagin = 0.;
+        lagin = 0.;
+        gravelin = 0.;
     }
 
     // Routing out sediment (kg)
-    float outfract = m_rteWtrOut[i] / qdin;
+    FLTPT outfract = m_rteWtrOut[i] / qdin;
     m_sedRchOut[i] = sedin * outfract;                    // sedrch in SWAT
-    m_sedConcRchOut[i] = m_sedRchOut[i] / m_rteWtrOut[i]; /// kg/m^3, i.e., g/L
+    m_sedConcRchOut[i] = m_sedRchOut[i] / m_rteWtrOut[i]; // kg/m^3, i.e., g/L
     m_sandRchOut[i] = sandin * outfract;                  // rch_san in SWAT
     m_siltRchOut[i] = siltin * outfract;                  // rch_sil in SWAT
     m_clayRchOut[i] = clayin * outfract;                  // rch_cla in SWAT
@@ -771,14 +799,14 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     m_gravelRchOut[i] = gravelin * outfract;              // rch_gra in SWAT
 
     if (m_sedRchOut[i] < UTIL_ZERO) {
-        m_sedRchOut[i] = 0.f;
-        m_sedConcRchOut[i] = 0.f;
-        m_sandRchOut[i] = 0.f;
-        m_siltRchOut[i] = 0.f;
-        m_clayRchOut[i] = 0.f;
-        m_sagRchOut[i] = 0.f;
-        m_lagRchOut[i] = 0.f;
-        m_gravelRchOut[i] = 0.f;
+        m_sedRchOut[i] = 0.;
+        m_sedConcRchOut[i] = 0.;
+        m_sandRchOut[i] = 0.;
+        m_siltRchOut[i] = 0.;
+        m_clayRchOut[i] = 0.;
+        m_sagRchOut[i] = 0.;
+        m_lagRchOut[i] = 0.;
+        m_gravelRchOut[i] = 0.;
     }
 
     // Channel storage (kg)
@@ -790,13 +818,13 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     m_lagSto[i] = lagin - m_lagRchOut[i];
     m_gravelSto[i] = gravelin - m_gravelRchOut[i];
     if (m_sedSto[i] < UTIL_ZERO) {
-        m_sedSto[i] = 0.f;
-        m_sandSto[i] = 0.f;
-        m_siltSto[i] = 0.f;
-        m_claySto[i] = 0.f;
-        m_sagSto[i] = 0.f;
-        m_lagSto[i] = 0.f;
-        m_gravelSto[i] = 0.f;
+        m_sedSto[i] = 0.;
+        m_sandSto[i] = 0.;
+        m_siltSto[i] = 0.;
+        m_claySto[i] = 0.;
+        m_sagSto[i] = 0.;
+        m_lagSto[i] = 0.;
+        m_gravelSto[i] = 0.;
     }
 
     // Bank erosion
@@ -807,14 +835,14 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     if (m_rchDep[i] >= m_preRchDep[i]) {
         m_dltRchDep[i] = m_rchDep[i] - m_preRchDep[i];
     } else {
-        m_dltRchDep[i] = 0.f;
+        m_dltRchDep[i] = 0.;
     }
     m_preRchDep[i] = m_rchDep[i];
     // Floodplain deposition (only new deposits during the current timestep)
     if (m_fldplnDep[i] >= m_preFldplnDep[i]) {
         m_dltFldplnDep[i] = m_fldplnDep[i] - m_preFldplnDep[i];
     } else {
-        m_dltFldplnDep[i] = 0.f;
+        m_dltFldplnDep[i] = 0.;
     }
     m_preFldplnDep[i] = m_fldplnDep[i];
 
@@ -825,15 +853,15 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
 
 void SEDR_SBAGNOLD::ChannelDowncuttingWidening(const int i) {
     if (!m_vcd) return;
-    float depdeg = m_chDepth[i] - m_initChDepth[i];
+    FLTPT depdeg = m_chDepth[i] - m_initChDepth[i];
     if (depdeg < m_initChSlope[i] * m_initChLen[i]) {
-        if (m_chSto[i] + m_rteWtrOut[i] > 1.4e6f) {
+        if (m_chSto[i] + m_rteWtrOut[i] > 1.4e6) {
             /// downcutting depth, m
-            float cutdepth = 358.6f * m_chWtrDepth[i] * m_chSlope[i] * m_chBnkCov[i];
+            FLTPT cutdepth = 358.6 * m_chWtrDepth[i] * m_chSlope[i] * m_chBnkCov[i];
             m_chDepth[i] += cutdepth;
             m_chWth[i] = m_chDepth[i] * m_chWthDepthRt[i];
             m_chSlope[i] -= cutdepth / m_chLen[i];
-            m_chSlope[i] = Max(0.0001f, m_chSlope[i]);
+            m_chSlope[i] = Max(0.0001, m_chSlope[i]);
             // Update channel bottom width
             m_chBtmWth[i] = ChannleBottomWidth(m_chWth[i], m_chSideSlope[i], m_chDepth[i]);
         }

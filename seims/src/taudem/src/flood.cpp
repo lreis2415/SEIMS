@@ -55,7 +55,6 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
 
     MPI_Init(NULL, NULL);
     {
-
         int rank, size;
         MPI_Comm_rank(MCW, &rank);
         MPI_Comm_size(MCW, &size);

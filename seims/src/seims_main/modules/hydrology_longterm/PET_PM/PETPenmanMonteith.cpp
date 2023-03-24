@@ -25,76 +25,88 @@ PETPenmanMonteith::~PETPenmanMonteith() {
 }
 
 bool PETPenmanMonteith::CheckInputData() {
-    CHECK_POSITIVE(MID_PET_PM, m_date);
-    CHECK_POSITIVE(MID_PET_PM, m_nCells);
-    CHECK_POINTER(MID_PET_PM, m_canHgt);
-    CHECK_POINTER(MID_PET_PM, m_dem);
-    CHECK_POINTER(MID_PET_PM, m_igro);
-    CHECK_POINTER(MID_PET_PM, m_lai);
-    CHECK_POINTER(MID_PET_PM, m_alb);
-    CHECK_POINTER(MID_PET_PM, m_rhd);
-    CHECK_POINTER(MID_PET_PM, m_sr);
-    CHECK_POINTER(MID_PET_PM, m_maxTemp);
-    CHECK_POINTER(MID_PET_PM, m_meanTemp);
-    CHECK_POINTER(MID_PET_PM, m_minTemp);
-    CHECK_POINTER(MID_PET_PM, m_cellLat);
-    CHECK_POINTER(MID_PET_PM, m_ws);
-    CHECK_POINTER(MID_PET_PM, m_gsi);
-    CHECK_POINTER(MID_PET_PM, m_minTemp);
-    CHECK_POINTER(MID_PET_PM, m_vpdfr);
-    CHECK_POINTER(MID_PET_PM, m_frgmax);
+    CHECK_POSITIVE(M_PET_PM[0], m_date);
+    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
+    CHECK_POINTER(M_PET_PM[0], m_canHgt);
+    CHECK_POINTER(M_PET_PM[0], m_dem);
+    CHECK_POINTER(M_PET_PM[0], m_igro);
+    CHECK_POINTER(M_PET_PM[0], m_lai);
+    CHECK_POINTER(M_PET_PM[0], m_alb);
+    CHECK_POINTER(M_PET_PM[0], m_rhd);
+    CHECK_POINTER(M_PET_PM[0], m_sr);
+    CHECK_POINTER(M_PET_PM[0], m_maxTemp);
+    CHECK_POINTER(M_PET_PM[0], m_meanTemp);
+    CHECK_POINTER(M_PET_PM[0], m_minTemp);
+    CHECK_POINTER(M_PET_PM[0], m_cellLat);
+    CHECK_POINTER(M_PET_PM[0], m_ws);
+    CHECK_POINTER(M_PET_PM[0], m_gsi);
+    CHECK_POINTER(M_PET_PM[0], m_minTemp);
+    CHECK_POINTER(M_PET_PM[0], m_vpdfr);
+    CHECK_POINTER(M_PET_PM[0], m_frgmax);
     return true;
 }
 
-void PETPenmanMonteith::SetValue(const char* key, const float value) {
+void PETPenmanMonteith::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, VAR_CO2)) m_co2Conc = value;
-    else if (StringMatch(sk, VAR_T_SNOW)) m_snowTemp = value;
-    else if (StringMatch(sk, VAR_K_PET)) m_petFactor = value;
+    if (StringMatch(sk, VAR_CO2[0])) m_co2Conc = value;
+    else if (StringMatch(sk, VAR_T_SNOW[0])) m_snowTemp = value;
+    else if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else {
-        throw ModelException(MID_PET_PM, "SetValue", "Parameter " + sk +
+        throw ModelException(M_PET_PM[0], "SetValue", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
 
-void PETPenmanMonteith::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(MID_PET_PM, key, n, m_nCells);
+void PETPenmanMonteith::Set1DData(const char* key, const int n, FLTPT* value) {
+    CheckInputSize(M_PET_PM[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
-    else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;
-    else if (StringMatch(sk, VAR_TMIN)) m_minTemp = value;
-    else if (StringMatch(sk, VAR_CELL_LAT)) m_cellLat = value;
+    if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
+    else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
+    else if (StringMatch(sk, VAR_TMIN[0])) m_minTemp = value;
+    else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
     else if (StringMatch(sk, DataType_RelativeAirMoisture)) m_rhd = value;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_sr = value;
     else if (StringMatch(sk, DataType_WindSpeed)) m_ws = value;
-    else if (StringMatch(sk, VAR_DEM)) m_dem = value;
-    else if (StringMatch(sk, VAR_CHT)) m_canHgt = value;
-    else if (StringMatch(sk, VAR_ALBDAY)) m_alb = value;
-    else if (StringMatch(sk, VAR_LAIDAY)) m_lai = value;
-    else if (StringMatch(sk, VAR_PHUTOT)) m_phuAnn = value;
-    else if (StringMatch(sk, VAR_IGRO)) m_igro = value;
-    else if (StringMatch(sk, VAR_GSI)) m_gsi = value;
-    else if (StringMatch(sk, VAR_VPDFR)) m_vpdfr = value;
-    else if (StringMatch(sk, VAR_FRGMAX)) m_frgmax = value;
+    else if (StringMatch(sk, VAR_DEM[0])) m_dem = value;
+    else if (StringMatch(sk, VAR_CHT[0])) m_canHgt = value;
+    else if (StringMatch(sk, VAR_ALBDAY[0])) m_alb = value;
+    else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = value;
+    else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
+    else if (StringMatch(sk, VAR_GSI[0])) m_gsi = value;
+    else if (StringMatch(sk, VAR_VPDFR[0])) m_vpdfr = value;
+    else if (StringMatch(sk, VAR_FRGMAX[0])) m_frgmax = value;
     else {
-        throw ModelException(MID_PET_PM, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PET_PM[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
+    }
+}
+
+void PETPenmanMonteith::Set1DData(const char* key, const int n, int* value) {
+    CheckInputSize(M_PET_PM[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_IGRO[0])) m_igro = value;
+    else {
+        throw ModelException(M_PET_PM[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void PETPenmanMonteith::InitialOutputs() {
-    CHECK_POSITIVE(MID_PET_PM, m_nCells);
-    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
-    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
-    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.f);
-    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
-    if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.f);
-    if (nullptr == m_vpd2) m_vpd2 = new(nothrow) float[m_nCells];
+    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
+    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.);
+    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.);
+    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.);
+    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.);
+    if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.);
+    if (nullptr == m_vpd2) Initialize1DArray(m_nCells, m_vpd2, 0.);
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        if (m_frgmax[i] > 0.f && m_vpdfr[i] > 0.f) {
-            m_vpd2[i] = (1.f - m_frgmax[i]) / (m_vpdfr[i] - 1.f);
-        } else {
-            m_vpd2[i] = 0.f;
+        if (m_frgmax[i] > 0. && m_vpdfr[i] > 0.) {
+            m_vpd2[i] = (1. - m_frgmax[i]) / (m_vpdfr[i] - 1.);
+        }
+        else {
+            m_vpd2[i] = 0.;
         }
     }
 }
@@ -110,66 +122,66 @@ int PETPenmanMonteith::Execute() {
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
             phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if*/
-        if (m_dayOfYear == 1) m_phuBase[j] = 0.f;
-        if (m_meanTemp[j] > 0.f && m_phuAnn[j] > 0.01f) {
+        if (m_dayOfYear == 1) m_phuBase[j] = 0.;
+        if (m_meanTemp[j] > 0. && m_phuAnn[j] > 0.01) {
             m_phuBase[j] += m_meanTemp[j] / m_phuAnn[j];
         }
 
         //////////////////////////////////////////////////////////////////////////
         //               compute net radiation
         //net short-wave radiation for PET (from swat)
-        float raShortWave = m_sr[j] * (1.f - 0.23f);
+        FLTPT raShortWave = m_sr[j] * (1. - 0.23);
         if (m_meanTemp[j] < m_snowTemp) {
             //if the mean t < snow t, consider the snow depth is larger than 0.5mm.
-            raShortWave = m_sr[j] * (1.f - 0.8f);
+            raShortWave = m_sr[j] * (1. - 0.8);
         }
 
         //calculate the max solar radiation
-        float srMax = 0.f;
+        FLTPT srMax = 0.f;
         MaxSolarRadiation(m_dayOfYear, m_cellLat[j], m_dayLen[j], srMax);
         //calculate net long-wave radiation
         //net emissivity  equation 2.2.20 in SWAT manual
-        float satVaporPressure = SaturationVaporPressure(m_meanTemp[j]); //kPa
-        float actualVaporPressure = 0.f;
+        FLTPT satVaporPressure = SaturationVaporPressure(m_meanTemp[j]); //kPa
+        FLTPT actualVaporPressure = 0.;
         if (m_rhd[j] > 1) {
             /// IF percent unit.
-            actualVaporPressure = m_rhd[j] * satVaporPressure * 0.01f;
+            actualVaporPressure = m_rhd[j] * satVaporPressure * 0.01;
         } else {
             actualVaporPressure = m_rhd[j] * satVaporPressure;
         }
         m_vpd[j] = satVaporPressure - actualVaporPressure;
-        float rbo = -(0.34f - 0.139f * sqrt(actualVaporPressure)); //P37 1:1.2.22
+        FLTPT rbo = -(0.34 - 0.139 * CalSqrt(actualVaporPressure)); //P37 1:1.2.22
         //cloud cover factor equation 2.2.19
-        float rto = 0.0f;
-        if (srMax >= 1.0e-4f) {
-            rto = 0.9f * (m_sr[j] / srMax) + 0.1f;
+        FLTPT rto = 0.;
+        if (srMax >= 1.0e-4) {
+            rto = 0.9 * (m_sr[j] / srMax) + 0.1;
         }
         //net long-wave radiation equation 2.2.21
-        float tk = m_meanTemp[j] + 273.15f;
-        float raLongWave = rbo * rto * 4.9e-9f * pow(tk, 4.f);
+        FLTPT tk = m_meanTemp[j] + 273.15;
+        FLTPT raLongWave = rbo * rto * 4.9e-9 * CalPow(tk, 4.);
         // calculate net radiation
-        float raNet = raShortWave + raLongWave;
+        FLTPT raNet = raShortWave + raLongWave;
 
         //////////////////////////////////////////////////////////////////////////
         //calculate the slope of the saturation vapor pressure curve
-        float dlt = 4098.f * satVaporPressure / pow(m_meanTemp[j] + 237.3f, 2.f);
+        FLTPT dlt = 4098. * satVaporPressure / CalPow(m_meanTemp[j] + 237.3, 2.);
 
         //calculate latent heat of vaporization(MJ/kg, from swat)
-        float latentHeat = 2.501f - 0.002361f * m_meanTemp[j];
+        FLTPT latentHeat = 2.501 - 0.002361 * m_meanTemp[j];
 
         //calculate mean barometric pressure(kPa)
-        float pb = 101.3f - m_dem[j] * (0.01152f - 0.544e-6f * m_dem[j]); //p53 1:2.3.8 P
+        FLTPT pb = 101.3 - m_dem[j] * (0.01152 - 0.544e-6 * m_dem[j]); //p53 1:2.3.8 P
         //psychrometric constant(kPa/deg C)
-        float gma = 1.013e-3f * pb / (0.622f * latentHeat); //p53 1:2.3.7
+        FLTPT gma = 1.013e-3 * pb / (0.622 * latentHeat); //p53 1:2.3.7
 
-        float rho = 1710.f - 6.85f * m_meanTemp[j]; //p127 2:2.2.19
+        FLTPT rho = 1710. - 6.85 * m_meanTemp[j]; //p127 2:2.2.19
         //aerodynamic resistance to sensible heat and vapor transfer(s/m)
-        float rv = 114.f / (m_ws[j] * pow(170.f * 0.001f, 0.2f)); // P127 2:2.2.20  ??the wind speed need modified?
+        FLTPT rv = 114. / (m_ws[j] * CalPow(170. * 0.001, 0.2)); // P127 2:2.2.20  ??the wind speed need modified?
         //canopy resistance(s/m), 1. / 330. = 0.0030303030303030303
-        float rc = 49.f / (1.4f - 0.4f * m_co2Conc * 0.0030303030303030303f); //P128 2:2.2.22
-        float petValue = (dlt * raNet + gma * rho * m_vpd[j] / rv) /
-                (latentHeat * (dlt + gma * (1.f + rc / rv))); //P122 2:2.2.2
-        petValue = m_petFactor * Max(0.f, petValue);
+        FLTPT rc = 49. / (1.4 - 0.4 * m_co2Conc * 0.0030303030303030303); //P128 2:2.2.22
+        FLTPT petValue = (dlt * raNet + gma * rho * m_vpd[j] / rv) /
+                (latentHeat * (dlt + gma * (1. + rc / rv))); //P122 2:2.2.2
+        petValue = m_petFactor * Max(0., petValue);
         m_pet[j] = petValue;
         //*********************************************************
         //The albedo would be obtained from plant growth module. But now it is assumed to be a constant.
@@ -179,70 +191,70 @@ int PETPenmanMonteith::Execute() {
         //// m_albedo is calculated by PG_EPIC module. By LJ, 2016
         //*********************************************************
         // calculate net short-wave radiation for max plant PET
-        float raShortWavePlant = m_sr[j] * (1.0f - m_alb[j]);
-        float raNetPlant = raShortWavePlant + raLongWave;
+        FLTPT raShortWavePlant = m_sr[j] * (1. - m_alb[j]);
+        FLTPT raNetPlant = raShortWavePlant + raLongWave;
 
-        float epMax = 0.f;
+        FLTPT epMax = 0.;
         if (m_igro[j] > 0) {
             //land cover growing
             //determine wind speed and height of wind speed measurement
             //adjust to 100 cm (1 m) above canopy if necessary
-            float zz = 0.f; //height at which wind speed is determined(cm)
-            if (m_canHgt[j] <= 1.f) {
-                zz = 170.f;
+            FLTPT zz = 0.; //height at which wind speed is determined(cm)
+            if (m_canHgt[j] <= 1.) {
+                zz = 170.;
             } else {
-                zz = m_canHgt[j] * 100.f + 100.f;
+                zz = m_canHgt[j] * 100. + 100.;
             }
             //wind speed at height zz(m/s)
-            float uzz = m_ws[j] * pow(zz * 0.001f, 0.2f);
+            FLTPT uzz = m_ws[j] * CalPow(zz * 0.001, 0.2);
 
             //calculate canopy height in cm
-            float chz = 0.f;
-            if (m_canHgt[j] < 0.01f) {
-                chz = 1.0f;
+            FLTPT chz = 0.;
+            if (m_canHgt[j] < 0.01) {
+                chz = 1.;
             } else {
-                chz = m_canHgt[j] * 100.f;
+                chz = m_canHgt[j] * 100.;
             }
 
             //calculate roughness length for momentum transfer
-            float zom = 0.f;
-            if (chz <= 200.f) {
-                zom = 0.123f * chz;
+            FLTPT zom = 0.;
+            if (chz <= 200.) {
+                zom = 0.123 * chz;
             } else {
-                zom = 0.058f * pow(chz, 1.19f);
+                zom = 0.058 * CalPow(chz, 1.19);
             }
 
             //calculate roughness length for vapor transfer
-            float zov = 0.1f * zom;
+            FLTPT zov = 0.1 * zom;
 
             //calculate zero-plane displacement of wind profile
-            float d = 0.667f * chz;
+            FLTPT d = 0.667 * chz;
 
             //calculate aerodynamic resistance
-            rv = log((zz - d) / zom) * log((zz - d) / zov);
-            rv /= pow(0.41f, 2.f) * uzz;
+            rv = CalLn((zz - d) / zom) * CalLn((zz - d) / zov);
+            rv /= CalPow(0.41, 2.) * uzz;
 
             //adjust stomatal conductivity for low vapor pressure
             //this adjustment will lower maximum plant ET for plants
             //sensitive to very low vapor pressure
-            float xx = m_vpd[j] - 1.f; //difference between vpd and vpthreshold
+            FLTPT xx = m_vpd[j] - 1.; //difference between vpd and vpthreshold
             //amount of vapor pressure deficit over threshold value
-            float fvpd = 1.f;
-            if (xx > 0.f) {
-                fvpd = Max(0.1f, 1.f - m_vpd2[j] * xx);
+            FLTPT fvpd = 1.;
+            if (xx > 0.) {
+                fvpd = Max(0.1, 1. - m_vpd2[j] * xx);
             }
-            float gsi_adj = m_gsi[j] * fvpd;
+            FLTPT gsi_adj = m_gsi[j] * fvpd;
 
-            if (gsi_adj > 1.e-6f) {
+            if (gsi_adj > 1.e-6) {
                 //calculate canopy resistance
                 rc = 1.f / gsi_adj; //single leaf resistance
-                rc /= (0.5f * (m_lai[j] + 0.01f) * (1.4f - 0.4f * m_co2Conc * 0.0030303030303030303f));
+                rc /= (0.5 * (m_lai[j] + 0.01) * (1.4 - 0.4 * m_co2Conc * 0.0030303030303030303));
                 //calculate maximum plant ET
-                epMax = (dlt * raNetPlant + gma * rho * m_vpd[j] / rv) / (latentHeat * (dlt + gma * (1.f + rc / rv)));
-                epMax = Max(0.f, epMax);
+                epMax = (dlt * raNetPlant + gma * rho * m_vpd[j] / rv) / (latentHeat * (dlt + gma * (1. + rc / rv)));
+                epMax = Max(0., epMax);
                 epMax = Min(epMax, petValue);
             } else {
-                epMax = 0.f;
+                epMax = 0.;
             }
         }
         m_maxPltET[j] = epMax;
@@ -250,16 +262,17 @@ int PETPenmanMonteith::Execute() {
     return 0;
 }
 
-void PETPenmanMonteith::Get1DData(const char* key, int* n, float** data) {
+void PETPenmanMonteith::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_PET)) *data = m_pet;
-    else if (StringMatch(sk, VAR_PPT)) *data = m_maxPltET;
-    else if (StringMatch(sk, VAR_VPD)) *data = m_vpd;
-    else if (StringMatch(sk, VAR_DAYLEN)) *data = m_dayLen;
-    else if (StringMatch(sk, VAR_PHUBASE)) *data = m_phuBase;
+    if (StringMatch(sk, VAR_PET[0])) *data = m_pet;
+    else if (StringMatch(sk, VAR_PPT[0])) *data = m_maxPltET;
+    else if (StringMatch(sk, VAR_VPD[0])) *data = m_vpd;
+    else if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
+    else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else {
-        throw ModelException(MID_PET_PM, "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PET_PM[0], "Get1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }

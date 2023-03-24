@@ -197,30 +197,30 @@ class ImportHydroClimateSites(object):
         # print('Meteorology sites table was generated.')
 
     @staticmethod
-    def workflow(cfg, main_db, clim_db):
+    def workflow(cfg):
         """Workflow"""
         # 1. Find meteorology and precipitation sites in study area
         thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]
         type_list = [DataType.m, DataType.p]
 
         # The entire basin, used for OpenMP version
-        ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.bsn,
+        ImportHydroClimateSites.find_sites(cfg.maindb, cfg.climate_db, cfg.vecs.bsn,
                                            FieldNames.basin, thiessen_file_list,
                                            cfg.thiessen_field, type_list)
         # The subbasins, used for MPI&OpenMP version
-        ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.subbsn,
+        ImportHydroClimateSites.find_sites(cfg.maindb, cfg.climate_db, cfg.vecs.subbsn,
                                            FieldNames.subbasin_id, thiessen_file_list,
                                            cfg.thiessen_field, type_list)
 
         # 2. Import geographic information of each sites to Hydro-Climate database
-        c_list = clim_db.collection_names()
+        c_list = cfg.climatedb.list_collection_names()
         tables = [DBTableNames.sites, DBTableNames.var_desc]
         for tb in tables:
             if not StringClass.string_in_list(tb, c_list):
-                clim_db.create_collection(tb)
-        ImportHydroClimateSites.variable_table(clim_db, cfg.hydro_climate_vars)
-        site_m_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.Meteo_sites, DataType.m)
-        site_p_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.prec_sites, DataType.p)
+                cfg.climatedb.create_collection(tb)
+        ImportHydroClimateSites.variable_table(cfg.climatedb, cfg.hydro_climate_vars)
+        site_m_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.Meteo_sites, DataType.m)
+        site_p_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.prec_sites, DataType.p)
         # print(site_m_loc, site_p_loc)
         return site_m_loc, site_p_loc
 
@@ -228,16 +228,10 @@ class ImportHydroClimateSites(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    main_db = conn[seims_cfg.spatial_db]
-    hydroclim_db = conn[seims_cfg.climate_db]
 
-    ImportHydroClimateSites.workflow(seims_cfg, main_db, hydroclim_db)
-
-    client.close()
+    ImportHydroClimateSites.workflow(seims_cfg)
 
 
 if __name__ == "__main__":

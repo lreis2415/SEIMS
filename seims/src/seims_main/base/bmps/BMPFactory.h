@@ -11,7 +11,7 @@
 #define SEIMS_BMP_FACTORY_H
 
 #include "db_mongoc.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 #include "seims.h"
 
@@ -35,7 +35,8 @@ public:
     /// Constructor
     BMPFactory(int scenario_id, int bmp_id, int sub_scenario, int bmp_type,
                int bmp_priority, vector<string>& distribution, const string& collection,
-               const string& location);
+               const string& location, bool effectivenessChangeable = false,
+               time_t changeFrequency = -1, int variableTimes = -1);
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -44,14 +45,14 @@ public:
      * \brief Set raster data if needed
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */
-    virtual void setRasterData(map<string, FloatRaster *>& sceneRsMap) {
+    virtual void setRasterData(map<string, IntRaster *>& sceneRsMap) {
     };
 
     /*!
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    virtual float* GetRasterData() { return nullptr; }
+    virtual int* GetRasterData() { return nullptr; }
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
@@ -70,6 +71,10 @@ public:
     /// Output
     virtual void Dump(std::ostream* fs) = 0;
 
+    bool IsEffectivenessChangeable(){ return m_effectivenessChangeable; }
+    time_t GetChangeFrequency(){ return m_changeFrequency; }
+    int GetChangeTimes(){ return m_changeTimes; }
+
 protected:
     const int m_scenarioId; ///< Scenario ID
     const int m_bmpId; ///< BMP ID
@@ -82,6 +87,9 @@ protected:
     vector<string> m_distribution;
     const string m_bmpCollection; ///< Collection name
     const string m_location; ///< Define where the BMP will be applied
+    const bool m_effectivenessChangeable;
+    const time_t m_changeFrequency;
+    const int m_changeTimes;
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

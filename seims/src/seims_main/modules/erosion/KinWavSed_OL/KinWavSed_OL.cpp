@@ -1,7 +1,7 @@
 #include "KinWavSed_OL.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_nLayers(-1),
                                    m_routingLayers(NULL),
@@ -12,7 +12,6 @@ KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NOD
                                    m_Sed_kg(NULL), m_SedToChannel(NULL),
                                    m_ManningN(NULL), m_whtoCh(NULL), m_USLE_C(NULL), m_Ccoe(NODATA_VALUE), m_WH(NULL),
                                    m_streamLink(NULL) {
-
 }
 
 KinWavSed_OL::~KinWavSed_OL(void) {
@@ -32,15 +31,15 @@ KinWavSed_OL::~KinWavSed_OL(void) {
 void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
     *n = m_nCells;
     string s(key);
-    if (StringMatch(s, VAR_OL_DET)) {
+    if (StringMatch(s, VAR_OL_DET[0])) {
         *data = m_DETOverland;
-    } else if (StringMatch(s, VAR_SED_DEP)) {
+    } else if (StringMatch(s, VAR_SED_DEP[0])) {
         *data = m_SedDep;
-    } else if (StringMatch(s, VAR_SED_FLOW)) {
+    } else if (StringMatch(s, VAR_SED_FLOW[0])) {
         *data = m_Sed_kg;
-    } else if (StringMatch(s, VAR_SED_FLUX)) {
+    } else if (StringMatch(s, VAR_SED_FLUX[0])) {
         *data = m_Qsn;
-    } else if (StringMatch(s, VAR_SED_TO_CH)) {
+    } else if (StringMatch(s, VAR_SED_TO_CH[0])) {
         *data = m_SedToChannel;
     }
         //else if(StringMatch(s,"TestV"))
@@ -52,7 +51,7 @@ void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
         //	*data = m_QV;//m_tsetv;
         //}
     else {
-        throw ModelException(MID_KINWAVSED_OL, "Get1DData",
+        throw ModelException(M_KINWAVSED_OL[0], "Get1DData",
                              "Result " + s + " does not exist in current module. Please contact the module developer.");
     }
 
@@ -63,21 +62,21 @@ void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
 
     CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_SLOPE)) { m_Slope = data; }
-    else if (StringMatch(s, VAR_MANNING)) { m_ManningN = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK)) { m_streamLink = data; }
-    else if (StringMatch(s, VAR_USLE_K)) { m_USLE_K = data; }
-    else if (StringMatch(s, VAR_USLE_C)) { m_USLE_C = data; }
-    else if (StringMatch(s, VAR_CHWIDTH)) {
+    if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
+    else if (StringMatch(s, VAR_MANNING[0])) { m_ManningN = data; }
+    else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
+    else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
+    else if (StringMatch(s, VAR_USLE_C[0])) { m_USLE_C = data; }
+    else if (StringMatch(s, VAR_CHWIDTH[0])) {
         m_chWidth = data;
         //else if(StringMatch(s,"D_HTOCH"))		m_whtoCh = data;
-    } else if (StringMatch(s, VAR_SURU)) { m_WH = data; }
+    } else if (StringMatch(s, VAR_SURU[0])) { m_WH = data; }
     else if (StringMatch(s, "D_QOverland")) { m_Qkin = data; }
     else if (StringMatch(s, "D_DETSplash")) { m_DETSplash = data; }
     else if (StringMatch(s, "D_FlowWidth")) { m_FlowWidth = data; }
     else {
-        throw ModelException(MID_KINWAVSED_OL, "Set1DData", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_KINWAVSED_OL[0], "Set1DData", "Parameter " + s +
+                             " does not exist.");
     }
 }
 
@@ -85,60 +84,60 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_routingLayers = data;
         m_nLayers = nrows;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
-        throw ModelException(MID_KINWAVSED_OL, "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+        throw ModelException(M_KINWAVSED_OL[0], "Set2DData", "Parameter " + sk
+                             + " does not exist.");
     }
 }
 
 void KinWavSed_OL::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, Tag_CellWidth)) { m_CellWidth = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO1)) { m_eco1 = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO2)) { m_eco2 = data; }
-    else if (StringMatch(s, VAR_OL_SED_CCOE)) { m_Ccoe = data; }
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWidth = data; }
+    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO1[0])) { m_eco1 = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO2[0])) { m_eco2 = data; }
+    else if (StringMatch(s, VAR_OL_SED_CCOE[0])) { m_Ccoe = data; }
     else {
-        throw ModelException(MID_KINWAVSED_OL, "SetValue", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_KINWAVSED_OL[0], "SetValue", "Parameter " + s +
+                             " does not exist in current module.");
     }
 }
 
 bool KinWavSed_OL::CheckInputData() {
     if (m_routingLayers == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter: routingLayers has not been set.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter: routingLayers has not been set.");
     }
     if (m_flowInIndex == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter: flow in index has not been set.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter: flow in index has not been set.");
     }
     if (m_date < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the time.");
         return false;
     }
     if (m_CellWidth <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The cell width can not be less than zero.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The cell width can not be less than zero.");
         return false;
     }
     if (m_nCells <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The cell number can not be less than zero.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The cell number can not be less than zero.");
         return false;
     }
     if (m_TimeStep < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the time step.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the time step.");
         return false;
     }
     if (m_eco1 < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the calibration coefficient 1.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the calibration coefficient 1.");
         return false;
     }
     if (m_eco2 < 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the calibration coefficient 2.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the calibration coefficient 2.");
         return false;
     }
     if (m_Ccoe < 0) {
@@ -147,51 +146,51 @@ bool KinWavSed_OL::CheckInputData() {
         return false;
     }
     if (m_USLE_K == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "You have not set the USLE K (Erosion factor).");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "You have not set the USLE K (Erosion factor).");
         return false;
     }
     if (m_USLE_C == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The parameter of USLE_C can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The parameter of USLE_C can not be NULL.");
         return false;
     }
     if (m_Slope == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The slope��%��can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The slope��%��can not be NULL.");
         return false;
     }
     if (m_DETSplash == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData",
                              "The distribution of splash detachment can not be NULL.");
         return false;
     }
     if (m_chWidth == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "Channel width can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "Channel width can not be NULL.");
         return false;
     }
     if (m_WH == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData",
                              "The depth of the surface water layer can not be NULL.");
         return false;
     }
     //if (m_Runoff == NULL)
     //{
-    //	throw ModelException(MID_KINWAVSED_OL,"CheckInputData","The surface runoff can not be NULL.");
+    //	throw ModelException(M_KINWAVSED_OL[0],"CheckInputData","The surface runoff can not be NULL.");
     //	return false;
     //}
     //if (m_whtoCh == NULL)
     //{
-    //	throw ModelException(MID_KINWAVSED_OL,"CheckInputData","The depth of the channel water layer can not be NULL.");
+    //	throw ModelException(M_KINWAVSED_OL[0],"CheckInputData","The depth of the channel water layer can not be NULL.");
     //	return false;
     //}
     if (m_Qkin == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The kinematic wave flow can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The kinematic wave flow can not be NULL.");
         return false;
     }
     if (m_FlowWidth == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The flow width can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The flow width can not be NULL.");
         return false;
     }
     if (m_ManningN == NULL) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputData", "The Manning N can not be NULL.");
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputData", "The Manning N can not be NULL.");
         return false;
     }
     return true;
@@ -199,14 +198,14 @@ bool KinWavSed_OL::CheckInputData() {
 
 bool KinWavSed_OL::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException(MID_KINWAVSED_OL, "CheckInputSize",
+        throw ModelException(M_KINWAVSED_OL[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
-            throw ModelException(MID_KINWAVSED_OL, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(M_KINWAVSED_OL[0], "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -269,15 +268,15 @@ void KinWavSed_OL::CalcuVelocityOverlandFlow() {
                 R = 0.0f;
             }
             S = sin(atan(m_Slope[i]));   //sine of the slope
-            S = max(0.001f, S);
+            S = Max(0.001f, S);
             n = m_ManningN[i];  //manning n
-            //float Alpha = pow(n/sqrt(S) * pow(Perim, _23), beta);
+            //float Alpha = CalPow(n/CalSqrt(S) * CalPow(Perim, _23), beta);
             //if(Alpha > 0)
-            //	m_OverlandQ[i] = pow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
+            //	m_OverlandQ[i] = CalPow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
             //else
             //	m_OverlandQ[i] = 0;
 
-            m_V[i] = pow(R, _2div3) * sqrt(S) / n;
+            m_V[i] = CalPow(R, _2div3) * CalSqrt(S) / n;
         } else {
             m_V[i] = 0;
         }
@@ -299,7 +298,7 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
     float q, S0, K;
     q = m_V[id] * m_WH[id] *
         60.f;   // m2/s -> m2/min                                 // m_Qkin[id]*60;   // convert to m3/min
-    float s = max(0.001f, m_Slope[id]);
+    float s = Max(0.001f, m_Slope[id]);
     S0 = sin(atan(s));
     K = m_USLE_K[id];
     float threadhold = 0.046f;
@@ -307,9 +306,9 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
         m_Ctrans[id] = 0.f;
     } else {
         if (q < threadhold) {
-            m_Ctrans[id] = m_eco1 * K * S0 * sqrt(q);   // kg/(m*min) kg per unit width per minute
+            m_Ctrans[id] = m_eco1 * K * S0 * CalSqrt(q);   // kg/(m*min) kg per unit width per minute
         } else {
-            m_Ctrans[id] = m_eco2 * K * S0 * pow(q, 2.0f);
+            m_Ctrans[id] = m_eco2 * K * S0 * Power(q, 2.0f);
         }
         // kg/(m*min)  -> convert to kg/m3
         m_Ctrans[id] = m_Ctrans[id] / q;
@@ -335,7 +334,7 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
     } else {
         concentration = 0;
     }
-    Deposition = max(concentration - TC, 0.0f);   //kg/m3, >0
+    Deposition = Max(concentration - TC, 0.0f);   //kg/m3, >0
     if (Deposition > 0) {
         m_Sed_kg[id] = TC * Vol;
     }
@@ -359,13 +358,13 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
 //				R = 0.0f;
 //			S = sin(atan(m_Slope[i]));   //sine of the slope
 //			n = m_ManningN[i];  //manning n
-//			float Alpha = pow(n/sqrt(S) * pow(Perim, _23), beta);
+//			float Alpha = CalPow(n/CalSqrt(S) * CalPow(Perim, _23), beta);
 //			if(Alpha > 0)
-//				m_OverlandQ[i] = pow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
+//				m_OverlandQ[i] = CalPow((m_FlowWidth[i]*m_WH[i]/1000)/Alpha, 1.0f/beta);
 //			else
 //				m_OverlandQ[i] = 0;
 //
-//			m_V[i] = pow(R, _23) * sqrt(S)/n;
+//			m_V[i] = CalPow(R, _23) * CalSqrt(S)/n;
 //		}
 //		else
 //			m_V[i] = 0;
@@ -375,8 +374,8 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
 void KinWavSed_OL::MaxConcentration(float watvol, float sedvol, int id) {
     float conc = (watvol > m_CellWidth * m_CellWidth * 1e-6 ? sedvol / watvol : 0);
     if (conc > 848) {
-        m_SedDep[id] += max(0.f, sedvol - 848 * watvol);
-        //m_SedDep[id] = min(0.f, 848 * watvol - sedvol);
+        m_SedDep[id] += Max(0.f, sedvol - 848 * watvol);
+        //m_SedDep[id] = Min(0.f, 848 * watvol - sedvol);
         conc = 848;
     }
     m_Sed_kg[id] = conc * watvol;
@@ -407,7 +406,7 @@ void KinWavSed_OL::WaterVolumeCalc() {
 void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the grid map
 {
     // correction for slope dx/DX, water spreads out over larger area
-    float s = max(0.001f, m_Slope[i]);
+    float s = Max(0.001f, m_Slope[i]);
     float S0 = sin(atan(s));
     float waterdepth = m_WH[i] / 1000.f;   // mm convert to m
     //float waterdepth = m_Runoff[i] / 1000;   // mm convert to m
@@ -417,7 +416,7 @@ void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the 
     waterden = 1000;
     g = 9.8f;
     shearStr = waterden * g * waterdepth * S0;
-    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * pow(shearStr, 1.5f);
+    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * Power(shearStr, 1.5f);
     /*q = m_Q[i];
     Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * q * S0;*/
     // convert kg/(m2*min) to kg/cell
@@ -430,7 +429,7 @@ float KinWavSed_OL::SedToChannel(int ID) {
     if (m_chWidth[ID] > 0) {
         float tem = m_ChV[ID] * m_TimeStep;
         fractiontochannel = 2 * tem / (m_CellWidth - m_chWidth[ID]);
-        fractiontochannel = min(fractiontochannel, 1.0f);
+        fractiontochannel = Min(fractiontochannel, 1.0f);
     }
     float sedtoch = fractiontochannel * m_Sed_kg[ID];
     m_Sed_kg[ID] -= sedtoch;
@@ -451,7 +450,7 @@ float KinWavSed_OL::simpleSedCalc(float Qn, float Qin, float Sin, float dt, floa
     if (totwater <= 1e-10) {
         return (Qsn);
     }
-    Qsn = min(totsed / dt, Qn * totsed / totwater);
+    Qsn = Min(totsed / dt, Qn * totsed / totwater);
     return (Qsn); // outflow is new concentration * new out flux
 
 }
@@ -471,8 +470,8 @@ float KinWavSed_OL::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
     }
 
     Cavg = (Sj1i + Sji1) / (Qj1i + Qji1);
-    aQb = alpha * pow(Qavg, beta);
-    abQb_1 = alpha * beta * pow(Qavg, beta - 1);
+    aQb = alpha * Power(Qavg, beta);
+    abQb_1 = alpha * beta * Power(Qavg, beta - 1);
 
     A = dt * Sj1i;
     B = -dx * Cavg * abQb_1 * (Qj1i1 - Qji1);
@@ -482,7 +481,7 @@ float KinWavSed_OL::complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj
     } else {
         Sj1i1 = 0;
     }
-    Sj1i1 = max(0.f, Sj1i1);
+    Sj1i1 = Max(0.f, Sj1i1);
     return Sj1i1;
 }
 
@@ -514,10 +513,10 @@ void KinWavSed_OL::OverlandflowSedRouting(int id) {
     //float _23 = 2.0f/3;
     //float Perim = 2 * m_WH[id]/1000 + m_FlowWidth[id];
     //float S = sin(atan(m_Slope[id]));
-    //float Alpha = pow(m_ManningN[id]/sqrt(S) * pow(Perim, _23), beta);
+    //float Alpha = CalPow(m_ManningN[id]/CalSqrt(S) * CalPow(Perim, _23), beta);
     //float Q, Qs;
     //if(Alpha > 0)
-    //	Q = pow(m_FlowWidth[id]*m_WH[id] / Alpha, beta1);
+    //	Q = CalPow(m_FlowWidth[id]*m_WH[id] / Alpha, beta1);
     //else
     //	Q = 0;
     //Qs = Q * m_SedConc[id];
@@ -525,9 +524,9 @@ void KinWavSed_OL::OverlandflowSedRouting(int id) {
     //m_Qsn[id] = complexSedCalc(m_OverlandQ[id], Qin, Q, Sin, Qs, Alpha, m_TimeStep, DX);
     //----end
     float tem = Sin + m_Sed_kg[id] / m_TimeStep;
-    m_Qsn[id] = min(m_Qsn[id], tem);
+    m_Qsn[id] = Min(m_Qsn[id], tem);
     tem = Sin * m_TimeStep + m_Sed_kg[id] - m_Qsn[id] * m_TimeStep;
-    m_Sed_kg[id] = max(0.0f, tem);
+    m_Sed_kg[id] = Max(0.0f, tem);
     //m_SedConc[id] = MaxConcentration(WtVol, m_Sed_kg[id], id);
     //calculate sediment to channel
     m_SedToChannel[id] = SedToChannel(id);

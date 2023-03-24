@@ -2,6 +2,7 @@
 #include "text.h"
 
 SRD_MB::SRD_MB(void) {
+
     // set default values for member variables
     this->m_Date = -1;
     this->m_t_wind = -99.0f;
@@ -186,7 +187,7 @@ int SRD_MB::Execute() {
         float sap = m_swe * wr;
         float scp = sap - this->m_SA[rw];
 
-        float ut = float(this->m_ut0 + 0.0033 * pow((this->m_tMin[rw] + this->m_tMax[rw]) / 2 - this->m_t_wind, 2.0f));
+        float ut = float(this->m_ut0 + 0.0033 * CalPow((this->m_tMin[rw] + this->m_tMax[rw]) / 2 - this->m_t_wind, 2.0f));
         float ww = 0.0f;
         if (u - ut >= this->m_u0) ww = 1.0f;
         if (u - ut >= 0 && u - ut < this->m_u0) ww = (u - ut) / this->m_u0;

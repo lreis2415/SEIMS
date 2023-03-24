@@ -9,6 +9,7 @@
  *        -# Change m_wshd_rno3 to store nitrate from rainfall of current day.
  *        -# Remove output of m_sol_no3, which is redundant and unnecessary.
  *   - 3. 2018-05-15 - lj - Code review and reformat.
+ *   - 4. 2022-08-22 - lj - Change float to FLTPT.
  *
  * \author Huiran Gao, Liangjun Zhu
  */
@@ -31,11 +32,11 @@ public:
 
     ~AtmosphericDeposition();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -50,24 +51,24 @@ private:
     /// parameters
 
     /// concentration of nitrate in the rain (mg N/L)
-    float m_rainNO3Conc;
+    FLTPT m_rainNO3Conc;
     /// concentration of ammonia in the rain (mg N/L)
-    float m_rainNH4Conc;
+    FLTPT m_rainNH4Conc;
     ///atmospheric dry deposition of nitrates (kg/ha)
-    float m_dryDepNO3;
+    FLTPT m_dryDepNO3;
     ///atmospheric dry deposition of ammonia (kg/ha)
-    float m_dryDepNH4;
+    FLTPT m_dryDepNH4;
 
     /// inputs
 
     /// precipitation (mm H2O)
-    float* m_pcp;
+    FLTPT* m_pcp;
     ///// root depth from the soil surface
     //float **m_sol_z;
 
     ///amount of ammonium in layer (kg/ha)
-    float** m_soilNH4;
+    FLTPT** m_soilNH4;
     /// amount of nitrate in layer (kg/ha)
-    float** m_soilNO3;
+    FLTPT** m_soilNO3;
 };
 #endif /* SEIMS_MODULE_ATMDEP_H */

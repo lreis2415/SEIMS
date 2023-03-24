@@ -9,22 +9,24 @@
 #       $ mkdir -p build
 #       $ cd build
 #       $ cmake ..
+#       $ make
+#       $ ctest --rerun-failed --output-on-failure
 #     Optional cmake options:
 #       -DUNITTEST=1  means run unittest based gtest/gmock
-#       -DRUNCOV=1    means run code coverage based gcov and lcov
-#       -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /usr/local/opt/llvm
+#       -DCODE_COVERAGE=1 means run code coverage based gcov and lcov
+#       -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /opt/homebrew/opt/llvm
+#       -DBUILD_DOC=1 means build CCGL documentation based on doxygen
 #
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2010/2015, mongo-c-driver-1.5.5, GDAL-1.11.4/2.4.1
-#     2. Windows 10 with msys2/mingw64 (GCC-8.2.0), mongo-c-driver-1.6.1, GDAL-2.3.2
-#     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
-#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.6.1, GDAL-1.11.5 (Without UnitTest)
-#     5. macOS 10.14.5 with Clang-10.0 with Xcode, mongo-c-driver-1.14.0, GDAL-2.4.2 (brew installed)
-#     6. Windows 10 with Visual Studio 2013+Intel C++ Compiler 17.0, mongo-c-driver-1.5.5, GDAL-1.11.4
+#     1. Windows 10 with Visual Studio 2010/2015/2019, mongo-c-driver-1.16.2, GDAL-1.11.4/2.4.4/3.3.3
+#     2. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
+#     3. Ubuntu 16.04 (VMware) with GCC-5.4.0, mongo-c-driver-1.6.3, GDAL-2.4.4
+#     4. macOS 12.x with AppleClang-13.0 (Xcode built-in and brew installed) and GCC-11.2 (brew installed),
+#              mongo-c-driver-1.16.2, GDAL-3.3.3 (brew installed and framework by kyngchaos.com)
 #
-#  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Jul. 20, 2019
-#  Copyright (C) 2017-2019 Lreis, IGSNRR, CAS
+#  Created and maintained by Liangjun Zhu, zlj(a)lreis.ac.cn
+#  Latest updated: Mar. 23, 2023
+#  Copyright (C) 2017-2023 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF (" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -32,17 +34,14 @@ IF (" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
 FATAL: In-source builds are not allowed.
        You should create a separate directory for build files.")
 ENDIF ()
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10 FATAL_ERROR)
 
-if(POLICY CMP0015)
-    cmake_policy(SET CMP0015 NEW)
-endif()
-if(POLICY CMP0054)
-    cmake_policy(SET CMP0054 NEW)
-endif()
-if(POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
-endif()
+cmake_policy(SET CMP0015 NEW)
+cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0079 NEW)
+SET(CMAKE_SH "CMAKE_SH-NOTFOUND")
 
 ### Set coding language
 PROJECT(CCGL CXX C)
@@ -50,6 +49,27 @@ PROJECT(CCGL CXX C)
 ### Project name and output library name
 PROJECT(CCGL)
 SET(CCGLNAME ccgl)
+
+### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
+IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+### Build Postfix
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
+SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "Default RelWithDebInfo postfix")
+SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "Default MinSizeRel postfix")
+IF (CMAKE_BUILD_TYPE MATCHES "Release")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELEASE_POSTFIX}")
+ELSEIF (CMAKE_BUILD_TYPE MATCHES "MinSizeRel")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_MINSIZEREL_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELWITHDEBINFO_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+ELSE()
+  SET(CMAKE_BUILD_POSTFIX "")
+ENDIF()
 
 ### Set cmake find path
 set(CMAKE_MODULE_PATH
@@ -59,16 +79,18 @@ set(CMAKE_MODULE_PATH
 
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+    SET(INSTALL_DIR ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
 ELSE()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
+    IF (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        SET(INSTALL_DIR ${PROJECT_BINARY_DIR} CACHE PATH "Set specified install path" FORCE)
+    ELSE ()
+        SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Set default install path" FORCE)
+    ENDIF ()
 ENDIF ()
-SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
-### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
-IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
-    SET(CMAKE_BUILD_TYPE Release)
-ENDIF()
+SET(INSTALL_PREFIX ${INSTALL_DIR})
+SET(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
+SET(DOC_INSTALL_DIR "${INSTALL_DIR}/doc" CACHE PATH "Path to the documentation")
 
 ### Allow project folders in MSVC.
 IF(MSVC OR XCODE)
@@ -109,6 +131,8 @@ ENDIF()
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+# Build documentation by doxygen
+option(BUILD_DOC "Build CCGL documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -122,90 +146,37 @@ ENDIF(MSVC)
 ### Add standard paths or specified paths for Find libraries and headers.
 INCLUDE(AddFindPaths)
 
-### CCGL library
-FILE(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
-IF(UNIX)
-    IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-        geo_list_unique(CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
-    ENDIF()
-ENDIF()
-ADD_LIBRARY(${CCGLNAME} ${SOURCE_FILES})
-GET_DIRECTORY_PROPERTY(hasParent PARENT_DIRECTORY)
-IF (hasParent)
-    SET(CCGLNAME "${CCGLNAME}" PARENT_SCOPE)
-ENDIF ()
-
-### unittest based on gtest/gmock, which is optional.
-SET(GTestTAG release-1.8.1)
-IF(MSVC_VERSION LESS 1900)
-    SET(GTestTAG release-1.8.0)
-ENDIF()
-### Find or build Googletest if UNITTEST is set as True or 1
-IF (UNITTEST STREQUAL 1)
-    MESSAGE(STATUS "GoogleTest Version: ${GTestTAG}")
-    ADD_DEFINITIONS(-DUNITTEST)
-    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    ### Download and compile googletest
-    INCLUDE(DownloadProject)
-    download_project(PROJ                googletest
-            GIT_REPOSITORY      https://github.com/google/googletest.git
-            GIT_TAG             ${GTestTAG}
-            ${UPDATE_DISCONNECTED_IF_AVAILABLE}
-            )
-    ADD_SUBDIRECTORY(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-    geo_include_directories(${gtest_SOURCE_DIR}/include)
-    geo_include_directories(${gmock_SOURCE_DIR}/include)
-ENDIF ()    
+### Use GNU standard installation directories
+INCLUDE(GNUInstallDirs)
 
 ### Find OMP which is optional
-IF(XCODE)
-  # To use OpenMP in Xcode built by CMake, the recommended way is to 
-  #   install llvm by 'brew install llvm', which has builtin 'libomp'
-  IF (NOT LLVM_ROOT_DIR)
-    SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
+# Refers to https://mac.r-project.org/openmp/ for further method to handle openmp in AppleClang
+IF(NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+  IF(CV_CLANG)
+    message(STATUS "Find OpenMP from LLVM")
+    # To use OpenMP in Clang built by CMake, the recommended way is to
+    #   install llvm alone by 'brew install llvm', which has builtin 'libomp'
+    IF (NOT LLVM_ROOT_DIR)
+        SET(LLVM_ROOT_DIR "/opt/homebrew/opt/llvm")
+    ENDIF ()
+    FIND_PACKAGE(LLVM)
+    IF(LLVM_VERSION_MAJOR)
+        geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
+        SET(OpenMP_CXX_FLAGS "-fopenmp")
+        SET(OpenMP_C_FLAGS "-fopenmp")
+        FIND_LIBRARY(OpenMP_LIBRARY
+            NAMES "omp"
+            HINTS ${LLVM_LIBRARY_DIRS})
+        SET(OPENMP_FOUND 1)
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LLVM_LDFLAGS}")
+    ENDIF ()
+  ELSE ()
+    FIND_PACKAGE(OpenMP)
   ENDIF ()
-  FIND_PACKAGE(LLVM)
-  IF(LLVM_FOUND)
-    geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
-	SET(OpenMP_CXX_FLAGS "-fopenmp")
-    SET(OpenMP_C_FLAGS "-fopenmp")
-	FIND_LIBRARY(OpenMP_LIBRARY
-		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS})
-    SET(OPENMP_FOUND 1)
-  ENDIF ()
-ELSE ()  
-  FIND_PACKAGE(OpenMP)
 ENDIF ()
-IF(OPENMP_FOUND)
-  SET(WITH_OPENMP 1)
-  ADD_DEFINITIONS(-DSUPPORT_OMP)
-  INCLUDE(SetFlagOpenMP)
-  MESSAGE(STATUS "Compiling with OpenMP...")
-ENDIF()
-
-### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
-IF(XCODE AND LLVM_FOUND)
-    TARGET_LINK_LIBRARIES(${CCGLNAME} ${OpenMP_LIBRARY})
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
-	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
-ENDIF()
 
 ### Find GDAL which is optional.
 FIND_PACKAGE(GDAL)
-IF (GDAL_FOUND)
-  SET(WITH_GDAL 1)
-  ADD_DEFINITIONS(-DUSE_GDAL)
-  INCLUDE(SetFlagGDAL)
-  geo_include_directories(${GDAL_INCLUDE_DIR})
-  TARGET_LINK_LIBRARIES(${CCGLNAME} ${GDAL_LIBRARIES})
-  SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINKER_LANGUAGE CXX)
-  MESSAGE(STATUS "Compiling with GDAL...")
-ENDIF ()
 
 ### Find mongo-c-driver which is optional
 IF(BSON_ROOT)
@@ -220,41 +191,136 @@ IF(MONGOC_ROOT)
 ENDIF()
 INCLUDE(FindMongoC)
 INCLUDE(FindBson)
+
+### CCGL library
+SET(CCGL_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+SET(CCGL_DIR ${CCGL_BASE_DIR}/src)
+SET(APPS_DIR ${CCGL_BASE_DIR}/apps)
+SET(TEST_DIR ${CCGL_BASE_DIR}/test)
+
+FILE(GLOB CCGL_SRCS ${CCGL_DIR}/*.cpp ${CCGL_DIR}/*.hpp ${CCGL_DIR}/*.h)
+FILE(GLOB INC_FILES ${CCGL_DIR}/*.hpp ${CCGL_DIR}/*.h)
+
+ADD_LIBRARY(${CCGLNAME} ${CCGL_SRCS})
+SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES PUBLIC_HEADER "${INC_FILES}")
+GET_DIRECTORY_PROPERTY(hasParent PARENT_DIRECTORY)
+IF (hasParent)
+    SET(CCGLNAME "${CCGLNAME}" PARENT_SCOPE)
+ENDIF ()
+
+set(target_code_coverage_PUBLIC 1)
+set(TARGET_VISIBILITY PUBLIC)
+
+IF(OPENMP_FOUND)
+  SET(WITH_OPENMP 1)
+  ADD_DEFINITIONS(-DSUPPORT_OMP)
+  INCLUDE(SetFlagOpenMP)
+  ### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
+  IF(CV_CLANG AND LLVM_VERSION_MAJOR)
+      TARGET_LINK_LIBRARIES(${CCGLNAME} ${TARGET_VISIBILITY} ${OpenMP_LIBRARY})
+  ENDIF()
+  MESSAGE(STATUS "Compiling with OpenMP...")
+ENDIF()
+
+IF (GDAL_FOUND)
+  SET(WITH_GDAL 1)
+  ADD_DEFINITIONS(-DUSE_GDAL)
+  INCLUDE(SetFlagGDAL)
+  geo_include_directories(${GDAL_INCLUDE_DIR})
+  TARGET_LINK_LIBRARIES(${CCGLNAME} ${TARGET_VISIBILITY} ${GDAL_LIBRARIES})
+  SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINKER_LANGUAGE CXX)
+  MESSAGE(STATUS "Compiling with GDAL...")
+ENDIF ()
+
 IF (BSON_FOUND AND MONGOC_FOUND)
   SET(WITH_MONGOC 1)
   ADD_DEFINITIONS(-DUSE_MONGODB)
   geo_include_directories(${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR})
-  TARGET_LINK_LIBRARIES(${CCGLNAME} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
+  TARGET_LINK_LIBRARIES(${CCGLNAME} ${TARGET_VISIBILITY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
   MESSAGE(STATUS "Compiling with mongo-c-driver...")
 ENDIF ()
 
-### Set code coverage linkage.
-IF (RUNCOV STREQUAL 1)
-    SET(UNITTEST 1) # Code coverage needs the UnitTest
-    SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES COMPILE_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-    SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINK_FLAGS "-coverage -lgcov")
+geo_include_directories(${CCGL_DIR})
+
+IF(UNIX)
+    IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+        geo_list_unique(CMAKE_C_FLAGS)
+        geo_list_unique(CMAKE_CXX_FLAGS)
+    ENDIF()
+ENDIF()
+
+### Code coverage requires UNITTEST.
+IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
+    SET(UNITTEST 1)
 ENDIF ()
 
+### Build Googletest if UNITTEST is set as True or 1
 IF (UNITTEST STREQUAL 1)
-    ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test)
-    ### Copy test data to build directory for UnitTest Only!
-    MAKE_DIRECTORY(${INSTALL_DIR})
-    FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${INSTALL_DIR})
+    ADD_DEFINITIONS(-DUNITTEST)
+    ### unittest based on gtest/gmock, which is optional.
+    SET(GTestTAG release-1.8.1)
+    IF(MSVC_VERSION LESS 1900)
+        SET(GTestTAG release-1.8.0)
+    ENDIF()
+    MESSAGE(STATUS "GoogleTest Version: ${GTestTAG}")
+    geo_include_directories(${CCGL_BASE_DIR})
+    ### Download and compile googletest using FetchContent supported officially by CMake 3.11+
+    # https://google.github.io/googletest/quickstart-cmake.html
+    # Because download from github often failed, I decided to include googletest tags in src directory.
+    include(FetchContent)
+    FetchContent_Declare(
+      googletest
+      URL "file://${CCGL_BASE_DIR}/src/googletest_tags_zip/${GTestTAG}.zip"
+      #URL https://github.com/google/googletest/archive/refs/tags/${GTestTAG}.zip
+      )
+    IF (WIN32)
+        # For Windows: Prevent overriding the parent project's compiler/linker settings
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    ENDIF ()
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+ENDIF ()
+
+IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
+    include(code-coverage)
+    add_code_coverage() # Adds instrumentation to all targets
+ENDIF ()
+
+### Copy test data to install directory!
+FILE(MAKE_DIRECTORY ${INSTALL_DIR})
+FILE(COPY ${CCGL_BASE_DIR}/data/ DESTINATION ${INSTALL_DIR}/share/ccgl)
+
+IF (UNITTEST STREQUAL 1)
+    # Enable testing for the project
+    enable_testing()
+    ADD_SUBDIRECTORY(${TEST_DIR})
     # For the convenient of debugging in MSVC and CLion
-    IF (MSVC OR XCODE)
-        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Debug)
-        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Release)
+    IF (CMAKE_GENERATOR MATCHES "Visual Studio" OR CMAKE_GENERATOR MATCHES "XCode")
+        FILE(COPY ${CCGL_BASE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Debug)
+        FILE(COPY ${CCGL_BASE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Release)
     ELSE ()
-        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test)
+        FILE(COPY ${CCGL_BASE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test)
     ENDIF ()
 ENDIF ()
 
-INSTALL(TARGETS ${CCGLNAME} DESTINATION ${INSTALL_DIR})
-### For CLion to implement the "make install" command
-ADD_CUSTOM_TARGET(install_${PROJECT_NAME}
-        $(MAKE) install
-        DEPENDS ${CCGLNAME}
-        COMMENT "Installing ${PROJECT_NAME}")
+### CCGL based applications
+ADD_SUBDIRECTORY(${APPS_DIR})
+
+# Install CCGL, including headers, libraries, executable, stc.
+INSTALL(TARGETS ${CCGLNAME}
+        RUNTIME DESTINATION "${INSTALL_DIR}/bin"
+        PUBLIC_HEADER DESTINATION "${INSTALL_DIR}/include/ccgl"
+        ARCHIVE DESTINATION "${INSTALL_DIR}/lib"
+        LIBRARY DESTINATION "${INSTALL_DIR}/lib")
+
+### Build doc based on doxygen
+IF(BUILD_DOC)
+  ADD_SUBDIRECTORY(./doc)
+ENDIF()
 
 ### Build platform.
 STATUS("")

@@ -3,12 +3,12 @@
 #include "utils_string.h"
 
 #include "BMPText.h"
+#include "Logging.h"
 
 using namespace utils_string;
 using namespace bmps;
 
-BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
-    m_id(-1), m_name(""), m_desc(""), m_refer("") {
+BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter): m_id(-1), m_lastUpdateTime(-1){
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SUB)) {
         GetNumericFromBsonIterator(&iter, m_id);
     }
@@ -31,12 +31,33 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
         for (auto it = params_strs.begin(); it != params_strs.end(); ++it) {
             vector<string> tmp_param_items = SplitString(*it, ':');
             assert(tmp_param_items.size() == 4);
-            ParamInfo* p = new ParamInfo();
+            ParamInfo<FLTPT>* p = new ParamInfo<FLTPT>();
             p->Name = tmp_param_items[0];
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
-            char* end = nullptr;
-            p->Impact = CVT_FLT(strtod(tmp_param_items[3].c_str(), &end));
+            vector<string> impactsStrings = SplitString(tmp_param_items[3],'|');
+            FLTPT lastImpact = 1.;
+
+            // use absolute value directly
+            //for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt){
+            //    lastImpact = CVT_FLT(ToDouble((*impactStrIt).c_str()));
+            //    p->ImpactSeries.push_back(lastImpact);
+            //}
+
+            // convert absolute impact value to relative impact value
+            for (auto impactStrIt = impactsStrings.begin(); impactStrIt != impactsStrings.end(); ++impactStrIt) {
+                if (impactStrIt == impactsStrings.begin()) {
+                    lastImpact = ToDouble((*impactStrIt).c_str());
+                    p->ImpactSeries.push_back(lastImpact);
+                }
+                else{
+                    FLTPT temp = ToDouble((*impactStrIt).c_str());
+                    p->ImpactSeries.push_back(temp/lastImpact);
+                    lastImpact = temp;
+                }
+            }
+            p->Impact = p->ImpactSeries[0];//For compatibility with previous versions
+            cout << "BMPID: " << m_id << ", param_name: " << tmp_param_items[0] << ",value: " <<p->Impact<< endl;
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
 #else
@@ -50,24 +71,24 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
 }
 
 BMPArealStruct::~BMPArealStruct() {
-    StatusMessage("---release map of parameters in BMPArealStruct ...");
-    for (auto it = m_parameters.begin(); it != m_parameters.end();) {
+    CLOG(TRACE, LOG_RELEASE) << "---release map of parameters in BMPArealStruct ...";
+    for (auto it = m_parameters.begin(); it != m_parameters.end(); ++it) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            CLOG(TRACE, LOG_RELEASE) << "-----" << it->first + " ...";
             delete it->second;
             it->second = nullptr;
         }
-        m_parameters.erase(it++);
     }
     m_parameters.clear();
 }
 
 BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                             const int bmpType, const int bmpPriority,
-                                             vector<string>& distribution,
-                                             const string& collection, const string& location):
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
-    m_mgtFieldsRs(nullptr) {
+                                             const int bmpType, const int bmpPriority, vector<string>& distribution,
+                                             const string& collection, const string& location, bool effectivenessChangeable,
+                                             time_t changeFrequency, int variableTimes) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location,
+               effectivenessChangeable, changeFrequency, variableTimes),
+    m_mgtFieldsRs(nullptr),m_unitIDsSeries(m_changeTimes),m_unitUpdateTimes(m_changeTimes),m_seriesIndex(0) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     } else {
@@ -75,17 +96,33 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
                              "The distribution field must follow the format: "
                              "RASTER|CoreRasterName.\n");
     }
-    SplitStringForValues(location, '-', m_unitIDs);
+    if (m_effectivenessChangeable) {
+        vector<string> tempLocations = SplitString(location, '-');
+        for (vector<string>::iterator it = tempLocations.begin();it!=tempLocations.end();it++)
+        {
+            vector<int> temp;
+            SplitStringForValues(*it, '|', temp);
+            int loc = temp[0];
+            int time = temp[1]-1; // year index start from 0
+            for (int t = time; t < m_changeTimes; t++)
+            {
+                m_unitIDsSeries[t].push_back(loc);
+                m_unitUpdateTimes[t].insert(std::make_pair(loc,t-time));
+            }
+        }
+    }
+    else{
+        SplitStringForValues(location, '-', m_unitIDs);
+    }
 }
 
 BMPArealStructFactory::~BMPArealStructFactory() {
     // m_mgtFieldsRs will be released in DataCenter. No need to be released here.
-    for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end();) {
+    for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        m_bmpStructMap.erase(it++);
     }
     m_bmpStructMap.clear();
 }
@@ -118,7 +155,7 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string& bmpDBName) 
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealStructFactory::setRasterData(map<string, FloatRaster*>& sceneRsMap) {
+void BMPArealStructFactory::setRasterData(map<string, IntRaster*>& sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_mgtFieldsName)->GetRasterData(&n, &m_mgtFieldsRs);

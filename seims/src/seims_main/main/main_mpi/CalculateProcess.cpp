@@ -1,15 +1,14 @@
 #include "CalculateProcess.h"
 
 #include <map>
-#include <set>
 #include <vector>
 
 #include "utils_time.h"
 #include "DataCenterMongoDB.h"
 #include "invoke.h"
 #include "ModelMain.h"
-#include "CombineRaster.h"
 #include "text.h"
+#include "Logging.h"
 
 #include "parallel.h"
 #include "TaskInformation.h"
@@ -18,24 +17,52 @@
 using namespace utils_time;
 using namespace utils_array;
 using std::map;
-using std::set;
 using std::vector;
 
-void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
-    StatusMessage(("Computing process, Rank: " + ValueToString(rank)).c_str());
+void CalculateProcess(InputArgs* input_args, const int rank, const int size,
+                      mongoc_client_pool_t* mongo_pool /* = nullptr */) {
+    LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
-    /// Get module path, i.e., the path of executable and dynamic libraries
+    /// Get module path, i.e., the path of dynamic libraries
+#ifndef WINDOWS
+    string module_path = GetAppPath() + "../lib";
+#else
     string module_path = GetAppPath();
-    /// Connect to MongoDB
-    MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
-    if (nullptr == mongo_client) {
-        throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
-    }
+#endif
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
+    mongoc_client_t* mclient = nullptr;
+    MongoClient* mongo_client = nullptr;
+    MongoGridFs* spatial_gfs_in = nullptr;
+    MongoGridFs* spatial_gfs_out = nullptr;
+    if (nullptr == mongo_pool) {
+        mongo_client = new MongoClient(input_args->host.c_str(), input_args->port);
+    } else {
+        // The total number of clients that can be created from this pool is limited
+        //   by the URI option ��maxPoolSize��, default 100.
+        mclient = mongoc_client_pool_pop(mongo_pool);
+        if (!mclient) {
+            throw ModelException("MongoDBClient", "Constructor",
+                                 "Failed to pop mongoClient from mongoc_client_pool!");
+        }
+        mongo_client = new MongoClient(mclient);
+    }
+    spatial_gfs_in = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_SPATIAL));
+    spatial_gfs_out = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
+    if (!spatial_gfs_in || !spatial_gfs_out) {
+        LOG(TRACE) << "MongoDB GridFS initialized failed, the program will be terminated!";
+        if (mongo_pool && mclient) {
+            mongoc_client_pool_push(mongo_pool, mclient);
+        } else {
+            mongo_client->Destroy();
+            delete mongo_client;
+        }
+        MPI_Abort(MCW, 1);
+    }
+
     LoadTasks(mongo_client, input_args, size, rank, task_info);
     if (!task_info->Build()) {
-        cout << "Rank: " << rank << ", task information build failed!" << endl;
+        LOG(TRACE) << "Rank: " << rank << ", task information build failed!";
         MPI_Abort(MCW, 1);
     }
     double t_load_task = MPI_Wtime() - tstart;
@@ -44,13 +71,13 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     tstart = MPI_Wtime();                             /// Start to construct objects of subbasin models
     int n_subbasins = task_info->GetSubbasinNumber(); // subbasin number of current rank
     if (n_subbasins == 0) {
-        cout << "No task for rank " << rank << endl;
+        LOG(TRACE) << "No task for rank " << rank;
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
 
     /// Create module factory
-    ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
+    ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
     if (nullptr == module_factory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
@@ -62,7 +89,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     vector<int>& rank_subbsn_ids = task_info->GetRankSubbasinIDs();
     for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
         /// Create data center according to subbasin number
-        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client,
+        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
                                                                module_factory, *it_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model = new ModelMain(data_center, module_factory);
@@ -140,7 +167,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
     /// Reduce for model constructing time, which also input time
     double t_model_construct = MPI_Wtime() - tstart;
-    StatusMessage(("Rank " + ValueToString(rank) + " construct models done!").c_str());
+    LOG(TRACE) << "Rank " << rank << " construct models done!";
 
     MPI_Request request;
     MPI_Status status;
@@ -162,25 +189,17 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
         act_loop_num += 1;
-#ifdef _DEBUG
-        //cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
-        if (StringMatch(ConvertToString(ts), "2014-03-30")) {
-        //    cout << "Debugging..." << endl;
-        }
-#endif
         int year_idx = GetYear(ts) - start_year;
         if (rank == MASTER_RANK) {
             if (pre_year_idx != year_idx) {
-                cout << "  Simulation year: " << start_year + year_idx << endl;
+                LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;
             }
-            // cout << "     " << ConvertToString2(ts) << endl;
+            LOG(DEBUG) << ConvertToString2(ts);
         }
         // Execute by layering orders
         for (int ilyr = 1; ilyr <= max_lyr_id_all; ilyr++) {
             // if (subbsn_layers.find(ilyr) == subbsn_layers.end()) continue; // DO NOT UNCOMMENT THIS!
-#ifdef _DEBUG
-            cout << "Rank: " << rank << ", Layer " << ilyr << endl;
-#endif
+
             if (input_args->skd_mtd == TEMPOROSPATIAL) exec_lyr_num = ilyr;
 
             for (int lyr_dlt = 0; lyr_dlt < exec_lyr_num; lyr_dlt++) {
@@ -198,10 +217,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 1. Execute hillslope processes
                     t_slope_start = MPI_Wtime();
-#ifdef _DEBUG
-                    cout << "  " << ConvertToString2(cur_time) <<
-                            "  Hillslope process, subbasin: " << subbasin_id << endl;
-#endif
                     ModelMain* psubbasin = model_map[*it];
                     for (int i = 0; i < n_hs; i++) {
                         psubbasin->StepHillSlope(cur_time + i * dt_hs, year_idx, i);
@@ -211,10 +226,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
                     // 2. Execute channel processes
                     t_channel_start = MPI_Wtime();
-#ifdef _DEBUG
-                    cout << "  " << ConvertToString2(cur_time) <<
-                            "  Channel process, subbasin: " << subbasin_id << endl;
-#endif
 
                     // 2.1 Set transferred data from upstreams
                     for (auto it_upid = upstreams[subbasin_id].begin();
@@ -226,14 +237,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             int work_tag = *it_upid * 10000 + cur_sim_loop_num;;
                             MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
-#ifdef _DEBUG
-                            cout << "Receive data of subbasin: " << *it_upid << " of sim_loop: " <<
-                                    cur_sim_loop_num << " from rank: " << subbasin_rank[*it_upid] << ", tfValues: ";
-                            for (int itf = MSG_LEN; itf < buflen; itf++) {
-                                cout << std::fixed << setprecision(6) << buf[itf] << ", ";
-                            }
-                            cout << endl;
-#endif
+
                             for (int vi = 0; vi < transfer_count; vi++) {
                                 recv_ts_subbsn_tf_values[cur_sim_loop_num][*it_upid][vi] = buf[MSG_LEN + vi];
                             }
@@ -260,14 +264,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
                     psubbasin->GetTransferredValue(&buf[MSG_LEN]);
-#ifdef _DEBUG
-                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " of sim_loop: " <<
-                            cur_sim_loop_num << " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
-                    for (int itf = MSG_LEN; itf < buflen; itf++) {
-                        cout << std::fixed << setprecision(6) << buf[itf] << ", ";
-                    }
-                    cout << endl;
-#endif
+
                     int dest_rank = subbasin_rank[downstream[subbasin_id]];
                     buf[0] = CVT_FLT(subbasin_id);      // subbasin ID
                     buf[1] = CVT_FLT(cur_sim_loop_num); // simulation loop number
@@ -359,73 +356,133 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     double all_tavg = io_tavg + comp_tavg;
 
     if (rank == MASTER_RANK) {
-        cout << endl;
-        cout << "[TIMESPAN][MAX][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmax << endl;
-        cout << "[TIMESPAN][MAX][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmax << endl;
-        cout << "[TIMESPAN][MAX][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmax << endl;
-        cout << "[TIMESPAN][MAX][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmax << endl;
-        cout << endl;
-        cout << "[TIMESPAN][MIN][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmin << endl;
-        cout << "[TIMESPAN][MIN][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmin << endl;
-        cout << "[TIMESPAN][MIN][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmin << endl;
-        cout << "[TIMESPAN][MIN][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmin << endl;
-        cout << endl;
-        cout << "[TIMESPAN][AVG][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][Channel] " << std::fixed << setprecision(3) << channel_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tavg << endl;
-        cout << "[TIMESPAN][AVG][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][Input]   " << std::fixed << setprecision(3) << input_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][Output]  " << std::fixed << setprecision(3) << output_tavg << endl;
-        cout << "[TIMESPAN][AVG][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tavg << endl;
-        cout << "[TIMESPAN][AVG][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tavg << endl;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmax;
+        CLOG(INFO, LOG_TIMESPAN) << "[MAX][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmax;
+
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Channel] " << std::fixed << setprecision(3) << channel_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][Input]   " << std::fixed << setprecision(3) << input_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][Output]  " << std::fixed << setprecision(3) << output_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tmin;
+        CLOG(INFO, LOG_TIMESPAN) << "[MIN][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tmin;
+
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Slope]   " << std::fixed << setprecision(3) << slope_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Channel] " << std::fixed << setprecision(3) << channel_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][Barrier] " << std::fixed << setprecision(3) << barrier_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][COMP][ALL]     " << std::fixed << setprecision(3) << comp_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][Input]   " << std::fixed << setprecision(3) << input_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][Output]  " << std::fixed << setprecision(3) << output_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][IO  ][ALL]     " << std::fixed << setprecision(3) << io_tavg;
+        CLOG(INFO, LOG_TIMESPAN) << "[AVG][SIMU][ALL]     " << std::fixed << setprecision(3) << all_tavg;
     }
 
     /*** Combine raster outputs serially by one processor. ***/
     /// The operation could be considered as post-process,
     ///   therefore, the time-consuming is not included.
     if (rank == MASTER_RANK) {
-        MongoGridFs* gfs = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
-        SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
-        for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
-            for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
-                PrintInfoItem* item = *item_it;
-                if (item->m_nLayers >= 1) {
+        CLOG(TRACE, LOG_OUTPUT) << "Combining raster data to GeoTIFF file(s)...";
+        map<string, string> mask_opts;
+        UpdateStringMap(mask_opts, HEADER_INC_NODATA, "TRUE");
+        map<string, string> valid_opts;
+        UpdateStringMap(mask_opts, HEADER_INC_NODATA, "FALSE");
+        CLOG(TRACE, LOG_OUTPUT) << "\tLoad 0_SUBBASIN with NoData value as mask layer...";
+        FloatRaster* subbsn_lyr = FloatRaster::Init(spatial_gfs_in, "0_SUBBASIN",
+                                                    true, nullptr, true,
+                                                    NODATA_VALUE, mask_opts);
+        if (nullptr == subbsn_lyr) {
+            CLOG(TRACE, LOG_OUTPUT) << "\t\tFAILED!";
+        }
+        else {
+            subbsn_lyr->BuildSubSet();
+            map<int, SubsetPositions*>& subset = subbsn_lyr->GetSubset();
+
+            SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
+            for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
+                for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
+                    PrintInfoItem* item = *item_it;
+                    if (item->m_nLayers < 1) { continue; }
                     // Only need to handle raster data
-                    StatusMessage(("Combining raster: " + item->Corename).c_str());
-                    CombineRasterResultsMongo(gfs, item->Corename,
-                                              data_center_map.begin()->second->GetSubbasinsCount(),
-                                              data_center_map.begin()->second->GetOutputScenePath(),
-                                              input_args->scenario_id, input_args->calibration_id);
+                    // Previous implementation in `seims/src/combine_raster/CombineRaster.cpp`
+                    // Change to new API of CCGL by LJ, 2022-07-06
+                    // bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+                    //                                const int n_subbasins, const string& folder /* = "" */,
+                    //                                int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+
+                    // Concatenate real filename
+                    string real_name = item->Corename + "_";
+                    string sce_str = itoa(input_args->scenario_id);
+                    string cali_str = itoa(input_args->calibration_id);
+                    if (input_args->scenario_id >= 0) { real_name += sce_str; }
+                    real_name += "_";
+                    if (input_args->calibration_id >= 0) { real_name += cali_str; }
+                    CLOG(TRACE, LOG_OUTPUT) << "\tCombining raster: " << item->Corename << " -> " << real_name << "...";
+                    bool read_data_flag = true;
+                    map<string, string> opts;
+                    UpdateStringMap(opts, "SCENARIO_ID", sce_str);
+                    UpdateStringMap(opts, "CALIBRATION_ID", cali_str);
+                    for (auto it_sub = subset.begin(); it_sub != subset.end(); ++it_sub) {
+                        string cfname = itoa(it_sub->first) + "_" + real_name;
+                        it_sub->second->usable = it_sub->second->ReadFromMongoDB(spatial_gfs_out, cfname);
+                    }
+
+                    string out_fname = "0_" + real_name;
+                    spatial_gfs_out->RemoveFile(out_fname, nullptr, valid_opts);
+                    bool save = subbsn_lyr->OutputToMongoDB(spatial_gfs_out, out_fname,
+                                                            valid_opts, false, false);
+                    if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To MongoDB!"; }
+                    string outpath = data_center_map.begin()->second->GetOutputScenePath();
+                    if (!outpath.empty()) {
+                        // Output as gtiff file will not contain ScenarioID and CalibrationID information
+                        save = subbsn_lyr->OutputToFile(outpath + SEP + item->Corename + "." + GTiffExtension,
+                                                        false);
+                        if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To GTiff!"; }
+                    }
                 }
             }
         }
-        delete gfs;
+
+        delete subbsn_lyr;
     }
     /*** End of Combine raster outputs. ***/
 
     MPI_Barrier(MCW);
 
     // clean up
-    for (auto it = model_map.begin(); it != model_map.end();) {
+    for (auto it = model_map.begin(); it != model_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        model_map.erase(it++);
     }
-    for (auto it = data_center_map.begin(); it != data_center_map.end();) {
+    model_map.clear();
+
+    for (auto it = data_center_map.begin(); it != data_center_map.end(); ++it) {
         delete it->second;
         it->second = nullptr;
-        data_center_map.erase(it++);
     }
+    data_center_map.clear();
+
     delete module_factory;
-    delete mongo_client;
+    if (spatial_gfs_in) {
+        delete spatial_gfs_in;
+        spatial_gfs_in = nullptr;
+    }
+    if (spatial_gfs_out != nullptr) {
+        delete spatial_gfs_out;
+        spatial_gfs_out = nullptr;
+    }
+    if (mongo_pool && mclient) {
+        mongoc_client_pool_push(mongo_pool, mclient);
+    } else {
+        mongo_client->Destroy();
+        delete mongo_client;
+    }
     delete task_info;
-    if (buf != nullptr) Release1DArray(buf);
+    if (buf != nullptr) { Release1DArray(buf); }
 }

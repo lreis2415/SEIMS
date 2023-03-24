@@ -4,9 +4,10 @@
  *
  * Changelog:
  *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *   - 2. 2022-08-18 - lj - Change float to FLTPT.
  *
  * \author Junzhi Liu, Liangjun Zhu
- * \version 2.0
+ * \version 2.1
  */
 #ifndef SEIMS_REGULAR_MEASUREMENT_H
 #define SEIMS_REGULAR_MEASUREMENT_H
@@ -40,10 +41,10 @@ public:
     ~RegularMeasurement();
 
     //! Get site date by time \a pData
-    float* GetSiteDataByTime(time_t t) OVERRIDE;
+    FLTPT* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
-    vector<float *> m_siteData; ///< data array ordered by sites
+    vector<FLTPT*> m_siteData; ///< data array ordered by sites
     time_t m_interval;          ///< data record interval
 };
 #endif /* SEIMS_REGULAR_MEASUREMENT_H */

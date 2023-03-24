@@ -2,6 +2,7 @@
 #include "text.h"
 
 MUSLE_I30::MUSLE_I30(void) {
+
     // set default values for member variables
     this->m_Date = -1;
     this->m_cellSize = -1;
@@ -76,15 +77,15 @@ bool MUSLE_I30::CheckInputData(void) {
 void MUSLE_I30::initalOutputs() {
     if (m_sedimentYield == NULL) m_sedimentYield = new float[this->m_cellSize];
     if (m_usle_ls == NULL) {
-        float constant = pow(22.13f, 0.4f);
+        float constant = CalPow(22.13f, 0.4f);
         m_usle_ls = new float[this->m_cellSize];
         for (int i = 0; i < this->m_cellSize; i++) {
             float lambda_i1 = this->m_flowacc[i] * this->m_cellWidth;
             float lambda_i = lambda_i1 + this->m_cellWidth;
-            float L = pow(lambda_i, 1.4f) - pow(lambda_i1, 1.4f);
+            float L = CalPow(lambda_i, 1.4f) - CalPow(lambda_i1, 1.4f);
             L /= this->m_cellWidth * constant;
 
-            float S = pow(this->m_slope[i] / 100.0f / 0.0896f, 1.3f);
+            float S = CalPow(this->m_slope[i] / 100.0f / 0.0896f, 1.3f);
 
             this->m_usle_ls[i] = L * S;//equation 3 in memo, LS factor
         }
@@ -92,10 +93,10 @@ void MUSLE_I30::initalOutputs() {
     if (m_slopeForPq == NULL) {
         m_slopeForPq = new float[this->m_cellSize];
         for (int i = 0; i < this->m_cellSize; i++) {
-            m_slopeForPq[i] = pow(this->m_slope[i] / 100.0f * 1000.0f, 0.16f);
+            m_slopeForPq[i] = CalPow(this->m_slope[i] / 100.0f * 1000.0f, 0.16f);
         }
     }
-    m_cellAreaKM = pow(this->m_cellWidth / 1000.0f, 2.0f);
+    m_cellAreaKM = CalPow(this->m_cellWidth / 1000.0f, 2.0f);
 
 
     //initial average half-hour rainfall fraction for each month
@@ -117,9 +118,9 @@ void MUSLE_I30::initalOutputs() {
         for (int i = 0; i < 12; i++) {
             float alpha = 0.0f;
             float mu = this->m_p_stat[i][1] / this->m_p_stat[i][2];
-            alpha = log(0.5f / this->m_rain_yrs / this->m_p_stat[i][2]);
+            alpha = CalLn(0.5f / this->m_rain_yrs / this->m_p_stat[i][2]);
             alpha *= mu;
-            alpha = exp(m_alpha_month[i] / alpha);
+            alpha = CalExp(m_alpha_month[i] / alpha);
             alpha = this->m_adj_pkr * (1 - alpha);
 
             m_alpha_month[i] = alpha;
@@ -140,13 +141,13 @@ float MUSLE_I30::getPeakRunoffRate(int cell) {
     struct tm datestruture;
     LocalTime(m_Date, &datestruture);
     //localtime_s(&datestruture,&m_Date);			//get month
-    float max = 1.0f - exp(-125.0f / (p + 5));    //eq.1:3.2.3 p66
+    float max = 1.0f - CalExp(-125.0f / (p + 5));    //eq.1:3.2.3 p66
     float a15 = triangularDistribution(0.02083f, m_alpha_month[datestruture.tm_mon], max,
                                        &m_rndseed); //eq.1:3.2.4-5 p67
 
     float t = this->m_t_concentration[cell];
     if (t < 0.1f) t = 0.1f;                                //make sure t >= 0.1
-    float altc = 1.0f - exp(2.0f * t * log(1.0f - a15));    //eq.2:1.3.19 p111
+    float altc = 1.0f - CalExp(2.0f * t * CalLn(1.0f - a15));    //eq.2:1.3.19 p111
     float peakr = altc * this->m_surfaceRunoff[cell] * m_cellAreaKM / 3.6f / t;//eq.2:1.3.20 p111
 
     return peakr;
@@ -192,7 +193,7 @@ float MUSLE_I30::triangularDistribution(float min, float mean, float max, int *s
         if (xx <= 0.0f) {
             yy = 0.0f;
         } else {
-            yy = sqrt(xx);
+            yy = CalSqrt(xx);
         }
 
         atri = yy + at1;
@@ -201,7 +202,7 @@ float MUSLE_I30::triangularDistribution(float min, float mean, float max, int *s
         if (xx <= 0.0f) {
             yy = 0.0f;
         } else {
-            yy = sqrt(xx);
+            yy = CalSqrt(xx);
         }
 
         atri = at3 - yy;
@@ -224,12 +225,12 @@ int MUSLE_I30::Execute() {
         if (this->m_surfaceRunoff[i] < 0.0001f) { this->m_sedimentYield[i] = 0.0f; }
         else {
             float q = getPeakRunoffRate(i); //equation 2 in memo, peak flow
-            float Y = 11.8f * pow(this->m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q, 0.56f)
+            float Y = 11.8f * CalPow(this->m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q, 0.56f)
                 * this->m_usle_k[i] * this->m_usle_ls[i] * this->m_usle_c[i] *
                 this->m_usle_p[i];    //equation 1 in memo, sediment yield
 
             if (this->m_snowAccumulation[i] > 0.0001f) {
-                Y /= exp(3.0f * this->m_snowAccumulation[i] / 25.4f);
+                Y /= CalExp(3.0f * this->m_snowAccumulation[i] / 25.4f);
             }  //equation 4 in memo, the snow pack effect
             this->m_sedimentYield[i] = Y;
         }

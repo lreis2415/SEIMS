@@ -23,18 +23,21 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, co
     if (StringMatch(location, "ALL")) {
         m_location.clear();
     } else {
-        SplitStringForValues(location, '-', m_location);
+        vector<int> tmp_locations;
+        SplitStringForValues(location, '-', tmp_locations);
+        for (vector<int>::iterator it = tmp_locations.begin(); it != tmp_locations.end(); ++it) {
+            m_location.insert(*it);
+        }
     }
 }
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory() {
     Release1DArray(m_parameters);
-    for (auto it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
+    for (auto it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end(); ++it) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
         }
-        m_bmpPlantOps.erase(it++);
     }
     m_bmpPlantOps.clear();
 }
@@ -57,12 +60,12 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string& bmpDBName) {
     const bson_t* bsonTable;
     bson_iter_t itertor;
     int paramNum = 10;
-    m_parameters = new float[paramNum];
+    m_parameters = new FLTPT[paramNum];
     int count = 1; /// Use count to counting sequence number, in case of discontinuous of SEQUENCE in database.
     while (mongoc_cursor_next(cursor, &bsonTable)) {
         //int seqNo;
         int mgtCode = -1, year = -9999, month = -9999, day = -9999;
-        float husc = 0.f;
+        FLTPT husc = 0.;
         bool usebaseHU = true;
         if (bson_iter_init_find(&itertor, bsonTable, BMP_FLD_NAME)) {
             m_name = GetStringFromBsonIterator(&itertor);
@@ -271,7 +274,7 @@ void BMPPlantMgtFactory::Dump(std::ostream* fs) {
     }
 }
 
-void BMPPlantMgtFactory::setRasterData(map<string, FloatRaster*>& sceneRsMap) {
+void BMPPlantMgtFactory::setRasterData(map<string, IntRaster*>& sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_mgtFieldsName)->GetRasterData(&n, &m_mgtFieldsRs);

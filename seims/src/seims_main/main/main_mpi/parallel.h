@@ -14,6 +14,7 @@
 // Ignore warning on Windows MSVC compiler caused by MPI.
 #pragma warning(disable: 4819)
 #endif /* MSVC */
+
 #include "mpi.h"
 
 #define WORK_TAG 0

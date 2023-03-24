@@ -1,56 +1,49 @@
 #include "api.h"
 
 #include "DiffusiveWave.h"
-#include "text.h"
 #include "MetadataInfo.h"
+#include "text.h"
 
-//! Get instance of SimulationModule class
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new DiffusiveWave();
 }
 
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
-
-    // set the information properties
-    mdi.SetAuthor("Junzhi Liu");
-    mdi.SetClass(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
-    mdi.SetDescription(MDESC_CH_DW);
+    mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
+    mdi.SetClass(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
+    mdi.SetDescription(M_CH_DW[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("CH_DW.chm");
-    mdi.SetID(MID_CH_DW);
-    mdi.SetName(MID_CH_DW);
+    mdi.SetID(M_CH_DW[0]);
+    mdi.SetName(M_CH_DW[0]);
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetHelpfile("");
 
-    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
-    mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
-    mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    //mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
+    // Parameters from database
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, VAR_DEM[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_FLOWDIR[0], UNIT_NON_DIM, VAR_FLOWDIR[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CHWIDTH[0], UNIT_LEN_M, VAR_CHWIDTH[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
-    mdi.AddParameter(VAR_DEM, UNIT_LEN_M, DESC_DEM, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_FLOWDIR, UNIT_NON_DIM, DESC_FLOWDIR, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);
+    // Inputs from other modules
+    mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_QSOIL[0], UNIT_FLOW_CMS, VAR_QSOIL[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D);
 
-    mdi.AddParameter(Tag_FLOWOUT_INDEX_D8, UNIT_NON_DIM, DESC_FLOWOUT_INDEX_D8, Source_ParameterDB, DT_Array1D);
-    mdi.AddParameter(Tag_FLOWIN_INDEX_D8, UNIT_NON_DIM, DESC_FLOWIN_INDEX_D8, Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
-    // add reach information
-    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
-    // from other module
-    mdi.AddInput(VAR_QOVERLAND, UNIT_FLOW_CMS, DESC_QOVERLAND, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_QSOIL, UNIT_FLOW_CMS, DESC_QSOIL, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PCP, UNIT_DEPTH_MM, DESC_PCP, Source_Module, DT_Raster1D);
+    // Outputs
+    mdi.AddOutput(VAR_QCH[0], UNIT_FLOW_CMS, VAR_QCH[1], DT_Array2D);
+    mdi.AddOutput(VAR_QSUBBASIN[0], UNIT_FLOW_CMS, VAR_QSUBBASIN[1], DT_Array1D);
+    mdi.AddOutput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], DT_Array2D);
 
-    // output
-    mdi.AddOutput(VAR_QCH, UNIT_FLOW_CMS, DESC_QCH, DT_Array2D);
-    mdi.AddOutput(VAR_QSUBBASIN, UNIT_FLOW_CMS, DESC_QSUBBASIN, DT_Array1D);
-    mdi.AddOutput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, DT_Array2D);
-
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

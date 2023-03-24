@@ -2,21 +2,20 @@
 
 #include <algorithm>
 
-Field::Field() : m_xmin(-99), m_xmax(-99), m_ymin(-99), m_ymax(-99),
-                 m_id(-1), m_outFieldID(-1), m_degree(-1), m_landCode(-1),
-                 m_inFieldIDs(), m_cellsIds(), m_cells() {
+Field::Field() : m_xmin(-99), m_ymin(-99), m_xmax(-99), m_ymax(-99),
+                 m_outFieldID(-1), m_id(-1), m_degree(-1), m_landCode(-1) {
 
 }
 
 Field::~Field() {
     if (!m_cells.empty()) {
-        for (auto it = m_cells.begin(); it != m_cells.end();) {
+        for (auto it = m_cells.begin(); it != m_cells.end(); ++it) {
             if (nullptr != *it) {
                 delete *it;
                 *it = nullptr;
             }
             *it = nullptr;
-            it = m_cells.erase(it);
+            // it = m_cells.erase(it);
         }
         m_cells.clear();
     }

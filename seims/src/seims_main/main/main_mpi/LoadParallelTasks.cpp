@@ -2,6 +2,7 @@
 
 #include "ReadReachTopology.h"
 #include "parallel.h"
+#include "Logging.h"
 
 int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int size, TaskInfo* task) {
     /// 1. Read river topology data, abort(1) if failed.
@@ -9,13 +10,13 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
     set<int> group_set;
     if (CreateReachTopology(mclient, input_args->model_name, input_args->grp_mtd,
                             size, subbasin_map, group_set) != 0) {
-        cout << "Read and create reaches topology information failed." << endl;
+        LOG(TRACE) << "Read and create reaches topology information failed.";
         MPI_Abort(MCW, 1);
     }
     if (size_t(size) != group_set.size()) {
         group_set.clear();
-        cout << "The number of slave processes (" << size << ") is not consist with the group number("
-                << group_set.size() << ")." << endl;
+        LOG(TRACE) << "The number of slave processes (" << size << ") is not consist with the group number("
+        << group_set.size() << ").";
         MPI_Abort(MCW, 1);
     }
     /// 2. Scatter the group set (i.e., parallel tasks) to all processes
@@ -43,17 +44,17 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
             task->max_len = CVT_INT(group_map[*it].size());
         }
     }
-#ifdef _DEBUG
-    cout << "Group set: " << endl;
+
+    CLOG(TRACE, LOG_INIT) << "Group set: ";
     for (auto it = group_map.begin(); it != group_map.end(); ++it) {
-        cout << "  group id: " << it->first << ", subbasin IDs: ";
+        std::ostringstream oss;
+        oss << "  group id: " << it->first << ", subbasin IDs: ";
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-            cout << *it2 << ", ";
+            oss << *it2 << ", ";
         }
-        cout << endl;
+        CLOG(TRACE, LOG_INIT) << oss.str();
     }
-    cout << "  max task length: " << task->max_len << endl;
-#endif /* _DEBUG */
+    CLOG(TRACE, LOG_INIT) << "  max task length: " << task->max_len;
 
     int n_task_all = task->max_len * size;
     // initialization
@@ -78,7 +79,7 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
             int n_ups = CVT_INT(subbasin_map[id]->up_streams.size());
             task->up_count[group_index + i] = n_ups;
             if (n_ups > MAX_UPSTREAM) {
-                cout << "The number of upstreams exceeds MAX_UPSTREAM(4)." << endl;
+                CLOG(TRACE, LOG_INIT) << "The number of upstreams exceeds MAX_UPSTREAM: " << MAX_UPSTREAM;
                 MPI_Abort(MCW, 1);
             }
             for (int j = 0; j < n_ups; j++) {
@@ -88,29 +89,30 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
         igroup++;
     }
     // send the information to all processes
-    StatusMessage("Sending tasks to the all processes...");
-#ifdef _DEBUG
-    cout << "  pTaskSubbasinID, pGroupID, pLayerNumber, pDownStream, pUpNums" << endl;
+    CLOG(TRACE, LOG_INIT) << "Sending tasks to the all processes...";
+
+    CLOG(TRACE, LOG_INIT) << "  pTaskSubbasinID, pGroupID, pLayerNumber, pDownStream, pUpNums";
+
     for (int i = 0; i < n_task_all; i++) {
         if (task->subbsn_id[i] < 0) continue;
-        cout << "  " << task->subbsn_id[i] << ", " << i / task->max_len << ", " << task->lyr_id[i] << ", "
-                << task->down_id[i] << ", " << task->up_count[i] << ", " << endl;
+        CLOG(TRACE, LOG_INIT) << "  " << task->subbsn_id[i] << ", " << i / task->max_len << ", " << task->lyr_id[i] << ", "
+        << task->down_id[i] << ", " << task->up_count[i];
     }
-#endif /* _DEBUG */
+
     return 0;
 }
 
 int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const int rank, TaskInfo* task) {
-    StatusMessage("Loading parallel task scheduing information...");
+    CLOG(TRACE, LOG_INIT) << "Loading parallel task scheduing information...";
     if (rank == MASTER_RANK) {
         ManagementProcess(client, input_args, size, task);
     }
     MPI_Barrier(MCW); /// Wait for master rank
     MPI_Bcast(&task->max_len, 1, MPI_INT, MASTER_RANK, MCW);
     int n_task_all = task->max_len * size;
-#ifdef _DEBUG
-    cout << "Max. task length: " << task->max_len << endl;
-#endif /* _DEBUG */
+
+    CLOG(TRACE, LOG_INIT) << "Max. task length: " << task->max_len << endl;
+
     /// Initialize arrays for other ranks
     if (rank != MASTER_RANK) {
         Initialize1DArray(n_task_all, task->subbsn_id, -1);
@@ -122,47 +124,53 @@ int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const 
     MPI_Barrier(MCW); /// Wait for non-master rank
 
     MPI_Bcast(task->subbsn_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->lyr_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->down_id, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->up_count, n_task_all, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     MPI_Bcast(task->up_ids, n_task_all * MAX_UPSTREAM, MPI_INT, MASTER_RANK, MCW);
+    MPI_Barrier(MCW);
     if (rank == MASTER_RANK) {
-        StatusMessage("Tasks are dispatched.");
+        CLOG(TRACE, LOG_INIT) << "Tasks are dispatched.";
     }
-#ifdef _DEBUG
+
     for (int i = 0; i < size; i++) {
-        cout << "group id, subbasin ids, layer numbers, downstream ids, upstream numbers, upstream ids" << endl;
-        cout << i << ", [";
+        CLOG(TRACE, LOG_INIT) << "group id, subbasin ids, layer numbers, downstream ids, upstream numbers, upstream ids";
+        std::ostringstream oss;
+        oss << i << ", [";
         for (int j = 0; j < task->max_len; j++) {
             if (task->subbsn_id[i * task->max_len + j] < 0) break;
-            cout << task->subbsn_id[i * task->max_len + j] << ", ";
+            oss << task->subbsn_id[i * task->max_len + j] << ", ";
         }
-        cout << "], [";
+        oss << "], [";
         for (int j = 0; j < task->max_len; j++) {
             if (task->lyr_id[i * task->max_len + j] < 0) break;
-            cout << task->lyr_id[i * task->max_len + j] << ", ";
+            oss << task->lyr_id[i * task->max_len + j] << ", ";
         }
-        cout << "], [";
+        oss << "], [";
         for (int j = 0; j < task->max_len; j++) {
             if (task->down_id[i * task->max_len + j] < 0) break;
-            cout << task->down_id[i * task->max_len + j] << ", ";
+            oss << task->down_id[i * task->max_len + j] << ", ";
         }
-        cout << "], [";
+        oss << "], [";
         for (int j = 0; j < task->max_len; j++) {
             if (task->up_count[i * task->max_len + j] < 0) break;
-            cout << task->up_count[i * task->max_len + j] << ", ";
+            oss << task->up_count[i * task->max_len + j] << ", ";
         }
-        cout << "], [";
+        oss << "], [";
         for (int j = 0; j < task->max_len; j++) {
-            cout << "[";
+            oss << "[";
             for (int k = 0; k < MAX_UPSTREAM; k++) {
                 if (task->up_ids[i * task->max_len * MAX_UPSTREAM + j * MAX_UPSTREAM + k] < 0) break;
-                cout << task->up_ids[i * task->max_len * MAX_UPSTREAM + j * MAX_UPSTREAM + k] << ", ";
+                oss << task->up_ids[i * task->max_len * MAX_UPSTREAM + j * MAX_UPSTREAM + k] << ", ";
             }
-            cout << "], ";
+            oss << "], ";
         }
-        cout << "]" << endl;
+        oss << "]";
+        CLOG(TRACE, LOG_INIT) << oss.str();
     }
-#endif /* _DEBUG */
     return 0;
 }

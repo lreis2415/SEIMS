@@ -1,3 +1,4 @@
+# coding:utf-8
 """Calibration by NSGA-II algorithm.
 
     @author   : Liangjun Zhu

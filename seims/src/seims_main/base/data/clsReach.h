@@ -6,9 +6,10 @@
  *   - 1. 2017-05-30 - lj - Update MongoDB functions.
  *                          Get 1D arrays of reach properties to keep synchronization among modules.
  *   - 2. 2017-12-26 - lj - Code refactor.
+ *   - 3. 2021-04-20 - lj - Add coordinates x and y of reach vertexes for some channel routing module.
  *
- * \author LiangJun Zhu
- * \version 1.1
+ * \author Liang-Jun Zhu
+ * \version 1.3
  */
 #ifndef SEIMS_REACH_CLS_H
 #define SEIMS_REACH_CLS_H
@@ -35,14 +36,20 @@ public:
     //! Constructor
     explicit clsReach(const bson_t*& bson_table);
 
+    //! Destructor
+    ~clsReach();
+
     //! Get parameters by name
-    float Get(const string& key);
+    FLTPT Get(const string& key);
 
     //! Get group index
     int GetGroupIndex(const string& method, int size);
 
     //! Set parameters by name
-    void Set(const string& key, float value);
+    void Set(const string& key, FLTPT value);
+
+    //! Set positions according to MASK data
+    void SetPositions(IntRaster* mask_raster);
 
     /*!
     * \brief Calculate derived parameters after updating the input parameters.
@@ -50,12 +57,16 @@ public:
     void DerivedParameters();
 
 private:
+    int cells_num_; ///< cells (units) number of current reach
+    vector<FLTPT> coor_x_; ///< X coordinates (not cols!)
+    vector<FLTPT> coor_y_; ///< Y coordinates (not rows!)
+    int* positions_; ///< positions (indexes of valid cells/units) of current reach
     /*!
      * Map container to store parameters
      * key: parameter name
      * value: parameter value
      */
-    map<string, float> param_map_;
+    map<string, FLTPT> param_map_;
     /*!
      * Group numbers, e.g., [1, 2, 3, 8, 16]
      */
@@ -89,22 +100,17 @@ public:
     ~clsReaches();
 
     /// Get single reach information by subbasin ID (1 ~ N)
-    clsReach* GetReachByID(const int id) {
-        if (reaches_obj_.find(id) != reaches_obj_.end()) {
-            return reaches_obj_.at(id);
-        }
-        return nullptr;
-    }
+    clsReach* GetReachByID(int id);
 
     /// Get reach number
-    int GetReachNumber() const { return this->reach_num_; }
+    int GetReachNumber() const { return reach_num_; }
 
     /*!
      * \brief Get 1D array of reach property
-     * \param[in] key
+     * \param[in] key Parameter name
      * \param[out] data 1D array with length of N+1, the first element is Reach number.
      */
-    void GetReachesSingleProperty(const string& key, float** data);
+    void GetReachesSingleProperty(const string& key, FLTPT** data);
 
     /// Get upstream IDs
     vector<vector<int> >& GetUpStreamIDs() { return reach_up_streams_; }
@@ -113,12 +119,12 @@ public:
     map<int, int>& GetDownStreamID() { return reach_down_stream_; }
 
     /// Get map of reach layers
-    map<int, vector<int> >& GetReachLayers() { return reach_layers_; };
+    map<int, vector<int> >& GetReachLayers() { return reach_layers_; }
 
     /*!
      * \brief Update reach/channel parameters according to calibration settings
      */
-    void Update(map<string, ParamInfo *>& caliparams_map);
+    void Update(map<string, ParamInfo<FLTPT> *>& caliparams_map, IntRaster* mask_raster);
 
 private:
     /// reaches number
@@ -147,6 +153,6 @@ private:
     /*! Map of all reaches properties arranged as 1D array
      * the first value is reach number
      */
-    map<string, float *> reaches_properties_;
+    map<string, FLTPT*> reaches_properties_;
 };
 #endif /* SEIMS_REACH_CLS_H */

@@ -1,0 +1,45 @@
+https://app.code2flow.com/
+
+Start;
+if(mask_ is null?) {
+  if (calc_pos_?) {
+    Calc pos from grid data;
+    end:end;
+  } else {
+    goto:end;
+  }
+} else {
+  Masked grid data and pos data;
+  Copy mask's header;
+  if (\!use_mask_ext_ &&
+  \!same_ext_with_mask) {
+    reCalc headers;
+    if (calc_pos_?) {
+      reCalc pos data and valid values;
+      if (mask has subset?) {
+        reCal pos data of subset;
+      }
+      goto:end;
+    } else {
+      reStoreFullsizeGrid:reStoreFullsizeGrid;
+      if (mask has subset?) {
+        reStoreFullsizeSubset;
+      }
+      goto:end;
+    }
+  } else {
+    if (calc_pos_?) {
+      Assign pointer of mask's pos data;
+      if (mask has subset?) {
+        Assign pointers of mask's subset;
+      }
+      goto:end;
+    } else {
+      goto:reStoreFullsizeGrid;
+      if (mask has subset?) {
+        reStoreFullsizeSubset;
+      }
+      goto:end;
+    }
+  }
+}

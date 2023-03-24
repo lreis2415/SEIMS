@@ -19,11 +19,12 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from configparser import ConfigParser
 
-from pygeoc.TauDEM import TauDEMFilesUtils
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
-from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from preprocess.text import TauDEMbasedNames, VectorNameUtils, \
+    SpatialNamesUtils, ModelParamDataUtils
+from preprocess.db_mongodb import ConnectMongoDB
 
 
 class PreprocessConfig(object):
@@ -72,9 +73,9 @@ class PreprocessConfig(object):
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
         # 5. Option parameters
-        self.d8acc_threshold = 0
+        self.acc_thresh = 0
         self.np = 4
-        self.d8down_method = 's'
+        self.distdown_method = 's'
         self.dorm_hr = -1.
         self.temp_base = 0.
         self.imper_perc_in_urban = 0.
@@ -117,9 +118,9 @@ class PreprocessConfig(object):
 
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
-        self.vecs = VectorNameUtils(self.dirs.geoshp)               # workspace\spatial_shp
-        self.taudems = TauDEMFilesUtils(self.dirs.taudem)
-        self.spatials = SpatialNamesUtils(self.dirs.geodata2db)     # workspace\spatial_raster
+        self.vecs = VectorNameUtils(self.dirs.geoshp)
+        self.taudems = TauDEMbasedNames(self.dirs.taudem)
+        self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database') # PREPROC_SCRIPT_DIR = F:\program\seims\SEIMS\seims\preprocess
 
@@ -146,13 +147,21 @@ class PreprocessConfig(object):
         if 'MONGODB' in cf.sections():
             self.hostname = cf.get('MONGODB', 'hostname')
             self.port = cf.getint('MONGODB', 'port')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
             self.climate_db = cf.get('MONGODB', 'climatedbname')
             self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
-            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
         else:
             raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
-        if not StringClass.is_valid_ip_addr(self.hostname):
-            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+        # if not StringClass.is_valid_ip_addr(self.hostname):
+        #     raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+        # build a global connection to mongodb database
+        self.client = ConnectMongoDB(self.hostname, self.port)
+        self.conn = self.client.get_conn()
+        self.maindb = self.conn[self.spatial_db]
+        self.climatedb = self.conn[self.climate_db]
+        self.scenariodb = None
+        if self.use_scernario:
+            self.scenariodb = self.conn[self.bmp_scenario_db]
 
         # 3. Climate Input
         if 'CLIMATE' in cf.sections():
@@ -202,21 +211,24 @@ class PreprocessConfig(object):
 
         # 5. Optional parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():
-            self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
-            self.d8down_method = cf.get('OPTIONAL_PARAMETERS', 'd8downmethod')
-            if StringClass.string_match(self.d8down_method, 'surface'):
-                self.d8down_method = 's'
-            elif StringClass.string_match(self.d8down_method, 'horizontal'):
-                self.d8down_method = 'h'
-            elif StringClass.string_match(self.d8down_method, 'pythagoras'):
-                self.d8down_method = 'p'
-            elif StringClass.string_match(self.d8down_method, 'vertical'):
-                self.d8down_method = 'v'
+            self.acc_thresh = cf.getfloat('OPTIONAL_PARAMETERS', 'accthreshold')
+            self.min_flowfrac = 0.01  # default min. flow fraction to downstream
+            if cf.has_option('OPTIONAL_PARAMETERS', 'minflowfraction'):
+                self.min_flowfrac = cf.getfloat('OPTIONAL_PARAMETERS', 'minflowfraction')
+            self.distdown_method = cf.get('OPTIONAL_PARAMETERS', 'distancedownmethod')
+            if StringClass.string_match(self.distdown_method, 'surface'):
+                self.distdown_method = 's'
+            elif StringClass.string_match(self.distdown_method, 'horizontal'):
+                self.distdown_method = 'h'
+            elif StringClass.string_match(self.distdown_method, 'pythagoras'):
+                self.distdown_method = 'p'
+            elif StringClass.string_match(self.distdown_method, 'vertical'):
+                self.distdown_method = 'v'
             else:
-                self.d8down_method = self.d8down_method.lower()
-                if self.d8down_method not in ['s', 'h', 'p', 'v']:
-                    self.d8down_method = 's'
+                self.distdown_method = self.distdown_method.lower()
+                if self.distdown_method not in ['s', 'h', 'p', 'v']:
+                    self.distdown_method = 's'
             self.dorm_hr = cf.getfloat('OPTIONAL_PARAMETERS', 'dorm_hr')
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',

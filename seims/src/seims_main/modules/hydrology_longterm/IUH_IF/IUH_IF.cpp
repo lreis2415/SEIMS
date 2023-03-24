@@ -1,17 +1,18 @@
 #include "IUH_IF.h"
 #include "text.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
 
 IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nsub(-1), m_subbasin(NULL),
                        m_iuhCell(NULL), m_ssru(NULL), m_iuhCols(-1), m_cellFlowCols(-1) {
+
     m_Q_SBIF = NULL;
     m_cellFlow = NULL;
 }
 
 IUH_IF::~IUH_IF(void) {
     Release1DArray(m_Q_SBIF);
-    Release2DArray(m_nCells, m_cellFlow);
+    Release2DArray(m_cellFlow);
 }
 
 bool IUH_IF::CheckInputData(void) {
@@ -69,7 +70,7 @@ void IUH_IF:: InitialOutputs() {
         for (int i = 0; i < this->m_nCells; i++) {
             subs[int(this->m_subbasin[i])] += 1;
         }
-        this->m_nsub = subs.size();
+        this->m_nsub = CVT_INT(subs.size());
     }
 
     if (m_cellFlow == NULL) {
@@ -80,7 +81,7 @@ void IUH_IF:: InitialOutputs() {
         m_cellFlow = new float *[this->m_nCells];
 
         for (int i = 0; i < this->m_nCells; i++) {
-            m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
 
         //get m_cellFlowCols, i.e. the maximum of second column of iuh add 1.
@@ -175,11 +176,11 @@ bool IUH_IF::CheckInputSize(const char *key, int n) {
 
 void IUH_IF::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) {
+    if (StringMatch(sk, Tag_TimeStep[0])) {
         m_TimeStep = (int) value;
-    } else if (StringMatch(sk, Tag_CellWidth)) {
+    } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
-    } else if (StringMatch(sk, Tag_CellSize)) {
+    } else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = int(value);
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk
@@ -191,9 +192,9 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     //set the value
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbasin = data;
-    } else if (StringMatch(sk, VAR_SSRU)) {
+    } else if (StringMatch(sk, VAR_SSRU[0])) {
         m_ssru = data;
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk +
@@ -203,8 +204,8 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
 
 void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
     string sk(key);
-    if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize(VAR_OL_IUH, nRows);
+    if (StringMatch(sk, VAR_OL_IUH[0])) {
+        CheckInputSize(VAR_OL_IUH[0], nRows);
         m_iuhCell = data;
         m_iuhCols = nCols;
     } else {
@@ -215,7 +216,7 @@ void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
 
 void IUH_IF::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SBIF)) {
+    if (StringMatch(sk, VAR_SBIF[0])) {
         *data = m_Q_SBIF;
     } else {
         throw ModelException("IUH_IF", "getResult", "Result " + sk +

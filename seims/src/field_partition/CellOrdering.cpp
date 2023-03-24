@@ -27,7 +27,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
     m_nCols = m_dir->GetCols();
     m_size = m_nRows * m_nCols;
     m_cells.resize(m_size, nullptr);
-    m_cellwidth = m_dir->GetCellWidth();
+    m_cellwidth = CVT_FLT(m_dir->GetCellWidth());
     //m_layers.resize(10);
 
     m_validCellsCount = 0;
@@ -66,43 +66,43 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
 
 CellOrdering::~CellOrdering(void) {
     if (!m_cells.empty()) {
-        for (auto it = m_cells.begin(); it != m_cells.end();) {
+        for (auto it = m_cells.begin(); it != m_cells.end(); ++it) {
             if (nullptr != *it) {
                 delete *it;
                 *it = nullptr;
             }
-            it = m_cells.erase(it);
+            // it = m_cells.erase(it);
         }
         m_cells.clear();
     }
     if (!m_fields.empty()) {
-        for (auto it = m_fields.begin(); it != m_fields.end();) {
+        for (auto it = m_fields.begin(); it != m_fields.end(); ++it) {
             if (nullptr != *it) {
                 delete *it;
                 *it = nullptr;
             }
-            it = m_fields.erase(it);
+            // it = m_fields.erase(it);
         }
         m_fields.clear();
     }
     if (!m_mapfields.empty()) {
-        for (auto it = m_mapfields.begin(); it != m_mapfields.end();) {
+        for (auto it = m_mapfields.begin(); it != m_mapfields.end(); ++it) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
             }
-            m_mapfields.erase(it++);
+            // m_mapfields.erase(it++);
         }
     }
     m_mapfields.clear();
     if (!m_mapSameDegreefields.empty()) {
-        for (auto it = m_mapSameDegreefields.begin(); it != m_mapSameDegreefields.end();) {
-            for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+        for (auto it = m_mapSameDegreefields.begin(); it != m_mapSameDegreefields.end(); ++it) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                 *it2 = nullptr;
-                it2 = it->second.erase(it2);
+                // it2 = it->second.erase(it2);
             }
             it->second.clear();
-            m_mapSameDegreefields.erase(it++);
+            // m_mapSameDegreefields.erase(it++);
         }
     }
     m_mapSameDegreefields.clear();
@@ -362,7 +362,7 @@ void CellOrdering::MergeSameLanduseChildFieldsOneLayer(Field *pfield) {
     if (infieldIds.empty()) {
         return;
     }
-    int infdSize = infieldIds.size();
+    int infdSize = CVT_INT(infieldIds.size());
     //cout<<"curFieldID: "<<pfield->GetID()<<", InFieldNum: "<<infdSize<<endl;
     if (infdSize < 2) {/// pfield has only one field flow in.
         return;
@@ -394,7 +394,7 @@ void CellOrdering::MergeSameLanduseChildFields(Field *pfield) {
     if (infieldIds.empty()) {
         return;
     }
-    int infdSize = infieldIds.size();
+    int infdSize = CVT_INT(infieldIds.size());
     //cout<<"curFieldID: "<<pfield->GetID()<<", InFieldNum: "<<infdSize<<endl;
     if (infdSize < 2) {
         Field *pdf = m_mapfields[infieldIds[0]]; /// pfield has only one field flow in.
@@ -421,7 +421,7 @@ void CellOrdering::MergeSameLanduseChildFields(Field *pfield) {
         }
     }
     vector<int> &updatedInfieldIds = pfield->GetInFieldIDs();
-    infdSize = updatedInfieldIds.size();
+    infdSize = CVT_INT(updatedInfieldIds.size());
     for (int i = 0; i < infdSize; i++) {
         Field *pfd = m_mapfields[updatedInfieldIds[i]];
         MergeSameLanduseChildFields(pfd);
@@ -442,12 +442,12 @@ void CellOrdering::AggregateSmallField(Field *pfield) {
         int id = m_posterorderfieldId[i];
         Field *pfd = m_mapfields[id];
         vector<Cell *> &cells = pfd->GetCells();
-        int ncells = cells.size();
+        int ncells = CVT_INT(cells.size());
         if (ncells < m_threshold) {
             if (id == 1)   // root
             {
                 vector<int> &infid = pfd->GetInFieldIDs();
-                int numinfid = infid.size();
+                int numinfid = CVT_INT(infid.size());
                 int child = numinfid / 2;
                 Field *chfd = m_mapfields[infid[child]];
                 mergefieldschild2father(chfd, pfd);
@@ -643,7 +643,7 @@ void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father 
     } else {
         degree++;
         m_fields[id]->SetDegree(degree);
-        m_maxDegree < degree ? m_maxDegree = degree : m_maxDegree = m_maxDegree;    // maximum degree
+        if (m_maxDegree < degree) { m_maxDegree = degree; } // maximum degree
 
         vector<int> &inFieldID = m_fields[id]->GetInFieldIDs();
         if (!inFieldID.empty()) {

@@ -10,8 +10,11 @@
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
 
+#include <set>
+
 using namespace bmps;
 using namespace plant_management;
+using std::set;
 
 namespace bmps {
 /*!
@@ -37,16 +40,16 @@ public:
     void Dump(ostream* fs) OVERRIDE;
 
     /// Set management fields data
-    void setRasterData(map<string, FloatRaster *>& sceneRsMap) OVERRIDE;
+    void setRasterData(map<string, IntRaster *>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; };
+    int* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
 
     /// Get landuse / landcover ID
     int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    vector<int>& GetLocations() { return m_location; }
+    set<int>& GetLocations() { return m_location; }
 
     /// Get operation sequence
     vector<int>& GetOperationSequence() { return m_bmpSequence; }
@@ -55,7 +58,7 @@ public:
     map<int, PltMgtOp *>& GetOperations() { return m_bmpPlantOps; }
 
     /// Get operation by ID
-    PltMgtOp* GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
+    PltMgtOp* GetOperation(const int ID) { return m_bmpPlantOps.at(ID); }
 
 private:
     /// subSecenario name
@@ -63,13 +66,13 @@ private:
     /// management fields name, defined in 'distribution'
     string m_mgtFieldsName;
     /// management fields data (1D array raster)
-    float* m_mgtFieldsRs;
+    int* m_mgtFieldsRs;
     /// landuse / landcover
     int m_luccID;
     /// parameters
-    float* m_parameters;
-    /// field index for where to apply the subScenario
-    vector<int> m_location;
+    FLTPT* m_parameters;
+    /// field index for where to apply the subScenario. Using set instead of vector to accelerate find(). 
+    set<int> m_location;
     /*!
      * The first element is the sequence number of plant management operations
      * and the second is the corresponding unique management code, i.e., index * 1000 + operationCode

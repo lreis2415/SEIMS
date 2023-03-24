@@ -1,0 +1,164 @@
+# Build CCGL library on native C++11 with GDAL and mongo-c-driver, and run test with CMake
+
+name: Build with GDAL and MongoDB
+
+on:
+    push:
+        paths-ignore:
+            - 'doc/**'
+    pull_request:
+        paths-ignore:
+            - 'doc/**'
+    workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  build-linux-ubuntu:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+    steps:
+    - name: Checkout CCGL
+      uses: actions/checkout@v2
+
+    # 1. https://github.com/supercharge/mongodb-github-action
+    # - name: MongoDB in GitHub Actions
+    #   uses: supercharge/mongodb-github-action@1.7.0
+    # 2. launch manually (untested)
+    # - name: launch
+    #   shell: bash
+    #   run: |
+    #     mkdir /tmp/d
+    #     mongod --dbpath /tmp/d --fork --logpath /tmp/log
+    #     sleep 5
+    #     echo 'db'  | mongo 127.0.0.1
+
+    - name: Install GDAL and mongo-c-driver
+      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+
+  build-windows:
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout CCGL
+      uses: actions/checkout@v2
+
+    - name: Find mongod.exe
+      run: where.exe mongod.exe
+      # C:\Program Files\MongoDB\Server\5.0\bin\mongod.exe
+
+    - name: Start MongoDB Service
+      # How to start MongoDB as a service on Windows runners
+      # https://github.com/orgs/community/discussions/30083#discussioncomment-3448499
+      shell: pwsh
+      run: |
+          Set-Service mongodb -StartupType Automatic
+          Start-Service -Name mongodb
+
+    - name: Download mongo-c-driver
+      # Build mongo-c-driver is time-consuming, I moved it to another repo. https://github.com/crazyzlj/Github_Actions_Precompiled_Packages
+      # run: ${{github.workspace}}\.github\workflows\build_mongo-c-driver.ps1
+      # Instead, download the prebuilt library directly.
+      id: pwshdownmongo
+      shell: pwsh
+      run: |
+        cd ${{github.workspace}}\.github\workflows
+        ./download_mongo-c-driver.ps1 -mongoCPath ${{github.workspace}}/mongolib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+
+    - name: Download GDAL
+      id: pwshdowngdal
+      shell: pwsh
+      run: |
+        cd ${{github.workspace}}\.github\workflows
+        ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+
+    - name: Configure CMake
+      shell: cmd
+      run: |
+        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        -DGDAL_ROOT=${{ steps.pwshdowngdal.outputs.GDAL_ROOT }} ^
+        -DMONGOC_ROOT=${{ steps.pwshdownmongo.outputs.MONGOC_ROOT }} ^
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+
+    - name: Build
+      shell: cmd
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4
+
+    - name: Test
+      shell: cmd
+      working-directory: ${{github.workspace}}/build
+      # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
+      run: |
+        set PATH=${{ steps.pwshdowngdal.outputs.GDAL_BIN }};${{ steps.pwshdownmongo.outputs.MONGOC_BIN }};%PATH%
+        ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+
+  build-mac:
+    runs-on: macos-latest
+
+    steps:
+    - name: Setup xcode
+      uses: maxim-lobanov/setup-xcode@v1
+
+    # default mongod install path: /usr/local/bin/mongod
+    # default mongod.conf: /usr/local/etc/mongod.conf
+    # systemLog:
+    #   destination: file
+    #   path: /usr/local/var/log/mongodb/mongo.log
+    #   logAppend: true
+    # storage:
+    #   dbPath: /usr/local/var/mongodb
+    # net:
+    #   bindIp: 127.0.0.1
+    - name: Check mongod
+      run: |
+        which mongod
+        cat /usr/local/etc/mongod.conf
+    - name: Start mongod manually
+      run: mongod --config /usr/local/etc/mongod.conf --fork
+
+    - name: Install mongo-c-driver
+      run: brew install mongo-c-driver
+
+    - name: Install GDAL
+      run: brew list gdal &>/dev/null || brew install gdal
+
+    - name: Checkout CCGL
+      uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure

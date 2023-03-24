@@ -12,32 +12,32 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
-    mdi.SetClass(MCLS_DEP, MCLSDESC_DEP);
-    mdi.SetDescription(MDESC_DEP_LINSLEY);
+    mdi.SetClass(MCLS_DEP[0], MCLS_DEP[1]);
+    mdi.SetDescription(M_DEP_LINSLEY[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("DEP_LINSLEY.chm");
-    mdi.SetID(MID_DEP_LINSLEY);
-    mdi.SetName(MID_DEP_LINSLEY);
-    mdi.SetVersion("1.2");
+    mdi.SetID(M_DEP_LINSLEY[0]);
+    mdi.SetName(M_DEP_LINSLEY[0]);
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(VAR_DEPREIN, UNIT_NON_DIM, DESC_DEPREIN, Source_ParameterDB, DT_Single);// 洼地初始蓄水系数
-    mdi.AddParameter(VAR_DEPRESSION, UNIT_DEPTH_MM, DESC_DEPRESSION, Source_ParameterDB, DT_Raster1D);// 洼地深度 mm
+    mdi.AddParameter(VAR_DEPREIN[0], UNIT_NON_DIM, VAR_DEPREIN[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_DEPRESSION[0], UNIT_DEPTH_MM, VAR_DEPRESSION[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddInput(VAR_INET, UNIT_DEPTH_MM, DESC_INET, Source_Module, DT_Raster1D); //Evaporation from intercepted storage
-    mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);   //PET 日潜在蒸散量
-    mdi.AddInput(VAR_EXCP, UNIT_DEPTH_MM, DESC_EXCP, Source_Module, DT_Raster1D); //Excess precipitation 过量降水，可形成洼地蓄水或地表径流
-    mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module_Optional, DT_Raster1D);
-    mdi.AddInput(VAR_POT_VOL, UNIT_DEPTH_MM, DESC_POT_VOL, Source_Module_Optional, DT_Raster1D);//洼地中的蓄水深度 mm
+    mdi.AddInput(VAR_INET[0], UNIT_DEPTH_MM, VAR_INET[1], Source_Module, DT_Raster1D); //Evaporation from intercepted storage
+    mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D);   //PET
+    mdi.AddInput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], Source_Module, DT_Raster1D); //Excess precipitation
+    mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1DInt);
+    mdi.AddInput(VAR_POT_VOL[0], UNIT_DEPTH_MM, VAR_POT_VOL[1], Source_Module_Optional, DT_Raster1D);
 
-    mdi.AddOutput(VAR_DPST, UNIT_DEPTH_MM, DESC_DPST, DT_Raster1D);	// 洼地蓄水深度 mm
-    mdi.AddOutput(VAR_DEET, UNIT_DEPTH_MM, DESC_DEET, DT_Raster1D); // 洼地蓄水的蒸发深度 mm
-    mdi.AddOutput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, DT_Raster1D);// 地表径流深度 mm
+    mdi.AddOutput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], DT_Raster1D);
+    mdi.AddOutput(VAR_DEET[0], UNIT_DEPTH_MM, VAR_DEET[1], DT_Raster1D);
+    mdi.AddOutput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], DT_Raster1D);
 
     // set the dependencies
-    mdi.AddDependency(MCLS_CLIMATE, MCLSDESC_CLIMATE);
-    mdi.AddDependency(MCLS_INTERC, MCLSDESC_INTERC);
-    mdi.AddDependency(MCLS_SUR_RUNOFF, MCLSDESC_SUR_RUNOFF);
+    mdi.AddDependency(MCLS_CLIMATE[0], MCLS_CLIMATE[1]);
+    mdi.AddDependency(MCLS_INTERC[0], MCLS_INTERC[1]);
+    mdi.AddDependency(MCLS_SUR_RUNOFF[0], MCLS_SUR_RUNOFF[1]);
 
     string res = mdi.GetXMLDocument();
 

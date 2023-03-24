@@ -44,7 +44,8 @@ namespace bmps {
 class Scenario: Interface {
 public:
     //! Constructor according to BMP database name and scenario ID
-    Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0);
+    Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0,
+        time_t startTime = -1, time_t endTime = -1);
 
     //! Destructor
     ~Scenario();
@@ -68,7 +69,7 @@ public:
     void Dump(std::ostream* fs);
 
     //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
-    map<string, FloatRaster *>& getSceneRasterDataMap() { return m_sceneRsMap; }
+    map<string, IntRaster *>& getSceneRasterDataMap() { return m_sceneRsMap; }
 
     //! set raster data for BMPs
     void setRasterForEachBMP();
@@ -83,7 +84,7 @@ private:
     /*!
      * \brief Map of spatial data of scenario data, both 1D and 2D
      */
-    map<string, FloatRaster *> m_sceneRsMap;
+    map<string, IntRaster *> m_sceneRsMap;
 
     /// Load scenario information
     void loadScenario();
@@ -110,6 +111,10 @@ private:
     string m_name;
     //! Subbasin ID, 0 for the entire basin
     int m_subbsnID;
+    //! the start time of scenario simulation
+    time_t m_startTime;
+    //! the start time of scenario simulation
+    time_t m_endTime;
 };
 
 } /* MainBMP */

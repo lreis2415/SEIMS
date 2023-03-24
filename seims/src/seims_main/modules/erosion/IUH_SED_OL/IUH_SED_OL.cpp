@@ -11,34 +11,34 @@ IUH_SED_OL::IUH_SED_OL() :
 
 IUH_SED_OL::~IUH_SED_OL() {
     if (m_sedtoCh != nullptr) Release1DArray(m_sedtoCh);
-    if (m_cellSed != nullptr) Release2DArray(m_nCells, m_cellSed);
+    if (m_cellSed != nullptr) Release2DArray(m_cellSed);
 }
 
 bool IUH_SED_OL::CheckInputData() {
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_date);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nSubbsns);
-    CHECK_NONNEGATIVE(MID_IUH_SED_OL, m_inputSubbsnID);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nCells);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_CellWidth);
-    CHECK_NONNEGATIVE(MID_IUH_SED_OL, m_TimeStep);
-    CHECK_POINTER(MID_IUH_SED_OL, m_subbsnID);
-    CHECK_POINTER(MID_IUH_SED_OL, m_iuhCell);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_date);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
+    CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_inputSubbsnID);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_CellWidth);
+    CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_TimeStep);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_subbsnID);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
     return true;
 }
 
 void IUH_SED_OL::InitialOutputs() {
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nSubbsns);
-    CHECK_POSITIVE(MID_IUH_SED_OL, m_nCells);
-    CHECK_POINTER(MID_IUH_SED_OL, m_iuhCell);
-    if (m_cellArea <= 0.f) m_cellArea = m_CellWidth * m_CellWidth;
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
+    CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
+    CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
+    if (m_cellArea <= 0.) m_cellArea = m_CellWidth * m_CellWidth;
     if (nullptr == m_sedtoCh) {
-        Initialize1DArray(m_nSubbsns + 1, m_sedtoCh, 0.f);
-        Initialize1DArray(m_nCells, m_olWtrEroSed, 0.f);
+        Initialize1DArray(m_nSubbsns + 1, m_sedtoCh, 0.);
+        Initialize1DArray(m_nCells, m_olWtrEroSed, 0.);
         //get m_cellFlowCols, i.e. the maximum of second column of OL_IUH plus 1.
         for (int i = 0; i < m_nCells; i++) {
             m_cellFlowCols = Max(CVT_INT(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
-        Initialize2DArray(m_nCells, m_cellFlowCols, m_cellSed, 0.f);
+        Initialize2DArray(m_nCells, m_cellFlowCols, m_cellSed, 0.);
     }
 }
 
@@ -47,7 +47,7 @@ int IUH_SED_OL::Execute() {
     InitialOutputs();
     // delete value of last time step
     for (int i = 0; i < m_nSubbsns + 1; i++) {
-        m_sedtoCh[i] = 0.f;
+        m_sedtoCh[i] = 0.;
     }
 
 #pragma omp parallel for
@@ -57,11 +57,11 @@ int IUH_SED_OL::Execute() {
             if (j != m_cellFlowCols - 1) {
                 m_cellSed[i][j] = m_cellSed[i][j + 1];
             } else {
-                m_cellSed[i][j] = 0.f;
+                m_cellSed[i][j] = 0.;
             }
         }
 
-        if (m_sedYield[i] > 0.f) {
+        if (m_sedYield[i] > 0.) {
             int min = CVT_INT(m_iuhCell[i][0]);
             int max = CVT_INT(m_iuhCell[i][1]);
             int col = 2;
@@ -74,9 +74,9 @@ int IUH_SED_OL::Execute() {
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
 #pragma omp parallel
     {
-        float* tmp_sed2ch = new float[m_nSubbsns + 1];
+        FLTPT* tmp_sed2ch = new FLTPT[m_nSubbsns + 1];
         for (int i = 0; i <= m_nSubbsns; i++) {
-            tmp_sed2ch[i] = 0.f;
+            tmp_sed2ch[i] = 0.;
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
@@ -98,48 +98,69 @@ int IUH_SED_OL::Execute() {
     return 0;
 }
 
-void IUH_SED_OL::SetValue(const char* key, const float value) {
+void IUH_SED_OL::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellSize)) m_nCells = CVT_INT(value);
-    else if (StringMatch(sk, Tag_CellWidth)) m_CellWidth = value;
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
-    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
+    if (StringMatch(sk, Tag_CellWidth[0])) m_CellWidth = value;
     else {
-        throw ModelException(MID_IUH_SED_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "SetValue",
+                             "Parameter " + sk + " does not exist in current method.");
     }
 }
 
-void IUH_SED_OL::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_IUH_SED_OL, key, n, m_nCells);
+void IUH_SED_OL::SetValue(const char* key, const int value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
-    else if (StringMatch(sk, VAR_SOER)) m_sedYield = data;
+    if (StringMatch(sk, Tag_TimeStep[0])) m_TimeStep = value;
+    else if (StringMatch(sk, Tag_CellSize[0])) m_nCells = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
     else {
-        throw ModelException(MID_IUH_SED_OL, "Set1DData", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist in current method.");
     }
 }
 
-void IUH_SED_OL::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+void IUH_SED_OL::Set1DData(const char* key, const int n, FLTPT* data) {
+    CheckInputSize(M_IUH_SED_OL[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_OL_IUH)) {
-        CheckInputSize2D(MID_IUH_SED_OL, key, nrows, ncols, m_nCells, m_iuhCols);
+    if (StringMatch(sk, VAR_SOER[0])) m_sedYield = data;
+    else {
+        throw ModelException(M_IUH_SED_OL[0], "Set1DData",
+                             "Parameter " + sk + " does not exist in current method.");
+    }
+}
+
+void IUH_SED_OL::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_IUH_SED_OL[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_SUBBSN[0])) m_subbsnID = data;
+    else {
+        throw ModelException(M_IUH_SED_OL[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist in current method.");
+    }
+}
+
+void IUH_SED_OL::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
+    string sk(key);
+    if (StringMatch(sk, VAR_OL_IUH[0])) {
+        CheckInputSize2D(M_IUH_SED_OL[0], key, nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
     } else {
-        throw ModelException(MID_IUH_SED_OL, "Set2DData", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(M_IUH_SED_OL[0], "Set2DData",
+                             "Parameter " + sk + " does not exist in current method.");
     }
 }
 
-void IUH_SED_OL::Get1DData(const char* key, int* n, float** data) {
+void IUH_SED_OL::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SED_TO_CH)) {
+    if (StringMatch(sk, VAR_SED_TO_CH[0])) {
         *data = m_sedtoCh; // from each subbasin to channel
         *n = m_nSubbsns + 1;
-    } else if (StringMatch(sk, VAR_SEDYLD)) {
+    } else if (StringMatch(sk, VAR_SEDYLD[0])) {
         *data = m_olWtrEroSed;
         *n = m_nCells;
     } else {
-        throw ModelException(MID_IUH_SED_OL, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_IUH_SED_OL[0], "Get1DData",
+                             "Result " + sk + " does not exist.");
     }
 }

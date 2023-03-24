@@ -28,12 +28,15 @@
 *.out
 *.app
 bin
+dist
 build*
 cmake-build*
 
 # IDE related
 .idea/
 .vscode
+.vs
+CMakeSettings.json
 
 # office temp file
 ~$*
@@ -42,11 +45,16 @@ cmake-build*
 *.vat.cpg
 *.vat.dbf
 *.tif.aux.xml
+*.tif.vat
+*.tif.xml
 *.tfw
 *.tif.ovr
 
 # putty log
 putty.log
+
+# default Doxygen Html generated dir
+html
 
 # macOS
 .DS_Store

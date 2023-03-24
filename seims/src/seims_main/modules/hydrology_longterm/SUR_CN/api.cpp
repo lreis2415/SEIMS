@@ -14,39 +14,39 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Wu Hui");
-    mdi.SetClass(MCLS_SUR_RUNOFF, MCLSDESC_SUR_RUNOFF);
-    mdi.SetDescription(MDESC_SUR_CN);
+    mdi.SetClass(MCLS_SUR_RUNOFF[0], MCLS_SUR_RUNOFF[1]);
+    mdi.SetDescription(M_SUR_CN[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("SUR_CN.chm");
-    mdi.SetID(MID_SUR_CN);
-    mdi.SetName(MID_SUR_CN);
+    mdi.SetID(M_SUR_CN[0]);
+    mdi.SetName(M_SUR_CN[0]);
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(VAR_T_SNOW, UNIT_TEMP_DEG, DESC_T_SNOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T_SOIL, UNIT_TEMP_DEG, DESC_T_SOIL, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T0, UNIT_TEMP_DEG, DESC_T0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_S_FROZEN, UNIT_NON_DIM, DESC_S_FROZEN, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T_SNOW[0], UNIT_TEMP_DEG, VAR_T_SNOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T0[0], UNIT_TEMP_DEG, VAR_T0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_S_FROZEN[0], UNIT_NON_DIM, VAR_S_FROZEN[1], Source_ParameterDB, DT_Single);
 
-    mdi.AddParameter(VAR_CN2, UNIT_NON_DIM, DESC_CN2, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_MOIST_IN, UNIT_VOL_FRA_M3M3, DESC_MOIST_IN, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_ROOTDEPTH, UNIT_LEN_M, DESC_ROOTDEPTH, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CN2[0], UNIT_NON_DIM, VAR_CN2[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_MOIST_IN[0], UNIT_VOL_FRA_M3M3, VAR_MOIST_IN[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_ROOTDEPTH[0], UNIT_LEN_M, VAR_ROOTDEPTH[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddParameter(VAR_SOILDEPTH, UNIT_LEN_M, DESC_SOILDEPTH, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_FIELDCAP, UNIT_VOL_FRA_M3M3, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_POROST, UNIT_NON_DIM, DESC_POROST, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_WILTPOINT, UNIT_VOL_FRA_M3M3, DESC_WILTPOINT, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_LEN_M, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_FIELDCAP[0], UNIT_VOL_FRA_M3M3, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_POROST[0], UNIT_NON_DIM, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_WILTPOINT[0], UNIT_VOL_FRA_M3M3, VAR_WILTPOINT[1], Source_ParameterDB, DT_Raster2D);
 
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D);  //from interception module
-    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_DPST, UNIT_DEPTH_MM, DESC_DPST, Source_Module, DT_Raster1D);  //from depression module
-    mdi.AddInput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, Source_Module, DT_Raster1D);  //from soil temperature module
-    mdi.AddInput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, Source_Module, DT_Raster1D);  //from snow accumulation module
-    mdi.AddInput(VAR_SNME, UNIT_DEPTH_MM, DESC_SNME, Source_Module, DT_Raster1D);  //from snowmelt module
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);  //from interception module
+    mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], Source_Module, DT_Raster1D);  //from depression module
+    mdi.AddInput(VAR_SOTE[0], UNIT_TEMP_DEG, VAR_SOTE[1], Source_Module, DT_Raster1D);  //from soil temperature module
+    mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module, DT_Raster1D);  //from snow accumulation module
+    mdi.AddInput(VAR_SNME[0], UNIT_DEPTH_MM, VAR_SNME[1], Source_Module, DT_Raster1D);  //from snowmelt module
 
-    mdi.AddOutput(VAR_EXCP, UNIT_DEPTH_MM, DESC_EXCP, DT_Raster1D);  // just for depression module.
-    mdi.AddOutput(VAR_INFIL, UNIT_DEPTH_MM, DESC_INFIL, DT_Raster1D);
-    mdi.AddOutput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, DT_Raster2D);
+    mdi.AddOutput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], DT_Raster1D);  // just for depression module.
+    mdi.AddOutput(VAR_INFIL[0], UNIT_DEPTH_MM, VAR_INFIL[1], DT_Raster1D);
+    mdi.AddOutput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], DT_Raster2D);
 
     // write out the XML file.
 
@@ -56,11 +56,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddParameter(VAR_DEPREIN, UNIT_NON_DIM, DESC_DEPREIN, Source_ParameterDB, DT_Single);
+//mdi.AddParameter(VAR_DEPREIN[0], UNIT_NON_DIM, VAR_DEPREIN[1], Source_ParameterDB, DT_Single);
 
 //
-//mdi.AddInput(VAR_TMIN, UNIT_TEMP_DEG, DESC_TMIN, Source_Module,DT_Raster1D);	//from interpolation module
-//mdi.AddInput(VAR_TMAX, UNIT_TEMP_DEG, DESC_TMAX, Source_Module,DT_Raster1D);	//from interpolation module
+//mdi.AddInput(VAR_TMIN[0], UNIT_TEMP_DEG, VAR_TMIN[1], Source_Module,DT_Raster1D);	//from interpolation module
+//mdi.AddInput(VAR_TMAX[0], UNIT_TEMP_DEG, VAR_TMAX[1], Source_Module,DT_Raster1D);	//from interpolation module
 
 //// set the dependencies
 //mdi.AddDependency("Interpolation","Interpolation module");      //for pNet,T,

@@ -10,7 +10,8 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
+// using namespace std;  // Avoid this statement! by lj.
+
 /** \defgroup KinWavSed_OL
  * \ingroup Erosion
  * \brief Kinematic wave method for overland flow erosion and deposition

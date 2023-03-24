@@ -19,40 +19,40 @@ PETPriestleyTaylor::~PETPriestleyTaylor() {
     if (m_vpd != nullptr) Release1DArray(m_vpd);
 }
 
-void PETPriestleyTaylor::Get1DData(const char* key, int* n, float** data) {
+void PETPriestleyTaylor::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_DAYLEN)) *data = m_dayLen;
-    else if (StringMatch(sk, VAR_VPD)) *data = m_vpd;
-    else if (StringMatch(sk, VAR_PHUBASE)) *data = m_phuBase;
-    else if (StringMatch(sk, VAR_PET)) *data = m_pet;
+    if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
+    else if (StringMatch(sk, VAR_VPD[0])) *data = m_vpd;
+    else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
+    else if (StringMatch(sk, VAR_PET[0])) *data = m_pet;
     else {
-        throw ModelException(MID_PET_PT, "Get1DData", "Parameter " + sk +
+        throw ModelException(M_PET_PT[0], "Get1DData", "Parameter " + sk +
                              " does not exist. Please contact the module developer.");
     }
 }
 
 bool PETPriestleyTaylor::CheckInputData() {
-    CHECK_POSITIVE(MID_PET_H, m_date);
-    CHECK_POSITIVE(MID_PET_H, m_nCells);
-    CHECK_POINTER(MID_PET_H, m_dem);
-    CHECK_POINTER(MID_PET_H, m_cellLat);
-    CHECK_POINTER(MID_PET_H, m_maxTemp);
-    CHECK_POINTER(MID_PET_H, m_meanTemp);
-    CHECK_POINTER(MID_PET_H, m_minTemp);
-    CHECK_POINTER(MID_PET_H, m_rhd);
-    CHECK_POINTER(MID_PET_H, m_sr);
-    CHECK_POINTER(MID_PET_H, m_phuAnn);
+    CHECK_POSITIVE(M_PET_H[0], m_date);
+    CHECK_POSITIVE(M_PET_H[0], m_nCells);
+    CHECK_POINTER(M_PET_H[0], m_dem);
+    CHECK_POINTER(M_PET_H[0], m_cellLat);
+    CHECK_POINTER(M_PET_H[0], m_maxTemp);
+    CHECK_POINTER(M_PET_H[0], m_meanTemp);
+    CHECK_POINTER(M_PET_H[0], m_minTemp);
+    CHECK_POINTER(M_PET_H[0], m_rhd);
+    CHECK_POINTER(M_PET_H[0], m_sr);
+    CHECK_POINTER(M_PET_H[0], m_phuAnn);
     return true;
 }
 
 void PETPriestleyTaylor::InitialOutputs() {
-    CHECK_POSITIVE(MID_PET_H, m_nCells);
-    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
-    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
-    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
-    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.f);
+    CHECK_POSITIVE(M_PET_H[0], m_nCells);
+    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.);
+    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.);
+    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.);
+    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.);
 }
 
 int PETPriestleyTaylor::Execute() {
@@ -65,29 +65,29 @@ int PETPriestleyTaylor::Execute() {
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
             phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if*/
-        if (m_dayOfYear == 1) m_phuBase[i] = 0.f;
-        if (m_meanTemp[i] > 0.f && m_phuAnn[i] > 0.01f) {
+        if (m_dayOfYear == 1) m_phuBase[i] = 0.;
+        if (m_meanTemp[i] > 0. && m_phuAnn[i] > 0.01) {
             m_phuBase[i] += m_meanTemp[i] / m_phuAnn[i];
         }
         /// compute net radiation
         /// net short-wave radiation for PET, etpot.f in SWAT src
-        float raShortWave = m_sr[i] * (1.0f - 0.23f);
+        FLTPT raShortWave = m_sr[i] * (1. - 0.23);
         //if the mean T < T_snow, consider the snow depth is larger than 0.5mm.
         if (m_meanTemp[i] < m_snowTemp) {
-            raShortWave = m_sr[i] * (1.0f - 0.8f);
+            raShortWave = m_sr[i] * (1. - 0.8);
         }
 
         /// calculate the max solar radiation
-        float srMax; /// maximum solar radiation of current day
+        FLTPT srMax; /// maximum solar radiation of current day
         MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], srMax);
 
         /// calculate net long-wave radiation
         /// net emissivity  equation 2.2.20 in SWAT manual
-        float satVaporPressure = SaturationVaporPressure(m_meanTemp[i]);
-        float actualVaporPressure = 0.f;
+        FLTPT satVaporPressure = SaturationVaporPressure(m_meanTemp[i]);
+        FLTPT actualVaporPressure = 0.;
         if (m_rhd[i] > 1) {
             /// IF percent unit.
-            m_rhd[i] *= 0.01f;
+            m_rhd[i] *= 0.01;
         } else if (m_rhd[i] < UTIL_ZERO) {
             m_rhd[i] = UTIL_ZERO;
         }
@@ -96,72 +96,72 @@ int PETPriestleyTaylor::Execute() {
             actualVaporPressure = UTIL_ZERO;
         }
         m_vpd[i] = satVaporPressure - actualVaporPressure;
-        if (m_vpd[i] < 0.f) {
-            m_vpd[i] = 0.f;
+        if (m_vpd[i] < 0.) {
+            m_vpd[i] = 0.;
         }
-        float rbo = -(0.34f - 0.139f * sqrt(actualVaporPressure));
+        FLTPT rbo = -(0.34 - 0.139 * CalSqrt(actualVaporPressure));
         //cloud cover factor
-        float rto = 0.0f;
-        if (srMax >= 1.0e-4f) {
-            rto = 0.9f * (m_sr[i] / srMax) + 0.1f;
+        FLTPT rto = 0.0;
+        if (srMax >= 1.0e-4) {
+            rto = 0.9 * (m_sr[i] / srMax) + 0.1;
         }
         //net long-wave radiation
-		//it may be negative because the sky temperature is colder than the grass temperature
+        //it may be negative because the sky temperature is colder than the grass temperature
         //http://hyperphysics.phy-astr.gsu.edu/hbase/thermo/stefan.html
         //http://www.indiana.edu/~geog109/topics/04_radiation/stefan_bol.htm
-        float tk = m_meanTemp[i] + 273.15f;
-        float raLongWave = rbo * rto * 4.9e-9f * pow(tk, 4.f);
+        FLTPT tk = m_meanTemp[i] + 273.15;
+        FLTPT raLongWave = rbo * rto * 4.9e-9 * CalPow(tk, 4.);
 
-        float raNet = raShortWave + raLongWave;
+        FLTPT raNet = raShortWave + raLongWave;
 
         //////////////////////////////////////////////////////////////////////////
         //calculate the slope of the saturation vapor pressure curve
-        float dlt = 4098.f * satVaporPressure / pow(m_meanTemp[i] + 237.3f, 2.f);
+        FLTPT dlt = 4098. * satVaporPressure / CalPow(m_meanTemp[i] + 237.3, 2.);
 
         //calculate latent heat of vaporization(MJ/kg, from swat)
-        float latentHeat = LatentHeatVapor(m_meanTemp[i]);
+        FLTPT latentHeat = LatentHeatVapor(m_meanTemp[i]);
 
         //calculate mean barometric pressure(kPa)
-        float pb = MeanBarometricPressure(m_dem[i]);
+        FLTPT pb = MeanBarometricPressure(m_dem[i]);
         //psychrometric constant(kPa/deg C)
-        float gma = 1.013e-3f * pb / (0.622f * latentHeat);
-        float pet_alpha = 1.28f;
+        FLTPT gma = 1.013e-3 * pb / (0.622 * latentHeat);
+        FLTPT pet_alpha = 1.28f;
 
-        float petValue = pet_alpha * (dlt / (dlt + gma)) * raNet / latentHeat;
-        m_pet[i] = m_petFactor * Max(0.f, petValue);
+        FLTPT petValue = pet_alpha * (dlt / (dlt + gma)) * raNet / latentHeat;
+        m_pet[i] = m_petFactor * Max(0., petValue);
         if (m_pet[i] != m_pet[i]) {
             cout << "cell id: " << i << ", pet: " << m_pet[i] << ", meanT: " << m_meanTemp[i] <<
                     ", rhd: " << m_rhd[i] << ", rbo: " << rbo << ", sr: " << m_sr[i] << ", m_srMax: "
                     << srMax << ", rto: " << rto << ", satVaporPressure: " << satVaporPressure << endl;
-            throw ModelException(MID_PET_PT, "Execute", "Calculation error occurred!\n");
+            throw ModelException(M_PET_PT[0], "Execute", "Calculation error occurred!\n");
         }
     }
     return 0;
 }
 
-void PETPriestleyTaylor::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(MID_PET_PT, key, n, m_nCells);
+void PETPriestleyTaylor::Set1DData(const char* key, const int n, FLTPT* value) {
+    CheckInputSize(M_PET_PT[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
-    else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;
-    else if (StringMatch(sk, VAR_TMIN)) m_minTemp = value;
+    if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
+    else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
+    else if (StringMatch(sk, VAR_TMIN[0])) m_minTemp = value;
     else if (StringMatch(sk, DataType_RelativeAirMoisture)) m_rhd = value;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_sr = value;
-    else if (StringMatch(sk, VAR_DEM)) m_dem = value;
-    else if (StringMatch(sk, VAR_CELL_LAT)) m_cellLat = value;
-    else if (StringMatch(sk, VAR_PHUTOT)) m_phuAnn = value;
+    else if (StringMatch(sk, VAR_DEM[0])) m_dem = value;
+    else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
+    else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
     else {
-        throw ModelException(MID_PET_PT, "Set1DData", "Parameter " + sk +
+        throw ModelException(M_PET_PT[0], "Set1DData", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
 
-void PETPriestleyTaylor::SetValue(const char* key, const float value) {
+void PETPriestleyTaylor::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, VAR_T_SNOW)) m_snowTemp = value;
-    else if (StringMatch(sk, VAR_K_PET)) m_petFactor = value;
+    if (StringMatch(sk, VAR_T_SNOW[0])) m_snowTemp = value;
+    else if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else {
-        throw ModelException(MID_PET_PT, "SetValue", "Parameter " + sk +
+        throw ModelException(M_PET_PT[0], "SetValue", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }

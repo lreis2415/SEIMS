@@ -3,20 +3,20 @@
 #include "utils_time.h"
 #include "text.h"
 #include "BMPText.h"
+#include "Logging.h"
 
 using namespace utils_time;
+using namespace data_raster;
 
 //////////////////////////////////////////////
 ///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+PrintInfoItem::PrintInfoItem(const int scenario_id /* = 0 */, const int calibration_id /* = -1 */)
     : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
       m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
       SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
-      StartTime(""), m_startTime(0),
-      EndTime(""), m_endTime(0), Suffix(""), Corename(""),
-      Filename(""),
+      m_startTime(0),  m_endTime(0),
       m_scenarioID(scenario_id), m_calibrationID(calibration_id),
       m_Counter(-1), m_AggregationType(AT_Unknown) {
     TimeSeriesData.clear();
@@ -24,20 +24,19 @@ PrintInfoItem::PrintInfoItem(int scenario_id /* = 0 */, int calibration_id /* = 
 }
 
 PrintInfoItem::~PrintInfoItem() {
-    StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
-    Release2DArray(m_Counter, m_1DDataWithRowCol);
+    CLOG(TRACE, LOG_RELEASE) << "Start to release PrintInfoItem for " << Filename << " ...";
+    Release2DArray(m_1DDataWithRowCol);
     Release1DArray(m_1DData);
-    Release2DArray(m_nRows, m_2DData);
+    Release2DArray(m_2DData);
 
-    for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end();) {
+    for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
         if (it->second != nullptr) {
             Release1DArray(it->second);
         }
-        TimeSeriesDataForSubbasin.erase(it++);
     }
     TimeSeriesDataForSubbasin.clear();
 
-    StatusMessage(("End to release PrintInfoItem for " + Filename + " ...").c_str());
+    CLOG(TRACE, LOG_RELEASE) << "End to release PrintInfoItem for " << Filename << " .";
 }
 
 bool PrintInfoItem::IsDateInRange(time_t dt) {
@@ -48,8 +47,8 @@ bool PrintInfoItem::IsDateInRange(time_t dt) {
     return bStatus;
 }
 
-void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
-    float* temp = new float[n];
+void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const FLTPT* data) {
+    FLTPT* temp = new FLTPT[n];
     for (int i = 0; i < n; i++) {
         temp[i] = data[i];
     }
@@ -110,7 +109,11 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
     if (m_scenarioID >= 0) gfs_name += itoa(m_scenarioID);
     gfs_name += "_";
     if (m_calibrationID >= 0) gfs_name += itoa(m_calibrationID);
-    StatusMessage(("Creating output file " + Filename + "...").c_str());
+    if (outToMongoDB) {
+        CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "(GridFS file: " << gfs_name << ")...";
+    } else {
+        CLOG(TRACE, LOG_OUTPUT) << "Creating output file " << Filename << "...";
+    }
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
     if (m_AggregationType == AT_SpecificCells) {
         // TODO, this function has been removed in current version
@@ -139,7 +142,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename + " successfully!";
         }
         return;
     }
@@ -149,7 +152,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
 		for (auto it = TimeSeriesDataForRaster.begin(); it != TimeSeriesDataForRaster.end(); ++it) {
 			//for (int i = 0; i < TimeSeriesDataForRasterCount; i++) {}
 			string filename = Filename + "_" + ConvertToString3(it->first);
-			// todo ÎªÉ¶Ã»ÓÐÊä³ö
+			// todo ÎªÉ¶Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
 			FloatRaster(templateRaster, it->second).OutputToFile(projectPath + filename + "." + Suffix);
 		}
 	}
@@ -175,74 +178,68 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                 fs << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
         }
         return;
     }
-    if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) {
-        if (templateRaster == nullptr) {
+    if (m_nRows > -1 &&
+        (nullptr != m_1DData && m_nLayers == 1) || // Single-layered raster data
+        (nullptr != m_2DData && m_nLayers > 1)) {  // Multi-layered raster data
+        if (nullptr == templateRaster) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
-            if (outToMongoDB) {
-                gfs->RemoveFile(gfs_name);
-                FloatRaster(templateRaster, m_1DData).OutputToMongoDB(gfs_name, gfs, opts);
-            } else {
-                FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
-            }
-        } else if (Suffix == TextExtension) {
-            /// For field-version models, the Suffix is TextExtension
-            std::ofstream fs;
-            string filename = projectPath + Filename + "." + TextExtension;
-            DeleteExistedFile(filename);
-            fs.open(filename.c_str(), std::ios::out);
-            if (fs.is_open()) {
-                int valid_num = templateRaster->GetValidNumber();
-                for (int idx = 0; idx < valid_num; idx++) {
-                    fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
-                }
-                fs.close();
-                StatusMessage(("Create " + filename + " successfully!").c_str());
-            }
-        }
-        return;
-    }
+        bool is1d = nullptr != m_1DData && m_nLayers == 1 ? true : false;
 
-    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) {
-        if (templateRaster == nullptr) {
-            throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
-        }
         if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
-            /// Multi-Layers raster data
+            FloatRaster* rs_data = nullptr;
+            if (is1d) { // Single-layered and cell-based raster data
+                rs_data = new FloatRaster(templateRaster, m_1DData, m_nRows);
+            } else { // Multi-layered and cell-based raster data
+                rs_data = new FloatRaster(templateRaster, m_2DData, m_nRows, m_nLayers);
+            }
             if (outToMongoDB) {
                 gfs->RemoveFile(gfs_name);
-                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(gfs_name, gfs, opts);
-            } else {
-                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
-            }
-        } else if (Suffix == TextExtension) {
-            /// For field-version models, the Suffix is TextExtension
-            std::ofstream fs;
-            string filename = projectPath + Filename + "." + TextExtension;
-            DeleteExistedFile(filename);
-            fs.open(filename.c_str(), std::ios::out);
-            if (fs.is_open()) {
-                int valid_num = templateRaster->GetValidNumber();
-                int nlyrs = templateRaster->GetLayers();
-                for (int idx = 0; idx < valid_num; idx++) {
-                    fs << idx;
-                    for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
-                        fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
+                int try_times = 1;
+                while (try_times <= 3) { // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
+                    if (!rs_data->OutputToMongoDB(gfs, gfs_name, opts)) {
+                        CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
+                        << " Try time: " << try_times;
+                    } else {
+                        CLOG(TRACE, LOG_OUTPUT) << "-- The raster data " << gfs_name << "-- saved to MongoDB SUCCEED!";
+                        break;
                     }
-                    fs << endl;
+                    SleepMs(2); // Sleep 0.002 second
+                    try_times++;
+                }
+            } else {
+                rs_data->OutputToFile(projectPath + Filename + "." + Suffix);
+            }
+            delete rs_data; // Release temp raster data
+        } else if (Suffix == TextExtension) { /// For field-version models, the Suffix is TextExtension
+            std::ofstream fs;
+            string filename = projectPath + Filename + "." + TextExtension;
+            DeleteExistedFile(filename);
+            fs.open(filename.c_str(), std::ios::out);
+            if (fs.is_open()) {
+                int valid_num = templateRaster->GetValidNumber();
+                int nlyrs = is1d == true ? 1 : templateRaster->GetLayers();
+                for (int idx = 0; idx < valid_num; idx++) {
+                    if (is1d) {
+                        fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
+                    } else {
+                        fs << idx;
+                        for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
+                            fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
+                        }
+                        fs << endl;
+                    }
                 }
                 fs.close();
-                StatusMessage(("Create " + filename + " successfully!").c_str());
+                CLOG(TRACE, LOG_OUTPUT) << "-- Create " << filename << " successfully!";
             }
         }
         return;
     }
-
     if (!TimeSeriesData.empty()) {
         /// time series data
         std::ofstream fs;
@@ -255,23 +252,23 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
-            StatusMessage(("Create " + filename + " successfully!").c_str());
+            CLOG(TRACE, LOG_OUTPUT) << "Create " << filename << " successfully!";
         }
         return;
     }
     //Don't throw exception, just print the warning message. by lj 08/6/17
     //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
     //    " is failed. There is no result data for this file. Please check output variables of modules.");
-    cout << "PrintInfoItem\n Flush\n Creating " << Filename <<
-            " is failed. There is no result data for this file. Please check output variables of modules." << endl;
+    LOG(WARNING) << "PrintInfoItem\n Flush\n Creating " << Filename <<
+    " is failed. There is no result data for this file. Please check output variables of modules.";
 }
 
-void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** data) {
+void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, FLTPT** data) {
     if (m_AggregationType == AT_SpecificCells) {
         return; // TODO to implement.
     }
     // check to see if there is an aggregate array to add data to
-    if (m_2DData == nullptr) {
+    if (nullptr == m_2DData) {
         // create the aggregate array
         m_nRows = nRows;
         m_nLayers = nCols;
@@ -299,7 +296,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
                 for (int j = 0; j < m_nLayers; j++) {
                     if (!FloatEqual(data[i][j], NODATA_VALUE)) {
                         if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                            m_2DData[i][j] = 0.f;
+                            m_2DData[i][j] = 0.;
                         }
                         m_2DData[i][j] += data[i][j];
                     }
@@ -342,7 +339,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** d
 }
 
 
-void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
+void PrintInfoItem::AggregateData(time_t time, int numrows, FLTPT* data) {
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
         {
@@ -365,15 +362,15 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
                 case AT_Average:
                     if (!FloatEqual(data[rw], NODATA_VALUE)) {
                         if (FloatEqual(m_1DData[rw], NODATA_VALUE)) {
-                            m_1DData[rw] = 0.f;
+                            m_1DData[rw] = 0.;
                         }
-                        m_1DData[rw] = (m_1DData[rw] * m_Counter + data[rw]) / (m_Counter + 1.f);
+                        m_1DData[rw] = (m_1DData[rw] * m_Counter + data[rw]) / (m_Counter + 1.);
                     }
                     break;
                 case AT_Sum:
                     if (!FloatEqual(data[rw], NODATA_VALUE)) {
                         if (FloatEqual(m_1DData[rw], NODATA_VALUE)) {
-                            m_1DData[rw] = 0.f;
+                            m_1DData[rw] = 0.;
                         }
                         m_1DData[rw] += data[rw];
                     }
@@ -410,14 +407,14 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
     }
 }
 
-void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType type, float NoDataValue) {
+void PrintInfoItem::AggregateData(int numrows, FLTPT** data, AggregationType type, FLTPT NoDataValue) {
     // check to see if there is an aggregate array to add data to
     if (m_1DDataWithRowCol == nullptr) {
         // create the aggregate array
         m_nRows = numrows;
-        m_1DDataWithRowCol = new float *[m_nRows];
+        m_1DDataWithRowCol = new FLTPT *[m_nRows];
         for (int i = 0; i < m_nRows; i++) {
-            m_1DDataWithRowCol[i] = new float[3];
+            m_1DDataWithRowCol[i] = new FLTPT[3];
             m_1DDataWithRowCol[i][0] = NoDataValue;
             m_1DDataWithRowCol[i][1] = NoDataValue;
             m_1DDataWithRowCol[i][2] = NoDataValue;
@@ -452,7 +449,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // add the next value to the current sum
@@ -465,7 +462,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // if the next value is smaller than the current value
@@ -481,7 +478,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
             for (int rw = 0; rw < m_nRows; rw++) {
                 if (!FloatEqual(data[rw][2], NoDataValue)) {
                     // initialize value to 0.0 if this is the first time
-                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.0f;
+                    if (FloatEqual(m_1DDataWithRowCol[rw][2], NoDataValue)) m_1DDataWithRowCol[rw][2] = 0.;
                     m_1DDataWithRowCol[rw][0] = data[rw][0];
                     m_1DDataWithRowCol[rw][1] = data[rw][1];
                     // if the next value is larger than the current value
@@ -496,7 +493,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
     }
 }
 
-AggregationType PrintInfoItem::MatchAggregationType(string type) {
+AggregationType PrintInfoItem::MatchAggregationType(const string& type) {
     AggregationType res = AT_Unknown;
     if (StringMatch(type, Tag_Unknown)) {
         res = AT_Unknown;
@@ -504,7 +501,7 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
     if (StringMatch(type, Tag_Sum)) {
         res = AT_Sum;
     }
-    if (StringMatch(type, Tag_Average) || StringMatch(type, Tag_Average2) || StringMatch(type, Tag_Average3)) {
+    if (StringMatch(type, Tag_Average) || StringMatch(type, "AVERAGE") || StringMatch(type, "MEAN")) {
         res = AT_Average;
     }
     if (StringMatch(type, Tag_Minimum)) {
@@ -527,20 +524,18 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 ///////////PrintInfo Class////////////////
 //////////////////////////////////////////
 
-PrintInfo::PrintInfo(int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+PrintInfo::PrintInfo(const int scenario_id /* = 0 */, const int calibration_id /* = -1 */)
     : m_scenarioID(scenario_id), m_calibrationID(calibration_id),
-      m_Interval(0), m_IntervalUnits(""), m_moduleIndex(-1), m_OutputID(""),
-      m_param(nullptr), m_subbasinSelectedArray(nullptr) {
+      m_Interval(0), m_param(nullptr), m_subbasinSelectedArray(nullptr) {
     m_PrintItems.clear();
 }
 
 PrintInfo::~PrintInfo() {
-    for (auto it = m_PrintItems.begin(); it != m_PrintItems.end();) {
+    for (auto it = m_PrintItems.begin(); it != m_PrintItems.end(); ++it) {
         if (nullptr != *it) {
             delete *it;
             *it = nullptr;
         }
-        it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
 
@@ -552,7 +547,7 @@ PrintInfo::~PrintInfo() {
 
 string PrintInfo::getOutputTimeSeriesHeader() {
     vector<string> headers;
-    if (StringMatch(m_OutputID, VAR_SNWB)) {
+    if (StringMatch(m_OutputID, VAR_SNWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("P");
         headers.emplace_back("P_net");
@@ -563,7 +558,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("SE");
         headers.emplace_back("SM");
         headers.emplace_back("SA");
-    } else if (StringMatch(m_OutputID, VAR_SOWB)) {
+    } else if (StringMatch(m_OutputID, VAR_SOWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("PCP (mm)");
         headers.emplace_back("meanTmp (deg C)");
@@ -582,7 +577,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("AllRunoff (mm)");
         headers.emplace_back("SoilMoisture (mm)");
         //headers.emplace_back("MoistureDepth");
-    } else if (StringMatch(m_OutputID, VAR_GWWB)) {
+    } else if (StringMatch(m_OutputID, VAR_GWWB[0])) {
         headers.emplace_back("Time");
         headers.emplace_back("Percolation (mm)");
         headers.emplace_back("Revaporization (mm)");
@@ -648,40 +643,36 @@ string PrintInfo::getOutputTimeSeriesHeader() {
     return oss.str();
 }
 
-void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& sufi) {
+void PrintInfo::AddPrintItem(const time_t start, const time_t end, const string& file, const string& sufi) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
     // set its properties
     itm->SiteID = -1;
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
     // add it to the list
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi,
-                             int subbasinID /* = 0 */) {
+void PrintInfo::AddPrintItem(string& type, const time_t start, const time_t end,
+                             const string& file, const string& sufi, const int subbasinID /* = 0 */) {
     // create a new object instance
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
 
     // set its properties
     itm->SiteID = -1;
     itm->SubbasinID = subbasinID;
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = subbasinID == 0 || subbasinID == 9999 ? file : file + "_" + ValueToString(subbasinID);
     itm->Suffix = sufi;
 
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
 
     type = Trim(type);
     itm->AggType = type;
@@ -695,8 +686,8 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename,
-                             string& sufi, bool isSubbasin) {
+void PrintInfo::AddPrintItem(const time_t start, const time_t end, const string& file, const string sitename,
+                             const string& sufi, const bool isSubbasin) {
     PrintInfoItem* itm = new PrintInfoItem(m_scenarioID, m_calibrationID);
     char* strend = nullptr;
     errno = 0;
@@ -713,24 +704,22 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
         itm->SubbasinIndex = CVT_INT(m_subbasinSeleted.size());
         m_subbasinSeleted.emplace_back(itm->SubbasinID);
     }
-    itm->StartTime = start;
-    itm->EndTime = end;
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = start;
+    itm->m_endTime = end;
 
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::getSubbasinSelected(int* count, float** subbasins) {
+void PrintInfo::getSubbasinSelected(int* count, int** subbasins) {
     *count = CVT_INT(m_subbasinSeleted.size());
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
-        m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
+        m_subbasinSelectedArray = new int[m_subbasinSeleted.size()];
         int index = 0;
         for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); ++it) {
-            m_subbasinSelectedArray[index] = CVT_FLT(*it);
+            m_subbasinSelectedArray[index] = *it;
             index++;
         }
     }

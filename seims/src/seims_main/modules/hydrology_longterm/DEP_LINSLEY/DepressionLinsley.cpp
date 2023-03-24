@@ -17,26 +17,26 @@ DepressionFSDaily::~DepressionFSDaily() {
 }
 
 bool DepressionFSDaily::CheckInputData() {
-    CHECK_POSITIVE(MID_DEP_LINSLEY, m_date);
-    CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
-    CHECK_NODATA(MID_DEP_LINSLEY, m_depCo);
-    CHECK_POINTER(MID_DEP_LINSLEY, m_depCap);
-    CHECK_POINTER(MID_DEP_LINSLEY, m_pet);
-    CHECK_POINTER(MID_DEP_LINSLEY, m_ei);
-    CHECK_POINTER(MID_DEP_LINSLEY, m_pe);
+    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_date);
+    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_nCells);
+    CHECK_NODATA(M_DEP_LINSLEY[0], m_depCo);
+    CHECK_POINTER(M_DEP_LINSLEY[0], m_depCap);
+    CHECK_POINTER(M_DEP_LINSLEY[0], m_pet);
+    CHECK_POINTER(M_DEP_LINSLEY[0], m_ei);
+    CHECK_POINTER(M_DEP_LINSLEY[0], m_pe);
     return true;
 }
 
 void DepressionFSDaily::InitialOutputs() {
-    CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
+    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_nCells);
     if (nullptr == m_sd) {
-        Initialize1DArray(m_nCells, m_sd, 0.f);
-        Initialize1DArray(m_nCells, m_ed, 0.f);
-        Initialize1DArray(m_nCells, m_sr, 0.f);
+        Initialize1DArray(m_nCells, m_sd, 0.);
+        Initialize1DArray(m_nCells, m_ed, 0.);
+        Initialize1DArray(m_nCells, m_sr, 0.);
+    }
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            m_sd[i] = m_depCo * m_depCap[i];
-        }
+    for (int i = 0; i < m_nCells; i++) {
+        m_sd[i] = m_depCo * m_depCap[i];
     }
 }
 
@@ -47,97 +47,108 @@ int DepressionFSDaily::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         //////////////////////////////////////////////////////////////////////////
         // runoff
-		// Èç¹ûÍÝµØÉî¶ÈÎª0£¬m_sr = m_pe¹ýÁ¿½µÓêÉî¶È£¬ÍÝµØÐîË®Éî¶È = 0
-        if (m_depCap[i] < 0.001f) {
+		// ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½Îª0ï¿½ï¿½m_sr = m_peï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È£ï¿½ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ = 0
+        if (m_depCap[i] < 0.001) {
             m_sr[i] = m_pe[i];
-            m_sd[i] = 0.f;
-        } else if (m_pe[i] > 0.f) {
-			// Èç¹ûÍÝµØÉî¶È> 0£¬ÇÒÈÕÇ±ÔÚÕôÉ¢Éî¶È > 0£¬µØ±í¾¶Á÷Éî¶È = ½µÓê - ÌîÍÝÁ¿£¬ÍÝµØÐîË® = ÌîÍÝÁ¿
-            float pc = m_pe[i] - m_depCap[i] * log(1.f - m_sd[i] / m_depCap[i]);
-            float deltaSd = m_pe[i] * exp(-pc / m_depCap[i]);
+            m_sd[i] = 0.;
+        } else if (m_pe[i] > 0.) {
+			// ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½> 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ > 0ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ = ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½Ë® = ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            FLTPT pc = m_pe[i] - m_depCap[i] * CalLn(1. - m_sd[i] / m_depCap[i]);
+            FLTPT deltaSd = m_pe[i] * CalExp(-pc / m_depCap[i]);
             if (deltaSd > m_depCap[i] - m_sd[i]) {
                 deltaSd = m_depCap[i] - m_sd[i];
             }
             m_sd[i] += deltaSd;
             m_sr[i] = m_pe[i] - deltaSd;
         } else {
-			// Èç¹ûÍÝµØÉî¶È> 0£¬ÇÒÈÕÇ±ÔÚÕôÉ¢Éî¶È = 0£¬ÔòµØ±í¾¶Á÷Éî¶È = 0£¬ÍÝµØÐîË®Éî¶È = ÍÝµØÐîË®Éî¶È + ¹ýÁ¿½µÓêÉî¶È
+			// ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½> 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ = 0ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ = 0ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ = ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             m_sd[i] += m_pe[i];
-            m_sr[i] = 0.f;
+            m_sr[i] = 0.;
         }
 
         //////////////////////////////////////////////////////////////////////////
         // evaporation
-		// Èç¹ûÍÝµØÐîË®Éî¶È > 0
+		// ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ > 0
         if (m_sd[i] > 0) {
             /// TODO: Is this logically right? PET is just potential, which include
             ///       not only ET from surface water, but also from plant and soil.
             ///       Please Check the corresponding theory. By LJ.
             // evaporation from depression storage
-			// Èç¹ûÈÕÇ±ÔÚÕôÉ¢Éî¶È - Ö²±»½ØÁ÷µÄÕô·¢Á¿ < ÍÝµØÐîË®Éî¶È£¬ÍÝµØÕô·¢ = ÈÕÇ±ÔÚÕôÉ¢Éî¶È - Ö²±»½ØÁ÷µÄÕô·¢Á¿
-			// Èç¹ûÈÕÇ±ÔÚÕôÉ¢Éî¶È - Ö²±»½ØÁ÷µÄÕô·¢Á¿ > ÍÝµØÐîË®Éî¶È£¬ÍÝµØÕô·¢ = ÍÝµØÐîË®Éî¶È(È«²¿Õô·¢)
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ - Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ < ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½È£ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½ = ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ - Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ - Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ > ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½È£ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½ = ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½(È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
             if (m_pet[i] - m_ei[i] < m_sd[i]) {
                 m_ed[i] = m_pet[i] - m_ei[i];
             } else {
                 m_ed[i] = m_sd[i];
             }
-			// ÍÝµØÐîË®Éî¶È - ÍÝµØÕô·¢Éî¶È
+			// ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ - ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             m_sd[i] -= m_ed[i];
         } else {
-            m_ed[i] = 0.f;
-            m_sd[i] = 0.f;
+            m_ed[i] = 0.;
+            m_sd[i] = 0.;
         }
         if (m_impoundTriger != nullptr && FloatEqual(m_impoundTriger[i], 0.f)) {
             if (m_potVol != nullptr) {
                 m_potVol[i] += m_sr[i];
                 m_potVol[i] += m_sd[i];
-                m_sr[i] = 0.f;
-                m_sd[i] = 0.f;
+                m_sr[i] = 0.;
+                m_sd[i] = 0.;
             }
         }
     }
     return true;
 }
 
-void DepressionFSDaily::SetValue(const char* key, const float value) {
+void DepressionFSDaily::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, VAR_DEPREIN)) m_depCo = value;
+    if (StringMatch(sk, VAR_DEPREIN[0])) m_depCo = value;
     else {
-        throw ModelException(MID_DEP_LINSLEY, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_DEP_LINSLEY[0], "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-void DepressionFSDaily::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(MID_DEP_LINSLEY, key, n, m_nCells);
+void DepressionFSDaily::Set1DData(const char* key, const int n, FLTPT* data) {
+    CheckInputSize(M_DEP_LINSLEY[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_DEPRESSION)) {
-        m_depCap = data;		// ÍÝµØÉî¶È
-    } else if (StringMatch(sk, VAR_INET)) {
-        m_ei = data;					// Ö²±»À¹½Ø½µÓêÖÐµÄÕô·¢Éî¶È
-    } else if (StringMatch(sk, VAR_PET)) {
-        m_pet = data;				//	ÈÕÇ±ÔÚÕôÉ¢Éî¶È
-    } else if (StringMatch(sk, VAR_EXCP)) {
-        m_pe = data;				// ¹ýÁ¿½µÓê
-    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) {
-        m_impoundTriger = data;	// 
-    } else if (StringMatch(sk, VAR_POT_VOL)) {
-        m_potVol = data;		// ÍÝµØÐîË®Éî¶È
+    if (StringMatch(sk, VAR_DEPRESSION[0])) {
+        m_depCap = data;
+    } else if (StringMatch(sk, VAR_INET[0])) {
+        m_ei = data;
+    } else if (StringMatch(sk, VAR_PET[0])) {
+        m_pet = data;
+    } else if (StringMatch(sk, VAR_EXCP[0])) {
+        m_pe = data;
+    } else if (StringMatch(sk, VAR_POT_VOL[0])) {
+        m_potVol = data;
     } else {
-        throw ModelException(MID_DEP_LINSLEY, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_DEP_LINSLEY[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
     }
 }
 
-void DepressionFSDaily::Get1DData(const char* key, int* n, float** data) {
+void DepressionFSDaily::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_DEP_LINSLEY[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) {
+        m_impoundTriger = data;
+    } else {
+        throw ModelException(M_DEP_LINSLEY[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void DepressionFSDaily::Get1DData(const char* key, int* n, FLTPT** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_DPST)) {
+    if (StringMatch(sk, VAR_DPST[0])) {
         *data = m_sd;
-    } else if (StringMatch(sk, VAR_DEET)) {
+    } else if (StringMatch(sk, VAR_DEET[0])) {
         *data = m_ed;
-    } else if (StringMatch(sk, VAR_SURU)) {
+    } else if (StringMatch(sk, VAR_SURU[0])) {
         *data = m_sr;
     } else {
-        throw ModelException(MID_DEP_LINSLEY, "Get1DData", "Output " + sk + " does not exist.");
+        throw ModelException(M_DEP_LINSLEY[0], "Get1DData",
+                             "Output " + sk + " does not exist.");
     }
 }

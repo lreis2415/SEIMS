@@ -13,41 +13,41 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Zhiqiang Yu, Liangjun Zhu");
-    mdi.SetClass(MCLS_SNOW, MCLSDESC_SNOW);
-    mdi.SetDescription(MDESC_SNO_SP);
+    mdi.SetClass(MCLS_SNOW[0], MCLS_SNOW[1]);
+    mdi.SetDescription(M_SNO_SP[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_SNO_SP);
-    mdi.SetName(MID_SNO_SP);
-    mdi.SetVersion("1.1");
+    mdi.SetID(M_SNO_SP[0]);
+    mdi.SetName(M_SNO_SP[0]);
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
-    mdi.AddParameter(VAR_T0, UNIT_TEMP_DEG, DESC_T0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_K_BLOW, UNIT_NON_DIM, DESC_K_BLOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_T_SNOW, UNIT_TEMP_DEG, DESC_T_SNOW, Source_ParameterDB, DT_Single);
-    // I don't think VAR_SWE0 is useful. By LJ
-    // mdi.AddParameter(VAR_SWE0, UNIT_DEPTH_MM, DESC_SWE0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_LAG_SNOW, UNIT_NON_DIM, DESC_LAG_SNOW, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_C_SNOW6, UNIT_MELT_FACTOR, DESC_C_SNOW6, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_C_SNOW12, UNIT_MELT_FACTOR, DESC_C_SNOW12, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SNOCOVMX, UNIT_DEPTH_MM, DESC_SNOCOVMX, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SNO50COV, UNIT_NON_DIM, DESC_SNO50COV, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T0[0], UNIT_TEMP_DEG, VAR_T0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_K_BLOW[0], UNIT_NON_DIM, VAR_K_BLOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_T_SNOW[0], UNIT_TEMP_DEG, VAR_T_SNOW[1], Source_ParameterDB, DT_Single);
+    // I don't think VAR_SWE0[0] is useful. By LJ
+    // mdi.AddParameter(VAR_SWE0[0], UNIT_DEPTH_MM, VAR_SWE0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_LAG_SNOW[0], UNIT_NON_DIM, VAR_LAG_SNOW[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_C_SNOW6[0], UNIT_MELT_FACTOR, VAR_C_SNOW6[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_C_SNOW12[0], UNIT_MELT_FACTOR, VAR_C_SNOW12[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SNOCOVMX[0], UNIT_DEPTH_MM, VAR_SNOCOVMX[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SNO50COV[0], UNIT_NON_DIM, VAR_SNO50COV[1], Source_ParameterDB, DT_Single);
     // Net precipitation is updated after snow accumulation.
-    mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D); // from interception module
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D); // from interception module
     //TODO: SNAC is used as unknown variable in the execute() funtion, so why it here as Input, otherwise in Output? By LJ
-    //mdi.AddInput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, Source_Module,DT_Raster1D);	 // from snow water balance module
-    // I think VAR_SWE is useless either. By LJ
-    // mdi.AddInput(VAR_SWE, UNIT_DEPTH_MM, DESC_SWE, Source_Module, DT_Single);  // from snow water balance module
+    //mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module,DT_Raster1D);	 // from snow water balance module
+    // I think VAR_SWE[0] is useless either. By LJ
+    // mdi.AddInput(VAR_SWE[0], UNIT_DEPTH_MM, VAR_SWE[1], Source_Module, DT_Single);  // from snow water balance module
     // TODO: SNRD currently have not been implemented, therefore initialized as zero. By LJ
-    // mdi.AddInput(VAR_SNRD, UNIT_DEPTH_MM, DESC_SNRD, Source_Module, DT_Raster1D); // from snow redistribution module
+    // mdi.AddInput(VAR_SNRD[0], UNIT_DEPTH_MM, VAR_SNRD[1], Source_Module, DT_Raster1D); // from snow redistribution module
     // Snow sublimation will be considered in actual evpotranspiration module (AET_PTH), so no need to set as Input. By LJ
-    // mdi.AddInput(VAR_SNSB, UNIT_DEPTH_MM, DESC_SNSB, Source_Module, DT_Raster1D); //from snow sublimation module
-    mdi.AddInput(VAR_TMAX, UNIT_TEMP_DEG, DESC_TMAX, Source_Module, DT_Raster1D); // from interpolation module
-    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
+    // mdi.AddInput(VAR_SNSB[0], UNIT_DEPTH_MM, VAR_SNSB[1], Source_Module, DT_Raster1D); //from snow sublimation module
+    mdi.AddInput(VAR_TMAX[0], UNIT_TEMP_DEG, VAR_TMAX[1], Source_Module, DT_Raster1D); // from interpolation module
+    mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
 
     // set the output variables
-    mdi.AddOutput(VAR_SNME, UNIT_DEPTH_MM, DESC_SNME, DT_Raster1D);
-    mdi.AddOutput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, DT_Raster1D);
+    mdi.AddOutput(VAR_SNME[0], UNIT_DEPTH_MM, VAR_SNME[1], DT_Raster1D);
+    mdi.AddOutput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], DT_Raster1D);
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();

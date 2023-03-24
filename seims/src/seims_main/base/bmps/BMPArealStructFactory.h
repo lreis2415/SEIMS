@@ -15,7 +15,7 @@
 
 #include "tinyxml.h"
 #include "basic.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 #include "BMPFactory.h"
 #include "ParamInfo.h"
@@ -39,18 +39,32 @@ public:
     //! Get suitable landuse
     vector<int>& getSuitableLanduse() { return m_landuse; }
     //! Get parameters
-    map<string, ParamInfo*>& getParameters() { return m_parameters; }
+    map<string, ParamInfo<FLTPT>*>& getParameters() { return m_parameters; }
+    ////! Is EffectivenessVariable
+    //bool isEffectivenessVariable(){ return m_effectivenessVariable; }
+    ////! get change frequency
+    //int getChangeFrequency(){ return m_changeFrequency; }
+    //! getter and setter for last update time
+    time_t getLastUpdateTime() const { return m_lastUpdateTime; }
+    void setLastUpdateTime(time_t val) { m_lastUpdateTime = val; }
 private:
-    int m_id; ///< unique BMP ID
+    int m_id;      ///< unique BMP ID
     string m_name; ///< name
     string m_desc; ///< description
     string m_refer; ///< references
     vector<int> m_landuse; ///< suitable placement landuse
+
+    ////! Is BMP effectiveness variable or not
+    //bool m_effectivenessVariable;
+    ////! Set the change frequency in seconds, if the BMP effectiveness is variable
+    //int m_changeFrequency;
+    //! last update time of BMP effectiveness
+    time_t m_lastUpdateTime;
     /*!
      * \key the parameter name, remember to add subbasin number as prefix when use GridFS file in MongoDB
      * \value the ParamInfo class
      */
-    map<string, ParamInfo*> m_parameters;
+    map<string, ParamInfo<FLTPT>*> m_parameters;
 };
 
 /*!
@@ -63,7 +77,8 @@ public:
     /// Constructor
     BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
                           int bmpType, int bmpPriority, vector<string>& distribution,
-                          const string& collection, const string& location);
+                          const string& collection, const string& location, bool effectivenessChangeable = false,
+                          time_t changeFrequency = -1, int variableTimes = -1);
 
     /// Destructor
     ~BMPArealStructFactory();
@@ -72,13 +87,17 @@ public:
     void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;
 
     //! Set raster data if needed
-    void setRasterData(map<string, FloatRaster*>& sceneRsMap) OVERRIDE;
+    void setRasterData(map<string, IntRaster*>& sceneRsMap) OVERRIDE;
 
     //! Get management fields data
-    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; };
+    int* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
 
     //! Get effect unit IDs
     const vector<int>& getUnitIDs() const { return m_unitIDs; }
+    const vector<int>& getUnitIDsByIndex(){ return m_unitIDsSeries[m_seriesIndex]; }
+    const map<int, int>& getUpdateTimesByIndex(){ return m_unitUpdateTimes[m_seriesIndex]; }
+    void increaseSeriesIndex(){ m_seriesIndex++; }
+    int getSeriesIndex() { return m_seriesIndex; }
 
     //! Get areal BMP parameters
     const map<int, BMPArealStruct*>& getBMPsSettings() const { return m_bmpStructMap; }
@@ -90,9 +109,14 @@ private:
     //! management units file name
     string m_mgtFieldsName;
     //! management units raster data
-    float* m_mgtFieldsRs;
+    int* m_mgtFieldsRs;
     //! locations
     vector<int> m_unitIDs;
+    //! Store the spatial unit IDs that need to update every year
+    vector<vector<int> > m_unitIDsSeries;
+    //! How many times are the above spatial units updated respectively
+    vector<map<int,int> > m_unitUpdateTimes;
+    int m_seriesIndex;
     /*!
      *\key The unique areal BMP ID
      *\value Instance of BMPArealStruct

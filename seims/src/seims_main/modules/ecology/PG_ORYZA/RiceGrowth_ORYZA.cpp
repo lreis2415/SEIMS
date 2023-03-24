@@ -67,7 +67,7 @@ ORYZA::ORYZA() :
 
 ORYZA::~ORYZA() {
     if (m_rsdCovSoil != nullptr) Release1DArray(m_rsdCovSoil);
-    if (m_soilRsd != nullptr) Release2DArray(m_nCells, m_soilRsd);
+    if (m_soilRsd != nullptr) Release2DArray(m_soilRsd);
     if (m_stoSoilRootD != nullptr) Release1DArray(m_stoSoilRootD);
     if (m_actPltET != nullptr) Release1DArray(m_actPltET);
     if (m_plantUpTkN != nullptr) Release1DArray(m_plantUpTkN);
@@ -82,127 +82,127 @@ ORYZA::~ORYZA() {
 
 void ORYZA::SetValue(const char* key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_CO2)) m_co2 = value;
-    else if (StringMatch(sk, VAR_TBD)) m_tbd = value;
-    else if (StringMatch(sk, VAR_TOD)) m_tod = value;
-    else if (StringMatch(sk, VAR_TMD)) m_tmd = value;
-    else if (StringMatch(sk, VAR_DVRJ)) m_dvrj = value;
-    else if (StringMatch(sk, VAR_DVRI)) m_dvri = value;
-    else if (StringMatch(sk, VAR_DVRP)) m_dvrp = value;
-    else if (StringMatch(sk, VAR_DVRR)) m_dvrr = value;
-    else if (StringMatch(sk, VAR_MOPP)) m_mopp = value;
-    else if (StringMatch(sk, VAR_PPSE)) m_ppse = value;
-    else if (StringMatch(sk, VAR_SHCKD)) m_shckd = value;
-    else if (StringMatch(sk, VAR_KNF)) m_knf = value;
-    else if (StringMatch(sk, VAR_RGRLMX)) m_rgrlMX = value;
-    else if (StringMatch(sk, VAR_RGRLMN)) m_rgrlMN = value;
-    else if (StringMatch(sk, VAR_NH)) m_nh = value;
-    else if (StringMatch(sk, VAR_NPLH)) m_nplh = value;
-    else if (StringMatch(sk, VAR_NPLSB)) m_nplsb = value;
-    else if (StringMatch(sk, VAR_LAPE)) m_lape = value;
-    else if (StringMatch(sk, VAR_ZRTTR)) m_zrttr = value;
-    else if (StringMatch(sk, VAR_TMPSB)) m_tmpsb = value;
-    else if (StringMatch(sk, VAR_AFSH)) m_aFsh = value;
-    else if (StringMatch(sk, VAR_BFSH)) m_bFsh = value;
-    else if (StringMatch(sk, VAR_AFLV)) m_aFlv = value;
-    else if (StringMatch(sk, VAR_BFLV)) m_bFlv = value;
-    else if (StringMatch(sk, VAR_AFSO)) m_aFso = value;
-    else if (StringMatch(sk, VAR_BFSO)) m_bFso = value;
-    else if (StringMatch(sk, VAR_ADRLV)) m_aDrlv = value;
-    else if (StringMatch(sk, VAR_BDRLV)) m_bDrlv = value;
-    else if (StringMatch(sk, VAR_TCLSTR)) m_tclstr = value;
-    else if (StringMatch(sk, VAR_Q10)) m_q10 = value;
-    else if (StringMatch(sk, VAR_TREF)) m_tref = value;
-    else if (StringMatch(sk, VAR_MAINLV)) m_mainLV = value;
-    else if (StringMatch(sk, VAR_MAINST)) m_mainST = value;
-    else if (StringMatch(sk, VAR_MAINSO)) m_mainSO = value;
-    else if (StringMatch(sk, VAR_MAINRT))m_mainRT = value;
-    else if (StringMatch(sk, VAR_CRGLV)) m_crgLV = value;
-    else if (StringMatch(sk, VAR_CRGST)) m_crgST = value;
-    else if (StringMatch(sk, VAR_CRGSTR)) m_crgSTR = value;
-    else if (StringMatch(sk, VAR_CRGSO)) m_crgSO = value;
-    else if (StringMatch(sk, VAR_CRGRT)) m_crgRT = value;
-    else if (StringMatch(sk, VAR_FSTR)) m_fstr = value;
-    else if (StringMatch(sk, VAR_LRSTR)) m_lrstr = value;
-    else if (StringMatch(sk, VAR_ASLA)) m_aSLA = value;
-    else if (StringMatch(sk, VAR_BSLA)) m_bSLA = value;
-    else if (StringMatch(sk, VAR_CSLA)) m_cSLA = value;
-    else if (StringMatch(sk, VAR_DSLA)) m_dSLA = value;
-    else if (StringMatch(sk, VAR_SLAMX)) m_slaMX = value;
-    else if (StringMatch(sk, VAR_FCRT)) m_fcRT = value;
-    else if (StringMatch(sk, VAR_FCST)) m_fcLV = value;
-    else if (StringMatch(sk, VAR_FCLV)) m_fcST = value;
-    else if (StringMatch(sk, VAR_FCSTR)) m_fcSTR = value;
-    else if (StringMatch(sk, VAR_FCSO)) m_fcSO = value;
-    else if (StringMatch(sk, VAR_WGRMX)) m_wgrMX = value;
-    else if (StringMatch(sk, VAR_GZRT)) m_gzrt = value;
-    else if (StringMatch(sk, VAR_ZRTMCD)) m_zrtMCD = value;
-    else if (StringMatch(sk, VAR_FRPAR)) m_frpar = value;
-    else if (StringMatch(sk, VAR_SPGF)) m_spgf = value;
-    else if (StringMatch(sk, VAR_NMAXL)) m_nMaxL = value;
-    else if (StringMatch(sk, VAR_NMINL)) m_nMinL = value;
-    else if (StringMatch(sk, VAR_RFNLV)) m_rfnlv = value;
-    else if (StringMatch(sk, VAR_RFNST)) m_rfnst = value;
-    else if (StringMatch(sk, VAR_RFNRT)) m_fntrt = value;
-    else if (StringMatch(sk, VAR_TCNTRF)) m_tcntrf = value;
-    else if (StringMatch(sk, VAR_NMAXSO)) m_nMaxSO = value;
-    else if (StringMatch(sk, VAR_ANMINSO)) m_anMinSO = value;
-    else if (StringMatch(sk, VAR_BNMINSO)) m_bnMinSO = value;
-    else if (StringMatch(sk, VAR_SHCKL)) m_shckl = value;
-    else if (StringMatch(sk, VAR_SBDUR)) m_sbdur = CVT_INT(value);
-    else if (StringMatch(sk, VAR_LLLS)) m_llls = value;
-    else if (StringMatch(sk, VAR_ULLS)) m_ulls = value;
-    else if (StringMatch(sk, VAR_LLLE)) m_llle = value;
-    else if (StringMatch(sk, VAR_ULLE)) m_ulle = value;
-    else if (StringMatch(sk, VAR_LLDL)) m_lldl = value;
-    else if (StringMatch(sk, VAR_ULDL)) m_uldl = value;
+    if (StringMatch(sk, VAR_CO2[0])) m_co2 = value;
+    else if (StringMatch(sk, VAR_TBD[0])) m_tbd = value;
+    else if (StringMatch(sk, VAR_TOD[0])) m_tod = value;
+    else if (StringMatch(sk, VAR_TMD[0])) m_tmd = value;
+    else if (StringMatch(sk, VAR_DVRJ[0])) m_dvrj = value;
+    else if (StringMatch(sk, VAR_DVRI[0])) m_dvri = value;
+    else if (StringMatch(sk, VAR_DVRP[0])) m_dvrp = value;
+    else if (StringMatch(sk, VAR_DVRR[0])) m_dvrr = value;
+    else if (StringMatch(sk, VAR_MOPP[0])) m_mopp = value;
+    else if (StringMatch(sk, VAR_PPSE[0])) m_ppse = value;
+    else if (StringMatch(sk, VAR_SHCKD[0])) m_shckd = value;
+    else if (StringMatch(sk, VAR_KNF[0])) m_knf = value;
+    else if (StringMatch(sk, VAR_RGRLMX[0])) m_rgrlMX = value;
+    else if (StringMatch(sk, VAR_RGRLMN[0])) m_rgrlMN = value;
+    else if (StringMatch(sk, VAR_NH[0])) m_nh = value;
+    else if (StringMatch(sk, VAR_NPLH[0])) m_nplh = value;
+    else if (StringMatch(sk, VAR_NPLSB[0])) m_nplsb = value;
+    else if (StringMatch(sk, VAR_LAPE[0])) m_lape = value;
+    else if (StringMatch(sk, VAR_ZRTTR[0])) m_zrttr = value;
+    else if (StringMatch(sk, VAR_TMPSB[0])) m_tmpsb = value;
+    else if (StringMatch(sk, VAR_AFSH[0])) m_aFsh = value;
+    else if (StringMatch(sk, VAR_BFSH[0])) m_bFsh = value;
+    else if (StringMatch(sk, VAR_AFLV[0])) m_aFlv = value;
+    else if (StringMatch(sk, VAR_BFLV[0])) m_bFlv = value;
+    else if (StringMatch(sk, VAR_AFSO[0])) m_aFso = value;
+    else if (StringMatch(sk, VAR_BFSO[0])) m_bFso = value;
+    else if (StringMatch(sk, VAR_ADRLV[0])) m_aDrlv = value;
+    else if (StringMatch(sk, VAR_BDRLV[0])) m_bDrlv = value;
+    else if (StringMatch(sk, VAR_TCLSTR[0])) m_tclstr = value;
+    else if (StringMatch(sk, VAR_Q10[0])) m_q10 = value;
+    else if (StringMatch(sk, VAR_TREF[0])) m_tref = value;
+    else if (StringMatch(sk, VAR_MAINLV[0])) m_mainLV = value;
+    else if (StringMatch(sk, VAR_MAINST[0])) m_mainST = value;
+    else if (StringMatch(sk, VAR_MAINSO[0])) m_mainSO = value;
+    else if (StringMatch(sk, VAR_MAINRT[0]))m_mainRT = value;
+    else if (StringMatch(sk, VAR_CRGLV[0])) m_crgLV = value;
+    else if (StringMatch(sk, VAR_CRGST[0])) m_crgST = value;
+    else if (StringMatch(sk, VAR_CRGSTR[0])) m_crgSTR = value;
+    else if (StringMatch(sk, VAR_CRGSO[0])) m_crgSO = value;
+    else if (StringMatch(sk, VAR_CRGRT[0])) m_crgRT = value;
+    else if (StringMatch(sk, VAR_FSTR[0])) m_fstr = value;
+    else if (StringMatch(sk, VAR_LRSTR[0])) m_lrstr = value;
+    else if (StringMatch(sk, VAR_ASLA[0])) m_aSLA = value;
+    else if (StringMatch(sk, VAR_BSLA[0])) m_bSLA = value;
+    else if (StringMatch(sk, VAR_CSLA[0])) m_cSLA = value;
+    else if (StringMatch(sk, VAR_DSLA[0])) m_dSLA = value;
+    else if (StringMatch(sk, VAR_SLAMX[0])) m_slaMX = value;
+    else if (StringMatch(sk, VAR_FCRT[0])) m_fcRT = value;
+    else if (StringMatch(sk, VAR_FCST[0])) m_fcLV = value;
+    else if (StringMatch(sk, VAR_FCLV[0])) m_fcST = value;
+    else if (StringMatch(sk, VAR_FCSTR[0])) m_fcSTR = value;
+    else if (StringMatch(sk, VAR_FCSO[0])) m_fcSO = value;
+    else if (StringMatch(sk, VAR_WGRMX[0])) m_wgrMX = value;
+    else if (StringMatch(sk, VAR_GZRT[0])) m_gzrt = value;
+    else if (StringMatch(sk, VAR_ZRTMCD[0])) m_zrtMCD = value;
+    else if (StringMatch(sk, VAR_FRPAR[0])) m_frpar = value;
+    else if (StringMatch(sk, VAR_SPGF[0])) m_spgf = value;
+    else if (StringMatch(sk, VAR_NMAXL[0])) m_nMaxL = value;
+    else if (StringMatch(sk, VAR_NMINL[0])) m_nMinL = value;
+    else if (StringMatch(sk, VAR_RFNLV[0])) m_rfnlv = value;
+    else if (StringMatch(sk, VAR_RFNST[0])) m_rfnst = value;
+    else if (StringMatch(sk, VAR_RFNRT[0])) m_fntrt = value;
+    else if (StringMatch(sk, VAR_TCNTRF[0])) m_tcntrf = value;
+    else if (StringMatch(sk, VAR_NMAXSO[0])) m_nMaxSO = value;
+    else if (StringMatch(sk, VAR_ANMINSO[0])) m_anMinSO = value;
+    else if (StringMatch(sk, VAR_BNMINSO[0])) m_bnMinSO = value;
+    else if (StringMatch(sk, VAR_SHCKL[0])) m_shckl = value;
+    else if (StringMatch(sk, VAR_SBDUR[0])) m_sbdur = CVT_INT(value);
+    else if (StringMatch(sk, VAR_LLLS[0])) m_llls = value;
+    else if (StringMatch(sk, VAR_ULLS[0])) m_ulls = value;
+    else if (StringMatch(sk, VAR_LLLE[0])) m_llle = value;
+    else if (StringMatch(sk, VAR_ULLE[0])) m_ulle = value;
+    else if (StringMatch(sk, VAR_LLDL[0])) m_lldl = value;
+    else if (StringMatch(sk, VAR_ULDL[0])) m_uldl = value;
     else
-        throw ModelException(MID_PG_ORYZA, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PG_ORYZA[0], "SetValue", "Parameter " + sk + " does not exist.");
 }
 
 void ORYZA::Set1DData(const char* key, int n, float* data) {
     string sk(key);
-    CheckInputSize(MID_PG_ORYZA, key, n, m_nCells);
+    CheckInputSize(M_PG_ORYZA[0], key, n, m_nCells);
     //// climate
     if (StringMatch(sk, DataType_MeanTemperature)) m_meanTemp = data;
     else if (StringMatch(sk, DataType_MinimumTemperature)) m_tMin = data;
     else if (StringMatch(sk, DataType_MaximumTemperature)) m_tMax = data;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_SR = data;
         //// soil properties and water related
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
-    else if (StringMatch(sk, VAR_SOL_ZMX)) m_soilZMX = data;
-    else if (StringMatch(sk, VAR_SOL_ALB)) m_soilALB = data;
-    else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
-    else if (StringMatch(sk, VAR_SOL_SUMAWC)) m_totSoilAWC = data;
-    else if (StringMatch(sk, VAR_SOL_SUMSAT)) m_totSoilSat = data;
-    else if (StringMatch(sk, VAR_SOL_COV)) m_rsdCovSoil = data;
-    else if (StringMatch(sk, VAR_SNAC)) m_snowAcc = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
+    else if (StringMatch(sk, VAR_SOL_ZMX[0])) m_soilZMX = data;
+    else if (StringMatch(sk, VAR_SOL_ALB[0])) m_soilALB = data;
+    else if (StringMatch(sk, VAR_SOL_SW[0])) m_soilWtrStoPrfl = data;
+    else if (StringMatch(sk, VAR_SOL_SUMAWC[0])) m_totSoilAWC = data;
+    else if (StringMatch(sk, VAR_SOL_SUMSAT[0])) m_totSoilSat = data;
+    else if (StringMatch(sk, VAR_SOL_COV[0])) m_rsdCovSoil = data;
+    else if (StringMatch(sk, VAR_SNAC[0])) m_snowAcc = data;
         //// management
-    else if (StringMatch(sk, VAR_EPCO)) m_epco = data;
+    else if (StringMatch(sk, VAR_EPCO[0])) m_epco = data;
         // rice
-    else if (StringMatch(sk, VAR_CROPSTA)) m_cropsta = data;
-    else if (StringMatch(sk, VAR_SOL_RSDIN)) m_sol_rsdin = data;
-    else if (StringMatch(sk, VAR_PPT)) m_ppt = data;
-    else if (StringMatch(sk, VAR_CELL_LAT)) m_celllat = data;
-    else if (StringMatch(sk, VAR_LAIDAY)) m_lai = data;
-    else if (StringMatch(sk, VAR_ANCRF)) m_ancrf = data;
+    else if (StringMatch(sk, VAR_CROPSTA[0])) m_cropsta = data;
+    else if (StringMatch(sk, VAR_SOL_RSDIN[0])) m_sol_rsdin = data;
+    else if (StringMatch(sk, VAR_PPT[0])) m_ppt = data;
+    else if (StringMatch(sk, VAR_CELL_LAT[0])) m_celllat = data;
+    else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = data;
+    else if (StringMatch(sk, VAR_ANCRF[0])) m_ancrf = data;
     else
-        throw ModelException(MID_PG_ORYZA, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PG_ORYZA[0], "Set1DData", "Parameter " + sk + " does not exist.");
 }
 
 void ORYZA::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(MID_PG_ORYZA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
-    if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
-    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThick = data;
-    else if (StringMatch(sk, VAR_SOL_RSD)) m_soilRsd = data;
-    else if (StringMatch(sk, VAR_SOL_AWC)) m_soilAWC = data;
-    else if (StringMatch(sk, VAR_SOL_ST)) m_soilStorage = data;
-    else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
-    else if (StringMatch(sk, VAR_SOL_UL)) m_sol_sat = data;
-    else if (StringMatch(sk, VAR_SOL_WPMM)) m_soilWP = data;
+    CheckInputSize2D(M_PG_ORYZA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
+    else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThick = data;
+    else if (StringMatch(sk, VAR_SOL_RSD[0])) m_soilRsd = data;
+    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilAWC = data;
+    else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilStorage = data;
+    else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_UL[0])) m_sol_sat = data;
+    else if (StringMatch(sk, VAR_SOL_WPMM[0])) m_soilWP = data;
     else {
-        throw ModelException(MID_PG_ORYZA, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(M_PG_ORYZA[0], "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -278,9 +278,9 @@ void ORYZA::CalDayLengthAndSINB(int i) {
     }
 
     float dsinb = 2.f * 3600.f * (m_dayL[i] * 0.5f * m_sinLD[i] - 12.f * m_cosLD[i] * zzcos / PI);
-    m_dsinbe[i] = 2.f * 3600.f * (m_dayL[i] * (0.5f * m_sinLD[i] + 0.2f * pow(m_sinLD[i], 2.f) + 0.1f *
-        pow(m_cosLD[i], 2.f)) - (12.f * m_cosLD[i] * zzcos + 9.6f * m_sinLD[i] * m_cosLD[i] *
-        zzcos + 2.4f * pow(m_cosLD[i], 2.f) * zzcos * zzsin) / PI);
+    m_dsinbe[i] = 2.f * 3600.f * (m_dayL[i] * (0.5f * m_sinLD[i] + 0.2f * CalPow(m_sinLD[i], 2.f) + 0.1f *
+        CalPow(m_cosLD[i], 2.f)) - (12.f * m_cosLD[i] * zzcos + 9.6f * m_sinLD[i] * m_cosLD[i] *
+        zzcos + 2.4f * CalPow(m_cosLD[i], 2.f) * zzcos * zzsin) / PI);
 
     m_solcon[i] = 1370.f * (1.f + 0.033f * cos(2.f * PI * m_dayOfYear / 365.f));
 }
@@ -294,10 +294,10 @@ void ORYZA::CalDirectRadiation(int i) {
         float tmpr1 = m_SR[i] * 1000000.f * m_sinb[i] * (1.f + 0.4f * m_sinb[i]) / m_dsinbe[i];
         atmtr = tmpr1 / (m_solcon[i] * m_sinb[i]);
         if (atmtr < 0.22) frdif = 1.f;
-        else if (atmtr > 0.22 && atmtr < 0.35) frdif = 1.f - 6.4f * pow(atmtr - 0.22f, 2.f);
+        else if (atmtr > 0.22 && atmtr < 0.35) frdif = 1.f - 6.4f * CalPow(atmtr - 0.22f, 2.f);
         else frdif = 1.47f - 1.66f * atmtr;
 
-        float xx = 0.15f + 0.85f * (1.f - exp(-0.1f / m_sinb[i]));
+        float xx = 0.15f + 0.85f * (1.f - CalExp(-0.1f / m_sinb[i]));
         frdif = Max(frdif, xx);
 
         m_rdpdf[i] = tmpr1 * m_frpar * frdif;
@@ -308,7 +308,7 @@ void ORYZA::CalDirectRadiation(int i) {
 void ORYZA::CalLeafAbsorbRadiation(int i) {
     /// Scattering coefficient of leaves for PAR
     float cslv = 0.2f;
-    float tmpr1 = sqrt(1.f - cslv);
+    float tmpr1 = CalSqrt(1.f - cslv);
     float rflh = (1.f - tmpr1) / (1.f + tmpr1);
     float rfls = rflh * 2.f / (1.f + 2.f * m_sinb[i]);
     //compute Extinction coefficient
@@ -322,23 +322,23 @@ void ORYZA::CalLeafAbsorbRadiation(int i) {
     float ecpbl = 0.5f / m_sinb[i] * clustf;
     float ecptd = ecpbl * tmpr1;
 
-    float rapdfl = (1.f - rflh) * m_rdpdf[i] * ecpdf * exp(-ecpdf * m_gaid[i]);
-    float raptdl = (1.f - rfls) * m_rdpdr[i] * ecptd * exp(-ecptd * m_gaid[i]);
-    float rapddl = (1.f - cslv) * m_rdpdr[i] * ecpbl * exp(-ecpbl * m_gaid[i]);
+    float rapdfl = (1.f - rflh) * m_rdpdf[i] * ecpdf * CalExp(-ecpdf * m_gaid[i]);
+    float raptdl = (1.f - rfls) * m_rdpdr[i] * ecptd * CalExp(-ecptd * m_gaid[i]);
+    float rapddl = (1.f - cslv) * m_rdpdr[i] * ecpbl * CalExp(-ecpbl * m_gaid[i]);
 
     m_rapshl[i] = rapdfl + raptdl - rapddl;
     m_rapppl[i] = (1.f - cslv) * m_rdpdr[i] / m_sinb[i];
-    m_fslla[i] = clustf * exp(-ecpbl * m_gaid[i]);
+    m_fslla[i] = clustf * CalExp(-ecpbl * m_gaid[i]);
 }
 
 float ORYZA::CalLeafMaxAssimilationRate(float gai, float gaid, float nflv, float redf) {
     /// AmaxIn shows in the oryza.for,but it is not in use everywhere,so delete it
     float slni = 0.f, Amax = 0.f;
-    float AmaxCO2 = 49.57f / 34.26f * (1.f - exp(-0.208f * (m_co2 - 60.f) / 49.57f));
+    float AmaxCO2 = 49.57f / 34.26f * (1.f - CalExp(-0.208f * (m_co2 - 60.f) / 49.57f));
     AmaxCO2 = Max(0.f, AmaxCO2);
 
     if (gai > 0.01f && m_knf > 0.f) {
-        slni = nflv * gai * m_knf * exp(m_knf * gaid) / (1.f - exp(-m_knf * gai));
+        slni = nflv * gai * m_knf * CalExp(m_knf * gaid) / (1.f - CalExp(-m_knf * gai));
     } else {
         slni = nflv;
     }
@@ -375,13 +375,13 @@ void ORYZA::Sgpl(int i) {
 
     float Amax2 = CalLeafMaxAssimilationRate(m_gai[i], m_gaid[i], m_nflv, m_redf);
     if (Amax2 > 0) {
-        gpshl = Amax2 * (1.f - exp(-m_rapshl[i] * m_eff / Amax2));
+        gpshl = Amax2 * (1.f - CalExp(-m_rapshl[i] * m_eff / Amax2));
     }
 
     for (int k = 0; k < 3; k++) {
         float tmpr1 = m_rapshl[i] + rapsll * gsx[k];
         if (Amax2 > 0) {
-            gpsll = gpsll + Amax2 * (1.f - exp(-tmpr1 * m_eff / Amax2)) * gsw[k];
+            gpsll = gpsll + Amax2 * (1.f - CalExp(-tmpr1 * m_eff / Amax2)) * gsw[k];
         }
         rapsll = rapsll + tmpr1 * gsw[k];
     }
@@ -391,8 +391,8 @@ void ORYZA::Sgpl(int i) {
 
 void ORYZA::CalCanopyAssimilationRate(int i) {
     // Gauss weights for three point Gauss
-    float gsx[3] = {0.112702, 0.500000, 0.887298};
-    float gsw[3] = {0.277778, 0.444444, 0.277778};
+    float gsx[3] = {0.112702f, 0.500000f, 0.887298f};
+    float gsw[3] = {0.277778f, 0.444444f, 0.277778f};
     m_gai[i] = m_aLAI;
 
     for (int k = 0; k < 3; k++) {
@@ -449,10 +449,10 @@ void ORYZA::CalSpikeletAndGrainRate(int i) {
 
     // there is a second requirement that GRAINS (Fortran logical function whether grains are formed) is true
     if (m_dvs[i] > 1.2f) {
-        float sf1 = 1.f - (4.6f + 0.054f * pow(m_coldTT[i], 1.56f)) / 100.f;
+        float sf1 = 1.f - (4.6f + 0.054f * CalPow(m_coldTT[i], 1.56f)) / 100.f;
         sf1 = Min(1.f, Max(0.f, sf1));
         float xx = m_tfert[i] / m_ntfert;
-        float sf2 = 1.f / (1.f + exp(0.853f * (xx - 36.6f)));
+        float sf2 = 1.f / (1.f + CalExp(0.853f * (xx - 36.6f)));
         sf2 = Min(1.f, Max(0.f,sf2));
         float spfert = Min(sf1, sf2);
         m_gngr[i] = m_nsp[i] * spfert;
@@ -534,7 +534,7 @@ void ORYZA::CalRiceGrowth(int i) {
         float m_tmpCov = m_tmpsb;
         float m_tav = (m_tMax[i] + m_tmpCov + m_tMin[i]) *0.5f;
         float m_tavD = (m_tav + m_tMax[i]) *0.5f;
-        float m_co2EFF = (1.f - exp(-0.00305f * m_co2 - 0.222f)) / (1.f - exp(-0.00305f * 340.f - 0.222f));
+        float m_co2EFF = (1.f - CalExp(-0.00305f * m_co2 - 0.222f)) / (1.f - CalExp(-0.00305f * 340.f - 0.222f));
         if (0.f < m_tavD && m_tavD <= 10.f) {
             m_eff = 0.54f * m_co2EFF; // compute eff use linear_interp
         } else {
@@ -605,7 +605,7 @@ void ORYZA::CalRiceGrowth(int i) {
             m_lstr = 0.f;
         }
         // Maintenance requirements
-        m_teff = pow(m_q10, (m_tav - m_tref) *0.1f);
+        m_teff = CalPow(m_q10, (m_tav - m_tref) *0.1f);
         float mnDVS = m_wlvg[i] / (m_wlvg[i] + m_wlvd[i]);
         float rmcr = (m_wlvg[i] * m_mainLV + m_wst[i] * m_mainST + m_wso[i] *
             m_mainSO + m_wrt[i] * m_mainRT) * m_teff * mnDVS;
@@ -639,7 +639,7 @@ void ORYZA::CalRiceGrowth(int i) {
 
         CalSpikeletAndGrainRate(i);
 
-        m_sla[i] = m_aSLA + m_bSLA * exp(m_cSLA * (m_dvs[i] - m_dSLA));
+        m_sla[i] = m_aSLA + m_bSLA * CalExp(m_cSLA * (m_dvs[i] - m_dSLA));
         m_sla[i] = Min(m_slaMX, m_sla[i]);
         LAI(i);
 
@@ -708,14 +708,14 @@ void ORYZA::CalPlantETAndWStress(int i) {
             if (m_soilStorage[i][j] >= m_soilAWC[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_sol_sat[i][j] - m_soilStorage[i][j]) / (m_sol_sat[i][j] - m_soilAWC[i][j]
                 )));
-                musc[j] = pow(10.f, fact[j] * 2.f);
+                musc[j] = CalPow(10.f, fact[j] * 2.f);
             } else if (m_soilStorage[i][j] >= m_soilWP[i][j] && m_soilStorage[i][j] < m_soilAWC[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_soilStorage[i][j] - m_soilWP[i][j]) / (m_soilAWC[i][j] - m_soilWP[i][
                     j])));
-                musc[j] = pow(10.f, 4.2f - fact[j] * 2.2f);
+                musc[j] = CalPow(10.f, 4.2f - fact[j] * 2.2f);
             } else if (m_soilStorage[i][j] < m_soilWP[i][j]) {
                 fact[j] = Max(0.f, Min(1.f, (m_soilStorage[i][j] - 0.01f) / (m_soilWP[i][j] - 0.01f)));
-                musc[j] = pow(10.f, 7.f - fact[j] * 2.8f);
+                musc[j] = CalPow(10.f, 7.f - fact[j] * 2.8f);
             }
 
             mskpa[j] = musc[j] / 10.f;
@@ -736,7 +736,7 @@ void ORYZA::CalPlantETAndWStress(int i) {
             if (mskpa[j] >= 10000.f) {
                 trr = 0.f;
             } else {
-                trr = 2.f / (1.f + exp(0.003297f * mskpa[j]));
+                trr = 2.f / (1.f + CalExp(0.003297f * mskpa[j]));
             }
             trr = Min(0.f, Max(1.f, trr));
 
@@ -846,7 +846,7 @@ int ORYZA::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         /// calculate albedo in current day
         float cej = -5.e-5f, eaj = 0.f;
-        eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+        eaj = CalExp(cej * (m_rsdCovSoil[i] + 0.1f));
         if (m_snowAcc[i] < 0.5f) {
             m_alb[i] = m_soilALB[i];
             if (m_lai[i] > 0.f)
@@ -882,54 +882,54 @@ int ORYZA::Execute() {
 
 bool ORYZA::CheckInputData() {
     /// DT_Single
-    CHECK_POSITIVE(MID_PG_ORYZA, m_nCells);
+    CHECK_POSITIVE(M_PG_ORYZA[0], m_nCells);
     if (m_nCells <= 0)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     if (m_maxSoilLyrs <= 0)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The layer number of the input 2D raster data can not be less than zero.");
     if (FloatEqual(m_co2, NODATA_VALUE))
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The ambient atmospheric CO2 concentration must be provided.");
     /// DT_Raster1D
     if (m_tMin == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The min temperature data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The min temperature data can not be NULL.");
     if (m_tMax == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The max temperature data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The max temperature data can not be NULL.");
     if (m_meanTemp == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The mean temperature data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The mean temperature data can not be NULL.");
     if (m_SR == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The solar radiation data can not be NULL.");
     if (m_nSoilLyrs == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The soil layers data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil layers data can not be NULL.");
     if (m_soilZMX == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The maximum rooting depth in soil profile can not be NULL.");
     if (m_soilALB == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The albedo when soil is moist can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The albedo when soil is moist can not be NULL.");
     if (m_soilWtrStoPrfl == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The amount of water stored in the soil profile can not be NULL.");
     if (m_totSoilAWC == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The amount of water held in soil profile at field capacity can not be NULL.");
     if (m_totSoilSat == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The amount of water held in soil profile at saturation can not be NULL.");
     /// DT_Raster2D
     if (m_soilDepth == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The soil depth data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil depth data can not be NULL.");
     if (m_soilThick == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The soil thickness data can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil thickness data can not be NULL.");
     if (m_soilAWC == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The water available to plants in soil layer at field capacity can not be NULL.");
     if (m_soilStorage == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData", "The soil moisture in soil layers can not be NULL.");
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil moisture in soil layers can not be NULL.");
     if (m_soilNO3 == nullptr)
-        throw ModelException(MID_PG_ORYZA, "CheckInputData",
+        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
                              "The nitrogen stored in the nitrate pool in soil layer can not be NULL.");
     return true;
 }
@@ -1059,34 +1059,34 @@ void ORYZA::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_LAST_SOILRD)) *data = m_stoSoilRootD;
-    else if (StringMatch(sk, VAR_PLANT_N)) *data = m_pltN;
-    else if (StringMatch(sk, VAR_FR_STRSWTR)) *data = m_frStrsWtr;
-    else if (StringMatch(sk, VAR_SOL_COV)) *data = m_rsdCovSoil;
-    else if (StringMatch(sk, VAR_SOL_SW)) *data = m_soilWtrStoPrfl;
-    else if (StringMatch(sk, VAR_CROPSTA)) *data = m_cropsta;
-    else if (StringMatch(sk, VAR_ALBDAY)) *data = m_alb;
-    else if (StringMatch(sk, VAR_AET_PLT)) *data = m_actPltET;
-    else if (StringMatch(sk, VAR_TS)) *data = m_ts;
-    else if (StringMatch(sk, VAR_WLVG)) *data = m_wlvg;
-    else if (StringMatch(sk, VAR_WLVD)) *data = m_wlvd;
-    else if (StringMatch(sk, VAR_WSTS)) *data = m_wsts;
-    else if (StringMatch(sk, VAR_WSTR)) *data = m_wstr;
-    else if (StringMatch(sk, VAR_WSO)) *data = m_wso;
-    else if (StringMatch(sk, VAR_WRT)) *data = m_wrt;
-    else if (StringMatch(sk, VAR_WRR)) *data = m_wrr;
-    else if (StringMatch(sk, VAR_NGR)) *data = m_ngr;
-    else if (StringMatch(sk, VAR_NSP)) *data = m_nsp;
-    else if (StringMatch(sk, VAR_TNASS)) *data = m_tnass;
-    else if (StringMatch(sk, VAR_WST)) *data = m_wst;
-    else if (StringMatch(sk, VAR_WLV)) *data = m_wlv;
-    else if (StringMatch(sk, VAR_WAGT)) *data = m_wagt;
-    else if (StringMatch(sk, VAR_ZRT)) *data = m_zrt;
-    else if (StringMatch(sk, VAR_BIOMASS)) *data = m_biomass;
-    else if (StringMatch(sk, VAR_DVS)) *data = m_dvs;
-    else if (StringMatch(sk, VAR_ANCRF)) *data = m_ancrf;
+    if (StringMatch(sk, VAR_LAST_SOILRD[0])) *data = m_stoSoilRootD;
+    else if (StringMatch(sk, VAR_PLANT_N[0])) *data = m_pltN;
+    else if (StringMatch(sk, VAR_FR_STRSWTR[0])) *data = m_frStrsWtr;
+    else if (StringMatch(sk, VAR_SOL_COV[0])) *data = m_rsdCovSoil;
+    else if (StringMatch(sk, VAR_SOL_SW[0])) *data = m_soilWtrStoPrfl;
+    else if (StringMatch(sk, VAR_CROPSTA[0])) *data = m_cropsta;
+    else if (StringMatch(sk, VAR_ALBDAY[0])) *data = m_alb;
+    else if (StringMatch(sk, VAR_AET_PLT[0])) *data = m_actPltET;
+    else if (StringMatch(sk, VAR_TS[0])) *data = m_ts;
+    else if (StringMatch(sk, VAR_WLVG[0])) *data = m_wlvg;
+    else if (StringMatch(sk, VAR_WLVD[0])) *data = m_wlvd;
+    else if (StringMatch(sk, VAR_WSTS[0])) *data = m_wsts;
+    else if (StringMatch(sk, VAR_WSTR[0])) *data = m_wstr;
+    else if (StringMatch(sk, VAR_WSO[0])) *data = m_wso;
+    else if (StringMatch(sk, VAR_WRT[0])) *data = m_wrt;
+    else if (StringMatch(sk, VAR_WRR[0])) *data = m_wrr;
+    else if (StringMatch(sk, VAR_NGR[0])) *data = m_ngr;
+    else if (StringMatch(sk, VAR_NSP[0])) *data = m_nsp;
+    else if (StringMatch(sk, VAR_TNASS[0])) *data = m_tnass;
+    else if (StringMatch(sk, VAR_WST[0])) *data = m_wst;
+    else if (StringMatch(sk, VAR_WLV[0])) *data = m_wlv;
+    else if (StringMatch(sk, VAR_WAGT[0])) *data = m_wagt;
+    else if (StringMatch(sk, VAR_ZRT[0])) *data = m_zrt;
+    else if (StringMatch(sk, VAR_BIOMASS[0])) *data = m_biomass;
+    else if (StringMatch(sk, VAR_DVS[0])) *data = m_dvs;
+    else if (StringMatch(sk, VAR_ANCRF[0])) *data = m_ancrf;
     else {
-        throw ModelException(MID_PG_ORYZA, "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_PG_ORYZA[0], "Get1DData", "Result " + sk + " does not exist.");
     }
 }
 
@@ -1095,8 +1095,8 @@ void ORYZA::Get2DData(const char* key, int* n, int* col, float*** data) {
     string sk(key);
     *n = m_nCells;
     *col = m_maxSoilLyrs;
-    if (StringMatch(sk, VAR_SOL_RSD)) *data = m_soilRsd;
+    if (StringMatch(sk, VAR_SOL_RSD[0])) *data = m_soilRsd;
     else {
-        throw ModelException(MID_PG_ORYZA, "Get2DData", "Result " + sk + " does not exist.");
+        throw ModelException(M_PG_ORYZA[0], "Get2DData", "Result " + sk + " does not exist.");
     }
 }

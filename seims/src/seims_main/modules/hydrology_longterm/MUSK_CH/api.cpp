@@ -14,53 +14,53 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Junzhi Liu; Liangjun Zhu");
-    mdi.SetClass(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
-    mdi.SetDescription(MDESC_MUSK_CH);
+    mdi.SetClass(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
+    mdi.SetDescription(M_MUSK_CH[1]);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("");
-    mdi.SetID(MID_MUSK_CH);
-    mdi.SetName(MID_MUSK_CH);
-    mdi.SetVersion("1.2");
+    mdi.SetID(M_MUSK_CH[0]);
+    mdi.SetName(M_MUSK_CH[0]);
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
 
-    mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
-    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_OUTLETID, UNIT_NON_DIM, DESC_OUTLETID, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_EP_CH, UNIT_WTRDLT_MMH, DESC_EP_CH, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_BNK0, UNIT_STRG_M3M, DESC_BNK0, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_CHS0_PERC, UNIT_NON_DIM, DESC_CHS0_PERC, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_A_BNK, UNIT_NON_DIM, DESC_A_BNK, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_B_BNK, UNIT_NON_DIM, DESC_B_BNK, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_MSK_X, UNIT_NON_DIM, DESC_MSK_X, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_MSK_CO1, UNIT_NON_DIM, DESC_MSK_CO1, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_SingleInt);
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(VAR_OUTLETID[0], UNIT_NON_DIM, VAR_OUTLETID[1], Source_ParameterDB, DT_SingleInt);
+    mdi.AddParameter(VAR_EP_CH[0], UNIT_WTRDLT_MMH, VAR_EP_CH[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_BNK0[0], UNIT_STRG_M3M, VAR_BNK0[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CHS0_PERC[0], UNIT_NON_DIM, VAR_CHS0_PERC[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_A_BNK[0], UNIT_NON_DIM, VAR_A_BNK[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_B_BNK[0], UNIT_NON_DIM, VAR_B_BNK[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1DInt);
+    mdi.AddParameter(VAR_MSK_X[0], UNIT_NON_DIM, VAR_MSK_X[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_MSK_CO1[0], UNIT_NON_DIM, VAR_MSK_CO1[1], Source_ParameterDB, DT_Single);
     // add reach information
-    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
+    mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
     // add BMPs management operations, such as point source discharge
-    mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
+    // mdi.AddParameter(VAR_SCENARIO[0], UNIT_NON_DIM, VAR_SCENARIO[1], Source_ParameterDB, DT_Scenario);
 
     // Inputs from other modules
-    mdi.AddInput(VAR_SBPET, UNIT_DEPTH_MM, DESC_SBPET, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_SBGS, UNIT_DEPTH_MM, DESC_SBGS, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_SBOF, UNIT_FLOW_CMS, DESC_SBOF, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_SBIF, UNIT_FLOW_CMS, DESC_SBIF, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_SBQG, UNIT_FLOW_CMS, DESC_SBQG, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBPET[0], UNIT_DEPTH_MM, VAR_SBPET[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBGS[0], UNIT_DEPTH_MM, VAR_SBGS[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBOF[0], UNIT_FLOW_CMS, VAR_SBOF[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBIF[0], UNIT_FLOW_CMS, VAR_SBIF[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], Source_Module, DT_Array1D);
 
     // Outputs
-    mdi.AddInOutput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, DT_Array1D, TF_SingleValue);
-    mdi.AddInOutput(VAR_QS, UNIT_NON_DIM, DESC_QS, DT_Array1D, TF_SingleValue);
-    mdi.AddInOutput(VAR_QI, UNIT_NON_DIM, DESC_QI, DT_Array1D, TF_SingleValue);
-    mdi.AddInOutput(VAR_QG, UNIT_NON_DIM, DESC_QG, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_QS[0], UNIT_NON_DIM, VAR_QS[1], DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_QI[0], UNIT_NON_DIM, VAR_QI[1], DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_QG[0], UNIT_NON_DIM, VAR_QG[1], DT_Array1D, TF_SingleValue);
 
-    mdi.AddOutput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, DT_Array1D);
-    mdi.AddOutput(VAR_RTE_WTRIN, UNIT_VOL_M3, DESC_RTE_WTRIN, DT_Array1D);
-    mdi.AddOutput(VAR_RTE_WTROUT, UNIT_VOL_M3, DESC_RTE_WTROUT, DT_Array1D);
-    mdi.AddOutput(VAR_BKST, UNIT_VOL_M3, DESC_BKST, DT_Array1D);
+    mdi.AddOutput(VAR_CHST[0], UNIT_VOL_M3, VAR_CHST[1], DT_Array1D);
+    mdi.AddOutput(VAR_RTE_WTRIN[0], UNIT_VOL_M3, VAR_RTE_WTRIN[1], DT_Array1D);
+    mdi.AddOutput(VAR_RTE_WTROUT[0], UNIT_VOL_M3, VAR_RTE_WTROUT[1], DT_Array1D);
+    mdi.AddOutput(VAR_BKST[0], UNIT_VOL_M3, VAR_BKST[1], DT_Array1D);
 
-    mdi.AddOutput(VAR_CHWTRDEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, DT_Array1D);
-    mdi.AddOutput(VAR_CHWTRWIDTH, UNIT_LEN_M, DESC_CHWTWIDTH, DT_Array1D);
-    mdi.AddOutput(VAR_CHBTMWIDTH, UNIT_LEN_M, DESC_CHBTMWIDTH, DT_Array1D);
-    mdi.AddOutput(VAR_CHCROSSAREA, UNIT_AREA_M2, DESC_CHCROSSAREA, DT_Array1D);
+    mdi.AddOutput(VAR_CHWTRDEPTH[0], UNIT_LEN_M, VAR_CHWTRDEPTH[1], DT_Array1D);
+    mdi.AddOutput(VAR_CHWTRWIDTH[0], UNIT_LEN_M, VAR_CHWTRWIDTH[1], DT_Array1D);
+    mdi.AddOutput(VAR_CHBTMWIDTH[0], UNIT_LEN_M, VAR_CHBTMWIDTH[1], DT_Array1D);
+    mdi.AddOutput(VAR_CHCROSSAREA[0], UNIT_AREA_M2, VAR_CHCROSSAREA[1], DT_Array1D);
 
     res = mdi.GetXMLDocument();
     char* tmp = new char[res.size() + 1];

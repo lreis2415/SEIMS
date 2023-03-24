@@ -13,12 +13,12 @@ SOL_WB::SOL_WB() :
 }
 
 SOL_WB::~SOL_WB() {
-    if (m_soilWtrBal != nullptr) Release2DArray(m_nSubbsns + 1, m_soilWtrBal);
+    if (m_soilWtrBal != nullptr) Release2DArray(m_soilWtrBal);
 }
 
 void SOL_WB::InitialOutputs() {
-    CHECK_POSITIVE(MID_SOL_WB, m_nSubbsns);
-    if (m_soilWtrBal == nullptr) Initialize2DArray(m_nSubbsns + 1, 16, m_soilWtrBal, 0.f);
+    CHECK_POSITIVE(M_SOL_WB[0], m_nSubbsns);
+    if (m_soilWtrBal == nullptr) Initialize2DArray(m_nSubbsns + 1, 16, m_soilWtrBal, 0.);
 }
 
 int SOL_WB::Execute() {
@@ -26,11 +26,12 @@ int SOL_WB::Execute() {
     return 0;
 }
 
-void SOL_WB::SetValue(const char* key, float value) {
+void SOL_WB::SetValue(const char* key, int value) {
     string s(key);
-    if (StringMatch(s, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    if (StringMatch(s, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
     else {
-        throw ModelException(MID_SOL_WB, "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(M_SOL_WB[0], "SetValue",
+                             "Integer Parameter " + s + " does not exist.");
     }
 }
 
@@ -40,18 +41,28 @@ void SOL_WB::SetValueToSubbasins() {
             Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
             int* cells = curSub->GetCells();
             int cellsNum = curSub->GetCellCount();
-            float ratio = 1.f / CVT_FLT(cellsNum);
-            float ri = 0.f; // total subsurface runoff of soil profile (mm)
-            float sm = 0.f; // total soil moisture of soil profile (mm)
-            float pcp = 0.f, netPcp = 0.f, depET = 0.f, infil = 0.f;
-            float itpET = 0.f, netPerc = 0.f, r = 0.f, revap = 0.f;
-            float rs = 0.f, meanT = 0.f, soilT = 0.f, es = 0.f, totalET = 0.f;
+            FLTPT ratio = 1. / CVT_FLT(cellsNum);
+            FLTPT ri = 0.; // total subsurface runoff of soil profile (mm)
+            FLTPT sm = 0.; // total soil moisture of soil profile (mm)
+            FLTPT pcp = 0.;
+            FLTPT netPcp = 0.;
+            FLTPT depET = 0.;
+            FLTPT infil = 0.;
+            FLTPT itpET = 0.;
+            FLTPT netPerc = 0.;
+            FLTPT r = 0.;
+            FLTPT revap = 0.;
+            FLTPT rs = 0.;
+            FLTPT meanT = 0.;
+            FLTPT soilT = 0.;
+            FLTPT es = 0.;
+            FLTPT totalET = 0.;
 
             for (int i = 0; i < cellsNum; i++) {
                 // loop cells of current subbasin
                 int cell = cells[i];
-                ri = 0.f;
-                sm = 0.f;
+                ri = 0.;
+                sm = 0.;
                 for (int j = 0; j < CVT_INT(m_nSoilLyrs[cell]); j++) {
                     ri += m_subSurfRf[cell][j] * ratio;
                     sm += m_soilWtrSto[cell][j] * ratio;
@@ -70,7 +81,7 @@ void SOL_WB::SetValueToSubbasins() {
                 rs += m_surfRf[cell] * ratio;
                 r += (m_surfRf[cell] + ri) * ratio;
             }
-            float rg = m_RG[*it];
+            FLTPT rg = m_RG[*it];
             r += rg;
 
             m_soilWtrBal[*it][0] = pcp;
@@ -93,65 +104,76 @@ void SOL_WB::SetValueToSubbasins() {
     }
 }
 
-void SOL_WB::Set1DData(const char* key, const int nrows, float* data) {
+void SOL_WB::Set1DData(const char* key, const int nrows, FLTPT* data) {
     string s(key);
-    if (StringMatch(s, VAR_RG)) {
+    if (StringMatch(s, VAR_RG[0])) {
         m_RG = data;
         if (m_nSubbsns != nrows - 1) {
-            throw ModelException(MID_SOL_WB, "Set1DData",
+            throw ModelException(M_SOL_WB[0], "Set1DData",
                                  "The size of groundwater runoff should be equal to (subbasin number + 1)!");
         }
         return;
     }
-    CheckInputSize(MID_SOL_WB, key, nrows, m_nCells);
-    if (StringMatch(s, VAR_SOILLAYERS)) {
-        m_nSoilLyrs = data;
-    } else if (StringMatch(s, VAR_SOL_ZMX)) {
+    CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
+    if (StringMatch(s, VAR_SOL_ZMX[0])) {
         m_soilMaxRootD = data;
-    } else if (StringMatch(s, VAR_NEPR)) {
+    } else if (StringMatch(s, VAR_NEPR[0])) {
         m_netPcp = data;
-    } else if (StringMatch(s, VAR_INFIL)) {
+    } else if (StringMatch(s, VAR_INFIL[0])) {
         m_infil = data;
-    } else if (StringMatch(s, VAR_SOET)) {
+    } else if (StringMatch(s, VAR_SOET[0])) {
         m_soilET = data;
-    } else if (StringMatch(s, VAR_REVAP)) {
+    } else if (StringMatch(s, VAR_REVAP[0])) {
         m_Revap = data;
-    } else if (StringMatch(s, VAR_PCP)) {
+    } else if (StringMatch(s, VAR_PCP[0])) {
         m_PCP = data;
-    } else if (StringMatch(s, VAR_INLO)) {
+    } else if (StringMatch(s, VAR_INLO[0])) {
         m_intcpLoss = data;
-    } else if (StringMatch(s, VAR_INET)) {
+    } else if (StringMatch(s, VAR_INET[0])) {
         m_IntcpET = data;
-    } else if (StringMatch(s, VAR_DEET)) {
+    } else if (StringMatch(s, VAR_DEET[0])) {
         m_deprStoET = data;
-    } else if (StringMatch(s, VAR_DPST)) {
+    } else if (StringMatch(s, VAR_DPST[0])) {
         m_deprSto = data;
-    } else if (StringMatch(s, VAR_SURU)) {
+    } else if (StringMatch(s, VAR_SURU[0])) {
         m_surfRf = data;
-    } else if (StringMatch(s, VAR_SNSB)) {
+    } else if (StringMatch(s, VAR_SNSB[0])) {
         m_snowSublim = data;
-    } else if (StringMatch(s, VAR_TMEAN)) {
+    } else if (StringMatch(s, VAR_TMEAN[0])) {
         m_meanTemp = data;
-    } else if (StringMatch(s, VAR_SOTE)) {
+    } else if (StringMatch(s, VAR_SOTE[0])) {
         m_soilTemp = data;
     } else {
-        throw ModelException(MID_SOL_WB, "Set1DData", "Parameter " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Set1DData",
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
-void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(MID_SOL_WB, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+void SOL_WB::Set1DData(const char* key, const int nrows, int* data) {
     string s(key);
-    if (StringMatch(s, VAR_PERCO)) {
+    CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
+    if (StringMatch(s, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
+    } else {
+        throw ModelException(M_SOL_WB[0], "Set1DData",
+                             "Integer Parameter " + s + " does not exist in current module.");
+    }
+}
+
+void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
+    CheckInputSize2D(M_SOL_WB[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    string s(key);
+    if (StringMatch(s, VAR_PERCO[0])) {
         m_soilPerco = data;
-    } else if (StringMatch(s, VAR_SSRU)) {
+    } else if (StringMatch(s, VAR_SSRU[0])) {
         m_subSurfRf = data;
-    } else if (StringMatch(s, VAR_SOL_ST)) {
+    } else if (StringMatch(s, VAR_SOL_ST[0])) {
         m_soilWtrSto = data;
-    } else if (StringMatch(s, VAR_SOILTHICK)) {
+    } else if (StringMatch(s, VAR_SOILTHICK[0])) {
         m_soilThk = data;
     } else {
-        throw ModelException(MID_SOL_WB, "Set2DData", "Parameter " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Set2DData",
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
@@ -163,41 +185,42 @@ void SOL_WB::SetSubbasins(clsSubbasins* subbasins) {
     }
 }
 
-void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
     InitialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SOWB)) {
+    if (StringMatch(s, VAR_SOWB[0])) {
         SetValueToSubbasins();
         *nRows = m_nSubbsns + 1;
         *nCols = 16;
         *data = m_soilWtrBal;
     } else {
-        throw ModelException(MID_SOL_WB, "Get2DData", "Result " + s + " does not exist in current module.");
+        throw ModelException(M_SOL_WB[0], "Get2DData",
+                             "Result " + s + " does not exist in current module.");
     }
 }
 
 bool SOL_WB::CheckInputData() {
-    CHECK_POSITIVE(MID_SOL_WB, m_nCells);
-    CHECK_POSITIVE(MID_SOL_WB, m_nSubbsns);
-    CHECK_POINTER(MID_SOL_WB, m_nSoilLyrs);
-    CHECK_POINTER(MID_SOL_WB, m_soilMaxRootD);
-    CHECK_POINTER(MID_SOL_WB, m_soilThk);
-    CHECK_POINTER(MID_SOL_WB, m_netPcp);
-    CHECK_POINTER(MID_SOL_WB, m_infil);
-    CHECK_POINTER(MID_SOL_WB, m_soilET);
-    CHECK_POINTER(MID_SOL_WB, m_Revap);
-    CHECK_POINTER(MID_SOL_WB, m_subSurfRf);
-    CHECK_POINTER(MID_SOL_WB, m_soilPerco);
-    CHECK_POINTER(MID_SOL_WB, m_soilWtrSto);
-    CHECK_POINTER(MID_SOL_WB, m_PCP);
-    CHECK_POINTER(MID_SOL_WB, m_intcpLoss);
-    CHECK_POINTER(MID_SOL_WB, m_deprSto);
-    CHECK_POINTER(MID_SOL_WB, m_deprStoET);
-    CHECK_POINTER(MID_SOL_WB, m_IntcpET);
-    CHECK_POINTER(MID_SOL_WB, m_RG);
-    CHECK_POINTER(MID_SOL_WB, m_surfRf);
-    CHECK_POINTER(MID_SOL_WB, m_meanTemp);
-    CHECK_POINTER(MID_SOL_WB, m_soilTemp);
-    CHECK_POINTER(MID_SOL_WB, m_subbasinsInfo);
+    CHECK_POSITIVE(M_SOL_WB[0], m_nCells);
+    CHECK_POSITIVE(M_SOL_WB[0], m_nSubbsns);
+    CHECK_POINTER(M_SOL_WB[0], m_nSoilLyrs);
+    CHECK_POINTER(M_SOL_WB[0], m_soilMaxRootD);
+    CHECK_POINTER(M_SOL_WB[0], m_soilThk);
+    CHECK_POINTER(M_SOL_WB[0], m_netPcp);
+    CHECK_POINTER(M_SOL_WB[0], m_infil);
+    CHECK_POINTER(M_SOL_WB[0], m_soilET);
+    CHECK_POINTER(M_SOL_WB[0], m_Revap);
+    CHECK_POINTER(M_SOL_WB[0], m_subSurfRf);
+    CHECK_POINTER(M_SOL_WB[0], m_soilPerco);
+    CHECK_POINTER(M_SOL_WB[0], m_soilWtrSto);
+    CHECK_POINTER(M_SOL_WB[0], m_PCP);
+    CHECK_POINTER(M_SOL_WB[0], m_intcpLoss);
+    CHECK_POINTER(M_SOL_WB[0], m_deprSto);
+    CHECK_POINTER(M_SOL_WB[0], m_deprStoET);
+    CHECK_POINTER(M_SOL_WB[0], m_IntcpET);
+    CHECK_POINTER(M_SOL_WB[0], m_RG);
+    CHECK_POINTER(M_SOL_WB[0], m_surfRf);
+    CHECK_POINTER(M_SOL_WB[0], m_meanTemp);
+    CHECK_POINTER(M_SOL_WB[0], m_soilTemp);
+    CHECK_POINTER(M_SOL_WB[0], m_subbasinsInfo);
     return true;
 }

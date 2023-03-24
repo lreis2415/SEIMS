@@ -7,7 +7,7 @@
 	[5] 秦承志, 卢岩君, 邱维理, 等. 模糊坡位信息在精细土壤属性空间推测中的应用[J]. 地理研究, 2010, 29(9): 1706-1714.
 	[6] Qin C, Zhu A, Qiu W, et al. Mapping soil organic matter in small low-relief catchments using fuzzy slope position information[J]. Geoderma, 2012, 171: 64-74.
 
-  Liangjun, Zhu
+  Liangjun Zhu
   Lreis, CAS
   Apr 13, 2015
 

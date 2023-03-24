@@ -1,18 +1,18 @@
 #include "IKW_REACH.h"
 #include "text.h"
 
-using namespace std;
+//using namespace std;  // Avoid this statement! by lj.
 
-IKW_REACH::IKW_REACH() : m_dt(-1), m_layeringMethod(UP_DOWN), m_nreach(-1), m_Kchb(nullptr),
-                             m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
-                             m_aBank(NODATA_VALUE),
-                             m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
-                             m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr), m_gwStorage(nullptr), m_area(nullptr),
-                             m_Vseep0(0.f), m_chManning(nullptr), m_chSlope(nullptr),m_chWTdepth(nullptr),
-                             m_bankStorage(nullptr), m_seepage(nullptr),
-                             m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
-                             m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
-                             m_qUpReach(0.f), m_deepGroudwater(0.f) {
+IKW_REACH::IKW_REACH() : m_dt(-1), m_nreach(-1), m_Kchb(nullptr),
+                         m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
+                         m_aBank(NODATA_VALUE),
+                         m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
+                         m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr), m_gwStorage(nullptr), m_area(nullptr),
+                         m_Vseep0(0.f), m_chManning(nullptr), m_chSlope(nullptr),m_chWTdepth(nullptr),
+                         m_bankStorage(nullptr), m_seepage(nullptr),
+                         m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
+                         m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
+                         m_qUpReach(0.f), m_deepGroudwater(0.f) {
 }
 
 IKW_REACH::~IKW_REACH() {
@@ -157,9 +157,9 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             m_nreach = n - 1;
         } else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nreach << ".\n";
+            std::ostringstream oss;
+            oss << "Input data for " + string(key) << " is invalid with size: "
+                    << n << ". The origin size is " << m_nreach << ".\n";
             throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
         }
     }
@@ -173,29 +173,30 @@ void IKW_REACH::SetValue(const char *key, float value) {
     //if (StringMatch(sk, VAR_QUPREACH)) {
     //    m_qUpReach = value;
     //} else
-    if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = (LayeringMethod) int(value);
-    } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
+    //if (StringMatch(sk, Tag_LayeringMethod[0])) {
+    //    m_layeringMethod = (LayeringMethod) int(value);
+    //} else
+    if (StringMatch(sk, Tag_ChannelTimeStep[0])) {
         m_dt = int(value);
-    } else if (StringMatch(sk, VAR_EP_CH)) {
+    } else if (StringMatch(sk, VAR_EP_CH[0])) {
         m_Epch = value;
-    } else if (StringMatch(sk, VAR_BNK0)) {
+    } else if (StringMatch(sk, VAR_BNK0[0])) {
         m_Bnk0 = value;
-    } else if (StringMatch(sk, VAR_CHS0)) {
+    } else if (StringMatch(sk, VAR_CHS0[0])) {
         m_Chs0 = value;
-    } else if (StringMatch(sk, VAR_VSEEP0)) {
+    } else if (StringMatch(sk, VAR_VSEEP0[0])) {
         m_Vseep0 = value;
-    } else if (StringMatch(sk, VAR_A_BNK)) {
+    } else if (StringMatch(sk, VAR_A_BNK[0])) {
         m_aBank = value;
-    } else if (StringMatch(sk, VAR_B_BNK)) {
+    } else if (StringMatch(sk, VAR_B_BNK[0])) {
         m_bBank = value;
-    } else if (StringMatch(sk, VAR_MSK_X)) {
+    } else if (StringMatch(sk, VAR_MSK_X[0])) {
         m_x = value;
-    } else if (StringMatch(sk, VAR_MSK_CO1)) {
+    } else if (StringMatch(sk, VAR_MSK_CO1[0])) {
         m_co1 = value;
     } else {
-        throw ModelException("IKW_REACH", "SetSingleData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+        throw ModelException("IKW_REACH", "SetSingleData",
+                             "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 
 }
@@ -203,19 +204,19 @@ void IKW_REACH::SetValue(const char *key, float value) {
 void IKW_REACH::Set1DData(const char *key, int n, float *value) {
     string sk(key);
     //check the input data
-    if (StringMatch(sk, VAR_SUBBSN)) {
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbasin = value;   //m_subbasin
-    } else if (StringMatch(sk, VAR_SBOF)) {
+    } else if (StringMatch(sk, VAR_SBOF[0])) {
         CheckInputSize(key, n);
         m_qsSub = value;
-    } else if (StringMatch(sk, VAR_SBIF)) {
+    } else if (StringMatch(sk, VAR_SBIF[0])) {
         CheckInputSize(key, n);
         m_qiSub = value;
-    } else if (StringMatch(sk, VAR_SBQG)) {
+    } else if (StringMatch(sk, VAR_SBQG[0])) {
         m_qgSub = value;
-    } else if (StringMatch(sk, VAR_SBPET)) {
+    } else if (StringMatch(sk, VAR_SBPET[0])) {
         m_petCh = value;
-    } else if (StringMatch(sk, VAR_SBGS)) {
+    } else if (StringMatch(sk, VAR_SBGS[0])) {
         m_gwStorage = value;
     } else {
         throw ModelException("IKW_REACH", "Set1DData", "Parameter " + sk
@@ -241,28 +242,28 @@ void IKW_REACH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     *n = m_nreach + 1;
     int iOutlet = m_reachLayers.rbegin()->second[0];
-    if (StringMatch(sk, VAR_QRECH)) {
+    if (StringMatch(sk, VAR_QRECH[0])) {
         m_qOut[0] = m_qOut[iOutlet] + m_deepGroudwater;
         *data = m_qOut;
-    } else if (StringMatch(sk, VAR_QS)) {
+    } else if (StringMatch(sk, VAR_QS[0])) {
         m_qsCh[0] = m_qsCh[iOutlet];
         *data = m_qsCh;
-    } else if (StringMatch(sk, VAR_QI)) {
+    } else if (StringMatch(sk, VAR_QI[0])) {
         m_qiCh[0] = m_qiCh[iOutlet];
         *data = m_qiCh;
-    } else if (StringMatch(sk, VAR_QG)) {
+    } else if (StringMatch(sk, VAR_QG[0])) {
         m_qgCh[0] = m_qgCh[iOutlet];
         *data = m_qgCh;
-    } else if (StringMatch(sk, VAR_BKST)) {
+    } else if (StringMatch(sk, VAR_BKST[0])) {
         m_bankStorage[0] = m_bankStorage[iOutlet];
         *data = m_bankStorage;
-    } else if (StringMatch(sk, VAR_CHST)) {
+    } else if (StringMatch(sk, VAR_CHST[0])) {
         m_chStorage[0] = m_chStorage[iOutlet];
         *data = m_chStorage;
-    } else if (StringMatch(sk, VAR_SEEPAGE)) {
+    } else if (StringMatch(sk, VAR_SEEPAGE[0])) {
         m_seepage[0] = m_seepage[iOutlet];
         *data = m_seepage;
-    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) {
+    } else if (StringMatch(sk, VAR_CHWTRDEPTH[0])) {
         m_chWTdepth[0] = m_chWTdepth[iOutlet];
         *data = m_chWTdepth;
     } else {
@@ -326,11 +327,11 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
     }
 
     /* common terms */
-    ab_pQ = alpha * beta * pow(((qLast + qIn) / 2), beta - 1);
+    ab_pQ = alpha * beta * CalPow(((qLast + qIn) / 2), beta - 1);
     // derivative of diagonal average (space-time)
 
     dtX = dt / dx;
-    C = dtX * qIn + alpha * pow(qLast, beta) + dt * surplus;
+    C = dtX * qIn + alpha * CalPow(qLast, beta) + dt * surplus;
     //dt/dx*Q = m3/s*s/m=m2; a*Q^b = A = m2; surplus*dt = s*m2/s = m2
     //C is unit volume of water
     // first gues Qkx
@@ -343,17 +344,17 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
         return (0);
     }
 
-    Qkx = max(Qkx, MIN_FLUX);
+    Qkx = Max(Qkx, MIN_FLUX);
 
     count = 0;
     do {
-        fQkx = dtX * Qkx + alpha * pow(Qkx, beta) - C;   /* Current k */
-        dfQkx = dtX + alpha * beta * pow(Qkx, beta - 1);  /* Current k */
+        fQkx = dtX * Qkx + alpha * CalPow(Qkx, beta) - C;   /* Current k */
+        dfQkx = dtX + alpha * beta * CalPow(Qkx, beta - 1);  /* Current k */
         Qkx -= fQkx / dfQkx;                                /* Next k */
-        Qkx = max(Qkx, MIN_FLUX);
+        Qkx = Max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (fabs(fQkx) > _epsilon && count < MAX_ITERS_KW);
+    } while (Abs(fQkx) > _epsilon && count < MAX_ITERS_KW);
 
     if (Qkx != Qkx) {
         throw ModelException("IKW_OL", "GetNewQ", "Error in iteration!");
@@ -395,7 +396,7 @@ void IKW_REACH::ChannelFlow(int i) {
     // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
 
     // 3. water from bank storage
-    float bankOut = m_bankStorage[i] * (1 - exp(-m_aBank));
+    float bankOut = m_bankStorage[i] * (1 - CalExp(-m_aBank));
 
     m_bankStorage[i] -= bankOut;
     qIn += bankOut / m_dt;
@@ -437,7 +438,7 @@ void IKW_REACH::ChannelFlow(int i) {
     }
     // water balance of the bank storage
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
-    float bankOutGw = m_bankStorage[i] * (1 - exp(-m_bBank));
+    float bankOutGw = m_bankStorage[i] * (1 - CalExp(-m_bBank));
     bankOutGw = 0.f;
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
@@ -479,14 +480,14 @@ void IKW_REACH::ChannelFlow(int i) {
 
         float h = m_chStorage[i] / m_chWidth[i] / m_chLen[i];
         float Perim = 2.f * h + m_chWidth[i];
-        float sSin = sqrt(sin(m_chSlope[i]));
-        float alpha = pow(m_chManning[i] / sSin * pow(Perim, _2div3), 0.6f);
+        float sSin = CalSqrt(sin(m_chSlope[i]));
+        float alpha = CalPow(m_chManning[i] / sSin * CalPow(Perim, _2div3), 0.6f);
 
         float lossRate = -totalLoss / m_dt / m_chWidth[i];
         //lossRate = 0.f;
         m_qOut[i] = GetNewQ(qIn, m_qOut[i], lossRate, alpha, m_dt, m_chLen[i]);
 
-        float hNew = (alpha * pow(m_qOut[i], 0.6f)) / m_chWidth[i]; // unit m
+        float hNew = (alpha * CalPow(m_qOut[i], 0.6f)) / m_chWidth[i]; // unit m
 
         m_chStorage[i] += (qIn - m_qOut[i]) * m_dt;
         //float hTest = h + (qIn-m_qOut[i])*m_dt/m_chWidth[i]/m_chLen[i];

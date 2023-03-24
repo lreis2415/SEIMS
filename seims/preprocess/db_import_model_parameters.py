@@ -23,7 +23,7 @@ from numpy import unique
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
-from pymongo import ASCENDING
+from pymongo import ASCENDING, InsertOne, UpdateOne
 
 from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
@@ -37,25 +37,23 @@ class ImportParam2Mongo(object):
     """
 
     @staticmethod
-    def initial_params_from_txt(cfg, maindb):
+    def initial_params_from_txt(cfg):
         """
         import initial calibration parameters from txt data file.
         Args:
             cfg: SEIMS config object
-            maindb: MongoDB database object
         """
         # delete if existed, initialize if not existed
-        c_list = maindb.collection_names()
-        if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):  # 是否存在表名 = 'PARAMETERS'的表
-            maindb.create_collection(DBTableNames.main_parameter)
+        c_list = cfg.maindb.list_collection_names()
+        if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
+            cfg.maindb.create_collection(DBTableNames.main_parameter)
         else:
-            maindb.drop_collection(DBTableNames.main_parameter)
-        # initialize bulk operator
-        bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
+            cfg.maindb.drop_collection(DBTableNames.main_parameter)
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file) # _INIT_PARAM_NAME = F:\program\seims\SEIMS\seims\preprocess\model_param_ini.csv
         field_names = data_items[0][0:]
         # print(field_names)
+        bulk_requests = list()
         for i, cur_data_item in enumerate(data_items):
             if i == 0:
                 continue
@@ -68,7 +66,8 @@ class ImportParam2Mongo(object):
                            ModelParamFields.change: 'NC',
                            ModelParamFields.max: DEFAULT_NODATA,
                            ModelParamFields.min: DEFAULT_NODATA,
-                           ModelParamFields.type: ''}
+                           ModelParamFields.type: '',
+                           ModelParamFields.dtype: ''}
             for k, v in list(data_import.items()):
                 idx = field_names.index(k)
                 if cur_data_item[idx] == '':                # change 列
@@ -85,19 +84,21 @@ class ImportParam2Mongo(object):
                         data_import[k] = float(cur_data_item[idx])
                     else:
                         data_import[k] = cur_data_item[idx]
-            bulk.insert(data_import)
+
+            bulk_requests.append(InsertOne(data_import))
         # execute import operators
-        MongoUtil.run_bulk(bulk, 'No operation during initial_params_from_txt.')
+        results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_parameter], bulk_requests)
+        print('Inserted %d initial parameters!' % (results.inserted_count
+              if results is not None else 0))
         # initialize index by parameter's type and name by ascending order.
-        maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
-                                                          (ModelParamFields.name, ASCENDING)])
+        cfg.maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
+                                                             (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
-    def calibrated_params_from_txt(cfg, maindb):
+    def calibrated_params_from_txt(cfg):
         """Read and update calibrated parameters."""
         # initialize bulk operator
-        coll = maindb[DBTableNames.main_parameter]
-        bulk = coll.initialize_ordered_bulk_op()
+        coll = cfg.maindb[DBTableNames.main_parameter]
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
         # print(field_names)
@@ -108,6 +109,7 @@ class ImportParam2Mongo(object):
                          {'$set': {ModelParamFields.impact: 1.}})
         coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
                          {'$set': {ModelParamFields.impact: 0.}})
+        update_requests = list()
         for i, cur_data_item in enumerate(data_items):
             data_import = dict()
             cur_filter = dict()
@@ -121,12 +123,14 @@ class ImportParam2Mongo(object):
                                         ModelParamFields.change_rc, ModelParamFields.change_nc]:
                     data_import[ModelParamFields.change] = cur_data_item[2]
 
-            bulk.find(cur_filter).update({'$set': data_import})
-        # execute import operators
-        MongoUtil.run_bulk(bulk, 'No operations during calibrated_params_from_txt.')
+            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+        # execute update operators
+        results = MongoUtil.run_bulk_write(coll, update_requests)
+        print('Updated %d calibration parameters!' % (results.modified_count
+              if results is not None else 0))
 
     @staticmethod
-    def subbasin_statistics(cfg, maindb):
+    def subbasin_statistics(cfg):
         """
         Import subbasin numbers, outlet ID, etc. to MongoDB.
         """
@@ -201,31 +205,31 @@ class ImportParam2Mongo(object):
                    ModelParamFields.change: ModelParamFields.change_nc,
                    ModelParamFields.max: DEFAULT_NODATA,
                    ModelParamFields.min: DEFAULT_NODATA,
-                   ModelParamFields.type: 'SUBBASIN'}
+                   ModelParamFields.type: 'SUBBASIN',
+                   ModelParamFields.dtype: 'INT'}
             curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
             # print(dic, curfilter)
-            maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
-                                                                     upsert=True)
-        maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
+            cfg.maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
+                                                                         upsert=True)
+        cfg.maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
 
     @staticmethod
-    def model_io_configuration(cfg, maindb):
+    def model_io_configuration(cfg):
         """
         Import Input and Output Configuration of SEIMS, i.e., file.in and file.out
         Args:
             cfg: SEIMS config object
-            maindb: MongoDB database object
         """
         file_in_path = cfg.modelcfgs.filein
         file_out_path = cfg.paramcfgs.init_outputs_file
         # initialize if collection not existed
-        c_list = maindb.collection_names()
+        c_list = cfg.maindb.list_collection_names()
         conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
         for item in conf_tabs:
             if not StringClass.string_in_list(item, c_list):
-                maindb.create_collection(item)
+                cfg.maindb.create_collection(item)
             else:
-                maindb.drop_collection(item)
+                cfg.maindb.drop_collection(item)
         file_in_items = read_data_items_from_txt(file_in_path)
 
         for item in file_in_items:
@@ -236,11 +240,10 @@ class ImportParam2Mongo(object):
                                  ' split by "|"')
             file_in_dict[ModelCfgFields.tag] = values[0]
             file_in_dict[ModelCfgFields.value] = values[1]
-            maindb[DBTableNames.main_filein].insert(file_in_dict)
+            cfg.maindb[DBTableNames.main_filein].insert_one(file_in_dict)
 
         # begin to import initial outputs settings
         file_out_items = read_data_items_from_txt(file_out_path)
-        bulk = maindb[DBTableNames.main_fileout].initialize_unordered_bulk_op()
         out_field_array = file_out_items[0]
         # print(out_data_array)
 
@@ -275,16 +278,17 @@ class ImportParam2Mongo(object):
                 raise ValueError('There are not any valid output item stored in file.out!')
             return file_out_dict
 
+        insert_requests = list()
         for idx, iitem in enumerate(file_out_items):
             if idx == 0:
                 continue
             iitem_dict = read_output_item(out_field_array, iitem)
-            bulk.insert(iitem_dict)
-        MongoUtil.run_bulk(bulk, 'No operations to execute when import initial outputs settings.')
+            insert_requests.append(InsertOne(iitem_dict))
+        results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], insert_requests)
+        print('Inserted %d initial outputs settings!' % (results.inserted_count
+              if results is not None else 0))
 
         # begin to import the desired outputs
-        # initialize bulk operator
-        bulk = maindb[DBTableNames.main_fileout].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
         # print(field_names)
@@ -295,10 +299,13 @@ class ImportParam2Mongo(object):
                                    'items in file.out must have 7 columns, i.e., OUTPUTID,'
                                    'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
                                    'Otherwise, the OUTPUTID MUST existed in the header!')
-            user_out_field_array = ['OUTPUTID', 'TYPE', 'STARTTIME', 'ENDTIME', 'INTERVAL',
-                                    'INTERVAL_UNIT', 'SUBBASIN']
+            user_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
+                                    ModelCfgFields.stime, ModelCfgFields.etime,
+                                    ModelCfgFields.interval, ModelCfgFields.interval_unit,
+                                    ModelCfgFields.subbsn]
             data_items.insert(0, user_out_field_array)
 
+        update_requests = list()
         for idx, iitem in enumerate(data_items):
             if idx == 0:
                 continue
@@ -306,12 +313,14 @@ class ImportParam2Mongo(object):
             data_import[ModelCfgFields.use] = 1
             cur_filter = dict()
             cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
-            bulk.find(cur_filter).update({'$set': data_import})
+            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
         # execute import operators
-        MongoUtil.run_bulk(bulk, 'No operations to excute when import the desired outputs.')
+        results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], update_requests)
+        print('Updated %d desired outputs!' % (results.modified_count
+              if results is not None else 0))
 
     @staticmethod
-    def lookup_tables_as_collection_and_gridfs(cfg, maindb):
+    def lookup_tables_as_collection_and_gridfs(cfg):
         """Import lookup tables (from txt file) as Collection and GridFS
         Args:
             cfg: SEIMS config object
@@ -319,15 +328,14 @@ class ImportParam2Mongo(object):
         """
         for tablename, txt_file in list(cfg.paramcfgs.lookup_tabs_dict.items()):  # lookup_tabs_dict就是SoilLookup.csv、LanduseLookup.csv...
             # import each lookup table as a collection and GridFS file.
-            c_list = maindb.collection_names()
+            c_list = cfg.maindb.list_collection_names()
             if not StringClass.string_in_list(tablename.upper(), c_list):
-                maindb.create_collection(tablename.upper())
+                cfg.maindb.create_collection(tablename.upper())
             else:
-                maindb.drop_collection(tablename.upper())
-            # initial bulk operator
-            bulk = maindb[tablename.upper()].initialize_ordered_bulk_op()
+                cfg.maindb.drop_collection(tablename.upper())
+
             # delete if the tablename gridfs file existed
-            spatial = GridFS(maindb, DBTableNames.gridfs_spatial)
+            spatial = GridFS(cfg.maindb, DBTableNames.gridfs_spatial)
             if spatial.exists(filename=tablename.upper()):
                 x = spatial.get_version(filename=tablename.upper())
                 spatial.delete(x._id)
@@ -336,6 +344,7 @@ class ImportParam2Mongo(object):
             data_items = read_data_items_from_txt(txt_file)     # 读取查找表的csv文件
             field_names = data_items[0][0:]                     # 读取表头
             item_values = list()  # import as gridfs file
+            insert_requests = list()
             for i, cur_data_item in enumerate(data_items):
                 if i == 0:                                      # 跳过表头
                     continue
@@ -348,10 +357,12 @@ class ImportParam2Mongo(object):
                         item_value.append(tmp_value)
                     else:
                         data_import[fld] = cur_data_item[idx]
-                bulk.insert(data_import)                        # 查找表数据入库
+                insert_requests.append(InsertOne(data_import))
                 if len(item_value) > 0:
                     item_values.append(item_value)
-            MongoUtil.run_bulk(bulk, 'No operations during import %s.' % tablename)
+            res = MongoUtil.run_bulk_write(cfg.maindb[tablename.upper()], insert_requests)
+            print('Inserted %d items of %s!' % (res.inserted_count if res is not None else 0,
+                                                tablename))
             # begin import gridfs file
             n_row = len(item_values)                            # 行数
             # print(item_values)
@@ -380,27 +391,22 @@ class ImportParam2Mongo(object):
                 cur_lookup_gridfs.close()
 
     @staticmethod
-    def workflow(cfg, maindb):
+    def workflow(cfg):
         """Workflow"""
-        ImportParam2Mongo.initial_params_from_txt(cfg, maindb)  # 读取model_param_ini.csv，存入PARAMETER COLLECTION中
-        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb) # 获取校准参数
-        ImportParam2Mongo.model_io_configuration(cfg, maindb)
-        ImportParam2Mongo.subbasin_statistics(cfg, maindb) # 获取subbasin栅格数据的统计信息：行列数、径流数据、流向数据等
-        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb) # 将查找表数据导入数据库和gridfs中
+        ImportParam2Mongo.initial_params_from_txt(cfg)
+        ImportParam2Mongo.calibrated_params_from_txt(cfg)
+        ImportParam2Mongo.model_io_configuration(cfg)
+        ImportParam2Mongo.subbasin_statistics(cfg)
+        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg)
 
 
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    main_db = conn[seims_cfg.spatial_db]
 
-    ImportParam2Mongo.workflow(seims_cfg, main_db)
-
-    client.close()
+    ImportParam2Mongo.workflow(seims_cfg)
 
 
 if __name__ == "__main__":

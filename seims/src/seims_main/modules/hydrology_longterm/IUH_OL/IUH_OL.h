@@ -23,6 +23,8 @@
  *        -# Replace VAR_SUBBASIN with VAR_SUBBASIN_PARAM, which is common used by several modules.
  *   - 4. 2018-03-20 - lj - The length of subbasin related array should equal to
  *                            the count of subbasins, for both mpi version and omp version.
+ *   - 5. 2022-08-22 - lj - Change float to FLTPT.
+ *
  * \author Wu hui, Zhiqiang Yu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_IUH_OL_H
@@ -48,19 +50,23 @@ public:
 
     ~IUH_OL();
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
     void InitialOutputs() OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
+    void GetValue(const char* key, FLTPT* value) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -70,35 +76,35 @@ private:
     /// validate cells number
     int m_nCells;
     /// cell width of the grid (m)
-    float m_CellWth;
+    FLTPT m_CellWth;
     /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
-    float m_cellArea;
+    FLTPT m_cellArea;
     /// the total number of subbasins
     int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// subbasin grid (subbasins ID)
-    float* m_subbsnID;
+    int* m_subbsnID;
 
     /// IUH of each grid cell (1/s)
-    float** m_iuhCell;
+    FLTPT** m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// surface runoff from depression module
-    float* m_surfRf;
+    FLTPT* m_surfRf;
 
     //temporary
 
     /// store the flow of each cell in each day between min time and max time
-    float** m_cellFlow;
+    FLTPT** m_cellFlow;
     /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
 
     //output
 
     /// overland flow to streams for each subbasin (m3/s)
-    float* m_Q_SBOF;
+    FLTPT* m_Q_SBOF;
     // overland flow in each cell (mm) //added by Gao, as intermediate variable, 29 Jul 2016
-    float* m_OL_Flow;
+    FLTPT* m_OL_Flow;
 };
 #endif /* SEIMS_MODULE_IUH_OL_H */

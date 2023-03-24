@@ -18,14 +18,13 @@
 
 #include "basic.h"
 #include "db_mongoc.h"
-#include "data_raster.h"
+#include "data_raster.hpp"
 
 /// include utility classes and const definition of SEIMS
 #include "seims.h"
 /// include data related
 #ifdef USE_MONGODB
 #include "DataCenterMongoDB.h"
-
 #endif /* USE_MONGODB */
 #include "SettingsInput.h"
 #include "SettingsOutput.h"
@@ -87,9 +86,9 @@ public:
      */
     void StepOverall(time_t start_t, time_t end_t);
 
-    void GetTransferredValue(float* tfvalues);
+    void GetTransferredValue(FLTPT* tfvalues);
 
-    void SetTransferredValue(int index, float* tfvalues);
+    void SetTransferredValue(int index, const FLTPT* tfvalues);
 
 public:
     /************************************************************************/
@@ -121,13 +120,13 @@ private:
 
     SettingsInput* m_input;              ///< The basic input settings
     SettingsOutput* m_output;            ///< The user-defined outputs, Q, SED, etc
-    FloatRaster* m_maskRaster;           ///< Mask raster data
+    IntRaster* m_maskRaster;             ///< Mask raster data
     string m_outputPath;                 ///< Path of output scenario
     time_t m_dtDaily;                    ///< Daily time interval, seconds
     time_t m_dtHs;                       ///< Hillslope time interval, seconds
     time_t m_dtCh;                       ///< Channel time interval, seconds
     vector<string> m_moduleIDs;          ///< Module unique IDs, the same sequences with #m_simulationModules
-    vector<ParamInfo *> m_tfValueInputs; ///< transferred single value across subbasins
+    vector<ParamInfo<FLTPT>*> m_tfValueInputs; ///< transferred single value across subbasins
 private:
     /************************************************************************/
     /*   Variables newly allocated in this class                            */

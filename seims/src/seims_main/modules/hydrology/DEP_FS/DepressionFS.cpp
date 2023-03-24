@@ -3,53 +3,59 @@
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
-                                   m_sd(NULL), m_sr(NULL), m_checkInput(true) {
+                                   m_sd(NULL), m_sr(NULL), m_ed(NULL), m_checkInput(true) {
 }
 
 DepressionFS::~DepressionFS(void) {
     Release1DArray(m_sd);
     Release1DArray(m_sr);
     Release1DArray(m_storageCapSurplus);
+    Release1DArray(m_ed);
 }
 
 bool DepressionFS::CheckInputData(void) {
     if (m_date == -1) {
-        throw ModelException(MID_DEP_FS, "CheckInputData", "You have not set the time.");
+        throw ModelException(M_DEP_FS[0], "CheckInputData", "You have not set the time.");
     }
     if (m_nCells <= 0) {
-        throw ModelException(MID_DEP_FS, "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException(M_DEP_FS[0], "CheckInputData", "The cell number of the input can not be less than zero.");
     }
     if (m_depCo == NODATA_VALUE) {
-        throw ModelException(MID_DEP_FS, "CheckInputData",
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: initial depression storage coefficient has not been set.");
     }
     if (m_depCap == NULL) {
-        throw ModelException(MID_DEP_FS, "CheckInputData",
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: depression storage capacity has not been set.");
     }
 #ifndef STORM_MODE
-    //if (m_pet == NULL) {
-    //    throw ModelException(MID_DEP_FS, "CheckInputData", "The parameter: PET has not been set.");
-    //}
-    //if (m_ei == NULL) {
-    //    throw ModelException(MID_DEP_FS, "CheckInputData",
-    //                         "The parameter: evaporation from the interception storage has not been set.");
-    //}
+    if (m_pet == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData", "The parameter: PET has not been set.");
+    }
+    if (m_ei == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
+                             "The parameter: evaporation from the interception storage has not been set.");
+    }
+    if (m_ed == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
+                             "The parameter: DEET from the interception storage has not been set.");
+    }
 #endif /* not STORM_MODE */
     return true;
 }
 
-void DepressionFS:: InitialOutputs() {
+void DepressionFS::InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(MID_DEP_FS, "initialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(M_DEP_FS[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
     if (m_sd == NULL) {
-        m_sd = new float[m_nCells];//ÍÝµØÐîË®Éî¶È mm
-        m_sr = new float[m_nCells];//µØ±í¾¶Á÷Éî¶È mm
-        m_storageCapSurplus = new float[m_nCells];// Ê£Óà´æ´¢Éî¶È(ÍÝµØË®±íÃæ¾àÀëÍÝµØÉÏ±íÃæµÄ¾àÀë)
+        m_sd = new float[m_nCells];
+        m_sr = new float[m_nCells];
+        m_storageCapSurplus = new float[m_nCells];
+        m_ed = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            m_sd[i] = m_depCo * m_depCap[i];// ÍÝµØÐîË®Éî¶È = ÍÝµØ³õÊ¼ÐîË®ÏµÊý * ÍÝµØÉî¶È
+            m_sd[i] = m_depCo * m_depCap[i];// ï¿½Ýµï¿½ï¿½ï¿½Ë®ï¿½ï¿½ï¿½ = ï¿½ÝµØ³ï¿½Ê¼ï¿½ï¿½Ë®Ïµï¿½ï¿½ * ï¿½Ýµï¿½ï¿½ï¿½ï¿½
             m_sr[i] = 0.0f;
         }
     }
@@ -66,62 +72,72 @@ int DepressionFS::Execute() {
     for (int i = 0; i < m_nCells; ++i) {
 
         // sr is temporarily used to stored the water depth including the depression storage
-		// m_srÊÇµØ±íË®Éî£¬ÍÝµØÌîÂúÖ®Ç°£¬m_sr°üº¬ÁËÍÝµØË®Éî£¬
+		// m_srï¿½ÇµØ±ï¿½Ë®ï¿½î£¬ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ö®Ç°ï¿½ï¿½m_srï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½Ë®ï¿½î£¬
         float hWater = m_sr[i];
-		// Èç¹û µØ±íË®Éî <= ÍÝµØÉî¶È
-		// ÍÝµØÌîÂúÖ®Ç°
+		// ï¿½ï¿½ï¿½ ï¿½Ø±ï¿½Ë®ï¿½ï¿½ <= ï¿½Ýµï¿½ï¿½ï¿½ï¿½
+		// ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ö®Ç°
         if (hWater <= m_depCap[i]) {
-			// ÍÝµØË®Éî = µØ±íË®Éî
+			// ï¿½Ýµï¿½Ë®ï¿½ï¿½ = ï¿½Ø±ï¿½Ë®ï¿½ï¿½
             m_sd[i] = hWater;
-			// µØ±íË®Éî = 0
-            m_sr[i] = 0.f;						
+			// ï¿½Ø±ï¿½Ë®ï¿½ï¿½ = 0
+            m_sr[i] = 0.f;
         } else {
-			// ÍÝµØÌîÂúÖ®ºó
-			// ÍÝµØË®Éî = ÍÝµØÉî¶È
+			// ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
+			// ï¿½Ýµï¿½Ë®ï¿½ï¿½ = ï¿½Ýµï¿½ï¿½ï¿½ï¿½
             m_sd[i] = m_depCap[i];
-			// µØ±íË®Éî = µØ±íË®Éî - ÍÝµØÉî¶È£¬´ËÊ±µÄµØ±íË®ÉîÖ¸ÍÝµØÉÏ±íÃæÒÔÉÏµÄË®Éî
-            m_sr[i] = hWater - m_depCap[i];	
+			// ï¿½Ø±ï¿½Ë®ï¿½ï¿½ = ï¿½Ø±ï¿½Ë®ï¿½ï¿½ - ï¿½Ýµï¿½ï¿½ï¿½È£ï¿½ï¿½ï¿½Ê±ï¿½ÄµØ±ï¿½Ë®ï¿½ï¿½Ö¸ï¿½Ýµï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Ë®ï¿½ï¿½
+            m_sr[i] = hWater - m_depCap[i];
         }
-		// Ê£Óà´æ´¢ÈÝÁ¿ = ÍÝµØÉî¶È - ÍÝµØË®Éî
+		// Ê£ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ = ï¿½Ýµï¿½ï¿½ï¿½ï¿½ - ï¿½Ýµï¿½Ë®ï¿½ï¿½
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
-
+        if (m_sd[i] > 0) {
+            //This section is taken from DEP_LINSLEY
+            if (m_pet[i] - m_ei[i] < m_sd[i]) {
+                m_ed[i] = m_pet[i] - m_ei[i];
+            } else {
+                m_ed[i] = m_sd[i];
+            }
+        } else {
+            m_ed[i] = 0.f;
+        }
     }
     return 0;
 }
 
-bool DepressionFS::CheckInputSize(const char *key, int n) {
+bool DepressionFS::CheckInputSize(const char* key, int n) {
     if (n <= 0) {
         //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
         return false;
     }
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
+        if (m_nCells <= 0) {
+            m_nCells = n;
+        } else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
-            throw ModelException(MID_DEP_FS, "CheckInputSize", oss.str());
+                    m_nCells << ".\n";
+            throw ModelException(M_DEP_FS[0], "CheckInputSize", oss.str());
         }
     }
     return true;
 }
 
-void DepressionFS::SetValue(const char *key, float data) {
+void DepressionFS::SetValue(const char* key, float data) {
     string sk(key);
-    if (StringMatch(sk, VAR_DEPREIN)) {
+    if (StringMatch(sk, VAR_DEPREIN[0])) {
         m_depCo = data;
     } else {
-        throw ModelException(MID_DEP_FS, "SetValue", "Parameter " + sk
-            + " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_DEP_FS[0], "SetValue", "Parameter " + sk
+                             + " does not exist in current module. Please contact the module developer.");
     }
 }
 
-void DepressionFS::Set1DData(const char *key, int n, float *data) {
+void DepressionFS::Set1DData(const char* key, int n, float* data) {
     //check the input data
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_DEPRESSION)) {
+    if (StringMatch(sk, VAR_DEPRESSION[0])) {
         m_depCap = data;
 		for (int i = 0; i < m_nCells; i++)
 		{
@@ -131,28 +147,31 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
 			}
 		}
     }
-	else if (StringMatch(sk, VAR_PET)) {
+	else if (StringMatch(sk, VAR_PET[0])) {
 	       m_pet = data;
+    } else if (StringMatch(sk, VAR_INLO[0])) {
+        m_ei = data;
 	   }
 	else {
-        throw ModelException(MID_DEP_FS, "Set1DData", "Parameter " + sk
-            + " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_DEP_FS[0], "Set1DData", "Parameter " + sk
+                             + " does not exist in current module. Please contact the module developer.");
     }
 }
 
-void DepressionFS::Get1DData(const char *key, int *n, float **data) {
+void DepressionFS::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_DPST)) {
+    if (StringMatch(sk, VAR_DPST[0])) {
         *data = m_sd;
-    } else if (StringMatch(sk, VAR_SURU)) {
+    } else if (StringMatch(sk, VAR_SURU[0])) {
         *data = m_sr;
-    } else if (StringMatch(sk, VAR_STCAPSURPLUS)) {
+    } else if (StringMatch(sk, VAR_STCAPSURPLUS[0])) {
         *data = m_storageCapSurplus;
+    } else if (StringMatch(sk, VAR_DEET[0])) {
+        *data = m_ed;
     } else {
-        throw ModelException(MID_DEP_FS, "Get1DData", "Output " + sk
-            + " does not exist in current module. Please contact the module developer.");
+        throw ModelException(M_DEP_FS[0], "Get1DData", "Output " + sk
+                             + " does not exist in current module. Please contact the module developer.");
     }
 }
-
