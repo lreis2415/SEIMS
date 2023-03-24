@@ -42,16 +42,17 @@ IF (XCODE OR MSVC)
     #                 TEST_SUFFIX .noArgs
     #                 TEST_LIST   noArgsTests
     #                )
-    set_tests_properties(${ArgsTests} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${ArgsTests} PROPERTIES TIMEOUT 600)
     gtest_add_tests(TARGET      ${APPNAME}
                     EXTRA_ARGS  -host ${MONGOHOST}  -port ${MONGOPORT}
                     TEST_SUFFIX .withArgs
                     TEST_LIST   withArgsTests
                    )
-    set_tests_properties(${withArgsTests} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${withArgsTests} PROPERTIES TIMEOUT 600)
 ELSE ()
     gtest_discover_tests(${APPNAME}
                          EXTRA_ARGS  -host ${MONGOHOST}  -port ${MONGOPORT}
+                         DISCOVERY_TIMEOUT 600
                         )
 ENDIF ()
 

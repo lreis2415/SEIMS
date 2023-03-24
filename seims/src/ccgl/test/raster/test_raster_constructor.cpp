@@ -182,6 +182,7 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
 TEST(clsRasterDataASCConstructor, SupportedCases) {
     IntRaster* not_std_rs = IntRaster::Init(not_std_asc);
     EXPECT_NE(nullptr, not_std_rs);
+    if (HasFailure()) { return; }
     EXPECT_EQ(4, not_std_rs->GetCellNumber());
     EXPECT_EQ(2, not_std_rs->GetValidNumber());
 

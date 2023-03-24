@@ -16,11 +16,9 @@
   cd <path-to-CCGL>
   mkdir build
   cd build
-  cmake .. -DUNITTEST=1
+  cmake .. -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1
   make -j4
-  make install
-  cd ../bin
-  ./UnitTests_CCGL
+  ctest -C Debug --rerun-failed --output-on-failure
    ```
 
 ## Subtree

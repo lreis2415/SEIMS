@@ -36,7 +36,7 @@ COPY data data
 RUN cd /CCGL \
     && mkdir -p build_with_test \
     && cd build_with_test \
-    && cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 -DFORCEDOWNGTEST=1 -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+    && cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 -DCMAKE_INSTALL_PREFIX=/usr/local .. \
     && make -j 2 \
     && ctest -C Debug --rerun-failed --output-on-failure \
     && make install \
