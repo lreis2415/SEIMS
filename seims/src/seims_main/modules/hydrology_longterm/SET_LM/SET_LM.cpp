@@ -41,7 +41,7 @@ int SET_LM::Execute() {
             } else {
                 m_soilWtrSto[i][j] -= et2d;
             }
-            if (m_soilWtrSto[i][j] < 0.) {
+            if (isinf(m_soilWtrSto[i][j]) || isnan(m_soilWtrSto[i][j]) || m_soilWtrSto[i][j] < 0.) {
                 cout << "SET_LM: moisture is less than zero" << m_soilWtrSto[i][j] << "\t" << et2d << endl;
                 errCount++;
             }

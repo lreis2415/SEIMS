@@ -127,8 +127,10 @@ bool SSR_DA::FlowInSoil(const int id) {
         m_subSurfRfVol[id][j] = Max(UTIL_ZERO, m_subSurfRfVol[id][j]);
         //Adjust the moisture content in the current layer, and the layer immediately below it
         m_soilWtrSto[id][j] -= m_subSurfRf[id][j];
+        m_soilWtrSto[id][j] = Max(UTIL_ZERO, m_soilWtrSto[id][j]);
         m_soilWtrStoPrfl[id] += m_soilWtrSto[id][j];
-        if (m_soilWtrSto[id][j] != m_soilWtrSto[id][j] || m_soilWtrSto[id][j] < 0.) {
+
+        if (isinf(m_soilWtrSto[id][j]) ||isnan(m_soilWtrSto[id][j]) || m_soilWtrSto[id][j] < 0.) {
             cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
                     << m_soilWtrSto[id][j] << ", subsurface runoff: " << m_subSurfRf[id][j] << ", depth:"
                     << m_soilThk[id][j] << endl;
@@ -158,6 +160,11 @@ int SSR_DA::Execute() {
                                  "Please check the error message for more information");
         }
     }
+
+    //cout << "cell id: " << 18252 << ", layer: " << 0 << ", moisture: "
+    //    << m_soilWtrSto[18252][0] << ", subsurface runoff: " << m_subSurfRf[18252][0] << ", depth:"
+    //    << m_soilThk[18252][0] << endl;
+
     for (int i = 0; i <= m_nSubbsns; i++) {
         m_ifluQ2Rch[i] = 0.;
     }

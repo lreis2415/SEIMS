@@ -42,7 +42,7 @@ public:
      * \param[out] n Rows
      * \param[out] data data
      */
-    void GetWeightData(int* n, FLTPT** data);
+    //void GetWeightData(int* n, FLTPT** data);
 
     /*!
     * \brief Get the weight data read from mongoDB in form of 2DArray
@@ -52,7 +52,8 @@ public:
     * \param[out] data data
     */
     void GetWeightData2D(int* n, int* n_stations, FLTPT*** data);
-
+	// xdw modify, to support multi-stations itp weight data, we have to get the length of itp weight data array so that initialize it
+	void GetWeightData(int* n, FLTPT** data, int *itp_weight_data_length);
     /*!
      * \brief Output the weight data to \a ostream
      */

@@ -21,8 +21,10 @@ ItpWeightData::~ItpWeightData() {
     if (nullptr != itp_weight_data2d_) { Release2DArray(itp_weight_data2d_); }
 }
 
-void ItpWeightData::GetWeightData(int* n, FLTPT** data) {
+void ItpWeightData::GetWeightData(int* n, FLTPT** data, int *itp_weight_data_length) {
+	// xdw modify: for more than 1 sites, the length weight array should be n_cols_(total count of sites) * n_rows_(total count of available cells of raster)
     *n = n_rows_ * n_cols_;
+	*itp_weight_data_length = n_rows_ * n_cols_;
     *data = itp_weight_data_;
 }
 

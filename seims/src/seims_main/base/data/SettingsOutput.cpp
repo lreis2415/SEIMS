@@ -20,6 +20,8 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
         if (m_printInfosMap.find((*iter).outputID) == m_printInfosMap.end()) {
             m_printInfosMap[(*iter).outputID] = new PrintInfo(m_scenarioID, m_calibrationID);
             m_printInfosMap[(*iter).outputID]->setOutputID((*iter).outputID); /// set the OUTPUTID for the new PrintInfo
+			m_printInfosMap[(*iter).outputID]->setInterval((*iter).interval);
+			m_printInfosMap[(*iter).outputID]->setIntervalUnits((*iter).intervalUnit);
         }
         PrintInfo* pi = m_printInfosMap[(*iter).outputID];
 

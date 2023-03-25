@@ -19,7 +19,7 @@ import numpy
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3.
         mpl.use('Agg', warn=False)
     except TypeError:
         mpl.use('Agg')
@@ -47,10 +47,10 @@ def cal_row_col_num(tot):
     row = int(math.ceil(tot / 8.))
     for i in range(8, 4, -1):
         if tot % i == 0:
-            return tot / i, i
+            return tot // i, i
     for i in range(8, 4, -1):
-        divide = tot / i
-        if tot % i > i / 2:
+        divide = tot // i
+        if tot % i > i // 2:
             row = divide + 1
             col = i
     return row, col

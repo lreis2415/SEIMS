@@ -4,7 +4,7 @@
  * \author Junzhi Liu
  * \date Feb. 2011
  * \revised	Zhiqiang Yu
- * \date		2011-2-15
+ * \date 2011-2-15
  *
  * \note 1.	Modify the name of some parameters, input and output variables.
  *		Please see the metadata rules for the names.
@@ -39,13 +39,11 @@
  */
 class DepressionFS : public SimulationModule {
 public:
-    //! Constructor
-    DepressionFS(void);
+    DepressionFS();
+    
+    ~DepressionFS();
 
-    //! Destructor
-    ~DepressionFS(void);
-
-    int Execute(void) OVERRIDE;
+    int Execute() OVERRIDE;
 
     void SetValue(const char *key, float data) OVERRIDE;
 

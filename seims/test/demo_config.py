@@ -215,11 +215,12 @@ def main():
     # More demo data could be added in the future.
     for wtsd_name, model_name in list(DEMO_MODELS.items()):
         model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
-        prep_cfg = write_preprocess_config_file(model_paths, 'preprocess.ini')
-        runmodel_cfg = write_runmodel_config_file(model_paths, 'runmodel.ini')
-        postp_cfg = write_postprocess_config_file(model_paths, 'postprocess.ini')
-        psa_cfg = write_sensitivity_config_file(model_paths, 'sensitivity_analysis.ini')
-        cali_cfg = write_calibration_config_file(model_paths, 'calibration.ini')
+        write_preprocess_config_file(model_paths, 'preprocess.ini')
+        write_runmodel_config_file(model_paths, 'runmodel.ini')
+        write_postprocess_config_file(model_paths, 'postprocess.ini')
+        write_sensitivity_config_file(model_paths, 'sensitivity_analysis.ini')
+        write_calibration_config_file(model_paths, 'calibration.ini')
+        write_scenario_analysis_config_file(model_paths, 'scenario_analysis.ini')
 
 
 if __name__ == "__main__":

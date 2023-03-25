@@ -32,7 +32,7 @@ def mask_rasterio(bin_dir, inoutcfg,
             commands += ['-mask', 'SFILE', maskfile]
         elif usemongo:
             commands += ['-mask', 'GFS', maskfile]
-    commands += ['-include_nodata',  '1' if include_nodata else '0']
+    commands += ['-include_nodata', '1' if include_nodata else '0']
 
     parsed_inout = list()
     for inout in inoutcfg:

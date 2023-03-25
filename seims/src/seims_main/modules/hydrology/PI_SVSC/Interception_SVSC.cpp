@@ -1,10 +1,12 @@
+#include "text.h"
 #include "Interception_SVSC.h"
 
-#include "text.h"
+
 #include "ClimateParams.h"
 
-clsPI_SVSC::clsPI_SVSC(void) : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
-                             m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
+clsPI_SVSC::clsPI_SVSC() :
+    m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
+    m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
 
 #ifndef STORM_MODE
     m_evaporationLoss = NULL;
@@ -182,12 +184,12 @@ bool clsPI_SVSC::CheckInputData() {
     if (this->m_Pi_b > 1.5f || this->m_Pi_b < 0.5f) {
         throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The interception storage capacity exponent can not be " + ValueToString(this->m_Pi_b) +
-                                 ". It should between 0.5 and 1.5.");
+                             ". It should between 0.5 and 1.5.");
     }
     if (this->m_Init_IS > 1.f || this->m_Init_IS < 0.f) {
         throw ModelException(M_PI_SVSC[0], "CheckInputData",
                              "The Initial interception storage can not be " + ValueToString(this->m_Init_IS) +
-                                 ". It should between 0 and 1.");
+                             ". It should between 0 and 1.");
     }
     return true;
 }
@@ -201,7 +203,7 @@ bool clsPI_SVSC::CheckInputSize(const char *key, int n) {
         if (this->m_nCells <= 0) { this->m_nCells = n; }
         else {
             throw ModelException(M_PI_SVSC[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;

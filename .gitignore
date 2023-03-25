@@ -95,3 +95,18 @@ node_modules
 
 # debug doxygen locally
 @CMAKE_CURRENT_BINARY_DIR@
+/.vs
+/data/test7
+/data/youwuzhen2
+/data/mongo.rar
+/data/test7.rar
+/data/test9.rar
+/data/youwuzhen/data_prepare/climate/pcp_daily2.csv
+/data/youwuzhen/data_prepare/spatial/thiessen_pcp.shp.DESKTOP-J6KPEKV.22368.14728.sr.lock
+/data/youwuzhen/data_prepare/spatial/thiessen_meteo.shp.DESKTOP-J6KPEKV.22368.14728.sr.lock
+/data/youwuzhen/data_prepare/spatial/outlet_beijing1954.shp.DESKTOP-J6KPEKV.22368.14728.sr.lock
+/data/youwuzhen/demo_youwuzhen30m_longterm_model/config.fig.bakk
+/data/youwuzhen/youwuzhen.mxd
+
+# xdw add data
+data

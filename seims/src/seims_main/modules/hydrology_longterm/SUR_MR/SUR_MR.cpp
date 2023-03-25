@@ -44,29 +44,30 @@ void SUR_MR::InitialOutputs() {
         Initialize1DArray(m_nCells, m_infil, 0.);
         Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
-    }
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-            if (m_initSoilWtrStoRatio[i] >= 0. && m_initSoilWtrStoRatio[i] <= 1. &&
-                m_soilFC[i][j] >= 0.) {
-                m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
-            }
-            else {
-                m_soilWtrSto[i][j] = 0.;
-            }
-            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
-        }
-    }
 
-    /// update (sol_sumul) amount of water held in soil profile at saturation
-    if (nullptr == m_soilSumSat && m_soilSat != nullptr) {
-        m_soilSumSat = new(nothrow) FLTPT[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            m_soilSumSat[i] = 0.;
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                m_soilSumSat[i] += m_soilSat[i][j];
+                if (m_initSoilWtrStoRatio[i] >= 0. && m_initSoilWtrStoRatio[i] <= 1. &&
+                    m_soilFC[i][j] >= 0.) {
+                    m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
+                }
+                else {
+                    m_soilWtrSto[i][j] = 0.;
+                }
+                m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
+            }
+        }
+
+        /// update (sol_sumul) amount of water held in soil profile at saturation
+        if (nullptr == m_soilSumSat && m_soilSat != nullptr) {
+            m_soilSumSat = new(nothrow) FLTPT[m_nCells];
+#pragma omp parallel for
+            for (int i = 0; i < m_nCells; i++) {
+                m_soilSumSat[i] = 0.;
+                for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+                    m_soilSumSat[i] += m_soilSat[i][j];
+                }
             }
         }
     }

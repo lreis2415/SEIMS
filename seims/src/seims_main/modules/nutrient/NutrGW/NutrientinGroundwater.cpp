@@ -165,6 +165,9 @@ int NutrientinGroundwater::Execute() {
             index = cells[i];
             m_soilNO3[index][CVT_INT(m_nSoilLyrs[index]) - 1] += no3ToSoil;
             m_soilSolP[index][CVT_INT(m_nSoilLyrs[index]) - 1] += solpToSoil;
+            if (m_soilNO3[index][CVT_INT(m_nSoilLyrs[index]) - 1] != m_soilNO3[index][CVT_INT(m_nSoilLyrs[index]) - 1]) {
+                cout << "NUTRGW: m_soilNO3 " << m_soilNO3[index][CVT_INT(m_nSoilLyrs[index]) - 1] << endl;
+            }
         }
         /// finally, update nutrient amount
         m_gwNO3[id] -= m_gwNO3ToCh[id] + no3ToSoil_kg;

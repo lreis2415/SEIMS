@@ -56,6 +56,14 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const FLTPT* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
+void PrintInfoItem::add1DRasterTimeSeriesResult(time_t t, int n, const float* data) {
+    float* temp = new float[n];
+    for (int i = 0; i < n; i++) {
+        temp[i] = data[i];
+    }
+    TimeSeriesDataForRaster[t] = temp;
+    TimeSeriesDataForRasterCount = n;
+}
 void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster* templateRaster, const string& header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     /*   Currently, I cannot find a way to store GridFS files with the same filename but with
@@ -136,6 +144,14 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster
             CLOG(TRACE, LOG_OUTPUT) << "Create " << filename + " successfully!";
         }
         return;
+    }
+    if (!TimeSeriesDataForRaster.empty() && SubbasinID != -1) {
+        //time series data for .tif
+        for (auto it = TimeSeriesDataForRaster.begin(); it != TimeSeriesDataForRaster.end(); ++it) {
+            //for (int i = 0; i < TimeSeriesDataForRasterCount; i++) {}
+            string filename = Filename + "_" + ConvertToString3(it->first);
+            //IntRaster(templateRaster, it->second).OutputToFile(projectPath + filename + "." + Suffix);
+        }
     }
     if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) {
         //time series data for subbasin
@@ -319,6 +335,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, FLTPT** d
     m_Counter++;
 }
 
+
 void PrintInfoItem::AggregateData(time_t time, int numrows, FLTPT* data) {
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
@@ -375,6 +392,11 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, FLTPT* data) {
                         }
                     }
                     break;
+				//case AT_TimeSeries:
+				//	if (!FloatEqual(data[rw], NODATA_VALUE)) {
+				//		m_1DData[rw] = data[rw];
+				//	}
+				//	break;
                 default: break;
             }
         }
@@ -488,6 +510,9 @@ AggregationType PrintInfoItem::MatchAggregationType(const string& type) {
     if (StringMatch(type, Tag_SpecificCells)) {
         res = AT_SpecificCells;
     }
+	if (StringMatch(type, Tag_TimeSeries)) {
+		res = AT_TimeSeries;
+	}
     return res;
 }
 

@@ -1,3 +1,4 @@
+# coding:utf-8
 """BMPs optimization based on different BMP configuration units.
 
     @author   : Liangjun Zhu, Huiran Gao
@@ -24,7 +25,7 @@ from io import open
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3.
         mpl.use('Agg', warn=False)
     except TypeError:
         mpl.use('Agg')
@@ -109,7 +110,6 @@ def main(sceobj):
         run_base_scenario(sceobj)
         print('The environment effectiveness value of the '
               'base scenario is %.2f' % sceobj.cfg.eval_info['BASE_ENV'])
-
     random.seed()
 
     # Initial timespan variables
@@ -369,7 +369,7 @@ def main(sceobj):
             output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
-        
+
         pklfile_str = 'gen%d.pickle' % (gen,)
         with open(sceobj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
             pickle.dump(pop, pklfp)

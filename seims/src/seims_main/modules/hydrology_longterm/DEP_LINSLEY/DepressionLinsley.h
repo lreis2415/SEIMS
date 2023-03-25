@@ -64,7 +64,7 @@ public:
      *		depression module, the execute function of depression module
      *		is not executed before getting the outputs. So, the output
      *		variables should be initial in the Get1DData function. This
-     *		initialization is realized by function initalOutputs.
+     *		initialization is realized by function InitialOutputs.
      */
     void InitialOutputs() OVERRIDE;
 

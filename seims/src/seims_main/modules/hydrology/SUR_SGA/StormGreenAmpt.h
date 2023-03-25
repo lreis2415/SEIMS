@@ -10,8 +10,10 @@
 #ifndef SEIMS_SUR_SGA_H
 #define SEIMS_SUR_SGA_H
 
-#include "SimulationModule.h"
 
+
+#include "SimulationModule.h"
+#define IS_DEBUG 1
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
  * \brief  Green-Ampt Method to calculate infiltration and excess precipitation
@@ -46,9 +48,26 @@ public:
 
     void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
-private:
+    ///**
+    //*	@brief check the output data. Make sure all the output data is available.
+    //*
+    //*	@param output1: the output variable PE
+    //*	@param output2: the next output variable infiltration
+    //*	@return bool The validity of the output data.
+    //*/
+    //bool CheckOutputData(float* output1, float* output2);
 
-    // Calculated the wetting front matric potential
+    void clearInputs(void);
+
+private:
+    int output_icell_max;
+    int output_icell_min;
+    int printInfilMinT;
+    int printInfilMaxT;
+    int counter;
+    std::ofstream  infiltFileFptr;
+
+    /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
     // Parameters from database

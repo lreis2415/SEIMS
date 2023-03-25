@@ -1,6 +1,6 @@
+#include "text.h"
 #include "Interception_MCS.h"
 
-#include "text.h"
 #include "utils_time.h"
 
 clsPI_MCS::clsPI_MCS() :
@@ -9,9 +9,10 @@ clsPI_MCS::clsPI_MCS() :
     m_minIntcpStoCap(nullptr),
     m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
     m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
-    
+
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
+    m_pet = nullptr;
 #else
     m_hilldt = -1;
     m_slope = nullptr;
@@ -122,7 +123,7 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_pcp[i] > 0.) {
 #ifdef STORM_MODE
@@ -136,16 +137,15 @@ int clsPI_MCS::Execute() {
             FLTPT min = m_minIntcpStoCap[i];
             FLTPT max = m_maxIntcpStoCap[i];
             FLTPT capacity = min + (max - min) * CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
-
+            
             //interception, currently, m_st[i] is storage of (t-1) time step
             FLTPT availableSpace = capacity - m_canSto[i];
             if (availableSpace < 0) {
                 availableSpace = 0.;
             }
-
             if (availableSpace < m_pcp[i]) {
                 m_intcpLoss[i] = availableSpace;
-                //if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
+                // if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
                 if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
                     //water added into ditches from low embankment, should be added to somewhere else.
                     FLTPT pcp2canal = m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
@@ -158,7 +158,6 @@ int clsPI_MCS::Execute() {
                 m_intcpLoss[i] = m_pcp[i];
                 m_netPcp[i] = 0.;
             }
-
             m_canSto[i] += m_intcpLoss[i];
         } else {
             m_intcpLoss[i] = 0.;
@@ -171,9 +170,19 @@ int clsPI_MCS::Execute() {
         } else {
             m_IntcpET[i] = m_canSto[i];
         }
+        m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
+
 #endif
     }
+    //float total_netPcp = 0.0;
+    //float ave_netPcp = 0.0;
+    //for (int i = 0; i < m_nCells; i++)
+    //{
+    //	total_netPcp += m_netPcp[i];
+    //}
+    //ave_netPcp = total_netPcp / m_nCells;
+    //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
     return 0;
 }
 

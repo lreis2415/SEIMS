@@ -124,6 +124,9 @@ clsSubbasins* clsSubbasins::Init(map<string, IntRaster*>& rs_int_map,
     oss.str("");
     oss << prefix_id << "_" << VAR_SLOPE[0];
     rs_names.emplace_back(GetUpper(oss.str()));
+	//oss.str("");
+	//oss << prefix_id << "_" << VAR_REACH_DEPTH_SPATIAL;
+	//rs_names.emplace_back(GetUpper(oss.str()));
 
     for (auto it = rs_names.begin(); it != rs_names.end(); ++it) {
         if (rs_map.find(*it) == rs_map.end()) {

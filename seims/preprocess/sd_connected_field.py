@@ -48,8 +48,8 @@ def connected_field_partition_wu2018(cfg):
         #    Note that flowf is encoded by ArcGIS flow direction code
         run_field_partition(cfg.seims_bin, maskf, streamf, flowf, luf,
                             demf, thresh, arcgis_code=True)
-        fields_tif = cfg.dirs.geodata2db + os.path.sep + 'fields_%d.tif' % thresh
-        fields_txt = cfg.dirs.geodata2db + os.path.sep + 'fields_%d.txt' % thresh
+        fields_tif = cfg.dirs.geodata2db + os.path.sep + 'FIELDS_%d.tif' % thresh
+        fields_txt = cfg.dirs.geodata2db + os.path.sep + 'FIELDS_%d.txt' % thresh
         if not (os.path.exists(fields_tif) and os.path.exists(fields_txt)):
             continue
         # 2. Read fields_txt and landuse map, generate json file

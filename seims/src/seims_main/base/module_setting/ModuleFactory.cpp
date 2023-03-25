@@ -50,7 +50,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)
     map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
-    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
+    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;// ��ȡ.cfgģ������ģ�������ļ�
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
@@ -290,7 +290,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
     for (auto it = moduleInOutputs.begin(); it != moduleInOutputs.end(); ++it) {
         if (it->second.empty()) { continue; }
         for (auto itParam = it->second.begin(); itParam != it->second.end(); ++itParam) {
-            tfValueInputs.emplace_back(*itParam); // todo, is there possible that InOutput has duplication? 
+            tfValueInputs.emplace_back(*itParam); // todo, is there possible that InOutput has duplication?
         }
     }
     for (auto it = moduleIDs.begin(); it != moduleIDs.end(); ++it) {
@@ -315,7 +315,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
     for (auto it = moduleInOutputsInt.begin(); it != moduleInOutputsInt.end(); ++it) {
         if (it->second.empty()) { continue; }
         for (auto itParam = it->second.begin(); itParam != it->second.end(); ++itParam) {
-            tfValueInputsInt.emplace_back(*itParam); // todo, is there possible that InOutput has duplication? 
+            tfValueInputsInt.emplace_back(*itParam); // todo, is there possible that InOutput has duplication?
         }
     }
     return true;
@@ -570,7 +570,7 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
         string climtype = setting->dataTypeString();
         if (dim == DT_SingleInt || dim == DT_Array1DInt || dim == DT_Raster1DInt
             || dim == DT_Array2DInt || dim == DT_Raster2DInt) {
-            vecParaInt.emplace_back(new ParamInfo<int>(name, basicname, desc, unit, src, 
+            vecParaInt.emplace_back(new ParamInfo<int>(name, basicname, desc, unit, src,
                                                        moduleID, dim, climtype, value));
         } else {
             vecPara.emplace_back(new ParamInfo<FLTPT>(name, basicname, desc, unit, src,
@@ -663,7 +663,7 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
                                                       moduleID, dim, tftype, climtype,
                                                       is_const, is_output));
         }
-       
+
         elItm = nullptr;
         eleVar = eleVar->NextSiblingElement(); // get the next input if it exists
     }
@@ -678,7 +678,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
         DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
         DataType_RelativeAirMoisture
-    };
+    };// �����������ͣ�����P���¶�T��
     for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
@@ -719,7 +719,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
                     // For time series data reading modules, e.g.:
                     //   0 | TimeSeries | | TSD_RD
                     // will be updated as:
-                    //   0 | TimeSeries_P | | TSD_RD, etc.
+                    //   0 | TimeSeries_P | | TSD_RD, etc. ����ģ����ƴ�������������ͣ����硰P��
                     tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
@@ -759,7 +759,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.emplace_back(module);
+                moduleIDs.emplace_back(module);// ģ��id = .cfg�ļ��е�MODULE ID + "d"  + "_" + ��������"P", eg."TSD_RDd_P" ��"TSD_RDd_TMEAN"
             }
         }
     } catch (...) {

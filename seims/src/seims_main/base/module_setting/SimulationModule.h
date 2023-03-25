@@ -239,6 +239,29 @@ public:
     //! set whether intermediate parameters need to recalculated
     void SetReCalIntermediates(const bool recal) { m_reCalIntermediates = recal; }
 
+	// set 1D Array which contains position data of raster
+	virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
+		throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
+			"Set function of parameter " + string(key) + " is not implemented.");
+	}
+
+	//virtual void SetRasterRows( int rows) {
+	//	throw ModelException("SimulationModule", "SetRasterRows",
+	//		"Set function of parameter rows is not implemented.");
+	//}
+
+	//virtual void SetRasterCols( int cols) {
+	//	throw ModelException("SimulationModule", "SetRasterCols",
+	//		"Set function of parameter cols is not implemented.");
+	//}
+
+	// set 1D Array which stores reach depth data in each cell of raster
+	//virtual void SetReachDepthData(FloatRaster* ch_depth) {
+	//	throw ModelException("SimulationModule", "SetReachDepthData",
+	//		"Set SetReachDepthData function is not implemented.");
+	//}
+
+
 protected:
     /// date time
     time_t m_date;
@@ -280,10 +303,10 @@ protected:
 #define CHECK_NEGATIVE(moduleID, param) if ((param) >= 0) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST be negative!"))
 //! CHECK_ZERO is used for single value that must not be ZERO
-#define CHECK_ZERO(moduleID, param) if ((param) == 0 || FloatEqual(CVT_DBL(param), 0.)) \
+#define CHECK_ZERO(moduleID, param) if (FloatEqual(CVT_DBL(param), 0.)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be zero!"))
 //! CHECK_NODATA is used for single value that must not be NODATA_VALUE
-#define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(CVT_DBL(param), NODATA_VALUE)) \
+#define CHECK_NODATA(moduleID, param) if (FloatEqual(CVT_DBL(param), NODATA_VALUE)) \
                      throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be NODATA_VALUE!"))
 
 #endif /* SIMULATION_MOUDULE_BASE */

@@ -141,7 +141,7 @@ class ImportMongodbClass(object):
                     print('WARNING: The additional file %s MUST be located in '
                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
-            mask_raster_cfg.append([v, k, DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])
+            mask_raster_cfg.append([v, k.upper(), DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])
 
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, mask_raster_cfg, mongoargs=mongoargs,

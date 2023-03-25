@@ -73,6 +73,8 @@ class Scenario(object):
         self.economy = 0.
         self.environment = 0.
         self.net_costs_per_period = list()
+        self.costs_per_period = list()
+        self.incomes_per_period = list()
         self.sed_sum = 0.
         self.sed_per_period = list()
         self.worst_econ = cfg.worst_econ
@@ -95,9 +97,9 @@ class Scenario(object):
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
 
-        self.model.SetMongoClient()
         self.model.ReadMongoDBData()
 
+        self.model.SetMongoClient()
         self.scenario_db = self.model.ScenarioDBName
         self.model.ResetSimulationPeriod()  # Reset the simulation period
         # Reset the starttime and endtime of the desired outputs according to evaluation period

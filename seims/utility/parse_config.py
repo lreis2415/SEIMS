@@ -136,13 +136,13 @@ class ParseNSGA2Config(object):
             dir_template = 'NSGA2_Gen_%d_Pop_%d'
         self.dirname = dir_template % (self.ngens, self.npop)
         self.out_dir = wp + os.path.sep + self.dirname
-        UtilClass.rmmkdir(self.out_dir)
+        UtilClass.mkdir(self.out_dir)  # Do not remove if already existed
 
         self.hypervlog = self.out_dir + os.path.sep + 'hypervolume.txt'
         self.logfile = self.out_dir + os.path.sep + 'runtime.log'
         self.logbookfile = self.out_dir + os.path.sep + 'logbook.txt'
         self.simdata_dir = self.out_dir + os.path.sep + 'simulated_data'
-        UtilClass.rmmkdir(self.simdata_dir)
+        UtilClass.mkdir(self.simdata_dir)
 
 
 class ParseResourceConfig(object):

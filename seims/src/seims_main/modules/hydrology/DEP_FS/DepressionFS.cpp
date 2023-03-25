@@ -1,19 +1,19 @@
 #include "DepressionFS.h"
 #include "text.h"
 
-DepressionFS::DepressionFS(void) : m_nCells(-1),
-                                   m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
-                                   m_sd(NULL), m_sr(NULL), m_ed(NULL), m_checkInput(true) {
+DepressionFS::DepressionFS() :
+    m_nCells(-1), m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr), m_ei(nullptr),
+    m_ed(nullptr), m_sd(nullptr), m_sr(nullptr), m_checkInput(true) {
 }
 
-DepressionFS::~DepressionFS(void) {
+DepressionFS::~DepressionFS() {
     Release1DArray(m_sd);
     Release1DArray(m_sr);
     Release1DArray(m_storageCapSurplus);
     Release1DArray(m_ed);
 }
 
-bool DepressionFS::CheckInputData(void) {
+bool DepressionFS::CheckInputData() {
     if (m_date == -1) {
         throw ModelException(M_DEP_FS[0], "CheckInputData", "You have not set the time.");
     }
@@ -55,7 +55,7 @@ void DepressionFS::InitialOutputs() {
         m_ed = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            m_sd[i] = m_depCo * m_depCap[i];
+            m_sd[i] = m_depCo * m_depCap[i];// �ݵ���ˮ��� = �ݵس�ʼ��ˮϵ�� * �ݵ����
             m_sr[i] = 0.0f;
         }
     }
@@ -68,20 +68,30 @@ int DepressionFS::Execute() {
         m_checkInput = false;
     }
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
+
         // sr is temporarily used to stored the water depth including the depression storage
+		// m_sr�ǵر�ˮ��ݵ�����֮ǰ��m_sr�������ݵ�ˮ�
         float hWater = m_sr[i];
+		// ��� �ر�ˮ�� <= �ݵ����
+		// �ݵ�����֮ǰ
         if (hWater <= m_depCap[i]) {
+			// �ݵ�ˮ�� = �ر�ˮ��
             m_sd[i] = hWater;
+			// �ر�ˮ�� = 0
             m_sr[i] = 0.f;
         } else {
+			// �ݵ�����֮��
+			// �ݵ�ˮ�� = �ݵ����
             m_sd[i] = m_depCap[i];
+			// �ر�ˮ�� = �ر�ˮ�� - �ݵ���ȣ���ʱ�ĵر�ˮ��ָ�ݵ��ϱ������ϵ�ˮ��
             m_sr[i] = hWater - m_depCap[i];
         }
+        // ʣ��洢���� = �ݵ���� - �ݵ�ˮ��
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
         if (m_sd[i] > 0) {
-            //This section is taken from DEP_LINSLEY 
+            //This section is taken from DEP_LINSLEY
             if (m_pet[i] - m_ei[i] < m_sd[i]) {
                 m_ed[i] = m_pet[i] - m_ei[i];
             } else {
@@ -129,11 +139,20 @@ void DepressionFS::Set1DData(const char* key, int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION[0])) {
         m_depCap = data;
-    } else if (StringMatch(sk, VAR_PET[0])) {
-        m_pet = data;
+		for (int i = 0; i < m_nCells; i++)
+		{
+			if (m_depCap[i] < 0.00001)
+			{
+				m_depCap[i] = 0.f;
+			}
+		}
+    }
+	else if (StringMatch(sk, VAR_PET[0])) {
+	       m_pet = data;
     } else if (StringMatch(sk, VAR_INLO[0])) {
         m_ei = data;
-    } else {
+	   }
+	else {
         throw ModelException(M_DEP_FS[0], "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }

@@ -117,6 +117,7 @@ CONST_CHARS Tag_Average =                           "AVE";
 CONST_CHARS Tag_Minimum =                           "MIN";
 CONST_CHARS Tag_Maximum =                           "MAX";
 CONST_CHARS Tag_SpecificCells =                     "SPECIFIC";
+CONST_CHARS Tag_TimeSeries =                        "TS";
 
 CONST_CHARS TAG_OUT_OL_IUH =                        "OL_IUH";
 //CONST_CHARS TAG_OUT_QOUTLET =                       "QOUTLET"; // currently not used, check if needed?
@@ -192,6 +193,7 @@ CONST_CHARS REACH_WDRATIO =                            "CH_WDRATIO"; ///<
 CONST_CHARS REACH_AREA =                               "CH_AREA"; ///<
 CONST_CHARS REACH_SIDESLP =                            "CH_SSLP"; ///<
 CONST_CHARS REACH_SLOPE =                              "CH_SLP"; ///<
+CONST_CHARS REACH_SINUOSITY	=                          "CH_SINUOSITY"; ///<
 // Hydrological related parameters
 CONST_CHARS REACH_MANNING =                         "CH_N"; // Manning's "n" value
 CONST_CHARS REACH_BEDK =                            "CH_BED_K"; /// hydraulic conductivity of the channel bed
@@ -258,7 +260,7 @@ CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET"; ///<
 // define string constants used in the code, also used in the mongoDB.SiteList table's header
 CONST_CHARS Tag_Mode =                              "MODE"; ///<
 CONST_CHARS Tag_Mode_Storm =                        "STORM"; ///<
-CONST_CHARS Tag_Mode_Daily =                        "DAILY"; ///<
+CONST_CHARS Tag_Mode_Daily =                        "DAILY"; ///<`
 
 CONST_CHARS Type_Scenario =                         "SCENARIO"; ///<
 CONST_CHARS Type_Reach =                            "REACH"; ///<
@@ -274,6 +276,7 @@ CONST_CHARS Type_Array1D =                          "ARRAY1D"; ///<
 CONST_CHARS Type_Array1DInt =                       "ARRAY1DINT"; ///<
 CONST_CHARS Type_Single =                           "SINGLE"; ///<
 CONST_CHARS Type_SingleInt =                        "SINGLEINT"; ///<
+CONST_CHARS Type_RasterPositionData =               "RASTERPOSITION"; ///<
 
 CONST_CHARS TFType_Whole =                          "TFWhole"; ///<
 CONST_CHARS TFType_Single =                         "TFSINGLE"; ///<
@@ -1045,6 +1048,9 @@ CONST_CHARS_LIST VAR_SUR_SOLP[] = {"sur_solp", "amount of solution phosphorus in
 CONST_CHARS_LIST VAR_SUR_SOLP_TOCH[] = {"sur_solp_ToCh", "amount of soluble phosphorus from surface runoff to channel"}; /// m_surfRfSolPToCh
 CONST_CHARS_LIST VAR_SUR_COD_TOCH[] = {"sur_cod_ToCH", "amount of COD to reach in surface runoff"}; /// m_surfRfCodToCh
 CONST_CHARS_LIST VAR_SURU[] = {"SURU", "surface runoff"}; /// m_surfRf
+CONST_CHARS_LIST VAR_SUR_SDEP[] = { "SUR_SDEP", "initail water depth of surface and channel" }; // m_surSdep
+CONST_CHARS_LIST VAR_SUR_WRT_DEPTH[] = { "SUR_WRT_DEPTH", "surface runoff depth(spatially for output of casc2d module)" }; /// m_surWtrDepth
+CONST_CHARS_LIST VAR_CH_WRT_DEPTH[] = { "CH_WRT_DEPTH", "channel water depth(spatially for output of casc2d module)" }; /// m_chWtrDepth
 CONST_CHARS_LIST VAR_SWE[] = {"SWE", "average snow accumulation of the watershed"};
 CONST_CHARS_LIST VAR_SWE0[] = {"swe0", "Initial snow water equivalent"};
 CONST_CHARS_LIST VAR_T_BASE[] = {"T_BASE", "base or minimum temperature for plant growth"}; /// m_pgTempBase
@@ -1205,13 +1211,14 @@ CONST_CHARS MONG_SITELIST_DB =                      "DB";
 /// Define Raster/ related constant strings used in SEIMS and preprocess//
 /// By LiangJun Zhu, May. 5, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-#define HEADER_RS_NODATA                       "NODATA_VALUE"
-#define HEADER_RS_XLL                          "XLLCENTER"
-#define HEADER_RS_YLL                          "YLLCENTER"
-#define HEADER_RS_NROWS                        "NROWS"
-#define HEADER_RS_NCOLS                        "NCOLS"
-#define HEADER_RS_CELLSIZE                     "CELLSIZE"
-#define HEADER_RS_LAYERS                       "LAYERS"
-#define HEADER_RS_SRS                          "SRS"
+//#define HEADER_RS_NODATA                       "NODATA_VALUE"
+//#define HEADER_RS_XLL                          "XLLCENTER"
+//#define HEADER_RS_YLL                          "YLLCENTER"
+//#define HEADER_RS_NROWS                        "NROWS"
+//#define HEADER_RS_NCOLS                        "NCOLS"
+//#define HEADER_RS_CELLSIZE                     "CELLSIZE"
+//#define HEADER_RS_LAYERS                       "LAYERS"
+//#define HEADER_RS_SRS                          "SRS"
 
+#define OUTPUT_ICELL 1000;
 #endif

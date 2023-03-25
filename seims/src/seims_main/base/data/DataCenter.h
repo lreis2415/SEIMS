@@ -245,6 +245,8 @@ public:
     //! Set Subbasins information
     void SetSubbasins(SimulationModule* p_module);
 
+	//void SetReachDepthData(SimulationModule* p_module);
+
     //! Update inputs, such climate data.
     void UpdateInput(vector<SimulationModule *>& modules, time_t t);
 
@@ -339,6 +341,7 @@ protected:
     IntRaster* mask_raster_;               ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D
     map<string, IntRaster*> rs_int_map_;   ///< Map of spatial data with integer, both 1D and 2D
+	FloatRaster* ch_depth_;                /// reach depth data,every cell has a depth
     map<string, ParamInfo<FLTPT>*> init_params_; ///< Store parameters from Database (PARAMETERS collection)
     map<string, ParamInfo<int>*> init_params_int_; ///< Store integer parameters from Database (PARAMETERS collection)
     map<string, FLTPT*> array1d_map_;      ///< 1D array data map

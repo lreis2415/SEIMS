@@ -627,7 +627,7 @@ def main():
 
     # additional inputs
     slppos_tag_name = [(1, 'summit'), (4, 'backslope'), (16, 'valley')]
-    slppos_file = r'D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\SLOPEPOSITION.tif'
+    slppos_file = r'D:\Programs\SEIMS\data\youwuzhen30\data_prepare\spatial\spatial_units\SLOPEPOSITION30-clip.tif'
 
     obj = SlopePositionUnits(slppos_tag_name, slppos_file, reach_shp, hillslp_file, landuse_file)
     obj.run()

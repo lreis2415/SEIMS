@@ -275,16 +275,32 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
                                        const bool is_optional /* = false */) {
     int n;
     FLTPT* data = nullptr;
+    FLTPT* tmpdata = nullptr;
     string upper_name = GetUpper(para_name);
     if (StringMatch(upper_name, Tag_Elevation_Meteorology)) { // Meteorology sites data
-        n = clim_station_->NumberOfSites(DataType_Meteorology);
-        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
+        if (clim_station_->NumberOfSites(DataType_Meteorology, n) &&
+            clim_station_->GetElevation(DataType_Meteorology, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Meteorology site!");
+        }
     } else if (StringMatch(upper_name, Tag_Elevation_Precipitation)) { // Precipitation sites data
-        n = clim_station_->NumberOfSites(DataType_Precipitation);
-        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Precipitation));
-    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites
-        n = clim_station_->NumberOfSites(DataType_Meteorology);
-        Initialize1DArray(n, data, clim_station_->GetLatitude(DataType_Meteorology));
+        if (clim_station_->NumberOfSites(DataType_Precipitation, n) &&
+            clim_station_->GetElevation(DataType_Precipitation, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Precipitation site!");
+        }
+    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites 
+        if (clim_station_->NumberOfSites(DataType_Meteorology, n) &&
+            clim_station_->GetLatitude(DataType_Meteorology, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Latitude_M site!");
+        }
     } else { // any other 1D arrays, such as Heat units of all simulation years (HUTOT)
         Read1DArrayData(remote_filename, n, data);
     }
@@ -393,6 +409,7 @@ void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string&
 double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
+    // module_settings
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
     // floating point number
     map<string, vector<ParamInfo<FLTPT>*> >& module_parameters = factory_->GetModuleParams();
@@ -473,6 +490,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
             break;
         case DT_Subbasin: SetSubbasins(p_module);
             break;
+		//case DT_CH_DEPTH:SetReachDepthData(p_module);
+		//	break;
         default: break;
     }
     double timeconsume = TimeCounting() - stime;
@@ -706,7 +725,21 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     FLTPT** data2d = nullptr;
     FloatRaster* raster = nullptr;
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
-        LoadAdjustRasterData(para_name, remote_filename, is_optional);
+        if (StringMatch(para_name.c_str(), Type_RasterPositionData)) {
+            if (!rs_map_.empty()) {
+                raster = rs_map_.begin()->second;
+                int** positions = raster->GetRasterPositionDataPointer();
+                int rows = raster->GetRows();
+                int cols = raster->GetCols();
+                p_module->SetValue(HEADER_RS_NROWS, rows);
+                p_module->SetValue(HEADER_RS_NCOLS, cols);
+                p_module->SetRasterPositionDataPointer(para_name.c_str(), positions);
+                return;
+            }
+        }
+        else {
+            LoadAdjustRasterData(para_name, remote_filename, is_optional);
+        }
     }
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
         return; // when encounter optional parameters
@@ -802,6 +835,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     size_t n = module_ids.size();
     for (size_t i = 0; i < n; i++) {
         string id = module_ids[i];
+        //cout << "processing module:" << id << endl;
         SimulationModule* p_module = modules[i];
         vector<ParamInfo<FLTPT>*>& inputs = module_inputs[id];
         string data_type = module_settings[id]->dataTypeString();
@@ -1006,34 +1040,12 @@ bool DataCenter::UpdateScenarioParametersDynamic(const int subbsn_id, time_t t) 
                             rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
                             count = iter3->second->Adjust2DRasterWithImpactIndexes(nsize, lyr, data2d, mgtunits,
                                 sel_ids, unitUpdateTimes, ludata, suitablelu);
-                            //#ifdef _DEBUG
-                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-                            //                            {
-                            //                                std::stringstream ss;
-                            //                                for (int x = 0; x < nsize; x++)
-                            //                                {
-                            //                                    ss << data2d[x][0] << ' ';
-                            //                                }
-                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str();
-                            //                            }
-                            //#endif
                         }
                         else {
                             FLTPT* data = nullptr;
                             rs_map_[remote_filename]->GetRasterData(&nsize, &data);
                             count = iter3->second->Adjust1DRasterWithImpactIndexes(nsize, data, mgtunits, sel_ids,
                                 unitUpdateTimes, ludata, suitablelu);
-                            //#ifdef _DEBUG
-                            //                            if (std::find(output_params.begin(), output_params.end(), remote_filename) != output_params.end())
-                            //                            {
-                            //                                std::stringstream ss;
-                            //                                for (int x = 0; x < nsize; x++)
-                            //                                {
-                            //                                    ss << data[x] << ' ';
-                            //                                }
-                            //                                CLOG(INFO, LOG_OUTPUT) << ss.str() << endl;
-                            //                            }
-                            //#endif
                         }
                         cout << "      A total of " << count << " has been updated for " <<
                                 remote_filename << endl;

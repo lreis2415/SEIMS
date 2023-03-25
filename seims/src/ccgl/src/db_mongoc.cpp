@@ -239,7 +239,7 @@ void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
                 // Refers to https://stackoverflow.com/a/18703743/4837280
                 std::for_each(splitstrs.begin(), splitstrs.end() - 1,
                               [&](const std::string &piece){ realname += piece; });
-                string another_coll = splitstrs.back() == "files" ? 
+                string another_coll = splitstrs.back() == "files" ?
                                           realname + ".chunks" :
                                           realname + ".files";
                 if (find(collnames.begin(), collnames.end(), another_coll) == collnames.end()) {
@@ -278,7 +278,7 @@ mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
     //       Upd 12/13/2017 The new method also failed in our linux cluster (redhat 6.2 and Intel C++ 12.1).
     //       Upd 12/29/2021 I decide to use new method from a quite later version such as v1.8.0.
     //                      Maybe a precise version can be determined after a thorough test.
-    //       Upd 06/24/2022 The new API still not working in Windows. 
+    //       Upd 06/24/2022 The new API still not working in Windows.
     mongoc_cursor_t* cursor = nullptr;
 // #if MONGOC_CHECK_VERSION(1, 8, 0)
 //     cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
@@ -564,7 +564,10 @@ bool GetBoolFromBson(bson_t* bmeta, const char* key) {
 time_t GetDatetimeFromBsonIterator(bson_iter_t* iter) {
     const bson_value_t* vv = bson_iter_value(iter);
     if (vv->value_type == BSON_TYPE_DATE_TIME) {
-        return CVT_TIMET(vv->value.v_datetime);
+		string str_milisec = std::to_string(vv->value.v_datetime);
+		string str_second = str_milisec.substr(0, str_milisec.length() - 3);
+		int intStr = atoi(str_second.c_str());
+        return CVT_TIMET(intStr);
     }
     if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp_time_str = vv->value.v_utf8.str;

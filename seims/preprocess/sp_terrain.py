@@ -20,6 +20,9 @@ from __future__ import absolute_import, unicode_literals
 from math import exp, sqrt
 import os
 import sys
+
+from preprocess.text import SpatialNamesUtils
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 

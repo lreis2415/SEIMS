@@ -110,16 +110,16 @@ class ImportReaches2Mongo(object):
         Returns:
             subbasin cell count dict and cell width
         """
-        wtsd_raster = RasterUtilClass.read_raster(subbsn_file)
+        wtsd_raster = RasterUtilClass.read_raster(subbsn_file)                        # 读取SUBBASIN.SHP文件
 
-        values, counts = numpy.unique(wtsd_raster.data, return_counts=True)
+        values, counts = numpy.unique(wtsd_raster.data, return_counts=True)           # 对于一维数组或者列表，unique函数去除其中重复的元素，并按元素由大到小返回一个新的无元素重复的元组或者列表，return_counts：如果为 true，返回去重数组中的元素在原数组中的出现次数。
         if not subdict:
             subdict = dict()
-        for v, c in zip(values, counts):
-            if abs(v - wtsd_raster.noDataValue) < UTIL_ZERO:
+        for v, c in zip(values, counts):                                              # 将对象中对应的元素打包成一个个元组，然后返回由这些元组组成的列表
+            if abs(v - wtsd_raster.noDataValue) < UTIL_ZERO:                          # 如果是noDataValue，则跳过
                 continue
-            subdict[int(v)][ImportReaches2Mongo._NUMCELLS] = int(c)
-            subdict[int(v)][ImportReaches2Mongo._AREA] = int(c) * wtsd_raster.dx ** 2
+            subdict[int(v)][ImportReaches2Mongo._NUMCELLS] = int(c)                     # subbasin中值对应的个数
+            subdict[int(v)][ImportReaches2Mongo._AREA] = int(c) * wtsd_raster.dx ** 2   # subbasin中值对应的面积
         return subdict
 
     @staticmethod
@@ -248,14 +248,14 @@ class ImportReaches2Mongo(object):
             ImportReaches2Mongo._DSLINKNO = 'TO_NODE'
             fld_slp = 'Slo2'  # TauDEM: Slope (tan); ArcSWAT: Slo2 (100*tan)
             fld_len = 'Len2'  # TauDEM: Length; ArcSWAT: Len2
-        ifrom = layer_def.GetFieldIndex(str(ImportReaches2Mongo._LINKNO))
-        ito = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DSLINKNO))
-        idph = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DEPTH))
-        islp = layer_def.GetFieldIndex(str(fld_slp))
-        iwth = layer_def.GetFieldIndex(str(ImportReaches2Mongo._WIDTH))
-        ilen = layer_def.GetFieldIndex(str(fld_len))
+        ifrom = layer_def.GetFieldIndex(str(ImportReaches2Mongo._LINKNO))   # 河道编号
+        ito = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DSLINKNO))   # 下游河道编号
+        idph = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DEPTH))     # 河道深度
+        islp = layer_def.GetFieldIndex(str(fld_slp))                        # 河道坡度
+        iwth = layer_def.GetFieldIndex(str(ImportReaches2Mongo._WIDTH))     # 河道宽度
+        ilen = layer_def.GetFieldIndex(str(fld_len))                       # 河道长度
 
-        ft = layer_reach.GetNextFeature()
+        ft = layer_reach.GetNextFeature()                                   # 遍历所有河道要素
         while ft is not None:
             nfrom = ft.GetFieldAsInteger(ifrom)
             nto = ft.GetFieldAsInteger(ito)
@@ -271,7 +271,7 @@ class ImportReaches2Mongo(object):
             vertex_x.reverse()
             vertex_y.reverse()
 
-            rch_dict[nfrom] = {'downstream': nto,
+            rch_dict[nfrom] = {'downstream': nto,                           # 将当前河道的下游河道、深度、坡度等信息存入字典
                                'depth': ft.GetFieldAsDouble(idph) if idph > 0. else 1.5,
                                'slope': ft.GetFieldAsDouble(islp)
                                if islp > -1 and ft.GetFieldAsDouble(islp) > MINI_SLOPE
@@ -400,11 +400,11 @@ class ImportReaches2Mongo(object):
         Args:
             cfg: configuration object
         """
-        reach_dict = ImportReaches2Mongo.read_reach_downstream_info(cfg.vecs.reach)
-        ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn, reach_dict)
+        reach_dict = ImportReaches2Mongo.read_reach_downstream_info(cfg.vecs.reach)     # 将河道信息及其下游河道编号存入字典
+        ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn, reach_dict)    # 将子流域栅格中的值和对应的数量存入字典
 
-        g = ImportReaches2Mongo.construct_flow_graph(reach_dict)
-        downup_order = ImportReaches2Mongo.construct_downup_order(g)
+        g = ImportReaches2Mongo.construct_flow_graph(reach_dict)                        # 将每条河道加入图中
+        downup_order = ImportReaches2Mongo.construct_downup_order(g)                    # 从下游往上游构建节点的层级关系
         updown_order = ImportReaches2Mongo.construct_updown_order(g)
 
         # interpolation among different stream orders

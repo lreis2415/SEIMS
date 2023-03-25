@@ -31,6 +31,11 @@ void StormGreenAmpt:: InitialOutputs() {
     CHECK_POINTER(M_SUR_SGA[0], m_soilFC);
 
     if (nullptr == m_infil) {
+        output_icell_min = 0;
+        output_icell_max = 10000000;
+        printInfilMinT = 39000;
+        printInfilMaxT = 39090;
+        counter = 0;
         CheckInputData();
         Initialize1DArray(m_nCells, m_infil, 0.f);
         Initialize1DArray(m_nCells, m_infilCapacitySurplus, 0.f);
@@ -100,8 +105,32 @@ bool StormGreenAmpt::CheckInputData() {
     return true;
 }
 
-int StormGreenAmpt::Execute() {
+int StormGreenAmpt::Execute(void) {
     InitialOutputs();
+# ifdef _DEBUG
+    string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
+    std::ostringstream infiltOss;
+    infiltOss << baseOutputPath << "infilt_" << counter << ".txt";
+    string infiltFile = infiltOss.str();
+
+    //if (counter == 0 && _access(infiltFile.c_str(), 0) == 0) {//�ļ�����ɾ��
+    //	if (remove(infiltFile.c_str()) == 0) {
+    //		cout << "succeed to delete infiltration  file.  " << endl;
+    //	}
+    //	else {
+    //		cout << "failed to delete infiltration file.  " << endl;
+    //	}
+    //}
+    counter++;
+    if ((counter >= printInfilMinT && counter <= printInfilMaxT) && !infiltFileFptr.is_open()) {
+        if (DeleteExistedFile(infiltFile) == 0) {
+            cout << "Deleted " << infiltFile << endl;
+        }
+        infiltFileFptr.open(infiltFile.c_str(), std::ios::out | std::ios::app);
+        infiltFileFptr << "timestamp " << counter << endl;
+    }
+#endif
+
     // allocate intermediate variables
     if (nullptr == m_capillarySuction) {
         Initialize1DArray(m_nCells, m_capillarySuction, 0.f);
@@ -117,7 +146,7 @@ int StormGreenAmpt::Execute() {
         }
     }
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             float snowMelt = 0.f;
@@ -194,24 +223,33 @@ int StormGreenAmpt::Execute() {
                         m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
                     }
                 }
-            }
-            else {
+                // xdw modify
+                m_surfRf[i] = hWater - m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
+            } else {
                 m_surfRf[i] = 0.0f;
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
             }
         }
+# ifdef IS_DEBUG
+        if ((counter >= printInfilMinT && counter <= printInfilMaxT)) {
+            if (i >= output_icell_min && i <= output_icell_max && infiltFileFptr.is_open()) {
+                infiltFileFptr << "icell: " << i << " infil: " << m_infil[i] << " acc: " << m_accumuDepth[i] << " pNet: " << m_netPcp[i] << " m_sr: " << m_surfRf[i] << endl;
+            }
+        }
+# endif
     }
+    infiltFileFptr.close();
     return 0;
 }
 
 //this function calculated the wetting front matric potential (mm)
 float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float sand) {
     float cs = 10.0f * CalExp(6.5309f - 7.32561f * por + 0.001583f * CalPow(clay, 2) + 3.809479f * CalPow(por, 2)
-                           + 0.000344f * sand * clay - 0.049837f * por * sand
-                           + 0.001608f * CalPow(por, 2) * CalPow(sand, 2)
-                           + 0.001602f * CalPow(por, 2) * CalPow(clay, 2) - 0.0000136f * CalPow(sand, 2) * clay -
-                           0.003479f * CalPow(clay, 2) * por - 0.000799f * CalPow(sand, 2) * por);
+                              + 0.000344f * sand * clay - 0.049837f * por * sand
+                              + 0.001608f * CalPow(por, 2) * CalPow(sand, 2)
+                              + 0.001602f * CalPow(por, 2) * CalPow(clay, 2) - 0.0000136f * CalPow(sand, 2) * clay -
+                              0.003479f * CalPow(clay, 2) * por - 0.000799f * CalPow(sand, 2) * por);
 
     return cs;
 }
@@ -247,7 +285,7 @@ void StormGreenAmpt::Set1DData(const char *key, const int n, float *data) {
     }
 }
 
-void StormGreenAmpt::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+void StormGreenAmpt::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
     CheckInputSize2D(M_SUR_SGA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_CONDUCT[0])) {
