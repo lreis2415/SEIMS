@@ -79,7 +79,7 @@ int PER_STR::Execute() {
                             }
                             if (ly == 0 && ul_excess > 0.) {
                                 // add ul_excess to depressional storage and then to surfq
-                                if (m_potVol != nullptr && m_impoundTrig == 0) {
+                                if (m_potVol != nullptr && m_impoundTrig != nullptr && m_impoundTrig == 0) {
                                     m_potVol[i] += ul_excess;
                                 } else {
                                     m_surfRf[i] += ul_excess;

@@ -69,23 +69,25 @@ void SERO_MUSLE::InitialOutputs() {
     if (nullptr == m_eroClay) Initialize1DArray(m_nCells, m_eroClay, 0.);
     if (nullptr == m_eroSmAgg) Initialize1DArray(m_nCells, m_eroSmAgg, 0.);
     if (nullptr == m_eroLgAgg) Initialize1DArray(m_nCells, m_eroLgAgg, 0.);
-    if (nullptr == m_usleC) Initialize1DArray(m_nCells, m_usleC, 0.);
+    if (nullptr == m_usleC) {
+        Initialize1DArray(m_nCells, m_usleC, 0.);
 
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        if (m_rchID[i] > 0) {
-            m_usleC[i] = 0.;
-            continue;
-        }
-        m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_rchID[i] > 0) {
+                m_usleC[i] = 0.;
+                continue;
+            }
 
-        if (m_aveAnnUsleC[i] < 1.e-4 || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
-            m_aveAnnUsleC[i] = 0.001; // line 289 of readplant.f of SWAT source
-        }
-        if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
-            // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
-            //  the minimum value of the USLE_C for the land cover
-            m_aveAnnUsleC[i] = CalLn(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
+            if (m_aveAnnUsleC[i] < 1.e-4 || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
+                m_aveAnnUsleC[i] = 0.001; // line 289 of readplant.f of SWAT source
+            }
+            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+            if (nullptr != m_rsdCovSoil && nullptr != m_landCover) {
+                // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
+                //  the minimum value of the USLE_C for the land cover
+                m_aveAnnUsleC[i] = CalLn(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
+            }
         }
     }
 }
@@ -154,6 +156,15 @@ void SERO_MUSLE::InitialIntermediates() {
         m_usleS[i] = S;
         // line 111-113 of soil_phys.f of SWAT source.
         m_usleMult[i] = 11.8 * CalExp(-0.053 * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
+
+        // for debug only
+        //if (i == 18181 || i == 18182 || i == 18183 ||
+        //    i == 24796 || i == 24797 || i == 24798 ||
+        //    i == 25139 || i == 25140 || i == 25141) // NODATA cell id of USLE_C
+        //{
+        //    cout << " i: " << i << "c: " << m_usleC[i] << " p: " << m_usleP[i] << " k: " << m_usleK[i][0]
+        //        << " L: " << L << " S: " << S << " mult: " << m_usleMult[i] << endl;
+        //}
     }
 
     m_reCalIntermediates = false;
@@ -186,7 +197,7 @@ int SERO_MUSLE::Execute() {
                 if (m_rsdCovSoil[i] > 1.e-4) {
                     m_usleC[i] = CalExp(-0.223144 * CalExp(-0.00115 * m_rsdCovSoil[i]));
                 } else {
-                    m_usleC[i] = 0.; // In SWAT, this is 0.8. But I think it should be 0.
+                    m_usleC[i] = 0.001; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
@@ -201,7 +212,7 @@ int SERO_MUSLE::Execute() {
                 FLTPT bio_frcov = 1. - grcov_fr * CalExp(-0.01 * m_canHgt[i]);
                 m_usleC[i] = Max(1.e-10, rsd_frcov * bio_frcov);
             } else {
-                m_usleC[i] = 0.;
+                m_usleC[i] = 0.001;
             }
         }
         if (m_usleC[i] > 1.) m_usleC[i] = 1.;
@@ -216,6 +227,15 @@ int SERO_MUSLE::Execute() {
             sed_yld /= CalExp(3. * m_snowAccum[i] * 0.03937007874015748);
         }
         m_eroSed[i] = sed_yld * 1000.; /// kg
+
+        // for debug only
+        //if (i == 18181 || i == 18182 || i == 18183 ||
+        //    i == 24796 || i == 24797 || i == 24798 ||
+        //    i == 25139 || i == 25140 || i == 25141)
+        //{
+        //    cout << " i: " << i << "c: " << m_usleC[i] << " surfRf: " << m_surfRf[i] << " mult: " << m_usleMult[i]
+        //        << " slopeForPq: " << m_slopeForPq[i] << " sed_yld: " << sed_yld << endl;
+        //}
 
         /// particle size distribution of sediment yield
         m_eroSand[i] = m_eroSed[i] * m_detSand[i];

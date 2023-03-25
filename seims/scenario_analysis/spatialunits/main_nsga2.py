@@ -1,3 +1,4 @@
+# coding:utf-8
 """BMPs optimization based on different BMP configuration units.
 
     @author   : Liangjun Zhu, Huiran Gao
@@ -369,7 +370,7 @@ def main(sceobj):
             output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
-        
+
         pklfile_str = 'gen%d.pickle' % (gen,)
         with open(sceobj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
             pickle.dump(pop, pklfp)

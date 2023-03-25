@@ -44,7 +44,7 @@ void SUR_MR::InitialOutputs() {
         Initialize1DArray(m_nCells, m_infil, 0.);
         Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
-    }
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {

@@ -692,8 +692,8 @@ class MainSEIMS(object):
             and self.simu_etime != self.end_time:
             self.ResetSimulationPeriod()
         # If the output time period is specified, reset the time period of all output IDs
-        if self.out_stime and self.out_etime:
-            self.ResetOutputsPeriod(self.OutputIDs, self.out_stime, self.out_etime)
+        # if self.out_stime and self.out_etime:
+        #     self.ResetOutputsPeriod(self.OutputIDs, self.out_stime, self.out_etime)
 
         if not do_execute:
             self.executed = False

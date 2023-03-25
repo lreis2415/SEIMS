@@ -102,7 +102,7 @@ def run_benchmark_scenario(sceobj):
                benchmark_indv.sed_per_period))
 
 
-def main(scenario_obj, indv_obj_benchmark):
+def main(scenario_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
     # The Base scenario maintains the same evaluation method as the original one.
@@ -142,6 +142,14 @@ def main(scenario_obj, indv_obj_benchmark):
     unit_to_gene = scenario_obj.cfg.unit_to_gene
     updown_units = scenario_obj.cfg.updown_units
 
+    # import json
+    # with open('gene_to_unit.json', 'w',encoding="utf-8") as gtu:
+    #     # json.dump(gene_to_unit, gtu,ensure_ascii=False)
+    #     gtu.write(unicode(json.dumps(gene_to_unit, ensure_ascii=False)))
+    # with open('unit_to_gene.json', 'w') as utg:
+    #     utg.write(unicode(json.dumps(unit_to_gene, ensure_ascii=False)))
+    #     # json.dump(unit_to_gene, utg,ensure_ascii=False)
+
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
 
@@ -174,7 +182,7 @@ def main(scenario_obj, indv_obj_benchmark):
                 initialize_byinputs = True
 
     if not initialize_byinputs:
-        pop = toolbox.population(scenario_obj.cfg, indv_obj_benchmark, n=pop_size)  # type: List
+        pop = toolbox.population(scenario_obj.cfg, scenario_obj.gene_values, n=pop_size)  # type: List
         print(pop)
 
     init_time = time.time() - stime
@@ -191,6 +199,8 @@ def main(scenario_obj, indv_obj_benchmark):
         new_ind.sed_sum = 0.
         new_ind.sed_per_period = list()
         new_ind.net_costs_per_period = list()
+        new_ind.costs_per_period = list()
+        new_ind.incomes_per_period = list()
 
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
@@ -353,10 +363,11 @@ def main(scenario_obj, indv_obj_benchmark):
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'generation\tscenario\teconomy\tenvironment\tsed_sum\tsed_pp\tnet_cost_pp\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tsed_sum\tsed_pp\tnet_cost_pp\tcosts_pp\tincomes_pp\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period), str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period),
+                str(indi.costs_per_period), str(indi.incomes_per_period), str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
         pklfile_str = 'gen%d.pickle' % (gen,)
@@ -412,41 +423,32 @@ def main(scenario_obj, indv_obj_benchmark):
 if __name__ == "__main__":
     in_cf = get_config_parser()
     base_cfg = SAConfig(in_cf)  # type: SAConfig
-
-    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
-        sa_cfg = SASlpPosConfig(in_cf)
-    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
-        sa_cfg = SAConnFieldConfig(in_cf)
-    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
-        sa_cfg = SACommUnitConfig(in_cf)
+    sa_cfg = SASlpPosConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
-
-    with open(sa_cfg.model.model_dir + os.path.sep + 'gen63.pickle', 'rb') as fp:
-        pareto_pop = pickle.load(fp)
-        # print(type(pareto_pop))
-        # print(pareto_pop)
     sce = SUScenario(sa_cfg)
+
+    selectedScenarioFile = sa_cfg.model.model_dir+os.sep+sa_cfg.selected_scenario_file
+    with open(selectedScenarioFile) as fp:
+        for line in fp.readlines():
+            items = line.split(':')
+            if items[0] == 'Scenario ID':
+                sceid = int(items[1])
+            elif items[0] == 'Gene number':
+                geneNum = int(items[1])
+            elif items[0] == 'Gene values':
+                gvalues = [float(v.strip()) for v in items[1].split(',')]
+            else:
+                pass
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gvalues)
+    print('The ID of the selected scenario that provided spatial configuration: ' + str(sce.ID))
+    print('The genes of the selected scenario: ' + str(gvalues))
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
-    # Select an individual from the pareto front as the benchmark scenario
-    target_indv_id = 156278373  # modify to an input parameter later
-    for indv in pareto_pop:
-        if indv.id == target_indv_id:
-            selected_indv = indv
-            break
-
-    print('The ID of the selected scenario that provided spatial configuration: ' + str(selected_indv.id))
-    print('The genes of the selected scenario: ' + str(selected_indv.tolist()))
-    sce.set_unique_id(selected_indv.id)
-    sce.gene_values = selected_indv.tolist()
-    sce.economy = selected_indv.fitness.values[0]
-    sce.environment = selected_indv.fitness.values[1]
-    sce.export_scenario_to_txt()
-    # sce.export_scenario_to_gtiff()
-
-    time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
+    time_pareto_pop, time_pareto_stats = main(sce)
 
     time_pareto_pop.sort(key=lambda x: x.fitness.values)
     scoop_log(time_pareto_stats)

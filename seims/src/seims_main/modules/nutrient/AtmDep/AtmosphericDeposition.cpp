@@ -68,6 +68,12 @@ int AtmosphericDeposition::Execute() {
         FLTPT addrnh4 = 0.01 * m_rainNH4Conc * m_pcp[i];
         m_soilNO3[i][0] += addrno3 + m_dryDepNO3 * 0.0027397260273972603; // 1. / 365.f;
         m_soilNH4[i][0] += addrnh4 + m_dryDepNH4 * 0.0027397260273972603;
+#ifdef _DEBUG
+        if (isinf(m_soilNO3[i][0]) || isnan(m_soilNO3[i][0]) ||
+            isinf(m_soilNH4[i][0]) || isnan(m_soilNH4[i][0])) {
+            cout << "ATMDEP: m_soilNO3 " << m_soilNO3[i][0] << endl;
+        }
+#endif
     }
     return 0;
 }
