@@ -275,6 +275,13 @@ typedef vint64_t pos_t;
 #define MINI_SLOPE      0.0001
 #endif /* MINI_SLOPE */
 
+#ifdef MSVC
+#if _MSC_VER <= 1600
+#define isnan(x) ((x) != (x))
+#define isinf(x) (!_finite(x) && !_isnan(x))
+#endif
+#endif
+
 #ifdef WINDOWS
 #define SEP             '\\'
 #define SEPSTR          "\\"
