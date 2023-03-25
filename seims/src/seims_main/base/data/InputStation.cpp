@@ -170,6 +170,35 @@ void InputStation::ReadSitesData(const string& hydroDBName, const string& sitesL
     }
 }
 
+bool InputStation::NumberOfSites(const char* site_type, int& site_count) {
+    if (m_numSites.find(site_type) != m_numSites.end()) {
+        site_count = m_numSites.at(site_type);
+        return true;
+    }
+    site_count = -1;
+    return false;
+}
+
+bool InputStation::GetElevation(const char* site_type, FLTPT*& site_elevs) {
+    if (m_numSites.find(site_type) != m_numSites.end()) {
+        site_elevs = m_elevation.at(site_type);
+        return true;
+    }
+    site_elevs = nullptr;
+    return false;
+}
+
+bool InputStation::GetLatitude(const char* site_type, FLTPT*& site_lats) {
+    if (m_numSites.find(site_type) != m_numSites.end()) {
+        site_lats = m_latitude.at(site_type);
+        return true;
+    }
+    site_lats = nullptr;
+    return false;
+}
+
+
+
 void InputStation::GetTimeSeriesData(const time_t time, const string& type, int* nRow, FLTPT** data) {
     Measurement* m = m_measurement[type];
     *nRow = m->NumberOfSites();

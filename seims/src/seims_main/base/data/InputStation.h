@@ -34,13 +34,13 @@ public:
     ~InputStation();
 
     //! Get site number of given site type
-    int NumberOfSites(const char* site_type) const { return m_numSites.at(site_type); }
+    bool NumberOfSites(const char* site_type, int& site_count);
 
     //! Get elevations of given site type
-    FLTPT* GetElevation(const char* type) const { return m_elevation.at(type); }
+    bool GetElevation(const char* site_type, FLTPT*& site_elevs);
 
     //! Get latitudes of given site type
-    FLTPT* GetLatitude(const char* type) const { return m_latitude.at(type); }
+    bool GetLatitude(const char* site_type, FLTPT*& site_lats);
 
     /*!
      * \brief Get time series data

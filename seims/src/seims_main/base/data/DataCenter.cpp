@@ -275,16 +275,32 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
                                        const bool is_optional /* = false */) {
     int n;
     FLTPT* data = nullptr;
+    FLTPT* tmpdata = nullptr;
     string upper_name = GetUpper(para_name);
     if (StringMatch(upper_name, Tag_Elevation_Meteorology)) { // Meteorology sites data
-        n = clim_station_->NumberOfSites(DataType_Meteorology);
-        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
+        if (clim_station_->NumberOfSites(DataType_Meteorology, n) &&
+            clim_station_->GetElevation(DataType_Meteorology, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Meteorology site!");
+        }
     } else if (StringMatch(upper_name, Tag_Elevation_Precipitation)) { // Precipitation sites data
-        n = clim_station_->NumberOfSites(DataType_Precipitation);
-        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Precipitation));
-    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites
-        n = clim_station_->NumberOfSites(DataType_Meteorology);
-        Initialize1DArray(n, data, clim_station_->GetLatitude(DataType_Meteorology));
+        if (clim_station_->NumberOfSites(DataType_Precipitation, n) &&
+            clim_station_->GetElevation(DataType_Precipitation, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Precipitation site!");
+        }
+    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites 
+        if (clim_station_->NumberOfSites(DataType_Meteorology, n) &&
+            clim_station_->GetLatitude(DataType_Meteorology, tmpdata)) {
+            Initialize1DArray(n, data, tmpdata);
+        } else {
+            throw ModelException("DataCenter", "LoadAdjust1DArrayData",
+                                 "Cannot find Latitude_M site!");
+        }
     } else { // any other 1D arrays, such as Heat units of all simulation years (HUTOT)
         Read1DArrayData(remote_filename, n, data);
     }

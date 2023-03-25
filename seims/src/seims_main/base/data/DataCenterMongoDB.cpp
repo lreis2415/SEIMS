@@ -56,7 +56,6 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_OUT!");
     }
     /// Check the existence of all required and optional data
-	// �����ݿ��ж�ȡģ����Ҫ�����ݺͲ���
     if (!DataCenterMongoDB::CheckModelPreparedData()) {
         throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "Model data has not been set up!");
     }
@@ -305,9 +304,9 @@ void DataCenterMongoDB::ReadClimateSiteList() {
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, Tag_SubbasinId, subbasin_id_); // subbasin id
     BSON_APPEND_UTF8(query, Tag_Mode, input_->getModelMode().c_str()); // mode
-
-    std::unique_ptr<MongoCollection>
-            collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_SITELIST)));
+    LOG(DEBUG) << "ReadClimateSiteList: " << bson_as_json(query, NULL);
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_,
+                                                                        DB_TAB_SITELIST)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     const bson_t* doc;
