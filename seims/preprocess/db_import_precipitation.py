@@ -25,8 +25,9 @@ from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType
+from preprocess.config import PreprocessConfig
 from decimal import Decimal
-import pandas as pd
+import pandas as pd  # I recommend not using these 'heavy' packages if you don't have to.
 
 class ImportPrecipitation(object):
     """Import precipitation data, daily or storm."""
@@ -336,7 +337,7 @@ class ImportPrecipitation(object):
         return values_range
 
     @staticmethod
-    def split_time_ranges(from_time, to_time, frequency,contain_last):
+    def split_time_ranges(from_time, to_time, frequency, contain_last):
         from_time, to_time = pd.to_datetime(from_time), pd.to_datetime(to_time)
         time_range = list(pd.date_range(from_time, to_time, freq='%sS' % frequency))
         if to_time in time_range and not contain_last:
@@ -345,11 +346,14 @@ class ImportPrecipitation(object):
         return time_range
 
     @staticmethod
-    def workflow(cfg):
+    def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Workflow"""
         print('Import Daily Precipitation Data... ')
-        # ImportPrecipitation.regular_data_from_txt(cfg.clim_db, cfg.prec_data)
-        ImportPrecipitation.storm_data_from_txt(cfg.clim_db, cfg.prec_data)
+        # Please add an argument in the preprocess.ini to decide
+        # to import regular, or storm, or both
+        # Neither of two import functions should be commented.
+        ImportPrecipitation.regular_data_from_txt(cfg.climatedb, cfg.prec_data)
+        # ImportPrecipitation.storm_data_from_txt(cfg.climatedb, cfg.prec_data)
 
 
 def main():

@@ -32,8 +32,7 @@ from postprocess.config import PostConfig
 from parameters_sensitivity.config import PSAConfig
 from calibration.config import CaliConfig
 
-DEMO_MODELS = {'youwuzhen': 'demo_youwuzhen30m_longterm_model',
-               'test7':'test7_longterm_model'}
+DEMO_MODELS = {'youwuzhen': 'demo_youwuzhen30m_longterm_model'}
 
 
 def get_watershed_name(desc='Specify watershed name to run this script.'):
@@ -119,8 +118,8 @@ def write_runmodel_config_file(mpaths, org_file_name):
     with open(org_cfg_file, 'r', encoding='utf-8') as f:
         for line in f.readlines():
             cfg_items.append(line.strip())
-    # cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
-    # cfg_items.append('BIN_DIR = %s' % mpaths.bin_dir)
+    cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
+    cfg_items.append('BIN_DIR = %s' % mpaths.bin_dir)
 
     with open(runmodel_cfg_file, 'w', encoding='utf-8') as f:
         for item in cfg_items:
@@ -216,11 +215,12 @@ def main():
     # More demo data could be added in the future.
     for wtsd_name, model_name in list(DEMO_MODELS.items()):
         model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
-        prep_cfg = write_preprocess_config_file(model_paths, 'preprocess.ini')
-        runmodel_cfg = write_runmodel_config_file(model_paths, 'runmodel.ini')
-        postp_cfg = write_postprocess_config_file(model_paths, 'postprocess.ini')
-        psa_cfg = write_sensitivity_config_file(model_paths, 'sensitivity_analysis.ini')
-        cali_cfg = write_calibration_config_file(model_paths, 'calibration.ini')
+        write_preprocess_config_file(model_paths, 'preprocess.ini')
+        write_runmodel_config_file(model_paths, 'runmodel.ini')
+        write_postprocess_config_file(model_paths, 'postprocess.ini')
+        write_sensitivity_config_file(model_paths, 'sensitivity_analysis.ini')
+        write_calibration_config_file(model_paths, 'calibration.ini')
+        write_scenario_analysis_config_file(model_paths, 'scenario_analysis.ini')
 
 
 if __name__ == "__main__":

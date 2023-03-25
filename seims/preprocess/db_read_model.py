@@ -329,7 +329,7 @@ class ReadModelData(object):
             scenario_ids = [scenario_ids]
         collection = self.scenariodb[DBTableNames.scenarios]
         for _id in scenario_ids:
-            collection.remove({'ID': _id})
+            collection.delete_one({'ID': _id})  # deprecated: collection.remove({'ID': _id})
             print('Delete scenario: %d in MongoDB completed!' % _id)
 
 

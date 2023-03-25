@@ -97,9 +97,9 @@ class Scenario(object):
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
 
-        self.model.SetMongoClient()
         self.model.ReadMongoDBData()
 
+        self.model.SetMongoClient()
         self.scenario_db = self.model.ScenarioDBName
         self.model.ResetSimulationPeriod()  # Reset the simulation period
         # Reset the starttime and endtime of the desired outputs according to evaluation period

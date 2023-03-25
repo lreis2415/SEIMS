@@ -402,15 +402,15 @@ class Sensitivity(object):
            It is worth to be noticed that evaluate_models() allows to return
            several output variables, hence we should calculate each of them separately.
         """
+        if not self.objnames:
+            if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
+                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'rb') as f:
+                    self.objnames = pickle.load(f)
         if not self.psa_si:
             if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
                 with open(self.cfg.outfiles.psa_si_json, 'rb') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
-        if not self.objnames:
-            if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
-                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'rb') as f:
-                    self.objnames = pickle.load(f)
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
         if self.param_values is None or len(self.param_values) == 0:

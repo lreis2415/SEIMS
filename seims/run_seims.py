@@ -373,6 +373,7 @@ class MainSEIMS(object):
 
     def ConnectMongoDB(self):
         """Connect to MongoDB if no connected `MongoClient` is available
+        Should not be invoked NOW!
 
         TODO: should we add a flag to force connect to MongoDB by host and port, rather than
         TODO:   import from db_mongodb module?
@@ -397,7 +398,7 @@ class MainSEIMS(object):
         if self.outlet_id >= 0:
             return
 
-        self.ConnectMongoDB()
+        self.SetMongoClient()
         read_model = ReadModelData(self.mongoclient, self.db_name)
 
         self.outlet_id = read_model.OutletID
@@ -405,6 +406,7 @@ class MainSEIMS(object):
         self.scenario_dbname = read_model.ScenarioDBName
         self.start_time, self.end_time = read_model.SimulationPeriod
         self.output_ids, self.output_items = read_model.OutputItems()
+        self.UnsetMongoClient()
 
     @property
     def OutletID(self):  # type: (...) -> int
@@ -447,11 +449,12 @@ class MainSEIMS(object):
             model.ReadOutletObservations()
             model.UnsetMongoClient()
         """
-        self.ConnectMongoDB()
         self.ReadMongoDBData()
+        self.SetMongoClient()
         read_model = ReadModelData(self.mongoclient, self.db_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
                                                                self.start_time, self.end_time)
+        self.UnsetMongoClient()
         return self.obs_vars, self.obs_value
 
     def SetOutletObservations(self, vars_list, vars_value):
@@ -630,7 +633,7 @@ class MainSEIMS(object):
             model.ResetSimulationPeriod()
             model.UnsetMongoClient()
         """
-        self.ConnectMongoDB()
+        self.SetMongoClient()
         read_model = ReadModelData(self.mongoclient, self.db_name)
         if self.simu_stime and self.simu_etime:
             stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
@@ -640,6 +643,7 @@ class MainSEIMS(object):
                                                              {'$set': {'VALUE': stime_str}})
             db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                              {'$set': {'VALUE': etime_str}})
+        self.UnsetMongoClient()
         self.start_time, self.end_time = read_model.SimulationPeriod
 
     def ResetOutputsPeriod(self, output_ids,  # type: Union[AnyStr, List[AnyStr]]
@@ -724,7 +728,7 @@ class MainSEIMS(object):
             model.UnsetMongoClient()
         """
         rmtree(self.output_dir, ignore_errors=True)
-        self.ConnectMongoDB()
+        self.SetMongoClient()
         read_model = ReadModelData(self.mongoclient, self.db_name)
         if scenario_id is None:
             scenario_id = self.scenario_id
@@ -735,6 +739,7 @@ class MainSEIMS(object):
             read_model.CleanScenariosConfiguration(scenario_id)
             if delete_spatial_gfs:
                 read_model.CleanSpatialGridFs(scenario_id)
+        self.UnsetMongoClient()
 
     def UpdateScenarioID(self):
         self.output_name = 'OUTPUT'

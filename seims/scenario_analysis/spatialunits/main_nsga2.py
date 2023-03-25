@@ -25,7 +25,7 @@ from io import open
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
+    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3.
         mpl.use('Agg', warn=False)
     except TypeError:
         mpl.use('Agg')
@@ -110,7 +110,6 @@ def main(sceobj):
         run_base_scenario(sceobj)
         print('The environment effectiveness value of the '
               'base scenario is %.2f' % sceobj.cfg.eval_info['BASE_ENV'])
-
     random.seed()
 
     # Initial timespan variables
