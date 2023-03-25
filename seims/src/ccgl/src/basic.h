@@ -277,7 +277,7 @@ typedef vint64_t pos_t;
 
 #ifdef MSVC
 #if _MSC_VER <= 1600
-#define isnan(x) ((x) != (x)) 
+#define isnan(x) ((x) != (x))
 #define isinf(x) (!_finite(x) && !_isnan(x))
 #endif
 #endif
