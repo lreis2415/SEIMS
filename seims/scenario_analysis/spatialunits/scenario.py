@@ -33,7 +33,7 @@ if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
 
 import global_mongoclient as MongoDBObj
 
-from utility import read_simulation_from_txt
+from utility import read_simulation_from_txt, mask_rasterio
 from preprocess.text import DBTableNames, RasterMetadata
 from preprocess.sd_slopeposition_units import DelinateSlopePositionByThreshold
 from scenario_analysis import _DEBUG, BMPS_CFG_UNITS, BMPS_CFG_METHODS
@@ -635,7 +635,8 @@ class SUScenario(Scenario):
         # type: (Optional[str]) -> None
         """Export scenario to GTiff.
 
-        TODO: Read Raster from MongoDB should be extracted to pygeoc.
+        Read Raster from MongoDB should be extracted to pygeoc. -- Done using mask_rasterio!
+        By ZhuLJ, 2023-03-25
         """
         if not self.export_sce_tif:
             return
@@ -643,57 +644,18 @@ class SUScenario(Scenario):
         dist_list = StringClass.split_string(dist, '|')
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin
-            # read dist_name from MongoDB
-            conn = MongoDBObj.client
-            maindb = conn[self.modelcfg.db_name]
-            spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
-            # read file from mongodb
-            if not spatial_gfs.exists(filename=dist_name):
-                print('WARNING: %s is not existed, export scenario failed!' % dist_name)
-                return
-            try:
-                slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
-                                                                         no_cursor_timeout=True)[0]
-            except NetworkTimeout or Exception:
-                # In case of unexpected raise
-                return
-
-            ysize = int(slpposf['metadata'][RasterMetadata.nrows])
-            xsize = int(slpposf['metadata'][RasterMetadata.ncols])
-            xll = slpposf['metadata'][RasterMetadata.xll]
-            yll = slpposf['metadata'][RasterMetadata.yll]
-            cellsize = slpposf['metadata'][RasterMetadata.cellsize]
-            nodata_value = slpposf['metadata'][RasterMetadata.nodata]
-            srs = slpposf['metadata'][RasterMetadata.srs]
-            if is_string(srs):
-                srs = str(srs)
-            from osgeo import osr
-            srs = osr.GetUserInputAsWKT(srs)
-            geotransform = [0] * 6
-            geotransform[0] = xll - 0.5 * cellsize
-            geotransform[1] = cellsize
-            geotransform[3] = yll + (ysize - 0.5) * cellsize  # yMax
-            geotransform[5] = -cellsize
-
-            slppos_data = spatial_gfs.get(slpposf['_id'])
-            total_len = xsize * ysize
-            fmt = '%df' % (total_len,)
-            slppos_data = unpack(fmt, slppos_data.read())
-            slppos_data = numpy.reshape(slppos_data, (ysize, xsize))
-
             v_dict = dict()
             for unitidx, geneidx in viewitems(self.cfg.unit_to_gene):
                 v_dict[unitidx] = self.gene_values[geneidx]
-            # Deprecated and replaced by using self.cfg.unit_to_gene. 03/14/2019. ljzhu.
-            # for idx, gene_v in enumerate(self.gene_values):
-            #     v_dict[self.cfg.gene_to_unit[idx]] = gene_v
-
-            for k, v in v_dict.items():
-                slppos_data[slppos_data == k] = v
             if outpath is None:
                 outpath = self.scenario_dir + os.path.sep + 'Scenario_%d.tif' % self.ID
-            RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
-                                             srs, nodata_value)
+            unit2bmpsstr = ','.join('%s:%s' % (repr(k), repr(v)) for k, v in v_dict.items())
+            # print(unit2bmpsstr)
+            mongoargs = [self.cfg.model.host, self.cfg.model.port,
+                         self.cfg.model.db_name, 'SPATIAL']
+            mask_rasterio(self.cfg.model.bin_dir,
+                          [[dist_name, outpath, 0, -9999, 'INT32', unit2bmpsstr]],
+                          mongoargs=mongoargs, maskfile='0_SUBBASIN', include_nodata=False)
 
     def calculate_profits_by_period(self):
         bmp_costs_by_period = [0.] * self.cfg.change_times
@@ -1003,7 +965,7 @@ def scenario_effectiveness(cf, ind):
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
-    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    sce.clean(scenario_id=sce.ID, delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
 
@@ -1169,10 +1131,12 @@ def main_manual_bmps_order(sceid, gene_values):
         sce.export_scenario_to_txt()
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-        print(
-            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\tincomes_per_period: %s' %
-            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period),
-             str(sce.costs_per_period), str(sce.incomes_per_period)))
+        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\t'
+              'sed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\t'
+              'incomes_per_period: %s'
+              % (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period),
+                 str(sce.net_costs_per_period), str(sce.costs_per_period),
+                 str(sce.incomes_per_period)))
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
