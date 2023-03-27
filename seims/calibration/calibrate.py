@@ -215,7 +215,7 @@ def calibration_objectives(cali_obj, ind):
         ind.sim.vars = model_obj.sim_vars[:]
         ind.sim.data = deepcopy(model_obj.sim_value)
     else:
-        # model_obj.clean(calibration_id=ind.id)
+        model_obj.clean(calibration_id=ind.id)
         model_obj.UnsetMongoClient()
         return ind
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
@@ -249,7 +249,7 @@ def calibration_objectives(cali_obj, ind):
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
 
     # delete model output directory for saving storage
-    # model_obj.clean(calibration_id=ind.id)
+    model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
     return ind
 
