@@ -40,7 +40,7 @@ class ImportScenario2Mongo(object):
         Returns:
             False if failed, otherwise True.
         """
-        if not cfg.use_scernario:
+        if not cfg.use_scenario:
             return False
         print('Import BMP Scenario Data... ')
         bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt', '.csv'])
@@ -99,7 +99,7 @@ class ImportScenario2Mongo(object):
             cfg.maindb.create_collection(DBTableNames.main_scenario)
 
         bmp_info_dic = dict()
-        bmp_info_dic[ImportScenario2Mongo._FLD_DB] = cfg.bmp_scenario_db
+        bmp_info_dic[ImportScenario2Mongo._FLD_DB] = cfg.scenario_db
         cfg.maindb[DBTableNames.main_scenario].find_one_and_replace(bmp_info_dic, bmp_info_dic,
                                                                     upsert=True)
         return True

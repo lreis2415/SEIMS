@@ -19,6 +19,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import StringClass, MathClass
+from typing import AnyStr
 
 from preprocess.text import DBTableNames, StationFields, DataValueFields
 
@@ -80,8 +81,7 @@ class HydroClimateUtilClass(object):
         return sites_loc
 
     @staticmethod
-    def get_time_system_from_data_file(in_file):
-        # type: (str) -> (str, int)
+    def get_time_system_from_data_file(in_file):  # type: (AnyStr) -> (AnyStr, int)
         """Get the time system from the data file. The basic format is:
            #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #LOCALTIME -2, #UTCTIME
 

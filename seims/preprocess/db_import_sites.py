@@ -19,9 +19,12 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from osgeo.ogr import Open as ogr_Open
 from pygeoc.utils import StringClass, is_string
 from pymongo import ASCENDING
+from pymongo.database import Database
+from typing import AnyStr, Optional, Dict, List
 
 from utility import read_data_items_from_txt, DEFAULT_NODATA
 from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from preprocess.config import PreprocessConfig
 
 
 class SiteInfo(object):
@@ -29,6 +32,7 @@ class SiteInfo(object):
 
     def __init__(self, sid=0, name='', lat=DEFAULT_NODATA, lon=DEFAULT_NODATA,
                  local_x=DEFAULT_NODATA, local_y=DEFAULT_NODATA, alti=DEFAULT_NODATA):
+        # type: (int, AnyStr, float, float, float, float, float) -> None
         """Initialize a SiteInfo object."""
         self.StationID = sid  # integer
         self.Name = name  # station name, string
@@ -36,13 +40,13 @@ class SiteInfo(object):
         self.lon = lon  # longitude, float degree
         self.LocalX = local_x  # X coordinate in projection, float
         self.LocalY = local_y  # Y coordinate in projection, float
-        self.alti = alti  # altitude, as ORIGIN: unit 0.1 meter
+        self.alti = alti  # altitude, as ORIGIN: unit 0.1 meter # why not using meter as unit?
 
-    def lon_lat(self):
+    def lon_lat(self):  # type: (...) -> (float, float)
         """Return geographic coordinates."""
         return self.lon, self.lat
 
-    def local_xy(self):
+    def local_xy(self):  # type: (...) -> (float, float)
         """Return projected coordinates."""
         return self.LocalX, self.LocalY
 
@@ -56,9 +60,13 @@ class ImportHydroClimateSites(object):
 
     @staticmethod
     def sites_table(hydro_clim_db, site_file, site_type):
+        # type: (Database, AnyStr, AnyStr) -> Optional[Dict[int, SiteInfo]]
         """Import HydroClimate sites table"""
         sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
+        if not site_data_items or len(site_data_items) <= 1:
+            print('db_import_sites.sites_table: No data loaded from %s' % site_file)
+            return None
         site_flds = site_data_items[0]
         for i in range(1, len(site_data_items)):
             dic = dict()
@@ -78,7 +86,7 @@ class ImportHydroClimateSites(object):
                 elif StringClass.string_match(site_flds[j], StationFields.elev):
                     dic[StationFields.elev] = float(site_data_items[i][j])
                 elif StringClass.string_match(site_flds[j], StationFields.outlet):
-                    dic[StationFields.outlet] = float(site_data_items[i][j])
+                    dic[StationFields.outlet] = int(site_data_items[i][j])
             dic[StationFields.type] = site_type
             curfilter = {StationFields.id: dic[StationFields.id],
                          StationFields.type: dic[StationFields.type]}
@@ -97,9 +105,12 @@ class ImportHydroClimateSites(object):
         return sites_loc
 
     @staticmethod
-    def variable_table(db, var_file):
+    def variable_table(db, var_file):  # type: (Database, AnyStr) -> None
         """Import variables table"""
         var_data_items = read_data_items_from_txt(var_file)
+        if not var_data_items or len(var_data_items) <= 1:
+            print('db_import_sites.variable_table: No data loaded from %s' % var_file)
+            return None
         var_flds = var_data_items[0]
         for i in range(1, len(var_data_items)):
             dic = dict()
@@ -114,6 +125,7 @@ class ImportHydroClimateSites(object):
 
     @staticmethod
     def ogrwkt2shapely(input_shape, id_field):
+        # type: (AnyStr, AnyStr) -> (List[shapely.geometry.polygon.Polygon], List[int])
         """Return shape objects list and ids list"""
         # CAUTION, IMPORTANT
         # Because shapely is dependent on sqlite, and the version is not consistent
@@ -199,6 +211,7 @@ class ImportHydroClimateSites(object):
 
     @staticmethod
     def workflow(cfg):
+        # type: (PreprocessConfig) -> (Optional[Dict[int, SiteInfo]], Optional[Dict[int, SiteInfo]])
         """Workflow"""
         # 1. Find meteorology and precipitation sites in study area
         thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]

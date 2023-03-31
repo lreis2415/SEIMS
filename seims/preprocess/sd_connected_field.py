@@ -58,6 +58,7 @@ def connected_field_partition_wu2018(cfg):
 
         cfg.spatials.mgt_field.append(fields_tif)
 
+
 def run_field_partition(bin_dir, maskf, streamf, flowf, luf, demf, thresh, arcgis_code=True):
     """Run fieldpartition program."""
     cmd_str = '"%s/fieldpartition" -mask %s -stream %s -flow %s' \

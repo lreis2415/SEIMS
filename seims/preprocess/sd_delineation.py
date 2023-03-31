@@ -29,6 +29,7 @@ from utility import DEFAULT_NODATA, mask_rasterio
 from preprocess.sd_connected_field import connected_field_partition_wu2018
 from preprocess.sd_hillslope import DelineateHillslope
 from preprocess.text import FieldNames
+from preprocess.config import PreprocessConfig
 
 
 class SpatialDelineation(object):
@@ -40,7 +41,7 @@ class SpatialDelineation(object):
     # _FLD_BASINID = 'BASIN'
 
     @staticmethod
-    def output_wgs84_geojson(cfg):
+    def output_wgs84_geojson(cfg):  # type: (PreprocessConfig) -> None
         """Convert ESRI shapefile to GeoJson based on WGS84 coordinate."""
         src_srs = RasterUtilClass.read_raster(cfg.dem).srs
         proj_srs = src_srs.ExportToProj4()
@@ -61,30 +62,27 @@ class SpatialDelineation(object):
                                             shp_json_list[0])
 
     @staticmethod
-    def original_delineation(cfg):
+    def original_delineation(cfg):  # type: (PreprocessConfig) -> None
         """Original watershed delineation by TauDEM functions and
         other terrain attributes by TauDEM-ext functions"""
         # Check directories
         UtilClass.mkdir(cfg.workspace)
         UtilClass.mkdir(cfg.dirs.log)
-        bin_dir = cfg.seims_bin
-        mpi_bin = cfg.mpi_bin
-        np = cfg.np
         # Watershed delineation
-        TauDEMWorkflow.watershed_delineation(np, cfg.dem,  # required arguments
+        TauDEMWorkflow.watershed_delineation(cfg.np, cfg.dem,  # required arguments
                                              outlet_file=cfg.outlet_file,
                                              thresh=cfg.acc_thresh,
                                              singlebasin=True,
                                              workingdir=cfg.dirs.taudem,
-                                             mpi_bin=mpi_bin,
-                                             bin_dir=bin_dir,
+                                             mpi_bin=cfg.mpi_bin,
+                                             bin_dir=cfg.seims_bin,
                                              logfile=cfg.logs.delineation,
                                              avoid_redo=True)
         # Convert D8 encoding rule to ArcGIS
         D8Util.convert_code(cfg.taudems.d8flow, cfg.taudems.d8flow_m)
         # D-inf flow direction
-        TauDEM.dinfflowdir(np, cfg.taudems.filldem, cfg.taudems.dinf, cfg.taudems.dinf_slp,
-                           workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
+        TauDEM.dinfflowdir(cfg.np, cfg.taudems.filldem, cfg.taudems.dinf, cfg.taudems.dinf_slp,
+                           workingdir=cfg.dirs.taudem, mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin,
                            log_file=cfg.logs.delineation)
 
         # Convert Dinf to compressed flow direction according to ArcGIS encoding rule
@@ -95,24 +93,24 @@ class SpatialDelineation(object):
                                         stream=cfg.taudems.stream_m,
                                         upddinffile=cfg.taudems.dinf_upd)
         # MFD-md flow directions
-        TauDEM_Ext.mfdmdflowdir(np, cfg.taudems.filldem, cfg.taudems.mfdmd_dir,
+        TauDEM_Ext.mfdmdflowdir(cfg.np, cfg.taudems.filldem, cfg.taudems.mfdmd_dir,
                                 cfg.taudems.mfdmd_frac,
                                 min_portion=cfg.min_flowfrac,
                                 p0=1.1, rng=8.9, lb=0., ub=1.,  # TODO, specified in ini file. lj
-                                workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
-                                log_file=cfg.logs.delineation)
+                                workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                                mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Distance to stream using Surface method based on D8 flow direction
-        TauDEM_Ext.d8distdowntostream(np, cfg.taudems.d8flow, cfg.taudems.filldem,
+        TauDEM_Ext.d8distdowntostream(cfg.np, cfg.taudems.d8flow, cfg.taudems.filldem,
                                       cfg.taudems.stream_raster, cfg.taudems.dist2stream_d8,
                                       cfg.distdown_method, 1,
-                                      workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
-                                      log_file=cfg.logs.delineation)
+                                      workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                                      mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Distance to stream using Surface method in Average length based on D-inf flow direction
-        TauDEM.dinfdistdown(np, cfg.taudems.dinf, cfg.taudems.filldem, cfg.taudems.dinf_slp,
+        TauDEM.dinfdistdown(cfg.np, cfg.taudems.dinf, cfg.taudems.filldem, cfg.taudems.dinf_slp,
                             cfg.taudems.stream_raster, 'Average', cfg.distdown_method, False,
                             cfg.taudems.dinf, cfg.taudems.dist2stream_dinf,
-                            workingdir=cfg.dirs.taudem, mpiexedir=mpi_bin, exedir=bin_dir,
-                            log_file=cfg.logs.delineation)
+                            workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                            mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Copy shapefiles
         UtilClass.mkdir(cfg.dirs.geoshp)
         FileClass.copy_files(cfg.taudems.outlet_m, cfg.vecs.outlet)
@@ -129,7 +127,7 @@ class SpatialDelineation(object):
         # SpatialDelineation.output_wgs84_geojson(cfg)
 
     @staticmethod
-    def mask_spatial_data(cfg):
+    def mask_spatial_data(cfg):  # type: (PreprocessConfig) -> None
         """Mask necessary delineated and input spatial raster by the entire basin.
 
             1. subbasin, used to decompose and combine spatial data
@@ -165,7 +163,7 @@ class SpatialDelineation(object):
                       cfgfile=cfg.logs.mask_cfg)
 
     @staticmethod
-    def generate_lat_raster(cfg):
+    def generate_lat_raster(cfg):  # type: (PreprocessConfig) -> None
         """Generate latitude raster"""
         dem_file = cfg.spatials.filldem
         ds = RasterUtilClass.read_raster(dem_file)
@@ -202,7 +200,7 @@ class SpatialDelineation(object):
                                          ds.noDataValue, GDT_Float32)
 
     @staticmethod
-    def delineate_spatial_units(cfg):
+    def delineate_spatial_units(cfg):  # type: (PreprocessConfig) -> None
         # delineate hillslope
         DelineateHillslope.downstream_method_whitebox(cfg.spatials.stream_link,
                                                       cfg.spatials.d8flow,
@@ -213,12 +211,12 @@ class SpatialDelineation(object):
         connected_field_partition_wu2018(cfg)
 
     @staticmethod
-    def calculate_terrain_related_params(cfg):
+    def calculate_terrain_related_params(cfg):  # type: (PreprocessConfig) -> None
         # Convert to WGS84 coordinate and output latitude raster.
         SpatialDelineation.generate_lat_raster(cfg)
 
     @staticmethod
-    def workflow(cfg):
+    def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Subbasin delineation workflow"""
         # Originally delineated by TauDEM and DTA algorithms based on TauDEM framework
         SpatialDelineation.original_delineation(cfg)
@@ -235,7 +233,6 @@ def main():
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
-    # SpatialDelineation.mask_spatial_data(seims_cfg)
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ class ConnectMongoDB(object):
             sys.stderr.write('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
 
-    def get_conn(self):
+    def get_conn(self):  # type: (...) -> MongoClient
         """get MongoDB connection."""
         return self.conn
 

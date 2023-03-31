@@ -19,7 +19,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from pygeoc.utils import UtilClass, FileClass
 
 from utility import status_output, DEFAULT_NODATA, mask_rasterio
-from preprocess.config import SpatialNamesUtils
+from preprocess.config import SpatialNamesUtils, PreprocessConfig
 from preprocess.db_import_bmpscenario import ImportScenario2Mongo
 from preprocess.db_import_interpolation_weights import ImportWeightData
 from preprocess.db_import_meteorology import ImportMeteoData
@@ -41,15 +41,15 @@ class ImportMongodbClass(object):
         pass
 
     @staticmethod
-    def climate_data(cfg):
+    def climate_data(cfg):  # type: (PreprocessConfig) -> None
         """Climate data."""
         ImportHydroClimateSites.workflow(cfg)
         ImportMeteoData.workflow(cfg)
         ImportPrecipitation.workflow(cfg)
 
     @staticmethod
-    def spatial_rasters(cfg):
-        """Mask and decompose spatial raster data to MongoDB。
+    def spatial_rasters(cfg):  # type: (PreprocessConfig) -> None
+        """Mask and decompose spatial raster data to MongoDB
         """
         mask_raster_cfg = list()
         # format: <in>, <out>[, <defaultValue>, <updatedNodata>, <outDataType>]
@@ -155,7 +155,7 @@ class ImportMongodbClass(object):
                       mongoargs=mongoargs, include_nodata=True, mode='MASKDEC')
 
     @staticmethod
-    def iuh(cfg, n_subbasins):
+    def iuh(cfg, n_subbasins):  # type: (PreprocessConfig, int) -> None
         """Invoke IUH program"""
         dt = 24
         str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
@@ -165,7 +165,7 @@ class ImportMongodbClass(object):
         UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def grid_layering(cfg, n_subbasins):
+    def grid_layering(cfg, n_subbasins):  # type: (PreprocessConfig, int) -> None
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.mkdir(layering_dir)
@@ -177,7 +177,7 @@ class ImportMongodbClass(object):
             UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def workflow(cfg):
+    def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Building MongoDB workflow"""
         f = cfg.logs.build_mongo
 
