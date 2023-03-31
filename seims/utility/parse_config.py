@@ -4,6 +4,7 @@
 
     @changelog:
     - 18-10-29  - lj - Extract from other packages.
+    - 23-03-29  - lj - ReWrite check_config_option and get_option_value functions.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -43,7 +44,7 @@ def get_optimization_config(desc='The help information is supposed not be empty.
 
 
 def get_option_value_exactly(cf, secname, optname, valtyp=str):
-    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
+    # type: (ConfigParser, AnyStr, AnyStr, type) -> Optional[AnyStr, int, float]
     if valtyp == int:
         return cf.getint(secname, optname)
     elif valtyp == float:
@@ -54,48 +55,55 @@ def get_option_value_exactly(cf, secname, optname, valtyp=str):
         return cf.get(secname, optname)
 
 
-def get_option_value(cf, secname, optnames, valtyp=str, defvalue=''):
-    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], type) -> Optional[AnyStr, int, float]
-    if type(optnames) is not list:
-        optnames = [optnames]
-
-    value = ''
-    found = False
-    for optname in optnames:  # For backward compatibility
-        if secname in cf.sections() and cf.has_option(secname, optname):
-            value = get_option_value_exactly(cf, secname, optname, valtyp=valtyp)
-            found = True
-            break
-        elif cf.has_option('', optname):  # May be in [DEFAULT] section
-            value = get_option_value_exactly(cf, '', optname, valtyp=valtyp)
-            found = True
-            break
-
-    if not found:
-        if valtyp == int and defvalue == '':  # int type and not set default value
-            defvalue = -9999
-        value = defvalue
-    return value
-
-
-def check_config_option(cf, section_name, option_name, print_warn=False):
-    # type: (ConfigParser, AnyStr, AnyStr, bool) -> bool
+def check_config_option(cf, secname, optnames, print_warn=False):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], bool) -> (bool, AnyStr, AnyStr)
     if not isinstance(cf, ConfigParser):
         raise IOError('ErrorInput: The first argument cf MUST be the object of `ConfigParser`!')
-    if section_name not in cf.sections():
-        print('Warning: %s is NOT defined!' % section_name)
-        return False
-    if not (cf.has_option(section_name, option_name)):
+    if type(optnames) is not list:
+        optnames = [optnames]  # type: List[AnyStr]
+
+    if secname not in cf.sections():
         if print_warn:
-            print('Warning: %s is NOT defined in %s!' % (option_name, section_name))
-        return False
-    return True
+            print('Warning: Section %s is NOT defined, try to find in DEFAULT section!' % secname)
+        for optname in optnames:  # For backward compatibility
+            if cf.has_option('', optname):  # May be in [DEFAULT] section
+                return True, '', optname
+        if print_warn:
+            print('Warning: Section %s is NOT defined, '
+                  'Option %s is NOT FOUND!' % (secname, ','.join(optnames)))
+        return False, '', ''
+    else:
+        for optname in optnames:  # For backward compatibility
+            if cf.has_option(secname, optname):
+                return True, secname, optname
+        if print_warn:
+            print('Warning: Option %s is NOT FOUND in Section %s!' % (','.join(optnames), secname))
+        return False, '', ''
 
 
-def parse_datetime_from_ini(cf, section_name, option_name):
-    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]]) -> Optional[datetime]
+def get_option_value(cf,  # type: ConfigParser
+                     secname,  # type: AnyStr
+                     optnames,  # type: Optional[AnyStr, List[AnyStr]]
+                     valtyp=str,  # type: Optional[AnyStr, int, float, bool]
+                     defvalue='',  # type: Optional[AnyStr, int, float, bool]
+                     required=False,  # type: bool
+                     print_warn=False  # type: bool
+                     ):  # type: (...) -> Optional[AnyStr, int, float]
+    found, sname, oname = check_config_option(cf, secname, optnames, print_warn=print_warn)
+    if not found:
+        if required:
+            raise IOError('Error Input in configuration!')
+        else:
+            if defvalue == '' and (valtyp == int or valtyp == float):
+                return -9999  # int or float value type, but not set default value properly
+            return defvalue
+    return get_option_value_exactly(cf, sname, oname, valtyp=valtyp)
+
+
+def parse_datetime_from_ini(cf, section_name, option_name, print_warn=True, required=True):
+    # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], bool, bool) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
-    time_str = get_option_value(cf, section_name, option_name)
+    time_str = get_option_value(cf, section_name, option_name, print_warn=True, required=True)
     if not time_str:
         return None
     try:  # UTCTIME
@@ -112,18 +120,12 @@ class ParseNSGA2Config(object):
     def __init__(self, cf, wp, dir_template='NSGA2_Gen_%d_Pop_%d'):
         # type: (ConfigParser, AnyStr, AnyStr) -> None
         """Initialization."""
-        self.ngens = cf.getint('NSGA2', 'generationsnum') if \
-            cf.has_option('NSGA2', 'generationsnum') else 1
-        self.npop = cf.getint('NSGA2', 'populationsize') if \
-            cf.has_option('NSGA2', 'populationsize') else 4
-        self.rsel = cf.getfloat('NSGA2', 'selectrate') if \
-            cf.has_option('NSGA2', 'selectrate') else 1.
-        self.rcross = cf.getfloat('NSGA2', 'crossoverrate') if \
-            cf.has_option('NSGA2', 'crossoverrate') else 0.8
-        self.pmut = cf.getfloat('NSGA2', 'maxmutateperc') if \
-            cf.has_option('NSGA2', 'maxmutateperc') else 0.2
-        self.rmut = cf.getfloat('NSGA2', 'mutaterate') if \
-            cf.has_option('NSGA2', 'mutaterate') else 0.1
+        self.ngens = get_option_value(cf, 'NSGA2', 'generationsnum', int, 1)
+        self.npop = get_option_value(cf, 'NSGA2', 'populationsize', int, 4)
+        self.rsel = get_option_value(cf, 'NSGA2', 'selectrate', float, 1.)
+        self.rcross = get_option_value(cf, 'NSGA2', 'crossoverrate', float, 0.8)
+        self.pmut = get_option_value(cf, 'NSGA2', 'maxmutateperc', float, 0.2)
+        self.rmut = get_option_value(cf, 'NSGA2', 'mutaterate', float, 0.1)
 
         if self.npop % 4 != 0:
             raise ValueError('PopulationSize must be a multiple of 4.')
@@ -162,8 +164,6 @@ class ParseResourceConfig(object):
         if self.workload == '':
             self.workload = 'scoop'
         self.partition = get_option_value(cf, res_sec, 'partition')
-        self.nnodes = get_option_value(cf, res_sec, 'nnodes', valtyp=int)
-        self.ntasks_pernode = get_option_value(cf, res_sec, 'ntasks_pernode', valtyp=int)
-        self.ncores_pernode = get_option_value(cf, res_sec, 'ncores_pernode', valtyp=int)
-
-
+        self.nnodes = get_option_value(cf, res_sec, 'nnodes', int, 1)
+        self.ntasks_pernode = get_option_value(cf, res_sec, 'ntasks_pernode', int, 1)
+        self.ncores_pernode = get_option_value(cf, res_sec, 'ncores_pernode', int, 1)
