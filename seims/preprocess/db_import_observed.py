@@ -292,19 +292,9 @@ class ImportObservedData(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
-    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
-    conn = client.get_conn()
-    main_db = conn[seims_cfg.spatial_db]
-    hydroclim_db = conn[seims_cfg.climate_db]
-    import time
-    st = time.time()
-    ImportObservedData.workflow(seims_cfg, main_db, hydroclim_db)
-    et = time.time()
-    print(et - st)
 
-    client.close()
+    ImportObservedData.workflow(seims_cfg)
 
 
 if __name__ == "__main__":

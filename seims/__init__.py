@@ -5,7 +5,7 @@ Python APIs for SEIMS
 Preprocess, postprocess, parameters sensitivity, calibration, and scenario_analysis
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2023 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
 
  ******************************************************************************
@@ -21,7 +21,7 @@ Preprocess, postprocess, parameters sensitivity, calibration, and scenario_analy
 from __future__ import absolute_import
 
 __author__ = "SEIMS Team"
-__version__ = "2.2"
-__revision__ = "2.2.0"
+__version__ = "2.3"
+__revision__ = "2.3.0"
 __all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
            "parameters_sensitivity", "test"]

@@ -103,7 +103,8 @@ def get_option_value(cf,  # type: ConfigParser
 def parse_datetime_from_ini(cf, section_name, option_name, print_warn=True, required=True):
     # type: (ConfigParser, AnyStr, Optional[AnyStr, List[AnyStr]], bool, bool) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
-    time_str = get_option_value(cf, section_name, option_name, print_warn=True, required=True)
+    time_str = get_option_value(cf, section_name, option_name,
+                                print_warn=print_warn, required=required)
     if not time_str:
         return None
     try:  # UTCTIME

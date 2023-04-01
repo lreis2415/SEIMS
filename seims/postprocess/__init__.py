@@ -3,7 +3,7 @@ Postprocess for plotting
 
                               -------------------
         author               : Liangjun Zhu, Huiran Gao, Junzhi Liu
-        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2023 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *

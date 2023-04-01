@@ -161,13 +161,17 @@ class ParseSEIMSConfig(object):
         self.calibration_id = get_option_value(cf, sec_name,
                                                ['calibration_id', 'calibrationid'], valtyp=int)
         self.subbasin_id = get_option_value(cf, sec_name, ['subbasin_id', 'subbasinid'], valtyp=int)
-        self.simu_stime = parse_datetime_from_ini(cf, sec_name, ['simu_stime', 'sim_time_start'])
-        self.simu_etime = parse_datetime_from_ini(cf, sec_name, ['simu_etime', 'sim_time_end'])
+        self.simu_stime = parse_datetime_from_ini(cf, sec_name, ['simu_stime', 'sim_time_start'],
+                                                  required=False)
+        self.simu_etime = parse_datetime_from_ini(cf, sec_name, ['simu_etime', 'sim_time_end'],
+                                                  required=False)
         if self.simu_stime and self.simu_etime and self.simu_stime >= self.simu_etime:
             raise ValueError('Wrong simulation time settings in [%s]!' % sec_name)
 
-        self.out_stime = parse_datetime_from_ini(cf, sec_name, ['out_stime', 'output_time_start'])
-        self.out_etime = parse_datetime_from_ini(cf, sec_name, ['out_etime', 'output_time_end'])
+        self.out_stime = parse_datetime_from_ini(cf, sec_name, ['out_stime', 'output_time_start'],
+                                                 required=False)
+        self.out_etime = parse_datetime_from_ini(cf, sec_name, ['out_etime', 'output_time_end'],
+                                                 required=False)
         if self.out_stime and self.out_etime and self.out_stime >= self.out_etime:
             raise ValueError('Wrong output time settings in [%s]!' % sec_name)
 

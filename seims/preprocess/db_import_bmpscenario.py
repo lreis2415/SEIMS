@@ -18,6 +18,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
 from preprocess.text import DBTableNames
+from preprocess.config import PreprocessConfig
 from utility import read_data_items_from_txt
 
 
@@ -31,12 +32,10 @@ class ImportScenario2Mongo(object):
     _SUBBASINID = 'SUBBASINID'
 
     @staticmethod
-    def scenario_from_texts(cfg):
+    def scenario_from_texts(cfg):  # type: (PreprocessConfig) -> bool
         """Import BMPs Scenario data to MongoDB
         Args:
             cfg: SEIMS configuration object
-            main_db: climate database
-            scenario_db: scenario database
         Returns:
             False if failed, otherwise True.
         """
@@ -51,6 +50,8 @@ class ImportScenario2Mongo(object):
             bmp_tabs_path.append(cfg.scenario_dir + os.path.sep + f)
 
         # initialize if collection not existed
+        if cfg.scenariodb is None:
+            raise(AttributeError, "Scenario database MUST be initialized first!")
         c_list = cfg.scenariodb.list_collection_names()
         for item in bmp_tabs:
             if not StringClass.string_in_list(item.upper(), c_list):

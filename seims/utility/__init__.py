@@ -3,7 +3,7 @@ Utility functions and classes of pySEIMS
 
                               -------------------
         author               : Liangjun Zhu
-        copyright            : (C) 2018-2022 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2023 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
