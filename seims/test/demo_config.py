@@ -76,7 +76,7 @@ class ModelPaths(object):
         self.workspace = self.base_dir + os.path.sep + 'workspace'
         UtilClass.mkdir(self.workspace)
         print('SEIMS binary location: %s' % self.bin_dir)
-        print('Demo data location: %s' % self.base_dir)
+        print('Demo data location: %s' % self.data_dir)
         print('Data preprocessing location: %s' % self.workspace)
 
 
@@ -90,15 +90,15 @@ def write_preprocess_config_file(mpaths, org_file_name):
     cfg_items.append('[PATH]')
     cfg_items.append('PREPROC_SCRIPT_DIR = %s' % mpaths.prescript_dir)
     cfg_items.append('CPP_PROGRAM_DIR = %s' % mpaths.bin_dir)
-    cfg_items.append('MPIEXEC_DIR = %s' % mpaths.mpi_bin)
+    # cfg_items.append('MPIEXEC_DIR = %s' % mpaths.mpi_bin)
     # Input data
-    cfg_items.append('BASE_DATA_DIR = %s' % mpaths.base_dir)
-    cfg_items.append('CLIMATE_DATA_DIR = %s' % mpaths.clim_dir)
-    cfg_items.append('SPATIAL_DATA_DIR = %s' % mpaths.spatial_dir)
-    cfg_items.append('MEASUREMENT_DATA_DIR = %s' % mpaths.observe_dir)
-    cfg_items.append('BMP_DATA_DIR = %s' % mpaths.scenario_dir)
+    cfg_items.append('BASE_DATA_DIR = %s' % mpaths.data_dir)
+    #cfg_items.append('CLIMATE_DATA_DIR = %s' % mpaths.clim_dir)
+    #cfg_items.append('SPATIAL_DATA_DIR = %s' % mpaths.spatial_dir)
+    #cfg_items.append('MEASUREMENT_DATA_DIR = %s' % mpaths.observe_dir)
+    #cfg_items.append('BMP_DATA_DIR = %s' % mpaths.scenario_dir)
     cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
-    cfg_items.append('TXT_DB_DIR = %s' % mpaths.lookup_dir)
+    #cfg_items.append('TXT_DB_DIR = %s' % mpaths.lookup_dir)
     # Output directory
     cfg_items.append('WORKING_DIR = %s' % mpaths.workspace)
 

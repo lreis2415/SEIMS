@@ -89,29 +89,35 @@ class PreprocessConfig(object):
         # 1. Directories
         if 'PATH' in cf.sections():
             self.base_dir = get_option_value(cf, 'PATH', 'base_data_dir', required=True)
-            self.clim_dir = get_option_value(cf, 'PATH', 'climate_data_dir', required=False)
-            self.spatial_dir = get_option_value(cf, 'PATH', 'spatial_data_dir', required=False)
-            self.observe_dir = get_option_value(cf, 'PATH', 'measurement_data_dir', required=False)
-            self.scenario_dir = get_option_value(cf, 'PATH', 'bmp_data_dir', required=False)
             self.model_dir = get_option_value(cf, 'PATH', 'model_dir', required=True)
-            self.txt_db_dir = get_option_value(cf, 'PATH', 'txt_db_dir', required=True)
             self.prepscript_dir = get_option_value(cf, 'PATH', 'preproc_script_dir', required=True)
             self.seims_bin = get_option_value(cf, 'PATH', 'cpp_program_dir', required=True)
-            self.mpi_bin = get_option_value(cf, 'PATH', 'mpiexec_dir', required=True)
-            self.workspace = get_option_value(cf, 'PATH', 'working_dir', required=True)
+            # Optional paths
+            self.clim_dir = get_option_value(cf, 'PATH', 'climate_data_dir')
+            self.spatial_dir = get_option_value(cf, 'PATH', 'spatial_data_dir')
+            self.txt_db_dir = get_option_value(cf, 'PATH', 'txt_db_dir')
+            self.observe_dir = get_option_value(cf, 'PATH', 'measurement_data_dir')
+            self.scenario_dir = get_option_value(cf, 'PATH', 'bmp_data_dir')
+            self.mpi_bin = get_option_value(cf, 'PATH', 'mpiexec_dir')
+            self.workspace = get_option_value(cf, 'PATH', 'working_dir')
         else:
             raise ValueError('[PATH] section MUST be existed in *.ini file.')
-        if not (FileClass.is_dir_exists(self.base_dir)
-                and FileClass.is_dir_exists(self.model_dir)
-                and FileClass.is_dir_exists(self.txt_db_dir)
-                and FileClass.is_dir_exists(self.prepscript_dir)
-                and FileClass.is_dir_exists(self.seims_bin)):
-            raise IOError('Please Check Directories defined in [PATH]. '
-                          'BASE_DATA_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, '
-                          'and CPP_PROGRAM_DIR are required!')
-        if not FileClass.is_dir_exists(self.mpi_bin):
+
+        if not FileClass.is_dir_exists(self.base_dir):
+            raise IOError('BASE_DATA_DIR is required in PATH section!')
+
+        if not FileClass.is_dir_exists(self.model_dir):
+            raise IOError('MODEL_DIR is required in PATH section!')
+
+        if not FileClass.is_dir_exists(self.prepscript_dir):
+            raise IOError('PREPROC_SCRIPT_DIR is required in PATH section!')
+
+        if not FileClass.is_dir_exists(self.seims_bin):
+            raise IOError('CPP_PROGRAM_DIR is required in PATH section!')
+
+        if not self.mpi_bin or not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None
-        if not FileClass.is_dir_exists(self.workspace):
+        if not self.workspace or not FileClass.is_dir_exists(self.workspace):
             try:  # first try to make dirs
                 UtilClass.mkdir(self.workspace)
             except OSError as exc:
@@ -136,16 +142,29 @@ class PreprocessConfig(object):
         if not self.spatial_dir or not FileClass.is_dir_exists(self.spatial_dir):
             print('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.path.sep + 'spatial'
-            if not FileClass.is_file_exists(self.spatial_dir):
+            if not FileClass.is_dir_exists(self.spatial_dir):
                 raise IOError('Directory named "spatial" MUST BE located in [base_dir]!')
 
+        if not self.txt_db_dir or not FileClass.is_dir_exists(self.txt_db_dir):
+            print('The TXT_DB_DIR is not existed, try the default folder name "lookup".')
+            self.txt_db_dir = self.base_dir + os.path.sep + 'lookup'
+            if not FileClass.is_dir_exists(self.txt_db_dir):
+                self.txt_db_dir = None
+
         if not self.observe_dir or not FileClass.is_dir_exists(self.observe_dir):
-            self.observe_dir = None
-            self.use_observed = False
+            print('The MEASUREMENT_DATA_DIR is not existed, '
+                  'try the default folder name "observed".')
+            self.observe_dir = self.base_dir + os.path.sep + 'observed'
+            if not FileClass.is_dir_exists(self.observe_dir):
+                self.observe_dir = None
+                self.use_observed = False
 
         if not self.scenario_dir or not FileClass.is_dir_exists(self.scenario_dir):
-            self.scenario_dir = None
-            self.use_scenario = False
+            print('The BMP_DATA_DIR is not existed, try the default folder name "scenario".')
+            self.scenario_dir = self.base_dir + os.path.sep + 'scenario'
+            if not FileClass.is_dir_exists(self.scenario_dir):
+                self.scenario_dir = None
+                self.use_scenario = False
 
         # 2. MongoDB related
         if 'MONGODB' in cf.sections():
@@ -163,7 +182,7 @@ class PreprocessConfig(object):
         self.maindb = self.conn[self.spatial_db]  # type: Database
         self.climatedb = self.conn[self.climate_db]
         self.scenariodb = None
-        if self.use_scenario and not self.scenario_db:
+        if self.use_scenario and self.scenario_db:
             self.scenariodb = self.conn[self.scenario_db]
 
         # 3. Climate Input
