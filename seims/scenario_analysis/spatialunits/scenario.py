@@ -72,48 +72,50 @@ class SUScenario(Scenario):
         scenariodb = conn[self.scenario_db]
 
         bmpcoll = scenariodb[self.cfg.bmps_coll]
-        findbmps = bmpcoll.find({}, no_cursor_timeout=True)
-        for fb in findbmps:
-            fb = UtilClass.decode_strs_in_dict(fb)
-            if 'SUBSCENARIO' not in fb:
-                continue
-            curid = fb['SUBSCENARIO']
-            if curid not in self.cfg.bmps_subids:
-                continue
-            if curid not in self.bmps_params:
-                self.bmps_params[curid] = dict()
-            for k, v in fb.items():
-                if k == 'SUBSCENARIO':
+        # UserWarning: use an explicit session with no_cursor_timeout=True,
+        # otherwise the cursor may still timeout after 30 minutes,
+        # for more info see https://jira.mongodb.org/browse/DOCS-11255
+        with conn.start_session() as session:
+            for fb in bmpcoll.find(no_cursor_timeout=True, session=session):
+                fb = UtilClass.decode_strs_in_dict(fb)
+                if 'SUBSCENARIO' not in fb:
                     continue
-                elif k == 'LANDUSE':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = None
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                elif k == 'SLPPOS':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = list(self.cfg.slppos_tags.keys())
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                elif k == 'INCOME':
-                    if isinstance(v, int):  # scenario analysis
-                        self.bmps_params[curid][k] = v
-                    elif isinstance(v, str):  # bmp order optimization
-                        v = StringClass.extract_numeric_values_from_string(v)
+                curid = fb['SUBSCENARIO']
+                if curid not in self.cfg.bmps_subids:
+                    continue
+                if curid not in self.bmps_params:
+                    self.bmps_params[curid] = dict()
+                for k, v in fb.items():
+                    if k == 'SUBSCENARIO':
+                        continue
+                    elif k == 'LANDUSE':
+                        if isinstance(v, int):
+                            v = [v]
+                        elif v == 'ALL' or v == '':
+                            v = None
+                        else:
+                            v = StringClass.extract_numeric_values_from_string(v)
+                            v = [int(abs(nv)) for nv in v]
                         self.bmps_params[curid][k] = v[:]
+                    elif k == 'SLPPOS':
+                        if isinstance(v, int):
+                            v = [v]
+                        elif v == 'ALL' or v == '':
+                            v = list(self.cfg.slppos_tags.keys())
+                        else:
+                            v = StringClass.extract_numeric_values_from_string(v)
+                            v = [int(abs(nv)) for nv in v]
+                        self.bmps_params[curid][k] = v[:]
+                    elif k == 'INCOME':
+                        if isinstance(v, int):  # scenario analysis
+                            self.bmps_params[curid][k] = v
+                        elif isinstance(v, str):  # bmp order optimization
+                            v = StringClass.extract_numeric_values_from_string(v)
+                            self.bmps_params[curid][k] = v[:]
+                        else:
+                            self.bmps_params[curid][k] = v
                     else:
                         self.bmps_params[curid][k] = v
-                else:
-                    self.bmps_params[curid][k] = v
-        # client.close()
 
     def get_suitable_bmps(self, types='LANDUSE'):
         # type: (Union[AnyStr, List[AnyStr]]) -> None
