@@ -797,7 +797,7 @@ class SoilUtilClass(object):
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasssoil_cfg,
-                      include_nodata=False, mode='MASK&DEC')
+                      include_nodata=False, mode='MASKDEC')
 
         # other soil related spatial parameters
         status_output('Calculating initial soil moisture...', 90, f)

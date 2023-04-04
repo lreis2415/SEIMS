@@ -166,7 +166,7 @@ class ImportHydroClimateSites(object):
     def find_sites(maindb, clim_dbname, subbsn_file, subbsn_field_id,
                    thissen_file_list, thissen_field_id, site_type_list):
         """Find meteorology and precipitation sites in study area"""
-        # xdw修改--暂时修改为storm模式
+        # xdw
         # TODO, use an argument in preprocess.ini to handle DAILY, STORM, or BOTH
         mode = 'DAILY'
         # mode = 'STORM'

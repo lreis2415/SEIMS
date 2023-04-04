@@ -27,7 +27,8 @@ from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType
 from preprocess.config import PreprocessConfig
 from decimal import Decimal
-import pandas as pd  # I recommend not using these 'heavy' packages if you don't have to.
+#import pandas as pd  # I recommend not using these 'heavy' packages if you don't have to.
+
 
 class ImportPrecipitation(object):
     """Import precipitation data, daily or storm."""
@@ -85,13 +86,7 @@ class ImportPrecipitation(object):
                                                        (DataValueFields.type, ASCENDING),
                                                        (DataValueFields.utc, ASCENDING)])
 
-    """
-        storm模式下，往往需要对降雨数据进行时间插值.例如：用户只有时间分辨率为1min的降雨数据，但是模拟时间步长为5s，因此需要将原数据插值为5s时间间隔
-        注意：
-        ①降雨数据对应的应该是一个时间分辨率的降雨量，例如：原数据时间分辨率是60s，值为2.4，则意味着1min降雨深度为2.5mm。新时间分辨率为5s，值为0.2，则意味着5s降雨深度为0.2mm
-        ②conversion_matrix是单位的转换矩阵，指定origin_unit和new_unit就可以得到转换矩阵中对应的单位转换因数
-        ③origin_interval和new_interval是原时间分辨率和新的时间分辨率
-    """
+
     @staticmethod
     def storm_data_from_txt(climdb, data_file):
         conversion_matrix = [[1, 60, 3600],
@@ -195,13 +190,6 @@ class ImportPrecipitation(object):
                                                        (DataValueFields.type, ASCENDING),
                                                        (DataValueFields.utc, ASCENDING)])
 
-    """
-        storm模式下，往往需要对降雨数据进行时间插值.例如：用户只有时间分辨率为1min的降雨数据，但是模拟时间步长为5s，因此需要将原数据插值为5s时间间隔
-        注意：
-        ①降雨数据对应的应该是一个时间分辨率的降雨量，例如：原数据时间分辨率是60s，值为2.4，则意味着1min降雨深度为2.5mm。新时间分辨率为5s，值为0.2，则意味着5s降雨深度为0.2mm
-        ②conversion_matrix是单位的转换矩阵，指定origin_unit和new_unit就可以得到转换矩阵中对应的单位转换因数
-        ③origin_interval和new_interval是原时间分辨率和新的时间分辨率
-    """
     @staticmethod
     def storm_data_from_txt(climdb, data_file):
         conversion_matrix = [[1, 60, 3600],
@@ -336,14 +324,14 @@ class ImportPrecipitation(object):
             values_range.append(round(to_value, 4))
         return values_range
 
-    @staticmethod
-    def split_time_ranges(from_time, to_time, frequency, contain_last):
-        from_time, to_time = pd.to_datetime(from_time), pd.to_datetime(to_time)
-        time_range = list(pd.date_range(from_time, to_time, freq='%sS' % frequency))
-        if to_time in time_range and not contain_last:
-            time_range.remove(to_time)
-        time_range = [item.strftime("%Y/%m/%d %H:%M:%S") for item in time_range]
-        return time_range
+    # @staticmethod
+    # def split_time_ranges(from_time, to_time, frequency, contain_last):
+    #     from_time, to_time = pd.to_datetime(from_time), pd.to_datetime(to_time)
+    #     time_range = list(pd.date_range(from_time, to_time, freq='%sS' % frequency))
+    #     if to_time in time_range and not contain_last:
+    #         time_range.remove(to_time)
+    #     time_range = [item.strftime("%Y/%m/%d %H:%M:%S") for item in time_range]
+    #     return time_range
 
     @staticmethod
     def workflow(cfg):  # type: (PreprocessConfig) -> None
