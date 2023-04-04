@@ -51,9 +51,11 @@ def connected_field_partition_wu2018(cfg):
         fields_tif = cfg.dirs.geodata2db + os.path.sep + 'FIELDS_%d.tif' % thresh
         fields_txt = cfg.dirs.geodata2db + os.path.sep + 'FIELDS_%d.txt' % thresh
         if not (os.path.exists(fields_tif) and os.path.exists(fields_txt)):
+            print('Cannot find FIELDS data generated!')
             continue
         # 2. Read fields_txt and landuse map, generate json file
         jsonf = cfg.model_dir + os.path.sep + 'connected_field_units_updown_%d.json' % thresh
+        print('Generating connection relations of connected fields...')
         generate_fields_json(luf, fields_tif, fields_txt, jsonf)
 
         cfg.spatials.mgt_field.append(fields_tif)

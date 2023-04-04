@@ -46,8 +46,6 @@ def mask_rasterio(bin_dir, inoutcfg,
         reclsidx = 5 if item_count >= 6 else -1
 
         cur_dict = dict()
-        print(inout[inidx])
-        print(type(inout[inidx]))
         if type(inout[inidx]) is list:
             cur_dict['-in'] = ','.join(inout[inidx])
         elif isinstance(inout[inidx], string_types) and inout[inidx] != '':
