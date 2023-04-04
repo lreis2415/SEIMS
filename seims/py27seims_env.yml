@@ -1,0 +1,31 @@
+# Use the following commands in Anaconda shell to config python env for SEIMS.
+#   cd SEIMS/seims
+#   conda env create -f py27seims_env.yml
+#   conda activate py27seims
+#   pip install "https://github.com/soravux/scoop/archive/master.zip"
+#   pip install "https://github.com/DEAP/deap/archive/master.zip"
+#   pip install "https://github.com/lreis2415/PyGeoC/archive/master.zip"
+#
+# If pip installation failed due to time out, please try to add the "--timeout 1000" argument.
+# e.g., pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
+#
+# Latest updated: 04/04/2023
+
+name: py27seims
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=2.7
+  - pip
+  - gdal
+  - Shapely
+  - matplotlib
+  - pymongo>=3.0
+  - networkx>=1.10,<=2.2
+  - pathlib2>=2.0.0
+  - six
+  - configparser
+  - pyzmq>=13.0.0,<=19.0.2
+  - pip:
+    - SALib<1.3

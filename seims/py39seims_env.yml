@@ -20,7 +20,7 @@ dependencies:
   - pip
   - gdal
   - Shapely
-  - matplotlib-base
+  - matplotlib
   - pymongo
   - networkx
   - pathlib2
