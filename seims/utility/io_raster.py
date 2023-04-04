@@ -6,6 +6,7 @@
     - 22-06-07 - lj - Initial wrapper of mask_rasterio.
 """
 from __future__ import absolute_import, unicode_literals
+from six import string_types
 
 from io import open
 from pygeoc.utils import UtilClass, FileClass, is_string
@@ -47,7 +48,7 @@ def mask_rasterio(bin_dir, inoutcfg,
         cur_dict = dict()
         if type(inout[inidx]) is list:
             cur_dict['-in'] = ','.join(inout[inidx])
-        elif type(inout[inidx]) is str and inout[inidx] != '':
+        elif isinstance(inout[inidx], string_types) and inout[inidx] != '':
             cur_dict['-in'] = inout[inidx]
         if outidx > 0 and inout[outidx] != '':
             cur_dict['-out'] = inout[outidx]

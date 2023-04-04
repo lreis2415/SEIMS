@@ -161,11 +161,11 @@ void DoFieldsPartition(const char* dirName, const char* LanduName, const char* m
     std::ostringstream oss;
     oss.str("");
     //oss << dir << "field_"<<threshold<<"."<<GetLower(GetSuffix(dirName));
-    oss << dir << "fields_" << threshod << ".tif";
+    oss << dir << "FIELDS_" << threshod << ".tif";
     string rsfieldFile = oss.str();
 
     oss.str("");
-    oss << dir << "fields_" << threshod << ".txt";
+    oss << dir << "FIELDS_" << threshod << ".txt";
     string txtfileFile = oss.str();
 
     /// Write basin input and output information

@@ -63,7 +63,6 @@ class ImportWeightData(object):
         """Thiessen polygon method for weights"""
         i_min = 0
         coef_list = list()
-        # 如果周围只有一个站点，将该站点的权重设为1，返回权重
         if len(loc_list) <= 1:
             coef_list.append(1)
             fmt = '%df' % 1
@@ -72,7 +71,6 @@ class ImportWeightData(object):
         dis_min = ImportWeightData.cal_dis(x, y, loc_list[0][0], loc_list[0][1])
 
         coef_list.append(0)
-        # 如果周围有多个站点，把距离最近的站点的权重设为1，其他站点权重为0，返回权重数组
         for i in range(1, len(loc_list)):
             coef_list.append(0)
             dis = ImportWeightData.cal_dis(x, y, loc_list[i][0], loc_list[i][1])
@@ -306,7 +304,6 @@ class ImportWeightData(object):
                                 y_coor = yll + (ysize - y - 1) * dx
                                 line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
                                                                              loc_list)
-                                # 把权重写入SPATIAL.FILES的X_WEIGHT_P/X_WEIGHT_M
                                 myfile.write(line)
                                 fmt = '%df' % (len(loc_list))
                                 f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
