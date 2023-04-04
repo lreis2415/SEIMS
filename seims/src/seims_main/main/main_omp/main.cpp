@@ -34,11 +34,11 @@ int main(const int argc, const char** argv) {
     try {
         double input_t = TimeCounting();
         /// Get module path
-#ifndef WINDOWS
-        string module_path = GetAppPath() + "../lib";
-#else
+//#ifndef WINDOWS
+//        string module_path = GetAppPath() + "../lib";
+//#else
         string module_path = GetAppPath();
-#endif
+//#endif
         /// Initialize the MongoDB connection client
         MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
         if (nullptr == mongo_client) {

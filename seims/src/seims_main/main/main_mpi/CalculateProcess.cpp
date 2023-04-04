@@ -24,11 +24,11 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
     /// Get module path, i.e., the path of dynamic libraries
-#ifndef WINDOWS
-    string module_path = GetAppPath() + "../lib";
-#else
+//#ifndef WINDOWS
+//    string module_path = GetAppPath() + "../lib";
+//#else
     string module_path = GetAppPath();
-#endif
+//#endif
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
     mongoc_client_t* mclient = nullptr;

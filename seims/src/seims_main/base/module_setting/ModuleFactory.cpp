@@ -50,7 +50,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)
     map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
-    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;// ��ȡ.cfgģ������ģ�������ļ�
+    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
@@ -408,10 +408,22 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         return;
     }
     // check if the dll file exists
+#ifndef WINDOWS
+    string moduleFileName = module_path + "../lib/" + dllID + LIBSUFFIX;
+#else
     string moduleFileName = module_path + SEP + dllID + LIBSUFFIX;
+#endif
+    //string moduleFileName = module_path + SEP + dllID + LIBSUFFIX;
     if (!FileExists(moduleFileName)) {
-        throw ModelException("ModuleFactory", "ReadDLL",
-                             moduleFileName + " does not exist or has no read permission!");
+#ifndef WINDOWS
+        moduleFileName = module_path + SEP + dllID + LIBSUFFIX;
+#else
+        string moduleFileName = module_path + "../lib/" + + dllID + LIBSUFFIX;
+#endif
+        if (!FileExists(moduleFileName)) {
+            throw ModelException("ModuleFactory", "ReadDLL",
+                                 moduleFileName + " does not exist or has no read permission!");
+        }
     }
     //load library
 #ifdef WINDOWS
