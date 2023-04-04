@@ -1,0 +1,97 @@
+# Build SEIMS on Windows using MSVC
+
+name: Build on Windows using MSVC
+
+on:
+    push:
+        paths-ignore:
+            - 'data'
+            - 'doc'
+            - 'gui'
+            - 'knowledge'
+    pull_request:
+        paths-ignore:
+          - 'data'
+          - 'doc'
+          - 'gui'
+          - 'knowledge'
+    workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout SEIMS
+      uses: actions/checkout@v2
+
+    # - name: Start MongoDB Service
+    #   # How to start MongoDB as a service on Windows runners
+    #   # https://github.com/orgs/community/discussions/30083#discussioncomment-3448499
+    #   shell: pwsh
+    #   run: |
+    #       Set-Service mongodb -StartupType Automatic
+    #       Start-Service -Name mongodb
+
+    - name: Download mongo-c-driver
+      # Build mongo-c-driver is time-consuming, I moved it to another repo. https://github.com/crazyzlj/Github_Actions_Precompiled_Packages
+      # Here, I download the prebuilt library directly.
+      id: pwshdownmongo
+      shell: pwsh
+      run: |
+        cd ${{github.workspace}}\.github\workflows
+        ./download_mongo-c-driver.ps1 -mongoCPath ${{github.workspace}}/mongolib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+
+    - name: Download GDAL
+      id: pwshdowngdal
+      shell: pwsh
+      run: |
+        cd ${{github.workspace}}\.github\workflows
+        ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+    
+    - name: Install MSMPI
+      id: pwshdownmpi
+      shell: pwsh
+      run: |
+        cd ${{ github.workspace }}\\.github\workflows
+        ./setup_msmpi.ps1
+
+    - name: Show MPI info
+      shell: pwsh
+      run: |
+        Write-Host MSMPI_BIN=$Env:MSMPI_BIN
+        Write-Host MSMPI_INC=$Env:MSMPI_INC
+        Write-Host MSMPI_LIB32=$Env:MSMPI_LIB32
+        Write-Host MSMPI_LIB64=$Env:MSMPI_LIB64
+
+    - name: Help MPI executor
+      shell: pwsh
+      run: |
+        mpiexec /help2
+        mpiexec /help3
+
+    - name: Configure CMake
+      shell: cmd
+      run: |
+        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        -DGDAL_ROOT=${{ steps.pwshdowngdal.outputs.GDAL_ROOT }} ^
+        -DMONGOC_ROOT=${{ steps.pwshdownmongo.outputs.MONGOC_ROOT }} ^
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build SEIMS
+      shell: cmd
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4
+
+    # - name: Test
+    #   shell: cmd
+    #   working-directory: ${{github.workspace}}/build
+    #   # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
+    #   run: |
+    #     set PATH=${{ steps.pwshdowngdal.outputs.GDAL_BIN }};${{ steps.pwshdownmongo.outputs.MONGOC_BIN }};%PATH%
+    #     ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure

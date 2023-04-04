@@ -1,0 +1,76 @@
+# Build SEIMS and Doxygen documents on Ubuntu
+
+name: Build on Ubuntu using GCC
+
+on:
+    push:
+        paths-ignore:
+            - 'data'
+            - 'gui'
+            - 'knowledge'
+    pull_request:
+        paths-ignore:
+          - 'data'
+          - 'gui'
+          - 'knowledge'
+    workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-linux-ubuntu:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+    steps:
+    - name: Checkout SEIMS
+      uses: actions/checkout@v2
+
+    - name: Install GDAL, mongo-c-driver, and OpenMPI
+      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev openmpi-bin libopenmpi-dev
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build SEIMS
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
+
+    #- name: Test
+    #  working-directory: ${{github.workspace}}/build
+    #  # Execute tests defined by the CMake configuration.
+    #  # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+    #  run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+
+    - name: Build Doc in English
+      uses: mattnotmitt/doxygen-action@v1.8.18
+      with:
+          working-directory: '.'
+          doxyfile-path: 'doc/Doxyfile'
+          #additional-packages: gdal, mongo-c-driver
+
+    - name: Build Doc in Chinese
+      uses: mattnotmitt/doxygen-action@v1.8.18
+      with:
+          working-directory: '.'
+          doxyfile-path: 'doc/Doxyfile.zh-cn'
+          #additional-packages: gdal, mongo-c-driver
+
+    - name: Deploy Docs
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: ${{ github.event.head_commit.message }}
+          disable_nojekyll: true
+          publish_branch: gh-pages
+          force_orphan: true
+          publish_dir: html
