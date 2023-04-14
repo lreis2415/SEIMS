@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - name: Checkout SEIMS
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install GDAL, mongo-c-driver, and OpenMPI
       run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev openmpi-bin libopenmpi-dev
@@ -55,14 +55,14 @@ jobs:
       uses: mattnotmitt/doxygen-action@v1.8.18
       with:
           working-directory: '.'
-          doxyfile-path: 'doc/Doxyfile'
+          doxyfile-path: 'doc/Doxyfile.in'
           #additional-packages: gdal, mongo-c-driver
 
     - name: Build Doc in Chinese
       uses: mattnotmitt/doxygen-action@v1.8.18
       with:
           working-directory: '.'
-          doxyfile-path: 'doc/Doxyfile.zh-cn'
+          doxyfile-path: 'doc/Doxyfile.zh-cn.in'
           #additional-packages: gdal, mongo-c-driver
 
     - name: Deploy Docs
