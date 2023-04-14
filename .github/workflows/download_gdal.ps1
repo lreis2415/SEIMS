@@ -24,7 +24,9 @@ Write-Host "Setting environmetal paths of GDAL……"
 $env:GDAL_ROOT = $gdalPath
 $env:GDAL_DATA = "$gdalPath\bin\gdal-data"
 $env:GDAL_BIN = "$gdalPath\bin;$gdalPath\include;$gdalPath\lib;$gdalPath\bin\gdal\apps;$gdalPath\bin\gdal\java;$gdalPath\bin\proj\apps;$gdalPath\bin\curl;"
+$env:PATH = "$env:GDAL_BIN;$env:PATH"
 
-Write-Output "GDAL_DIR=$env:GDAL_ROOT"
+Write-Output "GDAL_ROOT=$env:GDAL_ROOT"
 Write-Output "GDAL_DATA=$env:GDAL_DATA"
-Write-Output "PATH=$env:GDAL_BIN"
+Write-Output "GDAL_BIN=$env:GDAL_BIN"
+Write-Output "PATH=$env:PATH"

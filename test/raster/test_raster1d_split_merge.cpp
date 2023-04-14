@@ -8,10 +8,11 @@
  *        Since we mainly support ASC and GDAL(e.g., TIFF),
  *        value-parameterized tests of Google Test will be used.
  * \cite https://github.com/google/googletest/blob/master/googletest/samples/sample7_unittest.cc
- * \version 1.1
+ * \version 1.2
  * \authors Liangjun Zhu, zlj(at)lreis.ac.cn; crazyzlj(at)gmail.com
  * \remarks 2021-12-12 - lj - Original version.
  *          2022-04-02 - lj - Add MongoDB supports.
+ *          2023-04-14 - lj - Update tests according to API changes of clsRasterData
  *
  */
 #include "gtest/gtest.h"
@@ -391,7 +392,7 @@ TEST_P(clsRasterDataSplitMerge, SplitRaster) {
     EXPECT_TRUE(maskrsflt_->PositionsCalculated());
     // read raster data in float type with mask
     FltRaster* rs = FltRaster::Init(GetParam()->raster_name,
-                                    true, maskrsflt_, true);
+                                    false, maskrsflt_, true);
     EXPECT_NE(nullptr, rs);
     int orglen;
     float* orgvalues;
@@ -545,7 +546,7 @@ TEST_P(clsRasterDataSplitMerge, SplitRaster) {
 
     // read from MongoDB with mask data
     FltRaster* com_inrs_mongo = FltRaster::Init(GlobalEnv->gfs_, com_fname_real.c_str(),
-                                                true, maskrsflt_, true);
+                                                false, maskrsflt_, true);
     EXPECT_NE(nullptr, com_inrs_mongo);
     EXPECT_EQ(20, com_inrs_mongo->GetCellNumber());
     for (int i = 0; i < 20; i++) {

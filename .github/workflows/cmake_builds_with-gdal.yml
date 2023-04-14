@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install GDAL
       run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev
@@ -49,7 +49,7 @@ jobs:
 
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Download GDAL
       id: pwshdowngdal
@@ -57,14 +57,14 @@ jobs:
       run: |
         cd ${{github.workspace}}\.github\workflows
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
-        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
 
     - name: Configure CMake
       shell: cmd
       run: |
         cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
-        -DGDAL_ROOT=${{ steps.pwshdowngdal.outputs.GDAL_ROOT }} ^
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+        -DGDAL_ROOT=${{ env.GDAL_ROOT }} ^
+        -DUNITTEST=1
 
     - name: Build
       shell: cmd
@@ -74,7 +74,7 @@ jobs:
       shell: cmd
       working-directory: ${{github.workspace}}/build
       run: |
-        set PATH=${{ steps.pwshdowngdal.outputs.GDAL_BIN }};%PATH%
+        set PATH=${{ env.GDAL_BIN }};%PATH%
         ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
   build-mac:
@@ -88,7 +88,7 @@ jobs:
       run: brew list gdal &>/dev/null || brew install gdal
 
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1

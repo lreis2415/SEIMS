@@ -2,18 +2,18 @@
 #  Root CMake file for CCGL.
 #     A simple Common Cross-platform Geographic Library.
 #        + Basic operations on array, file system, string, and time, etc.
-#        + Raster data class with support of GDAL
+#        + Raster data class with masking and decomposition features with support of GDAL
 #        + Data management with support of MongoDB
 #
 #     Please build from the off-tree build directory, e.g.:
 #       $ mkdir -p build
 #       $ cd build
-#       $ cmake ..
+#       $ cmake .. -DUNITTEST=1
 #       $ make
 #       $ ctest --rerun-failed --output-on-failure
 #     Optional cmake options:
 #       -DUNITTEST=1  means run unittest based gtest/gmock
-#       -DCODE_COVERAGE=1 means run code coverage based gcov and lcov
+#       -DCODE_COVERAGE=1 means run code coverage based GCC (gcov and lcov) and Clang(llvm-cov and llvm-profdata)
 #       -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /opt/homebrew/opt/llvm
 #       -DBUILD_DOC=1 means build CCGL documentation based on doxygen
 #
@@ -21,11 +21,11 @@
 #     1. Windows 10 with Visual Studio 2010/2015/2019, mongo-c-driver-1.16.2, GDAL-1.11.4/2.4.4/3.3.3
 #     2. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
 #     3. Ubuntu 16.04 (VMware) with GCC-5.4.0, mongo-c-driver-1.6.3, GDAL-2.4.4
-#     4. macOS 12.x with AppleClang-13.0 (Xcode built-in and brew installed) and GCC-11.2 (brew installed),
+#     4. macOS 13.x with latest Clang (Xcode built-in and brew installed) and latest GCC (brew installed),
 #              mongo-c-driver-1.16.2, GDAL-3.3.3 (brew installed and framework by kyngchaos.com)
 #
 #  Created and maintained by Liangjun Zhu, zlj(a)lreis.ac.cn
-#  Latest updated: Mar. 23, 2023
+#  Latest updated: Apr 5, 2023
 #  Copyright (C) 2017-2023 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
@@ -287,7 +287,8 @@ ENDIF ()
 
 IF ((CV_GCC OR CV_CLANG) AND CODE_COVERAGE)
     include(code-coverage)
-    add_code_coverage() # Adds instrumentation to all targets
+    #add_code_coverage() # Adds instrumentation to all targets
+    # Instead, add coverage via target commands, in test/CMakeLists.txt
 ENDIF ()
 
 ### Copy test data to install directory!
@@ -381,6 +382,9 @@ STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
 STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
+
+STATUS("    Run Doxygen:"      BUILD_DOC THEN "YES" ELSE "NO")
+STATUS("    Run CodeCoverage:" CODE_COVERAGE THEN "YES (GCOV: ${GCOV_PATH}, LCOV: ${LCOV_PATH}, LLVM_COV: ${LLVM_COV_PATH})" ELSE "NO")
 
 ### Auxiliary.
 STATUS("")

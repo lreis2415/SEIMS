@@ -1,12 +1,13 @@
 /*!
  * \brief Test clsRasterData of blank constructor to make sure no exception thrown.
  *
- * \version 1.3
+ * \version 1.4
  * \authors Liangjun Zhu, zlj(at)lreis.ac.cn; crazyzlj(at)gmail.com
  * \remarks 2017-12-02 - lj - Original version.
  *          2018-05-03 - lj - Integrated into CCGL.
  *          2021-07-20 - lj - Update after changes of GetValue and GetValueByIndex.
  *          2021-11-27 - lj - Add more tests.
+ *          2023-04-13 - lj - Update tests according to API changes of clsRasterData
  *
  */
 #include "gtest/gtest.h"
@@ -208,7 +209,7 @@ TEST(clsRasterDataFailedConstructor, FailedCases) {
 TEST(clsRasterDataUnsignedByte, FullIO) {
     clsRasterData<vuint8_t>* mask_rs = clsRasterData<vuint8_t>::Init(rs_mask);
     EXPECT_NE(mask_rs, nullptr);
-    clsRasterData<vuint8_t>* rs = clsRasterData<vuint8_t>::Init(rs_byte, true,
+    clsRasterData<vuint8_t>* rs = clsRasterData<vuint8_t>::Init(rs_byte, false,
                                                                 mask_rs, true);
 
     EXPECT_TRUE(rs->GetDataType() == RDT_UInt8);
@@ -227,18 +228,15 @@ TEST(clsRasterDataUnsignedByte, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<vuint8_t>* rs_mongo_auto_calc_pos = clsRasterData<vuint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), false, mask_rs, true, NODATA_VALUE, opts);
-    EXPECT_NE(rs_mongo_auto_calc_pos, nullptr);
-    clsRasterData<vuint8_t>* rs_mongo = clsRasterData<vuint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<vuint8_t>* rs_mongo = clsRasterData<vuint8_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                      false, mask_rs, true,
+                                                                      NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
 
     for (int i = 0; i < ncells; i++) {
         EXPECT_EQ(data[i], rs_mongo->GetValueByIndex(i));
     }
-    delete rs_mongo_auto_calc_pos;
     delete rs_mongo;
 #endif
 
@@ -248,7 +246,7 @@ TEST(clsRasterDataUnsignedByte, FullIO) {
 
 TEST(clsRasterDatasignedByte, FullIO) {
     clsRasterData<vint8_t>* mask_rs = clsRasterData<vint8_t>::Init(rs_mask);
-    clsRasterData<vint8_t>* rs = clsRasterData<vint8_t>::Init(rs_byte_signed, true,
+    clsRasterData<vint8_t>* rs = clsRasterData<vint8_t>::Init(rs_byte_signed, false,
                                                               mask_rs, true);
 
     EXPECT_TRUE(rs->GetDataType() == RDT_Int8);
@@ -267,8 +265,9 @@ TEST(clsRasterDatasignedByte, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                    false, mask_rs, true,
+                                                                    NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -282,7 +281,7 @@ TEST(clsRasterDatasignedByte, FullIO) {
 
 TEST(clsRasterDatasignedByteNoNegative, FullIO) {
     clsRasterData<vint8_t>* mask_rs = clsRasterData<vint8_t>::Init(rs_mask);
-    clsRasterData<vint8_t>* rs = clsRasterData<vint8_t>::Init(rs_byte_signed_noneg, true,
+    clsRasterData<vint8_t>* rs = clsRasterData<vint8_t>::Init(rs_byte_signed_noneg, false,
                                                               mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_Int8);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_Int8);
@@ -323,8 +322,9 @@ TEST(clsRasterDatasignedByteNoNegative, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<vint8_t>* rs_mongo = clsRasterData<vint8_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                    false, mask_rs, true,
+                                                                    NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -338,7 +338,7 @@ TEST(clsRasterDatasignedByteNoNegative, FullIO) {
 
 TEST(clsRasterDataUInt16, FullIO) {
     clsRasterData<uint16_t>* mask_rs = clsRasterData<uint16_t>::Init(rs_mask);
-    clsRasterData<uint16_t>* rs = clsRasterData<uint16_t>::Init(rs_uint16, true,
+    clsRasterData<uint16_t>* rs = clsRasterData<uint16_t>::Init(rs_uint16, false,
                                                                 mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_UInt16);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_UInt16);
@@ -356,8 +356,9 @@ TEST(clsRasterDataUInt16, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<uint16_t>* rs_mongo = clsRasterData<uint16_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<uint16_t>* rs_mongo = clsRasterData<uint16_t>:: Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                       false, mask_rs, true,
+                                                                       NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -371,7 +372,7 @@ TEST(clsRasterDataUInt16, FullIO) {
 
 TEST(clsRasterDataInt16, FullIO) {
     clsRasterData<int16_t>* mask_rs = clsRasterData<int16_t>::Init(rs_mask);
-    clsRasterData<int16_t>* rs = clsRasterData<int16_t>::Init(rs_int16, true,
+    clsRasterData<int16_t>* rs = clsRasterData<int16_t>::Init(rs_int16, false,
                                                               mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_Int16);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_Int16);
@@ -389,8 +390,9 @@ TEST(clsRasterDataInt16, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<int16_t>* rs_mongo = clsRasterData<int16_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<int16_t>* rs_mongo = clsRasterData<int16_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                    false, mask_rs, true,
+                                                                    NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -404,7 +406,7 @@ TEST(clsRasterDataInt16, FullIO) {
 
 TEST(clsRasterDataUInt32, FullIO) {
     clsRasterData<uint32_t>* mask_rs = clsRasterData<uint32_t>::Init(rs_mask);
-    clsRasterData<uint32_t>* rs = clsRasterData<uint32_t>::Init(rs_uint32, true,
+    clsRasterData<uint32_t>* rs = clsRasterData<uint32_t>::Init(rs_uint32, false,
                                                                 mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_UInt32);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_UInt32);
@@ -422,8 +424,9 @@ TEST(clsRasterDataUInt32, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<uint32_t>* rs_mongo = clsRasterData<uint32_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<uint32_t>* rs_mongo = clsRasterData<uint32_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                      false, mask_rs, true,
+                                                                      NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -437,7 +440,7 @@ TEST(clsRasterDataUInt32, FullIO) {
 
 TEST(clsRasterDataInt32, FullIO) {
     clsRasterData<int32_t>* mask_rs = clsRasterData<int32_t>::Init(rs_mask);
-    clsRasterData<int32_t>* rs = clsRasterData<int32_t>::Init(rs_int32, true,
+    clsRasterData<int32_t>* rs = clsRasterData<int32_t>::Init(rs_int32, false,
                                                               mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_Int32);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_Int32);
@@ -455,8 +458,9 @@ TEST(clsRasterDataInt32, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<int32_t>* rs_mongo = clsRasterData<int32_t>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<int32_t>* rs_mongo = clsRasterData<int32_t>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                    false, mask_rs, true,
+                                                                    NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -478,7 +482,7 @@ TEST(clsRasterDataInt32, IOWithoutDefNodata) {
 
 TEST(clsRasterDataFloat, FullIO) {
     clsRasterData<float>* mask_rs = clsRasterData<float>::Init(rs_mask);
-    clsRasterData<float>* rs = clsRasterData<float>::Init(rs_float, true,
+    clsRasterData<float>* rs = clsRasterData<float>::Init(rs_float, false,
                                                           mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_Float);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_Float);
@@ -496,8 +500,9 @@ TEST(clsRasterDataFloat, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<float>* rs_mongo = clsRasterData<float>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<float>* rs_mongo = clsRasterData<float>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                false, mask_rs, true,
+                                                                NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
@@ -511,7 +516,7 @@ TEST(clsRasterDataFloat, FullIO) {
 
 TEST(clsRasterDataDouble, FullIO) {
     clsRasterData<double>* mask_rs = clsRasterData<double>::Init(rs_mask);
-    clsRasterData<double>* rs = clsRasterData<double>::Init(rs_double, true,
+    clsRasterData<double>* rs = clsRasterData<double>::Init(rs_double, false,
                                                             mask_rs, true);
     EXPECT_TRUE(rs->GetDataType() == RDT_Double);
     EXPECT_TRUE(rs->GetOutDataType() == RDT_Double);
@@ -529,8 +534,9 @@ TEST(clsRasterDataDouble, FullIO) {
     EXPECT_TRUE(rs->OutputToMongoDB(GlobalEnv->gfs_, newcorename, STRING_MAP(), false)); // Save valid data
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    clsRasterData<double>* rs_mongo = clsRasterData<double>::
-            Init(GlobalEnv->gfs_, newcorename.c_str(), true, mask_rs, true, NODATA_VALUE, opts);
+    clsRasterData<double>* rs_mongo = clsRasterData<double>::Init(GlobalEnv->gfs_, newcorename.c_str(),
+                                                                  false, mask_rs, true,
+                                                                  NODATA_VALUE, opts);
     EXPECT_NE(rs_mongo, nullptr);
     if (HasFailure()) { return; }
     for (int i = 0; i < ncells; i++) {
