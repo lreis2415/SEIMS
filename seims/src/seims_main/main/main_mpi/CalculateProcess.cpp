@@ -39,7 +39,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         mongo_client = new MongoClient(input_args->host.c_str(), input_args->port);
     } else {
         // The total number of clients that can be created from this pool is limited
-        //   by the URI option ��maxPoolSize��, default 100.
+        //   by the URI option maxPoolSize, default 100.
         mclient = mongoc_client_pool_pop(mongo_pool);
         if (!mclient) {
             throw ModelException("MongoDBClient", "Constructor",
@@ -392,7 +392,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         map<string, string> mask_opts;
         UpdateStringMap(mask_opts, HEADER_INC_NODATA, "TRUE");
         map<string, string> valid_opts;
-        UpdateStringMap(mask_opts, HEADER_INC_NODATA, "FALSE");
+        UpdateStringMap(valid_opts, HEADER_INC_NODATA, "FALSE");
+        UpdateStringMap(valid_opts, HEADER_RSOUT_DATATYPE, "FLOAT");
         CLOG(TRACE, LOG_OUTPUT) << "\tLoad 0_SUBBASIN with NoData value as mask layer...";
         FloatRaster* subbsn_lyr = FloatRaster::Init(spatial_gfs_in, "0_SUBBASIN",
                                                     true, nullptr, true,
@@ -428,9 +429,10 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                     map<string, string> opts;
                     UpdateStringMap(opts, "SCENARIO_ID", sce_str);
                     UpdateStringMap(opts, "CALIBRATION_ID", cali_str);
+                    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
                     for (auto it_sub = subset.begin(); it_sub != subset.end(); ++it_sub) {
                         string cfname = itoa(it_sub->first) + "_" + real_name;
-                        it_sub->second->usable = it_sub->second->ReadFromMongoDB(spatial_gfs_out, cfname);
+                        it_sub->second->usable = it_sub->second->ReadFromMongoDB(spatial_gfs_out, cfname, opts);
                     }
 
                     string out_fname = "0_" + real_name;

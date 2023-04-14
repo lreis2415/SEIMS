@@ -93,9 +93,11 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster
 #ifdef HAS_VARIADIC_TEMPLATES
         opts.emplace("SCENARIO_ID", itoa(m_scenarioID));
         opts.emplace("CALIBRATION_ID", itoa(m_calibrationID));
+        opts.emplace("DATATYPE_OUT", "FLOAT");
 #else
         opts.insert(make_pair("SCENARIO_ID", itoa(m_scenarioID)));
         opts.insert(make_pair("CALIBRATION_ID", itoa(m_calibrationID)));
+        opts.insert(make_pair("DATATYPE_OUT", "FLOAT")); // TODO, need to specified by output item?
 #endif
     }
     /// Filename should appended by AggregateType to avoiding the same names. By LJ, 2016-7-12
@@ -198,7 +200,7 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, IntRaster
                 gfs->RemoveFile(gfs_name);
                 int try_times = 1;
                 while (try_times <= 3) { // In case of OutputToMongo() failed on cluster, try 3 times. -LJ.
-                    if (!rs_data->OutputToMongoDB(gfs, gfs_name, opts)) {
+                    if (!rs_data->OutputToMongoDB(gfs, gfs_name, opts, false)) {
                         CLOG(WARNING, LOG_OUTPUT) << "-- The raster data " << gfs_name << " output to MongoDB FAILED!"
                         << " Try time: " << try_times;
                     } else {

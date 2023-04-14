@@ -467,7 +467,6 @@ bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, FloatRaste
         return false;
     }
     /// using emplace() if possible or insert() to make sure the successful insertion.
-	/// ����դ���ļ���,դ�����ݣ�����rs_map_������Ὣrs_map_�е�raster����ģ��
 #ifdef HAS_VARIADIC_TEMPLATES
     if (!rs_map_.emplace(remote_filename, raster_data).second) {
 #else

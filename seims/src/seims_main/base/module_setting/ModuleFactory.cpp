@@ -418,7 +418,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
 #ifndef WINDOWS
         moduleFileName = module_path + SEP + dllID + LIBSUFFIX;
 #else
-        string moduleFileName = module_path + "../lib/" + + dllID + LIBSUFFIX;
+        moduleFileName = module_path + "../lib/" + dllID + LIBSUFFIX;
 #endif
         if (!FileExists(moduleFileName)) {
             throw ModelException("ModuleFactory", "ReadDLL",

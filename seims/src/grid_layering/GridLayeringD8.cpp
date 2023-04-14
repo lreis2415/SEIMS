@@ -39,7 +39,7 @@ bool GridLayeringD8::LoadData() {
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
         flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(),
-                                          true, mask_, true, NODATA_VALUE, opts);
+                                     true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
