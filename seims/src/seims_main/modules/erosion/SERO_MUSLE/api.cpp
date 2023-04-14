@@ -28,7 +28,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_USLE_P[0], UNIT_NON_DIM, VAR_USLE_P[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_ACC[0], UNIT_NON_DIM, VAR_ACC[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SLPLEN[0], UNIT_LEN_M, VAR_SLPLEN[1], Source_ParameterDB_Optional, DT_Raster1D);
+    // mdi.AddParameter(VAR_SLPLEN[0], UNIT_LEN_M, VAR_SLPLEN[1], Source_ParameterDB_Optional, DT_Raster1D);
     mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1DInt);
 
     mdi.AddParameter(VAR_DETACH_SAND[0], UNIT_NON_DIM, VAR_DETACH_SAND[1], Source_ParameterDB, DT_Raster1D);
