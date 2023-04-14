@@ -3808,26 +3808,26 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
                 recalc_pos = !match_exactly;
                 upd_header_valid_num = recalc_pos;
                 store_fullsize = false;
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             } else { // calc_pos_ = false
                 recalc_pos = false;
                 upd_header_valid_num = false;
                 store_fullsize = false;
                 calc_pos_ = true; // use_mask_ext_ is priority
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             }
         } else { // use_mask_ext_ is false
             if (calc_pos_) {
                 recalc_pos = !match_exactly;
                 upd_header_valid_num = recalc_pos;
                 store_fullsize = false;
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             } else { // calc_pos_ = false
                 recalc_pos = false;
                 upd_header_valid_num = true;
                 store_fullsize = false;
                 calc_pos_ = true; // use_mask_ext_ is priority
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             }
         }
     } else { // within_ext is false
@@ -3837,13 +3837,13 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
                 recalc_pos = !match_exactly;
                 upd_header_valid_num = recalc_pos;
                 store_fullsize = false;
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             } else { // calc_pos_ = false
                 recalc_pos = false;
                 upd_header_valid_num = false;
                 store_fullsize = false;
                 calc_pos_ = true; // use_mask_ext_ is priority
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             }
         } else { // use_mask_ext_ is false
             upd_header_rowcol = true;
@@ -3851,15 +3851,17 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
             if (calc_pos_) {
                 recalc_pos = true;
                 store_fullsize = false;
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             } else { // calc_pos_ = false
                 recalc_pos = false;
                 store_fullsize = true;
-                recalc_subset = mask_has_subset && !match_exactly;
+                //recalc_subset = mask_has_subset && !match_exactly;
             }
         }
     }
-
+    if (mask_has_subset && !match_exactly && upd_header_rowcol) {
+        recalc_subset = true;
+    }
     // Update row and col counts in header information firstly.
     if (upd_header_rowcol) {
         UpdateHeader(headers_, HEADER_RS_NROWS, new_rows);
@@ -3969,7 +3971,7 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
         UpdateHeader(headers_, HEADER_RS_CELLSNUM, n_cells_);
     }
 
-    if (recalc_subset) { // check former assigned mask's subset
+    if (mask_has_subset) { // check former assigned mask's subset
         for (auto it = subset_.begin(); it != subset_.end();) {
             int count = 0;
             int srow = nrows;
