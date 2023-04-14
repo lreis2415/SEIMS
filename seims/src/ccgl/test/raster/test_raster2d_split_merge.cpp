@@ -7,9 +7,11 @@
  *        Since we mainly support ASC and GDAL(e.g., TIFF),
  *        value-parameterized tests of Google Test will be used.
  * \cite https://github.com/google/googletest/blob/master/googletest/samples/sample7_unittest.cc
- * \version 1.0
+ * \version 1.2
  * \authors Liangjun Zhu, zlj(at)lreis.ac.cn; crazyzlj(at)gmail.com
  * \remarks 2021-12-12 - lj - Original version.
+ *          2022-04-02 - lj - Add MongoDB supports.
+ *          2023-04-14 - lj - Update tests according to API changes of clsRasterData
  *
  */
 #include "gtest/gtest.h"
@@ -452,7 +454,7 @@ TEST_P(clsRasterData2DSplitMerge, SplitRaster) {
     filenames.emplace_back(GetParam()->raster_name2);
     filenames.emplace_back(GetParam()->raster_name3);
     int lyrs = CVT_INT(filenames.size());
-    FltRaster* rs = FltRaster::Init(filenames, true, maskrsflt_, true);
+    FltRaster* rs = FltRaster::Init(filenames, false, maskrsflt_, true);
     EXPECT_NE(nullptr, rs);
     int orglen;
     int orglyr;

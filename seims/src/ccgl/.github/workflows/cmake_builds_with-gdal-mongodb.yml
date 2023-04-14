@@ -1,4 +1,5 @@
-# Build CCGL library on native C++11 with GDAL and mongo-c-driver, and run test with CMake
+# Build CCGL library on native C++11 with GDAL and mongo-c-driver, and run unit test with CMake
+#   Doxygen documents and code coverage are also built on Linux(Ubuntu).
 
 name: Build with GDAL and MongoDB
 
@@ -30,7 +31,7 @@ jobs:
 
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # 1. https://github.com/supercharge/mongodb-github-action
     # - name: MongoDB in GitHub Actions
@@ -45,12 +46,12 @@ jobs:
     #     echo 'db'  | mongo 127.0.0.1
 
     - name: Install GDAL and mongo-c-driver
-      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev
+      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev lcov
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1 -DCODE_COVERAGE=1
 
     - name: Build
       # Build your program with the given configuration
@@ -62,12 +63,47 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
+    - name: Code coverage
+      working-directory: ${{github.workspace}}/build
+      run: make ccov-unittest
+
+    - name: Upload to CodeCov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ${{github.workspace}}/build/ccov/unittest.info
+        flags: unittest # optional
+        name: codecov-umbrella # optional
+        fail_ci_if_error: true # optional (default = false)
+        verbose: true # optional (default = false)
+
+    - name: Build Doc
+      uses: mattnotmitt/doxygen-action@v1.9.2
+      with:
+          working-directory: '.'
+          doxyfile-path: 'doc/Doxyfile.in'
+
+    - name: Build Doc in Chinese
+      uses: mattnotmitt/doxygen-action@v1.9.2
+      with:
+          working-directory: '.'
+          doxyfile-path: 'doc/Doxyfile.zh-cn.in'
+
+    - name: Deploy Doc
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: ${{ github.event.head_commit.message }}
+          disable_nojekyll: true
+          publish_branch: gh-pages
+          force_orphan: true
+          publish_dir: html
+
   build-windows:
     runs-on: windows-2019
 
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Find mongod.exe
       run: where.exe mongod.exe
@@ -90,7 +126,7 @@ jobs:
       run: |
         cd ${{github.workspace}}\.github\workflows
         ./download_mongo-c-driver.ps1 -mongoCPath ${{github.workspace}}/mongolib
-        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
 
     - name: Download GDAL
       id: pwshdowngdal
@@ -98,15 +134,15 @@ jobs:
       run: |
         cd ${{github.workspace}}\.github\workflows
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
-        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
 
     - name: Configure CMake
       shell: cmd
       run: |
         cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
-        -DGDAL_ROOT=${{ steps.pwshdowngdal.outputs.GDAL_ROOT }} ^
-        -DMONGOC_ROOT=${{ steps.pwshdownmongo.outputs.MONGOC_ROOT }} ^
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+        -DGDAL_ROOT=${{ env.GDAL_ROOT }} ^
+        -DMONGOC_ROOT=${{ env.MONGOC_ROOT }} ^
+        -DUNITTEST=1
 
     - name: Build
       shell: cmd
@@ -117,7 +153,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
       run: |
-        set PATH=${{ steps.pwshdowngdal.outputs.GDAL_BIN }};${{ steps.pwshdownmongo.outputs.MONGOC_BIN }};%PATH%
+        set PATH=${{ env.GDAL_BIN }};${{ env.MONGOC_BIN }};%PATH%
         ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
   build-mac:
@@ -151,7 +187,7 @@ jobs:
       run: brew list gdal &>/dev/null || brew install gdal
 
     - name: Checkout CCGL
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1

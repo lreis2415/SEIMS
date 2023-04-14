@@ -24,7 +24,7 @@
  *                     Add subset feature to support data decomposition and combination.
  *
  * \author Liangjun Zhu, zlj(at)lreis.ac.cn
- * \version 2.5
+ * \version 2.6
  */
 #ifndef CCGL_DATA_RASTER_H
 #define CCGL_DATA_RASTER_H
@@ -327,8 +327,13 @@ bool WriteSingleAsc(const string& filename, const STRDBL_MAP& header, T* values)
         StatusMessage("Error opening file: " + abs_filename);
         return false;
     }
-    for (int i = 0; i < header.at(HEADER_RS_NROWS) * header.at(HEADER_RS_NCOLS); ++i) {
-        raster_file << setprecision(6) << values[i] << " ";
+    int rows = CVT_INT(header.at(HEADER_RS_NROWS));
+    int cols = CVT_INT(header.at(HEADER_RS_NCOLS));
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            raster_file << setprecision(6) << values[i * cols + j] << " ";
+        }
+        raster_file << endl;
     }
     raster_file << endl;
     raster_file.close();
@@ -398,7 +403,7 @@ bool ReadRasterFileByGdal(const string& filename, STRDBL_MAP& header, T*& values
             return false;
         }
         if (read_as_signedbyte) {
-            StatusMessage("Read GDT_Byte raster as unsigned char!");
+            StatusMessage("Read GDT_Byte raster as signed char!");
             Initialize1DArray(n_rows * n_cols, char_data, uchar_data);
             Initialize1DArray(n_rows * n_cols, tmprasterdata, char_data);
             Release1DArray(char_data);
@@ -2630,7 +2635,10 @@ void clsRasterData<T, MASK_T>::SetValue(const int row, const int col, T value, c
 template <typename T, typename MASK_T>
 bool clsRasterData<T, MASK_T>::SetCalcPositions() {
     if (!ValidateRasterData()) { return false; }
-    if (calc_pos_) { return false; } // already set as True, no need to recalculate.
+    if (calc_pos_ && nullptr != pos_data_) {
+        // already set as True, no need to recalculate.
+        return false;
+    }
     calc_pos_ = true;
     return MaskAndCalculateValidPosition() >= 0;
 }
@@ -2868,7 +2876,6 @@ bool clsRasterData<T, MASK_T>::PrepareSubsetData(const int sub_id, SubsetPositio
         StatusMessage("Error: Cannot determine valid layer count!");
         return false;
     }
-    
     int nrows = sub->g_erow - sub->g_srow + 1;
     int ncols = sub->g_ecol - sub->g_scol + 1;
     if (FloatEqual(default_value, NODATA_VALUE)) {
@@ -3282,7 +3289,7 @@ bool clsRasterData<T, MASK_T>::ReadFromFiles(vector<string>& filenames, const bo
             return false;
 #endif
         }
-        if (calc_pos_) {
+        if (nullptr != pos_data_) {
 #pragma omp parallel for
             for (int i = 0; i < n_cells_; ++i) {
                 int tmp_row = pos_data_[i][0];
@@ -3596,7 +3603,6 @@ ROW_COL clsRasterData<T, MASK_T>::GetPositionByCoordinate(const double x, const 
 
 template <typename T, typename MASK_T>
 void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridData() {
-    int oldcellnumber = n_cells_;
     vector<T> values; // store 1st layer for both Rater1D and Raster2D
     vector<vector<T> > values_2d; // store layer 2~n
     vector<int> pos_rows;
@@ -3665,7 +3671,7 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridData() {
 
 template <typename T, typename MASK_T>
 int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
-    int oldcellnumber = n_cells_;
+    int old_fullsize = GetRows() * GetCols();
     if (nullptr == mask_) {
         if (calc_pos_) {
             if (nullptr == pos_data_) {
@@ -3674,7 +3680,7 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
             }
             return 0;
         }
-        n_cells_ = GetRows() * GetCols();
+        n_cells_ = old_fullsize;
         UpdateHeader(headers_, HEADER_RS_CELLSNUM, n_cells_);
         // do nothing
         return 0;
@@ -3698,7 +3704,8 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
     int min_row = mask_rows;
     int max_col = -1;
     int min_col = mask_cols;
-    int masked_count = 0;
+    int masked_count = 0; // position matched count
+    int matched_count = 0; // valid value matched count
     // Get the valid data according to coordinate
     for (int i = 0; i < mask_ncells; i++) {
         int tmp_row = valid_pos[i][0];
@@ -3712,62 +3719,55 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
                 vector<T> tmp_values(n_lyrs_ - 1);
                 for (int lyr = 1; lyr < n_lyrs_; lyr++) { tmp_values[lyr - 1] = no_data_value_; }
                 values_2d[i] = tmp_values;
-                // values_2d.emplace_back(tmp_values);
             }
             values[i] = tmp_value;
             pos_rows[i] = tmp_row;
             pos_cols[i] = tmp_col;
-            //values.emplace_back(tmp_value);
-            //pos_rows.emplace_back(tmp_row);
-            //pos_cols.emplace_back(tmp_col);
             continue;
         }
         tmp_value = GetValue(tmp_pos.first, tmp_pos.second, 1);
-        if (is_2draster && n_lyrs_ > 1) {
-            vector<T> tmp_values(n_lyrs_ - 1);
-            for (int lyr = 1; lyr < n_lyrs_; lyr++) {
-                tmp_values[lyr - 1] = GetValue(tmp_pos.first, tmp_pos.second, lyr + 1);
-                if (FloatEqual(tmp_values[lyr - 1], no_data_value_)) {
-                    tmp_values[lyr - 1] = static_cast<T>(default_value_);
-                }
-            }
-            values_2d[i] = tmp_values;
-            // values_2d.emplace_back(tmp_values);
-        }
         if (FloatEqual(tmp_value, no_data_value_)) {
             if (!FloatEqual(default_value_, no_data_value_)) {
                 tmp_value = static_cast<T>(default_value_);
+                SetValue(tmp_pos.first, tmp_pos.second, tmp_value);
             }
         } else { // the intersect extents dependent on the valid raster values
+            matched_count++;
             if (max_row < tmp_row) max_row = tmp_row;
             if (min_row > tmp_row) min_row = tmp_row;
             if (max_col < tmp_col) max_col = tmp_col;
             if (min_col > tmp_col) min_col = tmp_col;
         }
+        if (is_2draster && n_lyrs_ > 1) {
+            vector<T> tmp_values(n_lyrs_ - 1);
+            for (int lyr = 1; lyr < n_lyrs_; lyr++) {
+                tmp_values[lyr - 1] = GetValue(tmp_pos.first, tmp_pos.second, lyr + 1);
+                if (FloatEqual(tmp_values[lyr - 1], no_data_value_)
+                    && !FloatEqual(default_value_, no_data_value_)) {
+                    tmp_values[lyr - 1] = static_cast<T>(default_value_);
+                    SetValue(tmp_pos.first, tmp_pos.second, tmp_values[lyr - 1], lyr - 1);
+                }
+            }
+            values_2d[i] = tmp_values;
+        }
         values[i] = tmp_value;
         pos_rows[i] = tmp_row;
         pos_cols[i] = tmp_col;
-        //values.emplace_back(tmp_value);
-        //pos_rows.emplace_back(tmp_row);
-        //pos_cols.emplace_back(tmp_col);
         masked_count++;
     }
     if (masked_count == 0) { return -1; }
-    // 2. Handing the header information
-    // Is the valid grid extent same as the mask data, which means the mask
-    //    is within the extent of the raster data
-    bool within_ext = true;
-    int new_rows = max_row - min_row + 1;
-    int new_cols = max_col - min_col + 1;
-    if (new_rows != mask_rows || new_cols != mask_cols) {
-        within_ext = false;
-    }
-    // 2.2a Copy header of mask data
+    n_cells_ = masked_count;
+
+    // Priority Copy header of mask data, and update NoData, SRS, and Layers' count
     CopyHeader(mask_->GetRasterHeader(), headers_);
-    // DEEP Copy subset of mask data
+    UpdateHeader(headers_, HEADER_RS_NODATA, no_data_value_);
+    UpdateStrHeader(options_, HEADER_RS_SRS, mask_->GetSrsString());
+    UpdateHeader(headers_, HEADER_RS_LAYERS, n_lyrs_);
+
+    // Priority DEEP Copy subset of mask data
     map<int, SubsetPositions*>& mask_subset = mask_->GetSubset();
-    bool has_subset = !mask_subset.empty(); // if mask data has subsets
-    if (has_subset) {
+    bool mask_has_subset = !mask_subset.empty(); // if mask data has subsets
+    if (mask_has_subset) {
         ReleaseSubset();
         for (auto it = mask_subset.begin(); it != mask_subset.end(); ++it) {
             SubsetPositions* tmp = new SubsetPositions(it->second, true);
@@ -3779,13 +3779,98 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
 #endif
         }
     }
-    // 2.2b  ReCalculate the header based on the mask's header
-    if (!use_mask_ext_ && !within_ext) {
+
+    // Set several flags 
+    // Flag 1: If masked cells' count equals valid positions' count of the mask layer
+    bool match_exactly = matched_count == mask_ncells;
+    // Flag2 : Is the valid grid extent same as the mask data, which means the mask
+    //         is within the extent of the raster data
+    bool within_ext = true;
+    int new_rows = max_row - min_row + 1;
+    int new_cols = max_col - min_col + 1;
+    if (new_rows != mask_rows || new_cols != mask_cols) {
+        within_ext = false;
+    } else { // within_ext is true means
+        // masked cells' count equals valid positions' count of the mask layer
+        assert(masked_count == mask_ncells);
+    }
+    bool upd_header_rowcol = false; // need to update row and col counts in header info?
+    bool recalc_pos = false; // need to recalculate valid positions? If true, set mask to nullptr!
+    bool upd_header_valid_num = false; // need to update valid cell count in header info?
+    bool store_fullsize = false; // need to store full size raster data after masked?
+    bool recalc_subset = false; // need to recalculate subset? TODO, need more unittests
+
+    // Although this if-then may redundancy, I think this still necessary for clearly thinking.
+    if (within_ext) {
+        upd_header_rowcol = false;
+        if (use_mask_ext_) { // use_mask_ext_ has the highest priority
+            if (calc_pos_) {
+                recalc_pos = !match_exactly;
+                upd_header_valid_num = recalc_pos;
+                store_fullsize = false;
+                recalc_subset = mask_has_subset && !match_exactly;
+            } else { // calc_pos_ = false
+                recalc_pos = false;
+                upd_header_valid_num = false;
+                store_fullsize = false;
+                calc_pos_ = true; // use_mask_ext_ is priority
+                recalc_subset = mask_has_subset && !match_exactly;
+            }
+        } else { // use_mask_ext_ is false
+            if (calc_pos_) {
+                recalc_pos = !match_exactly;
+                upd_header_valid_num = recalc_pos;
+                store_fullsize = false;
+                recalc_subset = mask_has_subset && !match_exactly;
+            } else { // calc_pos_ = false
+                recalc_pos = false;
+                upd_header_valid_num = true;
+                store_fullsize = false;
+                calc_pos_ = true; // use_mask_ext_ is priority
+                recalc_subset = mask_has_subset && !match_exactly;
+            }
+        }
+    } else { // within_ext is false
+        if (use_mask_ext_) { // use_mask_ext_ has the highest priority
+            upd_header_rowcol = false;
+            if (calc_pos_) {
+                recalc_pos = !match_exactly;
+                upd_header_valid_num = recalc_pos;
+                store_fullsize = false;
+                recalc_subset = mask_has_subset && !match_exactly;
+            } else { // calc_pos_ = false
+                recalc_pos = false;
+                upd_header_valid_num = false;
+                store_fullsize = false;
+                calc_pos_ = true; // use_mask_ext_ is priority
+                recalc_subset = mask_has_subset && !match_exactly;
+            }
+        } else { // use_mask_ext_ is false
+            upd_header_rowcol = true;
+            upd_header_valid_num = true;
+            if (calc_pos_) {
+                recalc_pos = true;
+                store_fullsize = false;
+                recalc_subset = mask_has_subset && !match_exactly;
+            } else { // calc_pos_ = false
+                recalc_pos = false;
+                store_fullsize = true;
+                recalc_subset = mask_has_subset && !match_exactly;
+            }
+        }
+    }
+
+    // Update row and col counts in header information firstly.
+    if (upd_header_rowcol) {
         UpdateHeader(headers_, HEADER_RS_NROWS, new_rows);
         UpdateHeader(headers_, HEADER_RS_NCOLS, new_cols);
         headers_.at(HEADER_RS_XLL) += min_col * mask_->GetCellWidth();
         headers_.at(HEADER_RS_YLL) += (mask_rows - max_row - 1) * mask_->GetCellWidth();
         headers_.at(HEADER_RS_CELLSIZE) = mask_->GetCellWidth();
+    }
+
+    // ReCalculate valid position
+    if (recalc_pos) {
         // clean redundant values (i.e., NODATA)
         auto rit = pos_rows.begin();
         auto cit = pos_cols.begin();
@@ -3817,74 +3902,74 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
         if (is_2draster && n_lyrs_ > 1) { vector<vector<T> >(values_2d).swap(values_2d); }
         vector<int>(pos_rows).swap(pos_rows);
         vector<int>(pos_cols).swap(pos_cols);
-    }
-    // 2.3 Handling NoData, SRS, and Layers
-    UpdateHeader(headers_, HEADER_RS_NODATA, no_data_value_);
-    UpdateStrHeader(options_, HEADER_RS_SRS, mask_->GetSrsString());
-    UpdateHeader(headers_, HEADER_RS_LAYERS, n_lyrs_);
 
-    // 3. Create new raster data, and handling positions data
-    // 3.1 Determine the n_cells_, and whether to allocate new position data space
-    bool store_fullsize_array = false;
-    bool recalc_subset = has_subset;
-    if ((use_mask_ext_ || within_ext) && calc_pos_) {
-        // if pos_data_ has been initialized and calculated, release it to save memory
-        if (nullptr != pos_data_) { Release1DArray(pos_data_); }
-        mask_->GetRasterPositionData(&n_cells_, &pos_data_);
-        store_pos_ = false;
-        recalc_subset = false;
-    } else if ((!use_mask_ext_ && !within_ext && !calc_pos_) ||
-        ((use_mask_ext_ || within_ext) && !calc_pos_)) {
-        // reStore raster values as fullsize array
-        n_cells_ = GetCols() * GetRows();
-        store_fullsize_array = true;
-        store_pos_ = false;
-    } else { // reCalculate raster positions data and store
         store_pos_ = true;
         n_cells_ = CVT_INT(values.size());
+        if (nullptr != pos_data_) { Release1DArray(pos_data_); }
+        Initialize2DArray(n_cells_, 2, pos_data_, 0);
+        for (size_t k = 0; k < pos_rows.size(); ++k) {
+            pos_data_[k][0] = pos_rows.at(k);
+            pos_data_[k][1] = pos_cols.at(k);
+        }
+    } else {
+        if (nullptr != pos_data_) { Release1DArray(pos_data_); }
+        if (calc_pos_) mask_->GetRasterPositionData(&n_cells_, &pos_data_);
+        store_pos_ = false;
     }
-    UpdateHeader(headers_, HEADER_RS_CELLSNUM, n_cells_);
 
-    // 3.2 Release the original raster values, and create new
+    // Release the original raster values, and create new
     //     raster array and positions data array (if necessary)
     assert(ValidateRasterData());
-    if (is_2draster && nullptr != raster_2d_) {
-        // multiple layers
-        Release2DArray(raster_2d_);
-        Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, no_data_value_);
-    } else {
-        // single layer
-        Release1DArray(raster_);
-        Initialize1DArray(n_cells_, raster_, no_data_value_);
-    }
-    if (store_pos_) { Initialize2DArray(n_cells_, 2, pos_data_, 0); }
-
-    // 3.3 Loop the masked raster values
     int ncols = CVT_INT(headers_.at(HEADER_RS_NCOLS));
-    int synthesis_idx = -1;
-    for (size_t k = 0; k < pos_rows.size(); ++k) {
-        if (store_fullsize_array) {
-            synthesis_idx = pos_rows.at(k) * ncols + pos_cols.at(k);
-        } else if (store_pos_ && !FloatEqual(values.at(k), no_data_value_)) {
-            synthesis_idx++;
-            pos_data_[synthesis_idx][0] = pos_rows.at(k);
-            pos_data_[synthesis_idx][1] = pos_cols.at(k);
-        } else {
-            synthesis_idx++;
+    int nrows = CVT_INT(headers_.at(HEADER_RS_NROWS));
+    if (store_fullsize) {
+        n_cells_ = ncols * nrows;
+    }
+    bool release_origin = true;
+    if (store_fullsize && old_fullsize == n_cells_) {
+        release_origin = false;
+    }
+    if (release_origin) {
+        if (is_2draster && nullptr != raster_2d_) { // multiple layers
+            Release2DArray(raster_2d_);
+            Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, no_data_value_);
+        } else { // single layer
+            Release1DArray(raster_);
+            Initialize1DArray(n_cells_, raster_, no_data_value_);
         }
-        if (is_2draster) { // multiple layers
-            raster_2d_[synthesis_idx][0] = values.at(k);
-            if (n_lyrs_ > 1) {
-                for (int lyr = 1; lyr < n_lyrs_; lyr++) {
-                    raster_2d_[synthesis_idx][lyr] = values_2d[k][lyr - 1];
+        // Loop the masked raster values
+        int synthesis_idx = -1;
+        for (size_t k = 0; k < pos_rows.size(); ++k) {
+            synthesis_idx = k;
+            int tmpr = pos_rows.at(k);
+            int tmpc = pos_cols.at(k);
+            if (store_fullsize) {
+                if (tmpr > max_row || tmpr < min_row || tmpc > max_col || tmpc < min_col) {
+                    continue;
+                }
+                synthesis_idx = (tmpr - min_row) * ncols + tmpc - min_col;
+                if (synthesis_idx > n_cells_ - 1) {
+                    continue; // error may occurred!
                 }
             }
-        } else { // single layer
-            raster_[synthesis_idx] = values.at(k);
+            if (is_2draster) { // multiple layers
+                raster_2d_[synthesis_idx][0] = values.at(k);
+                if (n_lyrs_ > 1) {
+                    for (int lyr = 1; lyr < n_lyrs_; lyr++) {
+                        raster_2d_[synthesis_idx][lyr] = values_2d[k][lyr - 1];
+                    }
+                }
+            } else { // single layer
+                raster_[synthesis_idx] = values.at(k);
+            }
         }
     }
-    if (has_subset) { // check former assigned mask's subset
-        int nrows = CVT_INT(headers_.at(HEADER_RS_NROWS));
+
+    if (upd_header_valid_num) {
+        UpdateHeader(headers_, HEADER_RS_CELLSNUM, n_cells_);
+    }
+
+    if (recalc_subset) { // check former assigned mask's subset
         for (auto it = subset_.begin(); it != subset_.end();) {
             int count = 0;
             int srow = nrows;
@@ -3944,6 +4029,9 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
             }
             ++it;
         }
+    }
+    if (store_fullsize || recalc_pos) {
+        mask_ = nullptr;
     }
     return 2; // all situations that use mask data
 }

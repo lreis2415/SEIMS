@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "CCGL"
-PROJECT_NUMBER         = 2022
+PROJECT_NUMBER         = 2023
 PROJECT_BRIEF          = "简易通用地理计算库"
 PROJECT_LOGO           =
 #OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@
@@ -322,15 +322,15 @@ PERLMOD_MAKEVAR_PREFIX =
 # Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = NO
-EXPAND_ONLY_PREDEF     = NO
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = USE_MONGODB \
                          USE_GDAL \
                          SUPPORT_OMP
-EXPAND_AS_DEFINED      =
+EXPAND_AS_DEFINED      = 
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration options related to external references

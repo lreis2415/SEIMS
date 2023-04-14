@@ -130,15 +130,15 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     EXPECT_EQ(-9999, maskrs_->GetValueByIndex(3));
 
     /// Test members after constructing.
-    EXPECT_EQ(12, rs_->GetDataLength()); // m_nCells * n_lyrs_
-    EXPECT_EQ(4, rs_->GetCellNumber());  // m_nCells
+    EXPECT_EQ(6, rs_->GetDataLength()); // m_nCells * n_lyrs_
+    EXPECT_EQ(2, rs_->GetCellNumber());  // m_nCells
     
     EXPECT_EQ(-9999., rs_->GetNoDataValue());  // m_noDataValue
     EXPECT_EQ(-9999., rs_->GetDefaultValue()); // m_defaultValue
     
     EXPECT_TRUE(rs_->Initialized());           // m_initialized
     EXPECT_TRUE(rs_->Is2DRaster());            // m_is2DRaster
-    EXPECT_FALSE(rs_->PositionsCalculated());  // m_calcPositions
+    EXPECT_TRUE(rs_->PositionsCalculated());   // m_calcPositions, force set calc_pos=true
     EXPECT_FALSE(rs_->PositionsAllocated());   // m_storePositions
     EXPECT_TRUE(rs_->MaskExtented());          // m_useMaskExtent
     EXPECT_FALSE(rs_->StatisticsCalculated()); // m_statisticsCalculated
@@ -147,7 +147,7 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
 
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
-    EXPECT_EQ(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -193,52 +193,32 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     float** rs_2ddata = nullptr;
     int nlyrs = -1;
     EXPECT_TRUE(rs_->Get2DRasterData(&ncells, &nlyrs, &rs_2ddata)); // m_raster2DData
-    EXPECT_EQ(4, ncells);
+    EXPECT_EQ(2, ncells);
     EXPECT_EQ(3, nlyrs);
     EXPECT_NE(nullptr, rs_2ddata);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][0]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][1]);
+    EXPECT_FLOAT_EQ(4.f, rs_2ddata[0][0]);
+    EXPECT_FLOAT_EQ(10.f, rs_2ddata[0][1]);
     EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][2]);
-    EXPECT_FLOAT_EQ(4.f, rs_2ddata[1][0]);
-    EXPECT_FLOAT_EQ(10.f, rs_2ddata[1][1]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[1][2]);
-    EXPECT_FLOAT_EQ(5.f, rs_2ddata[2][0]);
-    EXPECT_FLOAT_EQ(11.f, rs_2ddata[2][1]);
-    EXPECT_FLOAT_EQ(16.f, rs_2ddata[2][2]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[3][0]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[3][1]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[3][2]);
-
-    // actual data stored in memory
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][0]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][1]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][2]);
-    EXPECT_FLOAT_EQ(4.f, rs_2ddata[0][3]);
-    EXPECT_FLOAT_EQ(10.f, rs_2ddata[0][4]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][5]);
-    EXPECT_FLOAT_EQ(5.f, rs_2ddata[0][6]);
-    EXPECT_FLOAT_EQ(11.f, rs_2ddata[0][7]);
-    EXPECT_FLOAT_EQ(16.f, rs_2ddata[0][8]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][9]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][10]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][11]);
+    EXPECT_FLOAT_EQ(5.f, rs_2ddata[1][0]);
+    EXPECT_FLOAT_EQ(11.f, rs_2ddata[1][1]);
+    EXPECT_FLOAT_EQ(16.f, rs_2ddata[1][2]);
 
     /** Get raster cell value by various way **/
     // Get cell value by index of raster_data_
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(-1));
-    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(0)); // by default, layer 1
-    EXPECT_FLOAT_EQ(4.f, rs_->GetValueByIndex(1));
-    EXPECT_FLOAT_EQ(5.f, rs_->GetValueByIndex(2));
+    EXPECT_FLOAT_EQ(4.f, rs_->GetValueByIndex(0)); // by default, layer 1
+    EXPECT_FLOAT_EQ(5.f, rs_->GetValueByIndex(1));
+    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(2));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(3));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(4));
-    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(0, 2)); // layer 2
-    EXPECT_FLOAT_EQ(10.f, rs_->GetValueByIndex(1, 2));
-    EXPECT_FLOAT_EQ(11.f, rs_->GetValueByIndex(2, 2));
+    EXPECT_FLOAT_EQ(10.f, rs_->GetValueByIndex(0, 2)); // layer 2
+    EXPECT_FLOAT_EQ(11.f, rs_->GetValueByIndex(1, 2));
+    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(2, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(3, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(4, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(0, 3)); // layer 3
-    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(1, 3));
-    EXPECT_FLOAT_EQ(16.f, rs_->GetValueByIndex(2, 3));
+    EXPECT_FLOAT_EQ(16.f, rs_->GetValueByIndex(1, 3));
+    EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(2, 3));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(3, 3));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValueByIndex(4, 3));
 
@@ -250,21 +230,16 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     EXPECT_EQ(nullptr, tmp_values);
     rs_->GetValueByIndex(0, tmp_values); // nullptr input, tmp_values will be initialized
     EXPECT_NE(nullptr, tmp_values);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[1]);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[2]);
-    rs_->GetValueByIndex(1, tmp_values);
     EXPECT_FLOAT_EQ(4.f, tmp_values[0]);
     EXPECT_FLOAT_EQ(10.f, tmp_values[1]);
     EXPECT_FLOAT_EQ(-9999.f, tmp_values[2]);
-    rs_->GetValueByIndex(2, tmp_values);
+    rs_->GetValueByIndex(1, tmp_values);
     EXPECT_FLOAT_EQ(5.f, tmp_values[0]);
     EXPECT_FLOAT_EQ(11.f, tmp_values[1]);
     EXPECT_FLOAT_EQ(16.f, tmp_values[2]);
-    rs_->GetValueByIndex(3, tmp_values);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[1]);
-    EXPECT_FLOAT_EQ(-9999.f, tmp_values[2]);
+    rs_->GetValueByIndex(2, tmp_values);
+    EXPECT_EQ(nullptr, tmp_values);
+
     // Get cell value by (row, col)
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValue(-1, 0));
     EXPECT_FLOAT_EQ(-9999.f, rs_->GetValue(0, 0)); // by default, layer 1
@@ -315,11 +290,11 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     EXPECT_EQ(-2, rs_->GetPosition(3.99, 7.05));
     EXPECT_EQ(-2, rs_->GetPosition(5.01, 7.00));
     EXPECT_EQ(-2, rs_->GetPosition(0.01, 5.5));
-    EXPECT_EQ(0, rs_->GetPosition(2.01, 5.1));
-    EXPECT_EQ(1, rs_->GetPosition(4.5, 5.5));
+    EXPECT_EQ(-1, rs_->GetPosition(2.01, 5.1));
+    EXPECT_EQ(0, rs_->GetPosition(4.5, 5.5));
     EXPECT_EQ(-2, rs_->GetPosition(1., 3.));
-    EXPECT_EQ(2, rs_->GetPosition(3., 3.));
-    EXPECT_EQ(3, rs_->GetPosition(5., 3.));
+    EXPECT_EQ(1, rs_->GetPosition(3., 3.));
+    EXPECT_EQ(-1, rs_->GetPosition(5., 3.));
     EXPECT_EQ(-2, rs_->GetPosition(1., 1.));
     EXPECT_EQ(-2, rs_->GetPosition(3., 1.));
     EXPECT_EQ(-2, rs_->GetPosition(5., 1.));
@@ -343,7 +318,7 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     copyrs3.Copy(rs_);
 
     // Selected tests
-    EXPECT_EQ(4, copyrs->GetCellNumber()); // m_nCells
+    EXPECT_EQ(2, copyrs->GetCellNumber()); // m_nCells
     EXPECT_EQ(3, copyrs->GetLayers());
     EXPECT_EQ(2, copyrs->GetValidNumber());
 
@@ -377,7 +352,8 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     mongors_valid->SetPositions(poslen, posdata);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);
+    mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false,
+                                   nullptr, true, NODATA_VALUE, opts);
 
     // Check the consistency of mongors and mongors_valid
     EXPECT_NE(mongors->GetCellNumber(), mongors_valid->GetCellNumber());
@@ -410,14 +386,14 @@ TEST_P(clsRasterDataTestMask2D, CalcPos) {
     EXPECT_TRUE(rs_->Is2DRaster());            // m_is2DRaster
     EXPECT_TRUE(rs_->MaskExtented());          // m_useMaskExtent
     EXPECT_FALSE(rs_->StatisticsCalculated()); // m_statisticsCalculated
-    EXPECT_FALSE(rs_->PositionsCalculated());
+    ASSERT_TRUE(rs_->PositionsCalculated());
     EXPECT_FALSE(rs_->PositionsAllocated());
     /// Calculate position data
     int valid_count;
     int** valid_positions = nullptr;
     rs_->GetRasterPositionData(&valid_count, &valid_positions);
     EXPECT_TRUE(rs_->PositionsCalculated());
-    EXPECT_TRUE(rs_->PositionsAllocated());
+    EXPECT_FALSE(rs_->PositionsAllocated());
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
