@@ -8,7 +8,7 @@
 #       Optional cmake options:
 #         -DINSTALL_PREFIX=<path/to/install>
 #         -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /usr/local/opt/llvm
-#         -DBUILD_DOC=1 means build SEIMS documentation based on doxygen
+#         -DSEIMS_DOC=1 means build SEIMS documentation based on doxygen
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2010/2013/2015, MSMPI-v8.1, GDAL-1.11.4
@@ -18,9 +18,9 @@
 #     5. macOS 10.14.5 with Clang-10.0 with Xcode, OpenMPI-4.0.1, GDAL-2.4.2 (brew installed)
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Nov. 29, 2022
+#  Latest updated: Apr 15, 2023
 #
-#  Copyright (C) 2013-2022 Lreis, IGSNRR, CAS, and NJNU
+#  Copyright (C) 2013-2023 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -71,7 +71,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 # Build documatation by doxygen
-option(BUILD_DOC "Build SEIMS documentation." OFF)
+option(SEIMS_DOC "Build SEIMS documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -216,11 +216,11 @@ ENDIF()
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
-IF(BUILD_DOC)
+IF(SEIMS_DOC)
   ADD_SUBDIRECTORY(./doc)
-  ADD_CUSTOM_TARGET(travis_doc)
-  ADD_CUSTOM_COMMAND(TARGET travis_doc
-                     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
+  # ADD_CUSTOM_TARGET(travis_doc)
+  # ADD_CUSTOM_COMMAND(TARGET travis_doc
+  #                    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
 ENDIF()
 
 ### Build platform.
@@ -283,6 +283,8 @@ STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
 STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
 STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
+
+STATUS("    Run Doxygen:" SEIMS_DOC      THEN "YES" ELSE "NO")
 
 ### Auxiliary.
 STATUS("")

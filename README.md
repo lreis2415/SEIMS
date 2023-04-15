@@ -1,3 +1,5 @@
+About {#mainpage}
+=====================
 ## SEIMS: A modular and parallelized watershed modeling framework
 
 Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
@@ -11,7 +13,9 @@ Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.e
 
 ## Build Status
 
-TODO: Use Github Actions for CI.
+[![Build on Windows using MSVC](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Windows.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Windows.yml)
+[![Build on Ubuntu using GCC](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Linux.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Linux.yml)
+[![Build on macOS using AppleClang](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml)
 
 ## Brief Introduction
 

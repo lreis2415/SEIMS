@@ -1,86 +1,70 @@
-/** \defgroup Base
- * \brief Base modules, e.g., data, util, module_setting
+/** \defgroup Base Base modules, e.g., data, util, module_setting
  *
  */
 
-/** \defgroup data
+/** \defgroup data Include data related classes, e.g. Measurement, HydroClimateData etc.
  * \ingroup Base
- * \brief Include data related classes, e.g. Measurement, HydroClimateData etc.
  *
  */
-/** \defgroup util
+/** \defgroup util Utility class for module metadata information, parameter information, etc.
  * \ingroup Base
- * \brief Utility class for module metadata information, parameter information, etc.
  *
  */
-/** \defgroup module_setting
+/** \defgroup module_setting Module settings for SEIMS
  * \ingroup Base
- * \brief Module settings for SEIMS
  *
  */
-/** \defgroup common_algorithm
+/** \defgroup common_algorithm Common used algorithms.
  * \ingroup Base
- * \brief Common used algorithms.
  */
-/** \defgroup scenarios
+/** \defgroup scenarios BMPs scenarios related.
  * \ingroup Base
- * \brief BMPs scenarios related.
  *
  */
 
-/** \defgroup Main
- * \brief Entrance for SEIMS
+/** \defgroup Main Entrance for SEIMS
  *
  */
 
-/** \defgroup seims_omp
+/** \defgroup seims_omp SEIMS OpenMP version
  * \ingroup Main
- * \brief SEIMS OpenMP version
  *
  */
-/** \defgroup seims_mpi
+/** \defgroup seims_mpi SEIMS MPI&OpenMP version
  * \ingroup Main
- * \brief SEIMS MPI&OpenMP version
  *
  */
 
-/** \defgroup Modules
- * \brief All functional modules in SEIMS
+/** \defgroup Modules All functional modules in SEIMS
  *
  */
 
-/** \defgroup Climate
+/** \defgroup Climate Climate related modules
  * \ingroup Modules
- * \brief Climate related modules
  *
  */
 
-/** \defgroup Hydrology
+/** \defgroup Hydrology Hydrology related modules
  * \ingroup Modules
- * \brief Hydrology related modules
  *
  */
 
-/** \defgroup Erosion
+/** \defgroup Erosion Erosion related modules
  * \ingroup Modules
- * \brief Erosion related modules
  *
  */
 
-/** \defgroup Nutrient
+/** \defgroup Nutrient Nutrient related modules
  * \ingroup Modules
- * \brief Nutrient related modules
  *
  */
 
-/** \defgroup Ecology
+/** \defgroup Ecology Ecology related modules
  * \ingroup Modules
- * \brief Ecology related modules
  *
  */
 
-/** \defgroup Management
+/** \defgroup Management BMPs or NPS related modules
  * \ingroup Modules
- * \brief BMPs or NPS related modules
  *
  */

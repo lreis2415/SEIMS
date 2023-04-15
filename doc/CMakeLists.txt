@@ -1,3 +1,7 @@
+# Code from RapidJSON
+# https://github.com/Tencent/rapidjson/blob/master/doc/CMakeLists.txt
+# commit/bbdf5d1d4b40891c82e5c1946d32dfc841926066 Sep 6, 2017
+#
 find_package(Doxygen)
 
 IF(NOT DOXYGEN_FOUND)
@@ -5,10 +9,11 @@ IF(NOT DOXYGEN_FOUND)
 ELSE()
     file(GLOB SOURCES ${CMAKE_CURRENT_LIST_DIR}/../seims/*
                       )
-    file(GLOB MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../doc/en/*.md
-                           ${CMAKE_CURRENT_LIST_DIR}/../doc/zh-cn/*.md
-                           ${CMAKE_CURRENT_LIST_DIR}/../doc/common/*.md)
-    # list(APPEND MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../README.md)
+    file(GLOB MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/en/*.md
+                           ${CMAKE_CURRENT_LIST_DIR}/zh-cn/*.md
+                           ${CMAKE_CURRENT_LIST_DIR}/common/*.md)
+    list(APPEND MARKDOWN_DOC ${CMAKE_CURRENT_LIST_DIR}/../README.md
+                             ${CMAKE_CURRENT_LIST_DIR}/../README.zh-cn.md)
 
     CONFIGURE_FILE(Doxyfile.in Doxyfile @ONLY)
     CONFIGURE_FILE(Doxyfile.zh-cn.in Doxyfile.zh-cn @ONLY)
@@ -23,8 +28,8 @@ ELSE()
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../
         )
 
-    add_custom_target(doc ALL DEPENDS html)
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
-        DESTINATION ${DOC_INSTALL_DIR}
-        COMPONENT doc)
+    add_custom_target(seimsdoc ALL DEPENDS html)
+#    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+#        DESTINATION ${DOC_INSTALL_DIR}
+#        COMPONENT seimsdoc)
 ENDIF()

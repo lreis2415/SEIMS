@@ -35,16 +35,6 @@ public:
     ~ItpWeightData();
 
     /*!
-     * \brief Get the weight data read from mongoDB
-     *
-     * \Deprecate Weight data should be 2DArray. Delete this function!
-     *
-     * \param[out] n Rows
-     * \param[out] data data
-     */
-    //void GetWeightData(int* n, FLTPT** data);
-
-    /*!
     * \brief Get the weight data read from mongoDB in form of 2DArray
     *
     * \param[out] n Rows

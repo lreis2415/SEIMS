@@ -64,6 +64,8 @@ dist
 # ignore doxygen files
 /doc/doxygen_*.db
 doc/html
+html
+
 #nfs files on linux
 .nfs*
 
