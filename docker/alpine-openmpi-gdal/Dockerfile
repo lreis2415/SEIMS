@@ -14,11 +14,11 @@ FROM osgeo/gdal:alpine-small-${GDAL_VERSION} as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
-# Replace alpine repository source cdn
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-
-# Setup build env
-RUN apk add --no-cache cmake make g++ openmpi-dev
+# Replace alpine repository source cdn and setup build environment
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    && apk update && apk upgrade \
+    && apk add --no-cache cmake make g++ openmpi-dev
 
 # Copy source directory
 WORKDIR /taudem_ext
@@ -41,11 +41,11 @@ RUN cd /taudem_ext \
 # # Build final image
 FROM osgeo/gdal:alpine-small-${GDAL_VERSION} as runner
 
-# Replace alpine repository source cdn
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-
-# Add OpenMPI related tools/libraries for running TauDEM
-RUN apk add --no-cache openmpi tini openssh
+# Replace alpine repository source cdn; Add OpenMPI related tools/libraries for running TauDEM
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    && apk update && apk upgrade \
+    && apk add --no-cache openmpi tini openssh
 
 # Order layers starting with less frequently varying ones
 ARG INSTALL_DIR=/taudem_ext/dist

@@ -1,6 +1,8 @@
-# TauDEM
+# TauDEM and its extensions
 ---------------------------
-[![Build with MPI and GDAL](https://github.com/lreis2415/TauDEM_ext/actions/workflows/cmake_builds_with-mpi-gdal.yml/badge.svg)](https://github.com/lreis2415/TauDEM_ext/actions/workflows/cmake_builds_with-mpi-gdal.yml)
+[![Build on Windows using MSVC](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_Windows.yml/badge.svg)](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_Windows.yml)
+[![Build on Ubuntu using GCC](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_Linux.yml/badge.svg)](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_Linux.yml)
+[![Build on macOS using AppleClang](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_macOS.yml/badge.svg)](https://github.com/lreis2415/TauDEM_ext/actions/workflows/Build_on_macOS.yml)
 
 TauDEM(Terrain Analysis Using Digital Elevation Models) is a suite of Digital Elevation Model (DEM) tools for the extraction and analysis of hydrologic information from topography as represented by a DEM.
 
