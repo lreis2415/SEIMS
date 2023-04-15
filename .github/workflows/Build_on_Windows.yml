@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Checkout SEIMS
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # - name: Start MongoDB Service
     #   # How to start MongoDB as a service on Windows runners
@@ -44,8 +44,8 @@ jobs:
       shell: pwsh
       run: |
         cd ${{github.workspace}}\.github\workflows
-        ./download_mongo-c-driver.ps1 -mongoCPath ${{github.workspace}}/mongolib
-        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+        ./download_mongo-c-driver.ps1 -mongoCPath ${{github.workspace}}\mongolib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^MONGO"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
 
     - name: Download GDAL
       id: pwshdowngdal
@@ -53,7 +53,7 @@ jobs:
       run: |
         cd ${{github.workspace}}\.github\workflows
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
-        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "::set-output name=$($_.Name)::$($_.Value)" }
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
     
     - name: Install MSMPI
       id: pwshdownmpi
@@ -80,8 +80,8 @@ jobs:
       shell: cmd
       run: |
         cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
-        -DGDAL_ROOT=${{ steps.pwshdowngdal.outputs.GDAL_ROOT }} ^
-        -DMONGOC_ROOT=${{ steps.pwshdownmongo.outputs.MONGOC_ROOT }} ^
+        -DGDAL_ROOT=${{env.GDAL_ROOT}} ^
+        -DMONGOC_ROOT=${{env.MONGOC_ROOT}} ^
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build SEIMS
@@ -93,5 +93,5 @@ jobs:
     #   working-directory: ${{github.workspace}}/build
     #   # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
     #   run: |
-    #     set PATH=${{ steps.pwshdowngdal.outputs.GDAL_BIN }};${{ steps.pwshdownmongo.outputs.MONGOC_BIN }};%PATH%
+    #     set PATH=${{ env.GDAL_BIN }};${{ env.MONGOC_BIN }};%PATH%
     #     ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure

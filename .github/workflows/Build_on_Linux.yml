@@ -52,18 +52,16 @@ jobs:
     #  run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
     - name: Build Doc in English
-      uses: mattnotmitt/doxygen-action@v1.8.18
+      uses: mattnotmitt/doxygen-action@v1.9.2
       with:
           working-directory: '.'
           doxyfile-path: 'doc/Doxyfile.in'
-          #additional-packages: gdal, mongo-c-driver
 
     - name: Build Doc in Chinese
-      uses: mattnotmitt/doxygen-action@v1.8.18
+      uses: mattnotmitt/doxygen-action@v1.9.2
       with:
           working-directory: '.'
           doxyfile-path: 'doc/Doxyfile.zh-cn.in'
-          #additional-packages: gdal, mongo-c-driver
 
     - name: Deploy Docs
       uses: peaceiris/actions-gh-pages@v3
