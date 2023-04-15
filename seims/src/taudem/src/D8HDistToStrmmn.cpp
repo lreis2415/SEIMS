@@ -1,6 +1,6 @@
 /*  D8HDistToStrmmn
 
-  The mani program to compute horizontal distance to stream based on d8 flow model.
+  The main program to compute horizontal distance to stream based on d8 flow model.
   
   David G Tarboton, Teklu K Tesfa
   Utah State University     

@@ -1,0 +1,49 @@
+# Build TauDEM_ext with MSMPI and GDAL on Windows
+
+name: Build with MSMPI and GDAL using MSVC on Windows
+
+on:
+  push:
+    paths-ignore: 
+      - 'data'
+  pull_request:
+      paths-ignore: 
+        - 'data'
+  workflow_dispatch:
+
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout TauDEM_ext
+      uses: actions/checkout@v3
+
+    - name: Setup MPI (use MS-MPI)
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: msmpi
+
+    - name: Download GDAL
+      id: pwshdowngdal
+      shell: pwsh
+      run: |
+        cd ${{github.workspace}}\.github\workflows
+        ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
+        Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
+
+    - name: Configure CMake
+      shell: cmd
+      run: |
+        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        -DGDAL_ROOT=${{env.GDAL_ROOT}} ^
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      shell: cmd
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4

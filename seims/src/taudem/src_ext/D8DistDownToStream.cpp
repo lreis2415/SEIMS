@@ -1,18 +1,18 @@
 /*  D8DistDownToStream
 
-  This function computes the distance from each grid cell moving downstream until a stream 
-  grid cell as defined by the Stream Raster grid is encountered.  The optional threshold 
-  input is to specify a threshold to be applied to the Stream Raster grid (src).  
-  Stream grid cells are defined as having src value >= the threshold, or >=1 if a 
+  This function computes the distance from each grid cell moving downstream until a stream
+  grid cell as defined by the Stream Raster grid is encountered.  The optional threshold
+  input is to specify a threshold to be applied to the Stream Raster grid (src).
+  Stream grid cells are defined as having src value >= the threshold, or >=1 if a
   threshold is not specified.
-  Distance method used to calculate the distance down to the stream include: the total straight line path (Pythagoras), 
-  the horizontal component of the straight line path, the vertical component of the straight line path, 
+  Distance method used to calculate the distance down to the stream include: the total straight line path (Pythagoras),
+  the horizontal component of the straight line path, the vertical component of the straight line path,
   or the total surface flow path.
 
   Liangjun Zhu
-  Lreis, CAS  
-  Apr 2, 2015 
-  
+  Lreis, CAS
+  Apr 2, 2015
+
 */
 
 
@@ -354,7 +354,8 @@ int vdroptostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
                 //  FLOW ALGEBRA EXPRESSION EVALUATION
                 //  If on stream
                 if (!src->isNodata(i, j) && src->getData(i, j, tempLong) >= thresh) {
-                    fdarr->setData(i, j, (float) 0.0);
+                    fdarr->setData(i, j, (float)0.0);
+                } else if (fel->isNodata(i, j)) { fdarr->setToNodata(i, j);
                 } else {
                     p->getData(i, j, k);  //  Get neighbor downstream
                     fel->getData(i, j, elev);
@@ -363,15 +364,28 @@ int vdroptostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
                     if (fdarr->isNodata(in, jn)) { fdarr->setToNodata(i, j); }
                     else {
                         fel->getData(in, jn, elevn);
-                        if (fel->isNodata(i, j) || fel->isNodata(in, jn)) {
-                            //printf("i:%d,j:%d :%f,in:%d,jn:%d  :%f\n",i,j,elev,in,jn,elevn);
-                            fdarr->setToNodata(i, j);
+                        if (fel->isNodata(in, jn)) {
+                            elevn = -9999.f;
+                            // If downstream is on stream, use the average elevation of its surrounded stream cells
+                            if (!src->isNodata(in, jn) && src->getData(in, jn, tempLong) >= thresh) {
+                                for (int ii = 1; ii <= 8; ii++) {
+                                    int ix = in + d1[ii];
+                                    int iy = jn + d2[ii];
+                                    if (!src->isNodata(ix, iy) && src->getData(ix, iy, tempLong) >= thresh && !fel->isNodata(ix, iy)) {
+                                        fel->getData(ix, iy, tempFloat);
+                                        if (elevn > tempFloat) {
+                                            elevn = tempFloat;
+                                            fdarr->setData(i, j, (float)(elev - elevn + fdarr->getData(in, jn, tempFloat)));
+                                        }
+                                        //printf("ix:%d,iy:%d, elev sum:%f\n",ix,iy, elevn);
+                                    }
+                                }
+                                if (elevn < 0.f) { fdarr->setToNodata(i, j); }
+                            } else { fdarr->setToNodata(i, j); }
                         } else {
                             fdarr->setData(i, j, (float) (elev - elevn + fdarr->getData(in, jn, tempFloat)));
                         }
-                        //fdarr->setData(i,j,(float)(dist[k]+fdarr->getData(in,jn,tempFloat)));
                     }
-
                 }
                 //  Now find upslope cells and reduce dependencies
                 for (k = 1; k <= 8; k++) {
@@ -445,7 +459,6 @@ int vdroptostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
             printf("Processors: %d\nRead time: %f\nCompute time: %f\nWrite time: %f\nTotal time: %f\n",
                    size, dataRead, compute, write, total);
         }
-
         //Brackets force MPI-dependent objects to go out of scope before Finalize is called
     }
     MPI_Finalize();
@@ -460,7 +473,7 @@ int pdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
         MPI_Comm_size(MCW, &size);
         if (rank == 0)printf("D8DistDownToStream version %s, added by Liangjun Zhu, Apr 2, 2015\n", TDVERSION);
         int i, j, in, jn;
-//		float tempFloat;
+        float tempFloat;
         short tempShort, k;
         int32_t tempLong;
         bool finished;
@@ -508,7 +521,7 @@ int pdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
         if (!pf.compareTiff(srcf)) {
             printf("File sizes do not match\n%s\n", srcfile);
             MPI_Abort(MCW, 5);
-            return 1;  //And maybe an unhappy error message
+            return 1; //And maybe an unhappy error message
         }
         src = CreateNewPartition(srcf.getDatatype(), totalX, totalY, dx, dy, srcf.getNodata());
         srcf.read(xstart, ystart, ny, nx, src->getGridPointer());
@@ -538,7 +551,7 @@ int pdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
 
         node temp;
         queue <node> que;
-        for (j = 0; j < ny; j++) { // rows
+        for (j = 0; j < ny; j++) {     // rows
             for (i = 0; i < nx; i++) { // cols
                 if (!p->isNodata(i, j)) {
                     //Set contributing neighbors to 1
@@ -576,32 +589,59 @@ int pdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
                 if (!src->isNodata(i, j) && src->getData(i, j, tempLong) >= thresh) {
                     fdh->setData(i, j, (float) 0.0);
                     fdv->setData(i, j, (float) 0.0);
-                    //fdarr->setData(i,j,(float)0.0);
                 } else if (fel->isNodata(i, j)) {
                     fdh->setToNodata(i, j);
                     fdv->setToNodata(i, j);
                 } else {
-                    p->getData(i, j, k);  //  Get neighbor downstream
+                    p->getData(i, j, k); //  Get neighbor downstream
                     fel->getData(i, j, elev);
                     in = i + d1[k];
                     jn = j + d2[k];
                     fdv->getData(in, jn, fdvv);
                     fdh->getData(in, jn, fdhv);
-                    //fdhv += sqrt(2.0)/2; // Update 2015/5/15
                     if (fdh->isNodata(in, jn)) {
                         fdh->setToNodata(i, j);
                         fdv->setToNodata(i, j);
                     } else {
+                        fel->getData(in, jn, elevn);
                         fdv->getData(in, jn, fdvv);
                         fdh->getData(in, jn, fdhv);
-                        fel->getData(in, jn, elevn);
-                        fdvv = fdvv + elev - elevn;
-                        fdhv = fdhv + dist[k];
-                        fdv->setData(i, j, fdvv);
-                        fdh->setData(i, j, fdhv);
-                        //fdarr->setData(i,j,(float)(elev - elevn + fdarr->getData(in,jn,tempFloat)));
+                        if (fel->isNodata(in, jn)) {
+                            elevn = -9999.f;
+                            // If downstream is on stream, use the average elevation of its surrounded stream cells
+                            if (!src->isNodata(in, jn) && src->getData(in, jn, tempLong) >= thresh) {
+                                for (int ii = 1; ii <= 8; ii++) {
+                                    int ix = in + d1[ii];
+                                    int iy = jn + d2[ii];
+                                    if (!src->isNodata(ix, iy) && src->getData(ix, iy, tempLong) >= thresh && !fel->isNodata(ix, iy)) {
+                                        fel->getData(ix, iy, tempFloat);
+                                        if (elevn > tempFloat) {
+                                            elevn = tempFloat;
+                                            fdvv += elev - elevn;
+                                            fdhv += dist[k];
+                                            fdv->setData(i, j, fdvv);
+                                            fdh->setData(i, j, fdhv);
+                                        }
+                                        //printf("ix:%d,iy:%d, elev sum:%f\n", ix, iy, elevn);
+                                    }
+                                }
+                                if (elevn < 0.f) {
+                                    fdh->setToNodata(i, j);
+                                    fdv->setToNodata(i, j);
+                                }
+                            }
+                            else {
+                                fdh->setToNodata(i, j);
+                                fdv->setToNodata(i, j);
+                            }
+                        }
+                        else {
+                            fdvv += elev - elevn;
+                            fdhv += dist[k];
+                            fdv->setData(i, j, fdvv);
+                            fdh->setData(i, j, fdhv);
+                        }
                     }
-
                 }
                 //  Now find upslope cells and reduce dependencies
                 for (k = 1; k <= 8; k++) {
@@ -761,11 +801,6 @@ int sdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
         //Record time reading files
         double readt = MPI_Wtime();
 
-        //Create empty partition to store horizontal and vertical distance information
-        /*tdpartition *fdh;
-        tdpartition *fdv;
-        fdh = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dx, dy, MISSINGFLOAT);
-        fdv = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dx, dy, MISSINGFLOAT);*/
         //Create empty partition to store surface distance information
         tdpartition *fdarr;
         fdarr = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dx, dy, MISSINGFLOAT);
@@ -803,8 +838,6 @@ int sdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
         fel->share();
         src->share();
         fdarr->share();
-        //fdh->share();
-        //fdv->share();
         neighbor->clearBorders();
 
         finished = false;
@@ -819,20 +852,45 @@ int sdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
                 //  FLOW ALGEBRA EXPRESSION EVALUATION
                 //  If on stream
                 if (!src->isNodata(i, j) && src->getData(i, j, tempLong) >= thresh) {
-                    //fdh->setData(i,j,(float)0.0);
-                    //fdv->setData(i,j,(float)0.0);
-                    fdarr->setData(i, j, (float) 0.0);
+                    fdarr->setData(i, j, (float)0.0);
+                } else if (fel->isNodata(i, j)) {
+                    fdarr->setToNodata(i, j);
                 } else {
-                    p->getData(i, j, k);  //  Get neighbor downstream
+                    p->getData(i, j, k); //  Get neighbor downstream
                     fel->getData(i, j, elev);
                     in = i + d1[k];
                     jn = j + d2[k];
-                    if (fel->isNodata(in, jn)) { fdarr->setToNodata(i, j); }
+                    if (fdarr->isNodata(in, jn)) { fdarr->setToNodata(i, j); }
                     else {
                         fel->getData(in, jn, elevn);
-                        fdarr->getData(in, jn, fdsv);
-                        fdsv = fdsv + sqrt((float) (elev - elevn) * (elev - elevn) + dist[k] * dist[k]);
-                        fdarr->setData(i, j, fdsv);
+                        if (fel->isNodata(in, jn)) {
+                            elevn = -9999.f;
+                            // If downstream is on stream, use the average elevation of its surrounded stream cells
+                            if (!src->isNodata(in, jn) && src->getData(in, jn, tempLong) >= thresh) {
+                                for (int ii = 1; ii <= 8; ii++) {
+                                    int ix = in + d1[ii];
+                                    int iy = jn + d2[ii];
+                                    if (!src->isNodata(ix, iy) && src->getData(ix, iy, tempLong) >= thresh && !fel->isNodata(ix, iy)) {
+                                        fel->getData(ix, iy, tempFloat);
+                                        if (elevn > tempFloat) {
+                                            elevn = tempFloat;
+                                            fdarr->getData(in, jn, fdsv);
+                                            fdsv += sqrt((float)(elev - elevn) * (elev - elevn) + dist[k] * dist[k]);
+                                            fdarr->setData(i, j, fdsv);
+                                        }
+                                        //printf("ix:%d,iy:%d, elev sum:%f\n", ix, iy, elevn);
+                                    }
+                                }
+                                if (elevn < 0) { fdarr->setToNodata(i, j); }
+                            }
+                            else { fdarr->setToNodata(i, j); }
+                        }
+                        else {
+                            fel->getData(in, jn, elevn);
+                            fdarr->getData(in, jn, fdsv);
+                            fdsv += sqrt((float)(elev - elevn) * (elev - elevn) + dist[k] * dist[k]);
+                            fdarr->setData(i, j, fdsv);
+                        }
                     }
                 }
                 //  Now find upslope cells and reduce dependencies

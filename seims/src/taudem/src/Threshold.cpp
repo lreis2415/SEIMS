@@ -1,15 +1,15 @@
 /*  Threshold function to evaluate grid cells >= input threshold value.
-     
+
   David Tarboton, Teklu Tesfa
-  Utah State University  
-  May 23, 2010 
+  Utah State University
+  May 23, 2010
 
 */
 
 /*  Copyright (C) 2010  David Tarboton, Utah State University
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License 
+modify it under the terms of the GNU General Public License
 version 2, 1991 as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
@@ -17,23 +17,23 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-A copy of the full GNU General Public License is included in file 
+A copy of the full GNU General Public License is included in file
 gpl.html. This is also available at:
 http://www.gnu.org/copyleft/gpl.html
 or from:
-The Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+The Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
-If you wish to use or incorporate this program (or parts of it) into 
-other software that does not meet the GNU General Public License 
+If you wish to use or incorporate this program (or parts of it) into
+other software that does not meet the GNU General Public License
 conditions contact the author to request permission.
-David G. Tarboton  
-Utah State University 
-8200 Old Main Hill 
-Logan, UT 84322-8200 
-USA 
-http://www.engineering.usu.edu/dtarb/ 
-email:  dtarb@usu.edu 
+David G. Tarboton
+Utah State University
+8200 Old Main Hill
+Logan, UT 84322-8200
+USA
+http://www.engineering.usu.edu/dtarb/
+email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
@@ -108,7 +108,7 @@ int threshold(char *ssafile, char *srcfile, char *maskfile, float thresh, int us
         if (usemask == 1) maskData->share();
         src->clearBorders();
 
-// Compute sa		
+// Compute sa
         for (j = 0; j < ny; j++) {
             for (i = 0; i < nx; i++) {
 
@@ -123,9 +123,15 @@ int threshold(char *ssafile, char *srcfile, char *maskfile, float thresh, int us
                 } else {
                     if (ssaData->isNodata(i, j)) { src->setToNodata(i, j); }
                     else {
-                        ssaData->getData(i, j, tempssa);
-                        tempsrc = (tempssa >= thresh) ? 1 : 0;
-                        src->setData(i, j, tempsrc);
+                        // Exclude the boundary cells
+                        int gx, gy;
+                        ssaData->localToGlobal(i, j, gx, gy);
+                        if (gx == 0 || gx == totalX - 1 || gy == 0 || gy == totalY - 1) { src->setToNodata(i, j); }
+                        else {
+                            ssaData->getData(i, j, tempssa);
+                            tempsrc = (tempssa >= thresh) ? 1 : 0;
+                            src->setData(i, j, tempsrc);
+                        }
                     }
                 }
             }
