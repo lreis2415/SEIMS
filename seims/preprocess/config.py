@@ -77,6 +77,7 @@ class PreprocessConfig(object):
         self.fields_partition = False
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
+        self.conceptual_structure = None
         # 5. Option parameters
         self.acc_thresh = 0
         self.np = 4
@@ -134,33 +135,33 @@ class PreprocessConfig(object):
         self.paramcfgs = ModelParamDataUtils(self.prepscript_dir + os.path.sep + 'database')
 
         if not self.clim_dir or not FileClass.is_dir_exists(self.clim_dir):
-            print('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
+            print('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.path.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
-                raise IOError('Directory named "climate" MUST BE located in [base_dir]!')
+                raise IOError('Preprocess configuration file error! Nor is the CLIMATE_DATA_DIR specified, or the default folder named "climate" exist in BASE_DATA_DIR.')
 
         if not self.spatial_dir or not FileClass.is_dir_exists(self.spatial_dir):
-            print('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
+            print('The SPATIAL_DATA_DIR is not specified or does not exist. Try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.path.sep + 'spatial'
             if not FileClass.is_dir_exists(self.spatial_dir):
-                raise IOError('Directory named "spatial" MUST BE located in [base_dir]!')
+                raise IOError('Preprocess configuration file error! Nor is the SPATIAL_DATA_DIR specified, or the default folder named "spatial" exist in BASE_DATA_DIR.')
 
         if not self.txt_db_dir or not FileClass.is_dir_exists(self.txt_db_dir):
-            print('The TXT_DB_DIR is not existed, try the default folder name "lookup".')
+            print('The TXT_DB_DIR is not specified or does not exist. Try the default folder name "lookup".')
             self.txt_db_dir = self.base_dir + os.path.sep + 'lookup'
             if not FileClass.is_dir_exists(self.txt_db_dir):
                 self.txt_db_dir = None
 
         if not self.observe_dir or not FileClass.is_dir_exists(self.observe_dir):
-            print('The MEASUREMENT_DATA_DIR is not existed, '
-                  'try the default folder name "observed".')
+            print('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
+                  'Try the default folder name "observed".')
             self.observe_dir = self.base_dir + os.path.sep + 'observed'
             if not FileClass.is_dir_exists(self.observe_dir):
                 self.observe_dir = None
                 self.use_observed = False
 
         if not self.scenario_dir or not FileClass.is_dir_exists(self.scenario_dir):
-            print('The BMP_DATA_DIR is not existed, try the default folder name "scenario".')
+            print('The BMP_DATA_DIR is not specified or does not exist. Try the default folder name "scenario".')
             self.scenario_dir = self.base_dir + os.path.sep + 'scenario'
             if not FileClass.is_dir_exists(self.scenario_dir):
                 self.scenario_dir = None
@@ -175,7 +176,7 @@ class PreprocessConfig(object):
             self.scenario_db = get_option_value(cf, 'MONGODB',
                                                 ['bmpscenariodbname', 'scenariodbname'])
         else:
-            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
+            raise ValueError('[MONGODB] section MUST be specified in *.ini file.')
         # build a global connection to mongodb database
         self.client = ConnectMongoDB(self.hostname, self.port)
         self.conn = self.client.get_conn()  # type: MongoClient
@@ -202,7 +203,7 @@ class PreprocessConfig(object):
                                                      'meteodatafile', required=True))
             self.thiessen_field = get_option_value(cf, 'CLIMATE', 'thiessenidfield', str, 'ID')
         else:
-            raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')
+            raise ValueError('Climate input file names MUST be specified in [CLIMATE]!')
 
         # 4. Spatial Input
         if 'SPATIAL' in cf.sections():
@@ -239,8 +240,13 @@ class PreprocessConfig(object):
                 if thsv is not None:
                     self.fields_partition_thresh = [int(v) for v in thsv]
                     self.fields_partition = True
+
+            # Conceptual strucutre
+            if cf.has_option('SPATIAL', 'conceptualModelStructureConfig'):
+                self.conceptual_structure = pjoin(self.spatial_dir, get_option_value(cf, 'SPATIAL', 'conceptualModelStructureConfig'))
+
         else:
-            raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
+            raise ValueError('Spatial input file names MUST be specified in [SPATIAL]!')
 
         # 5. Optional parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():

@@ -246,6 +246,8 @@ class ImportWeightData(object):
         clim_db_name = site_list[FieldNames.db]
         p_list = site_list.get(FieldNames.site_p)
         m_list = site_list.get(FieldNames.site_m)
+        if not p_list or not m_list:
+            raise RuntimeError('No pcp or meteo station information in SITELIST for subbasin %d!' % subbsn_id)
         pet_list = site_list.get(FieldNames.site_pet)
         # print(p_list)
         # print(m_list)

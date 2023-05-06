@@ -44,7 +44,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     string file_cfg = input_args->model_path + SEP + File_Config;
     //string cfgNames[] = {file_in, file_out, file_cfg};
     if (!FileExists(file_cfg)) {
-        LOG(ERROR) << file_cfg << " does not exist or has not the read permission!";
+        LOG(ERROR) << file_cfg << " does not exist or has no read permission!";
         return nullptr;
     }
     /// Read module configuration file

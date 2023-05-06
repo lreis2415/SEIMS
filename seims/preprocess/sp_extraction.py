@@ -11,6 +11,9 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+
+from preprocess.sp_conceptual_model_distribution import get_conceptual_model_distribution
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -21,6 +24,7 @@ from preprocess.sp_terrain import TerrainUtilClass
 
 def extract_spatial_parameters(cfg):
     """Main entrance for spatial parameters extraction."""
+    are_subbasin_models_conceptual = get_conceptual_model_distribution(cfg)
     # 1. Soil related
     SoilUtilClass.parameters_extraction(cfg)
     # 2. Landuse/Landcover related

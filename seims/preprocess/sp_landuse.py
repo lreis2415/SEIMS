@@ -188,7 +188,7 @@ class LanduseUtilClass(object):
         """Generate CN2 raster."""
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
-            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+            raise RuntimeError("LanduseLoop Collection does not exist or is empty!")
         # cn2 list for each landuse type and hydrological soil group
         cn2_map = dict()
         for row in query_result:
@@ -208,12 +208,12 @@ class LanduseUtilClass(object):
         def cal_cn2(lucc_id, hg):
             """Calculate CN2 value from landuse ID and Hydro Group number."""
             lucc_id = int(lucc_id)
-            if lucc_id < 0 or MathClass.floatequal(lucc_id, nodata_value):
+            if lucc_id < 0 or MathClass.floatequal(lucc_id, nodata_value) or hg == DEFAULT_NODATA:
                 return DEFAULT_NODATA
             else:
                 hg = int(hg) - 1
                 if lucc_id not in cn2_map:
-                    print("lucc %d not existed in cn2 lookup table!" % lucc_id)
+                    print("lucc %d does not exist in cn2 lookup table!" % lucc_id)
                     return DEFAULT_NODATA
                 return cn2_map[lucc_id][hg]
 

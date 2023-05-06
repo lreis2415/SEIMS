@@ -1,0 +1,9 @@
+### FORMAT
+### MODULE NO. | PROCESS NAME | METHOD NAME | MODULE ID
+### Driver factors, including climate and precipitation
+0 | TimeSeries | | TSD_RD
+0 | Interpolation_0 | Thiessen | ITP
+### Surface processes
+0 | PET | PenmanMonteith | PET_H
+0 | Interception | Maximum Canopy Storage | PI_MCS
+0 | Conceptual Model | | GR4J
