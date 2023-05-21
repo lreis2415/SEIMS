@@ -54,7 +54,7 @@ jobs:
     - name: Build and Install SEIMS
       run: |
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
-        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Cache conda
       uses: actions/cache@v3
