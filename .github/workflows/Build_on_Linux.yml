@@ -66,20 +66,16 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
           publish_dir: html
-
-  setup_mongodb:
+          
+  setup_running_env:
     needs: build
     runs-on: ubuntu-latest
-
     services:
       mongodb:
         image: mongo
         ports:
           - 27017:27017
-          
-  setup_py_env:
-    needs: build
-    runs-on: ubuntu-latest
+
     steps:
       - name: Cache conda
         uses: actions/cache@v3
@@ -108,7 +104,7 @@ jobs:
           python pyseims_check.py
 
   run_demo_youwuzhen:
-    needs: setup_py_env
+    needs: setup_running_env
     runs-on: ubuntu-latest
     steps:
       - name: Bash
