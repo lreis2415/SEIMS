@@ -55,26 +55,32 @@ jobs:
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
         Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
     
-    - name: Install MSMPI
-      id: pwshdownmpi
-      shell: pwsh
-      run: |
-        cd ${{ github.workspace }}\\.github\workflows
-        ./setup_msmpi.ps1
+    - name: Setup MSMPI
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: mpich
 
-    - name: Show MPI info
-      shell: pwsh
-      run: |
-        Write-Host MSMPI_BIN=$Env:MSMPI_BIN
-        Write-Host MSMPI_INC=$Env:MSMPI_INC
-        Write-Host MSMPI_LIB32=$Env:MSMPI_LIB32
-        Write-Host MSMPI_LIB64=$Env:MSMPI_LIB64
+    # Previous code, now changed to use mpi4py/setup-mpi action.
+    # - name: Install MSMPI
+    #   id: pwshdownmpi
+    #   shell: pwsh
+    #   run: |
+    #     cd ${{ github.workspace }}\\.github\workflows
+    #     ./setup_msmpi.ps1
 
-    - name: Help MPI executor
-      shell: pwsh
-      run: |
-        mpiexec /help2
-        mpiexec /help3
+    # - name: Show MPI info
+    #   shell: pwsh
+    #   run: |
+    #     Write-Host MSMPI_BIN=$Env:MSMPI_BIN
+    #     Write-Host MSMPI_INC=$Env:MSMPI_INC
+    #     Write-Host MSMPI_LIB32=$Env:MSMPI_LIB32
+    #     Write-Host MSMPI_LIB64=$Env:MSMPI_LIB64
+
+    # - name: Help MPI executor
+    #   shell: pwsh
+    #   run: |
+    #     mpiexec /help2
+    #     mpiexec /help3
 
     - name: Configure CMake
       shell: cmd

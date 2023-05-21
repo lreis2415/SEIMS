@@ -32,8 +32,13 @@ jobs:
     - name: Checkout SEIMS
       uses: actions/checkout@v3
 
-    - name: Install GDAL, mongo-c-driver, and OpenMPI
-      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev openmpi-bin libopenmpi-dev
+    - name: Install GDAL and mongo-c-driver
+      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev
+    
+    - name: Setup MSMPI
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: mpich
 
     - name: Checkout SEIMS
       uses: actions/checkout@v3

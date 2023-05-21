@@ -42,8 +42,14 @@ jobs:
     - name: Install GDAL
       run: brew list gdal &>/dev/null || brew install gdal
 
-    - name: Install MPI
-      run: brew list openmpi &>/dev/null || brew install openmpi
+    - name: Setup MSMPI
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: openmpi
+
+    # Previous code, now changed to use mpi4py/setup-mpi action.
+    # - name: Install MPI
+    #   run: brew list openmpi &>/dev/null || brew install openmpi
 
     - name: Checkout SEIMS
       uses: actions/checkout@v3
