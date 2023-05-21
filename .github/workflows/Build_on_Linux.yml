@@ -20,8 +20,14 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  setup_build_env:
+  build_test_on_linux:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
     steps:
     - name: Checkout SEIMS
       uses: actions/checkout@v3
@@ -29,10 +35,6 @@ jobs:
     - name: Install GDAL, mongo-c-driver, and OpenMPI
       run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev openmpi-bin libopenmpi-dev
 
-  build:
-    needs: setup_build_env
-    runs-on: ubuntu-latest
-    steps:
     - name: Checkout SEIMS
       uses: actions/checkout@v3
 
@@ -64,59 +66,37 @@ jobs:
           commit_message: ${{ github.event.head_commit.message }}
           publish_branch: gh-pages
           force_orphan: true
-          publish_dir: html
-          
-  setup_running_env:
-    needs: build
-    runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
+          publish_dir: html 
+    
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('envs/py39seims_env.yml') }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: py39seims
+        environment-file: envs/py39seims_env.yml
+        auto-activate-base: false
+        auto-update-conda: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-    steps:
-      - name: Checkout SEIMS
-        uses: actions/checkout@v3
-      - name: Cache conda
-        uses: actions/cache@v3
-        env:
-          # Increase this value to reset cache if etc/example-environment.yml has not changed
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('envs/py39seims_env.yml') }}
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: py39seims
-          environment-file: envs/py39seims_env.yml
-          auto-activate-base: false
-          auto-update-conda: true
-          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
-
-      - name: Bash
-        shell: bash -el {0}
-        run: |
-          #conda info
-          #conda list
-          #printenv | sort
-          cd seims
-          python pyseims_check.py
-
-  run_demo_youwuzhen:
-    needs: setup_running_env
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout SEIMS
-        uses: actions/checkout@v3
-      - name: Bash
-        shell: bash -el {0}
-        run: |
-          cd seims/test
-          python demo_preprocess.py -name youwuzhen
-          python demo_runmodel.py -name youwuzhen
-          python demo_postprocess.py -name youwuzhen
-          python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
-          python -m scoop -n 2 demo_calibration.py -name youwuzhen
-          python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen
+    - name: Bash
+      shell: bash -el {0}
+      run: |
+        #conda info
+        #conda list
+        #printenv | sort
+        cd seims
+        python pyseims_check.py
+        cd test
+        python demo_preprocess.py -name youwuzhen
+        python demo_runmodel.py -name youwuzhen
+        python demo_postprocess.py -name youwuzhen
+        python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+        python -m scoop -n 2 demo_calibration.py -name youwuzhen
+        python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen

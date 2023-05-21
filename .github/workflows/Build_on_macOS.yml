@@ -29,12 +29,12 @@ jobs:
     - name: Setup xcode
       uses: maxim-lobanov/setup-xcode@v1
 
-    # - name: Check mongod
-    #   run: |
-    #     which mongod
-    #     cat /usr/local/etc/mongod.conf
-    # - name: Start mongod manually
-    #   run: mongod --config /usr/local/etc/mongod.conf --fork
+    - name: Check mongod
+      run: |
+        which mongod
+        cat /usr/local/etc/mongod.conf
+    - name: Start mongod manually
+      run: mongod --config /usr/local/etc/mongod.conf --fork
 
     - name: Install mongo-c-driver
       run: brew install mongo-c-driver
@@ -54,6 +54,35 @@ jobs:
     - name: Build SEIMS
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
 
-    # - name: Test
-    #   working-directory: ${{github.workspace}}/build
-    #   run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('envs/py39seims_env.yml') }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: py39seims
+        environment-file: envs/py39seims_env.yml
+        auto-activate-base: false
+        auto-update-conda: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: Bash
+      shell: bash -el {0}
+      run: |
+        #conda info
+        #conda list
+        #printenv | sort
+        cd seims
+        python pyseims_check.py
+        cd test
+        python demo_preprocess.py -name youwuzhen
+        python demo_runmodel.py -name youwuzhen
+        python demo_postprocess.py -name youwuzhen
+        python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+        python -m scoop -n 2 demo_calibration.py -name youwuzhen
+        python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen

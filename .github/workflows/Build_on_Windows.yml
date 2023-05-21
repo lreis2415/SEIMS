@@ -88,10 +88,35 @@ jobs:
       shell: cmd
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4
 
-    # - name: Test
-    #   shell: cmd
-    #   working-directory: ${{github.workspace}}/build
-    #   # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
-    #   run: |
-    #     set PATH=${{ env.GDAL_BIN }};${{ env.MONGOC_BIN }};%PATH%
-    #     ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('envs/py39seims_env.yml') }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: py39seims
+        environment-file: envs/py39seims_env.yml
+        auto-activate-base: false
+        auto-update-conda: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: PowerShell Core
+      shell: pwsh
+      run: |
+        conda info
+        conda list
+        dir env: | %{"{0}={1}" -f $_.Name,$_.Value}
+        cd seims
+        python pyseims_check.py
+        cd test
+        python demo_preprocess.py -name youwuzhen
+        python demo_runmodel.py -name youwuzhen
+        python demo_postprocess.py -name youwuzhen
+        python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+        python -m scoop -n 2 demo_calibration.py -name youwuzhen
+        python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen
