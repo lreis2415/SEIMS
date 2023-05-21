@@ -96,16 +96,16 @@ jobs:
       with:
         path: ~/conda_pkgs_dir
         key:
-          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('envs/py39seims_env.yml') }}
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/py39seims_env.yml') }}
     - uses: conda-incubator/setup-miniconda@v2
       with:
         activate-environment: py39seims
-        environment-file: envs/py39seims_env.yml
+        environment-file: seims/py39seims_env.yml
         auto-activate-base: false
         auto-update-conda: true
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-    - name: PowerShell Core
+    - name: Run SEIMS on demo data
       shell: pwsh
       run: |
         conda info
