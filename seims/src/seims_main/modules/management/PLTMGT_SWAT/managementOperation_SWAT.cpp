@@ -458,8 +458,10 @@ void MGTOpt_SWAT::SetScenario(Scenario* sce) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
         if (it->first / 100000 != BMP_TYPE_PLANT_MGT) { continue; }
         /// calculate unique index for the key of m_mgtFactory, using Landuse_ID * 100 + subScenario
+        // Bugs fixed when using AppleClang here. 05/22/2023. By LJ.
+        //   BMPFactory should have a destructor defined and implemented in cpp, although nothing to do!
         BMPPlantMgtFactory* tmpPltFactory = dynamic_cast<BMPPlantMgtFactory *>(it->second);
-        //m_landuseMgtOp.insert(tmpPltFactory->GetLUCCID());
+        assert (nullptr != tmpPltFactory);
         if (m_subSceneID < 0) m_subSceneID = it->second->GetSubScenarioId();
         int uniqueIdx = tmpPltFactory->GetLUCCID() * 100 + m_subSceneID;
         m_mgtFactory[uniqueIdx] = tmpPltFactory;
@@ -877,6 +879,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, c
 	 */
     //initializeFertilizerLookup();
     FertOp* curOperation = dynamic_cast<FertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    assert(nullptr != curOperation);
     /// fertilizer type, ifrt
     int fertilizerID = curOperation->FertilizerID();
     /// kg/ha         |amount of fertilizer applied to HRU
