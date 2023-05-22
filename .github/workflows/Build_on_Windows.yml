@@ -94,11 +94,11 @@ jobs:
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
     - name: Run SEIMS on demo data
-      shell: pwsh
+      shell: cmd
       run: |
-        conda info
-        conda list
-        dir env: | %{"{0}={1}" -f $_.Name,$_.Value}
+        #conda info
+        #conda list
+        #dir env: | %{"{0}={1}" -f $_.Name,$_.Value}
         cd seims
         python pyseims_check.py
         cd test
