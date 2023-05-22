@@ -8,7 +8,7 @@ using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_path_(input_args->model_path),
-    lyr_method_(input_args->lyr_mtd), fdir_method_(input_args->fdir_mtd), subbasin_id_(subbasin_id),
+    fdir_method_(input_args->fdir_mtd), lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
     scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
     mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
     thread_num_(input_args->thread_num),

@@ -13,7 +13,7 @@ INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, const char** argv) {
     /// Parse input arguments
-    InputArgs* input_args = InputArgs::Init(argc, argv);
+    InputArgs* input_args = InputArgs::Init(argc, argv, true);
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
 
     /// Register GDAL

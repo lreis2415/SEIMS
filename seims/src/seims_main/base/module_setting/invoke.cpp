@@ -2,21 +2,27 @@
 
 #include <text.h>
 
-void Usage(const string& appname, const string& error_msg = "") {
+void Usage(const string& appname, const string& error_msg) {
     if (!error_msg.empty()) {
         cout << "FAILURE: " << error_msg << endl;
     }
     string corename = GetCoreFileName(appname);
     bool mpi_version = corename.find("mpi") != string::npos;
-    cout << "Simple Usage:\n    " << appname <<
-            // Common arguments
-            " <modelPath> [<threadsNum> <layeringMethod> <flowDirMethod> <IP> <port> <scenarioID> <calibrationID>"
-            // For MPI version or Field version
-            " <subbasinID>"
-            // MPI version arguments,
-            // " <groupMethod> <scheduleMethod> <timeSlices>"
-            "]" << endl;
-    cout << "\t<modelPath> is the path of the SEIMS-based watershed model." << endl;
+    cout << "Complete and recommended Usage:\n";
+    if (mpi_version) {
+        cout << "<executable of MPI (e.g., mpiexec and mpirun)> -hosts(or machinefile, configfile, etc) "
+                "<hosts_list_file> -n <process numbers> ";
+    }
+    cout << appname << " -wp <modelPath> [-cfg <configName>"
+            " -thread <threadsNum> -lyr <layeringMethod> -fdir <flowDirMethod>"
+            " -host <IP> -port <port>"
+            " -sce <scenarioID> -cali <calibrationID>"
+            " -id <subbasinID>" // For MPI version or testing execution of a single subbasin
+            // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"
+            " -ll <logLevel>"
+            "]\n";
+    cout << "\t<modelPath> is the path of the SEIMS-based watershed model.\n";
+    cout << "\t<configName> is the config name of specific model.\n";
     cout << "\t<threadsNum> is the number of thread used by OpenMP, which must be greater or equal than 1 (default).\n";
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively.\n";
     cout << "\t<flowDirMethod> can be 0, 1, and 2, which means D8 (default), Dinf, and MFDmd, respectively.\n";
@@ -33,28 +39,15 @@ void Usage(const string& appname, const string& error_msg = "") {
     //         "SPATIAL (default) and TEMPOROSPATIAL, respectively.\n";
     // cout << "\t<timeSlices> should be greater than 1, required when <scheduleMethod> is 1.\n";
     cout << "\t<logLevel> is the logging level: Trace, Debug, Info (default), Warning, Error, and Fatal.\n\n";
-    cout << "Complete and recommended Usage:\n    ";
-    if (mpi_version) {
-        cout << "<executable of MPI (e.g., mpiexec and mpirun)> -hosts(or machinefile, configfile, etc) "
-                "<hosts_list_file> -n <process numbers> " << appname;
-    } else {
-        cout << appname;
-    }
-    cout << " -wp <modelPath> [-thread <threadsNum> -lyr <layeringMethod> -fdir <flowDirMethod>"
-            " -host <IP> -port <port>"
-            " -sce <scenarioID> -cali <calibrationID>"
-            " -id <subbasinID>"
-            // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"
-            " -ll <logLevel>"
-            "]\n";
     exit(1);
 }
 
-InputArgs* InputArgs::Init(const int argc, const char** argv) {
+InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/* = false*/) {
     string model_path;
+    string model_cfgname = "";
     int num_thread = 1;
-    LayeringMethod layering_method = UP_DOWN;
     FlowDirMethod flowdir_method = D8;
+    LayeringMethod layering_method = UP_DOWN;
     string mongodb_ip = "127.0.0.1";
     vuint16_t port = 27017;
     int scenario_id = -1;    /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
@@ -66,38 +59,28 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
     int time_slices = -1;
     string log_level = "Info";
     /// Parse input arguments.
-    int i = 0;
+    int i = 1;
     char* strend = nullptr;
     errno = 0;
-    if (argc < 2) {
-        Usage(argv[0], "To run the program, use either the Simple Usage option or "
+    if (argc < 3) {
+        Usage(argv[0], "To run the program, please use "
               "the Complete Usage option as below.");
         return nullptr;
-    }
-
-    if (argc >= 2 && argv[1][0] != '-') {
-        // old style, i.e., arguments arranged in a fixed order
-        model_path = argv[1];
-        if (argc >= 3) num_thread = strtol(argv[2], &strend, 10);
-        if (argc >= 4) layering_method = static_cast<LayeringMethod>(strtol(argv[3], &strend, 10));
-        if (argc >= 5) flowdir_method = static_cast<FlowDirMethod>(strtol(argv[4], &strend, 10));
-        if (argc >= 6) mongodb_ip = argv[5];
-        if (argc >= 7) port = static_cast<vuint16_t>(strtol(argv[6], &strend, 10));
-        if (argc >= 8) scenario_id = strtol(argv[7], &strend, 10);
-        if (argc >= 9) calibration_id = strtol(argv[8], &strend, 10);
-        if (argc >= 10) subbasin_id = strtol(argv[9], &strend, 10);
-        //if (argc >= 11) group_method = static_cast<GroupMethod>(strtol(argv[10], &strend, 10));
-        //if (argc >= 12) schedule_method = static_cast<ScheduleMethod>(strtol(argv[11], &strend, 10));
-        //if (argc >= 13) time_slices = strtol(argv[12], &strend, 10);
-        i = 9999; // avoid to run the while-statement
-    } else {
-        i = 1;
     }
     while (argc > i) {
         if (StringMatch(argv[i], "-wp")) {
             i++;
             if (argc > i) {
                 model_path = argv[i];
+                i++;
+            } else {
+                Usage(argv[0]);
+                return nullptr;
+            }
+        } else if (StringMatch(argv[i], "-cfg")) {
+            i++;
+            if (argc > i) {
+                model_cfgname = argv[i];
                 i++;
             } else {
                 Usage(argv[0]);
@@ -219,6 +202,13 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         Usage(argv[0], "Model folder " + model_path + " is not existed!");
         return nullptr;
     }
+    if (!model_cfgname.empty()) {
+        string model_path2 = model_path + SEP + model_cfgname;
+        if (!PathExists(model_path2)) {
+            Usage(argv[0], "Specific model folder " + model_path2 + " is not existed!");
+            return nullptr;
+        }
+    }
     if (num_thread < 1) {
         Usage(argv[0], "Thread number must greater or equal than 1.");
         return nullptr;
@@ -228,35 +218,50 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         return nullptr;
     }
 
-    return new InputArgs(model_path, num_thread, layering_method, flowdir_method, mongodb_ip, port,
+    return new InputArgs(model_path, model_cfgname, num_thread,
+                         flowdir_method, layering_method, mongodb_ip, port,
                          scenario_id, calibration_id,
-                         subbasin_id, group_method, schedule_method, time_slices, log_level);
+                         subbasin_id,
+                         group_method, schedule_method, time_slices,
+                         log_level, mpi_version);
 }
 
-InputArgs::InputArgs(string& model_path, const int thread_num, 
-                     const LayeringMethod lyr_mtd, const FlowDirMethod fdir_mtd,
-                     string& host, const uint16_t port,
+InputArgs::InputArgs(const string& model_path, const string& model_cfgname,
+                     const int thread_num, 
+                     const FlowDirMethod fdir_mtd, const LayeringMethod lyr_mtd, 
+                     const string& host, const uint16_t port,
                      const int scenario_id, const int calibration_id,
                      const int subbasin_id, const GroupMethod grp_mtd,
                      const ScheduleMethod skd_mtd, const int time_slices,
-                     string& log_level)
-    : model_path(model_path), output_scene(DB_TAB_OUT_SPATIAL),
-      thread_num(thread_num), lyr_mtd(lyr_mtd), fdir_mtd(fdir_mtd),
+                     const string& log_level, bool mpi_version/* = false*/)
+    : model_path(model_path), model_cfgname(model_cfgname), output_scene(DB_TAB_OUT_SPATIAL),
+      thread_num(thread_num), fdir_mtd(fdir_mtd), lyr_mtd(lyr_mtd),
       host(host), port(port), scenario_id(scenario_id), calibration_id(calibration_id),
       subbasin_id(subbasin_id), grp_mtd(grp_mtd), skd_mtd(skd_mtd), time_slices(time_slices),
-      log_level(log_level) {
+      log_level(log_level), mpi_version(mpi_version) {
     /// Get model name
     size_t name_idx = model_path.rfind(SEP);
     model_name = model_path.substr(name_idx + 1);
-    /// Clean output folder
+    /// Create output folder
+    /// This code should be simultaneously updated with `MainSEIMS.UpdateScenarioID` function in Python
+    if (mpi_version) output_scene += "_MPI";
+    output_scene += FlowDirMethodString[fdir_mtd];
+    output_scene += LayeringMethodString[lyr_mtd];
+    output_scene += "-";
     if (scenario_id >= 0) {
         // -1 means no BMPs scenario will be simulated
         output_scene += ValueToString(scenario_id);
     }
+    output_scene += "-";
     if (calibration_id >= 0) {
         // -1 means no calibration setting will be used.
-        output_scene += "-" + ValueToString(calibration_id);
+        output_scene += ValueToString(calibration_id);
     }
-    output_path = model_path + SEP + output_scene + SEP;
-    if (subbasin_id <= 1) CleanDirectory(output_path); // avoid repeat operation in mpi version
+    if (!model_cfgname.empty()) {
+        output_path = model_path + SEP + model_cfgname + SEP + output_scene + SEP;
+    } else {
+        output_path = model_path + SEP + output_scene + SEP;
+    }
+    if (!DirectoryExists(output_path)) MakeDirectory(output_path);
+    // Do not clean output directory here, delete output files when generate new ones
 }
