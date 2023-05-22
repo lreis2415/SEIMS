@@ -96,9 +96,9 @@ jobs:
     - name: Run SEIMS on demo data
       shell: cmd
       run: |
-        #conda info
-        #conda list
-        #dir env: | %{"{0}={1}" -f $_.Name,$_.Value}
+        REM conda info
+        REM conda list
+        REM dir env: | %{"{0}={1}" -f $_.Name,$_.Value}
         cd seims
         python pyseims_check.py
         cd test
