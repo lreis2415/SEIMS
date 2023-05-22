@@ -3,19 +3,21 @@
 name: Build on macOS using AppleClang
 
 on:
-    push:
-        paths-ignore:
-            - 'data'
-            - 'doc'
-            - 'gui'
-            - 'knowledge'
-    pull_request:
-        paths-ignore:
-          - 'data'
-          - 'doc'
-          - 'gui'
-          - 'knowledge'
-    workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - 'data'
+      - 'gui'
+      - 'knowledge'
+  pull_request:
+    branches:
+      - dev
+    paths-ignore:
+      - 'data'
+      - 'gui'
+      - 'knowledge'
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
