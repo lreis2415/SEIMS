@@ -47,10 +47,6 @@ jobs:
       with:
         mpi: openmpi
 
-    # Previous code, now changed to use mpi4py/setup-mpi action.
-    # - name: Install MPI
-    #   run: brew list openmpi &>/dev/null || brew install openmpi
-
     - name: Checkout SEIMS
       uses: actions/checkout@v3
 

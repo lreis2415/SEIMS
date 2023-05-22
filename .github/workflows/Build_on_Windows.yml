@@ -58,29 +58,7 @@ jobs:
     - name: Setup MSMPI
       uses: mpi4py/setup-mpi@v1
       with:
-        mpi: mpich
-
-    # Previous code, now changed to use mpi4py/setup-mpi action.
-    # - name: Install MSMPI
-    #   id: pwshdownmpi
-    #   shell: pwsh
-    #   run: |
-    #     cd ${{ github.workspace }}\\.github\workflows
-    #     ./setup_msmpi.ps1
-
-    # - name: Show MPI info
-    #   shell: pwsh
-    #   run: |
-    #     Write-Host MSMPI_BIN=$Env:MSMPI_BIN
-    #     Write-Host MSMPI_INC=$Env:MSMPI_INC
-    #     Write-Host MSMPI_LIB32=$Env:MSMPI_LIB32
-    #     Write-Host MSMPI_LIB64=$Env:MSMPI_LIB64
-
-    # - name: Help MPI executor
-    #   shell: pwsh
-    #   run: |
-    #     mpiexec /help2
-    #     mpiexec /help3
+        mpi: msmpi
 
     - name: Configure CMake
       shell: cmd
