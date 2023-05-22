@@ -37,6 +37,9 @@ public:
                int bmp_priority, vector<string>& distribution, const string& collection,
                const string& location, bool effectivenessChangeable = false,
                time_t changeFrequency = -1, int variableTimes = -1);
+    
+    /// Destructor
+    ~BMPFactory();
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -44,15 +47,15 @@ public:
     /*!
      * \brief Set raster data if needed
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
+     * i.e., DO NOT CHANGE THE DEFINITION!!!
      */
-    virtual void setRasterData(map<string, IntRaster *>& sceneRsMap) {
-    };
+    virtual void setRasterData(map<string, IntRaster *>& sceneRsMap);
 
     /*!
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    virtual int* GetRasterData() { return nullptr; }
+    virtual int* GetRasterData();
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
@@ -60,20 +63,22 @@ public:
        3 - areal non-structure BMPs which are NOT corresponding to a specific structure in the watershed and will change the character of subbasins/cells.
        4 - point structural BMPs
      */
-    int bmpType() { return m_bmpType; }
+    int bmpType();
 
     /// Get BMP priority
-    int bmpPriority() { return m_bmpPriority; }
+    int bmpPriority();
 
     /// Get subScenario ID
-    int GetSubScenarioId() { return m_subScenarioId; }
+    int GetSubScenarioId();
 
     /// Output
     virtual void Dump(std::ostream* fs) = 0;
 
-    bool IsEffectivenessChangeable(){ return m_effectivenessChangeable; }
-    time_t GetChangeFrequency(){ return m_changeFrequency; }
-    int GetChangeTimes(){ return m_changeTimes; }
+    bool IsEffectivenessChangeable();
+    
+    time_t GetChangeFrequency();
+    
+    int GetChangeTimes();
 
 protected:
     const int m_scenarioId; ///< Scenario ID

@@ -12,3 +12,38 @@ BMPFactory::BMPFactory(const int scenario_id, const int bmp_id, const int sub_sc
     m_changeFrequency(changeFrequency), m_changeTimes(variableTimes) {
     /// Do nothing.
 }
+
+BMPFactory::~BMPFactory() {
+    /// Do nothing.
+}
+
+void BMPFactory::setRasterData(map<string, IntRaster *>& sceneRsMap) {
+    /// Do nothing.
+}
+int* BMPFactory::GetRasterData() {
+    return nullptr;
+}
+
+int BMPFactory::bmpType() {
+    return m_bmpType;
+}
+
+int BMPFactory::bmpPriority() {
+    return m_bmpPriority;
+}
+
+int BMPFactory::GetSubScenarioId() {
+    return m_subScenarioId;
+}
+
+bool BMPFactory::IsEffectivenessChangeable(){
+    return m_effectivenessChangeable;
+}
+
+time_t BMPFactory::GetChangeFrequency(){
+    return m_changeFrequency;
+}
+
+int BMPFactory::GetChangeTimes(){
+    return m_changeTimes;
+}

@@ -53,11 +53,8 @@ Please use the following commands in Anaconda shell to config python environment
 
 ```bash
 cd SEIMS/seims
-conda env create -f pyseims_env.yml
-conda activate pyseims
-pip install --timeout 1000 "https://github.com/soravux/scoop/archive/master.zip"
-pip install --timeout 1000 "https://github.com/DEAP/deap/archive/master.zip"
-pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
+conda env create -f py39seims_env.yml
+conda activate py39seims
 ```
 
 ### C++ compilation
