@@ -177,7 +177,7 @@ bool GridLayering::Execute() {
     if (!LoadData()) return false;
     CalPositionIndex();
     return OutputFlowOut() && OutputFlowIn() &&
-            GridLayeringFromSource() && GridLayeringFromOutlet() && GridLayeringEvenly();
+            GridLayeringFromSource() && GridLayeringFromOutlet(); //&& GridLayeringEvenly();
 }
 
 void GridLayering::CalPositionIndex() {
