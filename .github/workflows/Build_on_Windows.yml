@@ -94,8 +94,8 @@ jobs:
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
     - name: Run SEIMS on demo data
-      shell: pwsh
-      run: |
+      shell: cmd /C CALL {0}
+      run: >-
         cd seims
         python pyseims_check.py
         cd test
