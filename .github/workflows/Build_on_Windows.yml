@@ -95,7 +95,7 @@ jobs:
 
     - name: Run SEIMS on demo data
       shell: cmd /C CALL {0}
-      run: >-
+      run: |
         cd seims
         python pyseims_check.py
         cd test
