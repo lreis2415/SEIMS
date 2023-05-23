@@ -124,6 +124,22 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const strin
     mongoc_cursor_destroy(cursor);
 }
 
+vector<int>& BMPPointSrcFactory::GetPointSrcMgtSeqs() {
+    return m_pointSrcMgtSeqs;
+}
+
+map<int, PointSourceMgtParams *>& BMPPointSrcFactory::GetPointSrcMgtMap() {
+    return m_pointSrcMgtMap;
+}
+
+vector<int>& BMPPointSrcFactory::GetPointSrcIDs() {
+    return m_pointSrcIDs;
+}
+
+map<int, PointSourceLocations *>& BMPPointSrcFactory::GetPointSrcLocsMap() {
+    return m_pointSrcLocsMap;
+}
+
 void BMPPointSrcFactory::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "Point Source Management Factory: " << endl <<

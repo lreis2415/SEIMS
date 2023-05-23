@@ -23,12 +23,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                       mongoc_client_pool_t* mongo_pool /* = nullptr */) {
     LOG(TRACE) << "Computing process, Rank: " << rank;
     double tstart = MPI_Wtime();
-    /// Get module path, i.e., the path of dynamic libraries
-//#ifndef WINDOWS
-//    string module_path = GetAppPath() + "../lib";
-//#else
     string module_path = GetAppPath();
-//#endif
     /// Load parallel task scheduling information and record time-consuming.
     TaskInfo* task_info = new TaskInfo(size, rank);
     mongoc_client_t* mclient = nullptr;
@@ -76,23 +71,56 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
 
-    /// Create module factory
-    ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
-    if (nullptr == module_factory) {
+    /// Create default module factory using config.fig for each process
+    input_args->subbasin_id = 0; // in case of wrong arguments by users
+    ModuleFactory* default_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
+    if (nullptr == default_module_factory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
-    /// Get dynamic parameter count which need to be transferred across upstream-downstream subbasins
-    int transfer_count = module_factory->GetTransferredInputsCount();
+    map<int, ModuleFactory*> factory_map;
+#ifdef HAS_VARIADIC_TEMPLATES
+    factory_map.emplace(0, default_module_factory);
+#else
+    factory_map.insert(make_pair(0, default_module_factory));
+#endif
+
+    /// Get the max count of dynamic parameters needed to be transferred across upstream-downstream subbasins
+    /// TODO, when transfer_count differs among module_factorys, we need to find out a way to transfer data correctly.
+    int transfer_count = default_module_factory->GetTransferredInputsCount();
+
     /// Create lists of data center objects and SEIMS model objects
     map<int, DataCenterMongoDB *> data_center_map;
     map<int, ModelMain *> model_map;
     vector<int>& rank_subbsn_ids = task_info->GetRankSubbasinIDs();
     for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
+        /// Create specific module factory according to subbasin number, if possible
+        ModuleFactory* tmp_module_factory = factory_map.at(0);
+        string model_cfgpath = input_args->model_path;
+        if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+        string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(*it_id) + "." + File_Config;
+        if (FileExists(file_cfg)) {
+            input_args->subbasin_id = *it_id;
+            tmp_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
+            if (nullptr == tmp_module_factory) {
+                LOG(WARNING) << "Constructing ModuleFactory failed using " << file_cfg
+                << "! Use default module factory instead!";
+                tmp_module_factory = factory_map.at(0);
+            } else {
+#ifdef HAS_VARIADIC_TEMPLATES 
+                factory_map.emplace(*it_id, tmp_module_factory);
+#else 
+                factory_map.insert(make_pair(*it_id, tmp_module_factory));
+#endif
+                if (tmp_module_factory->GetTransferredInputsCount() > transfer_count) {
+                    transfer_count = tmp_module_factory->GetTransferredInputsCount();
+                }
+            }
+        }
         /// Create data center according to subbasin number
         DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
-                                                               module_factory, *it_id);
+                                                               tmp_module_factory, *it_id);
         /// Create SEIMS model by dataCenter and moduleFactory
-        ModelMain* model = new ModelMain(data_center, module_factory);
+        ModelMain* model = new ModelMain(data_center, tmp_module_factory);
 #ifdef HAS_VARIADIC_TEMPLATES
         data_center_map.emplace(*it_id, data_center);
         model_map.emplace(*it_id, model);
@@ -234,7 +262,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                             psubbasin->SetTransferredValue(*it_upid, ts_subbsn_tf_values[cur_sim_loop_num][*it_upid]);
                         } else {
                             // receive data from the specific rank according to work_tag
-                            int work_tag = *it_upid * 10000 + cur_sim_loop_num;;
+                            int work_tag = *it_upid * 10000 + cur_sim_loop_num;
                             MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
 
@@ -470,7 +498,12 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     }
     data_center_map.clear();
 
-    delete module_factory;
+    for (auto it = factory_map.begin(); it != factory_map.end(); ++it) {
+        delete it->second;
+        it->second = nullptr;
+    }
+    factory_map.clear();
+
     if (spatial_gfs_in) {
         delete spatial_gfs_in;
         spatial_gfs_in = nullptr;

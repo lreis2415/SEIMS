@@ -25,6 +25,7 @@ Configure and run SEIMS model.
     - 2020-07-20 - lj - Read data from MongoDB once for all currently used properties.
     - 2020-08-11 - lj - Separate actually execution from run() and add CommandString property.
     - 2020-09-22 - lj - Add workload (slurm, mpi, etc.) mode. Functions improved.
+    - 2023-05-22 - lj - Add cfg_name and fdir_mtd arguments.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -75,6 +76,8 @@ class ParseSEIMSConfig(object):
         npernode (int): Launch num processes per node on all allocated computing nodes
         flag_npernode (string): Flag to specify NPERNODE, e.g., -ppn for common MPI implementation
         nthread (int): Thread number of OpenMP, i.e., how many threads of each processes
+        fdirmtd (int): Flow direction method for flow routing, default is 0 (D8),
+                        can also be 1 (DINF) and 2 (MFDMD)
         lyrmtd (int): Method of creating routing layers of simulation units,
                         can be 0 (UP_DOWN) and 1 (DOWN_UP)
         scenario_id (int): Scenario ID
@@ -97,6 +100,7 @@ class ParseSEIMSConfig(object):
         self.port = 27017  # type: float
         self.bin_dir = ''  # type: AnyStr
         self.model_dir = ''  # type: AnyStr
+        self.cfg_name = ''  # type: AnyStr
         self.db_name = ''  # type: AnyStr
         self.version = 'OMP'  # type: AnyStr
         self.mpi_bin = ''  # type: AnyStr
@@ -106,6 +110,7 @@ class ParseSEIMSConfig(object):
         self.npernode = 1  # type: int
         self.flag_npernode = ''  # type: AnyStr
         self.nthread = 2  # type: int
+        self.fdirmtd = 0  # type: int
         self.lyrmtd = 1  # type: int
         self.scenario_id = 0  # type: int
         self.calibration_id = -1  # type: int
@@ -132,14 +137,23 @@ class ParseSEIMSConfig(object):
         if not StringClass.is_valid_ip_addr(self.host):
             raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
         self.port = get_option_value(cf, sec_name, 'port', valtyp=int)
+
         self.bin_dir = get_option_value(cf, sec_name, 'bin_dir')
+        if not FileClass.is_dir_exists(self.bin_dir):
+            raise IOError('Please Check the existence of BIN_DIR!')
+
         self.model_dir = get_option_value(cf, sec_name, 'model_dir')
-        if not (FileClass.is_dir_exists(self.model_dir)
-                and FileClass.is_dir_exists(self.bin_dir)):
-            raise IOError('Please Check the existence of BIN_DIR and MODEL_DIR!')
+        if not FileClass.is_dir_exists(self.model_dir):
+            raise IOError('Please Check the existence of MODEL_DIR!')
         self.db_name = get_option_value(cf, sec_name, ['db_name', 'spatial_dbname'])
         if not self.db_name:  # If not specified, by default, equals to dir name of self.model_dir
             self.db_name = os.path.split(self.model_dir)[1]
+
+        self.cfg_name = get_option_value(cf, sec_name, 'cfg_name')
+        if self.cfg_name and not FileClass.is_dir_exists(self.model_dir + os.sep + self.cfg_name):
+            print('WARNING: the specified cfg_name: %s is not existed!' % self.cfg_name)
+            self.cfg_name = ''
+
         self.version = get_option_value(cf, sec_name, 'version')
         if not self.version or self.version not in ['MPI', 'mpi']:
             self.version = 'OMP'
@@ -156,6 +170,7 @@ class ParseSEIMSConfig(object):
 
         self.flag_npernode = get_option_value(cf, sec_name, 'flag_npernode')
         self.nthread = get_option_value(cf, sec_name, ['nthread', 'threadsnum'], valtyp=int)
+        self.fdirmtd = get_option_value(cf, sec_name, 'fdirmtd', valtyp=int)
         self.lyrmtd = get_option_value(cf, sec_name, ['lyrmtd', 'layeringmethod'], valtyp=int)
         self.scenario_id = get_option_value(cf, sec_name, ['scenario_id', 'scenarioid'], valtyp=int)
         self.calibration_id = get_option_value(cf, sec_name,
@@ -182,13 +197,13 @@ class ParseSEIMSConfig(object):
         if not self.config_dict:
             self.config_dict = {'host': self.host, 'port': self.port,
                                 'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
-                                'db_name': self.db_name, 'version': self.version,
-                                'mpi_bin': self.mpi_bin,
+                                'cfg_name': self.cfg_name, 'db_name': self.db_name,
+                                'version': self.version, 'mpi_bin': self.mpi_bin,
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
                                 'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
                                 'nthread': self.nthread,
-                                'lyrmtd': self.lyrmtd,
+                                'fdirmtd': self.fdirmtd, 'lyrmtd': self.lyrmtd,
                                 'scenario_id': self.scenario_id,
                                 'calibration_id': self.calibration_id,
                                 'subbasin_id': self.subbasin_id,
@@ -207,6 +222,7 @@ class MainSEIMS(object):
                  port=27017,  # type: int # MongoDB port, default is 27017
                  bin_dir='',  # type: AnyStr # The directory of SEIMS binary
                  model_dir='',  # type: AnyStr # The directory of SEIMS model
+                 cfg_name='',  # type: AnyStr # The specific model config name
                  db_name='',  # type: AnyStr  # Main spatial dbname which can diff from dirname
                  version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
                  mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
@@ -217,6 +233,7 @@ class MainSEIMS(object):
                  nnodes=1,  # type: int # Nodes required to execute
                  flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
+                 fdirmtd=0,  # type: int # Flow direction, can be 0 (d8), 1 (dinf), or 2 (mfdmd)
                  lyrmtd=1,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
                  scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
                  calibration_id=-1,  # type: int # Calibration ID used for model auto-calibration
@@ -246,9 +263,11 @@ class MainSEIMS(object):
             if not FileClass.is_file_exists(self.seims_exec):  # If not support OpenMP, use `seims`!
                 self.seims_exec = '%s/seims%s' % (bin_dir, suffix)
         self.seims_exec = os.path.abspath(self.seims_exec)
-        self.model_dir = os.path.abspath(model_dir)
 
+        self.model_dir = os.path.abspath(model_dir)
+        self.cfg_name = args_dict['cfg_name'] if 'cfg_name' in args_dict else cfg_name
         self.db_name = args_dict['db_name'] if 'db_name' in args_dict else db_name
+
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
         self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
         self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
@@ -260,6 +279,7 @@ class MainSEIMS(object):
         self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict \
             else flag_npernode
         self.nthread = args_dict['nthread'] if 'nthread' in args_dict else nthread
+        self.fdirmtd = args_dict['fdirmtd'] if 'fdirmtd' in args_dict else fdirmtd
         self.lyrmtd = args_dict['lyrmtd'] if 'lyrmtd' in args_dict else lyrmtd
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
         self.calibration_id = args_dict['calibration_id'] \
@@ -282,17 +302,10 @@ class MainSEIMS(object):
         self.workload = args_dict['workload'] if 'workload' in args_dict else workload  # type: AnyStr
 
         # Concatenate output directory name, which is also the name of runtime log
-        # The format of OUTPUT directory is: OUTPUT<ScenarioID>-<CalibrationID>
-        # - OUTPUT-1 means no scenario, calibration ID is 1
-        # - OUTPUT100 means scenario ID is 100, no calibration
-        # - OUTPUT100-2 means scenario ID is 100, calibration ID is 2
-        # self.output_name = 'OUTPUT'
-        # if self.scenario_id >= 0:
-        #     self.output_name += '%d' % self.scenario_id
-        # if self.calibration_id >= 0:
-        #     self.output_name += '-%d' % self.calibration_id
-        # self.output_dir = os.path.join(self.model_dir, self.output_name)
-        # self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
+        # The format of OUTPUT directory is: OUTPUT_<FDIR>_<LYR>-<ScenarioID>-<CalibrationID>
+        # - OUTPUT_<FDIR>_<LYR>--1 means no scenario, calibration ID is 1
+        # - OUTPUT_<FDIR>_<LYR>-100- means scenario ID is 100, no calibration
+        # - OUTPUT_<FDIR>_<LYR>-100-2 means scenario ID is 100, calibration ID is 2
         self.UpdateScenarioID()
 
         # Concatenate executable command
@@ -353,14 +366,17 @@ class MainSEIMS(object):
             self.cmd += ['-n', str(self.nprocess)]
         self.cmd += [self.seims_exec,
                      '-wp', self.model_dir, '-thread', str(self.nthread),
+                     '-fdir', str(self.fdirmtd),
                      '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port]
+        if self.cfg_name:
+            self.cmd += ['-cfg']
         if self.scenario_id >= 0:
             self.cmd += ['-sce', str(self.scenario_id)]
         if self.calibration_id >= 0:
             self.cmd += ['-cali', str(self.calibration_id)]
         if self.subbasin_id >= 0:
             self.cmd += ['-id', str(self.subbasin_id)]
-        # self.cmd += ['-ll Debug']
+        # self.cmd += ['-ll Debug'] # todo, should be set in ini file
         return self.cmd
 
     @property
@@ -746,12 +762,26 @@ class MainSEIMS(object):
         self.UnsetMongoClient()
 
     def UpdateScenarioID(self):
+        """
+        This function should be simultaneously updated with `InputArgs` class in C++
+        """
         self.output_name = 'OUTPUT'
+        if self.version.upper() == 'MPI':
+            self.output_name += '_MPI'
+        fdirs = ['_D8', '_DINF', '_MFDMD']
+        lyrs = ['_UP_DOWN', '_DOWN_UP']
+        self.output_name += fdirs[self.fdirmtd]
+        self.output_name += lyrs[self.lyrmtd]
+        self.output_name += '-'
         if self.scenario_id >= 0:
             self.output_name += '%d' % self.scenario_id
+        self.output_name += '-'
         if self.calibration_id >= 0:
-            self.output_name += '-%d' % self.calibration_id
-        self.output_dir = os.path.join(self.model_dir, self.output_name)
+            self.output_name += '%d' % self.calibration_id
+        if self.cfg_name:
+            self.output_dir = '%s/%s/%s' % (self.model_dir, self.cfg_name, self.output_name)
+        else:
+            self.output_dir = '%s/%s' % (self.model_dir, self.output_name)
         self.runlog_name = os.path.join(self.output_dir, '%s.log' % self.output_name)
 
 

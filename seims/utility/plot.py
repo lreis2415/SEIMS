@@ -38,7 +38,7 @@ class PlotConfig(object):
         # type: (Optional[ConfigParser]) -> None
         """Get parameters from ConfigParser object."""
         self.fmts = ['png']
-        self.font_name = 'Times New Roman'
+        self.font_name = 'DejaVu Sans'
         self.plot_cn = False
         self.title_fsize = 18
         self.legend_fsize = 14
