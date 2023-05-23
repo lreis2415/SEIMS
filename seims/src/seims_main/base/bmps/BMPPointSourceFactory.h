@@ -210,13 +210,13 @@ public:
      */
     void ReadPointSourceLocations(MongoClient* conn, const string& bmpDBName);
 
-    vector<int>& GetPointSrcMgtSeqs() { return m_pointSrcMgtSeqs; }
+    vector<int>& GetPointSrcMgtSeqs();
 
-    map<int, PointSourceMgtParams *>& GetPointSrcMgtMap() { return m_pointSrcMgtMap; }
+    map<int, PointSourceMgtParams *>& GetPointSrcMgtMap();
 
-    vector<int>& GetPointSrcIDs() { return m_pointSrcIDs; }
+    vector<int>& GetPointSrcIDs();
 
-    map<int, PointSourceLocations *>& GetPointSrcLocsMap() { return m_pointSrcLocsMap; }
+    map<int, PointSourceLocations *>& GetPointSrcLocsMap();
 
 private:
     /// Code of point source

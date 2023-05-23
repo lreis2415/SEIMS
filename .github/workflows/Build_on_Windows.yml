@@ -3,19 +3,21 @@
 name: Build on Windows using MSVC
 
 on:
-    push:
-        paths-ignore:
-            - 'data'
-            - 'doc'
-            - 'gui'
-            - 'knowledge'
-    pull_request:
-        paths-ignore:
-          - 'data'
-          - 'doc'
-          - 'gui'
-          - 'knowledge'
-    workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - 'data'
+      - 'gui'
+      - 'knowledge'
+  pull_request:
+    branches:
+      - dev
+    paths-ignore:
+      - 'data'
+      - 'gui'
+      - 'knowledge'
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -29,13 +31,13 @@ jobs:
     - name: Checkout SEIMS
       uses: actions/checkout@v3
 
-    # - name: Start MongoDB Service
-    #   # How to start MongoDB as a service on Windows runners
-    #   # https://github.com/orgs/community/discussions/30083#discussioncomment-3448499
-    #   shell: pwsh
-    #   run: |
-    #       Set-Service mongodb -StartupType Automatic
-    #       Start-Service -Name mongodb
+    - name: Start MongoDB Service
+      # How to start MongoDB as a service on Windows runners
+      # https://github.com/orgs/community/discussions/30083#discussioncomment-3448499
+      shell: pwsh
+      run: |
+          Set-Service mongodb -StartupType Automatic
+          Start-Service -Name mongodb
 
     - name: Download mongo-c-driver
       # Build mongo-c-driver is time-consuming, I moved it to another repo. https://github.com/crazyzlj/Github_Actions_Precompiled_Packages
@@ -55,26 +57,10 @@ jobs:
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
         Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
     
-    - name: Install MSMPI
-      id: pwshdownmpi
-      shell: pwsh
-      run: |
-        cd ${{ github.workspace }}\\.github\workflows
-        ./setup_msmpi.ps1
-
-    - name: Show MPI info
-      shell: pwsh
-      run: |
-        Write-Host MSMPI_BIN=$Env:MSMPI_BIN
-        Write-Host MSMPI_INC=$Env:MSMPI_INC
-        Write-Host MSMPI_LIB32=$Env:MSMPI_LIB32
-        Write-Host MSMPI_LIB64=$Env:MSMPI_LIB64
-
-    - name: Help MPI executor
-      shell: pwsh
-      run: |
-        mpiexec /help2
-        mpiexec /help3
+    - name: Setup MSMPI
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: msmpi
 
     - name: Configure CMake
       shell: cmd
@@ -84,14 +70,44 @@ jobs:
         -DMONGOC_ROOT=${{env.MONGOC_ROOT}} ^
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build SEIMS
+    - name: Build and Install SEIMS
       shell: cmd
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- /m:4
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    # - name: Test
-    #   shell: cmd
-    #   working-directory: ${{github.workspace}}/build
-    #   # Set Env in pwsh, refers to https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#environment-files
-    #   run: |
-    #     set PATH=${{ env.GDAL_BIN }};${{ env.MONGOC_BIN }};%PATH%
-    #     ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/py39seims_env.yml') }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: py39seims
+        environment-file: seims/py39seims_env.yml
+        auto-activate-base: false
+        auto-update-conda: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: Run SEIMS on demo data
+      shell: cmd /C CALL {0}
+      run: |
+        cd seims
+        python pyseims_check.py
+        REM 
+        REM I currently commented out the test command because the unsolved timeout
+        REM   error when running GitHub Actions caused by matplotlib:
+        REM
+        REM "Matplotlib is building the font cache; this may take a moment."
+        REM
+        REM cd test
+        REM python demo_preprocess.py -name youwuzhen
+        REM python demo_runmodel.py -name youwuzhen
+        REM python demo_postprocess.py -name youwuzhen
+        REM python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+        REM python -m scoop -n 2 demo_calibration.py -name youwuzhen
+        REM python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen

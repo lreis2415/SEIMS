@@ -37,19 +37,22 @@ public:
      * \param[in] parameters
      */
     PltMgtOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    //! Destructor
+    ~PltMgtOp();
 
     //! Output
     virtual void dump(std::ostream* fs) = 0;
 
-    bool UseBaseHUSC() { return m_useBaseHUSC; }
+    bool UseBaseHUSC();
 
-    FLTPT GetHUFraction() { return m_frHU; }
+    FLTPT GetHUFraction();
 
-    int GetMonth() { return m_month; }
+    int GetMonth();
 
-    int GetDay() { return m_day; }
+    int GetDay();
 
-    int GetOperationCode() { return m_mgtOp; }
+    int GetOperationCode();
 
 protected:
     /// use base hu or plant accumulated hu
@@ -75,6 +78,8 @@ protected:
 class PltOp: public PltMgtOp {
 public:
     PltOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~PltOp();
 
     int PlantID() { return m_plantID; }
 
@@ -113,6 +118,8 @@ private:
 class IrrOp: public PltMgtOp {
 public:
     IrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~IrrOp();
 
     int IRRSource() { return m_irrSrc; }
 
@@ -145,6 +152,8 @@ private:
 class FertOp: public PltMgtOp {
 public:
     FertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~FertOp();
 
     int FertilizerID() { return m_fertID; }
 
@@ -170,6 +179,8 @@ private:
 class PestOp: public PltMgtOp {
 public:
     PestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~PestOp();
 
     int PesticideID() { return m_pestID; }
 
@@ -193,12 +204,14 @@ private:
 class HvstKillOp: public PltMgtOp {
 public:
     HvstKillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~HvstKillOp();
 
-    FLTPT CNOP() { return m_CNOP; }
+    FLTPT CNOP();
 
-    FLTPT HarvestIndexOverride() { return m_hiOvr; }
+    FLTPT HarvestIndexOverride();
 
-    FLTPT StoverFracRemoved() { return m_fracHarvk; }
+    FLTPT StoverFracRemoved();
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -216,6 +229,8 @@ private:
 class TillOp: public PltMgtOp {
 public:
     TillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~TillOp();
 
     FLTPT CNOP() { return m_CNOP; }
 
@@ -236,6 +251,8 @@ private:
 class HvstOnlyOp: public PltMgtOp {
 public:
     HvstOnlyOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~HvstOnlyOp();
 
     FLTPT HarvestEfficiency() { return m_harvEff; }
 
@@ -259,6 +276,8 @@ private:
 class KillOp: public PltMgtOp {
 public:
     KillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~KillOp();
 
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
@@ -271,6 +290,8 @@ public:
 class GrazOp: public PltMgtOp {
 public:
     GrazOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~GrazOp();
 
     int GrazingDays() { return m_grzDays; }
 
@@ -300,6 +321,8 @@ private:
 class AutoIrrOp: public PltMgtOp {
 public:
     AutoIrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~AutoIrrOp();
 
     int WaterStrsIdent() { return m_wstrsID; }
 
@@ -335,6 +358,8 @@ private:
 class AutoFertOp: public PltMgtOp {
 public:
     AutoFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~AutoFertOp();
 
     int FertilizerID() { return m_afertID; }
 
@@ -370,6 +395,8 @@ private:
 class RelImpndOp: public PltMgtOp {
 public:
     RelImpndOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~RelImpndOp();
 
     int ImpoundTriger() { return m_impTrig; }
 
@@ -396,6 +423,8 @@ private:
 class ContFertOp: public PltMgtOp {
 public:
     ContFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~ContFertOp();
 
     int FertilizerID() { return m_cfertID; }
 
@@ -422,6 +451,8 @@ private:
 class ContPestOp: public PltMgtOp {
 public:
     ContPestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~ContPestOp();
 
     int PesticideID() { return m_ipstID; }
 
@@ -448,6 +479,8 @@ private:
 class BurnOp: public PltMgtOp {
 public:
     BurnOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters);
+    
+    ~BurnOp();
 
     FLTPT FractionLeft() { return m_burnFrlb; }
 

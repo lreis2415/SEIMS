@@ -3,26 +3,29 @@
 name: Build on Ubuntu using GCC
 
 on:
-    push:
-        paths-ignore:
-            - 'data'
-            - 'gui'
-            - 'knowledge'
-    pull_request:
-        paths-ignore:
-          - 'data'
-          - 'gui'
-          - 'knowledge'
-    workflow_dispatch:
+  push:
+      branches:
+        - dev
+      paths-ignore:
+        - 'data'
+        - 'gui'
+        - 'knowledge'
+  pull_request:
+      branches:
+        - dev
+      paths-ignore:
+        - 'data'
+        - 'gui'
+        - 'knowledge'
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 
 jobs:
-  build-linux-ubuntu:
+  build_test_on_linux:
     runs-on: ubuntu-latest
-
     services:
       mongodb:
         image: mongo
@@ -33,23 +36,27 @@ jobs:
     - name: Checkout SEIMS
       uses: actions/checkout@v3
 
-    - name: Install GDAL, mongo-c-driver, and OpenMPI
-      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev openmpi-bin libopenmpi-dev
+    - name: Install GDAL and mongo-c-driver
+      run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev
+    
+    - name: Setup MSMPI
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: mpich
+
+    - name: Checkout SEIMS
+      uses: actions/checkout@v3
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build SEIMS
+    - name: Build and Install SEIMS
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
-
-    #- name: Test
-    #  working-directory: ${{github.workspace}}/build
-    #  # Execute tests defined by the CMake configuration.
-    #  # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-    #  run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j 4
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Build Doc in English
       uses: mattnotmitt/doxygen-action@v1.9.2
@@ -70,4 +77,37 @@ jobs:
           commit_message: ${{ github.event.head_commit.message }}
           publish_branch: gh-pages
           force_orphan: true
-          publish_dir: html
+          publish_dir: html 
+    
+    - name: Cache conda
+      uses: actions/cache@v3
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/py39seims_env.yml') }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: py39seims
+        environment-file: seims/py39seims_env.yml
+        auto-activate-base: false
+        auto-update-conda: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+
+    - name: Run SEIMS on demo data
+      shell: bash -el {0}
+      run: |
+        #conda info
+        #conda list
+        #printenv | sort
+        cd seims
+        python pyseims_check.py
+        cd test
+        python demo_preprocess.py -name youwuzhen
+        python demo_runmodel.py -name youwuzhen
+        python demo_postprocess.py -name youwuzhen
+        python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+        python -m scoop -n 2 demo_calibration.py -name youwuzhen
+        python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen

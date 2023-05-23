@@ -28,7 +28,7 @@ from matplotlib.ticker import LinearLocator
 
 from utility import save_png_eps, PlotConfig
 
-plt.rcParams['font.family'] = ['Times New Roman']
+plt.rcParams['font.family'] = ['DejaVu Sans']
 plt.rcParams['axes.titlesize'] = 'small'
 plt.rcParams['ytick.labelsize'] = 'x-small'
 plt.rcParams['ytick.direction'] = 'out'

@@ -43,22 +43,22 @@ public:
     void setRasterData(map<string, IntRaster *>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    int* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
+    int* GetRasterData() OVERRIDE;
 
     /// Get landuse / landcover ID
-    int GetLUCCID() { return m_luccID; }
+    int GetLUCCID();
 
     /// Get locations
-    set<int>& GetLocations() { return m_location; }
+    set<int>& GetLocations();
 
     /// Get operation sequence
-    vector<int>& GetOperationSequence() { return m_bmpSequence; }
+    vector<int>& GetOperationSequence();
 
     /// Get operations
-    map<int, PltMgtOp *>& GetOperations() { return m_bmpPlantOps; }
+    map<int, PltMgtOp *>& GetOperations();
 
     /// Get operation by ID
-    PltMgtOp* GetOperation(const int ID) { return m_bmpPlantOps.at(ID); }
+    PltMgtOp* GetOperation(const int ID);
 
 private:
     /// subSecenario name
