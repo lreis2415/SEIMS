@@ -282,3 +282,27 @@ void BMPPlantMgtFactory::setRasterData(map<string, IntRaster*>& sceneRsMap) {
         // raise Exception?
     }
 }
+
+int* BMPPlantMgtFactory::GetRasterData() {
+    return m_mgtFieldsRs;
+}
+
+int BMPPlantMgtFactory::GetLUCCID() {
+    return m_luccID;
+}
+
+set<int>& BMPPlantMgtFactory::GetLocations() {
+    return m_location;
+}
+
+vector<int>& BMPPlantMgtFactory::GetOperationSequence() {
+    return m_bmpSequence;
+}
+
+map<int, PltMgtOp *>& BMPPlantMgtFactory::GetOperations() {
+    return m_bmpPlantOps;
+}
+
+PltMgtOp* BMPPlantMgtFactory::GetOperation(const int ID) {
+    return m_bmpPlantOps.at(ID);
+}

@@ -37,15 +37,21 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
 
 ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args,
                                    const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
+    string model_cfgpath = input_args->model_path;
+    if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
     /// Check the existence of configuration files
     /// Currently, file_in and file_out are not necessarily checked, since the FILE_IN and FILE_OUT in MongoDB are used.
-    //string file_in = input_args->model_path + SEP + File_Input;
-    //string file_out = input_args->model_path + SEP + File_Output;
-    string file_cfg = input_args->model_path + SEP + File_Config;
+    //string file_in = model_cfgpath + SEP + File_Input;
+    //string file_out = model_cfgpath + SEP + File_Output;
+    // The specific configuration file of the subbasin is prior.
+    string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(input_args->subbasin_id) + "." + File_Config;
     //string cfgNames[] = {file_in, file_out, file_cfg};
     if (!FileExists(file_cfg)) {
-        LOG(ERROR) << file_cfg << " does not exist or has no read permission!";
-        return nullptr;
+        file_cfg = model_cfgpath + SEP + File_Config;
+        if (!FileExists(file_cfg)) {
+            LOG(ERROR) << file_cfg << " does not exist or has no read permission!";
+            return nullptr;
+        }
     }
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)

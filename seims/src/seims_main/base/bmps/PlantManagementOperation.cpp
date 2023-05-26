@@ -17,6 +17,30 @@ PltMgtOp::PltMgtOp(int mgtOp, bool usebaseHU, FLTPT husc,
       m_parameters(parameters) {
 }
 
+PltMgtOp::~PltMgtOp() {
+    /// Do nothing.
+}
+
+bool PltMgtOp::UseBaseHUSC() {
+    return m_useBaseHUSC;
+}
+
+FLTPT PltMgtOp::GetHUFraction() {
+    return m_frHU;
+}
+
+int PltMgtOp::GetMonth() {
+    return m_month;
+}
+
+int PltMgtOp::GetDay() {
+    return m_day;
+}
+
+int PltMgtOp::GetOperationCode() {
+    return m_mgtOp;
+}
+
 /// Plant
 PltOp::PltOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
@@ -28,6 +52,10 @@ PltOp::PltOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day
     m_hiTarg = parameters[6];
     m_bioTarg = parameters[7] * 1000.; /// tons/ha => kg/ha
     m_CNOP = parameters[8];
+}
+
+PltOp::~PltOp() {
+    /// Do nothing.
 }
 
 void PltOp::dump(ostream* fs) {
@@ -53,6 +81,10 @@ IrrOp::IrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day
     m_irrNo = CVT_INT(parameters[7]);
 }
 
+IrrOp::~IrrOp() {
+    /// Do nothing.
+}
+
 void IrrOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Irrigation Operation: " << endl <<
@@ -69,6 +101,10 @@ FertOp::FertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int d
     m_fertID = CVT_INT(parameters[0]);
     m_frtKgHa = parameters[3];
     m_frtSurface = parameters[4] < UTIL_ZERO ? 0.2 : parameters[4];
+}
+
+FertOp::~FertOp() {
+    /// Do nothing.
 }
 
 void FertOp::dump(ostream* fs) {
@@ -88,6 +124,10 @@ PestOp::PestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int d
     m_pstDep = parameters[4];
 }
 
+PestOp::~PestOp() {
+    /// Do nothing.
+}
+
 void PestOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Pesticide Operation: " << endl <<
@@ -103,6 +143,22 @@ HvstKillOp::HvstKillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     m_CNOP = parameters[3];
     m_hiOvr = parameters[4];
     m_fracHarvk = parameters[5];
+}
+
+HvstKillOp::~HvstKillOp() {
+    /// Do nothing.
+}
+
+FLTPT HvstKillOp::CNOP() {
+    return m_CNOP;
+}
+
+FLTPT HvstKillOp::HarvestIndexOverride() {
+    return m_hiOvr;
+}
+
+FLTPT HvstKillOp::StoverFracRemoved() {
+    return m_fracHarvk;
 }
 
 void HvstKillOp::dump(ostream* fs) {
@@ -121,6 +177,10 @@ TillOp::TillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int d
     m_CNOP = parameters[3];
 }
 
+TillOp::~TillOp() {
+    /// No nothing.
+}
+
 void TillOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Tillage Operation: " << endl <<
@@ -137,6 +197,10 @@ HvstOnlyOp::HvstOnlyOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     m_hiRsd = parameters[5];
 }
 
+HvstOnlyOp::~HvstOnlyOp() {
+    /// Do nothing.
+}
+
 void HvstOnlyOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    HarvestOnly Operation: " << endl <<
@@ -149,6 +213,10 @@ void HvstOnlyOp::dump(ostream* fs) {
 /// Kill
 KillOp::KillOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+}
+
+KillOp::~KillOp() {
+    /// Do nothing.
 }
 
 void KillOp::dump(ostream* fs) {
@@ -169,6 +237,10 @@ GrazOp::GrazOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int d
     if (m_manureKg <= 0.) {
         m_manureKg = 0.95 * m_bioEat;
     }
+}
+
+GrazOp::~GrazOp() {
+    /// Do nothing.
 }
 
 void GrazOp::dump(ostream* fs) {
@@ -198,6 +270,10 @@ AutoIrrOp::AutoIrrOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month,
     if (m_irrMx < UTIL_ZERO) m_irrMx = 25.4;
 }
 
+AutoIrrOp::~AutoIrrOp() {
+    /// Do nothing.
+}
+
 void AutoIrrOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    AutoIrrigation Operation: " << endl <<
@@ -224,6 +300,10 @@ AutoFertOp::AutoFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     if (m_afrtSurface <= UTIL_ZERO) m_afrtSurface = 0.8;
 }
 
+AutoFertOp::~AutoFertOp() {
+    /// Do nothing.
+}
+
 void AutoFertOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    AutoFertilizer Operation: " << endl <<
@@ -244,6 +324,10 @@ RelImpndOp::RelImpndOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     m_maxFitDepth = parameters[3];
 }
 
+RelImpndOp::~RelImpndOp() {
+    /// Do nothing.
+}
+
 void RelImpndOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Release/Impound Operation: " << endl <<
@@ -259,6 +343,10 @@ ContFertOp::ContFertOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     m_fertDays = CVT_INT(parameters[0]);
     m_ifrtFreq = CVT_INT(parameters[2]);
     m_cfrtKg = parameters[3];
+}
+
+ContFertOp::~ContFertOp() {
+    /// Do nothing.
 }
 
 void ContFertOp::dump(ostream* fs) {
@@ -279,6 +367,10 @@ ContPestOp::ContPestOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int mont
     m_cpstKg = parameters[3];
 }
 
+ContPestOp::~ContPestOp() {
+    /// Do nothing.
+}
+
 void ContPestOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Continuous Pesticide Operation: " << endl <<
@@ -292,6 +384,10 @@ void ContPestOp::dump(ostream* fs) {
 BurnOp::BurnOp(int mgtOp, bool usebaseHU, FLTPT husc, int year, int month, int day, FLTPT* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_burnFrlb = parameters[3];
+}
+
+BurnOp::~BurnOp() {
+    /// Do nothing.
 }
 
 void BurnOp::dump(ostream* fs) {

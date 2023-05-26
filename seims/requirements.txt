@@ -1,35 +1,21 @@
-# 1. Please download the proper compiled version of numpy, gdal, and matplotlib
-#     from https://www.lfd.uci.edu/~gohlke/pythonlibs/
-# numpy>=1.10
-# gdal>=1.9.0
-# Shapely>=1.5.0
-# matplotlib>=1.5.0
 #
-# Or, install above packages in conda:
+# CAUTION:
+#         DO NOT RUN `pip install -r requirements.txt` BY YOURSELF!
+# Usage:
+#       conda env create -f py39seims_env.yml
+#       or
+#       conda env create -f py27seims_env.yml
 #
-# conda install -c conda-forge gdal Shapely matplotlib-base
-#
-
-pymongo>=3.0
-networkx>=1.10,<=2.2;python_version<'3.5'
-networkx>=1.10;python_version>='3.5'
-pathlib2>=2.0.0
-six
-future
-
-# Python 2.7.x only
-configparser;python_version<'3'
+SALib>=1.3;python_version>'3'
+# SALib uses PyScaffold which is not compatible with Py27 since version 3.
+#   So, I decided to use SALib 1.2 for Py27.
+SALib<1.3;python_version<'3'
 
 # scoop, latest
 https://github.com/soravux/scoop/archive/master.zip
 
 # DEAP, latest
 https://github.com/DEAP/deap/archive/master.zip
-
-#SALib>=1.2;python_version>'3'
-# SALib uses PyScaffold which is not compatible with Py27 since version 3.
-#   So, I decided to use SALib 1.2 for Py27.
-SALib<1.3;python_version<'3'
 
 # PyGeoC, latest
 https://github.com/lreis2415/PyGeoC/archive/master.zip
