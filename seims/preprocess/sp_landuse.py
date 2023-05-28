@@ -285,7 +285,7 @@ class LanduseUtilClass(object):
                                          GDT_Float32)
 
     @staticmethod
-    def parameters_extraction(cfg):
+    def parameters_extraction(cfg,conceptual_subbasin_list=None):
         """Landuse spatial parameters extraction."""
         f = cfg.logs.extract_lu
         status_output('Getting reclassification from landuse lookup tables...', 10, f)

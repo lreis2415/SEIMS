@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import, unicode_literals
 
 import os
@@ -11,15 +10,29 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 import pandas as pd
 
-def get_conceptual_model_distribution(cfg:PreprocessConfig):
+
+def strip_df_columns(df: pd.DataFrame):
+    df.columns = df.columns.str.strip()
+
+
+def get_conceptual_subbasin_list(cfg: PreprocessConfig):
     fn = cfg.conceptual_structure
     if fn is None:
         return None
     structures = pd.read_csv(fn, header=0, sep='|', comment='#')
-    for subbasin, is_conceptual in structures.iterrows():
-        is_conceptual = int(is_conceptual)
-        if is_conceptual == 1:
-            print(subbasin, 'is conceptual')
-        else:
-            print(subbasin, 'is not conceptual')
-    return structures
+    strip_df_columns(structures)
+    subbasin_list = structures['SUBBASINID']
+    is_conceptual_list = structures['IS_CONCEPTUAL']
+    conceptual_subbasin_list = []
+    for i in range(len(structures)):
+        subbasin = subbasin_list[i]
+        is_conceptual = is_conceptual_list[i]
+        # sbbasin 0 means the default config,
+        #   other subbasins will use the config of subbasin0 if not specified
+        if subbasin == 0 and is_conceptual == 1:
+            conceptual_subbasin_list = [0]
+            break
+        elif subbasin != 0 and is_conceptual == 1:
+            conceptual_subbasin_list.append(subbasin)
+
+    return conceptual_subbasin_list

@@ -423,6 +423,8 @@ CONST_CHARS_LIST CM_GR4J[] = {"GR4J", "GR4J model"}; ///<
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// Define units' names and descriptions common used in SEIMS, in case of inconsistency ///
+/// Var names correspond with Lookup file names, and are case-insensitive (all          ///
+/// converted to upper case), right?                                                    ///
 /// By LiangJun Zhu, HuiRan Gao, Tong Wu                                                ///
 /// Last updated: Jul., 2021                                                            ///
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -722,7 +724,7 @@ CONST_CHARS_LIST VAR_PLANT_P[] = {"plant_P", "amount of phosphorus in plant biom
 CONST_CHARS_LIST VAR_PLTET_TOT[] = {"plt_et_tot", "actual ET simulated during life of plant"}; /// m_totActPltET
 CONST_CHARS_LIST VAR_PLTPET_TOT[] = {"plt_pet_tot", "potential ET simulated during life of plant"}; /// m_totPltPET
 CONST_CHARS_LIST VAR_POREIDX[] = {"Poreindex", "pore size distribution index"}; /// m_poreIdx
-CONST_CHARS_LIST VAR_POROST[] = {"Porosity", "soil porosity"}; /// m_soilPor
+CONST_CHARS_LIST VAR_POROST[] = {"Sol_Porosity", "soil porosity"}; /// m_soilPor
 CONST_CHARS_LIST VAR_POT_NO3[] = {"pot_no3", "amount of nitrate in pothole water body"}; /// m_potNo3
 CONST_CHARS_LIST VAR_POT_NH4[] = {"pot_nh4", "amount of ammonian in pothole water body"};
 CONST_CHARS_LIST VAR_POT_ORGN[] = {"pot_orgn", "amount of organic N in pothole water body"};
@@ -749,7 +751,7 @@ CONST_CHARS_LIST VAR_OLFLOW[] = {"OL_Flow", "overland flow in each cell calculat
 CONST_CHARS_LIST VAR_QG[] = {"QG", "Groundwater discharge at each reach outlet"}; /// m_qgRchOut
 CONST_CHARS_LIST VAR_QI[] = {"QI", "Interflow at each reach outlet"}; /// m_qiRchOut
 CONST_CHARS_LIST VAR_QOVERLAND[] = {"QOverland", "Water discharge in the downslope boundary of cells"};
-CONST_CHARS_LIST VAR_QRECH[] = {"QRECH", "Discharge at each reach outlet of each time step"}; /// m_qRchOut
+CONST_CHARS_LIST VAR_QRECH[] = {"QRECH", "Total discharge at each reach outlet of each time step"}; /// m_qRchOut
 CONST_CHARS_LIST VAR_QS[] = {"QS", "Overland discharge at each reach outlet"}; /// m_qsRchOut
 CONST_CHARS_LIST VAR_QSOIL[] = {"QSoil", "discharge added to channel flow from interflow"};
 CONST_CHARS_LIST VAR_QSUBBASIN[] = {"QSUBBASIN", "discharge at each subbasin outlet"};

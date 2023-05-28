@@ -35,11 +35,15 @@ public:
 
     ///////////// SetData series functions /////////////
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
-    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+    void SetSubbasins(clsSubbasins* subbsns);
+    // void SetValue(const char* key, FLTPT value) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     ///////////// GetData series functions /////////////
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     ///////////// CheckInputData and InitialOutputs /////////////
     bool CheckInputData() OVERRIDE;
@@ -69,7 +73,20 @@ public:
     FLTPT GR4J_SH2(const FLTPT& t, const FLTPT& x4); //<unit S-hydrograph (cumulative hydrograph) for GR4J #2
 
 private:
+    bool m_isInitialized;
     int m_nCells; ///< valid cells number
+
+    //! number of subbasins
+    int m_nSubbasins;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnId;
+    //! subbasin IDs
+    vector<int> m_subbasinIds;
+    //! All subbasins information
+    clsSubbasins* m_subbasins;
+    /// subbasin grid (subbasins ID)
+    int* m_cellsMappingToSubbasinId;
+
     int N_SOIL_LAYERS = 4;
     const int SOIL_PRODUCT_LAYER = 0;
     const int SOIL_ROUTING_LAYER = 1;
@@ -127,7 +144,8 @@ private:
     /****************
      * Routing
      ****************/
-    FLTPT m_rteWtrOut; ///< Water leaving reach on day after channel routing, m^3, rtwtr in SWAT
+    FLTPT* m_Q_SBOF;
+    FLTPT* m_Q_SB_ZEROS;
 };
 
 #endif

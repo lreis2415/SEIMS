@@ -161,14 +161,20 @@ class SoilProperty(object):
             del sol_dict[ele]
         return sol_dict
 
-    def check_data_validation(self):
+    def check_data_validation(self, conceptual_subbasin_list=None):
         """Check the required input, and calculate all physical and general chemical properties"""
         # set a soil layer at dep_new and adjust all lower layers
         # a septic layer:0-10mm, refers to layersplit.f in SWAT
         if self.SOILLAYERS == DEFAULT_NODATA:
             raise ValueError("Soil layers number must be provided, please check the input file!")
         dep_new = 10.
-        if self.SOL_Z[0] - dep_new >= 10.:
+
+        # TODO: Wrong here. Conceptual model config should be used to separately generate soil data.
+        #         If the current subbasin is conceptual, then skip this `if`;
+        #         if not, then go into this `if`.
+        if self.SOL_Z[0] - dep_new >= 10. and \
+                (conceptual_subbasin_list is None or 0 not in conceptual_subbasin_list):
+
             self.SOILLAYERS += 1
             # Required attributes
             self.SOL_Z.insert(0, dep_new)
@@ -596,7 +602,7 @@ class SoilUtilClass(object):
             return [1, 4, 0.02]  # sand / sha tu
 
     @staticmethod
-    def lookup_soil_parameters(soil_lookup_file):
+    def lookup_soil_parameters(soil_lookup_file, conceptual_subbasin_list=None):
         """Reclassify soil parameters by lookup table.
 
         Returns:
@@ -626,7 +632,7 @@ class SoilUtilClass(object):
                 # special cases
                 cur_soil_ins.SOILLAYERS = int(cur_soil_ins.SOILLAYERS)
 
-            cur_soil_ins.check_data_validation()
+            cur_soil_ins.check_data_validation(conceptual_subbasin_list)
             soil_instances.append(cur_soil_ins)
 
         soil_prop_dict = dict()
@@ -725,11 +731,11 @@ class SoilUtilClass(object):
                                          DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def parameters_extraction(cfg):
+    def parameters_extraction(cfg, conceptual_subbasin_list=None):
         """Soil spatial parameters extraction."""
         f = cfg.logs.extract_soil
         status_output('Calculating initial soil physical and chemical parameters...', 30, f)
-        recls_dict = SoilUtilClass.lookup_soil_parameters(cfg.soil_property)
+        recls_dict = SoilUtilClass.lookup_soil_parameters(cfg.soil_property, conceptual_subbasin_list)
 
         status_output('Decomposing to MongoDB and exclude nodata values to save space...', 50, f)
         inoutcfg = list()

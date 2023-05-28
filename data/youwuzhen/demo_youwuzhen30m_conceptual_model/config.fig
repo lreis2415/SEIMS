@@ -7,3 +7,5 @@
 0 | PET | PenmanMonteith | PET_H
 0 | Interception | Maximum Canopy Storage | PI_MCS
 0 | Conceptual Model | | GR4J
+0 | Vars Update | | VARS_HYDRO
+0 | Channel Routing | | MUSK_CH

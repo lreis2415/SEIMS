@@ -331,7 +331,8 @@ public:
 template <typename T, typename INI_T>
 bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
     if (nullptr != data) {
-        cout << "The input 1D array pointer is not nullptr. No initialization performed!" << endl;
+        //TODO: Is it necessary? Is it possible to only enable `cout` like this in VERBOSE mode?
+        //cout << "The input 1D array pointer is not nullptr. No initialization performed!" << endl;
         return false;
     }
     if (row <= 0) {
