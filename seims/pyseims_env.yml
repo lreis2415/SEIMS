@@ -1,7 +1,7 @@
 # Use the following commands in Anaconda shell to config python env for SEIMS.
 #   cd SEIMS/seims
 #   conda env create -f py39seims_env.yml
-#   
+#
 #   If errors occurred about pip installation, please use the following commands to manually
 #     install some packaged by pip.
 #
@@ -13,13 +13,13 @@
 #
 # Latest updated: 05/21/2023
 
-name: py39seims
+name: pyseims
 channels:
   - conda-forge
   - defaults
 dependencies:
   - python=3.9
-  - gdal
+  - gdal<3.6
   - Shapely
   - matplotlib
   - pymongo
