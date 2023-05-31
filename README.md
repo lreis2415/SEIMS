@@ -53,8 +53,8 @@ Please use the following commands in Anaconda shell to config python environment
 
 ```bash
 cd SEIMS/seims
-conda env create -f py39seims_env.yml
-conda activate py39seims
+conda env create -f pyseims_env.yml
+conda activate pyseims
 ```
 
 ### C++ compilation

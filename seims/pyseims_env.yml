@@ -1,11 +1,11 @@
 # Use the following commands in Anaconda shell to config python env for SEIMS.
 #   cd SEIMS/seims
-#   conda env create -f py39seims_env.yml
+#   conda env create -f pyseims_env.yml
 #
 #   If errors occurred about pip installation, please use the following commands to manually
 #     install some packaged by pip.
 #
-#   conda activate py39seims
+#   conda activate pyseims
 #   pip install --timeout 1000 "https://github.com/soravux/scoop/archive/master.zip"
 #   pip install --timeout 1000 "https://github.com/DEAP/deap/archive/master.zip"
 #   pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
