@@ -416,7 +416,10 @@ CONST_CHARS_LIST M_NUTRCH_QUAL2E[] = {"NutrCH_QUAL2E", "In-stream nutrient trans
 CONST_CHARS_LIST MCLS_ATMDEP[] = {"AtmosphericDeposition", "AtmosphericDeposition"}; ///<
 CONST_CHARS_LIST M_ATMDEP[] = {"ATMDEP", "AtmosphericDeposition"}; ///<
 
+CONST_CHARS_LIST MCLS_VARS_STATS[] = {"VariableStatistics", "VariableStatistics"}; ///<
+CONST_CHARS_LIST M_VARS_HYDRO[] = {"VARS HYDRO", "Subbasin statistics summary about hydrological variables."}; ///<
 
+// Conceptual model
 CONST_CHARS_LIST MCLS_CONCEPTUAL_MODEL[] = {"Conceptual Model", "Conceptual Model Description."}; ///<
 CONST_CHARS_LIST CM_GR4J[] = {"GR4J", "GR4J model"}; ///<
 
@@ -1125,6 +1128,10 @@ CONST_CHARS_LIST VAR_CHL_OUTLET[] = {"chlora_outlet", "chlora concentration at t
 
 CONST_CHARS_LIST VAR_A_DAYS[] = {"a_days", "days since P Application"}; /// m_phpApldDays
 CONST_CHARS_LIST VAR_B_DAYS[] = {"b_days", "days since P deficit"}; /// m_phpDefDays
+
+CONST_CHARS_LIST VAR_GR4J_X2[] = {"GR4J_X2", "The 2nd parameter of GR4J model. Percolation exchange coeff."}; /// m_GR4J_X2
+CONST_CHARS_LIST VAR_GR4J_X3[] = {"GR4J_X3", "The 3rd parameter of GR4J model. Routing store capacity."}; /// m_GR4J_X3
+CONST_CHARS_LIST VAR_GR4J_X4[] = {"GR4J_X4", "The 4th parameter of GR4J model. Unit hydrograph time constant."}; /// m_GR4J_X4
 
 
 //////////////////////////////////////////////////////////////////////////

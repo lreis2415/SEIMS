@@ -14,7 +14,7 @@ from pygeoc.utils import UtilClass, FileClass, is_string
 
 def mask_rasterio(bin_dir, inoutcfg,
                   mongoargs=None, maskfile=None, cfgfile=None,
-                  include_nodata=True, mode='MASK'):
+                  include_nodata=True, mode='MASK', opts=None):
     """Call mask_rasterio program (cpp version) to perform input/output of raster
 
     TODO: this function is very preliminary, need to be improved and tested!
@@ -71,6 +71,8 @@ def mask_rasterio(bin_dir, inoutcfg,
                                                  dic['-outdatatype'] if '-outdatatype' in dic else '',
                                                  dic['-reclass'] if '-reclass' in dic else ''))
         commands += ['-configfile', cfgfile]
+        if opts is not None:
+            commands += ['-opts', opts]
         UtilClass.run_command(commands)
     else:
         for curargs in parsed_inout:

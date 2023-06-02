@@ -1,6 +1,6 @@
 # ALL INITIAL MODEL PARAMETERS.
 # Table title (columns are split by COMMA and each element should not contain COMMA!)
-# Last updated: 2022-08-23
+# Last updated: 2023-06-05
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN,DTYPE
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0,FLT
 Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0,FLT
@@ -221,3 +221,7 @@ Routing,ch_bnk_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,
 Routing,ch_bed_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001,FLT
 Routing,ch_bnk_d50,D50(median) particle size diameter of channel bank sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001,FLT
 Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001,FLT
+GR4J,GR4J_X2,GR4J X2,mm/day,GR4J,1,1,RC,30,-30,FLT
+GR4J,GR4J_X3,GR4J X3,mm/day,GR4J,1,1,RC,1000,0,FLT
+GR4J,GR4J_X4,GR4J X4,day,GR4J,1,1,RC,10,0.5,FLT
+Common,SOILTHICK,,mm,GR4J,100,1,RC,5000,0,FLT

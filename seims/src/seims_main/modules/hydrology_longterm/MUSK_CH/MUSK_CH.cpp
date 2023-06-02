@@ -202,6 +202,47 @@ int MUSK_CH::Execute() {
             throw ModelException(M_MUSK_CH[0], "Execute", "Error occurred!");
         }
     }
+    //printf("[MUSK_CH] m_olQ2Rch=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_olQ2Rch[i]);
+    //}
+    //printf("\n");
+
+    //printf("[MUSK_CH] m_qsRchOut=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_qsRchOut[i]);
+    //}
+    //printf("\n");
+
+    //printf("[MUSK_CH] m_chSto=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_chSto[i]);
+    //}
+    //printf("\n");
+
+    //printf("[MUSK_CH] m_bankSto=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_bankSto[i]);
+    //}
+    //printf("\n");
+
+    //printf("[MUSK_CH] m_flowIn=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_flowIn[i]);
+    //}
+    //printf("\n");
+
+    //printf("[MUSK_CH] m_flowOut=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_flowOut[i]);
+    //}
+    //printf("\n");
+    //printf("[MUSK_CH] m_petSubbsn=");
+    //for (int i = 0; i < m_nreach + 1; i++) {
+    //    printf("%f, ", m_petSubbsn[i]);
+    //}
+    //printf("\n");
+    
     return 0;
 }
 
@@ -675,7 +716,6 @@ bool MUSK_CH::ChannelFlow(const int i) {
     }
 
     // todo, compute revap from bank storage. In SWAT, revap coefficient is equal to gw_revap.
-
 #ifdef PRINT_DEBUG
     cout << " chStorage after routing " << m_chStorage[i] << endl;
     cout << " surfq: " << m_qsCh[i] << ", ifluq: " << m_qiCh[i] << ", groudq: " << m_qgCh[i] << endl;

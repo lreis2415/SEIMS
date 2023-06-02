@@ -137,7 +137,7 @@ int clsPI_MCS::Execute() {
             FLTPT min = m_minIntcpStoCap[i];
             FLTPT max = m_maxIntcpStoCap[i];
             FLTPT capacity = min + (max - min) * CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
-            
+
             //interception, currently, m_st[i] is storage of (t-1) time step
             FLTPT availableSpace = capacity - m_canSto[i];
             if (availableSpace < 0) {

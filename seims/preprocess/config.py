@@ -73,7 +73,8 @@ class PreprocessConfig(object):
         self.landuse = None
         self.landcover_init_param = None
         self.soil = None
-        self.soil_property = None
+        self.soil_property_physical = None
+        self.soil_property_conceptual = None
         self.fields_partition = False
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
@@ -223,7 +224,20 @@ class PreprocessConfig(object):
                                               get_option_value(cf, 'SPATIAL', 'landcoverinitfile'))
             self.soil = pjoin(self.spatial_dir,
                               get_option_value(cf, 'SPATIAL', 'soilseqnfile', required=True))
-            self.soil_property = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntext'))
+
+            if_at_least_has_one = False
+            if cf.has_option('SPATIAL', 'soilseqntext'):
+                self.soil_property_physical = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntext'))
+                if_at_least_has_one = True
+            elif cf.has_option('SPATIAL', 'soilseqntextphysical'):
+                self.soil_property_physical = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntextphysical'))
+                if_at_least_has_one = True
+            if cf.has_option('SPATIAL', 'soilseqntextconceptual'):
+                self.soil_property_conceptual = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntextconceptual'))
+                if_at_least_has_one = True
+            if not if_at_least_has_one:
+                raise ValueError('At least one of the soil property files MUST be specified in [SPATIAL]! (soilSEQNTextPhysical or soilSEQNTextConceptual)')
+
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = get_option_value(cf, 'SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)

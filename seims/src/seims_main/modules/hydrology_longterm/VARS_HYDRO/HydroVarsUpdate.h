@@ -8,7 +8,7 @@
 class HydroVarsUpdate : public SimulationModule {
 private:
 
-    int m_cellSize;
+    int m_nCells;
 
     //! number of subbasins
     int m_nSubbasins;
@@ -18,6 +18,10 @@ private:
     vector<int> m_subbasinIds;
     //! All subbasins information
     clsSubbasins* m_subbasins;
+    /// subbasin grid (subbasins ID)
+    int* m_cellsMappingToSubbasinId;
+
+    FLTPT* m_pet;
 
     FLTPT* m_petSubbsn;
     FLTPT* m_gwSto;
@@ -32,6 +36,8 @@ public:
     // void SetValue(const char *key, FLTPT value) OVERRIDE;
     void SetValue(const char *key, int value) OVERRIDE;
     void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
     void Get1DData(const char *key, int *nRows, FLTPT **data) OVERRIDE;
 
     int Execute(void) OVERRIDE;

@@ -37,7 +37,10 @@ enum TimeStepType {
     TIMESTEP_CHANNEL,   ///< Channel scale
     TIMESTEP_SIMULATION ///< Whole simulation scale
 };
-
+enum SimulationMoudleAbstractionType {
+    CONCEPTUAL_MODULE,
+    PHYSICAL_MODULE
+};
 /*!
  * \ingroup module_setting
  * \class SimulationModule
@@ -281,6 +284,9 @@ protected:
     bool m_inputsSetDone;
     /// need to recalculate intermediate parameters?
     bool m_reCalIntermediates;
+
+    int m_abstractionType;
+
 };
 
 /*!

@@ -126,6 +126,9 @@ void ModelMain::StepOverall(time_t start_t, time_t end_t) {
     }
 }
 
+/**
+ * \brief
+ */
 void ModelMain::Execute() {
     double t1 = TimeCounting();
     time_t startTime = m_input->getStartTime();
@@ -136,6 +139,7 @@ void ModelMain::Execute() {
     //bool updated = false;
 
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
+        //cout << endl << "Timestep: " << t << endl;
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;

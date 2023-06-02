@@ -38,13 +38,14 @@ public:
     void SetSubbasins(clsSubbasins* subbsns);
     // void SetValue(const char* key, FLTPT value) OVERRIDE;
     void SetValue(const char* key, int value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
     void Set1DData(const char* key, int n, int* data) OVERRIDE;
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
     void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     ///////////// GetData series functions /////////////
     void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
-
+    void Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data);
     ///////////// CheckInputData and InitialOutputs /////////////
     bool CheckInputData() OVERRIDE;
     void InitialOutputs() OVERRIDE;
@@ -63,18 +64,26 @@ public:
     void Flush(int fromSoilLayer, FLTPT* toStore);
     void Split();
     void Convolve(ConvoleType t);
-    void GenerateUnitHydrograph(ConvoleType t, int &N);
     void Baseflow(int fromSoilLayer);
 
     void OverlandRouting();
 
     ///////////// Intermediate variable functions /////////////
+    void InitUnitHydrograph(ConvoleType t);
     void CalculateSoilCapacity();
     FLTPT GR4J_SH2(const FLTPT& t, const FLTPT& x4); //<unit S-hydrograph (cumulative hydrograph) for GR4J #2
+
+    void GR4J::printSoilWater();
 
 private:
     bool m_isInitialized;
     int m_nCells; ///< valid cells number
+    /// time step (sec)
+    int m_TimeStep;
+    /// cell width of the grid (m)
+    FLTPT m_CellWth;
+    /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
+    FLTPT m_cellArea;
 
     //! number of subbasins
     int m_nSubbasins;
@@ -108,7 +117,8 @@ private:
     /// infiltration map of watershed (mm) of the total nCells
     FLTPT* m_infil;
     /// 
-    FLTPT** m_soilWtrSto;
+    FLTPT** m_soilWaterStorage;
+    FLTPT* m_netEvapCapacity;
 
 
     /****************
@@ -134,11 +144,12 @@ private:
     FLTPT* m_GR4J_X4;
     FLTPT* m_convEntering1;
     FLTPT* m_convEntering2;
-
+    
     //intermediate
-    FLTPT** m_unitHydro;
-    FLTPT** m_convTransport1;
-    FLTPT** m_convTransport2;
+    vector<vector<FLTPT>> m_unitHydro1;
+    vector<vector<FLTPT>> m_unitHydro2;
+    vector<vector<FLTPT>> m_convTransport1;
+    vector<vector<FLTPT>> m_convTransport2;
 
 
     /****************

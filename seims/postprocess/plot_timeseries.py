@@ -136,7 +136,7 @@ class TimeSeriesPlots(object):
                                                                   end_time=self.vali_etime)
             calculate_statistics(self.vali_sim_obs_dict)
 
-    def generate_plots(self):
+    def generate_plots(self, image_file_suffix=None):
         """Generate hydrographs of discharge, sediment, nutrient (amount or concentrate), etc."""
         # set ticks direction, in or out
         plt.rcParams['xtick.direction'] = 'out'
@@ -311,4 +311,8 @@ class TimeSeriesPlots(object):
             leg.get_frame().set_alpha(0.5)
             timerange = '%s-%s' % (self.sim_data_value[0][0].strftime('%Y-%m-%d'),
                                    self.sim_data_value[-1][0].strftime('%Y-%m-%d'))
-            save_png_eps(plt, self.ws, param + '-' + timerange, self.plot_cfg)
+            out_file_name = '%s-%s' % (param, timerange)
+            if image_file_suffix is not None:
+                out_file_name = '%s-%s' % (out_file_name, image_file_suffix)
+            save_png_eps(plt, self.ws, out_file_name, self.plot_cfg)
+        return plt
