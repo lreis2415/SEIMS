@@ -56,7 +56,7 @@ jobs:
         cd ${{github.workspace}}\.github\workflows
         ./download_gdal.ps1 -gdalPath ${{github.workspace}}\gdallib
         Get-ChildItem Env: | Where-Object {$_.Name -Match "^GDAL"} | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
-    
+
     - name: Setup MSMPI
       uses: mpi4py/setup-mpi@v1
       with:
@@ -84,11 +84,11 @@ jobs:
       with:
         path: ~/conda_pkgs_dir
         key:
-          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/py39seims_env.yml') }}
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/pyseims_env.yml') }}
     - uses: conda-incubator/setup-miniconda@v2
       with:
-        activate-environment: py39seims
-        environment-file: seims/py39seims_env.yml
+        activate-environment: pyseims
+        environment-file: seims/pyseims_env.yml
         auto-activate-base: false
         auto-update-conda: true
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
@@ -98,7 +98,7 @@ jobs:
       run: |
         cd seims
         python pyseims_check.py
-        REM 
+        REM
         REM I currently commented out the test command because the unsolved timeout
         REM   error when running GitHub Actions caused by matplotlib:
         REM
