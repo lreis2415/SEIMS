@@ -20,4 +20,4 @@ Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.e
 
 ## 联系我们
 + 朱良君 博士 (zlj@lreis.ac.cn)
-+ 刘军志 教授 (liujunzhi@njnu.edu.cn)
++ 刘军志 教授 (liujunzhi@lzu.edu.cn)
