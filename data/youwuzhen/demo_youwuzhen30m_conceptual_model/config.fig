@@ -9,4 +9,5 @@
 0 | | | SUR_DUMP
 0 | Overland Routing | | OLR_DUMP
 0 | Vars Update | | VARS_HYDRO
-0 | Channel Routing | | MUSK_CH
+#0 | Channel Routing | | MUSK_CH
+0 | Channel Routing | | CHR_DUMP
