@@ -181,6 +181,10 @@ int MUSK_CH::Execute() {
     InitialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
+#ifdef PRINT_DEBUG
+    PrintVars();
+#endif
+
     for (auto it = m_rteLyrs.begin(); it != m_rteLyrs.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -201,48 +205,10 @@ int MUSK_CH::Execute() {
         if (errCount > 0) {
             throw ModelException(M_MUSK_CH[0], "Execute", "Error occurred!");
         }
+#ifdef PRINT_DEBUG
+        PrintVars();
+#endif
     }
-    //printf("[MUSK_CH] m_olQ2Rch=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_olQ2Rch[i]);
-    //}
-    //printf("\n");
-
-    //printf("[MUSK_CH] m_qsRchOut=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_qsRchOut[i]);
-    //}
-    //printf("\n");
-
-    //printf("[MUSK_CH] m_chSto=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_chSto[i]);
-    //}
-    //printf("\n");
-
-    //printf("[MUSK_CH] m_bankSto=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_bankSto[i]);
-    //}
-    //printf("\n");
-
-    //printf("[MUSK_CH] m_flowIn=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_flowIn[i]);
-    //}
-    //printf("\n");
-
-    //printf("[MUSK_CH] m_flowOut=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_flowOut[i]);
-    //}
-    //printf("\n");
-    //printf("[MUSK_CH] m_petSubbsn=");
-    //for (int i = 0; i < m_nreach + 1; i++) {
-    //    printf("%f, ", m_petSubbsn[i]);
-    //}
-    //printf("\n");
-    
     return 0;
 }
 
@@ -530,14 +496,15 @@ bool MUSK_CH::ChannelFlow(const int i) {
     FLTPT c2 = (det + detmin) / temp;
     FLTPT c3 = (detmax - det) / temp;
     // make sure any coefficient is positive. Not sure whether this is needed.
-    //if (c1 < 0) {
-    //    c2 += c1;
-    //    c1 = 0.;
-    //}
-    //if (c3 < 0) {
-    //    c2 += c1;
-    //    c3 = 0.;
-    //}
+    // -- if below commented, c3 may be negative, casuing `sdti` obviously larger than qIn. -- wyj
+    if (c1 < 0) {
+        c2 += c1;
+        c1 = 0.;
+    }
+    if (c3 < 0) {
+        c2 += c1;
+        c3 = 0.;
+    }
 
 #ifdef PRINT_DEBUG
     cout << " chStorage before routing " << m_chStorage[i] << endl;
@@ -638,7 +605,6 @@ bool MUSK_CH::ChannelFlow(const int i) {
             FLTPT rtevp1 = 0.;
             FLTPT rtevp2 = 0.;
             if (rtwtr > 0.) {
-                /// In SWAT source code, line 306 of rtmusk.f, I think aaa should be divided by nn! By lj.
                 FLTPT aaa = m_Epch * m_petSubbsn[i] * 0.001 / nn; // m
                 if (m_chWtrDepth[i] <= m_chDepth[i]) {
                     rtevp = aaa * m_chLen[i] * m_chWtrWth[i]; // m^3
@@ -721,4 +687,49 @@ bool MUSK_CH::ChannelFlow(const int i) {
     cout << " surfq: " << m_qsCh[i] << ", ifluq: " << m_qiCh[i] << ", groudq: " << m_qgCh[i] << endl;
 #endif
     return true;
+}
+
+void MUSK_CH::PrintVars() {
+    printf("\nBefore executing:");
+    printf("\n[MUSK_CH] m_olQ2Rch=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_olQ2Rch[i]);
+    }
+    printf("\n");
+
+    printf("[MUSK_CH] m_qsRchOut=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_qsRchOut[i]);
+    }
+    printf("\n");
+
+    printf("[MUSK_CH] m_chSto=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_chSto[i]);
+    }
+    printf("\n");
+
+    printf("[MUSK_CH] m_bankSto=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_bankSto[i]);
+    }
+    printf("\n");
+
+    printf("[MUSK_CH] m_flowIn=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_flowIn[i]);
+    }
+    printf("\n");
+
+    printf("[MUSK_CH] m_flowOut=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_flowOut[i]);
+    }
+    printf("\n");
+    printf("[MUSK_CH] m_petSubbsn=");
+    for (int i = 0; i < m_nreach + 1; i++) {
+        printf("%f, ", m_petSubbsn[i]);
+    }
+    printf("\n");
+    fflush(stdout);
 }

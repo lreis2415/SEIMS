@@ -340,6 +340,7 @@ CONST_CHARS_LIST M_SUR_MR[] = {"SUR_MR", "Modified rational method to calculate 
 CONST_CHARS_LIST M_SUR_CN[] = {"SUR_CN", "SCS curve number method to calculate infiltration and excess precipitation."}; ///<
 CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Green-Ampt method for infiltration and excess precipitation in storm mode."}; ///<
 CONST_CHARS_LIST M_SUR_GR4J[] = {"SUR_GR4J", "GR4J's method for infiltration and excess precipitation."}; ///<
+CONST_CHARS_LIST M_SUR_DUMP[] = {"SUR_DUMP", "Directly dump all precipitation to surface runoff."}; ///<
 
 // Interflow (subsurface flow) routing related modules
 // TODO, uniform the prefix as SSR_. By lj
@@ -391,6 +392,7 @@ CONST_CHARS_LIST M_PG_ORYZA[] = {"PG_ORYZA", "Rice crop growth module of ORYZA20
 CONST_CHARS_LIST MCLS_OL_ROUTING[] = {"Overland routing", "Overland routing module"}; ///<
 CONST_CHARS_LIST M_IKW_OL[] = {"IKW_OL", "Overland routing using 4-point implicit finite difference method."}; ///<
 CONST_CHARS_LIST M_IUH_OL[] = {"IUH_OL", "IUH overland method to calculate overland flow routing."}; ///<
+CONST_CHARS_LIST M_OLR_DUMP[] = {"OLR_DUMP", "Directly dump all surface runoff to channel."}; ///<
 
 // Channel routing related modules
 CONST_CHARS_LIST MCLS_CH_ROUTING[] = {"Channel routing", "Channel routing modules"}; ///<
@@ -401,6 +403,7 @@ CONST_CHARS_LIST M_MUSK_CH[] = {"MUSK_CH", "Channel routing using Muskingum-Cung
 CONST_CHARS_LIST M_NUTR_CH[] = { "NUTR_CH", "Channel routing of nutrients" }; ///<
 CONST_CHARS_LIST M_SEDR_SBAGNOLD[] = {"SEDR_SBAGNOLD", "Sediment channel routing using "
                                       "variable channel dimension method as used in SWAT."}; ///<
+CONST_CHARS_LIST M_CHR_DUMP[] = { "CHR_DUMP", "Directly dump all water entering channel to outlet" }; ///<
 
 // Nutrient related modules, e.g., carbon, nitrogen, and phosphorus mineralization and immobilization.
 CONST_CHARS_LIST MCLS_NUTRCYC[] = {"Nutrient cycling", "Carbon, nitrogen, and phosphorus cycling"}; ///<

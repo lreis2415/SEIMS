@@ -24,7 +24,7 @@ void GR4J::printSoilWater() {
 }
 
 GR4J::GR4J() :
-    m_nCells(-1), m_TimeStep(-1), m_CellWth(-1), m_cellArea(-1), m_isInitialized(false),
+    m_nCells(-1), m_timeStep(-1), m_cellWidth(-1), m_cellArea(-1), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     //infiltration
     m_pcp(nullptr), m_soilThickness(nullptr), m_soilPorosity(nullptr), m_soilCapacity(nullptr),
@@ -34,20 +34,12 @@ GR4J::GR4J() :
     //percolation
     m_GR4J_X2(nullptr), m_GR4J_X3(nullptr),
     //split and convolve
-    m_GR4J_X4(nullptr), m_convEntering1(nullptr), m_convEntering2(nullptr),
-    //routing
-    m_Q_SBOF(nullptr), m_Q_SB_ZEROS(nullptr) {
+    m_GR4J_X4(nullptr), m_convEntering1(nullptr), m_convEntering2(nullptr){
 }
 
 void GR4J::InitialOutputs() {
-    if (m_Q_SB_ZEROS == nullptr)
-        Initialize1DArray(m_nSubbasins + 1, m_Q_SB_ZEROS, 0.);
     if (m_soilET == nullptr)
         Initialize1DArray(m_nCells, m_soilET, 0.);
-
-    for (int i = 0; i <= m_nSubbasins; ++i) {
-        m_Q_SB_ZEROS[i] = 0.0;
-    }
 
     for (int i = 0; i < m_nCells; ++i) {
         m_soilET[i] = 0;
@@ -58,7 +50,7 @@ void GR4J::InitialOutputs() {
         return;
     }
 
-    if (m_cellArea <= 0.) m_cellArea = m_CellWth * m_CellWth;
+    if (m_cellArea <= 0.) m_cellArea = m_cellWidth * m_cellWidth;
     Initialize1DArray(m_nCells, m_pcpExcess, 0.);
     Initialize2DArray(m_nCells, N_SOIL_LAYERS, m_soilCapacity, 0.);
     Initialize1DArray(m_nCells, m_infil, 0.);
@@ -68,7 +60,6 @@ void GR4J::InitialOutputs() {
     Initialize1DArray(m_nCells, m_convEntering1, 0.);
     Initialize1DArray(m_nCells, m_convEntering2, 0.);
 
-    Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.);
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -100,14 +91,12 @@ GR4J::~GR4J() {
     Release1DArray(m_GR4J_X4);
     Release1DArray(m_convEntering1);
     Release1DArray(m_convEntering2);
-    Release1DArray(m_Q_SBOF);
-    Release1DArray(m_Q_SB_ZEROS);
 }
 
 void GR4J::SetValue(const char* key, int value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellSize[0])) m_nCells = value;
-    else if (StringMatch(sk, Tag_TimeStep[0])) m_TimeStep = value;
+    else if (StringMatch(sk, Tag_TimeStep[0])) m_timeStep = value;
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbasins = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnId = value;
     else {
@@ -118,7 +107,7 @@ void GR4J::SetValue(const char* key, int value) {
 
  void GR4J::SetValue(const char* key, FLTPT value) {
      string sk(key);
-     if (StringMatch(sk, Tag_CellWidth[0])) m_CellWth = value;
+     if (StringMatch(sk, Tag_CellWidth[0])) m_cellWidth = value;
      else {
          throw ModelException(CM_GR4J[0], "SetValue",
                               "Integer Parameter " + sk + " does not exist.");
@@ -199,16 +188,14 @@ void GR4J::SetSubbasins(clsSubbasins* subbsns) {
 
 void GR4J::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SBOF[0])) { *data = m_Q_SBOF; }
-    else if (StringMatch(sk, VAR_SBIF[0])) { *data = m_Q_SB_ZEROS; }
-    else if (StringMatch(sk, VAR_SBQG[0])) { *data = m_Q_SB_ZEROS; }
-    else if (StringMatch(sk, VAR_AET_PLT[0])) { *data = m_soilET; *n = m_nCells; return; }
+    if (StringMatch(sk, VAR_SURU[0])) { *data = m_pcpExcess; }
+    else if (StringMatch(sk, VAR_AET_PLT[0])) { *data = m_soilET;}
     else {
         throw ModelException(CM_GR4J[0], "Get1DData",
                              "Result " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
-    *n = m_nSubbasins + 1;
+    *n = m_nCells;
 }
 
 void GR4J::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
@@ -519,47 +506,11 @@ void GR4J::Baseflow(int fromSoilLayer) {
     printSoilWater();
 }
 
-// directly add pcp excess to subbasin outlet
-void GR4J::OverlandRouting() {
-    for (int n = 0; n <= m_nSubbasins; n++) {
-        m_Q_SBOF[n] = 0;
-    }
-//#pragma omp parallel
-    {
-        FLTPT* tmp_qsSub = new FLTPT[m_nSubbasins + 1];
-        for (int i = 0; i <= m_nSubbasins; i++) {
-            tmp_qsSub[i] = 0.;
-        }
-//#pragma omp for
-        for (int i = 0; i < m_nCells; i++) {
-            tmp_qsSub[CVT_INT(m_cellsMappingToSubbasinId[i])] += m_pcpExcess[i];
-            m_pcpExcess[i] = 0.0;
-        }
-//#pragma omp critical
-        {
-            for (int n = 1; n <= m_nSubbasins; n++) {
-                m_Q_SBOF[n] = tmp_qsSub[n];
-                m_Q_SBOF[n] = m_Q_SBOF[n] * 0.001 * m_cellArea / m_TimeStep;
-            }
-        }
-        delete[] tmp_qsSub;
-        tmp_qsSub = nullptr;
-    } /* END of //#pragma omp parallel */
-
-    for (int n = 1; n <= m_nSubbasins; n++) {
-        //get overland flow routing for entire watershed.
-        m_Q_SBOF[0] += m_Q_SBOF[n];
-    }
-
-    printf("[OverlandRouting] m_Q_SBOF[0]=%f->%f\n",
-        m_Q_SBOF[0] / 0.001 / m_cellArea * m_TimeStep,
-        m_Q_SBOF[0]);
-    fflush(stdout);
-}
 
 int GR4J::Execute() {
     InitialOutputs();
     CheckInputData();
+
     Infiltration();
     SoilEvaporation();
     Percolation(SOIL_PRODUCT_LAYER, SOIL_TEMP_LAYER);
@@ -571,6 +522,5 @@ int GR4J::Execute() {
     PercolationExch2(SOIL_TEMP_LAYER, SOIL_GW_LAYER);
     Flush(SOIL_TEMP_LAYER, m_pcpExcess);
     Baseflow(SOIL_ROUTING_LAYER);
-    OverlandRouting();
     return 0;
 }

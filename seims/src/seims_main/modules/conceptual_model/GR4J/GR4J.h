@@ -5,7 +5,7 @@
  * \date 2023-05-07
  *
  * Changelog:
- *   - 1. 2023-05-07 - Author - Desc
+ *   - 1. YYYY-MM-DD - Author - Desc
  *
  *   @article{Raven,
   title={Flexible watershed simulation with the Raven hydrological modelling framework},
@@ -79,9 +79,9 @@ private:
     bool m_isInitialized;
     int m_nCells; ///< valid cells number
     /// time step (sec)
-    int m_TimeStep;
+    int m_timeStep;
     /// cell width of the grid (m)
-    FLTPT m_CellWth;
+    FLTPT m_cellWidth;
     /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
     FLTPT m_cellArea;
 
@@ -151,12 +151,6 @@ private:
     vector<vector<FLTPT>> m_convTransport1;
     vector<vector<FLTPT>> m_convTransport2;
 
-
-    /****************
-     * Routing
-     ****************/
-    FLTPT* m_Q_SBOF;
-    FLTPT* m_Q_SB_ZEROS;
 };
 
 #endif
