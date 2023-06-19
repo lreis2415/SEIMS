@@ -255,9 +255,12 @@ void GR4J::Infiltration() {
         t2 += m_pet[i];
         t3 += m_pcpExcess[i];
     }
+#ifdef PRINT_DEBUG
     printf("[Infil] m_pcp=%f, m_pet=%f,  m_pcpExcess=%f\n",
         t1, t2, t3);
     printSoilWater();
+#endif
+
 }
 
 void GR4J::SoilEvaporation() {
@@ -273,6 +276,7 @@ void GR4J::SoilEvaporation() {
         m_soilET[i] = stor * (2.0 - sat) * tmp / (1.0 + (1.0 - sat) * tmp);
         m_soilWaterStorage[i][SOIL_PRODUCT_LAYER] -= m_soilET[i];
     }
+#ifdef PRINT_DEBUG
     FLTPT t1 = 0;
     FLTPT t2 = 0;
     FLTPT t3 = 0;
@@ -281,6 +285,7 @@ void GR4J::SoilEvaporation() {
     }
     printf("[Evap] Layer1-=m_soilET=%f\n", t1);
     printSoilWater();
+#endif
 }
 
 void GR4J::Percolation(int fromSoilLayer, int toSoilLayer) {
@@ -299,8 +304,10 @@ void GR4J::Percolation(int fromSoilLayer, int toSoilLayer) {
         m_soilWaterStorage[i][toSoilLayer] += perc;
     }
 
+#ifdef PRINT_DEBUG
     printf("[Perc]\n");
     printSoilWater();
+#endif
 }
 
 void GR4J::PercolationExch(int fromSoilLayer, int toSoilLayer) {
@@ -316,8 +323,10 @@ void GR4J::PercolationExch(int fromSoilLayer, int toSoilLayer) {
         m_soilWaterStorage[i][fromSoilLayer] -= perc;
         m_soilWaterStorage[i][toSoilLayer] += perc;
     }
+#ifdef PRINT_DEBUG
     printf("[PercExch]\n");
     printSoilWater();
+#endif
 }
 
 void GR4J::PercolationExch2(int fromSoilLayer, int toSoilLayer) {
@@ -333,8 +342,10 @@ void GR4J::PercolationExch2(int fromSoilLayer, int toSoilLayer) {
         m_soilWaterStorage[i][fromSoilLayer] -= perc;
         m_soilWaterStorage[i][toSoilLayer] += perc;
     }
+#ifdef PRINT_DEBUG
     printf("[PercExch2]\n");
     printSoilWater();
+#endif
 }
 
 
@@ -344,8 +355,10 @@ void GR4J::Flush(FLTPT* fromStore, int toSoilLayer) {
         m_soilWaterStorage[i][toSoilLayer] += fromStore[i];
         fromStore[i] = 0;
     }
+#ifdef PRINT_DEBUG
     printf("[Flush]\n");
     printSoilWater();
+#endif
 }
 
 void GR4J::Flush(int fromSoilLayer, FLTPT* toStore) {
@@ -354,8 +367,10 @@ void GR4J::Flush(int fromSoilLayer, FLTPT* toStore) {
         toStore[i] += m_soilWaterStorage[i][fromSoilLayer];
         m_soilWaterStorage[i][fromSoilLayer] = 0;
     }
+#ifdef PRINT_DEBUG
     printf("[Flush]\n");
     printSoilWater();
+#endif
 }
 
 //Split RAVEN_DEFAULT TEMP_STORE CONVOLUTION[0] CONVOLUTION[1] 0.9
@@ -502,8 +517,10 @@ void GR4J::Baseflow(int fromSoilLayer) {
         m_pcpExcess[i] += q;
         m_soilWaterStorage[i][fromSoilLayer] -= q;
     }
+#ifdef PRINT_DEBUG
     printf("[Baseflow] delta q=%f, m_pcpExcess=%f\n", t1, sum(m_pcpExcess,m_nCells));
     printSoilWater();
+#endif
 }
 
 

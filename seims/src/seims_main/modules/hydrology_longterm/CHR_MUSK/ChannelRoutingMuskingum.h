@@ -1,22 +1,23 @@
 /*!
- * \file ChannelRoutingDump.h
+ * \file ChannelRoutingMuskingum.h
  * \brief 
  * \author Yujing Wang
  * \date 2023-06-15
  *
  */
 
-#ifndef SEIMS_CHANNEL_ROUTING_DUMP_H
-#define SEIMS_CHANNEL_ROUTING_DUMP_H
+#ifndef SEIMS_CHANNEL_ROUTING_MUSKINGUM_H
+#define SEIMS_CHANNEL_ROUTING_MUSKINGUM_H
 
 #include "SimulationModule.h"
 
 // using namespace std;  // Avoid this statement! by lj.
 
-class ChannelRoutingDump : public SimulationModule {
+class ChannelRoutingMuskingum : public SimulationModule {
 private:
     bool m_isInitialized;
 
+    int m_dt;  ///< time step (sec)
     int m_nCells;
     int m_nReaches;  ///< reach number (= subbasin number)
     
@@ -39,19 +40,26 @@ private:
     map<int, vector<int> > m_routeLayers;
 
 
+    FLTPT K;
+    FLTPT X;
+
     FLTPT* m_Q_SBOF;
+    FLTPT* m_Q_in;
+    FLTPT* m_Q_inLast;
+    FLTPT* m_Q_out;  ///< reach outflow (m^3/s)
+    FLTPT* m_Q_outLast;  ///< reach outflow (m^3/s)
     
-    FLTPT* m_Q_outlet;  ///< reach outflow (m^3/s)
 
 public:
-    ChannelRoutingDump();
-    ~ChannelRoutingDump();
+    ChannelRoutingMuskingum();
+    ~ChannelRoutingMuskingum();
     void InitialOutputs() OVERRIDE;
     bool CheckInputData() OVERRIDE;
 
 
     void SetValue(const char *key, int value) OVERRIDE;
-    void SetValueByIndex(const char* key, const int index, const FLTPT value);
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
+    void SetValueByIndex(const char* key, const int index, const FLTPT value) OVERRIDE;
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
     void SetReaches(clsReaches* reaches);
 
@@ -63,4 +71,4 @@ public:
     void ChannelFlow(const int i);
 
 };
-#endif /* SEIMS_OVERLAND_ROUTING_DUMP_H */
+#endif /* SEIMS_OVERLAND_ROUTING_MUSKINGUM_H */

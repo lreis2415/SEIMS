@@ -399,11 +399,13 @@ CONST_CHARS_LIST MCLS_CH_ROUTING[] = {"Channel routing", "Channel routing module
 CONST_CHARS_LIST M_CH_DW[] = {"CH_DW", "Channel routing using diffusive wave equation."}; ///<
 CONST_CHARS_LIST M_CH_MSK[] = {"CH_MSK", "Channel routing using Muskingum-Cunge method of storm model."}; ///<
 CONST_CHARS_LIST M_IKW_CH[] = {"IKW_CH", "Channel routing using 4-point implicit finite difference method for kinematic wave."}; ///<
-CONST_CHARS_LIST M_MUSK_CH[] = {"MUSK_CH", "Channel routing using Muskingum-Cunge method of longterm model."}; ///<
+CONST_CHARS_LIST M_MUSK_CH[] = {"MUSK_CH", "Channel routing using Muskingum-Cunge method of longterm model, adopted from SWAT."}; ///<
 CONST_CHARS_LIST M_NUTR_CH[] = { "NUTR_CH", "Channel routing of nutrients" }; ///<
 CONST_CHARS_LIST M_SEDR_SBAGNOLD[] = {"SEDR_SBAGNOLD", "Sediment channel routing using "
                                       "variable channel dimension method as used in SWAT."}; ///<
 CONST_CHARS_LIST M_CHR_DUMP[] = { "CHR_DUMP", "Directly dump all water entering channel to outlet" }; ///<
+CONST_CHARS_LIST M_CHR_MUSK[] = {"CHR_MUSK", "Channel routing using original Muskingum method, adpoted from Raven."}; ///<
+
 
 // Nutrient related modules, e.g., carbon, nitrogen, and phosphorus mineralization and immobilization.
 CONST_CHARS_LIST MCLS_NUTRCYC[] = {"Nutrient cycling", "Carbon, nitrogen, and phosphorus cycling"}; ///<
@@ -670,7 +672,8 @@ CONST_CHARS_LIST VAR_MOIST_IN[] = {"Moist_in", "Initial soil moisture"}; // m_in
 CONST_CHARS_LIST VAR_MSF[] = {"ManningScaleFactor", "flow velocity scaling factor for calibration"};
 CONST_CHARS_LIST VAR_MSK_CO1[] = {"MSK_co1", "Calibration coefficient used to control impact of the storage time constant for normal flow"}; /// m_mskCoef1
 //CONST_CHARS_LIST VAR_MSK_CO2[] = {"MSK_co2", "Calibration coefficient used to control impact of the storage time constant fro low flow"};
-CONST_CHARS_LIST VAR_MSK_X[] = {"MSK_X", "Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment"}; /// m_mskX
+CONST_CHARS_LIST VAR_MSK_X[] = { "MSK_X", "Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment" }; /// m_mskX
+CONST_CHARS_LIST VAR_MSK_K[] = {"MSK_K", ""}; /// m_mskK
 CONST_CHARS_LIST VAR_MUMAX[] = {"mumax", "maximum specific algal growth rate at 20 deg C"};
 CONST_CHARS_LIST VAR_NACTFR[] = {"nactfr", "The fraction of organic nitrogen in the nitrogen active pool."}; /// m_orgNFrActN
 CONST_CHARS_LIST VAR_NEPR[] = {"NEPR", "Net Precipitation"}; /// m_netPcp

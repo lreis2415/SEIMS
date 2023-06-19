@@ -122,9 +122,11 @@ int OverlandRoutingDump::Execute() {
         m_Q_SBOF[0] += m_Q_SBOF[n];
     }
 
+#ifdef PRINT_DEBUG
     printf("\n[OverlandRoutingDump] m_Q_SBOF[0]=%f->%f\n",
         m_Q_SBOF[0] / 0.001 / m_cellArea * m_timeStep,
         m_Q_SBOF[0]);
     fflush(stdout);
+#endif
     return 0;
 }

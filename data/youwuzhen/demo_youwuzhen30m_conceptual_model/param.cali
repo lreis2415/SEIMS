@@ -1,11 +1,6 @@
-ep_ch,0
-MSK_X,0
-MSK_co1,0
-ch_width,1
-ch_depth,1
-ch_n,1
-ch_len,1
-GR4J_X2,0
-GR4J_X3,0
+GR4J_X2,-1
+GR4J_X3,25
 GR4J_X4,0.5
-SOILTHICK,0
+SOILTHICK,15
+MSK_X,0.2
+MSK_K,0

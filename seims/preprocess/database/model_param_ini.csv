@@ -26,7 +26,8 @@ Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001,FL
 Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0,FLT
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001,FLT
 Discharge,MSK_co1,Calibration coefficient used to control impact of the storage time constant for normal flow,none,ChannelRouting,0.75,0,AC,1,0,FLT
-Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.3,0,FLT
+Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.5,0,FLT
+Discharge,MSK_K,Muskingum k,none,ChannelRouting,0.2,0,AC,1,0.01,FLT
 Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0,FLT
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0,FLT
 Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0,FLT

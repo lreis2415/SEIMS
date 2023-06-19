@@ -10,19 +10,19 @@ ChannelRoutingDump::ChannelRoutingDump():
     m_outletID(-1),
     m_reachDownStream(nullptr),
     m_Q_SBOF(nullptr), 
-    m_qRchOut(nullptr){
+    m_Q_outlet(nullptr){
 }
 
 ChannelRoutingDump::~ChannelRoutingDump() {
-    Release1DArray(m_qRchOut);
+    Release1DArray(m_Q_outlet);
 }
 
 void ChannelRoutingDump::InitialOutputs() {
 
-    Initialize1DArray(m_nReaches + 1, m_qRchOut, 0.);
+    Initialize1DArray(m_nReaches + 1, m_Q_outlet, 0.);
     
     for (int i = 1; i <= m_nReaches; i++) {
-        m_qRchOut[i] = m_Q_SBOF[i];
+        m_Q_outlet[i] = m_Q_SBOF[i];
     }
     
 }
@@ -47,10 +47,10 @@ void ChannelRoutingDump::SetValue(const char* key, int value) {
 void ChannelRoutingDump::SetValueByIndex(const char* key, const int index, const FLTPT value){
     if (m_inputSubbasinId == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nReaches) return; // index should belong 1 ~ m_nreach
-    if (nullptr == m_qRchOut) InitialOutputs();
+    if (nullptr == m_Q_outlet) InitialOutputs();
     
     string sk(key);
-    if (StringMatch(sk, VAR_QRECH[0])) m_qRchOut[index] = value;
+    if (StringMatch(sk, VAR_QRECH[0])) m_Q_outlet[index] = value;
     else {
         throw ModelException(M_CHR_DUMP[0], "SetValueByIndex",
                              "Parameter " + sk + " does not exist.");
@@ -82,14 +82,14 @@ void ChannelRoutingDump::SetReaches(clsReaches* reaches) {
     }
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_rteLyrs = reaches->GetReachLayers();
+    m_routeLayers = reaches->GetReachLayers();
 }
 
 void ChannelRoutingDump::GetValue(const char* key, FLTPT* value){
     InitialOutputs();
     string sk(key);
     /// IN/OUTPUT variables
-    if (StringMatch(sk, VAR_QRECH[0]) && m_inputSubbasinId > 0) *value = m_qRchOut[m_inputSubbasinId];
+    if (StringMatch(sk, VAR_QRECH[0]) && m_inputSubbasinId > 0) *value = m_Q_outlet[m_inputSubbasinId];
     else {
         throw ModelException(M_CHR_DUMP[0], "GetValue", "Parameter " + sk + " does not exist.");
     }
@@ -98,8 +98,8 @@ void ChannelRoutingDump::GetValue(const char* key, FLTPT* value){
 void ChannelRoutingDump::Get1DData(const char *key, int *nRows, FLTPT **data) {
     string s(key);
     if (StringMatch(s, VAR_QRECH[0])) {
-        m_qRchOut[0] = m_qRchOut[m_outletID];
-        *data = m_qRchOut;
+        m_Q_outlet[0] = m_Q_outlet[m_outletID];
+        *data = m_Q_outlet;
     } else {
         throw ModelException(M_CHR_DUMP[0], "Get1DData", "Output " + s + " does not exist.");
     }
@@ -110,11 +110,11 @@ int ChannelRoutingDump::Execute() {
     InitialOutputs();
     CheckInputData();
 
-    for (auto it = m_rteLyrs.begin(); it != m_rteLyrs.end(); ++it) {
+    for (auto it = m_routeLayers.begin(); it != m_routeLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
-        // the size of m_rteLyrs (map) is equal to the maximum stream order
+        // the size of m_routeLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
@@ -125,22 +125,27 @@ int ChannelRoutingDump::Execute() {
             }
         }
 
-        printf("\n[ChannelRoutingDump]%d m_qRchOut:",it->first);
+#ifdef PRINT_DEBUG
+        printf("\n[ChannelRoutingDump]%d m_Q_outlet:",it->first);
         for (int i = 0; i < m_nReaches; i++) {
-            printf("%f, ", m_qRchOut[i]);
+            printf("%f, ", m_Q_outlet[i]);
         }
         fflush(stdout);
+#endif
     }
+
+#ifdef PRINT_DEBUG
     printf("\n");
+#endif
 
     return 0;
 }
 
 
 void ChannelRoutingDump::ChannelFlow(const int i){
-    for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
-        if (m_qRchOut[*upRchID] > 0.) {
-            m_qRchOut[i] += m_qRchOut[*upRchID];
+    for (auto upReachId = m_reachUpStream.at(i).begin(); upReachId != m_reachUpStream.at(i).end(); ++upReachId) {
+        if (m_Q_outlet[*upReachId] > 0.) {
+            m_Q_outlet[i] += m_Q_outlet[*upReachId];
         }
     }
 }
