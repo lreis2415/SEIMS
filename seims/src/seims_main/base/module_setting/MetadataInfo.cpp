@@ -63,6 +63,7 @@ void MetadataInfo::WriteInformation(int indent, string* sb) {
     FullTag(TagInfoEmail, indent + 1, m_Info.EMail, sb);
     FullTag(TagInfoWebsite, indent + 1, m_Info.Website, sb);
     FullTag(TagInfoHelpfile, indent + 1, m_Info.Helpfile, sb);
+    FullTag(TagInfoModuleAbstractionType, indent + 1, m_Info.ModuleAbstractionType, sb);
 
     CloseTag(TagInformation, indent, sb);
 }

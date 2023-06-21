@@ -199,7 +199,7 @@ bool DataCenter::CheckAdjustmentInt(const string& para_name) {
 }
 
 void DataCenter::LoadAdjustRasterData(const string& para_name, const string& remote_filename,
-                                      const bool is_optional /* = false */) {
+                                      const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     FloatRaster* raster = nullptr;
     if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
         if (is_optional) { return; }
@@ -235,7 +235,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
 }
 
 void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& remote_filename,
-                                         const bool is_optional /* = false */) {
+                                         const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     IntRaster* raster = nullptr;
     if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
         if (is_optional) { return; }
@@ -272,7 +272,7 @@ void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& 
 }
 
 void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
-                                       const bool is_optional /* = false */) {
+                                       const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     int n;
     FLTPT* data = nullptr;
     FLTPT* tmpdata = nullptr;
@@ -320,7 +320,7 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
 }
 
 void DataCenter::LoadAdjustInt1DArrayData(const string& para_name, const string& remote_filename,
-                                          const bool is_optional /* = false */) {
+                                          const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     int n;
     int* data = nullptr;
     string upper_name = GetUpper(para_name);
@@ -340,7 +340,7 @@ void DataCenter::LoadAdjustInt1DArrayData(const string& para_name, const string&
     }
 }
 
-void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& remote_filename) {
+void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& remote_filename, STRING_MAP* opts /* =nullptr */) {
     int n_rows = 0;
     int n_cols = 1;
     FLTPT** data = nullptr;
@@ -379,7 +379,7 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     }
 }
 
-void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string& remote_filename) {
+void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string& remote_filename, STRING_MAP* opts /* =nullptr */) {
     int n_rows = 0;
     int n_cols = 1;
     int** data = nullptr;
@@ -411,17 +411,24 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
     vector<string>& module_ids = factory_->GetModuleIDs();
     // module_settings
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
+    map<string, Information> module_informations=factory_->GetModuleInformations();
     // floating point number
     map<string, vector<ParamInfo<FLTPT>*> >& module_parameters = factory_->GetModuleParams();
     // integer parameter
     map<string, vector<ParamInfo<int>*> >& module_parameters_int = factory_->GetModuleParamsInt();
+
+
     for (size_t i = 0; i < module_ids.size(); i++) {
         string id = module_ids[i];
         vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
+
+        STRING_MAP opts;
+        opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType);
+
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo<FLTPT>* param = parameters[j];
             if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) { continue; }
-            SetData(module_settings[id], param, modules[i]);
+            SetData(module_settings[id], param, modules[i], &opts);
         }
         vector<ParamInfo<int>*>& parameters_int = module_parameters_int[id];
         for (size_t j = 0; j < parameters_int.size(); j++) {
@@ -430,7 +437,7 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
-            SetData(module_settings[id], param, modules[i]);
+            SetData(module_settings[id], param, modules[i], &opts);
         }
     }
     double timeconsume = TimeCounting() - t1;
@@ -439,7 +446,7 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
 }
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
-                         SimulationModule* p_module) {
+                         SimulationModule* p_module, STRING_MAP* opts /* =nullptr */) {
     double stime = TimeCounting();
     string name = param->BasicName;
     if (setting->dataTypeString().empty()
@@ -474,15 +481,15 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
                                               "Type of " + param->Name + " is unknown.");
         case DT_Single: SetValue(param, p_module);
             break;
-        case DT_Array1D: Set1DData(name, remote_filename, p_module, is_opt);
+        case DT_Array1D: Set1DData(name, remote_filename, p_module, is_opt, opts);
             break;
-        case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt);
+        case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt, opts);
             break;
         case DT_Array1DDateValue:
             break;
-        case DT_Raster1D: SetRaster(name, remote_filename, p_module, is_opt);
+        case DT_Raster1D: SetRaster(name, remote_filename, p_module, is_opt, opts);
             break;
-        case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);
+        case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt, opts);
             break;
         case DT_Scenario: SetScenario(p_module, is_opt);
             break;
@@ -500,7 +507,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
 }
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<int>* param,
-                         SimulationModule* p_module) {
+                         SimulationModule* p_module, STRING_MAP* opts /* =nullptr */) {
     double stime = TimeCounting();
     string name = param->BasicName;
     if (setting->dataTypeString().empty()
@@ -537,15 +544,15 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<int>* param,
                                               "Type of " + param->Name + " is unknown.");
         case DT_SingleInt: SetValue(param, p_module);
             break;
-        case DT_Array1DInt: Set1DDataInt(name, remote_filename, p_module, is_opt);
+        case DT_Array1DInt: Set1DDataInt(name, remote_filename, p_module, is_opt, opts);
             break;
-        case DT_Array2DInt: Set2DDataInt(name, remote_filename, p_module, is_opt);
+        case DT_Array2DInt: Set2DDataInt(name, remote_filename, p_module, is_opt, opts);
             break;
         case DT_Array1DDateValue:
             break;
-        case DT_Raster1DInt: SetRasterInt(name, remote_filename, p_module, is_opt);
+        case DT_Raster1DInt: SetRasterInt(name, remote_filename, p_module, is_opt, opts);
             break;
-        case DT_Raster2DInt: SetRasterInt(name, remote_filename, p_module, is_opt);
+        case DT_Raster2DInt: SetRasterInt(name, remote_filename, p_module, is_opt, opts);
             break;
         case DT_Scenario: SetScenario(p_module, is_opt);
             break;
@@ -619,11 +626,12 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
 }
 
 void DataCenter::Set1DData(const string& para_name, const string& remote_filename,
-                           SimulationModule* p_module, const bool is_optional /* = false */) {
+                           SimulationModule* p_module, const bool is_optional /* = false */,
+                           STRING_MAP* opts /* =nullptr */) {
     FLTPT* data = nullptr;
     /// If the data has not been loaded
     if (array1d_map_.find(remote_filename) == array1d_map_.end()) {
-        LoadAdjust1DArrayData(para_name, remote_filename, is_optional);
+        LoadAdjust1DArrayData(para_name, remote_filename, is_optional, opts);
     }
     /// If the data has been read and stored in `array1d_map_` successfully
     if (array1d_map_.find(remote_filename) != array1d_map_.end()) {
@@ -638,11 +646,12 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
 }
 
 void DataCenter::Set1DDataInt(const string& para_name, const string& remote_filename,
-                              SimulationModule* p_module, const bool is_optional /* = false */) {
+                              SimulationModule* p_module, const bool is_optional /* = false */,
+                              STRING_MAP* opts /* =nullptr */) {
     int* data = nullptr;
     /// If the data has not been loaded
     if (array1d_int_map_.find(remote_filename) == array1d_int_map_.end()) {
-        LoadAdjustInt1DArrayData(para_name, remote_filename, is_optional);
+        LoadAdjustInt1DArrayData(para_name, remote_filename, is_optional, opts);
     }
     /// If the data has been read and stored in `array1d_map_` successfully
     if (array1d_int_map_.find(remote_filename) != array1d_int_map_.end()) {
@@ -657,7 +666,8 @@ void DataCenter::Set1DDataInt(const string& para_name, const string& remote_file
 }
 
 void DataCenter::Set2DData(const string& para_name, const string& remote_filename,
-                           SimulationModule* p_module, const bool is_optional /* = false */) {
+                           SimulationModule* p_module, const bool is_optional /* = false */,
+                           STRING_MAP* opts /* =nullptr */) {
     int n_rows = 0;
     int n_cols = 1;
     FLTPT** data = nullptr;
@@ -668,7 +678,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
-        LoadAdjust2DArrayData(para_name, real_filename);
+        LoadAdjust2DArrayData(para_name, real_filename, opts);
     }
     /// Check if the data is already loaded
     if (array2d_map_.find(real_filename) != array2d_map_.end()) {
@@ -686,7 +696,8 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
 }
 
 void DataCenter::Set2DDataInt(const string& para_name, const string& remote_filename,
-                              SimulationModule* p_module, const bool is_optional /* = false */) {
+                              SimulationModule* p_module, const bool is_optional /* = false */,
+                              STRING_MAP* opts /* =nullptr */) {
     int n_rows = 0;
     int n_cols = 1;
     int** data = nullptr;
@@ -701,7 +712,7 @@ void DataCenter::Set2DDataInt(const string& para_name, const string& remote_file
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_int_map_.find(real_filename) == array2d_int_map_.end()) {
-        LoadAdjustInt2DArrayData(para_name, real_filename);
+        LoadAdjustInt2DArrayData(para_name, real_filename, opts);
     }
     /// Check if the data is already loaded
     if (array2d_int_map_.find(real_filename) != array2d_int_map_.end()) {
@@ -719,7 +730,8 @@ void DataCenter::Set2DDataInt(const string& para_name, const string& remote_file
 }
 
 void DataCenter::SetRaster(const string& para_name, const string& remote_filename,
-                           SimulationModule* p_module, const bool is_optional /* = false */) {
+                           SimulationModule* p_module, const bool is_optional /* = false */,
+                           STRING_MAP* opts /* =nullptr */) {
     int n, lyrs;
     FLTPT* data = nullptr;
     FLTPT** data2d = nullptr;
@@ -738,7 +750,7 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
             }
         }
         else {
-            LoadAdjustRasterData(para_name, remote_filename, is_optional);
+            LoadAdjustRasterData(para_name, remote_filename, is_optional, opts);
         }
     }
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
@@ -759,13 +771,14 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
 }
 
 void DataCenter::SetRasterInt(const string& para_name, const string& remote_filename,
-                              SimulationModule* p_module, const bool is_optional /* = false */) {
+                              SimulationModule* p_module, const bool is_optional /* = false */,
+                              STRING_MAP* opts /* =nullptr */) {
     int n, lyrs;
     int* data = nullptr;
     int** data2d = nullptr;
     IntRaster* raster = nullptr;
     if (rs_int_map_.find(remote_filename) == rs_int_map_.end()) {
-        LoadAdjustIntRasterData(para_name, remote_filename, is_optional);
+        LoadAdjustIntRasterData(para_name, remote_filename, is_optional, opts);
     }
     if (rs_int_map_.find(remote_filename) == rs_int_map_.end()) {
         return; // when encounter optional parameters

@@ -15,6 +15,7 @@
 
 #include "basic.h"
 #include "MetadataInfoConst.h"
+#include "utils_string.h"
 
 using namespace ccgl;
 using std::vector;
@@ -40,7 +41,8 @@ struct ModelClass {
  */
 struct Information {
     Information() : Id(""), Name(""), Description(""), Version(""), Author(""),
-                    EMail(""), Website(""), Helpfile("") {
+                    EMail(""), Website(""), Helpfile(""),
+                    ModuleAbstractionType(MODULE_ABSTRACTION_TYPE_PHYSICAL){
     }
 
     string Id;          ///< Module ID
@@ -51,6 +53,11 @@ struct Information {
     string EMail;       ///< Email
     string Website;     ///< Website
     string Helpfile;    ///< Helpfile
+    string ModuleAbstractionType;
+    bool IsConceptual() {
+        return utils_string::StringMatch(ModuleAbstractionType, MODULE_ABSTRACTION_TYPE_CONCEPTUAL);
+    }
+
 };
 
 /*!
@@ -117,6 +124,8 @@ struct InOutputVariable: InputVariable {
     }
 };
 
+
+
 /*!
  * \ingroup module_setting
  * \class MetadataInfo
@@ -124,7 +133,9 @@ struct InOutputVariable: InputVariable {
  */
 class MetadataInfo: Interface {
 public:
-    MetadataInfo() { m_strSchemaVersion = "0.4"; }
+    MetadataInfo() {
+        m_strSchemaVersion = "0.4";
+    }
 
     ~MetadataInfo();
 
@@ -334,6 +345,7 @@ public:
     void DimensionTag(string tag, int indent, dimensionTypes dimType, string* sb);
 
     void TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb);
+
 
 private:
     string m_strSchemaVersion;             ///< latest XML schema version supported by this class

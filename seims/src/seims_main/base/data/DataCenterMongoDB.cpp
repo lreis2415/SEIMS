@@ -454,12 +454,15 @@ bool DataCenterMongoDB::ReadParametersInDB() {
     return true;
 }
 
-bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst) {
-    STRING_MAP opts;
-    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst, STRING_MAP* opts) {
+    STRING_MAP opts_temp;
+    if(opts==nullptr) {
+        opts = &opts_temp;
+    }
+    UpdateStringMap(*opts, HEADER_INC_NODATA, "FALSE");
     FloatRaster* raster_data = FloatRaster::Init(spatial_gridfs_, remote_filename.c_str(),
                                                  true, mask_raster_, true,
-                                                 NODATA_VALUE, opts);
+                                                 NODATA_VALUE, *opts);
     if (nullptr == raster_data) { return false; }
     // When load from MongoDB failed (i.e., file not existed), the Initialized() will return false!
     if (!raster_data->Initialized()) {
@@ -479,12 +482,15 @@ bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, FloatRaste
     return true;
 }
 
-bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, IntRaster*& int_rst) {
-    STRING_MAP opts;
-    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, IntRaster*& int_rst, STRING_MAP* opts) {
+    STRING_MAP opts_temp;
+    if (opts == nullptr) {
+        opts = &opts_temp;
+    }
+    UpdateStringMap(*opts, HEADER_INC_NODATA, "FALSE");
     IntRaster* raster_data = IntRaster::Init(spatial_gridfs_, remote_filename.c_str(),
                                              true, mask_raster_, true,
-                                             NODATA_VALUE, opts);
+                                             NODATA_VALUE, *opts);
     if (nullptr == raster_data) { return false; }
     // When load from MongoDB failed (i.e., file not existed), the Initialized() will return false!
     if (!raster_data->Initialized()) {
@@ -517,10 +523,11 @@ void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& nu
     delete weight_data;
 }
 
-void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data) {
+void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data,
+    STRING_MAP* opts) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, opts);
     if (nullptr == databuf) return;
 
     num = CVT_INT(datalength / sizeof(float));
@@ -530,10 +537,11 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
     databuf = nullptr;
 }
 
-void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, int*& data) {
+void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, int*& data,
+    STRING_MAP* opts) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, opts);
     if (nullptr == databuf) return;
 
     num = CVT_INT(datalength / sizeof(float));
@@ -543,10 +551,11 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
     databuf = nullptr;
 }
 
-void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data) {
+void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data,
+    STRING_MAP* opts) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, opts);
     if (nullptr == databuf) {
         data = nullptr;
         return;
@@ -559,10 +568,11 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     databuf = nullptr;
 }
 
-void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data) {
+void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data,
+    STRING_MAP* opts) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, opts);
     if (nullptr == databuf) {
         data = nullptr;
         return;

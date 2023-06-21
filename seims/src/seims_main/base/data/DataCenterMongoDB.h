@@ -69,13 +69,13 @@ public:
      * \param[in] remote_filename Raster file name.
      * \param[in] flt_rst Float raster data
      */
-    bool ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst) OVERRIDE;
+    bool ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst, STRING_MAP* opts=nullptr) OVERRIDE;
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
      * \param[in] remote_filename Raster file name.
      * \param[in] int_rst Float raster data
      */
-    bool ReadRasterData(const string& remote_filename, IntRaster*& int_rst) OVERRIDE;
+    bool ReadRasterData(const string& remote_filename, IntRaster*& int_rst, STRING_MAP*opts = nullptr) OVERRIDE;
     /*!
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
      * \param[in] remote_filename \a string data file name
@@ -91,7 +91,7 @@ public:
      * \param[out] num \a int&, data length
      * \param[out] data \a float*&, returned data
      */
-    void Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data) OVERRIDE;
+    void Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data, STRING_MAP*opts = nullptr) OVERRIDE;
     /*!
      * \brief Read 1D integer array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
@@ -100,7 +100,7 @@ public:
      * \param[out] num \a int&, data length
      * \param[out] data \a int*&, returned data
      */
-    void Read1DArrayData(const string& remote_filename, int& num, int*& data) OVERRIDE;
+    void Read1DArrayData(const string& remote_filename, int& num, int*& data, STRING_MAP*opts = nullptr) OVERRIDE;
     /*!
      * \brief Read 2D array data from MongoDB database
      * \param[in] remote_filename \a string data file name
@@ -108,9 +108,9 @@ public:
      * \param[out] cols \a int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
      * \param[out] data \a float**&, returned data
      */
-    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data) OVERRIDE;
+    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data, STRING_MAP*opts = nullptr) OVERRIDE;
     // Read 2D integer array data
-    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data) OVERRIDE;
+    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data, STRING_MAP*opts = nullptr) OVERRIDE;
     /*!
      * \brief Read IUH data from MongoDB and insert to m_2DArrayMap
      * \param[in] remote_filename \a string data file name

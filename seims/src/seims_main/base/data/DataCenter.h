@@ -26,6 +26,8 @@
 #include "clsReach.h"
 #include "clsSubbasin.h"
 #include "Scenario.h"
+
+#include "MetadataInfo.h"
 #include "clsInterpolationWeightData.h"
 
 /*!
@@ -75,13 +77,15 @@ public:
      * \param[in] remote_filename Raster file name.
      * \param[in] flt_rst Float raster data
      */
-    virtual bool ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst) = 0;
+    virtual bool ReadRasterData(const string& remote_filename, FloatRaster*& flt_rst,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
      * \param[in] remote_filename Raster file name.
      * \param[in] int_rst Integer raster data
      */
-    virtual bool ReadRasterData(const string& remote_filename, IntRaster*& int_rst) = 0;
+    virtual bool ReadRasterData(const string& remote_filename, IntRaster*& int_rst,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read interpolated weight data and insert to m_weightDataMap
      * \param[in] remote_filename Data file name
@@ -96,14 +100,16 @@ public:
      * \param[out] num Data length
      * \param[out] data returned data
      */
-    virtual void Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data) = 0;
+    virtual void Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read 1D integer array data
      * \param[in] remote_filename Data file name
      * \param[out] num Data length
      * \param[out] data returned integer data
      */
-    virtual void Read1DArrayData(const string& remote_filename, int& num, int*& data) = 0;
+    virtual void Read1DArrayData(const string& remote_filename, int& num, int*& data,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read 2D array data and insert to array2d_map_
      *
@@ -123,9 +129,11 @@ public:
      * \param[out] cols second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
      * \param[out] data returned data
      */
-    virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data) = 0;
+    virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data,
+        STRING_MAP* opts = nullptr) = 0;
     // Read 2D integer array data and insert to array2d_int_map_
-    virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data) = 0;
+    virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read IUH data and insert to m_2DArrayMap
      * \param[in] remote_filename data file name
@@ -164,7 +172,7 @@ public:
      * \param[in] is_optional Optional parameters won't raise exception when loaded failed
      */
     void LoadAdjustRasterData(const string& para_name, const string& remote_filename,
-                              bool is_optional = false);
+                              bool is_optional = false, STRING_MAP* opts = nullptr);
 
     /*!
      * \brief Read and adjust (if necessary) 1D/2D integer raster data from Database.
@@ -173,7 +181,7 @@ public:
      * \param[in] is_optional Optional parameters won't raise exception when loaded failed
      */
     void LoadAdjustIntRasterData(const string& para_name, const string& remote_filename,
-                                 bool is_optional = false);
+                                 bool is_optional = false, STRING_MAP* opts = nullptr);
 
     /*!
      * \brief Read and adjust (if necessary) 1D array data from Database.
@@ -183,10 +191,10 @@ public:
      * \param[in] is_optional Optional parameters won't raise exception when loaded failed
      */
     void LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
-                               bool is_optional = false);
+                               bool is_optional = false, STRING_MAP* opts = nullptr);
 
     void LoadAdjustInt1DArrayData(const string& para_name, const string& remote_filename,
-                                  bool is_optional = false);
+                                  bool is_optional = false, STRING_MAP* opts = nullptr);
 
     /*!
      * \brief Read and adjust (if necessary) 2D array data from Database.
@@ -194,20 +202,20 @@ public:
      * \param[in] para_name Parameter name
      * \param[in] remote_filename Actual file/data name stored in Database
      */
-    void LoadAdjust2DArrayData(const string& para_name, const string& remote_filename);
+    void LoadAdjust2DArrayData(const string& para_name, const string& remote_filename, STRING_MAP* opts = nullptr);
 
-    void LoadAdjustInt2DArrayData(const string& para_name, const string& remote_filename);
+    void LoadAdjustInt2DArrayData(const string& para_name, const string& remote_filename, STRING_MAP* opts = nullptr);
 
     //! Load data for each module, return time span
     double LoadParametersForModules(vector<SimulationModule *>& modules);
 
     //! Set data for modules, include all datatype
     void SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
-                 SimulationModule* p_module);
+                 SimulationModule* p_module, STRING_MAP* opts = nullptr);
 
     //! Set integer data for modules, include all datatype
     void SetData(SEIMSModuleSetting* setting, ParamInfo<int>* param,
-                 SimulationModule* p_module);
+                 SimulationModule* p_module, STRING_MAP* opts = nullptr);
 
     //! Set single Value
     void SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module);
@@ -217,24 +225,24 @@ public:
 
     //! Set 1D Data
     void Set1DData(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool is_optional = false);
+                   SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     void Set1DDataInt(const string& para_name, const string& remote_filename,
-                      SimulationModule* p_module, bool is_optional = false);
+                      SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     //! Set 2D Data
     void Set2DData(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool is_optional = false);
+                   SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     void Set2DDataInt(const string& para_name, const string& remote_filename,
-                      SimulationModule* p_module, bool is_optional = false);
+                      SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     //! Set raster data
     void SetRaster(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool is_optional = false);
+                   SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     void SetRasterInt(const string& para_name, const string& remote_filename,
-                      SimulationModule* p_module, bool is_optional = false);
+                      SimulationModule* p_module, bool is_optional = false, STRING_MAP* opts = nullptr);
 
     //! Set BMPs Scenario data
     void SetScenario(SimulationModule* p_module, bool is_optional = false);

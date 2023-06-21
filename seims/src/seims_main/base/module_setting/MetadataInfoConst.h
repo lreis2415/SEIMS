@@ -36,6 +36,7 @@ const string TagInfoAuthor = "author";
 const string TagInfoEmail = "email";
 const string TagInfoWebsite = "website";
 const string TagInfoHelpfile = "helpfile";
+const string TagInfoModuleAbstractionType = "moduleAbstractionType";
 
 const string TagParameters = "parameters";
 const string TagParameter = "parameter";
@@ -88,5 +89,8 @@ enum transferTypes {
     TF_SingleValue = 1, /**< A single value in the data (e.g., DT_Array1D) */
     TF_OneArray1D = 2   /**< A piece of 1D array in the data (e.g., DT_Array2D) */
 };
+
+const string MODULE_ABSTRACTION_TYPE_CONCEPTUAL = "CONCEPTUAL";
+const string MODULE_ABSTRACTION_TYPE_PHYSICAL = "PHYSICAL";
 
 #endif /* SEIIMS_METADATA_INFO_CONST_H */

@@ -6,13 +6,13 @@
 
 #include "Logging.h"
 #include "basic.h"
-#include "MetadataInfo.h"
 #include "text.h"
 
 ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, SEIMSModuleSetting *>& moduleSettings,
                              vector<DLLINSTANCE>& dllHandles, map<string, InstanceFunction>& instanceFuncs,
                              map<string, MetadataFunction>& metadataFuncs,
+                             map<string, Information>& moduleInformations,
                              map<string, vector<ParamInfo<FLTPT> *> >& moduleParams,
                              map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
                              map<string, vector<ParamInfo<FLTPT> *> >& moduleInputs,
@@ -31,7 +31,7 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
     m_moduleInputs(moduleInputs), m_moduleInputsInt(moduleInputsInt),
     m_moduleOutputs(moduleOutputs), m_moduleOutputsInt(moduleOutputsInt),
     m_moduleInOutputs(moduleInOutputs), m_moduleInOutputsInt(moduleInOutputsInt),
-    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt) {
+    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt),m_moduleInformations(moduleInformations) {
     // nothing to do
 }
 
@@ -61,7 +61,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
     map<string, MetadataFunction> metadataFuncs; // Metadata map of modules
-
+    map<string, Information> moduleInformations;
     //map<string, const char *> moduleMetadata; // Metadata of modules
     map<string, vector<ParamInfo<FLTPT>*> > moduleParams; // Parameters of modules from MongoDB
     map<string, vector<ParamInfo<int>*> > moduleParamsInt; // Integer parameters of modules from MongoDB
@@ -74,7 +74,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     vector<ParamInfo<FLTPT>*> tfValueInputs; // transferred single value across subbasins
     vector<ParamInfo<int>*> tfValueInputsInt; // transferred single value across subbasins
     try {
-        LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs, metadataFuncs,
+        LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs, metadataFuncs, moduleInformations,
                          moduleParams, moduleParamsInt, moduleInputs, moduleInputsInt,
                          moduleOutputs,moduleOutputsInt, moduleInOutputs, moduleInOutputsInt,
                          tfValueInputs, tfValueInputsInt);
@@ -91,7 +91,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         return nullptr;
     }
     return new ModuleFactory(input_args->model_name, moduleIDs, moduleSettings, dllHandles,
-                             instanceFuncs, metadataFuncs,
+                             instanceFuncs, metadataFuncs, moduleInformations,
                              moduleParams, moduleParamsInt, moduleInputs, moduleInputsInt,
                              moduleOutputs, moduleOutputsInt, moduleInOutputs, moduleInOutputsInt,
                              tfValueInputs, tfValueInputsInt,
@@ -219,6 +219,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
                                      vector<DLLINSTANCE>& dllHandles,
                                      map<string, InstanceFunction>& instanceFuncs,
                                      map<string, MetadataFunction>& metadataFuncs,
+                                     map<string, Information>& moduleInformations,
                                      map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
                                      map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
                                      map<string, vector<ParamInfo<FLTPT>*> >& moduleInputs,
@@ -262,6 +263,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
         TiXmlDocument doc;
         doc.Parse(current_metadata);
         ReadParameterSetting(id, doc, moduleSettings[id], moduleParams, moduleParamsInt);
+        ReadInformation(id, doc, moduleInformations);
         ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs, moduleInputsInt);
         ReadIOSetting(id, doc, moduleSettings[id], TagOutputs, TagOutputVariable, moduleOutputs, moduleOutputsInt);
         ReadIOSetting(id, doc, moduleSettings[id], TagInOutputs, TagInOutputVariable, moduleInOutputs, moduleInOutputsInt);
@@ -685,6 +687,59 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
         elItm = nullptr;
         eleVar = eleVar->NextSiblingElement(); // get the next input if it exists
     }
+}
+
+void ModuleFactory::ReadInformation(string& moduleID, TiXmlDocument& doc, map<string, Information>& informations) {
+    TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
+    TiXmlElement* eleInformation = eleMetadata->FirstChildElement(TagInformation.c_str()); // inputs, outputs, inoutputs
+    if (nullptr == eleInformation) { return; }
+
+    TiXmlElement* elItem = nullptr;
+    elItem = eleInformation->FirstChildElement(TagInfoId.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Id = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoName.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Name = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoDescription.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Description = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoVersion.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Version = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoAuthor.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Author = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoEmail.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].EMail = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoWebsite.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Website = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoHelpfile.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].Helpfile = elItem->GetText();
+    }
+
+    elItem = eleInformation->FirstChildElement(TagInfoModuleAbstractionType.c_str());
+    if (nullptr != elItem && nullptr != elItem->GetText()) {
+        informations[moduleID].ModuleAbstractionType = elItem->GetText();
+    }
+    
 }
 
 bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings) {

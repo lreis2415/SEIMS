@@ -167,7 +167,7 @@ public:
     /*! Get stream data of a given GridFS file name */
     bool GetStreamData(string const& gfilename, char*& databuf, vint& datalength,
                        mongoc_gridfs_t* gfs = NULL,
-                       STRING_MAP opts = STRING_MAP());
+                       const STRING_MAP* opts = nullptr);
 
     /*! Write stream data to a GridFS file */
     bool WriteStreamData(const string& gfilename, char*& buf, vint length,

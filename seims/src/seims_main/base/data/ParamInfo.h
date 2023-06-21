@@ -40,8 +40,8 @@ public:
     ParamInfo();
 
     //! Construct for initial parameters from DB
-    ParamInfo(string& name, string& desc, string& unit, string& mid, T value, string& change, T impact,
-              T maximum, T minimum, bool isint);
+    ParamInfo(string& name, string& desc, string& unit, string& mid,
+              T value, string& change, T impact, T maximum, T minimum, bool isint);
 
     //! Construct for module Parameter
     ParamInfo(string& name, string& basicname, string& desc, string& unit, string& source, string& mid,
@@ -111,6 +111,7 @@ public:
     string Source;
     //! Used by Module Ids
     string ModuleID;
+
     //! Data dimension type
     dimensionTypes Dimension;
     //! Data transfer type
@@ -150,7 +151,7 @@ public:
 
 template <typename T>
 ParamInfo<T>::ParamInfo() :
-    Name(""), BasicName(""), Description(""), Units(""), Source(""), ModuleID(""), 
+    Name(""), BasicName(""), Description(""), Units(""), Source(""), ModuleID(""),
     Dimension(DT_Unknown), Transfer(TF_None),
     Value(0), Change(""), Impact(0), Maximum(0), Minimum(0), IsInteger(false),
     DependPara(nullptr), ClimateType(""),
@@ -167,19 +168,17 @@ ParamInfo<T>::ParamInfo(string& name, string& desc, string& unit, string& mid, T
     DependPara(nullptr), ClimateType(""),
     IsConstant(false), IsOutput(false), OutputToOthers(false),
     initialized(false), ImpactSeries() {
-
 }
 
 template <typename T>
 ParamInfo<T>::ParamInfo(string& name, string& basicname, string& desc, string& unit, string& source, string& mid,
                         dimensionTypes dim, string& climtype, T value /* = 0 */):
-    Name(name), BasicName(basicname), Description(desc), Units(unit), Source(source), ModuleID(mid), 
+    Name(name), BasicName(basicname), Description(desc), Units(unit), Source(source), ModuleID(mid),
     Dimension(dim), Transfer(TF_None),
     Value(value), Change(""), Impact(0), Maximum(0), Minimum(0), IsInteger(false),
     DependPara(nullptr), ClimateType(climtype),
     IsConstant(false), IsOutput(false), OutputToOthers(false),
     initialized(false), ImpactSeries() {
-    
 }
 
 template <typename T>
@@ -192,7 +191,6 @@ ParamInfo<T>::ParamInfo(string& name, string& basicname, string& desc, string& u
     DependPara(nullptr), ClimateType(climtype),
     IsConstant(isconst), IsOutput(isoutput), OutputToOthers(false),
     initialized(false), ImpactSeries() {
-
 }
 
 template <typename T>
@@ -278,7 +276,8 @@ T ParamInfo<T>::GetAdjustedValueWithImpactIndexes(const T pre_value, const int c
     else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(tmpImpact, NODATA_VALUE)) {
         res = tmpImpact;
     }
-    else if (StringMatch(Change, PARAM_CHANGE_NC)) { //don't change
+    else if (StringMatch(Change, PARAM_CHANGE_NC)) {
+        //don't change
         return res;
     }
 
@@ -373,7 +372,7 @@ void ParamInfo<T>::Adjust2DRaster(const int n, const int lyrs, T** data) {
 }
 
 template <typename T>
-int ParamInfo<T>::Adjust2DRaster(const int n, const int lyrs, T** data, 
+int ParamInfo<T>::Adjust2DRaster(const int n, const int lyrs, T** data,
                                  const int* units, const vector<int>& selunits,
                                  const int* lu, const vector<int>& sellu) {
     int count = 0;

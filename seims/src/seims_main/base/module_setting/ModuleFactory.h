@@ -13,6 +13,7 @@
 #define SEIMS_MODULE_FACTORY_H
 
 #include "invoke.h"
+#include "MetadataInfo.h"
 #include "SEIMS_ModuleSetting.h"
 #include "SimulationModule.h"
 #include "ParamInfo.h"
@@ -48,6 +49,7 @@ public:
                   vector<DLLINSTANCE>& dllHandles,
                   map<string, InstanceFunction>& instanceFuncs,
                   map<string, MetadataFunction>& metadataFuncs,
+                  map<string, Information>& moduleInformations,
                   map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
                   map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
                   map<string, vector<ParamInfo<FLTPT>*> >& moduleInputs,
@@ -85,6 +87,8 @@ public:
 
     //! Get map of module settings
     map<string, SEIMSModuleSetting *>& GetModuleSettings() { return m_settings; }
+
+    map<string, Information>& GetModuleInformations() { return m_moduleInformations; }
 
     //! Get Parameters of modules
     map<string, vector<ParamInfo<FLTPT> *> >& GetModuleParams() { return m_moduleParams; }
@@ -158,6 +162,7 @@ public:
                                  vector<DLLINSTANCE>& dllHandles,
                                  map<string, InstanceFunction>& instanceFuncs,
                                  map<string, MetadataFunction>& metadataFuncs,
+                                 map<string, Information>& moduleInformations,
                                  map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
                                  map<string, vector<ParamInfo<int>*> >& moduleParamsInt,
                                  map<string, vector<ParamInfo<FLTPT>*> >& moduleInputs,
@@ -183,6 +188,8 @@ public:
 
     //! Match data transfer type, e.g., TF_SingleValue
     static transferTypes MatchTransferType(const string& tfType);
+
+    static void ReadInformation(string& moduleID, TiXmlDocument& doc, map<string, Information>& information);
 
     //! Is constant input?
     static bool IsConstantInputFromName(const string& name);
@@ -227,6 +234,8 @@ private:
     vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
     map<string, SEIMSModuleSetting *> m_settings;
+
+    map<string, Information> m_moduleInformations;
     //! Parameters of modules, from database
     map<string, vector<ParamInfo<FLTPT>*> > m_moduleParams;
     //! Integer parameters of modules, from database
