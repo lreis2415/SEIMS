@@ -179,6 +179,11 @@ public:
 
     string GetHelpfile() { return m_Info.Helpfile; }
 
+    void SetAbstractionTypeToConceptual() { m_Info.ModuleAbstractionType = MODULE_ABSTRACTION_TYPE_CONCEPTUAL; }
+    void SetAbstractionTypeToPhysical() { m_Info.ModuleAbstractionType = MODULE_ABSTRACTION_TYPE_PHYSICAL; }
+
+    string GetAbstractionType() { return m_Info.ModuleAbstractionType; }
+
     /************ INPUT PARAMETERS FROM OTHER MODULES ************/
 
     int GetInputCount() { return CVT_INT(m_vInputs.size()); }

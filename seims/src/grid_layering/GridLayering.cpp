@@ -337,12 +337,17 @@ bool GridLayering::Output2DimensionArrayTxt(const string& name, string& header,
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputArrayAsGfs(const string& name, const vint length, float* const matrix) {
+bool GridLayering::OutputArrayAsGfs(const string& name, const vint length, float* const matrix, STRING_MAP* opts) {
     bool flag = false;
     int max_loop = 3;
     int cur_loop = 1;
+    STRING_MAP opts_temp;
+    if (opts == nullptr) {
+        opts = &opts_temp;
+    }
+    UpdateStringMapIfNotExist(*opts, HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
     while (cur_loop < max_loop) {
-        if (!OutputToMongodb(name.c_str(), length, reinterpret_cast<char*>(matrix))) {
+        if (!OutputToMongodb(name.c_str(), length, reinterpret_cast<char*>(matrix), *opts)) {
             cur_loop++;
         } else {
             cout << "Output " << name << " done!" << endl;
@@ -736,7 +741,7 @@ bool GridLayering::GridLayeringEvenly() {
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s) {
+bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s, STRING_MAP& opts) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", subbasin_id_);
     BSON_APPEND_UTF8(&p, "TYPE", name);
@@ -744,6 +749,7 @@ bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s)
     BSON_APPEND_UTF8(&p, "DESCRIPTION", name);
     BSON_APPEND_DOUBLE(&p, "NUMBER", CVT_DBL(number));
     BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
+    AppendStringOptionsToBson(&p, opts);
 
     gfs_->RemoveFile(string(name));
     vint n = number * sizeof(float);

@@ -19,6 +19,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     /// set the input variables (time series), and T means time series. D means distribution.
     mdi.AddInput(DataType_Prefix_TS, UNIT_NON_DIM, DESC_TSD_CLIMATE, Source_HydroClimateDB, DT_Array1D);

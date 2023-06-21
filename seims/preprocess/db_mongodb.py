@@ -17,7 +17,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
-from preprocess.text import DBTableNames, ModelParamFields
+from preprocess.text import DBTableNames, ModelParamFields, ParamAbstractionTypes
 
 
 class ConnectMongoDB(object):
@@ -95,3 +95,9 @@ class MongoUtil(object):
         if len(req_list) == 0:
             return None
         return coll.bulk_write(req_list)
+
+    @staticmethod
+    def delete_all_by_filename(gfs, filename, metadata_key, metadata_value):
+        for f in gfs.find({"filename": filename}):
+            if f.metadata.get(metadata_key) == metadata_value:
+                gfs.delete(f._id)

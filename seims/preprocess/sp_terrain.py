@@ -21,7 +21,7 @@ from math import exp, sqrt
 import os
 import sys
 
-from preprocess.text import SpatialNamesUtils
+from preprocess.text import SpatialNamesUtils, ParamAbstractionTypes
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -478,6 +478,12 @@ class TerrainUtilClass(object):
                       mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
                       maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
+        if cfg.has_conceptual_subbasins():
+            mask_rasterio(cfg.seims_bin,
+                          [['0_MANNING', cfg.spatials.manning]],
+                          mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
+                          maskfile=cfg.spatials.subbsn,
+                          include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         status_output('Calculate initial channel width and added to reach.shp...', 10, f)
         TerrainUtilClass.calculate_channel_width_depth(cfg.spatials.d8acc,

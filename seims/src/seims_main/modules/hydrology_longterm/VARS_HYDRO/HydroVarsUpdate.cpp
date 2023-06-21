@@ -5,7 +5,7 @@
 HydroVarsUpdate::HydroVarsUpdate():
 m_nCells(-1),
 m_subbasins(nullptr),
-m_petSubbsn(nullptr), m_gwSto(nullptr) {
+m_petSubbsn(nullptr), m_gwSto(nullptr),m_SBIF(nullptr) {
 }
 
 HydroVarsUpdate::~HydroVarsUpdate() {
@@ -14,17 +14,19 @@ HydroVarsUpdate::~HydroVarsUpdate() {
 void HydroVarsUpdate::InitialOutputs() {
     Initialize1DArray(m_nSubbasins + 1, m_petSubbsn, 0.);
     Initialize1DArray(m_nSubbasins + 1, m_gwSto, 0.);
+    Initialize1DArray(m_nSubbasins + 1, m_SBIF, 0.);
 }
 
 void HydroVarsUpdate::Get1DData(const char *key, int *nRows, FLTPT **data) {
     string s(key);
     if (StringMatch(s, VAR_SBPET[0])) {
         *data = m_petSubbsn;
-    }
-    else if (StringMatch(s, VAR_SBGS[0])) {
+    } else if (StringMatch(s, VAR_SBGS[0])) {
         *data = m_gwSto;
-    }
-    else {
+    } else if (StringMatch(s, VAR_SBIF[0])){
+        *data = m_SBIF;
+
+    }else {
         throw ModelException("HydroVarsUpdate", "getResult", "Result " + s +
             " does not exist in HydroVarsUpdate method. Please contact the module developer.");
     }

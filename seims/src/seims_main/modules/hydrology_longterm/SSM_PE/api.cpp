@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SSM_PE.chm");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_K_SUBLI[0], UNIT_NON_DIM, VAR_K_SUBLI[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_K_BLOW[0], UNIT_NON_DIM, VAR_K_BLOW[1], Source_ParameterDB, DT_Single);

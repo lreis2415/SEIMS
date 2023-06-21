@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     // set the input variables (time series)
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D); /// ITP_P

@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.5");
     mdi.SetWebsite("");
     mdi.SetHelpfile("UnsaturatedFlow.chm");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter("Rootdepth", "m", "Root depth", "ParameterDB_WaterBalance", DT_Raster2D);
     mdi.AddParameter("Fieldcap", "m3/m3", "Soil field capacity", "ParameterDB_WaterBalance",

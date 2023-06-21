@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SRD_MB.chm");
+    mdi.SetAbstractionTypeToConceptual();
 
     //3 grid parameter
     mdi.AddParameter("slope_wind", "%", "Slope along wind direction", "ParameterDB_Snow", DT_Raster1D);

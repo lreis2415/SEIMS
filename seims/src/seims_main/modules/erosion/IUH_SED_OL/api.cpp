@@ -20,6 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(M_IUH_SED_OL[0]);
     mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);

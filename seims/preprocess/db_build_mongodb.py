@@ -48,9 +48,15 @@ class ImportMongodbClass(object):
         ImportPrecipitation.workflow(cfg)
 
     @staticmethod
-    def spatial_rasters(cfg):  # type: (PreprocessConfig) -> None
+    def spatial_rasters(cfg, mask_rasterio_maskfile=None, abstraction_type=None):
+        # type: (PreprocessConfig, str, str) -> None
         """Mask and decompose spatial raster data to MongoDB
         """
+        if mask_rasterio_maskfile is None:
+            mask_rasterio_maskfile = cfg.spatials.subbsn
+        elif not os.path.exists(mask_rasterio_maskfile):
+            raise IOError('Mask raster file not found: %s' % mask_rasterio_maskfile)
+
         mask_raster_cfg = list()
         # format: <in>, <out>[, <defaultValue>, <updatedNodata>, <outDataType>]
         # from SpatialDelineation.original_delineation()
@@ -123,7 +129,7 @@ class ImportMongodbClass(object):
 
         # from SoilUtilClass.
         mask_raster_cfg.append([cfg.spatials.soil_type, SpatialNamesUtils._SOILTYPEMFILE,
-                                cfg.default_landuse, DEFAULT_NODATA, 'INT32'])  # soil type
+                                cfg.default_soil, DEFAULT_NODATA, 'INT32'])  # soil type
         # from LanduseUtilClass.parameters_extraction()
         mask_raster_cfg.append([cfg.spatials.landuse, SpatialNamesUtils._LANDUSEMFILE,
                                 cfg.default_landuse, DEFAULT_NODATA, 'INT32'])  # landuse type
@@ -145,14 +151,15 @@ class ImportMongodbClass(object):
 
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, mask_raster_cfg, mongoargs=mongoargs,
-                      maskfile=cfg.spatials.subbsn,
-                      include_nodata=False, mode='MASKDEC')
+                      maskfile=mask_rasterio_maskfile,
+                      include_nodata=False, mode='MASKDEC', abstraction_type=abstraction_type)
 
-        # We also need to save fullsize raster of subbasin to be used as MASK!
-        mask_rasterio(cfg.seims_bin,
-                      [[cfg.spatials.subbsn, SpatialNamesUtils._SUBBASINOUT,
-                       DEFAULT_NODATA, DEFAULT_NODATA, 'INT32']],
-                      mongoargs=mongoargs, include_nodata=True, mode='MASKDEC')
+        if mask_rasterio_maskfile is not None:
+            # We also need to save fullsize raster of subbasin to be used as MASK!
+            mask_rasterio(cfg.seims_bin,
+                          [[cfg.spatials.subbsn, SpatialNamesUtils._SUBBASINOUT,
+                           DEFAULT_NODATA, DEFAULT_NODATA, 'INT32']],
+                          mongoargs=mongoargs, include_nodata=True, mode='MASKDEC')
 
     @staticmethod
     def iuh(cfg, n_subbasins):  # type: (PreprocessConfig, int) -> None

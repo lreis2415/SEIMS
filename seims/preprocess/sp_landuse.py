@@ -22,7 +22,7 @@ from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass, is_string
 
 from utility import status_output, read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
 from utility import mask_rasterio
-from preprocess.text import ModelParamDataUtils
+from preprocess.text import ModelParamDataUtils, ParamAbstractionTypes
 
 
 class LanduseUtilClass(object):
@@ -285,7 +285,7 @@ class LanduseUtilClass(object):
                                          GDT_Float32)
 
     @staticmethod
-    def parameters_extraction(cfg,conceptual_subbasin_list=None):
+    def parameters_extraction(cfg):
         """Landuse spatial parameters extraction."""
         f = cfg.logs.extract_lu
         status_output('Getting reclassification from landuse lookup tables...', 10, f)
@@ -300,6 +300,10 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslu_cfg,
                       include_nodata=False, mode='MASKDEC')
+        if cfg.has_conceptual_subbasins():
+            mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         status_output('Getting user-specific landcover parameters...', 50, f)
         lcrecls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(cfg)
@@ -311,6 +315,10 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_cfg,
                       include_nodata=False, mode='MASKDEC')
+        if cfg.has_conceptual_subbasins():
+            mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         status_output('Getting default landcover parameters...', 70, f)
         lcrecls_dict2 = LanduseUtilClass.read_crop_lookup_table(cfg)
@@ -321,7 +329,10 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_def_cfg,
                       include_nodata=False, mode='MASKDEC')
-
+        if cfg.has_conceptual_subbasins():
+            mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_def_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
         # other LUCC related parameters
         # To make use of old code, we have to export some raster from MongoDB
         mask_rasterio(cfg.seims_bin,
@@ -329,6 +340,12 @@ class LanduseUtilClass(object):
                        ['0_SOIL_TEXTURE', cfg.spatials.soil_texture]],
                       mongoargs=mongoargs, maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
+        # if cfg.has_conceptual_subbasins():
+        #     mask_rasterio(cfg.seims_bin,
+        #                   [['0_HYDRO_GROUP', cfg.spatials.hydro_group_conceptual],
+        #                    ['0_SOIL_TEXTURE', cfg.spatials.soil_texture_conceptual]],
+        #                   mongoargs=mongoargs, maskfile=cfg.spatials.hru_subbasin_id,
+        #                   include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         status_output('Calculating Curve Number according to landuse...', 90, f)
         LanduseUtilClass.generate_cn2(cfg.maindb, cfg.spatials.landuse,

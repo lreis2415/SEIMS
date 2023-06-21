@@ -96,6 +96,8 @@ public:
      */
     clsReaches(MongoClient* conn, const string& db_name, const string& collection_name, LayeringMethod mtd = UP_DOWN);
 
+    clsReaches();
+
     /// Destructor
     ~clsReaches();
 
@@ -125,6 +127,7 @@ public:
      * \brief Update reach/channel parameters according to calibration settings
      */
     void Update(map<string, ParamInfo<FLTPT> *>& caliparams_map, IntRaster* mask_raster);
+    
 
 private:
     /// reaches number

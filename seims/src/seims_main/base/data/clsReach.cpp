@@ -340,6 +340,19 @@ void clsReach::DerivedParameters() {
     }
 }
 
+clsReaches::clsReaches() {
+    reach_num_ = 1;
+    reach_up_streams_.resize(1);
+    //reach_up_streams_.at(1).emplace_back(1);
+
+#ifdef HAS_VARIADIC_TEMPLATES
+    reach_layers_.emplace(1, vector<int>());
+#else
+    reach_layers_.insert(make_pair(1, vector<int>()));
+#endif
+    //reach_layers_.at(1).emplace_back(1);
+}
+
 clsReaches::clsReaches(MongoClient* conn, const string& db_name,
                        const string& collection_name, const LayeringMethod mtd /* = UP_DOWN */) {
     bson_t* b = bson_new();

@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetName(M_GW_RSVR[0]);
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_SUBBSN[0], UNIT_NON_DIM, VAR_SUBBSN[1], Source_ParameterDB, DT_Raster1D);
     //mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Array2D);
@@ -28,7 +29,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
     mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
-    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CELL_AREA[0], UNIT_AREA_M2, VAR_CELL_AREA[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_GW_KG[0], UNIT_NON_DIM, VAR_GW_KG[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_Base_ex[0], UNIT_NON_DIM, VAR_Base_ex[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_GW0[0], UNIT_DEPTH_MM, VAR_GW0[1], Source_ParameterDB, DT_Single);

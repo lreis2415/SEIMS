@@ -19,7 +19,7 @@ Percolation_DARCY::Percolation_DARCY(void) {
 
     m_recharge = NULL;
     m_rootDepth = NULL;
-    m_CellWidth = -1.f;
+    m_cellArea = nullptr;
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
@@ -113,9 +113,6 @@ void Percolation_DARCY::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
         this->m_timestep = int(data);
-    } else if (StringMatch(s, Tag_CellWidth[0])) {
-        m_CellWidth = data;
-        //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
         throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
@@ -133,8 +130,8 @@ bool Percolation_DARCY::CheckInputData() {
     if (this->m_timestep <= 0) {
         throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The time step can not be less than zero.");
     }
-    if (m_CellWidth < 0) {
-        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The parameter CellWidth is not set.");
+    if (this->m_cellArea == NULL) {
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The m_cellArea can not be NULL.");
     }
     if (this->m_Conductivity == NULL) {
         throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Conductivity can not be NULL.");

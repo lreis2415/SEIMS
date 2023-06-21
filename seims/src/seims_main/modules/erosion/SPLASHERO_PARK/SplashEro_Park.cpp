@@ -3,7 +3,7 @@
 
 // using namespace std;  // Avoid this statement! by lj.
 
-SplashEro_Park::SplashEro_Park(void) : m_CellWith(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_Omega(NODATA_VALUE),
+SplashEro_Park::SplashEro_Park(void) : m_nCells(-1), m_TimeStep(NODATA_VALUE), m_cellArea(nullptr), m_Omega(NODATA_VALUE),
                                        m_Slope(NULL),
                                        m_Rain(NULL), m_DETSplash(NULL), m_USLE_C(NULL), m_USLE_K(NULL),
                                        m_Q(NULL), m_sr(NULL), m_depression(NULL) {
@@ -13,7 +13,7 @@ SplashEro_Park::~SplashEro_Park(void) {
     Release1DArray(m_DETSplash);
 }
 
-void SplashEro_Park::Get1DData(const char *key, int *n, float **data) {
+void SplashEro_Park::Get1DData(const char *key, int *n, FLTPT **data) {
     string s(key);
     *n = m_nCells;
     if (StringMatch(s, VAR_DETSPLASH[0])) {
@@ -24,7 +24,7 @@ void SplashEro_Park::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
+void SplashEro_Park::Set1DData(const char *key, int nRows, FLTPT *data) {
     string s(key);
 
     CheckInputSize(key, nRows);
@@ -53,10 +53,8 @@ void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
     }
 }
 
-void SplashEro_Park::SetValue(const char *key, float data) {
-    string s(key);
-    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+void SplashEro_Park::SetValue(const char *key, FLTPT data) {
+    string s(key);if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_OMEGA[0])) { m_Omega = data; }
     else {
@@ -70,9 +68,7 @@ bool SplashEro_Park::CheckInputData() {
         throw ModelException(M_SplashEro_Park[0], "CheckInputData", "You have not set the time.");
     }
 
-    if (m_CellWith <= 0) {
-        throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The cell width can not be less than zero.");
-    }
+    CHECK_POINTER(M_SplashEro_Park[0], m_cellArea);
 
     if (m_nCells <= 0) {
         throw ModelException(M_SplashEro_Park[0], "CheckInputData", "The cell number can not be less than zero.");
@@ -170,15 +166,15 @@ int SplashEro_Park::Execute() {
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //intensity in mm/h
-        float RainInten = m_Rain[i] * 3600.f / m_TimeStep;
+        FLTPT RainInten = m_Rain[i] * 3600.f / m_TimeStep;
 
         //rainfall between plants in mm  //Rainc->Drc = Rain->Drc * _dx/DX->Drc;
         // correction for slope dx/DX, water spreads out over larger area
-        float s = Max(0.001f, m_Slope[i]);
-        float S0 = sin(atan(s));
-        float Dm = 0.00124f * Power(RainInten, 0.182f);
-        float waterdepth = (m_sr[i] + m_depression[i]) / 1000.f;   // mm convert to m
-        float Fw, Dr;
+        FLTPT s = Max(0.001f, m_Slope[i]);
+        FLTPT S0 = sin(atan(s));
+        FLTPT Dm = 0.00124f * Power(RainInten, 0.182f);
+        FLTPT waterdepth = (m_sr[i] + m_depression[i]) / 1000.f;   // mm convert to m
+        FLTPT Fw, Dr;
         if (waterdepth > Dm) {
             Fw = CalExp(1.f - waterdepth / Dm);
         } else {
@@ -187,8 +183,7 @@ int SplashEro_Park::Execute() {
         // kg/(m2*min)
         Dr = m_Omega * Fw * m_USLE_C[i] * m_USLE_K[i] * Power(RainInten, 2.f) * (2.96f * Power(S0, 0.79f) + 0.56f);
         // convert kg/(m2*min) to kg/cell
-        float cellareas = (m_CellWith / cos(atan(s))) * m_CellWith;
-        m_DETSplash[i] = Dr * (m_TimeStep / 60.f) * cellareas;
+        m_DETSplash[i] = Dr * (m_TimeStep / 60.f) * m_cellArea[i];
         // // Deal with all exceptions:
         //if (m_SnowCover[i]>0)
         //{

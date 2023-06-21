@@ -2,10 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-const int MAIN_DB_TABS_REQ_NUM = 6;
+const int MAIN_DB_TABS_REQ_NUM = 7;
 const char* MAIN_DB_TABS_REQ[] = {
     DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
-    DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL
+    DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL, DB_TAB_SUBBASIN_ABSTRACTION
 };
 
 const int METEO_VARS_NUM = 6;
@@ -39,8 +39,15 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     } else {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
     }
-    outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
-    n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
+
+    if(is_lumped) {
+        outlet_id_ = 0;
+        n_subbasins_ = 1;
+    }else {
+        outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
+        n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
+    }
+
     if (outlet_id_ < 0 || n_subbasins_ < 0) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
@@ -95,6 +102,11 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
             return false;
         }
     }
+    /// 2.1 Read conceptual subbasin config
+    if(!ReadSubbasinAbstractionInDB()) {
+        return false;
+    }
+
     /// 3. Read climate site information from Climate database
     clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel());
     ReadClimateSiteList();
@@ -109,25 +121,40 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     std::ostringstream oss;
     oss << subbasin_id_ << "_" << VAR_SUBBSN[0]; // Tag_Mask[0];
     string mask_filename = GetUpper(oss.str());
-    mask_raster_ = IntRaster::Init(spatial_gridfs_, mask_filename.c_str());
+    STRING_MAP opts;
+    if (is_subbasin_conceptual) {
+        opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_CONEPTUAL);
+    }
+    mask_raster_ = IntRaster::Init(spatial_gridfs_, mask_filename.c_str(),
+        false,nullptr,true,NODATA_VALUE,opts);
     assert(nullptr != mask_raster_);
+    int v = mask_raster_->GetValidNumber();
 #ifdef HAS_VARIADIC_TEMPLATES
     rs_int_map_.emplace(mask_filename, mask_raster_);
 #else
     rs_int_map_.insert(make_pair(mask_filename, mask_raster_));
 #endif
-
+    
+    if (is_subbasin_conceptual) {
+        opts.emplace(HEADER_INC_NODATA, "FALSE");
+    }
     /// 6. Constructor Subbasin data. Subbasin and slope data are required!
     oss.str("");
     oss << subbasin_id_ << "_" << VAR_SLOPE[0];
-    LoadAdjustRasterData(VAR_SLOPE[0], GetUpper(oss.str()));
-
+    LoadAdjustRasterData(VAR_SLOPE[0], GetUpper(oss.str()), false, &opts);
+    oss.str("");
+    oss << subbasin_id_ << "_" << VAR_CELL_AREA[0];
+    LoadAdjustRasterData(VAR_CELL_AREA[0], GetUpper(oss.str()),false,&opts);
     subbasins_ = clsSubbasins::Init(rs_int_map_, rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
-    reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
-    reaches_->Update(init_params_, mask_raster_);
+    if(is_lumped) {
+        reaches_ = new clsReaches();
+    } else {
+        reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
+        reaches_->Update(init_params_, mask_raster_);
+    }
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
         bson_t* query = bson_new();
@@ -271,6 +298,55 @@ bool DataCenterMongoDB::GetFileOutVector() {
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
     return !origin_out_items_.empty();
+}
+
+bool DataCenterMongoDB::ReadSubbasinAbstractionInDB() {
+
+    bson_t* filter = BCON_NEW(Tag_ConfTag, BCON_UTF8(DB_SubbasinAbstraction_Tag_ConceptualSubbasin));
+
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(
+        mongo_client_->GetCollection(model_name_, DB_TAB_SUBBASIN_ABSTRACTION)
+    ));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(ERROR) << "ReadSubbasinAbstractionInDB: " << "Nothing found for " << DB_TAB_SUBBASIN_ABSTRACTION;
+        /// destroy
+        bson_destroy(filter);
+        mongoc_cursor_destroy(cursor);
+        return false;
+    }
+
+    bson_iter_t iter;
+    const bson_t* bson_table;
+    string conceptual_subbasin_str;
+    while (mongoc_cursor_next(cursor, &bson_table)) {
+        if (bson_iter_init_find(&iter, bson_table, Tag_ConfValue)) {
+            conceptual_subbasin_str =GetStringFromBsonIterator(&iter);
+        }
+    }
+    // conceptual_subbasin_str: "1,2,3,4"
+    vector<string> conceptual_subbasin_str_vec = SplitString(conceptual_subbasin_str, ',');
+    for (const auto& str : conceptual_subbasin_str_vec) {
+        int sbid = atoi(str.c_str());
+        if (sbid == 0) {
+            is_subbasin_conceptual = true;
+            is_lumped = true;
+            break;
+        }
+        if (sbid==subbasin_id_) {
+            is_subbasin_conceptual = true;
+            break;
+        }
+    }
+    if (is_subbasin_conceptual) {
+        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is conceptual";
+    }else {
+        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is physical";
+    }
+    bson_destroy(filter);
+    mongoc_cursor_destroy(cursor);
+    return true;
 }
 
 int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
@@ -510,8 +586,13 @@ bool DataCenterMongoDB::ReadRasterData(const string& remote_filename, IntRaster*
     return true;
 }
 
-void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data) {
-    ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
+void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data, STRING_MAP* opts) {
+    STRING_MAP opts_upd;
+    opts_upd.insert(std::make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL));
+    if (opts==nullptr) {
+        opts = &opts_upd;
+    }
+    ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename, *opts);
     if (!weight_data->Initialized()) {
         delete weight_data;
         data = nullptr;
@@ -585,10 +666,15 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     databuf = nullptr;
 }
 
-void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, FLTPT**& data) {
+void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, FLTPT**& data, STRING_MAP* opts) {
+    STRING_MAP opts_upd;
+    opts_upd.insert(std::make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL));
+    if (opts == nullptr) {
+        opts = &opts_upd;
+    }
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, opts);
     if (nullptr == databuf) {
         data = nullptr;
         return;

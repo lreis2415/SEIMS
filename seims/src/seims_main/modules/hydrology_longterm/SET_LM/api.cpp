@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);

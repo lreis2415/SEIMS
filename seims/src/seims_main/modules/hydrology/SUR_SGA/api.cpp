@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetName(M_SUR_SGA[0]);
     mdi.SetVersion("2.0");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_Single);
 

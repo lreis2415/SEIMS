@@ -1,4 +1,6 @@
-from preprocess.sp_soil_base import SoilPropertyBase, SoilPropertyType
+from preprocess.sp_soil_base import SoilPropertyBase
+from preprocess.text import ParamAbstractionTypes
+
 
 
 class SoilPropertyConceptual(SoilPropertyBase):
@@ -10,4 +12,4 @@ class SoilPropertyConceptual(SoilPropertyBase):
 
     @staticmethod
     def soil_param_type():
-        return SoilPropertyType.CONCEPTUAL
+        return ParamAbstractionTypes.CONCEPTUAL

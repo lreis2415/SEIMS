@@ -51,13 +51,13 @@ public:
 
     virtual int Execute(void);
 
-    virtual void SetValue(const char *key, float data);
+    virtual void SetValue(const char *key, FLTPT data);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    virtual void Set2DData(const char *key, int nRows, int nCols, FLTPT **data);
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    virtual void Get1DData(const char *key, int *n, FLTPT **data);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -69,33 +69,33 @@ private:
     int m_TimeStep;
     /// cell size of the grid (the validate cells of the whole basin)
     int m_nCells;
-    /// cell width of the grid (m)
-    float m_CellWidth;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
     /// the total number of subbasins
     int m_nsub;
     /// subbasin grid ( subwatersheds ID)
-    float *m_subbasin;
+    FLTPT *m_subbasin;
     /*/// start time of IUH for each grid cell
-    float* m_uhminCell;
+    FLTPT* m_uhminCell;
     /// end time of IUH for each grid cell
-    float* m_uhmaxCell;
+    FLTPT* m_uhmaxCell;
     /// IUH of each grid cell (1/s)*/
-    float **m_iuhCell;
+    FLTPT **m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// subsurface runoff from depression module
-    float *m_ssru;
+    FLTPT *m_ssru;
     /*/// length of rainfall series
     int m_nr;*/
     /*/// end time of simulation
     time_t m_EndDate;*/
 
     //temparory
-    float **m_cellFlow;
+    FLTPT **m_cellFlow;
     int m_cellFlowCols;
     //output
     /// interflow to streams for each subbasin (m3/s)
-    float *m_Q_SBIF;
+    FLTPT *m_Q_SBIF;
 
     void InitialOutputs(void);
 };

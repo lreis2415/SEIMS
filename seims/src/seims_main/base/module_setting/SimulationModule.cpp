@@ -41,5 +41,5 @@ bool SimulationModule::CheckInputSize(const char* module_id, const char* key, co
 
 bool SimulationModule::CheckInputSize2D(const char* module_id, const char* key, const int nrows, const int ncols,
                                         int& m_nrows, int& m_ncols) {
-    return CheckInputSize(module_id, key, nrows, m_nrows) && CheckInputSize(module_id, key, ncols, m_ncols);
+     return CheckInputSize(module_id, key, nrows, m_nrows) && CheckInputSize(module_id, key, ncols, m_ncols);
 }

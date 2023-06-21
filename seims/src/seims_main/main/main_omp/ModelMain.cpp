@@ -140,6 +140,7 @@ void ModelMain::Execute() {
 
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
         //cout << endl << "Timestep: " << t << endl;
+        //cout << ConvertToString(t) << endl;
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;

@@ -3,7 +3,7 @@
 
 // using namespace std;  // Avoid this statement! by lj.
 
-IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nsub(-1), m_subbasin(NULL),
+IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_cellArea(nullptr), m_nsub(-1), m_subbasin(NULL),
                        m_iuhCell(NULL), m_ssru(NULL), m_iuhCols(-1), m_cellFlowCols(-1) {
 
     m_Q_SBIF = NULL;
@@ -20,10 +20,7 @@ bool IUH_IF::CheckInputData(void) {
         throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_nCells has not been set.");
         return false;
     }
-    if (FloatEqual(m_CellWidth, NODATA_VALUE)) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_CellWidth has not been set.");
-        return false;
-    }
+    CHECK_POINTER(M_IUH_IF[0], m_cellArea);
     if (m_TimeStep <= 0) {
         throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_TimeStep has not been set.");
         return false;
@@ -74,11 +71,11 @@ void IUH_IF:: InitialOutputs() {
     }
 
     if (m_cellFlow == NULL) {
-        m_Q_SBIF = new float[m_nsub + 1];
+        m_Q_SBIF = new FLTPT[m_nsub + 1];
         for (int i = 0; i <= m_nsub; i++) {
             m_Q_SBIF[i] = 0.f;
         }
-        m_cellFlow = new float *[this->m_nCells];
+        m_cellFlow = new FLTPT *[this->m_nCells];
 
         for (int i = 0; i < this->m_nCells; i++) {
             m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
@@ -87,7 +84,7 @@ void IUH_IF:: InitialOutputs() {
         //get m_cellFlowCols, i.e. the maximum of second column of iuh add 1.
 #pragma omp parallel for
         for (int i = 0; i < this->m_nCells; i++) {
-            m_cellFlow[i] = new float[m_cellFlowCols];
+            m_cellFlow[i] = new FLTPT[m_cellFlowCols];
             for (int j = 0; j < m_cellFlowCols; j++) {
                 m_cellFlow[i][j] = 0.0f;
             }
@@ -107,8 +104,7 @@ int IUH_IF::Execute() {
 
 
     //int nt = 0;
-    //float qs_cell = 0.0f;
-    float area = m_CellWidth * m_CellWidth;
+    //FLTPT qs_cell = 0.0f;
 
     //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -130,13 +126,13 @@ int IUH_IF::Execute() {
             throw ModelException("IUH_IF", "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
         }
 
-        float v_rs = m_ssru[i];
+        FLTPT v_rs = m_ssru[i];
         if (v_rs > 0.f) {
             int min = int(this->m_iuhCell[i][0]);
             int max = int(this->m_iuhCell[i][1]);
             int col = 2;
             for (int k = min; k <= max; k++) {
-                this->m_cellFlow[i][k] += v_rs / 1000.0f * m_iuhCell[i][col] * area / m_TimeStep;
+                this->m_cellFlow[i][k] += v_rs / 1000.0f * m_iuhCell[i][col] * m_cellArea[i] / m_TimeStep;
                 col++;
             }
         }
@@ -146,7 +142,7 @@ int IUH_IF::Execute() {
         }
     }
 
-    float tmp = 0.f;
+    FLTPT tmp = 0.f;
     //#pragma omp parallel for reduction(+:tmp)
     for (int n = 1; n < m_nsub + 1; n++) {
         tmp += m_Q_SBIF[n];        //get overland flow routing for entire watershed.
@@ -174,12 +170,10 @@ bool IUH_IF::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void IUH_IF::SetValue(const char *key, float value) {
+void IUH_IF::SetValue(const char *key, FLTPT value) {
     string sk(key);
     if (StringMatch(sk, Tag_TimeStep[0])) {
         m_TimeStep = (int) value;
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
-        m_CellWidth = value;
     } else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = int(value);
     } else {
@@ -188,12 +182,14 @@ void IUH_IF::SetValue(const char *key, float value) {
     }
 }
 
-void IUH_IF::Set1DData(const char *key, int n, float *data) {
+void IUH_IF::Set1DData(const char *key, int n, FLTPT *data) {
     CheckInputSize(key, n);
     //set the value
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbasin = data;
+    } else if (StringMatch(sk, VAR_CELL_AREA[0])) {
+        m_cellArea = data;
     } else if (StringMatch(sk, VAR_SSRU[0])) {
         m_ssru = data;
     } else {
@@ -202,7 +198,7 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
     }
 }
 
-void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
+void IUH_IF::Set2DData(const char *key, int nRows, int nCols, FLTPT **data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH[0])) {
         CheckInputSize(VAR_OL_IUH[0], nRows);
@@ -214,7 +210,7 @@ void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
     }
 }
 
-void IUH_IF::Get1DData(const char *key, int *n, float **data) {
+void IUH_IF::Get1DData(const char *key, int *n, FLTPT **data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBIF[0])) {
         *data = m_Q_SBIF;

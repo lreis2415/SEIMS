@@ -25,7 +25,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_POROST[0], UNIT_STRG_M3M, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);

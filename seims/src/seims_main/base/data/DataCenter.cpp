@@ -16,7 +16,7 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int 
     output_path_(input_args->output_path),
     n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
-    reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
+    reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr), is_subbasin_conceptual(false), is_lumped(false) {
     // Nothing to do for now.
 }
 
@@ -201,7 +201,11 @@ bool DataCenter::CheckAdjustmentInt(const string& para_name) {
 void DataCenter::LoadAdjustRasterData(const string& para_name, const string& remote_filename,
                                       const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     FloatRaster* raster = nullptr;
-    if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
+    if (!ReadRasterData(remote_filename, raster, opts) || nullptr == raster) {
+        //bool is_module_conceptual = opts->at(HEADER_RS_PARAM_ABSTRACTION_TYPE), PARAM_ABSTRACTION_TYPE_CONEPTUAL);
+        //if(!is_subbasin_conceptual&&StringMatch() {
+        //    
+        //}
         if (is_optional) { return; }
         throw ModelException("DataCenter", "LoadAdjustRasterData",
                              "Load " + remote_filename + " failed!");
@@ -237,7 +241,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
 void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& remote_filename,
                                          const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     IntRaster* raster = nullptr;
-    if (!ReadRasterData(remote_filename, raster) || nullptr == raster) {
+    if (!ReadRasterData(remote_filename, raster, opts) || nullptr == raster) {
         if (is_optional) { return; }
         throw ModelException("DataCenter", "LoadAdjustRasterData",
                              "Load " + remote_filename + " failed!");
@@ -293,7 +297,7 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
             throw ModelException("DataCenter", "LoadAdjust1DArrayData",
                                  "Cannot find Precipitation site!");
         }
-    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites 
+    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) { // Latitude of sites
         if (clim_station_->NumberOfSites(DataType_Meteorology, n) &&
             clim_station_->GetLatitude(DataType_Meteorology, tmpdata)) {
             Initialize1DArray(n, data, tmpdata);
@@ -302,7 +306,7 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
                                  "Cannot find Latitude_M site!");
         }
     } else { // any other 1D arrays, such as Heat units of all simulation years (HUTOT)
-        Read1DArrayData(remote_filename, n, data);
+        Read1DArrayData(remote_filename, n, data, opts);
     }
     if (nullptr != data) {
         // Adjust data according to calibration parameters
@@ -324,7 +328,7 @@ void DataCenter::LoadAdjustInt1DArrayData(const string& para_name, const string&
     int n;
     int* data = nullptr;
     string upper_name = GetUpper(para_name);
-    Read1DArrayData(remote_filename, n, data);
+    Read1DArrayData(remote_filename, n, data, opts);
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustmentInt(upper_name)) {
@@ -348,18 +352,18 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     /// Load data from DataCenter
     if (StringMatch(upper_name, TAG_OUT_OL_IUH)) {
         // Overland flow IUH
-        ReadIuhData(remote_filename, n_rows, data);
+        ReadIuhData(remote_filename, n_rows, data, opts);
         n_cols = 1;
     } else if (StringMatch(upper_name, Tag_LapseRate)) {
         /// Match to the format of DT_Array2D, By LJ.
         SetLapseData(remote_filename, n_rows, n_cols, data);
     } else if (StringMatch(upper_name, Tag_Weight[0])) {
-        ReadItpWeightData(remote_filename, n_rows, n_cols, data);
+        ReadItpWeightData(remote_filename, n_rows, n_cols, data, opts);
     } else {
         // Including: ROUTING_LAYERS,
         //            FLOWIN_INDEX, FLOWIN_FRACTION,
         //            FLOWOUT_INDEX, FLOWOUT_FRACTION
-        Read2DArrayData(remote_filename, n_rows, n_cols, data);
+        Read2DArrayData(remote_filename, n_rows, n_cols, data, opts);
     }
     if (nullptr != data) {
         // Adjust data according to calibration parameters
@@ -387,7 +391,7 @@ void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string&
     // Including: ROUTING_LAYERS,
     //            FLOWIN_INDEX,
     //            FLOWOUT_INDEX,
-    Read2DArrayData(remote_filename, n_rows, n_cols, data);
+    Read2DArrayData(remote_filename, n_rows, n_cols, data, opts);
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustmentInt(upper_name)) {
@@ -423,7 +427,15 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
         vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
 
         STRING_MAP opts;
-        opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType);
+        bool is_module_conceptual = StringMatch(module_informations[id].ModuleAbstractionType, PARAM_ABSTRACTION_TYPE_CONEPTUAL);
+        if (is_subbasin_conceptual && is_module_conceptual) {
+            opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType);
+        }else if (is_subbasin_conceptual && !is_module_conceptual){
+            throw ModelException("DataCenter", "LoadParametersForModules",
+                "Conceptual Subbasin must use conceptual modules. While module `"+id+"` is physical only.");
+        }else {
+            opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
+        }
 
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo<FLTPT>* param = parameters[j];
@@ -599,6 +611,8 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
         param->Value = mask_raster_->GetCellNumber(); // old code is ->Size();  they have the same function
     } else if (StringMatch(param->Name, Tag_SubbasinId)) {
         param->Value = subbasin_id_;
+    } else if (StringMatch(param->Name, VAR_SUBBSNID_NUM[0])) {
+        param->Value = n_subbasins_;
     } else if (StringMatch(param->Name, Tag_TimeStep[0])) {
         param->Value = CVT_INT(input_->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {

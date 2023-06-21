@@ -3,7 +3,7 @@
 #include "text.h"
 
 ReservoirMethod::ReservoirMethod() :
-    m_dt(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_maxSoilLyrs(-1),
+    m_dt(-1), m_nCells(-1), m_maxSoilLyrs(-1),
     m_nSoilLyrs(nullptr), m_soilThk(nullptr),
     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
     m_soilPerco(nullptr), m_IntcpET(nullptr), m_deprStoET(nullptr),
@@ -48,7 +48,6 @@ void ReservoirMethod::InitialOutputs() {
 int ReservoirMethod::Execute() {
     CheckInputData();
     InitialOutputs();
-    FLTPT QGConvert = 1. * m_cellWth * m_cellWth / m_dt * 0.001; // mm ==> m3/s
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int subID = *it;
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(subID);
@@ -98,6 +97,7 @@ int ReservoirMethod::Execute() {
         FLTPT slopeCoef = curSub->GetSlopeCoef();
         FLTPT kg = m_Kg * slopeCoef;
         FLTPT groundRunoff = kg * CalPow(m_gwSto[subID], m_Base_ex); // mm
+        FLTPT QGConvert = curSub->GetArea() / m_dt * 0.001; // mm ==> m3/s
         FLTPT groundQ = groundRunoff * curCellsNum * QGConvert;     // groundwater discharge (m3/s)
         FLTPT groundStorage = m_gwSto[subID];
         groundStorage += perco - revap - percoDeep - groundRunoff;
@@ -194,7 +194,6 @@ int ReservoirMethod::Execute() {
 bool ReservoirMethod::CheckInputData() {
     CHECK_POSITIVE(M_GWA_RE[0], m_nCells);
     CHECK_POSITIVE(M_GWA_RE[0], m_nSubbsns);
-    CHECK_POSITIVE(M_GWA_RE[0], m_cellWth);
     CHECK_POSITIVE(M_GWA_RE[0], m_dt);
     CHECK_POSITIVE(M_GWA_RE[0], m_maxSoilLyrs);
     CHECK_NODATA(M_GWA_RE[0], m_dp_co);
@@ -216,8 +215,7 @@ bool ReservoirMethod::CheckInputData() {
 
 void ReservoirMethod::SetValue(const char* key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_CellWidth[0])) m_cellWth = value;
-    else if (StringMatch(sk, VAR_KG[0])) m_Kg = value;
+    if (StringMatch(sk, VAR_KG[0])) m_Kg = value;
     else if (StringMatch(sk, VAR_Base_ex[0])) m_Base_ex = value;
     else if (StringMatch(sk, VAR_DF_COEF[0])) m_dp_co = value;
     else if (StringMatch(sk, VAR_GW0[0])) m_GW0 = value;

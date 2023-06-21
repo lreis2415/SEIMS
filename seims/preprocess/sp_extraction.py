@@ -12,7 +12,6 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 
-from preprocess.sp_conceptual_model_distribution import get_conceptual_subbasin_list
 from preprocess.sp_soil_conceptual import SoilPropertyConceptual
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -27,7 +26,6 @@ from preprocess.sp_terrain import TerrainUtilClass
 
 def extract_spatial_parameters(cfg):
     """Main entrance for spatial parameters extraction."""
-    conceptual_subbasin_list = get_conceptual_subbasin_list(cfg)
     # 1. Soil related
     if cfg.soil_property_conceptual:
         SoilUtilClass.parameters_extraction(cfg, SoilPropertyConceptual)
@@ -35,7 +33,7 @@ def extract_spatial_parameters(cfg):
         SoilUtilClass.parameters_extraction(cfg, SoilPropertyPhysical)
 
     # 2. Landuse/Landcover related
-    LanduseUtilClass.parameters_extraction(cfg, conceptual_subbasin_list)
+    LanduseUtilClass.parameters_extraction(cfg)
     # 3. Terrain related and other spatial parameters
     TerrainUtilClass.parameters_extraction(cfg)
 

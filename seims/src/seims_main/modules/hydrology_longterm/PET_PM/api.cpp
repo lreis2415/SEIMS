@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     // set the parameters
     mdi.AddParameter(VAR_CO2[0], UNIT_GAS_PPMV, VAR_CO2[1], Source_ParameterDB, DT_Single);

@@ -96,7 +96,6 @@ CONST_CHARS HEADER_RS_CELLSIZE = "CELLSIZE"; /// Cell size (length)
 CONST_CHARS HEADER_RS_LAYERS = "LAYERS"; /// Layers number
 CONST_CHARS HEADER_RS_CELLSNUM = "CELLSNUM"; /// Number of the first layer's valid cells
 CONST_CHARS HEADER_RS_SRS = "SRS"; /// SRS
-CONST_CHARS HEADER_RS_PARAM_ABSTRACTION_TYPE = "PARAM_ABSTRACTION_TYPE"; /// spatial parameter type, physical or conceptual
 CONST_CHARS HEADER_RS_DATATYPE = "DATATYPE"; /// Data type of original raster
 CONST_CHARS HEADER_RSOUT_DATATYPE = "DATATYPE_OUT"; /// Desired output data type of raster
 CONST_CHARS HEADER_INC_NODATA = "INCLUDE_NODATA"; /// Include nodata ("TRUE") or not ("FALSE"), for DB only
@@ -109,6 +108,11 @@ CONST_CHARS STATS_RS_STD = "STD"; /// Standard derivation value
 CONST_CHARS STATS_RS_RANGE = "RANGE"; /// Range value
 CONST_CHARS ASCIIExtension = "asc"; /// ASCII extension
 CONST_CHARS GTiffExtension = "tif"; /// GeoTIFF extension
+
+CONST_CHARS HEADER_RS_PARAM_ABSTRACTION_TYPE = "PARAM_ABSTRACTION_TYPE"; /// spatial parameter type, physical or conceptual
+CONST_CHARS PARAM_ABSTRACTION_TYPE_CONEPTUAL = "CONCEPTUAL";
+CONST_CHARS PARAM_ABSTRACTION_TYPE_PHYSICAL = "PHYSICAL";
+
 
 typedef std::pair<int, int> ROW_COL; /// Row and Col pair
 typedef std::pair<double, double> XY_COOR; /// Coordinate pair
@@ -3336,9 +3340,14 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     STRING_MAP header_str = InitialStrHeader();
     STRING_MAP opts_upd;
     CopyStringMap(opts, opts_upd);
+    UpdateStringMapIfNotExist(opts_upd, HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
+    bool is_conceptual = StringMatch(opts_upd.at(HEADER_RS_PARAM_ABSTRACTION_TYPE), PARAM_ABSTRACTION_TYPE_CONEPTUAL);
     if (opts.empty() || opts.count(HEADER_INC_NODATA) < 1) { // GFS file include nodata by default
         UpdateStringMap(opts_upd, HEADER_INC_NODATA, "TRUE");
     }
+    //if(is_conceptual) {
+    //    UpdateStringMap(opts_upd, HEADER_INC_NODATA, "FALSE");
+    //}
     if (!ReadGridFsFile(gfs, filename, dbdata, header_dbl, header_str, opts_upd)) { return false; }
 
     if (headers_.at(HEADER_RS_NROWS) > 0 && headers_.at(HEADER_RS_NCOLS) > 0
@@ -3371,7 +3380,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
 
     // check the valid values count and determine whether can read directly.
     bool mask_pos_subset = true;
-    if (nullptr != mask_ && calc_pos_ && use_mask_ext_ && n_cells_ == mask_->GetValidNumber()) {
+     if (nullptr != mask_ && calc_pos_ && use_mask_ext_ && n_cells_ == mask_->GetValidNumber()) {
         store_pos_ = false;
         mask_->GetRasterPositionData(&n_cells_, &pos_data_);
         if (!mask->GetSubset().empty()) {

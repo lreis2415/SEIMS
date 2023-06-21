@@ -3,7 +3,7 @@
 #include "text.h"
 
 IUH_SED_OL::IUH_SED_OL() :
-    m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_TimeStep(-1), m_nCells(-1),
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
     m_iuhCell(nullptr), m_iuhCols(-1), m_sedYield(nullptr),
     m_cellFlowCols(-1), m_cellSed(nullptr), m_sedtoCh(nullptr), m_olWtrEroSed(nullptr) {
@@ -19,7 +19,6 @@ bool IUH_SED_OL::CheckInputData() {
     CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
     CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_inputSubbsnID);
     CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
-    CHECK_POSITIVE(M_IUH_SED_OL[0], m_CellWidth);
     CHECK_NONNEGATIVE(M_IUH_SED_OL[0], m_TimeStep);
     CHECK_POINTER(M_IUH_SED_OL[0], m_subbsnID);
     CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
@@ -30,7 +29,6 @@ void IUH_SED_OL::InitialOutputs() {
     CHECK_POSITIVE(M_IUH_SED_OL[0], m_nSubbsns);
     CHECK_POSITIVE(M_IUH_SED_OL[0], m_nCells);
     CHECK_POINTER(M_IUH_SED_OL[0], m_iuhCell);
-    if (m_cellArea <= 0.) m_cellArea = m_CellWidth * m_CellWidth;
     if (nullptr == m_sedtoCh) {
         Initialize1DArray(m_nSubbsns + 1, m_sedtoCh, 0.);
         Initialize1DArray(m_nCells, m_olWtrEroSed, 0.);
@@ -96,15 +94,6 @@ int IUH_SED_OL::Execute() {
         m_sedtoCh[0] += m_sedtoCh[i]; //get overland flow routing for entire watershed.
     }
     return 0;
-}
-
-void IUH_SED_OL::SetValue(const char* key, const FLTPT value) {
-    string sk(key);
-    if (StringMatch(sk, Tag_CellWidth[0])) m_CellWidth = value;
-    else {
-        throw ModelException(M_IUH_SED_OL[0], "SetValue",
-                             "Parameter " + sk + " does not exist in current method.");
-    }
 }
 
 void IUH_SED_OL::SetValue(const char* key, const int value) {

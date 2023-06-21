@@ -26,8 +26,8 @@ private:
     int m_timestep;
     //! Valid cells number
     int m_nCells;
-    //! Width of cell (m)
-    float m_CellWidth;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
 
     float **m_Conductivity;
     float **m_Porosity;
@@ -40,7 +40,7 @@ private:
     //float  m_ForzenT;
 
     float *m_recharge;
-    //soil layers 
+    //soil layers
     int m_maxSoilLyrs;
     float m_nSoilLyrs;
 
@@ -52,7 +52,7 @@ public:
     ~Percolation_DARCY(void);
 
     //virtual void Set1DData(const char *key, int n, float *data);
-    
+
     //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get1DData(const char *key, int *n, float **data);

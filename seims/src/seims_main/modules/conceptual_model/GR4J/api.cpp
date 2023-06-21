@@ -21,13 +21,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     /// Set parameters from database (Source_ParameterDB or Source_ParameterDB_Optional)
 
     /// Parameters with basic data types
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_SingleInt);
-    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_SUBBASIN_PARAM[0], UNIT_NON_DIM, VAR_SUBBASIN_PARAM[1], Source_ParameterDB, DT_Subbasin);

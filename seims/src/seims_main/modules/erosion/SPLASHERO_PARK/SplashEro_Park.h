@@ -2,7 +2,7 @@
  * \brief Park Equation for splash erosion, and Foster Equation for overland flow soil detachment
  *           use the USLE_C, USLE_K in the calculation of splash erosion.
  *           PARK S, MITCHELL J, BUBENZER G,. Rainfall characteristics and their relation to splash erosion[J].
- *                 Trans. ASAE, 1983, 26(3): 795¨C804.
+ *                 Trans. ASAE, 1983, 26(3): 795â€“804.
  * \author Hui Wu
  * \date Feb. 2012
  * \revised Liang-Jun Zhu
@@ -38,11 +38,11 @@ public:
 
     virtual int Execute(void);
 
-    virtual void SetValue(const char *key, float value);
+    virtual void SetValue(const char *key, FLTPT value);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    virtual void Get1DData(const char *key, int *n, FLTPT **data);
 
     /**
     *	@brief check the input data. Make sure all the input data is available.
@@ -62,53 +62,53 @@ public:
 
 private:
 
-    //static string toString(float value);
+    //static string toString(FLTPT value);
 
     void InitialOutputs(void);
 
 private:
     //Parameters
-
-    /// cell width of grid map (m)
-    float m_CellWith;
+    
     /// number of cells
     int m_nCells;
     /// length of time step (s)
-    float m_TimeStep;
+    FLTPT m_TimeStep;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
 
     ///parameter calibration coefficient of splash erosion (-)
-    float m_Omega;
+    FLTPT m_Omega;
     /// slope of map, to calculate slope gradient.
-    float *m_Slope;
+    FLTPT *m_Slope;
     /// fraction of stones on the surface, affects splash [-]
-    //float* m_GrassFrac;
+    //FLTPT* m_GrassFrac;
     /// fraction of vegetation canopy cover [-]
-    //float* m_coverFrac;
+    //FLTPT* m_coverFrac;
     /// channel width [m]
-    //float* m_ChWidth;
+    //FLTPT* m_ChWidth;
     /// crop management factor
-    float *m_USLE_C;
+    FLTPT *m_USLE_C;
     /// soil erodibility factor
-    float *m_USLE_K;
+    FLTPT *m_USLE_K;
 
     //input from modules
     /// the depth of the surface water layer (mm), after kinematic wave model
     /// WaterDepth = Depression + SurfaceRunoffDepth
-    float *m_sr;
-    float *m_depression;
+    FLTPT *m_sr;
+    FLTPT *m_depression;
 
     /// water flux after kinematic wave model, m3/s
-    float *m_Q;
+    FLTPT *m_Q;
     /// the amount of rainfall (mm) (pNet?)
-    float *m_Rain;
+    FLTPT *m_Rain;
     /// snowmelt cover map, value 1.0 if there is snowcover, 0 without [-], from distribution of snow accumulation from snow water balance module
-    //float* m_SnowCover;
+    //FLTPT* m_SnowCover;
 
     //output
     /// the distribution of splash detachment, kg/cell
-    float *m_DETSplash;
+    FLTPT *m_DETSplash;
 
 };
 ///parameter calibration coefficient of splash erosion (-)  /// NOT USED, deleted? LJ
-//float m_Ccoe;
+//FLTPT m_Ccoe;
 #endif /* SEIMS_SPLASHERO_PARK_H */

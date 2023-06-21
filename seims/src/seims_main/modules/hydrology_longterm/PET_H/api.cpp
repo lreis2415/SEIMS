@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("2.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     // Parameters from Database (non-time series)
     mdi.AddParameter(VAR_K_PET[0], UNIT_NON_DIM, VAR_K_PET[1], Source_ParameterDB, DT_Single);

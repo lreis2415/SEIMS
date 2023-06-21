@@ -10,10 +10,10 @@
 using namespace utils_array;
 using namespace utils_string;
 
-ItpWeightData::ItpWeightData(MongoGridFs* gfs, const string& filename) :
+ItpWeightData::ItpWeightData(MongoGridFs* gfs, const string& filename, STRING_MAP& opts) :
     filename_(filename), itp_weight_data_(nullptr), itp_weight_data2d_(nullptr),
     n_rows_(-1), n_cols_(-1), initialized_(false) {
-    initialized_ = ReadFromMongoDB(gfs, filename_);
+    initialized_ = ReadFromMongoDB(gfs, filename_, opts);
 }
 
 ItpWeightData::~ItpWeightData() {
@@ -67,10 +67,10 @@ void ItpWeightData::Dump(const string& filename) {
     }
 }
 
-bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
+bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename, STRING_MAP& opts) {
     string wfilename = filename;
     vector<string> gfilenames;
-    gfs->GetFileNames(gfilenames);
+    gfs->GetFileNames(gfilenames, nullptr, opts);
     if (!ValueInVector(filename, gfilenames)) {
         size_t index = filename.find_last_of('_');
         string type = filename.substr(index + 1);
@@ -81,13 +81,13 @@ bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
         }
     }
     /// Get metadata
-    bson_t* md = gfs->GetFileMetadata(wfilename);
+    bson_t* md = gfs->GetFileMetadata(wfilename, nullptr, opts);
     /// Get value of given keys
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, n_rows_);
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, n_cols_);
     char* databuf = nullptr;
     vint datalength;
-    gfs->GetStreamData(wfilename, databuf, datalength);
+    gfs->GetStreamData(wfilename, databuf, datalength, nullptr, &opts);
     if (nullptr == databuf) { return false; }
     float* tmp_float_weight = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
     Initialize1DArray(n_rows_ * n_cols_, itp_weight_data_, tmp_float_weight);

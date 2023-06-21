@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_SingleInt);
     /// Set inputs from other modules (Source_Module or Source_Module_Optional)

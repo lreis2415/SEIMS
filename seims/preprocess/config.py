@@ -16,6 +16,8 @@ import sys
 import os
 from os.path import join as pjoin
 
+from pymongo import InsertOne
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -25,10 +27,10 @@ from pymongo.mongo_client import MongoClient
 from pymongo.database import Database
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
-from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
+from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils, DBTableNames, ModelCfgFields
 from preprocess.text import TauDEMbasedNames, VectorNameUtils, \
     SpatialNamesUtils, ModelParamDataUtils
-from preprocess.db_mongodb import ConnectMongoDB
+from preprocess.db_mongodb import ConnectMongoDB, MongoUtil
 from utility.parse_config import get_option_value
 
 
@@ -78,7 +80,7 @@ class PreprocessConfig(object):
         self.fields_partition = False
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
-        self.conceptual_structure = None
+        self.conceptual_subbasins = None
         # 5. Option parameters
         self.acc_thresh = 0
         self.np = 4
@@ -255,9 +257,12 @@ class PreprocessConfig(object):
                     self.fields_partition_thresh = [int(v) for v in thsv]
                     self.fields_partition = True
 
-            # Conceptual strucutre
-            if cf.has_option('SPATIAL', 'conceptualModelStructureConfig'):
-                self.conceptual_structure = pjoin(self.spatial_dir, get_option_value(cf, 'SPATIAL', 'conceptualModelStructureConfig'))
+            # Conceptual subbasins
+            if cf.has_option('SPATIAL', 'conceptualSubbasins'):
+                conceptuals = get_option_value(cf, 'SPATIAL', 'conceptualSubbasins', str)  # Type: str
+                conceptuals = list(map(int, conceptuals.split(',')))
+                self._set_conceptual_subbasins(conceptuals)
+                self._save_conceptual_subbasins_to_mongodb()
 
         else:
             raise ValueError('Spatial input file names MUST be specified in [SPATIAL]!')
@@ -288,6 +293,44 @@ class PreprocessConfig(object):
             self.default_landuse = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultlanduse', int)
             self.default_soil = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultsoil', int)
 
+    def _set_conceptual_subbasins(self, clist):
+        """
+        Set conceptual subbasins.
+        -1 means no conceptual subbasins, all physical
+        0 means all conceptual
+        1, 2, 3, ... means conceptual subbasin ID
+        """
+        # if 0 and -1 both in clist, then invalid
+        if len(clist) > 1 and 0 in clist and -1 in clist:
+            raise ValueError('Conceptual subbasins cannot be both 0 (all) and -1 (none)!')
+        if -1 in clist:
+            return
+        if 0 in clist:
+            self.conceptual_subbasins = [0]
+        else:
+            self.conceptual_subbasins = clist
+
+    def _save_conceptual_subbasins_to_mongodb(self):
+        if not self.has_conceptual_subbasins():
+            value_str =  '-1'
+        else:
+            value_str = ','.join([str(c) for c in self.conceptual_subbasins])
+        coll = self.maindb[DBTableNames.main_subbasin_abstraction]
+        dic = {
+            ModelCfgFields.tag: 'CONCEPTUAL_SUBBASINS',
+            ModelCfgFields.value: value_str
+        }
+        res = coll.find_one_and_update({ModelCfgFields.tag: 'CONCEPTUAL_SUBBASINS'}, {'$set': dic}, upsert=True)
+        # execute import operators
+        print(res)
+
+    def has_conceptual_subbasins(self):
+        if self.conceptual_subbasins is None or len(self.conceptual_subbasins) == 0:
+            return False
+        return True
+
+    def is_lumped(self):
+        return self.has_conceptual_subbasins() and 0 in self.conceptual_subbasins
 
 def parse_ini_configuration():
     """Load model configuration from *.ini file"""

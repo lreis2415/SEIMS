@@ -22,6 +22,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.1");
     mdi.SetWebsite("");
     mdi.SetHelpfile("HydroVarsUpdate.chm");
+    mdi.SetAbstractionTypeToConceptual();
+
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_SUBBSNID_NUM[0], UNIT_NON_DIM, VAR_SUBBSNID_NUM[1], Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter(VAR_SUBBASIN_PARAM[0], UNIT_NON_DIM, VAR_SUBBASIN_PARAM[1], Source_ParameterDB, DT_Subbasin);
@@ -30,6 +32,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module_Optional, DT_Raster1D);
 
     mdi.AddOutput(VAR_SBPET[0], UNIT_DEPTH_MM, VAR_SBPET[1], DT_Array1D);
+    mdi.AddOutput(VAR_SBIF[0], UNIT_FLOW_CMS, VAR_SBIF[1], DT_Array1D);
     mdi.AddOutput(VAR_SBGS[0], UNIT_DEPTH_MM, VAR_SBGS[1], DT_Array1D);
 
     // write out the XML file.

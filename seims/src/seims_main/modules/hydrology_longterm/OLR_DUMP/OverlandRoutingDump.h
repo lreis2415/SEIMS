@@ -32,10 +32,8 @@ private:
     /// subbasin grid (subbasins ID)
     int* m_cellsMappingToSubbasinId;
     
-    /// cell width of the grid (m)
-    FLTPT m_cellWidth;
-    /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
-    FLTPT m_cellArea;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
 
     /// surface runoff
     FLTPT* m_surfaceRunoff;
@@ -52,7 +50,6 @@ public:
     int Execute(void);
 
     void SetValue(const char *key, int value) OVERRIDE;
-    void SetValue(const char *key, FLTPT value) OVERRIDE;
     void Set1DData(const char *key, int nRows, FLTPT *data)  OVERRIDE;
     void OverlandRoutingDump::Set1DData(const char* key, int n, int* data) OVERRIDE;
     void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;

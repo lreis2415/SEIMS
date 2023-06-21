@@ -4,7 +4,6 @@
 
 ChannelRoutingDump::ChannelRoutingDump():  
     m_isInitialized(false),
-    m_nCells(-1),
     m_nReaches(-1),
     m_inputSubbasinId(-1),
     m_outletID(-1),
@@ -20,7 +19,7 @@ ChannelRoutingDump::~ChannelRoutingDump() {
 void ChannelRoutingDump::InitialOutputs() {
 
     Initialize1DArray(m_nReaches + 1, m_Q_outlet, 0.);
-    
+    m_Q_outlet[0] = 0;
     for (int i = 1; i <= m_nReaches; i++) {
         m_Q_outlet[i] = m_Q_SBOF[i];
     }
@@ -115,7 +114,7 @@ int ChannelRoutingDump::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
             if (m_inputSubbasinId == 0 || m_inputSubbasinId == reachIndex) {
@@ -127,7 +126,7 @@ int ChannelRoutingDump::Execute() {
 
 #ifdef PRINT_DEBUG
         printf("\n[ChannelRoutingDump]%d m_Q_outlet:",it->first);
-        for (int i = 0; i < m_nReaches; i++) {
+        for (int i = 0; i <= m_nReaches; i++) {
             printf("%f, ", m_Q_outlet[i]);
         }
         fflush(stdout);

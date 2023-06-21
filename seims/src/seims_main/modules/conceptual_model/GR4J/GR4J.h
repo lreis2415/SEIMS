@@ -38,14 +38,13 @@ public:
     void SetSubbasins(clsSubbasins* subbsns);
     // void SetValue(const char* key, FLTPT value) OVERRIDE;
     void SetValue(const char* key, int value) OVERRIDE;
-    void SetValue(const char* key, FLTPT value) OVERRIDE;
     void Set1DData(const char* key, int n, int* data) OVERRIDE;
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
     void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) OVERRIDE;
 
     ///////////// GetData series functions /////////////
     void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
-    void Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data);
+    void Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) OVERRIDE;
     ///////////// CheckInputData and InitialOutputs /////////////
     bool CheckInputData() OVERRIDE;
     void InitialOutputs() OVERRIDE;
@@ -80,10 +79,6 @@ private:
     int m_nCells; ///< valid cells number
     /// time step (sec)
     int m_timeStep;
-    /// cell width of the grid (m)
-    FLTPT m_cellWidth;
-    /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
-    FLTPT m_cellArea;
 
     //! number of subbasins
     int m_nSubbasins;

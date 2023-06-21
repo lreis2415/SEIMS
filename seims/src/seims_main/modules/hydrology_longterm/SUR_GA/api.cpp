@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetName("SUR_GreenAmpt");
     mdi.SetVersion("0.1");
     mdi.SetWebsite("http://www.website.com");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter("TimeStep", "hour", "time step of the simulation", "file.in", DT_Single);
     mdi.AddParameter("T_snow", "degree Celsius", "snowfall temperature", "ParameterDB_Snow", DT_Single);

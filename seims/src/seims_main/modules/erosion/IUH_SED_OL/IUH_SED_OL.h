@@ -37,8 +37,6 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, FLTPT value) OVERRIDE;
-
     void SetValue(const char* key, int value) OVERRIDE;
 
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
@@ -58,10 +56,6 @@ private:
     int m_TimeStep;
     /// validate cells number
     int m_nCells;
-    /// cell width of the grid (m)
-    FLTPT m_CellWidth;
-    /// cell area
-    FLTPT m_cellArea;
     /// the total number of subbasins
     int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed

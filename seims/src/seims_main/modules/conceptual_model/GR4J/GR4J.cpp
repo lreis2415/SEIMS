@@ -24,7 +24,7 @@ void GR4J::printSoilWater() {
 }
 
 GR4J::GR4J() :
-    m_nCells(-1), m_timeStep(-1), m_cellWidth(-1), m_cellArea(-1), m_isInitialized(false),
+    m_nCells(-1), m_timeStep(-1), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     //infiltration
     m_pcp(nullptr), m_soilThickness(nullptr), m_soilPorosity(nullptr), m_soilCapacity(nullptr),
@@ -43,14 +43,12 @@ void GR4J::InitialOutputs() {
 
     for (int i = 0; i < m_nCells; ++i) {
         m_soilET[i] = 0;
-        m_pet[i] = 0;
     }
 
     if (m_isInitialized) {
         return;
     }
-
-    if (m_cellArea <= 0.) m_cellArea = m_cellWidth * m_cellWidth;
+    
     Initialize1DArray(m_nCells, m_pcpExcess, 0.);
     Initialize2DArray(m_nCells, N_SOIL_LAYERS, m_soilCapacity, 0.);
     Initialize1DArray(m_nCells, m_infil, 0.);
@@ -105,14 +103,6 @@ void GR4J::SetValue(const char* key, int value) {
     }
 }
 
- void GR4J::SetValue(const char* key, FLTPT value) {
-     string sk(key);
-     if (StringMatch(sk, Tag_CellWidth[0])) m_cellWidth = value;
-     else {
-         throw ModelException(CM_GR4J[0], "SetValue",
-                              "Integer Parameter " + sk + " does not exist.");
-     }
- }
 void GR4J::Set1DData(const char* key, int n, int* data) {
     CheckInputSize(key, n);
     string sk(key);
@@ -154,14 +144,12 @@ bool GR4J::CheckInputSize(const char* key, int n) {
     if (n <= 0) {
         throw ModelException(CM_GR4J[0], "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(CM_GR4J[0], "CheckInputSize", "Input data for " + string(key) +
                                  " is invalid. All the input data should have same size.");
-            return false;
         }
     }
     return true;

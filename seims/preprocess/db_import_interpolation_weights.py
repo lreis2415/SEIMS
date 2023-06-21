@@ -21,11 +21,11 @@ from struct import pack, unpack
 import copy
 
 from gridfs import GridFS
-from numpy import zeros as np_zeros
+import numpy as np
 
-from preprocess.db_mongodb import MongoQuery
+from preprocess.db_mongodb import MongoQuery, MongoUtil
 from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
-    DataType, StationFields, DataValueFields, SubbsnStatsName
+    DataType, StationFields, DataValueFields, SubbsnStatsName, ParamAbstractionTypes
 from utility import UTIL_ZERO
 
 
@@ -85,7 +85,12 @@ class ImportWeightData(object):
         return s, i_min
 
     @staticmethod
-    def generate_weight_dependent_parameters(conn, maindb, subbsn_id):
+    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, has_conceptual_subbasins):
+        ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.PHYSICAL)
+        if has_conceptual_subbasins:
+            ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.CONCEPTUAL)
+    @staticmethod
+    def _generate_weight_dependent_parameters(conn, maindb, subbsn_id, param_abstraction_type):
         """Generate some parameters dependent on weight data and only should be calculated once.
             Such as PHU0 (annual average total potential heat units)
                 TMEAN0 (annual average temperature)
@@ -93,14 +98,20 @@ class ImportWeightData(object):
         spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
         mask_name = '%d_SUBBASIN' % subbsn_id
-        mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
+        mask_query = {'filename': mask_name,
+                      'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE',
+                      'metadata.%s' % ParamAbstractionTypes.get_field_key(): param_abstraction_type
+                      }
         # is MASK existed in Database?
         if not spatial_gfs.exists(mask_query):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
         # read WEIGHT_M file from mongodb
         weight_m_name = '%d_WEIGHT_M' % subbsn_id
         mask = maindb[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
-        weight_m = maindb[DBTableNames.gridfs_spatial].files.find({'filename': weight_m_name})[0]
+        weight_m = maindb[DBTableNames.gridfs_spatial].files.find({
+            'filename': weight_m_name,
+            'metadata.%s' % ParamAbstractionTypes.get_field_key(): param_abstraction_type,
+        })[0]
         num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
@@ -140,9 +151,9 @@ class ImportWeightData(object):
         weight_m_data = unpack(fmt, weight_m_data.read())
 
         # calculate PHU0
-        phu0_data = np_zeros(num_cells)
+        phu0_data = np.zeros(num_cells)
         # calculate TMEAN0
-        tmean0_data = np_zeros(num_cells)
+        tmean0_data = np.zeros(num_cells)
         for i in range(num_cells):
             for j in range(num_sites):
                 phu0_data[i] += phu_list[j] * weight_m_data[i * num_sites + j]
@@ -156,12 +167,7 @@ class ImportWeightData(object):
         mask_data = unpack(fmt, maskgfs_data.read())
         fname = '%d_%s' % (subbsn_id, DataType.phu0)
         fname2 = '%d_%s' % (subbsn_id, DataType.mean_tmp0)
-        if spatial_gfs.exists(filename=fname):
-            x = spatial_gfs.get_version(filename=fname)
-            spatial_gfs.delete(x._id)
-        if spatial_gfs.exists(filename=fname2):
-            x = spatial_gfs.get_version(filename=fname2)
-            spatial_gfs.delete(x._id)
+
         meta_dic = copy.deepcopy(mask['metadata'])
         meta_dic['TYPE'] = DataType.phu0
         meta_dic['ID'] = fname
@@ -175,6 +181,9 @@ class ImportWeightData(object):
         meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
         meta_dic2['INCLUDE_NODATA'] = 'FALSE'
         meta_dic2['CELLSNUM'] = num_cells
+
+        MongoUtil.delete_all_by_filename(spatial_gfs, fname, ParamAbstractionTypes.get_field_key(), param_abstraction_type)
+        MongoUtil.delete_all_by_filename(spatial_gfs, fname2, ParamAbstractionTypes.get_field_key(), param_abstraction_type)
 
         myfile = spatial_gfs.new_file(filename=fname, metadata=meta_dic)
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
@@ -201,7 +210,13 @@ class ImportWeightData(object):
         return True
 
     @staticmethod
-    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir):
+    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, is_conceptual):
+        ImportWeightData._climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, False)
+        if is_conceptual:
+            ImportWeightData._climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, True)
+
+    @staticmethod
+    def _climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, is_conceptual):
         """Generate and import weight information using Thiessen polygon method.
 
         Args:
@@ -214,6 +229,13 @@ class ImportWeightData(object):
         # read mask file from mongodb
         mask_name = '%d_SUBBASIN' % subbsn_id
         mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
+
+        param_abstraction_type = ParamAbstractionTypes.PHYSICAL
+        if is_conceptual:
+            param_abstraction_type = ParamAbstractionTypes.CONCEPTUAL
+
+        mask_query['metadata.%s' % ParamAbstractionTypes.get_field_key()] = param_abstraction_type
+
         if not spatial_gfs.exists(mask_query):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
         mask = db_model[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
@@ -232,15 +254,23 @@ class ImportWeightData(object):
         # print(data[0], len(data), type(data))
 
         # count number of valid cells
-        num = 0
-        for type_i in range(0, total_len):
-            if abs(data[type_i] - nodata_value) > UTIL_ZERO:
-                num += 1
+        # num = 0
+        # for type_i in range(0, total_len):
+        #     if abs(data[type_i] - nodata_value) > UTIL_ZERO:
+        #         num += 1
+
+        # count number of valid cells using numpy
+        data = np.array(data)
+        #count non nan
+        num = np.count_nonzero(~np.isnan(data))
 
         # read stations information from database, collection SITELIST
+        meta_param_abstraction= {ParamAbstractionTypes.get_field_key(): param_abstraction_type}
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num,
-                   RasterMetadata.inc_nodata: 'FALSE'}
+                   RasterMetadata.inc_nodata: 'FALSE',
+                   RasterMetadata.cellsize: dx,
+                   ParamAbstractionTypes.get_field_key(): param_abstraction_type}
         site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
         site_list = next(site_lists)
         clim_db_name = site_list[FieldNames.db]
@@ -265,9 +295,8 @@ class ImportWeightData(object):
         #     site_lists = [p_list]
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
-            if spatial_gfs.exists(filename=fname):
-                x = spatial_gfs.get_version(filename=fname)
-                spatial_gfs.delete(x._id)
+            # not metadata = meta_param_abstraction, should be metadata contains meta_param_abstraction
+            MongoUtil.delete_all_by_filename(spatial_gfs, fname, ParamAbstractionTypes.get_field_key(), param_abstraction_type)
             site_list = site_lists[type_i]
             if site_list is not None:
                 site_list = site_list.split(',')
@@ -321,8 +350,8 @@ class ImportWeightData(object):
 
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
-                                                         cfg.dirs.geodata2db)
-            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id)
+                                                         cfg.dirs.geodata2db, cfg.has_conceptual_subbasins())
+            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasins())
 
 
 def main():

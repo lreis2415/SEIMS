@@ -80,8 +80,6 @@ private:
     int m_dt;
     //! Valid cells number
     int m_nCells;
-    //! cell size of the grid (m)
-    FLTPT m_cellWth;
     //! maximum soil layers number
     int m_maxSoilLyrs;
     //! soil layers number of each cell

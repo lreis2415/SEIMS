@@ -30,17 +30,8 @@ from pygeoc.utils import StringClass
 from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
 from utility import status_output, read_data_items_from_txt
 from utility import mask_rasterio
+from preprocess.text import ParamAbstractionTypes
 
-
-class SoilPropertyType:
-    """Soil property type"""
-    CONCEPTUAL = "CONCEPTUAL"
-    PHYSICAL = "PHYSICAL"
-
-    @staticmethod
-    def as_list():
-        """Return all soil property types"""
-        return [SoilPropertyType.CONCEPTUAL, SoilPropertyType.PHYSICAL]
 
 class SoilPropertyBase(object):
     SEQN = "SEQN"
@@ -57,7 +48,8 @@ class SoilPropertyBase(object):
         self.SEQN = seq_num
         self.SNAM = seq_name
         self.SOILLAYERS = DEFAULT_NODATA
-        self.SOL_Z = list()  # SOILDEPTH
+        self.SOILDEPTH = list()
+        self.SOL_Z = list()
         self.SOILTHICK = list()
 
     @staticmethod
@@ -192,7 +184,6 @@ class SoilUtilClass(object):
                                        for k, v in cur_dict.items())
         return recls_dict
 
-
     @staticmethod
     def get_soil_texture_usda(clay, silt, sand):
         """The soil texture code system is from WetSpa Extension and SWAT model which is
@@ -323,15 +314,17 @@ class SoilUtilClass(object):
     def parameters_extraction(cfg, soil_property_class):
         """Soil spatial parameters extraction."""
         f = cfg.logs.extract_soil
-        status_output('Calculating initial soil physical and chemical parameters...', 30, f)
 
         soil_property_file = None
-        if soil_property_class.soil_param_type() == SoilPropertyType.CONCEPTUAL:
+        if soil_property_class.soil_param_type() == ParamAbstractionTypes.CONCEPTUAL:
+            status_output('Calculating initial soil conceptual parameters...', 30, f)
             soil_property_file = cfg.soil_property_conceptual
-        elif soil_property_class.soil_param_type() == SoilPropertyType.PHYSICAL:
+        elif soil_property_class.soil_param_type() == ParamAbstractionTypes.PHYSICAL:
+            status_output('Calculating initial soil physical and chemical parameters...', 30, f)
             soil_property_file = cfg.soil_property_physical
         else:
-            raise ValueError('Unknown soil property type: %s. Known types: %s' % (soil_property_class.soil_param_type(),SoilPropertyType.as_list()))
+            raise ValueError('Unknown soil property type: %s. Known types: %s' %
+                             (soil_property_class.soil_param_type(), ParamAbstractionTypes.as_list()))
         recls_dict = SoilUtilClass.lookup_soil_parameters(soil_property_class, soil_property_file)
 
         status_output('Decomposing to MongoDB and exclude nodata values to save space...', 50, f)
@@ -341,8 +334,14 @@ class SoilUtilClass(object):
                              DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                      maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasssoil_cfg,
+                      include_nodata=False, mode='MASKDEC',
+                      abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+
+        mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasssoil_cfg,
-                      include_nodata=False, mode='MASKDEC', opts='PARAMTYPE='+soil_property_class.soil_param_type())
+                      include_nodata=False, mode='MASKDEC',
+                      abstraction_type=ParamAbstractionTypes.PHYSICAL)
 
         # other soil related spatial parameters
         status_output('Calculating initial soil moisture...', 90, f)

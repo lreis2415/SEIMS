@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.1");
     mdi.SetWebsite("");
     mdi.SetHelpfile("ChannelRoutingMuskingum.chm");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_SingleInt);

@@ -139,11 +139,13 @@ void ChannelRoutingMuskingum::Get1DData(const char *key, int *nRows, FLTPT **dat
 int ChannelRoutingMuskingum::Execute() {
     InitialOutputs();
     CheckInputData();
+#ifdef PRINT_DEBUG
     printf("\n[ChannelRoutingMuskingum] m_Q_SBOF: ");
     for (int i = 0; i < m_nReaches; i++) {
         printf("%f, ", m_Q_SBOF[i]);
     }
     printf("\n");
+#endif
 
     for (auto it = m_routeLayers.begin(); it != m_routeLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
@@ -161,13 +163,17 @@ int ChannelRoutingMuskingum::Execute() {
             m_Q_out[reachIndex] += m_Q_SBOF[reachIndex];
         }
 
+#ifdef PRINT_DEBUG
         printf("\n[ChannelRoutingMuskingum]%d m_Q_out:",it->first);
         for (int i = 0; i < m_nReaches; i++) {
             printf("%f, ", m_Q_out[i]);
         }
         fflush(stdout);
+#endif
     }
+#ifdef PRINT_DEBUG
     printf("\n");
+#endif
 
     return 0;
 }
@@ -177,7 +183,6 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
 
     FLTPT tstep = m_dt / 60.0 / 60.0 / 24.0;
     FLTPT dt = Min(K, tstep);
-    //FLTPT Q_stored= m_Q_in[i];
 
     for (auto upReachID = m_reachUpStream.at(i).begin(); upReachID != m_reachUpStream.at(i).end(); ++upReachID) {
         m_Q_in[i] += m_Q_out[*upReachID];
@@ -190,8 +195,6 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
         FLTPT c1 = (dt - 2 * K * X) / denom;
         FLTPT c2 = (dt + 2 * K * X) / denom;
         FLTPT c3 = (-dt + 2 * K * (1 - X)) / denom;
-        //FLTPT c4 = dt / denom;
-
 
         FLTPT diff = m_Q_in[i] - m_Q_inLast[i];
         FLTPT qIn = m_Q_inLast[i] + (t / tstep) * diff;
@@ -201,7 +204,6 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
 
         m_Q_outLast[i] = m_Q_out[i];
     }
-
-    //m_Q_in[i] = Q_stored;
+    
     
 }

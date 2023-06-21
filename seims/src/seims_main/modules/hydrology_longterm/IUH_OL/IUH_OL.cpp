@@ -3,7 +3,7 @@
 #include "text.h"
 
 IUH_OL::IUH_OL() :
-    m_TimeStep(-1), m_nCells(-1), m_CellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_TimeStep(-1), m_nCells(-1), m_cellArea(nullptr),
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
     m_iuhCell(nullptr), m_iuhCols(-1), m_surfRf(nullptr),
     m_cellFlow(nullptr), m_cellFlowCols(-1), m_Q_SBOF(nullptr), m_OL_Flow(nullptr) {
@@ -20,7 +20,7 @@ bool IUH_OL::CheckInputData() {
     CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
     CHECK_NONNEGATIVE(M_IUH_OL[0], m_inputSubbsnID);
     CHECK_POSITIVE(M_IUH_OL[0], m_nCells);
-    CHECK_POSITIVE(M_IUH_OL[0], m_CellWth);
+    CHECK_POINTER(M_IUH_OL[0], m_cellArea);
     CHECK_NONNEGATIVE(M_IUH_OL[0], m_TimeStep);
     CHECK_POINTER(M_IUH_OL[0], m_subbsnID);
     CHECK_POINTER(M_IUH_OL[0], m_iuhCell);
@@ -30,8 +30,7 @@ bool IUH_OL::CheckInputData() {
 
 void IUH_OL::InitialOutputs() {
     CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
-
-    if (m_cellArea <= 0.) m_cellArea = m_CellWth * m_CellWth;
+    
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbsns + 1, m_Q_SBOF, 0.);
         for (int i = 0; i < m_nCells; i++) {
@@ -66,7 +65,7 @@ int IUH_OL::Execute() {
         int max = CVT_INT(m_iuhCell[i][1]);
         int col = 2;
         for (int k = min; k <= max; k++) {
-            m_cellFlow[i][k] += m_surfRf[i] * 0.001 * m_iuhCell[i][col] * m_cellArea / m_TimeStep;
+            m_cellFlow[i][k] += m_surfRf[i] * 0.001 * m_iuhCell[i][col] * m_cellArea[i];
             col++;
         }
     }
@@ -81,7 +80,7 @@ int IUH_OL::Execute() {
         for (int i = 0; i < m_nCells; i++) {
             tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
             m_OL_Flow[i] = m_cellFlow[i][0];
-            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000. / m_cellArea; // m3/s -> mm
+            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000. / m_cellArea[i]; // m3/s -> mm
         }
 #pragma omp critical
         {
@@ -100,14 +99,6 @@ int IUH_OL::Execute() {
     return 0;
 }
 
-void IUH_OL::SetValue(const char* key, const FLTPT value) {
-    string sk(key);
-    if (StringMatch(sk, Tag_CellWidth[0])) m_CellWth = value;
-    else {
-        throw ModelException(M_IUH_OL[0], "SetValue",
-                             "Parameter " + sk + " does not exist.");
-    }
-}
 
 void IUH_OL::SetValue(const char* key, const int value) {
     string sk(key);
@@ -124,8 +115,11 @@ void IUH_OL::SetValue(const char* key, const int value) {
 void IUH_OL::Set1DData(const char* key, const int n, FLTPT* data) {
     CheckInputSize(M_IUH_OL[0], key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_SURU[0])) m_surfRf = data;
-    else {
+    if (StringMatch(sk, VAR_SURU[0])) {
+        m_surfRf = data;
+    } else if (StringMatch(sk, VAR_CELL_AREA[0])) {
+        m_cellArea = data;
+    } else {
         throw ModelException(M_IUH_OL[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }

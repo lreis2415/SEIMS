@@ -158,7 +158,8 @@ public:
                     STRING_MAP opts = STRING_MAP());
 
     /*! Get GridFS file names */
-    void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL);
+    void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL,
+                    STRING_MAP opts = STRING_MAP());
 
     /*! Get metadata of a given GridFS file name, remember to destory bson_t after use */
     bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,

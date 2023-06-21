@@ -16,8 +16,7 @@
 class ChannelRoutingDump : public SimulationModule {
 private:
     bool m_isInitialized;
-
-    int m_nCells;
+    
     int m_nReaches;  ///< reach number (= subbasin number)
     
     int m_inputSubbasinId;  ///< current subbasin ID, 0 for the entire watershed

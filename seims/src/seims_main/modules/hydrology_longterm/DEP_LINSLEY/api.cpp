@@ -20,6 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(M_DEP_LINSLEY[0]);
     mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_DEPREIN[0], UNIT_NON_DIM, VAR_DEPREIN[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_DEPRESSION[0], UNIT_DEPTH_MM, VAR_DEPRESSION[1], Source_ParameterDB, DT_Raster1D);

@@ -32,11 +32,11 @@ public:
     //! Destructor
     ~GWaterReservoir(void);
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char *key, int n, FLTPT *data) OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char *key, FLTPT value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char *key, int *n, FLTPT **data) OVERRIDE;
 
     void SetReaches(clsReaches *reaches) OVERRIDE;
 
@@ -69,7 +69,7 @@ private:
 private:
 
     /// time step(seconds)
-    float m_dt;
+    FLTPT m_dt;
 
     /// count of valid cells
     int m_nCells;
@@ -77,39 +77,39 @@ private:
     /// count of reaches
     int m_nReaches;
 
-    /// cell size
-    float m_CellWidth;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
 
     /// subbasin ID, 0 for entire watershed
     int m_subbasinID;
 
     /// subbasin grid
-    float *m_subbasin;
+    FLTPT *m_subbasin;
 
     /// percolation from soil layer (mm)
-    float *m_recharge;
+    FLTPT *m_recharge;
     /// the amount of water recharged to the deep groundwater reservoir
-    float m_deepCoefficient;
+    FLTPT m_deepCoefficient;
 
     /// baseflow recession coefficient
-    float m_recessionCoefficient;
+    FLTPT m_recessionCoefficient;
 
     /// baseflow recession exponent
-    float m_recessionExponent;
+    FLTPT m_recessionExponent;
 
     /// ground water storage (mm)
-    float *m_storage;
+    FLTPT *m_storage;
     /// Maximum groundwater storage
-    float m_storageMax;
+    FLTPT m_storageMax;
 
     /// outflow at basin outlet
-    float m_qOutlet;
+    FLTPT m_qOutlet;
 
-    float *m_qg;
+    FLTPT *m_qg;
 
     /// temporary variables
-    float *m_percSubbasin;
+    FLTPT *m_percSubbasin;
     int *m_nCellsSubbasin;
-    float m_initStorage;
+    FLTPT m_initStorage;
 };
 #endif /* SEIMS_MODULE_GW_RSVR_H */

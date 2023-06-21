@@ -362,6 +362,9 @@ bool MongoGridFs::RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs /* = 
     mongoc_gridfs_file_t* gfile = NULL;
     filelist = mongoc_gridfs_find_with_opts(gfs, &filter, NULL);
     while ((gfile = mongoc_gridfs_file_list_next(filelist))) {
+        const bson_t* metadata = mongoc_gridfs_file_get_metadata(gfile);
+        
+
         const bson_value_t* tmpid = mongoc_gridfs_file_get_id(gfile);
         char charid[25];
         bson_oid_to_string(&tmpid->value.v_oid, charid);
@@ -379,14 +382,17 @@ bool MongoGridFs::RemoveFile(string const& gfilename, mongoc_gridfs_t* gfs /* = 
     return true;
 }
 
-void MongoGridFs::GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs /* = NULL */) {
+void MongoGridFs::GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs /* = NULL */, STRING_MAP opts) {
     if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
     }
+
     //vector<string> filesExisted;
     bson_t* query = bson_new();
     bson_init(query);
+    AppendStringOptionsToBson(query, opts, "metadata.");
+
     mongoc_gridfs_file_list_t* glist = mongoc_gridfs_find_with_opts(gfs, query, NULL);
     mongoc_gridfs_file_t* file;
     while ((file = mongoc_gridfs_file_list_next(glist))) {

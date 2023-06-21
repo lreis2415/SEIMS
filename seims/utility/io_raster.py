@@ -10,11 +10,12 @@ from six import string_types
 
 from io import open
 from pygeoc.utils import UtilClass, FileClass, is_string
+from preprocess.text import ParamAbstractionTypes
 
 
 def mask_rasterio(bin_dir, inoutcfg,
                   mongoargs=None, maskfile=None, cfgfile=None,
-                  include_nodata=True, mode='MASK', opts=None):
+                  include_nodata=True, abstraction_type=None, mode='MASK', opts=None):
     """Call mask_rasterio program (cpp version) to perform input/output of raster
 
     TODO: this function is very preliminary, need to be improved and tested!
@@ -34,6 +35,20 @@ def mask_rasterio(bin_dir, inoutcfg,
         elif usemongo:
             commands += ['-mask', 'GFS', maskfile]
     commands += ['-include_nodata', '1' if include_nodata else '0']
+
+    if opts is None:
+        opts = ParamAbstractionTypes.get_field_key() + '='
+    else:
+        opts += ',' + ParamAbstractionTypes.get_field_key() + '='
+
+    if abstraction_type is None:
+        opts += ParamAbstractionTypes.PHYSICAL
+    elif abstraction_type not in ParamAbstractionTypes.as_list():
+        raise ValueError('Invalid abstraction type: %s' % abstraction_type)
+    else:
+        opts += abstraction_type
+
+    commands += ['-opts', opts]
 
     parsed_inout = list()
     for inout in inoutcfg:
@@ -61,6 +76,7 @@ def mask_rasterio(bin_dir, inoutcfg,
         if reclsidx > 0:
             cur_dict['-reclass'] = inout[reclsidx]
         parsed_inout.append(cur_dict)
+
     if cfgfile is not None:
         with open(cfgfile, 'w', encoding='utf-8') as f:
             for dic in parsed_inout:
@@ -71,8 +87,6 @@ def mask_rasterio(bin_dir, inoutcfg,
                                                  dic['-outdatatype'] if '-outdatatype' in dic else '',
                                                  dic['-reclass'] if '-reclass' in dic else ''))
         commands += ['-configfile', cfgfile]
-        if opts is not None:
-            commands += ['-opts', opts]
         UtilClass.run_command(commands)
     else:
         for curargs in parsed_inout:

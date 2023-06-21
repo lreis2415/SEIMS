@@ -285,7 +285,7 @@ protected:
 
 /*!
  * Macros for CheckInputData function
- * BE REMEMBER OF SEMICOLON! --?
+ * BE REMEMBER OF SEMICOLON!
  */
 //! CHECK_DATA is used for the unforeseen situation
 #define CHECK_DATA(moduleID, expression, desc) if ((expression)) \

@@ -19,6 +19,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("2.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_TSD_DT[0], UNIT_NON_DIM, VAR_TSD_DT[1], File_Config, DT_SingleInt);
     // from parameter database, e.g., Weight_P, Weight_PET, Weight_T.

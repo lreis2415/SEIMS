@@ -29,7 +29,7 @@ public:
      * \param[in] gfs MongoGridFs
      * \param[in] filename file name
      */
-    ItpWeightData(MongoGridFs* gfs, const string& filename);
+    ItpWeightData(MongoGridFs* gfs, const string& filename, STRING_MAP& opts);
 
     //! Destructor
     ~ItpWeightData();
@@ -65,7 +65,7 @@ private:
      * \param[in] gfs MongoGridFs
      * \param[in] filename file name
      */
-    bool ReadFromMongoDB(MongoGridFs* gfs, const string& filename);
+    bool ReadFromMongoDB(MongoGridFs* gfs, const string& filename, STRING_MAP& opts);
 
 private:
     //! file name

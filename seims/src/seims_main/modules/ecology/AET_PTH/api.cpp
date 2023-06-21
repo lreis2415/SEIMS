@@ -20,6 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
     /// set parameters from database
     mdi.AddParameter(VAR_ESCO[0], UNIT_NON_DIM, VAR_ESCO[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);

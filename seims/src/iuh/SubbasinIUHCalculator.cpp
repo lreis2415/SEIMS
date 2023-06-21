@@ -55,6 +55,7 @@ int SubbasinIUHCalculator::calCell(const int id) {
     BSON_APPEND_UTF8(&p, "DESCRIPTION", type);
     BSON_APPEND_INT32(&p, "NUMBER", nCells);
     BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
+    BSON_APPEND_UTF8(&p, HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
 
     /// If the file is already existed in MongoDB, if existed, then delete it!
     gfs->RemoveFile(remoteFilename);

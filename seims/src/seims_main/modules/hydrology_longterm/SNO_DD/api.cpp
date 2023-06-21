@@ -22,6 +22,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SNO_DD.chm");
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(VAR_C_SNOW[0], UNIT_TEMP_FACTOR, VAR_C_SNOW[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_C_RAIN[0], UNIT_TEMP_FACTOR, VAR_C_RAIN[1], Source_ParameterDB, DT_Single);

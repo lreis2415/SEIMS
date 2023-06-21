@@ -3,7 +3,7 @@
 
 
 OverlandRoutingDump::OverlandRoutingDump():  
-    m_nCells(-1), m_timeStep(-1), m_cellWidth(-1), m_cellArea(-1), m_isInitialized(false),
+    m_nCells(-1), m_timeStep(-1), m_cellArea(nullptr), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     m_Q_SBOF(nullptr), m_Q_SB_ZEROS(nullptr){
 }
@@ -18,8 +18,7 @@ void OverlandRoutingDump::InitialOutputs() {
     if(m_isInitialized) return;
     Initialize1DArray(m_nSubbasins + 1, m_Q_SB_ZEROS, 0.);
     Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.);
-
-    if (m_cellArea <= 0.) m_cellArea = m_cellWidth * m_cellWidth;
+    
     m_isInitialized = true;
 }
 
@@ -42,14 +41,6 @@ void OverlandRoutingDump::SetValue(const char* key, int value) {
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
-void OverlandRoutingDump::SetValue(const char* key, FLTPT value) {
-     string sk(key);
-     if (StringMatch(sk, Tag_CellWidth[0])) m_cellWidth = value;
-     else {
-         throw ModelException(M_OLR_DUMP[0], "SetValue",
-                              "Integer Parameter " + sk + " does not exist.");
-     }
-}
 
 void OverlandRoutingDump::Set1DData(const char* key, int n, int* data) {
     string sk(key);
@@ -64,11 +55,13 @@ void OverlandRoutingDump::Set1DData(const char* key, int n, int* data) {
 void OverlandRoutingDump::Set1DData(const char* key, const int n, FLTPT* data){
     string sk(key);
     if (StringMatch(sk, VAR_SURU[0])) m_surfaceRunoff = data;
+    else if (StringMatch(sk, VAR_CELL_AREA[0])) { m_cellArea = data; }
     else {
         throw ModelException(M_OLR_DUMP[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
+
 void OverlandRoutingDump::Get1DData(const char *key, int *nRows, FLTPT **data) {
     string s(key);
     if (StringMatch(s, VAR_SBOF[0])) {*data = m_Q_SBOF;} 
@@ -92,9 +85,9 @@ void OverlandRoutingDump::SetSubbasins(clsSubbasins* subbsns) {
 int OverlandRoutingDump::Execute() {
     InitialOutputs();
     CheckInputData();
-    for (int n = 0; n <= m_nSubbasins; n++) {
+     for (int n = 0; n <= m_nSubbasins; n++) {
         m_Q_SBOF[n] = 0;
-    }
+     }
 //#pragma omp parallel
     {
         FLTPT* tmp_qsSub = new FLTPT[m_nSubbasins + 1];
@@ -103,14 +96,13 @@ int OverlandRoutingDump::Execute() {
         }
 //#pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            tmp_qsSub[CVT_INT(m_cellsMappingToSubbasinId[i])] += m_surfaceRunoff[i];
+            tmp_qsSub[CVT_INT(m_cellsMappingToSubbasinId[i])] += m_surfaceRunoff[i] * m_cellArea[i];
             m_surfaceRunoff[i] = 0.0;
-        }
+        } 
 //#pragma omp critical
         {
             for (int n = 1; n <= m_nSubbasins; n++) {
-                m_Q_SBOF[n] = tmp_qsSub[n];
-                m_Q_SBOF[n] = m_Q_SBOF[n] * 0.001 * m_cellArea / m_timeStep;
+                m_Q_SBOF[n] = tmp_qsSub[n] * 0.001 / m_timeStep;
             }
         }
         delete[] tmp_qsSub;
@@ -123,9 +115,7 @@ int OverlandRoutingDump::Execute() {
     }
 
 #ifdef PRINT_DEBUG
-    printf("\n[OverlandRoutingDump] m_Q_SBOF[0]=%f->%f\n",
-        m_Q_SBOF[0] / 0.001 / m_cellArea * m_timeStep,
-        m_Q_SBOF[0]);
+    printf("\n[OverlandRoutingDump] m_Q_SBOF[0]=%f\n", m_Q_SBOF[0]);
     fflush(stdout);
 #endif
     return 0;

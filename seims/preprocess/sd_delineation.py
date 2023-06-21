@@ -31,7 +31,8 @@ from pygeoc.vector import VectorUtilClass
 from utility import DEFAULT_NODATA, mask_rasterio
 from preprocess.sd_connected_field import connected_field_partition_wu2018
 from preprocess.sd_hillslope import DelineateHillslope
-from preprocess.text import FieldNames
+from preprocess.sd_hru import HruConstructor
+from preprocess.text import FieldNames,SpatialNamesUtils
 from preprocess.config import PreprocessConfig
 
 
@@ -222,6 +223,14 @@ class SpatialDelineation(object):
         SpatialDelineation.generate_lat_raster(cfg)
 
     @staticmethod
+    def delineate_HRU(cfg):  # type: (PreprocessConfig) -> None
+        """Delineate HRU"""
+        hru = HruConstructor()
+        hru.add_property(SpatialNamesUtils._SOILTYPEMFILE, cfg.spatials.soil_type)
+        hru.add_property(SpatialNamesUtils._LANDUSEMFILE, cfg.spatials.landuse)
+        hru.delineate(cfg)
+
+    @staticmethod
     def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Subbasin delineation workflow"""
         # Originally delineated by TauDEM and DTA algorithms based on TauDEM framework
@@ -232,6 +241,8 @@ class SpatialDelineation(object):
         SpatialDelineation.calculate_terrain_related_params(cfg)
         # Delineate spatial units
         SpatialDelineation.delineate_spatial_units(cfg)
+        # Delineate HRU
+        SpatialDelineation.delineate_HRU(cfg)
 
 
 def main():

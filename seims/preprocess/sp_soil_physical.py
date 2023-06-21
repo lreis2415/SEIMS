@@ -18,7 +18,8 @@ import math
 import os
 import sys
 
-from preprocess.sp_soil_base import SoilPropertyBase, SoilUtilClass, SoilPropertyType
+from preprocess.sp_soil_base import SoilPropertyBase, SoilUtilClass
+from preprocess.text import ParamAbstractionTypes
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -115,7 +116,6 @@ class SoilPropertyPhysical(SoilPropertyBase):
         self.SOL_WPMM = list()
         self.SOL_SUMWP = 0.
         self.SOL_FC = list()  # FIELDCAP, Field capacity
-        self.AWC = list()
         self.SOL_AWC = list()
         self.SOL_SUMAWC = 0.
         self.SOL_POROSITY = list()  # POROSITY
@@ -143,7 +143,7 @@ class SoilPropertyPhysical(SoilPropertyBase):
 
     @staticmethod
     def soil_param_type():
-        return SoilPropertyType.PHYSICAL
+        return ParamAbstractionTypes.PHYSICAL
 
     def _add_septic_layer(self):
         # set a soil layer at dep_new and adjust all lower layers
@@ -182,15 +182,15 @@ class SoilPropertyPhysical(SoilPropertyBase):
                 self.SOL_K.insert(0, self.SOL_K[0])
             if self.SOL_WP:
                 self.SOL_WP.insert(0, self.SOL_WP[0])
-            if self.AWC:
-                self.AWC.insert(0, self.AWC[0])
+            if self.SOL_AWC:
+                self.SOL_AWC.insert(0, self.SOL_AWC[0])
                 for i in range(self.SOILLAYERS):
-                    if self.AWC[i] <= 0.:
-                        self.AWC[i] = 0.005
-                    elif self.AWC[i] <= 0.01:
-                        self.AWC[i] = 0.01
-                    elif self.AWC[i] >= 0.8:
-                        self.AWC[i] = 0.8
+                    if self.SOL_AWC[i] <= 0.:
+                        self.SOL_AWC[i] = 0.005
+                    elif self.SOL_AWC[i] <= 0.01:
+                        self.SOL_AWC[i] = 0.01
+                    elif self.SOL_AWC[i] >= 0.8:
+                        self.SOL_AWC[i] = 0.8
             if self.SOL_POROSITY:
                 self.SOL_POROSITY.insert(0, self.SOL_POROSITY[0])
             if self.USLE_K:
@@ -322,16 +322,16 @@ class SoilPropertyPhysical(SoilPropertyBase):
                         self.SOL_FC[i] = tmp_fc_bdeffect[i]
             elif not self.SOL_FC:
                 self.SOL_FC = tmp_fc_bdeffect[:]
-        if self.AWC and len(self.AWC) != self.SOILLAYERS:
+        if self.SOL_AWC and len(self.SOL_AWC) != self.SOILLAYERS:
             raise IndexError("Available water capacity must have the size equal to"
                              " soil layers number!")
-        elif not self.AWC:
+        elif not self.SOL_AWC:
             for i in range(self.SOILLAYERS):
-                self.AWC.append(self.SOL_FC[i] - self.SOL_WP[i])
-        elif DEFAULT_NODATA in self.AWC:
+                self.SOL_AWC.append(self.SOL_FC[i] - self.SOL_WP[i])
+        elif DEFAULT_NODATA in self.SOL_AWC:
             for i in range(self.SOILLAYERS):
-                if self.AWC[i] == DEFAULT_NODATA:
-                    self.AWC[i] = self.SOL_FC[i] - self.SOL_WP[i]
+                if self.SOL_AWC[i] == DEFAULT_NODATA:
+                    self.SOL_AWC[i] = self.SOL_FC[i] - self.SOL_WP[i]
 
         if self.POREINDEX and len(self.POREINDEX) != self.SOILLAYERS:
             raise IndexError("Pore disconnectedness index must have a size "
@@ -380,7 +380,7 @@ class SoilPropertyPhysical(SoilPropertyBase):
         # calculate field capcity (sol_up)
         if not self.SOL_FC:
             for i in range(self.SOILLAYERS):
-                self.SOL_FC.append(self.SOL_WP[i] + self.AWC[i])
+                self.SOL_FC.append(self.SOL_WP[i] + self.SOL_AWC[i])
         # calculate porosity
         if not self.SOL_POROSITY:
             for i in range(self.SOILLAYERS):
@@ -390,7 +390,7 @@ class SoilPropertyPhysical(SoilPropertyBase):
         for i in range(self.SOILLAYERS):
             if self.SOL_FC[i] >= self.SOL_POROSITY[i]:
                 self.SOL_FC[i] = self.SOL_POROSITY[i] - 0.05
-                self.SOL_WP[i] = self.SOL_FC[i] - self.AWC[i]
+                self.SOL_WP[i] = self.SOL_FC[i] - self.SOL_AWC[i]
                 if self.SOL_WP[i] <= 0.:
                     self.SOL_FC[i] = self.SOL_POROSITY[i] * 0.75
                     self.SOL_WP[i] = self.SOL_POROSITY[i] * 0.25
@@ -424,12 +424,17 @@ class SoilPropertyPhysical(SoilPropertyBase):
         self.SOL_SUMUL = 0.
         self.SOL_SUMAWC = 0.
         self.SOL_SUMWP = 0.
+        # Note: In the original implementation, it's confusing that AWC and SOL_AWC are different,
+        # and are calculated in different ways. Here we only keep SOL_AWC.
+        # May need further check. -- wyj 2023.7.5
         for i in range(self.SOILLAYERS):
             pormm = self.SOL_POROSITY[i] * self.SOILTHICK[i]
             sumpor += pormm
             self.SOL_UL.append((self.SOL_POROSITY[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
             self.SOL_SUMUL += self.SOL_UL[i]
-            self.SOL_AWC.append((self.SOL_FC[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
+            # if SOL_AWC is not provided, calculate it from SOL_FC and SOL_WP
+            if not self.SOL_AWC:
+                self.SOL_AWC.append((self.SOL_FC[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
             self.SOL_SUMAWC += self.SOL_AWC[i]
             self.SOL_HK.append((self.SOL_UL[i] - self.SOL_AWC[i]) / self.SOL_K[i])
             if self.SOL_HK[i] < 1.:

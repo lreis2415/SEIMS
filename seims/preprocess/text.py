@@ -261,6 +261,7 @@ class SpatialNamesUtils(object):
     _STREAMLINKOUT = 'STREAM_LINK'
     _HILLSLOPEOUT = 'HILLSLOPE'
     # masked and output to mongoDB file names
+    _CELLAREA = 'CELLAREA'
     _SLOPEM = 'SLOPE'
     _FILLEDDEMM = 'DEM'
     _ACCM = 'ACC'
@@ -299,6 +300,13 @@ class SpatialNamesUtils(object):
     # potential runoff coefficient
     _RUNOFF_COEFFILE = 'RUNOFF_CO'
 
+    # Conceptual Files
+    # Hydrologic Response Unit
+    _HRU_DIST = 'HRU_DISTRIBUTION'
+    _HRU_ID = 'HRU_ID'
+    _HRU_AREA = 'HRU_AREA'
+    _HRU_SUBBASIN_ID = 'HRU_SUBBASIN_ID'
+
     def __init__(self, spa_dir):
         """assign spatial data file paths"""
         self.mask = spa_dir + SEP + self._MASK_TO_EXT + '.tif'
@@ -330,7 +338,9 @@ class SpatialNamesUtils(object):
         # self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
         self.mgt_field = list()
         self.soil_texture = spa_dir + SEP + self._SOILTEXTURE + '.tif'
+        self.soil_texture_conceptual = spa_dir + SEP + self._SOILTEXTURE + '_CONCEPTUAL.tif'
         self.hydro_group = spa_dir + SEP + self._HYDROGROUP + '.tif'
+        self.hydro_group_conceptual = spa_dir + SEP + self._HYDROGROUP + '_CONCEPTUAL.tif'
         self.usle_k = spa_dir + SEP + self._USLEK + '.tif'
         self.init_somo = spa_dir + SEP + self._INITSOILMOIST + '.tif'
         self.depression = spa_dir + SEP + self._DEPRESSIONFILE + '.tif'
@@ -342,6 +352,11 @@ class SpatialNamesUtils(object):
         self.delta_s = spa_dir + SEP + self._DELTA_SFILE + '.tif'
         self.runoff_coef = spa_dir + SEP + self._RUNOFF_COEFFILE + '.tif'
 
+        self.hru_dist = spa_dir + SEP + self._HRU_DIST + '.tif'  # [1,1,1,1,.....,2,2,2,2....]
+        self.hru_id = spa_dir + SEP + self._HRU_ID + '.tif'  # [1,2,3,4,5,6,...]
+        self.hru_area = spa_dir + SEP + self._HRU_AREA + '.tif'  # [900, 4500,...]
+        self.cell_area = spa_dir + SEP + self._CELLAREA + '.tif'  # [900, 900,...]
+        self.hru_subbasin_id = spa_dir + SEP + self._HRU_SUBBASIN_ID + '.tif'  # [1,1,2,2,2,3,...]
 
 class VectorNameUtils(object):
     """predefined vector(shp and geojson) file names"""
@@ -422,6 +437,7 @@ class DBTableNames(object):
     main_filein = 'FILE_IN'
     main_fileout = 'FILE_OUT'
     main_scenario = 'BMPDATABASE'
+    main_subbasin_abstraction = 'SUBBASIN_ABSTRACTION'
     # hydro-climate database
     data_values = 'DATA_VALUES'
     annual_stats = 'ANNUAL_STATS'
@@ -430,3 +446,18 @@ class DBTableNames(object):
     sites = 'SITES'
     # BMPs scenario database
     scenarios = 'BMP_SCENARIOS'
+
+
+class ParamAbstractionTypes(object):
+    """Predefined parameter abstraction types."""
+
+    CONCEPTUAL = 'CONCEPTUAL'
+    PHYSICAL = 'PHYSICAL'
+
+    @staticmethod
+    def get_field_key():
+        return 'PARAM_ABSTRACTION_TYPE'
+    @staticmethod
+    def as_list():
+        """Return all soil property types"""
+        return [ParamAbstractionTypes.CONCEPTUAL, ParamAbstractionTypes.PHYSICAL]

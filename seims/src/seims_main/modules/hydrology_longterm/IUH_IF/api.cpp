@@ -22,10 +22,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetName(M_IUH_IF[0]);
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
+    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_Single);
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
-    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CELL_AREA[0], UNIT_AREA_M2, VAR_CELL_AREA[1], Source_ParameterDB, DT_Raster1D);
 
     mdi.AddParameter(VAR_OL_IUH[0], UNIT_NON_DIM, VAR_OL_IUH[1], Source_ParameterDB, DT_Array2D);
 

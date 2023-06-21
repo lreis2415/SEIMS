@@ -63,11 +63,14 @@ clsSubbasins::clsSubbasins(map<string, IntRaster*>& rs_int_map,
     // read subbasin data
     int n_cells = -1;
     int* subbasin_data = nullptr;
-    FLTPT cell_width = NODATA_VALUE;
+    FLTPT* cell_area = nullptr;
 
     std::ostringstream oss;
     oss << prefix_id << "_" << VAR_SUBBSN[0];
     rs_int_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &subbasin_data);
+    oss.str("");
+    oss << prefix_id << "_" << VAR_CELL_AREA[0];
+    rs_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &cell_area);
 
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
     map<int, vector<int> > cell_list_map;
@@ -90,12 +93,15 @@ clsSubbasins::clsSubbasins(map<string, IntRaster*>& rs_int_map,
         int sub_id = it->first;
         subbasin_ids_.emplace_back(sub_id);
         Subbasin* new_sub = new Subbasin(sub_id);
+        FLTPT subbasin_area = 0;
         int n_cells_tmp = CVT_INT(it->second.size());
         int* tmp = new int[n_cells_tmp];
-        for (int j = 0; j < n_cells_tmp; j++)
+        for (int j = 0; j < n_cells_tmp; j++){
             tmp[j] = it->second.at(j);
+            subbasin_area += tmp[j] * cell_area[j];
+        }
         new_sub->SetCellList(n_cells_tmp, tmp);
-        new_sub->SetArea(cell_width * cell_width * n_cells_tmp);
+        new_sub->SetArea(subbasin_area);
         subbasin_objs_[sub_id] = new_sub;
     }
     vector<int>(subbasin_ids_).swap(subbasin_ids_);
@@ -123,6 +129,9 @@ clsSubbasins* clsSubbasins::Init(map<string, IntRaster*>& rs_int_map,
     vector<string> rs_names;
     oss.str("");
     oss << prefix_id << "_" << VAR_SLOPE[0];
+    rs_names.emplace_back(GetUpper(oss.str()));
+    oss.str("");
+    oss << prefix_id << "_" << VAR_CELL_AREA[0];
     rs_names.emplace_back(GetUpper(oss.str()));
 	//oss.str("");
 	//oss << prefix_id << "_" << VAR_REACH_DEPTH_SPATIAL;

@@ -85,8 +85,9 @@ int SurfaceRunoffDump::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         sum += m_surfaceRunoff[i];
     }
+#ifdef PRINT_DEBUG
     printf("\n[SurfaceRunoffDump] m_surfaceRunoff=%f\n", sum);
     fflush(stdout);
-
+#endif
     return 0;
 }

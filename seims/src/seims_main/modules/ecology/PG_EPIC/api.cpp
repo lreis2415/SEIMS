@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
+    mdi.SetAbstractionTypeToConceptual();
     /// climate parameters
     mdi.AddParameter(VAR_DAYLEN_MIN[0], UNIT_HOUR, VAR_DAYLEN_MIN[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DORMHR[0], UNIT_HOUR, VAR_DORMHR[1], Source_ParameterDB, DT_Raster1D);

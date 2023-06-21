@@ -262,6 +262,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
         // parse the metadata
         TiXmlDocument doc;
         doc.Parse(current_metadata);
+
         ReadParameterSetting(id, doc, moduleSettings[id], moduleParams, moduleParamsInt);
         ReadInformation(id, doc, moduleInformations);
         ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs, moduleInputsInt);

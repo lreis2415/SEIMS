@@ -49,8 +49,7 @@ public:
     IUH_OL();
 
     ~IUH_OL();
-
-    void SetValue(const char* key, FLTPT value) OVERRIDE;
+    
 
     void SetValue(const char* key, int value) OVERRIDE;
 
@@ -75,10 +74,8 @@ private:
     int m_TimeStep;
     /// validate cells number
     int m_nCells;
-    /// cell width of the grid (m)
-    FLTPT m_CellWth;
-    /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
-    FLTPT m_cellArea;
+    /// cell area of the unit (m^2)
+    FLTPT* m_cellArea;
     /// the total number of subbasins
     int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed

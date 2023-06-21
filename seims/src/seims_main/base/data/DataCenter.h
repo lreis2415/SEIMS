@@ -15,6 +15,8 @@
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
 
+#include <unordered_set>
+
 #include "db_mongoc.h"
 
 #include "seims.h"
@@ -93,7 +95,8 @@ public:
      * \param[out] stations Number of stations
      * \param[out] data returned data
      */
-    virtual void ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data) = 0;
+    virtual void ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Read 1D array data
      * \param[in] remote_filename Data file name
@@ -140,7 +143,8 @@ public:
      * \param[out] n valid cell number
      * \param[out] data returned data
      */
-    virtual void ReadIuhData(const string& remote_filename, int& n, FLTPT**& data) = 0;
+    virtual void ReadIuhData(const string& remote_filename, int& n, FLTPT**& data,
+        STRING_MAP* opts = nullptr) = 0;
     /*!
      * \brief Make lapse 2D array data and insert to m_2DArrayMap
      * \param[in] remote_filename data file name
@@ -346,6 +350,8 @@ protected:
     Scenario* scenario_;                   ///< BMPs Scenario data
     clsReaches* reaches_;                  ///< Reaches information
     clsSubbasins* subbasins_;              ///< Subbasins information
+    bool is_subbasin_conceptual;
+    bool is_lumped;
     IntRaster* mask_raster_;               ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D
     map<string, IntRaster*> rs_int_map_;   ///< Map of spatial data with integer, both 1D and 2D

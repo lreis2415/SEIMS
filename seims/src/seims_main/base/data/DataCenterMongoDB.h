@@ -49,6 +49,9 @@ public:
      * \brief Get file.out configuration
      */
     bool GetFileOutVector() OVERRIDE;
+
+    bool ReadSubbasinAbstractionInDB();
+
     /*!
      * \brief Read climate site data from HydroClimate database
      */
@@ -83,7 +86,7 @@ public:
      * \param[out] stations \a int& number of stations
      * \param[out] data \a float*&, returned data
      */
-    void ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data) OVERRIDE;
+    void ReadItpWeightData(const string& remote_filename, int& num, int& stations, FLTPT**& data, STRING_MAP* opts = nullptr) OVERRIDE;
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
@@ -117,7 +120,7 @@ public:
      * \param[out] n \a int&, valid cell number
      * \param[out] data \a float*&, returned data
      */
-    void ReadIuhData(const string& remote_filename, int& n, FLTPT**& data) OVERRIDE;
+    void ReadIuhData(const string& remote_filename, int& n, FLTPT**& data, STRING_MAP* opts = nullptr) OVERRIDE;
     /*!
      * \brief Set Raster data for Scenario data
      * \return True if set successfully, otherwise false.
