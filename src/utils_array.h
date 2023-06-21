@@ -50,6 +50,8 @@ bool Initialize1DArray(int row, T*& data, INI_T init_value);
 template <typename T, typename INI_T>
 bool Initialize1DArray(int row, T*& data, INI_T* init_data);
 
+template <typename T, typename INI_T>
+bool Initialize1DArray4ItpWeight(int row, T*& data, INI_T* init_data, int itp_weight_data_length);
 /*!
  * \brief Initialize DT_Array2D data
  *
@@ -329,11 +331,12 @@ public:
 template <typename T, typename INI_T>
 bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
     if (nullptr != data) {
-        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
+        //Should allow an array to re-enter this function then just return? --wyj
+        //cout << "The input 1D array pointer is not nullptr. No initialization performed!" << endl;
         return false;
     }
     if (row <= 0) {
-        cout << "The data length MUST greater than 0!" << endl;
+        cout << "The data length MUST be greater than 0!" << endl;
         data = nullptr;
         return false;
     }
@@ -355,7 +358,7 @@ bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
 template <typename T, typename INI_T>
 bool Initialize1DArray(const int row, T*& data, INI_T* const init_data) {
     if (nullptr != data) {
-        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
+        cout << "The input 1D array pointer is not nullptr. No initialization performed!" << endl;
         return false;
     }
     data = new(nothrow) T[row];
@@ -376,13 +379,10 @@ bool Initialize1DArray(const int row, T*& data, INI_T* const init_data) {
 }
 
 template <typename T, typename INI_T>
-bool Initialize2DArray(const int row, const int col, T**& data, const INI_T init_value) {
-    if (row <= 0 || col <= 0) {
-        cout << "The row and col should not be less or equal to ZERO!" << endl;
-        return false;
-    }
+bool Initialize2DArray(const int row, const int col, T**& data,
+                       const INI_T init_value) {
     if (nullptr != data) {
-        cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
+        cout << "The input 2D array pointer is not nullptr. No initialization performed!" << endl;
         return false;
     }
     data = new(nothrow) T*[row];

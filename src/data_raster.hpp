@@ -96,6 +96,7 @@ CONST_CHARS HEADER_RS_CELLSIZE = "CELLSIZE"; /// Cell size (length)
 CONST_CHARS HEADER_RS_LAYERS = "LAYERS"; /// Layers number
 CONST_CHARS HEADER_RS_CELLSNUM = "CELLSNUM"; /// Number of the first layer's valid cells
 CONST_CHARS HEADER_RS_SRS = "SRS"; /// SRS
+CONST_CHARS HEADER_RS_PARAM_ABSTRACTION_TYPE = "PARAM_ABSTRACTION_TYPE"; /// spatial parameter type, physical or conceptual
 CONST_CHARS HEADER_RS_DATATYPE = "DATATYPE"; /// Data type of original raster
 CONST_CHARS HEADER_RSOUT_DATATYPE = "DATATYPE_OUT"; /// Desired output data type of raster
 CONST_CHARS HEADER_INC_NODATA = "INCLUDE_NODATA"; /// Include nodata ("TRUE") or not ("FALSE"), for DB only
@@ -780,7 +781,7 @@ bool ReadGridFsFile(MongoGridFs* gfs, const string& filename,
     // Get stream data and metadata by file name
     vint length;
     char* buf = nullptr;
-    if (!gfs->GetStreamData(filename, buf, length, nullptr, opts) ||
+    if (!gfs->GetStreamData(filename, buf, length, nullptr, &opts) ||
         nullptr == buf) {
         return false;
     }
@@ -3182,6 +3183,8 @@ bool clsRasterData<T, MASK_T>::OutputSubsetToMongoDB(MongoGridFs* gfs,
         UpdateStrHeader(options_, HEADER_RSOUT_DATATYPE,
                         RasterDataTypeToString(TypeToRasterDataType(typeid(T))));
     }
+
+
     int grows = GetRows();
     string outnameact = filename.empty() ? core_name_ : filename;
     bool out_comb = out_combined;
@@ -3780,7 +3783,7 @@ int clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
         }
     }
 
-    // Set several flags 
+    // Set several flags
     // Flag 1: If masked cells' count equals valid positions' count of the mask layer
     bool match_exactly = matched_count == mask_ncells;
     // Flag2 : Is the valid grid extent same as the mask data, which means the mask
