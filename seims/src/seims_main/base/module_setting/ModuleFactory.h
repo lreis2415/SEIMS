@@ -181,6 +181,9 @@ public:
     //! Match data type, e.g., 1D array
     static dimensionTypes MatchType(const string &strType);
 
+    //! Match time interval type, e.g., TI_Storm
+    static intervalTypes MatchIntervalType(const string& tiType);
+
     //! Match data transfer type, e.g., TF_SingleValue
     static transferTypes MatchTransferType(const string& tfType);
 
