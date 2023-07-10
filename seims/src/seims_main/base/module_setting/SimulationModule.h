@@ -239,28 +239,11 @@ public:
     //! set whether intermediate parameters need to recalculated
     void SetReCalIntermediates(const bool recal) { m_reCalIntermediates = recal; }
 
-	// set 1D Array which contains position data of raster
-	virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
-		throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
-			"Set function of parameter " + string(key) + " is not implemented.");
-	}
-
-	//virtual void SetRasterRows( int rows) {
-	//	throw ModelException("SimulationModule", "SetRasterRows",
-	//		"Set function of parameter rows is not implemented.");
-	//}
-
-	//virtual void SetRasterCols( int cols) {
-	//	throw ModelException("SimulationModule", "SetRasterCols",
-	//		"Set function of parameter cols is not implemented.");
-	//}
-
-	// set 1D Array which stores reach depth data in each cell of raster
-	//virtual void SetReachDepthData(FloatRaster* ch_depth) {
-	//	throw ModelException("SimulationModule", "SetReachDepthData",
-	//		"Set SetReachDepthData function is not implemented.");
-	//}
-
+    // set 1D Array which contains position data of raster
+    virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
+        throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
 
 protected:
     /// date time

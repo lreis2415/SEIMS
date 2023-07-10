@@ -105,15 +105,31 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
     FullTag(tag, indent, strTmp, sb);
 }
 
-void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tf_type, string* sb) {
+void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb) {
     string str_tmp;
 
-    switch (tf_type) {
-        case TF_None: str_tmp = TFType_Whole;
+    switch (tfType) {
+        case TF_None: str_tmp = TFType_None;
             break;
         case TF_SingleValue: str_tmp = TFType_Single;
             break;
         case TF_OneArray1D: str_tmp = TFType_Array1D;
+            break;
+        default: break;
+    }
+
+    FullTag(tag, indent, str_tmp, sb);
+}
+
+void MetadataInfo::TimeIntervalTypeTag(string tag, int indent, intervalTypes tiType, string* sb) {
+    string str_tmp;
+
+    switch (tiType) {
+        case TI_Unlimit: str_tmp = TIType_Unlimit;
+            break;
+        case TI_Daily: str_tmp = TIType_Daily;
+            break;
+        case TI_Storm: str_tmp = TIType_Storm;
             break;
         default: break;
     }
@@ -227,7 +243,8 @@ void MetadataInfo::SetClass(const char* name, const char* description) {
 }
 
 int MetadataInfo::AddInput(const char* name, const char* units, const char* desc, const char* source,
-                           dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
+                           dimensionTypes dimType, transferTypes tfType /* = TF_None */,
+                           intervalTypes tiType /* = TI_Unlimit */) {
     InputVariable param;
     param.Name = name;
     param.Units = units;
@@ -235,26 +252,30 @@ int MetadataInfo::AddInput(const char* name, const char* units, const char* desc
     param.Source = source;
     param.Dimension = dimType;
     param.tfType = tfType;
+    param.timeType = tiType;
 
     m_vInputs.emplace_back(param);
     return CVT_INT(m_vInputs.size());
 }
 
 int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc,
-                            dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
+                            dimensionTypes dimType, transferTypes tfType /* = TF_None */,
+                            intervalTypes tiType /* = TI_Unlimit */) {
     OutputVariable param;
     param.Name = name;
     param.Units = units;
     param.Description = desc;
     param.Dimension = dimType;
     param.tfType = tfType;
+    param.timeType = tiType;
 
     m_vOutputs.emplace_back(param);
     return CVT_INT(m_vOutputs.size());
 }
 
 int MetadataInfo::AddInOutput(const char* name, const char* units, const char* desc,
-                              dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
+                              dimensionTypes dimType, transferTypes tfType /* = TF_None */,
+                              intervalTypes tiType /* = TI_Unlimit */) {
     InOutputVariable param;
     param.Name = name;
     param.Units = units;
@@ -262,22 +283,24 @@ int MetadataInfo::AddInOutput(const char* name, const char* units, const char* d
     param.Source = Source_Module;
     param.Dimension = dimType;
     param.tfType = tfType;
+    param.timeType = tiType;
 
     m_vInOutputs.emplace_back(param);
 
-    AddOutput(name, units, desc, dimType, tfType);
+    AddOutput(name, units, desc, dimType, tfType, tiType);
 
     return CVT_INT(m_vInOutputs.size());
 }
 
 int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source,
-                               dimensionTypes dimType) {
+                               dimensionTypes dimType, intervalTypes tiType /* = TI_Unlimit */) {
     Parameter param;
     param.Name = name;
     param.Units = units;
     param.Description = desc;
     param.Source = source;
     param.Dimension = dimType;
+    param.timeType = tiType;
 
     m_vParameters.emplace_back(param);
     return CVT_INT(m_vParameters.size());

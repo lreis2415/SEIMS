@@ -5,8 +5,8 @@
  * This file contains string constants for the MetadataInfo XML Schema.
  *
  * \author Junzhi Liu, Liangjun Zhu
- * \version 1.2
- * \date May 2017
+ * \version 2.0
+ * \date July 2023
  */
 #ifndef SEIIMS_METADATA_INFO_CONST_H
 #define SEIIMS_METADATA_INFO_CONST_H
@@ -76,6 +76,15 @@ enum dimensionTypes {
     DT_Scenario = 11,        /**< Scenario used by BMPs */
     DT_Reach = 12,           /**< Reach parameters */
     DT_Subbasin = 13         /**< Subbasin instances */
+};
+
+/*!
+ * \enum intervalTypes
+ */
+enum intervalTypes {
+    TI_Unlimit = 0,     /**< Default, used for any time interval simulation */
+    TI_Daily = 1,       /**< used for daily simulation */
+    TI_Storm = 2        /**< used for sub-daily (storm) simulation */
 };
 
 /*!

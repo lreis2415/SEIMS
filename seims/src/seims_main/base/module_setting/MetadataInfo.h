@@ -60,13 +60,15 @@ struct Information {
  * \brief Basic model parameter information
  */
 struct baseParameter {
-    baseParameter() : Name(""), Units(""), Description(""), Dimension(DT_Unknown) {
+    baseParameter() : Name(""), Units(""), Description(""),
+                      Dimension(DT_Unknown), timeType(TI_Unlimit) {
     }
 
     string Name;              ///< Name
     string Units;             ///< Units
     string Description;       ///< Description
     dimensionTypes Dimension; ///< Data dimension type
+    intervalTypes timeType;   ///< Time interval type for simulation
 };
 
 /*!
@@ -173,7 +175,7 @@ public:
     int GetInputCount() { return CVT_INT(m_vInputs.size()); }
 
     int AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType,
-                 transferTypes tfType = TF_None);
+                 transferTypes tfType = TF_None, intervalTypes tiType = TI_Unlimit);
 
     string GetInputName(int index) { return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].Name : ""; }
 
@@ -195,6 +197,10 @@ public:
         return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].tfType : TF_None;
     }
 
+    intervalTypes GetInputTiType(int index) {
+        return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].timeType : TI_Unlimit;
+    }
+
     InputVariable GetInput(int index) {
         return index >= 0 && index < m_vInputs.size() ? m_vInputs[index] : InputVariable();
     }
@@ -204,7 +210,7 @@ public:
     int GetOutputCount() { return CVT_INT(m_vOutputs.size()); }
 
     int AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
-                  transferTypes tfType = TF_None);
+                  transferTypes tfType = TF_None, intervalTypes tiType = TI_Unlimit);
 
     string GetOutputName(int index) { return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].Name : ""; }
 
@@ -224,6 +230,10 @@ public:
         return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].tfType : TF_None;
     }
 
+    intervalTypes GetOutputTiType(int index) {
+        return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].timeType : TI_Unlimit;
+    }
+
     OutputVariable GetOutput(int index) {
         return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index] : OutputVariable();
     }
@@ -233,7 +243,7 @@ public:
     int GetInOutputCount() { return CVT_INT(m_vInOutputs.size()); }
 
     int AddInOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
-                    transferTypes tfType = TF_None);
+                    transferTypes tfType = TF_None, intervalTypes tiType = TI_Unlimit);
 
     string GetInOutputName(int index) {
         return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].Name : "";
@@ -255,6 +265,10 @@ public:
         return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].tfType : TF_None;
     }
 
+    intervalTypes GetInOutputTiType(int index) {
+        return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].timeType : TI_Unlimit;
+    }
+
     InOutputVariable GetInOutput(int index) {
         return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index] : InOutputVariable();
     }
@@ -263,7 +277,8 @@ public:
 
     int GetParameterCount() { return CVT_INT(m_vParameters.size()); }
 
-    int AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType);
+    int AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType,
+                     intervalTypes tiType = TI_Unlimit);
 
     string GetParameterName(int index) {
         return index >= 0 && index < m_vParameters.size() ? m_vParameters[index].Name : "";
@@ -283,6 +298,10 @@ public:
 
     dimensionTypes GetParameterDimension(int index) {
         return index >= 0 && index < m_vParameters.size() ? m_vParameters[index].Dimension : DT_Unknown;
+    }
+
+    intervalTypes GetParameterTiType(int index) {
+        return index >= 0 && index < m_vParameters.size() ? m_vParameters[index].timeType : TI_Unlimit;
     }
 
     Parameter GetParameter(int index) {
@@ -334,6 +353,8 @@ public:
     void DimensionTag(string tag, int indent, dimensionTypes dimType, string* sb);
 
     void TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb);
+
+    void TimeIntervalTypeTag(string tag, int indent, intervalTypes tiType, string* sb);
 
 private:
     string m_strSchemaVersion;             ///< latest XML schema version supported by this class

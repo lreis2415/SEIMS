@@ -479,9 +479,17 @@ dimensionTypes ModuleFactory::MatchType(const string& strType) {
     return typ;
 }
 
+intervalTypes ModuleFactory::MatchIntervalType(const string& tiType) {
+    intervalTypes typ = TI_Unlimit;
+    if (StringMatch(tiType, TIType_Unlimit)) typ = TI_Unlimit;
+    if (StringMatch(tiType, TIType_Daily)) typ = TI_Daily;
+    if (StringMatch(tiType, TIType_Storm)) typ = TI_Storm;
+    return typ;
+}
+
 transferTypes ModuleFactory::MatchTransferType(const string& tfType) {
     transferTypes typ = TF_None;
-    if (StringMatch(tfType, TFType_Whole)) typ = TF_None;
+    if (StringMatch(tfType, TFType_None)) typ = TF_None;
     if (StringMatch(tfType, TFType_Single)) typ = TF_SingleValue;
     if (StringMatch(tfType, TFType_Array1D)) typ = TF_OneArray1D;
     return typ;
@@ -548,14 +556,13 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
 
         //special process for interpolation modules
         if (StringMatch(name, Tag_Weight[0])) {
-            if (setting->dataTypeString().length() == 0) {
+            if (datatype.empty()) {
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
-                                     "The parameter " + name +
-                                     " should have corresponding data type in module " + moduleID);
+                                     "The parameter " + name + " should have corresponding data type in " + moduleID);
             }
-            if (StringMatch(setting->dataTypeString(), DataType_MeanTemperature) ||
-                StringMatch(setting->dataTypeString(), DataType_MinimumTemperature) ||
-                StringMatch(setting->dataTypeString(), DataType_MaximumTemperature)) {
+            if (StringMatch(datatype, DataType_MeanTemperature) ||
+                StringMatch(datatype, DataType_MinimumTemperature) ||
+                StringMatch(datatype, DataType_MaximumTemperature)) {
                 //The weight coefficient file is same for TMEAN, TMIN and TMAX,
                 //  so just need to read one file named "Weight_M"
                 name += "_M";
@@ -563,18 +570,18 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
                 // Combine weight and data type. e.g. Weight + PET = Weight_PET,
                 //  this combined string must be the same with the parameter column
                 //  in the climate table of parameter database.
-                name += "_" + setting->dataTypeString();
+                name += "_" + datatype;
             }
         }
 
         //special process for interpolation modules
         if (StringMatch(name, Tag_StationElevation)) {
-            if (setting->dataTypeString().length() == 0) {
+            if (datatype.empty()) {
                 throw ModelException("ModuleFactory", "readParameterSetting",
                                      "The parameter " + name +
                                      " should have corresponding data type in module " + moduleID);
             }
-            if (StringMatch(setting->dataTypeString(), DataType_Precipitation)) {
+            if (StringMatch(datatype, DataType_Precipitation)) {
                 basicname += "_P";
                 name += "_P";
             } else {
@@ -585,14 +592,13 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
         if (StringMatch(name, Tag_VerticalInterpolation[0])) {
             value = setting->needDoVerticalInterpolation() ? 1 : 0; // Do vertical interpolation?
         }
-        string climtype = setting->dataTypeString();
         if (dim == DT_SingleInt || dim == DT_Array1DInt || dim == DT_Raster1DInt
             || dim == DT_Array2DInt || dim == DT_Raster2DInt) {
             vecParaInt.emplace_back(new ParamInfo<int>(name, basicname, desc, unit, src,
-                                                       moduleID, dim, climtype, value));
+                                                       moduleID, dim, datatype, value));
         } else {
             vecPara.emplace_back(new ParamInfo<FLTPT>(name, basicname, desc, unit, src,
-                                                      moduleID, dim, climtype, value));
+                                                      moduleID, dim, datatype, value));
         }
         elItm = nullptr; // cleanup
         eleParam = eleParam->NextSiblingElement(); // get the next parameter if it exists
@@ -696,7 +702,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
         DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
         DataType_RelativeAirMoisture
-    };// �����������ͣ�����P���¶�T��
+    };
     for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
@@ -737,7 +743,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
                     // For time series data reading modules, e.g.:
                     //   0 | TimeSeries | | TSD_RD
                     // will be updated as:
-                    //   0 | TimeSeries_P | | TSD_RD, etc. ����ģ����ƴ�������������ͣ����硰P��
+                    //   0 | TimeSeries_P | | TSD_RD, etc.
                     tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
@@ -777,7 +783,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.emplace_back(module);// ģ��id = .cfg�ļ��е�MODULE ID + "d"  + "_" + ��������"P", eg."TSD_RDd_P" ��"TSD_RDd_TMEAN"
+                moduleIDs.emplace_back(module);
             }
         }
     } catch (...) {

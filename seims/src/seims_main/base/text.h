@@ -278,7 +278,11 @@ CONST_CHARS Type_Single =                           "SINGLE"; ///<
 CONST_CHARS Type_SingleInt =                        "SINGLEINT"; ///<
 CONST_CHARS Type_RasterPositionData =               "RASTERPOSITION"; ///<
 
-CONST_CHARS TFType_Whole =                          "TFWhole"; ///<
+CONST_CHARS TIType_Unlimit =                        "TIUNLIMIT"; ///<
+CONST_CHARS TIType_Daily =                          "TIDAILY"; ///<
+CONST_CHARS TIType_Storm =                          "TISTORM"; ///<
+
+CONST_CHARS TFType_None =                           "TFNONE"; ///<
 CONST_CHARS TFType_Single =                         "TFSINGLE"; ///<
 CONST_CHARS TFType_Array1D =                        "TFARRAY1D"; ///<
 

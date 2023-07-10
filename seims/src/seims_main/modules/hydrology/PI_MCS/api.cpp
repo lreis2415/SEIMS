@@ -18,18 +18,17 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(M_PI_MCS[0]);
     mdi.SetName(M_PI_MCS[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetVersion("1.5");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
     // set the input variables (time series)
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D); /// ITP_P
-#ifndef STORM_MODE
-    mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D); /// PET
-#else
-    mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_SingleInt);
-#endif
+
+    mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D, TF_None, TI_Daily); /// PET, for daily
+
+    mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D, TI_Storm); /// for storm
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_SingleInt, TI_Storm); /// for storm
 
     // set the parameters (non-time series)
     mdi.AddParameter(VAR_INTERC_MAX[0], UNIT_DEPTH_MM, VAR_INTERC_MAX[1], Source_ParameterDB, DT_Raster1D);
@@ -40,9 +39,9 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set the output variables
     mdi.AddOutput(VAR_INLO[0], UNIT_DEPTH_MM, VAR_INLO[1], DT_Raster1D);
-#ifndef STORM_MODE
-    mdi.AddOutput(VAR_INET[0], UNIT_DEPTH_MM, VAR_INET[1], DT_Raster1D);
-#endif
+
+    mdi.AddOutput(VAR_INET[0], UNIT_DEPTH_MM, VAR_INET[1], DT_Raster1D, TF_None, TI_Daily); /// for daily
+
     mdi.AddOutput(VAR_CANSTOR[0], UNIT_DEPTH_MM, VAR_CANSTOR[1], DT_Raster1D);
     mdi.AddOutput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], DT_Raster1D);
 
