@@ -14,11 +14,14 @@ from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+import osgeo
 from numpy import where, fromfunction
 from osgeo.gdal import GDT_Int32, GDT_Float32
 from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
 from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
 from osgeo.osr import SpatialReference as osr_SpatialReference
+from osgeo.osr import OAMS_TRADITIONAL_GIS_ORDER
+
 from pygeoc.TauDEM import TauDEM, TauDEM_Ext, TauDEMWorkflow
 from pygeoc.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from pygeoc.raster import RasterUtilClass
@@ -173,6 +176,9 @@ class SpatialDelineation(object):
                              'which is required!' % dem_file)
         dst_srs = osr_SpatialReference()
         dst_srs.ImportFromEPSG(4326)  # WGS84
+        if osgeo.__version__ >= '3.0.0':
+            dst_srs.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER)
+
         # dst_wkt = dst_srs.ExportToWkt()
         transform = osr_CoordinateTransformation(src_srs, dst_srs)
 
