@@ -338,6 +338,7 @@ TEST_P(clsRasterDataSplitMerge, MaskLyrIO) {
         for (int i = 0; i < full->n_cells; i++) {
             EXPECT_EQ(full->local_pos_[i][0], valid->local_pos_[i][0]);
             EXPECT_EQ(full->local_pos_[i][1], valid->local_pos_[i][1]);
+            EXPECT_EQ(full->local_posidx_[i], valid->local_posidx_[i]);
             EXPECT_DOUBLE_EQ(full->data_[i], valid->data_[i]);
         }
     }

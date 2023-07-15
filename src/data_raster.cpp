@@ -198,6 +198,7 @@ bool SubsetPositions::Initialization() {
     g_ecol = -1;
     alloc_ = false;
     local_pos_ = nullptr;
+    local_posidx_ = nullptr;
     global_ = nullptr;
     data_ = nullptr;
     data2d_ = nullptr;
@@ -229,6 +230,7 @@ SubsetPositions::SubsetPositions(SubsetPositions*& src, const bool deep_copy) {
         alloc_ = true;
         Initialize1DArray(n_cells, global_, src->global_);
         Initialize2DArray(n_cells, 2, local_pos_, src->local_pos_);
+        Initialize1DArray(n_cells, local_posidx_, src->local_posidx_);
         if (nullptr != src->data_) {
             Initialize1DArray(n_cells, data_, src->data_);
         }
@@ -240,6 +242,7 @@ SubsetPositions::SubsetPositions(SubsetPositions*& src, const bool deep_copy) {
         alloc_ = false;
         global_ = src->global_;
         local_pos_ = src->local_pos_;
+        local_posidx_ = src->local_posidx_;
         if (nullptr != src->data_) { data_ = src->data_; }
         if (nullptr != src->data2d_) { data2d_ = src->data2d_; }
     }
@@ -249,6 +252,10 @@ SubsetPositions::~SubsetPositions() {
     if (nullptr != local_pos_) {
         if (alloc_) { Release2DArray(local_pos_); }
         else { local_pos_ = nullptr; }
+    }
+    if (nullptr != local_posidx_) {
+        if (alloc_) { Release1DArray(local_posidx_); }
+        else { local_posidx_ = nullptr; }
     }
     if (nullptr != global_) {
         if (alloc_) { Release1DArray(global_); }
@@ -282,7 +289,8 @@ bool SubsetPositions::ReadFromMongoDB(MongoGridFs* gfs, const string& fname, con
             Initialize1DArray(n_cells, data_, NODATA_VALUE);
         }
         for (int i = 0; i < n_cells; i++) {
-            data_[i] = dbdata[local_pos_[i][0] * ncols + local_pos_[i][1]];
+            //data_[i] = dbdata[local_pos_[i][0] * ncols + local_pos_[i][1]];
+            data_[i] = dbdata[local_posidx_[i]];
         }
     }
     else {
@@ -292,7 +300,8 @@ bool SubsetPositions::ReadFromMongoDB(MongoGridFs* gfs, const string& fname, con
         for (int i = 0; i < n_cells; i++) {
             for (int j = 0; j < n_lyrs; j++) {
                 if (nfull == db_ncells) { // consider data from MongoDB is fullsize data
-                    data2d_[i][j] = dbdata[(local_pos_[i][0] * ncols + local_pos_[i][1]) * n_lyrs + j];
+                    //data2d_[i][j] = dbdata[(local_pos_[i][0] * ncols + local_pos_[i][1]) * n_lyrs + j];
+                    data2d_[i][j] = dbdata[local_posidx_[i] * n_lyrs + j];
                 }
                 else { data2d_[i][j] = dbdata[i * n_lyrs + j]; }
             }

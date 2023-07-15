@@ -45,7 +45,13 @@ string ConvertToString(const time_t date, bool utc_time = true);
  * \return Date time \a string
  */
 string ConvertToString2(const time_t date, bool utc_time = true);
-
+/*!
+ * \brief Convert date time to string as the format of "YYYY_MM_DD_HHMMSS"
+ * \param[in] date \a time_t data type
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
+ * \return Date time \a string
+ */
+string ConvertToString3(const time_t date, bool utc_time  = true);
 /*!
  * \brief Convert string to date time, string format could be %4d%2d%2d or %d-%d-%d
  *
