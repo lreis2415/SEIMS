@@ -78,6 +78,7 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     EXPECT_EQ(nullptr, rs->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_EQ(nullptr, rs->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_EQ(nullptr, rs->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     EXPECT_EQ(-9999, rs->GetRows());
