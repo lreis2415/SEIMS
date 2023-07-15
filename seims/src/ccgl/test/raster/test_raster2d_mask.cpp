@@ -148,6 +148,7 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -347,9 +348,12 @@ TEST_P(clsRasterDataTestMask2D, NoPos) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     maskrs_->GetRasterPositionData(&poslen, &posdata);
+    maskrs_->GetRasterPositionData(&poslen, &posidx);
     mongors_valid->SetPositions(poslen, posdata);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false,
@@ -397,6 +401,7 @@ TEST_P(clsRasterDataTestMask2D, CalcPos) {
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /// Test members after constructing.
     EXPECT_EQ(6, rs_->GetDataLength()); // m_nCells * n_lyrs_
@@ -603,9 +608,12 @@ TEST_P(clsRasterDataTestMask2D, CalcPos) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     maskrs_->GetRasterPositionData(&poslen, &posdata);
+    maskrs_->GetRasterPositionData(&poslen, &posidx);
     mongors_valid->SetPositions(poslen, posdata);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);

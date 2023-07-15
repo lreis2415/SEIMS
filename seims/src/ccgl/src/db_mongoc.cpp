@@ -420,13 +420,17 @@ bson_t* MongoGridFs::GetFileMetadata(string const& gfilename,
 
 bool MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
                                 vint& datalength, mongoc_gridfs_t* gfs /* = NULL */,
-                                STRING_MAP opts /* = STRING_MAP() */) {
+                                const STRING_MAP* opts /* = nullptr */) {
     if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return false;
     }
-    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, opts);
+    STRING_MAP opts_temp;
+    if (nullptr == opts) {
+        opts = &opts_temp;
+    }
+    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, *opts);
     if (NULL == gfile) {
         databuf = NULL;
         StatusMessage(("MongoGridFs::GetStreamData(" + gfilename + ") failed!").c_str());
