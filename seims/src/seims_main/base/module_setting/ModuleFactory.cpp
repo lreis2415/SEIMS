@@ -23,6 +23,8 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                              vector<ParamInfo<FLTPT> *>& tfValueInputs,
                              vector<ParamInfo<int>*>& tfValueInputsInt,
+                             set<int> structureSubbasins,
+                             bool isConceptual,
                              const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
     m_mpi_rank(mpi_rank), m_mpi_size(mpi_size),
     m_dbName(std::move(model_name)), m_moduleIDs(moduleIDs),
@@ -31,7 +33,8 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
     m_moduleInputs(moduleInputs), m_moduleInputsInt(moduleInputsInt),
     m_moduleOutputs(moduleOutputs), m_moduleOutputsInt(moduleOutputsInt),
     m_moduleInOutputs(moduleInOutputs), m_moduleInOutputsInt(moduleInOutputsInt),
-    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt),m_moduleInformations(moduleInformations) {
+    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt),m_moduleInformations(moduleInformations),
+    m_structureSubbasins(structureSubbasins), m_isConceptual(isConceptual){
     // nothing to do
 }
 
@@ -44,19 +47,37 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     //string file_in = model_cfgpath + SEP + File_Input;
     //string file_out = model_cfgpath + SEP + File_Output;
     // The specific configuration file of the subbasin is prior.
-    string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(input_args->subbasin_id) + "." + File_Config;
     //string cfgNames[] = {file_in, file_out, file_cfg};
-    if (!FileExists(file_cfg)) {
-        file_cfg = model_cfgpath + SEP + File_Config;
-        if (!FileExists(file_cfg)) {
-            LOG(ERROR) << file_cfg << " does not exist or has no read permission!";
-            return nullptr;
-        }
-    }
+    vector<string> cfg_files;
+    FindFiles(model_cfgpath.c_str(), File_Structure_Config_Suffix_Pattern, cfg_files);
+    string cfg_file_of_current_subbasin;
+
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)
-    map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
-    if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
+    map<string, SEIMSModuleSetting*> moduleSettings; // basic module settings from cfg file
+    set<int> structureSubbasins; // 1,2,5,6,7,8,9,10 subbasins are `isConceptual`
+    bool isConceptual = false;
+
+    for(string cfg_file:cfg_files)
+    {
+        if (!ReadConfigFile(cfg_file.c_str(), moduleIDs, moduleSettings, structureSubbasins, isConceptual))
+            return nullptr;
+        if (structureSubbasins.find(input_args->subbasin_id) != structureSubbasins.end()){
+            break;
+        }
+        // clear these containers, because in `ReadConfigFile()` they will be emplaced.
+        moduleIDs.clear();
+        for (auto it = moduleSettings.begin(); it != moduleSettings.end(); ) {
+            if (nullptr != it->second) {
+                delete it->second;
+                it->second = nullptr;
+            }
+            moduleSettings.erase(it++);
+        }
+        structureSubbasins.clear();
+    }
+
+    // deep copy structureOfSubbasins to m_structureSubbasins
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
@@ -94,7 +115,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
                              instanceFuncs, metadataFuncs, moduleInformations,
                              moduleParams, moduleParamsInt, moduleInputs, moduleInputsInt,
                              moduleOutputs, moduleOutputsInt, moduleInOutputs, moduleInOutputsInt,
-                             tfValueInputs, tfValueInputsInt,
+                             tfValueInputs, tfValueInputsInt, structureSubbasins, isConceptual,
                              mpi_rank, mpi_size);
 }
 
@@ -743,7 +764,10 @@ void ModuleFactory::ReadInformation(string& moduleID, TiXmlDocument& doc, map<st
     
 }
 
-bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings) {
+
+bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings,
+    set<int>& structureOfSubbasins, bool& isConceptual) {
+
     vector<string> cfgStrs;
     if (!LoadPlainTextFile(filename, cfgStrs)) {
         return false;
@@ -752,10 +776,49 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
         DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
         DataType_RelativeAirMoisture
-    };// �����������ͣ�����P���¶�T��
-    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
+    };
+
+    for (int i = 0; i<cfgStrs.size(); i++) {
+        string line = Trim(cfgStrs.at(i));
+        /* e.g.
+            1-2,5-10
+            CONCEPTUAL
+            ....
+        */
+        if (i == 0) {
+            vector<string> subbasinTokens = SplitString(line, ',');
+            for (string token : subbasinTokens)
+            {
+                vector<string> subbasins = SplitString(token, '-');
+                int start = atoi(subbasins.at(0).c_str());
+
+                if (subbasins.size() == 1) {
+                    //e.g., 7
+                    structureOfSubbasins.emplace(start);
+                } else if (subbasins.size() == 2) {
+                    //e.g., 1-5
+                    int end = atoi(subbasins.at(1).c_str());
+                    for (int sb = start; sb <= end; ++sb) {
+                        structureOfSubbasins.emplace(sb);
+                    }
+                }
+            }
+            continue;
+        }
+        if (i == 1) {
+            if (StringMatch(line, "CONCEPTUAL")) {
+                isConceptual = true;
+            } else if (StringMatch(line, "PHYSICAL")) {
+                isConceptual = false;
+            } else {
+                std::ostringstream oss;
+                oss << "The second line in structureN.config must be one of [CONCEPTUAL, PHYSICAL], but " << line << " found.";
+                throw ModelException("ModuleFactory", "LoadSettingsFromFile", oss.str());
+            }
+            continue;
+        }
         // parse the line into separate item
-        vector<string> tokens = SplitString(*iter, '|');
+        vector<string> tokens = SplitString(line, '|');
         // is there anything in the token list?
         if (tokens.empty()) continue;
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -807,9 +870,11 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
 }
 
 bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& moduleIDs,
-                                   map<string, SEIMSModuleSetting *>& moduleSettings) {
+                                   map<string, SEIMSModuleSetting *>& moduleSettings,
+                                   set<int>& structureSubbasins, bool& isConceptual) {
     vector<vector<string> > settings;
-    if (!LoadSettingsFromFile(configFileName, settings)) { return false; }
+
+    if (!LoadSettingsFromFile(configFileName, settings, structureSubbasins, isConceptual)) { return false; }
     try {
         for (size_t i = 0; i < settings.size(); i++) {
             if (settings[i].size() > 3) {
@@ -974,4 +1039,12 @@ bool ModuleFactory::FindOutputParameter(string& outputID, int& iModule, ParamInf
         }
     }
     return false;
+}
+
+bool ModuleFactory::isLumped(){
+    return isSubbasinConceptual(0);
+}
+bool ModuleFactory::isSubbasinConceptual(int subbasinId){
+    return  m_structureSubbasins.find(0) != m_structureSubbasins.end() ||
+        (m_structureSubbasins.find(subbasinId) != m_structureSubbasins.end() && m_isConceptual);
 }

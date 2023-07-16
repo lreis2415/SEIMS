@@ -172,6 +172,17 @@ class ImportHydroClimateSites(object):
         # mode = 'STORM'
         # if is_storm:  # todo: Do some compatible work to support DAILY and STORM simultaneously.
         #     mode = 'STORM'
+        import geopandas as gpd
+        #check if subbsn and thissen are in same projection
+        subbsn_proj = gpd.read_file(subbsn_file).crs
+        for thissen_file in thissen_file_list:
+            thissen_proj = gpd.read_file(thissen_file).crs
+            if subbsn_proj != thissen_proj:
+                raise RuntimeError(f'The projection of subbasin file ({subbsn_file}) `{subbsn_proj}` and '
+                                   f'thiessen file ({thissen_file}) `{thissen_proj}` are not the same! '
+                                   'Projection coordinate is recommended.')
+
+
         subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file,
                                                                                  subbsn_field_id)
         n_subbasins = len(subbasin_list)

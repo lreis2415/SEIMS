@@ -70,52 +70,28 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
-
-    /// Create default module factory using config.fig for each process
-    input_args->subbasin_id = 0; // in case of wrong arguments by users
-    ModuleFactory* default_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
-    if (nullptr == default_module_factory) {
-        throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
-    }
+    
     map<int, ModuleFactory*> factory_map;
-#ifdef HAS_VARIADIC_TEMPLATES
-    factory_map.emplace(0, default_module_factory);
-#else
-    factory_map.insert(make_pair(0, default_module_factory));
-#endif
-
-    /// Get the max count of dynamic parameters needed to be transferred across upstream-downstream subbasins
-    /// TODO, when transfer_count differs among module_factorys, we need to find out a way to transfer data correctly.
-    int transfer_count = default_module_factory->GetTransferredInputsCount();
-
     /// Create lists of data center objects and SEIMS model objects
     map<int, DataCenterMongoDB *> data_center_map;
     map<int, ModelMain *> model_map;
     vector<int>& rank_subbsn_ids = task_info->GetRankSubbasinIDs();
+    int transfer_count = 0;
     for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
         /// Create specific module factory according to subbasin number, if possible
-        ModuleFactory* tmp_module_factory = factory_map.at(0);
-        string model_cfgpath = input_args->model_path;
-        if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
-        string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(*it_id) + "." + File_Config;
-        if (FileExists(file_cfg)) {
-            input_args->subbasin_id = *it_id;
-            tmp_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
-            if (nullptr == tmp_module_factory) {
-                LOG(WARNING) << "Constructing ModuleFactory failed using " << file_cfg
-                << "! Use default module factory instead!";
-                tmp_module_factory = factory_map.at(0);
-            } else {
-#ifdef HAS_VARIADIC_TEMPLATES 
-                factory_map.emplace(*it_id, tmp_module_factory);
-#else 
-                factory_map.insert(make_pair(*it_id, tmp_module_factory));
-#endif
-                if (tmp_module_factory->GetTransferredInputsCount() > transfer_count) {
-                    transfer_count = tmp_module_factory->GetTransferredInputsCount();
-                }
-            }
+        input_args->subbasin_id = *it_id;
+        ModuleFactory* tmp_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
+        if (tmp_module_factory==nullptr){
+            LOG(ERROR) << "subbasin " << input_args->subbasin_id << " cannot find corresponding model structure.config!";
+            MPI_Abort(MCW, 1);
         }
+#ifdef HAS_VARIADIC_TEMPLATES 
+        factory_map.emplace(*it_id, tmp_module_factory);
+#else 
+        factory_map.insert(make_pair(*it_id, tmp_module_factory));
+#endif
+        transfer_count=tmp_module_factory->GetTransferredInputsCount();
+        
         /// Create data center according to subbasin number
         DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
                                                                tmp_module_factory, *it_id);
@@ -218,6 +194,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         sim_loop_num += 1;
         act_loop_num += 1;
         int year_idx = GetYear(ts) - start_year;
+        //cout << endl << ConvertToString(ts) << endl;
         if (rank == MASTER_RANK) {
             if (pre_year_idx != year_idx) {
                 LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;

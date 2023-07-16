@@ -19,10 +19,6 @@ ChannelRoutingDump::~ChannelRoutingDump() {
 void ChannelRoutingDump::InitialOutputs() {
 
     Initialize1DArray(m_nReaches + 1, m_Q_outlet, 0.);
-    m_Q_outlet[0] = 0;
-    for (int i = 1; i <= m_nReaches; i++) {
-        m_Q_outlet[i] = m_Q_SBOF[i];
-    }
     
 }
 
@@ -114,7 +110,7 @@ int ChannelRoutingDump::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-//#pragma omp parallel for
+//#pragma omp parallel for  TODO: Don't understand why parallelism should be put here. --wyj
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
             if (m_inputSubbasinId == 0 || m_inputSubbasinId == reachIndex) {
@@ -133,18 +129,25 @@ int ChannelRoutingDump::Execute() {
 #endif
     }
 
-#ifdef PRINT_DEBUG
-    printf("\n");
-#endif
-
     return 0;
 }
 
 
 void ChannelRoutingDump::ChannelFlow(const int i){
+#ifdef PRINT_DEBUG
+    printf("Q[%d](%f) += ", i, m_Q_outlet[i]);
+#endif
+    m_Q_outlet[i] = m_Q_SBOF[i];
     for (auto upReachId = m_reachUpStream.at(i).begin(); upReachId != m_reachUpStream.at(i).end(); ++upReachId) {
         if (m_Q_outlet[*upReachId] > 0.) {
             m_Q_outlet[i] += m_Q_outlet[*upReachId];
+#ifdef PRINT_DEBUG
+            printf("+ Q[%d](%f) ", *upReachId, m_Q_outlet[*upReachId]);
+#endif
         }
     }
+#ifdef PRINT_DEBUG
+    printf("\n");
+    fflush(stdout);
+#endif
 }

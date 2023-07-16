@@ -34,6 +34,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_SBPET[0], UNIT_DEPTH_MM, VAR_SBPET[1], DT_Array1D);
     mdi.AddOutput(VAR_SBIF[0], UNIT_FLOW_CMS, VAR_SBIF[1], DT_Array1D);
     mdi.AddOutput(VAR_SBGS[0], UNIT_DEPTH_MM, VAR_SBGS[1], DT_Array1D);
+    mdi.AddOutput(VAR_SBQG[0], UNIT_DEPTH_MM, VAR_SBQG[1], DT_Array1D);
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();

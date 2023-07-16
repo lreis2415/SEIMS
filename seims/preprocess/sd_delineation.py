@@ -32,7 +32,7 @@ from utility import DEFAULT_NODATA, mask_rasterio
 from preprocess.sd_connected_field import connected_field_partition_wu2018
 from preprocess.sd_hillslope import DelineateHillslope
 from preprocess.sd_hru import HruConstructor
-from preprocess.text import FieldNames,SpatialNamesUtils
+from preprocess.text import FieldNames, SpatialNamesUtils
 from preprocess.config import PreprocessConfig
 
 
@@ -226,8 +226,8 @@ class SpatialDelineation(object):
     def delineate_HRU(cfg):  # type: (PreprocessConfig) -> None
         """Delineate HRU"""
         hru = HruConstructor()
-        hru.add_property(SpatialNamesUtils._SOILTYPEMFILE, cfg.spatials.soil_type)
-        hru.add_property(SpatialNamesUtils._LANDUSEMFILE, cfg.spatials.landuse)
+        for name, file in zip(cfg.hru_property_names, cfg.hru_property_files):
+            hru.add_property(name, file)
         hru.delineate(cfg)
 
     @staticmethod
@@ -242,7 +242,9 @@ class SpatialDelineation(object):
         # Delineate spatial units
         SpatialDelineation.delineate_spatial_units(cfg)
         # Delineate HRU
+        print('Delineating HRU...')
         SpatialDelineation.delineate_HRU(cfg)
+        print('Delineating HRU Done')
 
 
 def main():

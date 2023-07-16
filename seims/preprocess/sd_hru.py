@@ -14,12 +14,6 @@ from utility import mask_rasterio
 class HruConstructor(object):
 
     def __init__(self):
-        """
-        Delineate HRU based on subbasin, soil, and landuse rasters.
-        property_names: property names, will be the header of shapefile attribute table.
-            e.g.: 'subbasin', 'soil', 'landuse'
-        property_raster_paths: property raster paths
-        """
         self._property_names = []
         self._property_raster_paths = []
 
@@ -33,12 +27,8 @@ class HruConstructor(object):
         self._property_names.append(property_name)
         self._property_raster_paths.append(property_raster_path)
 
-    def _create_hru_map(self, subbasin: np.ndarray) -> (np.ndarray, dict, np.ndarray, dict, dict):
+    def _create_hru_map(self, subbasin_meta, subbasin: np.ndarray) -> (np.ndarray, dict, np.ndarray, dict, dict):
         """Delineate HRU based on subbasin, soil, and landuse rasters.
-        Returns:
-            HRU id map
-            HRU id map metadata for rasterio
-            HRU id dict, key is the combination of property values
         """
         if subbasin is None:
             raise ValueError('ErrorInput: subbasin or basin is required when delineating HRU!')
@@ -70,7 +60,8 @@ class HruConstructor(object):
         nodata_list = [src.nodata for src in property_raster_src_list]
         concat = np.dstack(property_raster_list)
 
-        cell_area = property_raster_src_list[0].res[0] * property_raster_src_list[0].res[1]
+        cell_area = subbasin_meta['transform'][0] * -subbasin_meta['transform'][4]
+
         for i in range(concat.shape[0]):
             for j in range(concat.shape[1]):
                 comb = concat[i, j]  # combination of property values
@@ -97,9 +88,9 @@ class HruConstructor(object):
 
                 hru_dist_map[i, j] = hru_id_dict[comb]
 
-        meta_int = property_raster_src_list[0].meta.copy()
+        meta_int = subbasin_meta.copy()
         meta_int.update(dtype=rasterio.int32, nodata=DEFAULT_NODATA)
-        meta_float = property_raster_src_list[0].meta.copy()
+        meta_float = subbasin_meta.copy()
         meta_float.update(dtype=rasterio.float32, nodata=DEFAULT_NODATA)
         return hru_dist_map, meta_int, hru_id_map, meta_int, hru_area_map, meta_float, hru_id_dict
 
@@ -110,8 +101,6 @@ class HruConstructor(object):
 
     def generate_cell_area_file(self, cfg: PreprocessConfig, mongoargs):
         """Generate cell area raster.
-        Args:
-            cfg: PreprocessConfig
         """
         with rasterio.open(cfg.spatials.mask) as src:
             cell_area = src.read(1)
@@ -129,22 +118,24 @@ class HruConstructor(object):
     def delineate(self, cfg: PreprocessConfig):
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         self.generate_cell_area_file(cfg, mongoargs=mongoargs)
-        if not cfg.has_conceptual_subbasins():
+        if not cfg.has_conceptual_subbasin:
             return
-        if 0 in cfg.conceptual_subbasins:
+        if cfg.is_lumped:
             # if lumped, use MASK.tif, set it to 1
             subbasin_mask_path = cfg.spatials.mask
             subbasin_mask_src = rasterio.open(subbasin_mask_path)
             subbasin_mask = subbasin_mask_src.read(1)
             subbasin_mask[subbasin_mask != subbasin_mask_src.nodata] = 1
+            subbasin_meta = subbasin_mask_src.meta.copy()
         else:
             # if not lumped, use SUBBASIN.tif
             subbasin_mask_path = cfg.spatials.subbsn
             subbasin_mask_src = rasterio.open(subbasin_mask_path)
             subbasin_mask = subbasin_mask_src.read(1)
+            subbasin_meta = subbasin_mask_src.meta.copy()
 
         hru_dist_map, meta_int, hru_id_map, meta_int, hru_area_map, meta_float, hru_id_dict = \
-            self._create_hru_map(subbasin_mask)
+            self._create_hru_map(subbasin_meta, subbasin_mask)
 
         self._write_raster(cfg.spatials.hru_dist, hru_dist_map, meta_int)
         self._write_raster(cfg.spatials.hru_id, hru_id_map, meta_int)

@@ -85,9 +85,9 @@ class ImportWeightData(object):
         return s, i_min
 
     @staticmethod
-    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, has_conceptual_subbasins):
+    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, has_conceptual_subbasin):
         ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.PHYSICAL)
-        if has_conceptual_subbasins:
+        if has_conceptual_subbasin:
             ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.CONCEPTUAL)
     @staticmethod
     def _generate_weight_dependent_parameters(conn, maindb, subbsn_id, param_abstraction_type):
@@ -350,8 +350,8 @@ class ImportWeightData(object):
 
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
-                                                         cfg.dirs.geodata2db, cfg.has_conceptual_subbasins())
-            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasins())
+                                                         cfg.dirs.geodata2db, cfg.has_conceptual_subbasin)
+            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasin)
 
 
 def main():

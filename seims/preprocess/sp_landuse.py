@@ -248,7 +248,9 @@ class LanduseUtilClass(object):
         nodata_value2 = landu_raster.noDataValue
 
         slo_data = RasterUtilClass.read_raster(slope_file).data
-        soil_texture_array = RasterUtilClass.read_raster(soil_texture_file).data
+        soil_texture_obj = RasterUtilClass.read_raster(soil_texture_file)
+        soil_texture_array = soil_texture_obj.data
+        soil_nodata = soil_texture_obj.noDataValue
         id_omited = list()
 
         def coef_cal(lu_id, soil_texture, slope):
@@ -259,6 +261,8 @@ class LanduseUtilClass(object):
                 if int(lu_id) not in id_omited:
                     print('The landuse ID: %d does not exist.' % int(lu_id))
                     id_omited.append(int(lu_id))
+            if soil_texture == soil_nodata:
+                return nodata_value2
             stid = int(soil_texture) - 1
             c0 = runoff_c0[int(lu_id)][stid]
             s0 = runoff_s0[int(lu_id)][stid] / 100.
@@ -300,7 +304,7 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslu_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
@@ -315,7 +319,7 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
@@ -329,7 +333,7 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_def_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_def_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)

@@ -5,16 +5,21 @@
 HydroVarsUpdate::HydroVarsUpdate():
 m_nCells(-1),
 m_subbasins(nullptr),
-m_petSubbsn(nullptr), m_gwSto(nullptr),m_SBIF(nullptr) {
+m_petSubbsn(nullptr), m_gwSto(nullptr),m_SBIF(nullptr), m_SBQG(nullptr) {
 }
 
 HydroVarsUpdate::~HydroVarsUpdate() {
+    Release1DArray(m_petSubbsn);
+    Release1DArray(m_gwSto);
+    Release1DArray(m_SBIF);
+    Release1DArray(m_SBQG);
 }
 
 void HydroVarsUpdate::InitialOutputs() {
     Initialize1DArray(m_nSubbasins + 1, m_petSubbsn, 0.);
     Initialize1DArray(m_nSubbasins + 1, m_gwSto, 0.);
     Initialize1DArray(m_nSubbasins + 1, m_SBIF, 0.);
+    Initialize1DArray(m_nSubbasins + 1, m_SBQG, 0.);
 }
 
 void HydroVarsUpdate::Get1DData(const char *key, int *nRows, FLTPT **data) {
@@ -25,6 +30,8 @@ void HydroVarsUpdate::Get1DData(const char *key, int *nRows, FLTPT **data) {
         *data = m_gwSto;
     } else if (StringMatch(s, VAR_SBIF[0])){
         *data = m_SBIF;
+    } else if (StringMatch(s, VAR_SBQG[0])) {
+        *data = m_SBQG;
 
     }else {
         throw ModelException("HydroVarsUpdate", "getResult", "Result " + s +

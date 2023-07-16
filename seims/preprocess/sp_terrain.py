@@ -154,8 +154,12 @@ class TerrainUtilClass(object):
                 last_stid = stid
             except Exception:
                 depression_grid0 = dep_sd0[landu_id][last_stid]
-
             depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            # try:
+            #     depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            # except OverflowError:
+            #     print('cal_dep() OverflowError: %d, %d, %f' % (landu_id, stid, slp))
+            #     depression_grid = DEFAULT_NODATA
             # TODO, check if it is  (landu_id >= 98)? By LJ
             if landu_id == 106 or landu_id == 107 or landu_id == 105:
                 return 0.5 * imper_perc + (1. - imper_perc) * depression_grid
@@ -478,7 +482,7 @@ class TerrainUtilClass(object):
                       mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
                       maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin,
                           [['0_MANNING', cfg.spatials.manning]],
                           mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
@@ -496,8 +500,8 @@ class TerrainUtilClass(object):
 
         status_output('Generating depression storage capacity...', 20, f)
         TerrainUtilClass.depression_capacity(cfg.maindb, cfg.spatials.landuse,
-                                             cfg.spatials.soil_texture,
                                              cfg.spatials.slope,
+                                             cfg.spatials.soil_texture,
                                              cfg.spatials.depression,
                                              cfg.imper_perc_in_urban)
 

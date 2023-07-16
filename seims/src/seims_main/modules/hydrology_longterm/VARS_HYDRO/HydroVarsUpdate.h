@@ -26,6 +26,7 @@ private:
     FLTPT* m_petSubbsn;
     FLTPT* m_gwSto;
     FLTPT* m_SBIF;
+    FLTPT* m_SBQG;
 
 public:
     HydroVarsUpdate();

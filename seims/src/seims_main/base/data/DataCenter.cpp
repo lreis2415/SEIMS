@@ -202,10 +202,6 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
                                       const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     FloatRaster* raster = nullptr;
     if (!ReadRasterData(remote_filename, raster, opts) || nullptr == raster) {
-        //bool is_module_conceptual = opts->at(HEADER_RS_PARAM_ABSTRACTION_TYPE), PARAM_ABSTRACTION_TYPE_CONEPTUAL);
-        //if(!is_subbasin_conceptual&&StringMatch() {
-        //    
-        //}
         if (is_optional) { return; }
         throw ModelException("DataCenter", "LoadAdjustRasterData",
                              "Load " + remote_filename + " failed!");

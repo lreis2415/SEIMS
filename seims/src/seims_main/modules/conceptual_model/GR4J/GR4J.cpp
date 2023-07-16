@@ -38,9 +38,7 @@ GR4J::GR4J() :
 }
 
 void GR4J::InitialOutputs() {
-    if (m_soilET == nullptr)
-        Initialize1DArray(m_nCells, m_soilET, 0.);
-
+    Initialize1DArray(m_nCells, m_soilET, 0.);
     for (int i = 0; i < m_nCells; ++i) {
         m_soilET[i] = 0;
     }
@@ -77,16 +75,12 @@ void GR4J::InitialOutputs() {
 }
 
 GR4J::~GR4J() {
-    Release1DArray(m_soilPorosity);
+    Release1DArray(m_pcpExcess);
     Release1DArray(m_soilCapacity);
     Release1DArray(m_infil);
     Release1DArray(m_netEvapCapacity);
     Release2DArray(m_soilWaterStorage);
-    Release1DArray(m_pcpExcess);
-    Release1DArray(m_soilET);
-    Release2DArray(m_GR4J_X2);
-    Release2DArray(m_GR4J_X3);
-    Release1DArray(m_GR4J_X4);
+    Release1DArray(m_infil);
     Release1DArray(m_convEntering1);
     Release1DArray(m_convEntering2);
 }

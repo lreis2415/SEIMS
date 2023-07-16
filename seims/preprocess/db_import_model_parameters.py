@@ -189,7 +189,7 @@ class ImportParam2Mongo(object):
         o_row, o_col = find_outlet_index(i_row, i_col)
         outlet_bsn_id = int(streamlink_data[o_row][o_col])
 
-        if cfg.is_lumped():
+        if cfg.is_lumped:
             outlet_bsn_id = 1
             max_subbasin_id = 1
             min_subbasin_id = 1

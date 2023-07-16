@@ -12,6 +12,7 @@
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, const char** argv) {
+    _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
     /// Parse input arguments
     InputArgs* input_args = InputArgs::Init(argc, argv, true);
     if (nullptr == input_args) { exit(EXIT_FAILURE); }

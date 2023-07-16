@@ -44,15 +44,17 @@ private:
     FLTPT X;
 
     FLTPT* m_Q_SBOF;
-    FLTPT* m_Q_in;
-    FLTPT* m_Q_inLast;
+    FLTPT* m_Q_in;  ///< reach inflow (m^3/s)
+    FLTPT* m_Q_inLast;  ///< reach inflow of last timestep (m^3/s)
     FLTPT* m_Q_out;  ///< reach outflow (m^3/s)
-    FLTPT* m_Q_outLast;  ///< reach outflow (m^3/s)
+    FLTPT* m_Q_outLast;  ///< reach outflow of last timestep (m^3/s)
     
 
 public:
     ChannelRoutingMuskingum();
     ~ChannelRoutingMuskingum();
+    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
+
     void InitialOutputs() OVERRIDE;
     bool CheckInputData() OVERRIDE;
 

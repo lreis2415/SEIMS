@@ -45,6 +45,8 @@ private:
 public:
     ChannelRoutingDump();
     ~ChannelRoutingDump();
+    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
+
     void InitialOutputs() OVERRIDE;
     bool CheckInputData() OVERRIDE;
 

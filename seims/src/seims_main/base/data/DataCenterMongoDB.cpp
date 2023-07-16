@@ -39,6 +39,14 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     } else {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
     }
+    is_subbasin_conceptual = factory->isSubbasinConceptual(subbasin_id_);
+    is_lumped = factory->isLumped();
+    if (is_subbasin_conceptual) {
+        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is conceptual";
+    }
+    else {
+        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is physical";
+    }
 
     if(is_lumped) {
         outlet_id_ = 0;
@@ -101,10 +109,6 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
             LOG(ERROR) << "Table " << MAIN_DB_TABS_REQ[i] << " must be existed in " << model_name_;
             return false;
         }
-    }
-    /// 2.1 Read conceptual subbasin config
-    if(!ReadSubbasinAbstractionInDB()) {
-        return false;
     }
 
     /// 3. Read climate site information from Climate database
@@ -300,54 +304,6 @@ bool DataCenterMongoDB::GetFileOutVector() {
     return !origin_out_items_.empty();
 }
 
-bool DataCenterMongoDB::ReadSubbasinAbstractionInDB() {
-
-    bson_t* filter = BCON_NEW(Tag_ConfTag, BCON_UTF8(DB_SubbasinAbstraction_Tag_ConceptualSubbasin));
-
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(
-        mongo_client_->GetCollection(model_name_, DB_TAB_SUBBASIN_ABSTRACTION)
-    ));
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
-    bson_error_t err;
-    if (mongoc_cursor_error(cursor, &err)) {
-        LOG(ERROR) << "ReadSubbasinAbstractionInDB: " << "Nothing found for " << DB_TAB_SUBBASIN_ABSTRACTION;
-        /// destroy
-        bson_destroy(filter);
-        mongoc_cursor_destroy(cursor);
-        return false;
-    }
-
-    bson_iter_t iter;
-    const bson_t* bson_table;
-    string conceptual_subbasin_str;
-    while (mongoc_cursor_next(cursor, &bson_table)) {
-        if (bson_iter_init_find(&iter, bson_table, Tag_ConfValue)) {
-            conceptual_subbasin_str =GetStringFromBsonIterator(&iter);
-        }
-    }
-    // conceptual_subbasin_str: "1,2,3,4"
-    vector<string> conceptual_subbasin_str_vec = SplitString(conceptual_subbasin_str, ',');
-    for (const auto& str : conceptual_subbasin_str_vec) {
-        int sbid = atoi(str.c_str());
-        if (sbid == 0) {
-            is_subbasin_conceptual = true;
-            is_lumped = true;
-            break;
-        }
-        if (sbid==subbasin_id_) {
-            is_subbasin_conceptual = true;
-            break;
-        }
-    }
-    if (is_subbasin_conceptual) {
-        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is conceptual";
-    }else {
-        CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is physical";
-    }
-    bson_destroy(filter);
-    mongoc_cursor_destroy(cursor);
-    return true;
-}
 
 int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
     bson_t* filter = BCON_NEW(PARAM_FLD_NAME, BCON_UTF8(param_name));

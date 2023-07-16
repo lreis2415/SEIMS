@@ -60,6 +60,8 @@ public:
                   map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                   vector<ParamInfo<FLTPT> *>& tfValueInputs,
                   vector<ParamInfo<int>*>& tfValueInputsInt,
+                  set<int> structureSubbasins,
+                  bool isConceptual,
                   int mpi_rank = 0, int mpi_size = -1);
     /*!
      * \brief Initialization for exception-safe constructor
@@ -127,7 +129,7 @@ public:
     int GetTransferredInputsIntCount() { return CVT_INT(m_tfValueInputsInt.size()); }
 
     //! Load modules setting from file
-    static bool LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings);
+    static bool LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings, set<int>& structureOfSubbasins, bool& isConceptual);
 
     /*!
      * \brief Read configuration file
@@ -137,7 +139,8 @@ public:
      * \return True if succeed.
      */
     static bool ReadConfigFile(const char* configFileName, vector<string>& moduleIDs,
-                               map<string, SEIMSModuleSetting *>& moduleSettings);
+                               map<string, SEIMSModuleSetting *>& moduleSettings,
+                               set<int>& structureSubbasins, bool& isConceptual);
 
     /*!
      * \brief Load and parse module libraries
@@ -216,6 +219,9 @@ public:
     static ParamInfo<int>* FindDependentParam(ParamInfo<int>* paramInfo, vector<string>& moduleIDs,
                                               map<string, vector<ParamInfo<int>*> >& moduleOutputs);
 
+    bool isLumped();
+    bool isSubbasinConceptual(int subbasinId);
+
 public:
     //! Rank ID for MPI, starts from 0 to mpi_size_ - 1
     int m_mpi_rank;                   
@@ -256,5 +262,8 @@ private:
     vector<ParamInfo<FLTPT> *> m_tfValueInputs;
     //! transferred single integer value across subbasins
     vector<ParamInfo<int>*> m_tfValueInputsInt;
+
+    set<int> m_structureSubbasins;
+    bool m_isConceptual;
 };
 #endif /* SEIMS_MODULE_FACTORY_H */

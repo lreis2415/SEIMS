@@ -102,7 +102,16 @@ class SoilPropertyBase(object):
         self._construct()
 
     def find_and_set_attr(self, attr, value):
-        if hasattr(self, attr):
+        if not hasattr(self, attr):
+            return
+        # if attr = [...], value = [...], replace it
+        if isinstance(getattr(self, attr), list) and isinstance(value, list):
+            setattr(self, attr, value)
+        # elseif attr = [...], value = ..., append it
+        elif isinstance(getattr(self, attr), list) and not isinstance(value, list):
+            getattr(self, attr).append(value)
+        # else if attr is single value, replace it
+        else:
             setattr(self, attr, value)
 
 
@@ -316,6 +325,10 @@ class SoilUtilClass(object):
         f = cfg.logs.extract_soil
 
         soil_property_file = None
+        if cfg.has_conceptual_subbasin:
+            mask_files = []
+            abstraction_types = []
+
         if soil_property_class.soil_param_type() == ParamAbstractionTypes.CONCEPTUAL:
             status_output('Calculating initial soil conceptual parameters...', 30, f)
             soil_property_file = cfg.soil_property_conceptual
@@ -333,11 +346,11 @@ class SoilUtilClass(object):
             inoutcfg.append([cfg.spatials.soil_type, k,
                              DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
+
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
-                      maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasssoil_cfg,
+                      maskfile=cfg.conceptual_mask_file, cfgfile=cfg.logs.reclasssoil_cfg,
                       include_nodata=False, mode='MASKDEC',
                       abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
-
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasssoil_cfg,
                       include_nodata=False, mode='MASKDEC',
