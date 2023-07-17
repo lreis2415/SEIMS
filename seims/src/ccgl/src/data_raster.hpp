@@ -97,7 +97,6 @@ CONST_CHARS HEADER_RS_CELLSIZE = "CELLSIZE"; /// Cell size (length)
 CONST_CHARS HEADER_RS_LAYERS = "LAYERS"; /// Layers number
 CONST_CHARS HEADER_RS_CELLSNUM = "CELLSNUM"; /// Number of the first layer's valid cells
 CONST_CHARS HEADER_RS_SRS = "SRS"; /// SRS
-CONST_CHARS HEADER_RS_PARAM_ABSTRACTION_TYPE = "PARAM_ABSTRACTION_TYPE"; /// spatial parameter type, physical or conceptual
 CONST_CHARS HEADER_RS_DATATYPE = "DATATYPE"; /// Data type of original raster
 CONST_CHARS HEADER_RSOUT_DATATYPE = "DATATYPE_OUT"; /// Desired output data type of raster
 CONST_CHARS HEADER_INC_NODATA = "INCLUDE_NODATA"; /// Include nodata ("TRUE") or not ("FALSE"), for DB only
