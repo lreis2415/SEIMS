@@ -21,6 +21,8 @@ from pymongo import InsertOne
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from pathlib import Path
+from utility import logger
 from configparser import ConfigParser
 
 from pymongo.mongo_client import MongoClient
@@ -132,7 +134,6 @@ class PreprocessConfig(object):
                 self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
                 print('WARNING: Make WORKING_DIR failed! Use the default: %s' % self.workspace)
                 UtilClass.mkdir(self.workspace)
-
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
         self.vecs = VectorNameUtils(self.dirs.geoshp)
@@ -140,6 +141,8 @@ class PreprocessConfig(object):
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.prepscript_dir + os.path.sep + 'database')
+
+        logger.configure_logging(self.dirs.log, "preprocess")
 
         if not self.clim_dir or not FileClass.is_dir_exists(self.clim_dir):
             print('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
@@ -247,7 +250,8 @@ class PreprocessConfig(object):
                 if_at_least_has_one = True
             if not if_at_least_has_one:
                 raise ValueError(
-                    'At least one of the soil property files MUST be specified in [SPATIAL]! (soilSEQNTextPhysical or soilSEQNTextConceptual)')
+                    'At least one of the soil property files MUST be specified in [SPATIAL]!'
+                    ' (soilSEQNTextPhysical or soilSEQNTextConceptual)')
 
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = get_option_value(cf, 'SPATIAL', 'additionalfile')
@@ -278,21 +282,19 @@ class PreprocessConfig(object):
 
             # HRU property files
             if cf.has_option('SPATIAL', 'HRU_properties'):
-                if self.is_lumped or self.has_conceptual_subbasin:
-                    raise ValueError('Warning: [SPATIAL] `HRU_properties` field is not allowed when `isLumped` or `hasConceptualSubbasin` is set to 1.')
                 hru_properties = get_option_value(cf, 'SPATIAL', 'HRU_properties', str)
                 # split and strip
                 hru_properties = [x.strip() for x in hru_properties.split(',')]
                 for prop in hru_properties:
-                    if prop == SpatialNamesUtils._SOILTYPEMFILE:
-                        self.hru_property_names.append(SpatialNamesUtils._SOILTYPEMFILE)
-                        self.hru_property_files.append(self.soil_property_conceptual)
+                    if prop == SpatialNamesUtils._SOILTYPEMFILE_CONCEPTUAL:
+                        self.hru_property_names.append(SpatialNamesUtils._SOILTYPEMFILE_PHYSICAL)
+                        self.hru_property_files.append(self.spatials.soil_type_conceptual)
                     elif prop == SpatialNamesUtils._LANDUSEMFILE:
                         self.hru_property_names.append(SpatialNamesUtils._LANDUSEMFILE)
-                        self.hru_property_files.append(self.landuse)
+                        self.hru_property_files.append(self.spatials.landuse)
                     else:
                         raise ValueError('Warning: [SPATIAL] `HRU_properties` field may be incorrectly written.\n'
-                                         'Correct example: HRU_properties = LANDUSE, SOILTYPE')
+                                         'Correct example: HRU_properties = LANDUSE, SOILTYPE_CONCEPTUAL')
             self._check_conceptual_setting()
             if self.is_lumped: # TODO: lump may use a single raster cell to represent the whole basin, using hru_subbasin_id. --wyj
                 self.conceptual_mask_file = self.spatials.mask
@@ -333,6 +335,11 @@ class PreprocessConfig(object):
     def _check_conceptual_setting(self):
         if not self.has_conceptual_subbasin and self.is_lumped:
             raise ValueError('Warning: [SPATIAL] Error if isLumped=1 and hasConceptualSubbasin=0.')
+
+    def fork_connection(self):
+        """Fork a new connection to MongoDB database."""
+        return ConnectMongoDB(self.hostname, self.port).conn
+
 
 def parse_ini_configuration():
     """Load model configuration from *.ini file"""

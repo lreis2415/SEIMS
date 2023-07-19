@@ -88,18 +88,18 @@ int OverlandRoutingDump::Execute() {
      for (int n = 0; n <= m_nSubbasins; n++) {
         m_Q_SBOF[n] = 0;
      }
-//#pragma omp parallel
+#pragma omp parallel
     {
         FLTPT* tmp_qsSub = new FLTPT[m_nSubbasins + 1];
         for (int i = 0; i <= m_nSubbasins; i++) {
             tmp_qsSub[i] = 0.;
         }
-//#pragma omp for
+#pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             tmp_qsSub[CVT_INT(m_cellsMappingToSubbasinId[i])] += m_surfaceRunoff[i] * m_cellArea[i];
             m_surfaceRunoff[i] = 0.0;
         } 
-//#pragma omp critical
+#pragma omp critical
         {
             for (int n = 1; n <= m_nSubbasins; n++) {
                 m_Q_SBOF[n] = tmp_qsSub[n] * 0.001 / m_timeStep;

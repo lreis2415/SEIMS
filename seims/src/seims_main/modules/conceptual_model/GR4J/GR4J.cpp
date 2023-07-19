@@ -192,7 +192,7 @@ void GR4J::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
 }
 
 void GR4J::CalculateSoilCapacity() {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < N_SOIL_LAYERS; j++) {
             m_soilCapacity[i][j] = m_soilThickness[i][j] * m_soilPorosity[i][j];
@@ -202,7 +202,7 @@ void GR4J::CalculateSoilCapacity() {
 
 
 void GR4J::Infiltration() {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         m_netEvapCapacity[i] = 0;
         if (m_pcp[i]<m_pet[i]) {
@@ -246,7 +246,7 @@ void GR4J::Infiltration() {
 }
 
 void GR4J::SoilEvaporation() {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if(m_netEvapCapacity[i]<=0) {
             continue;
@@ -271,7 +271,7 @@ void GR4J::SoilEvaporation() {
 }
 
 void GR4J::Percolation(int fromSoilLayer, int toSoilLayer) {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT stor = m_soilWaterStorage[i][fromSoilLayer];
         FLTPT maxStor = m_soilCapacity[i][fromSoilLayer];
@@ -293,7 +293,7 @@ void GR4J::Percolation(int fromSoilLayer, int toSoilLayer) {
 }
 
 void GR4J::PercolationExch(int fromSoilLayer, int toSoilLayer) {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT stor = m_soilWaterStorage[i][fromSoilLayer];
         FLTPT x2 = m_GR4J_X2[i][fromSoilLayer];
@@ -313,7 +313,7 @@ void GR4J::PercolationExch(int fromSoilLayer, int toSoilLayer) {
 
 void GR4J::PercolationExch2(int fromSoilLayer, int toSoilLayer) {
     // TODO: difference between exch exch2? Is Raven Exch2 correct?
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT stor = m_soilWaterStorage[i][SOIL_ROUTING_LAYER];
         FLTPT x2 = m_GR4J_X2[i][SOIL_ROUTING_LAYER];
@@ -332,7 +332,7 @@ void GR4J::PercolationExch2(int fromSoilLayer, int toSoilLayer) {
 
 
 void GR4J::Flush(FLTPT* fromStore, int toSoilLayer) {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         m_soilWaterStorage[i][toSoilLayer] += fromStore[i];
         fromStore[i] = 0;
@@ -344,7 +344,7 @@ void GR4J::Flush(FLTPT* fromStore, int toSoilLayer) {
 }
 
 void GR4J::Flush(int fromSoilLayer, FLTPT* toStore) {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         toStore[i] += m_soilWaterStorage[i][fromSoilLayer];
         m_soilWaterStorage[i][fromSoilLayer] = 0;
@@ -357,7 +357,7 @@ void GR4J::Flush(int fromSoilLayer, FLTPT* toStore) {
 
 //Split RAVEN_DEFAULT TEMP_STORE CONVOLUTION[0] CONVOLUTION[1] 0.9
 void GR4J::Split() {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         m_convEntering1[i] = m_soilWaterStorage[i][SOIL_TEMP_LAYER] * 0.9;
         m_convEntering2[i] = m_soilWaterStorage[i][SOIL_TEMP_LAYER] * 0.1;
@@ -432,7 +432,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
     vector<vector<FLTPT>>* convTransport = nullptr;
 
     FLTPT tstep = 1; // days
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT maxTime = 0;
         FLTPT x4 = m_GR4J_X4[i];
@@ -490,7 +490,7 @@ FLTPT GR4J::GR4J_SH2(const FLTPT& t, const FLTPT& x4) {
 
 void GR4J::Baseflow(int fromSoilLayer) {
     FLTPT t1 = 0;
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT x3 = m_GR4J_X3[i][fromSoilLayer];
         FLTPT stor = m_soilWaterStorage[i][fromSoilLayer];

@@ -795,7 +795,7 @@ class SoilUtilClass(object):
         """Soil spatial parameters extraction."""
         f = cfg.logs.extract_soil
         # 1. Calculate soil physical and chemical parameters
-        soiltype_file = cfg.spatials.soil_type
+        soiltype_file = cfg.spatials.soil_type_physical
         landuse_file = cfg.landuse_shp
         status_output("Calculating initial soil physical and chemical parameters...", 30, f)
         SoilUtilClass.lookup_soil_parameters(cfg.dirs.geodata2db, soiltype_file, cfg.soil_property, landuse_file)

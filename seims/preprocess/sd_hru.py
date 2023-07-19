@@ -172,7 +172,7 @@ def main():
     from preprocess.config import parse_ini_configuration
     cfg = parse_ini_configuration()
     hru = HruConstructor()
-    hru.add_property(SpatialNamesUtils._SOILTYPEMFILE, cfg.spatials.soil_type)
+    hru.add_property(SpatialNamesUtils._SOILTYPEMFILE_CONCEPTUAL, cfg.spatials.soil_type_conceptual)
     hru.add_property(SpatialNamesUtils._LANDUSEMFILE, cfg.spatials.landuse)
     hru.delineate(cfg)
 

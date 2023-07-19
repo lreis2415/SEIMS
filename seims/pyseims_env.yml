@@ -27,5 +27,7 @@ dependencies:
   - pathlib2
   - six
   - pip
+  - tqdm
   - pip:
       - -r requirements.txt
+      - pathos

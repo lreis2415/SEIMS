@@ -6,16 +6,34 @@
     - 22-06-07 - lj - Initial wrapper of mask_rasterio.
 """
 from __future__ import absolute_import, unicode_literals
+
+import functools
+from pathos import multiprocessing
+import os
+import traceback
+from io import open
+
+from pygeoc.utils import UtilClass, FileClass, is_string
 from six import string_types
 
-from io import open
-from pygeoc.utils import UtilClass, FileClass, is_string
 from preprocess.text import ParamAbstractionTypes
+
+# https://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected
+def trace_unhandled_exceptions(func):
+    @functools.wraps(func)
+    def wrapped_func(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except:
+            print('Exception in ' + func.__name__)
+            traceback.print_exc()
+
+    return wrapped_func
 
 
 def mask_rasterio(bin_dir, inoutcfg,
                   mongoargs=None, maskfile=None, cfgfile=None,
-                  include_nodata=True, abstraction_type=None, mode='MASK', opts=None):
+                  include_nodata=True, abstraction_type=None, mode='MASK', opts=None, np=-1):
     """Call mask_rasterio program (cpp version) to perform input/output of raster
 
     TODO: this function is very preliminary, need to be improved and tested!
@@ -77,21 +95,46 @@ def mask_rasterio(bin_dir, inoutcfg,
             cur_dict['-reclass'] = inout[reclsidx]
         parsed_inout.append(cur_dict)
 
-    if cfgfile is not None:
-        with open(cfgfile, 'w', encoding='utf-8') as f:
-            for dic in parsed_inout:
-                f.write('%s;%s;%s;%s;%s;%s\n' % (dic['-in'],
-                                                 dic['-out'] if '-out' in dic else '',
-                                                 dic['-default'] if '-default' in dic else '',
-                                                 dic['-nodata'] if '-nodata' in dic else '',
-                                                 dic['-outdatatype'] if '-outdatatype' in dic else '',
-                                                 dic['-reclass'] if '-reclass' in dic else ''))
-        commands += ['-configfile', cfgfile]
-        UtilClass.run_command(commands)
+    if np == -1:
+        np = os.cpu_count() // 2
+    elif np > 0:
+        if np > os.cpu_count():
+            raise Exception("Number of processes cannot excess number of CPU cores!")
     else:
+        raise Exception("Please set number of processes within [1, cpu_cores]!")
+    pool = multiprocessing.Pool(np)
+    if cfgfile is not None:
+        cfgfile_names = [f'{cfgfile}_{i}' for i in range(len(parsed_inout))]
+        cfgfiles = [open(fname, 'w', encoding='utf-8') for fname in cfgfile_names]
+        run_results = []
+        current_commands = [commands[:] + ['-configfile', f] for f in cfgfile_names]
+        for i in range(len(parsed_inout)):
+            f = cfgfiles[i]
+            dic = parsed_inout[i]
+            f.write('%s;%s;%s;%s;%s;%s' % (dic['-in'],
+                                             dic['-out'] if '-out' in dic else '',
+                                             dic['-default'] if '-default' in dic else '',
+                                             dic['-nodata'] if '-nodata' in dic else '',
+                                             dic['-outdatatype'] if '-outdatatype' in dic else '',
+                                             dic['-reclass'] if '-reclass' in dic else ''))
+            f.close()
+            run_results.append(pool.apply_async(run_command, [current_commands[i]]))
+        pool.close()
+        pool.join()
+        print(f'Finished {len(parsed_inout)} tasks ({cfgfile}) in multiprocessing pool size={np}.')
+    else:
+        run_results = []
         for curargs in parsed_inout:
-            curcommands = commands[:]
+            current_command = commands[:]
             for ck, cv in curargs.items():
-                curcommands.append(ck)
-                curcommands.append(cv)
-            UtilClass.run_command(curcommands)
+                current_command.append(ck)
+                current_command.append(cv)
+            run_results.append(pool.apply_async(run_command, [current_command]))
+        pool.close()
+        pool.join()
+        print(f'Finished {len(parsed_inout)} tasks in multiprocessing pool size={np}.')
+
+
+@trace_unhandled_exceptions
+def run_command(commands):
+    UtilClass.run_command(commands)

@@ -190,12 +190,20 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     int max_loop_num = max_lyr_id_all * multiplier;
     tstart = MPI_Wtime(); /// Start simulation
     int pre_year_idx = -1;
+    int last_simulation_progress = 0;
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
         act_loop_num += 1;
         int year_idx = GetYear(ts) - start_year;
-        //cout << endl << ConvertToString(ts) << endl;
         if (rank == MASTER_RANK) {
+            //print progress to console in debug window
+            int simulation_progress = (ts - start_time) * 100 / (end_time - start_time);
+            if (last_simulation_progress != simulation_progress && simulation_progress % 5 == 0) {
+                last_simulation_progress = simulation_progress;
+                cout << "Simulating progress: " << simulation_progress << "%" << endl;
+            }
+            //cout << endl << ConvertToString(ts) << endl;
+            //write progress to log file.
             if (pre_year_idx != year_idx) {
                 LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;
             }

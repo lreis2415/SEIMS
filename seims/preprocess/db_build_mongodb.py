@@ -10,6 +10,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+from pathos import multiprocessing
 import os
 import sys
 
@@ -128,7 +129,9 @@ class ImportMongodbClass(object):
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dormancy threshold
 
         # from SoilUtilClass.
-        mask_raster_cfg.append([cfg.spatials.soil_type, SpatialNamesUtils._SOILTYPEMFILE,
+        mask_raster_cfg.append([cfg.spatials.soil_type_physical, SpatialNamesUtils._SOILTYPEMFILE_PHYSICAL,
+                                cfg.default_soil, DEFAULT_NODATA, 'INT32'])  # soil type
+        mask_raster_cfg.append([cfg.spatials.soil_type_conceptual, SpatialNamesUtils._SOILTYPEMFILE_CONCEPTUAL,
                                 cfg.default_soil, DEFAULT_NODATA, 'INT32'])  # soil type
         # from LanduseUtilClass.parameters_extraction()
         mask_raster_cfg.append([cfg.spatials.landuse, SpatialNamesUtils._LANDUSEMFILE,
@@ -172,16 +175,15 @@ class ImportMongodbClass(object):
         UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def grid_layering(cfg, n_subbasins):  # type: (PreprocessConfig, int) -> None
+    def grid_layering(cfg, n_subbasins, algorithm):  # type: (PreprocessConfig, int) -> None
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.mkdir(layering_dir)
-        for alg in ['d8', 'dinf', 'mfdmd']:
-            str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' %\
-                      (cfg.seims_bin, alg, cfg.vecs.reach, layering_dir,
-                       cfg.hostname, cfg.port,
-                       cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
-            UtilClass.run_command(str_cmd)
+        str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' %\
+                  (cfg.seims_bin, algorithm, cfg.vecs.reach, layering_dir,
+                   cfg.hostname, cfg.port,
+                   cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
+        UtilClass.run_command(str_cmd)
 
     @staticmethod
     def workflow(cfg):  # type: (PreprocessConfig) -> None
@@ -189,44 +191,45 @@ class ImportMongodbClass(object):
         f = cfg.logs.build_mongo
 
         # status_output('Import model parameters to MongoDB', 10, f)
-        # ImportParam2Mongo.workflow(cfg)
+        ImportParam2Mongo.workflow(cfg)
         n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
         print('Number of subbasins: %d' % n_subbasins)
-        #
-        # status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
-        # extract_spatial_parameters(cfg)
-        #
-        # status_output('Generating reach table with initialized parameters...', 40, f)
-        # ImportReaches2Mongo.generate_reach_table(cfg)
-        #
-        # status_output('Importing necessary raster to MongoDB....', 50, f)
-        # ImportMongodbClass.spatial_rasters(cfg)
-        #
-        # status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60, f)
-        # ImportMongodbClass.iuh(cfg, 0)
-        # ImportMongodbClass.iuh(cfg, n_subbasins)
-        #
-        # # Import grid layering data
-        # status_output('Generating and importing grid layering....', 70, f)
-        # ImportMongodbClass.grid_layering(cfg, 0)
-        # ImportMongodbClass.grid_layering(cfg, n_subbasins)
-        #
-        # # Import hydro-climate data
-        # status_output('Import climate data....', 80, f)
-        # ImportMongodbClass.climate_data(cfg)
-        #
-        # # Import weight and related data, this should after ImportMongodbClass.climate_data()
-        # status_output('Generating weight data for interpolation of meteorology data '
-        #               'and weight dependent parameters....', 85, f)
-        ImportWeightData.workflow(cfg, 0)
-        print('Flag1')
-        ImportWeightData.workflow(cfg, n_subbasins)
-        print('Flag2')
 
+        status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
+        extract_spatial_parameters(cfg)
+
+        status_output('Generating reach table with initialized parameters...', 40, f)
+        ImportReaches2Mongo.generate_reach_table(cfg)
+
+        status_output('Importing necessary raster to MongoDB....', 50, f)
+        ImportMongodbClass.spatial_rasters(cfg)
+
+        pool = multiprocessing.Pool(cfg.np)
+        status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60, f)
+        pool.apply_async(ImportMongodbClass.iuh, (cfg, 0))
+        pool.apply_async(ImportMongodbClass.iuh, (cfg, n_subbasins))
+
+        for alg in ['d8', 'dinf', 'mfdmd']:
+            pool.apply_async(ImportMongodbClass.grid_layering, (cfg, 0, alg))
+            pool.apply_async(ImportMongodbClass.grid_layering, (cfg, n_subbasins, alg))
+
+        pool.close()
+        pool.join()
+
+        status_output('Finish importing IUH and grid_layering with multiprocessing pool.', 70, f)
+
+        # Import hydro-climate data
+        status_output('Import climate data....', 80, f)
+        ImportMongodbClass.climate_data(cfg)
+
+        # Import weight and related data, this should after ImportMongodbClass.climate_data()
+        status_output('Generating weight data for interpolation of meteorology data '
+                      'and weight dependent parameters....', 85, f)
+        ImportWeightData.workflow(cfg, 0)
+        ImportWeightData.workflow(cfg, n_subbasins)
         # Measurement Data, such as discharge, sediment yield.
         status_output('Import observed data, such as discharge, sediment yield....', 90, f)
         ImportObservedData.workflow(cfg)
-        print('Flag3')
 
         # Import BMP scenario database to MongoDB
         status_output('Importing bmp scenario....', 95, f)

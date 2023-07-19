@@ -157,7 +157,9 @@ class SpatialDelineation(object):
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dinf-dist down V
 
         FileClass.check_file_exists(cfg.soil)
-        mask_raster_cfg.append([cfg.soil, cfg.spatials.soil_type,
+        mask_raster_cfg.append([cfg.soil, cfg.spatials.soil_type_physical,
+                                cfg.default_soil, DEFAULT_NODATA, 'INT32'])  # soil type
+        mask_raster_cfg.append([cfg.soil, cfg.spatials.soil_type_conceptual,
                                 cfg.default_soil, DEFAULT_NODATA, 'INT32'])  # soil type
         FileClass.check_file_exists(cfg.landuse)
         mask_raster_cfg.append([cfg.landuse, cfg.spatials.landuse,
@@ -242,9 +244,7 @@ class SpatialDelineation(object):
         # Delineate spatial units
         SpatialDelineation.delineate_spatial_units(cfg)
         # Delineate HRU
-        print('Delineating HRU...')
         SpatialDelineation.delineate_HRU(cfg)
-        print('Delineating HRU Done')
 
 
 def main():

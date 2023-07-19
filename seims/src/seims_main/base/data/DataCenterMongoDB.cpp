@@ -2,10 +2,10 @@
 #include "text.h"
 #include "Logging.h"
 
-const int MAIN_DB_TABS_REQ_NUM = 7;
+const int MAIN_DB_TABS_REQ_NUM = 6;
 const char* MAIN_DB_TABS_REQ[] = {
     DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
-    DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL, DB_TAB_SUBBASIN_ABSTRACTION
+    DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL
 };
 
 const int METEO_VARS_NUM = 6;
@@ -48,12 +48,10 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is physical";
     }
 
-    if(is_lumped) {
-        outlet_id_ = 0;
-        n_subbasins_ = 1;
-    }else {
-        outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
-        n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
+    outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
+    n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
+    if(is_lumped && n_subbasins_ > 1) {
+        throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "isLumped=0 in preprocess.ini but model structure config is lumped!");
     }
 
     if (outlet_id_ < 0 || n_subbasins_ < 0) {

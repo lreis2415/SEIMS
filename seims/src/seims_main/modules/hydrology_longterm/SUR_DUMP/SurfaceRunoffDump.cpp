@@ -81,11 +81,11 @@ int SurfaceRunoffDump::Execute() {
         m_surfaceRunoff[i] = m_pcp[i];
     }
 
+#ifdef PRINT_DEBUG
     FLTPT sum = 0;
     for (int i = 0; i < m_nCells; i++) {
         sum += m_surfaceRunoff[i];
     }
-#ifdef PRINT_DEBUG
     printf("\n[SurfaceRunoffDump] m_surfaceRunoff=%f\n", sum);
     fflush(stdout);
 #endif
