@@ -11,6 +11,8 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import utility.logger
+import logging
 import os
 
 import numpy
@@ -62,7 +64,7 @@ class DelineateHillslope(object):
                 2 - Set to the value of left hillslope and head hillslope, <name>_l.tif
                 3 - Set stream cell to NoData, <name>_n.tif
         """
-        print('Delineating hillslopes (header, left, and right hillslope)...')
+        logging.info('Delineating hillslopes (header, left, and right hillslope)...')
         streamr = RasterUtilClass.read_raster(stream_raster)
         stream_data = streamr.data
         stream_nodata = streamr.noDataValue

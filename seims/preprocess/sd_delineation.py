@@ -22,6 +22,7 @@ from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
 from osgeo.osr import SpatialReference as osr_SpatialReference
 from osgeo.osr import OAMS_TRADITIONAL_GIS_ORDER
 
+import logging
 from pygeoc.TauDEM import TauDEM, TauDEM_Ext, TauDEMWorkflow
 from pygeoc.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from pygeoc.raster import RasterUtilClass
@@ -80,14 +81,12 @@ class SpatialDelineation(object):
                                              workingdir=cfg.dirs.taudem,
                                              mpi_bin=cfg.mpi_bin,
                                              bin_dir=cfg.seims_bin,
-                                             logfile=cfg.logs.delineation,
                                              avoid_redo=True)
         # Convert D8 encoding rule to ArcGIS
         D8Util.convert_code(cfg.taudems.d8flow, cfg.taudems.d8flow_m)
         # D-inf flow direction
         TauDEM.dinfflowdir(cfg.np, cfg.taudems.filldem, cfg.taudems.dinf, cfg.taudems.dinf_slp,
-                           workingdir=cfg.dirs.taudem, mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin,
-                           log_file=cfg.logs.delineation)
+                           workingdir=cfg.dirs.taudem, mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin,)
 
         # Convert Dinf to compressed flow direction according to ArcGIS encoding rule
         DinfUtil.output_compressed_dinf(cfg.taudems.dinf, cfg.taudems.dinf_d8dir,
@@ -101,19 +100,19 @@ class SpatialDelineation(object):
                                 cfg.taudems.mfdmd_frac,
                                 min_portion=cfg.min_flowfrac,
                                 p0=1.1, rng=8.9, lb=0., ub=1.,  # TODO, specified in ini file. lj
-                                workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                                workingdir=cfg.dirs.taudem,
                                 mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Distance to stream using Surface method based on D8 flow direction
         TauDEM_Ext.d8distdowntostream(cfg.np, cfg.taudems.d8flow, cfg.taudems.filldem,
                                       cfg.taudems.stream_raster, cfg.taudems.dist2stream_d8,
                                       cfg.distdown_method, 1,
-                                      workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                                      workingdir=cfg.dirs.taudem,
                                       mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Distance to stream using Surface method in Average length based on D-inf flow direction
         TauDEM.dinfdistdown(cfg.np, cfg.taudems.dinf, cfg.taudems.filldem, cfg.taudems.dinf_slp,
                             cfg.taudems.stream_raster, 'Average', cfg.distdown_method, False,
                             cfg.taudems.dinf, cfg.taudems.dist2stream_dinf,
-                            workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
+                            workingdir=cfg.dirs.taudem,
                             mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Copy shapefiles
         UtilClass.mkdir(cfg.dirs.geoshp)

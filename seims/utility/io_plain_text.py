@@ -9,6 +9,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import logging
 from io import open
 import os
 from collections import OrderedDict
@@ -28,15 +29,15 @@ class SpecialJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def status_output(status_msg, percent, file_name):
-    # type: (AnyStr, Union[int, float], AnyStr) -> None
+def status_output(status_msg, percent):
+    # type: (AnyStr, Union[int, float]) -> None
     """Print status and flush to file.
     Args:
         status_msg: status message
         percent: percentage rate of progress
         file_name: file name
     """
-    UtilClass.writelog(file_name, "[Output] %d..., %s" % (percent, status_msg), 'a')
+    logging.info("[%d] %s" % (percent, status_msg))
 
 
 def read_data_items_from_txt(txt_file):

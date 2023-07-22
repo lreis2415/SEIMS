@@ -12,7 +12,7 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -88,7 +88,7 @@ class ImportParam2Mongo(object):
             bulk_requests.append(InsertOne(data_import))
         # execute import operators
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_parameter], bulk_requests)
-        print('Inserted %d initial parameters!' % (results.inserted_count
+        logging.info('Inserted %d initial parameters!' % (results.inserted_count
               if results is not None else 0))
         # initialize index by parameter's type and name by ascending order.
         cfg.maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
@@ -126,7 +126,7 @@ class ImportParam2Mongo(object):
             update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
         # execute update operators
         results = MongoUtil.run_bulk_write(coll, update_requests)
-        print('Updated %d calibration parameters!' % (results.modified_count
+        logging.info('Updated %d calibration parameters!' % (results.modified_count
               if results is not None else 0))
 
     @staticmethod
@@ -291,7 +291,7 @@ class ImportParam2Mongo(object):
             iitem_dict = read_output_item(out_field_array, iitem)
             insert_requests.append(InsertOne(iitem_dict))
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], insert_requests)
-        print('Inserted %d initial outputs settings!' % (results.inserted_count
+        logging.info('Inserted %d initial outputs settings!' % (results.inserted_count
               if results is not None else 0))
 
         # begin to import the desired outputs
@@ -322,7 +322,7 @@ class ImportParam2Mongo(object):
             update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
         # execute import operators
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], update_requests)
-        print('Updated %d desired outputs!' % (results.modified_count
+        logging.info('Updated %d desired outputs!' % (results.modified_count
               if results is not None else 0))
 
     @staticmethod
@@ -367,7 +367,7 @@ class ImportParam2Mongo(object):
                 if len(item_value) > 0:
                     item_values.append(item_value)
             res = MongoUtil.run_bulk_write(cfg.maindb[tablename.upper()], insert_requests)
-            print('Inserted %d items of %s!' % (res.inserted_count if res is not None else 0,
+            logging.info('Inserted %d items of %s!' % (res.inserted_count if res is not None else 0,
                                                 tablename))
             # begin import gridfs file
             n_row = len(item_values)

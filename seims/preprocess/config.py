@@ -12,12 +12,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import logging
 import sys
 import os
 from os.path import join as pjoin
 
 from pymongo import InsertOne
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -132,7 +132,7 @@ class PreprocessConfig(object):
                 UtilClass.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
-                print('WARNING: Make WORKING_DIR failed! Use the default: %s' % self.workspace)
+                logging.warning('Make WORKING_DIR failed! Use the default: %s' % self.workspace)
                 UtilClass.mkdir(self.workspace)
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
@@ -145,27 +145,27 @@ class PreprocessConfig(object):
         logger.configure_logging(self.dirs.log, "preprocess")
 
         if not self.clim_dir or not FileClass.is_dir_exists(self.clim_dir):
-            print('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
+            logging.info('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.path.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
                 raise IOError(
                     'Preprocess configuration file error! Nor is the CLIMATE_DATA_DIR specified, or the default folder named "climate" exist in BASE_DATA_DIR.')
 
         if not self.spatial_dir or not FileClass.is_dir_exists(self.spatial_dir):
-            print('The SPATIAL_DATA_DIR is not specified or does not exist. Try the default folder name "spatial".')
+            logging.info('The SPATIAL_DATA_DIR is not specified or does not exist. Try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.path.sep + 'spatial'
             if not FileClass.is_dir_exists(self.spatial_dir):
                 raise IOError(
                     'Preprocess configuration file error! Nor is the SPATIAL_DATA_DIR specified, or the default folder named "spatial" exist in BASE_DATA_DIR.')
 
         if not self.txt_db_dir or not FileClass.is_dir_exists(self.txt_db_dir):
-            print('The TXT_DB_DIR is not specified or does not exist. Try the default folder name "lookup".')
+            logging.info('The TXT_DB_DIR is not specified or does not exist. Try the default folder name "lookup".')
             self.txt_db_dir = self.base_dir + os.path.sep + 'lookup'
             if not FileClass.is_dir_exists(self.txt_db_dir):
                 self.txt_db_dir = None
 
         if not self.observe_dir or not FileClass.is_dir_exists(self.observe_dir):
-            print('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
+            logging.info('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
                   'Try the default folder name "observed".')
             self.observe_dir = self.base_dir + os.path.sep + 'observed'
             if not FileClass.is_dir_exists(self.observe_dir):
@@ -173,7 +173,7 @@ class PreprocessConfig(object):
                 self.use_observed = False
 
         if not self.scenario_dir or not FileClass.is_dir_exists(self.scenario_dir):
-            print('The BMP_DATA_DIR is not specified or does not exist. Try the default folder name "scenario".')
+            logging.info('The BMP_DATA_DIR is not specified or does not exist. Try the default folder name "scenario".')
             self.scenario_dir = self.base_dir + os.path.sep + 'scenario'
             if not FileClass.is_dir_exists(self.scenario_dir):
                 self.scenario_dir = None

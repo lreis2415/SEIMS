@@ -386,11 +386,6 @@ class VectorNameUtils(object):
 
 class LogNameUtils(object):
     """predefined log file names"""
-    _STATUS_DELINEATION = 'status_SubbasinDelineation.txt'
-    _STATUS_EXTRACTSOILPARAM = 'status_ExtractSoilParameters.txt'
-    _STATUS_EXTRACTLANDUSEPARAM = 'status_ExtractLanduseParameters.txt'
-    _STATUS_EXTRACTTERRAINPARAM = 'status_ExtractTerrainParameters.txt'
-    _STATUS_MONGO = 'status_BuildMongoDB.txt'
     _CONFIG_MASKRASTERS = 'config_maskDelineatedRaster.txt'
     _CONFIG_RECLASSIFYSOIL_PHYSICAL = 'config_reclassSoilPhysical.txt'
     _CONFIG_RECLASSIFYSOIL_CONCEPTUAL = 'config_reclassSoilConceptual.txt'
@@ -400,11 +395,6 @@ class LogNameUtils(object):
 
     def __init__(self, log_dir):
         """assign log file path"""
-        self.delineation = log_dir + SEP + LogNameUtils._STATUS_DELINEATION
-        self.extract_soil = log_dir + SEP + LogNameUtils._STATUS_EXTRACTSOILPARAM
-        self.extract_lu = log_dir + SEP + LogNameUtils._STATUS_EXTRACTLANDUSEPARAM
-        self.extract_terrain = log_dir + SEP + LogNameUtils._STATUS_EXTRACTTERRAINPARAM
-        self.build_mongo = log_dir + SEP + LogNameUtils._STATUS_MONGO
         self.mask_cfg = log_dir + SEP + LogNameUtils._CONFIG_MASKRASTERS
         self.reclasssoil_physical_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL_PHYSICAL
         self.reclasssoil_conceptual_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL_CONCEPTUAL

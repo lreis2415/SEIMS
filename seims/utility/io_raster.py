@@ -12,11 +12,12 @@ from pathos import multiprocessing
 import os
 import traceback
 from io import open
-
 from pygeoc.utils import UtilClass, FileClass, is_string
 from six import string_types
 
+import logging
 from preprocess.text import ParamAbstractionTypes
+
 
 # https://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected
 def trace_unhandled_exceptions(func):
@@ -24,9 +25,9 @@ def trace_unhandled_exceptions(func):
     def wrapped_func(*args, **kwargs):
         try:
             func(*args, **kwargs)
-        except:
-            print('Exception in ' + func.__name__)
-            traceback.print_exc()
+        except Exception:
+            logging.error('Exception in ' + func.__name__ + '()')
+            logging.error(traceback.format_exc())
 
     return wrapped_func
 
@@ -112,16 +113,17 @@ def mask_rasterio(bin_dir, inoutcfg,
             f = cfgfiles[i]
             dic = parsed_inout[i]
             f.write('%s;%s;%s;%s;%s;%s' % (dic['-in'],
-                                             dic['-out'] if '-out' in dic else '',
-                                             dic['-default'] if '-default' in dic else '',
-                                             dic['-nodata'] if '-nodata' in dic else '',
-                                             dic['-outdatatype'] if '-outdatatype' in dic else '',
-                                             dic['-reclass'] if '-reclass' in dic else ''))
+                                           dic['-out'] if '-out' in dic else '',
+                                           dic['-default'] if '-default' in dic else '',
+                                           dic['-nodata'] if '-nodata' in dic else '',
+                                           dic['-outdatatype'] if '-outdatatype' in dic else '',
+                                           dic['-reclass'] if '-reclass' in dic else ''))
             f.close()
+            # logging.info(f'Starting command: %s', ' '.join(current_commands[i]))
             run_results.append(pool.apply_async(run_command, [current_commands[i]]))
         pool.close()
         pool.join()
-        print(f'Finished {len(parsed_inout)} tasks ({cfgfile}) in multiprocessing pool size={np}.')
+        logging.info(f'Finished {len(parsed_inout)} tasks ({cfgfile}) in multiprocessing pool size={np}.')
     else:
         run_results = []
         for curargs in parsed_inout:
@@ -129,10 +131,11 @@ def mask_rasterio(bin_dir, inoutcfg,
             for ck, cv in curargs.items():
                 current_command.append(ck)
                 current_command.append(cv)
+            # logging.info('Starting command: %s', ' '.join(current_command))
             run_results.append(pool.apply_async(run_command, [current_command]))
         pool.close()
         pool.join()
-        print(f'Finished {len(parsed_inout)} tasks in multiprocessing pool size={np}.')
+        logging.info(f'Finished {len(parsed_inout)} tasks in multiprocessing pool size={np}.')
 
 
 @trace_unhandled_exceptions

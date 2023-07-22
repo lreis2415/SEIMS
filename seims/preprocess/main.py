@@ -12,7 +12,7 @@ from __future__ import absolute_import, unicode_literals
 import time
 import sys
 import os
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 # Load configuration file
@@ -34,7 +34,7 @@ def workflow():
     ImportMongodbClass.workflow(seims_cfg)
 
     end_time = time.time()
-    print('SEIMS preprocess done, time-consuming: %.2f seconds.' % (end_time - start_time))
+    logging.info('SEIMS preprocess done, time-consuming: %.2f seconds.' % (end_time - start_time))
 
 
 if __name__ == "__main__":

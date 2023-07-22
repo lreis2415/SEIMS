@@ -17,8 +17,7 @@ from __future__ import absolute_import, unicode_literals
 import math
 import os
 import sys
-import functools
-
+import logging
 import numpy as np
 import rasterio
 
@@ -135,14 +134,14 @@ class SoilUtilClass(object):
                 return
             if default_soil_seq is None or default_soil_seq not in soil_types_in_lookup:
                 default_soil_seq = soil_types_in_lookup[0]
-                print('Default soil type is not specified or not in the lookup table, '
+                logging.info('Default soil type is not specified or not in the lookup table, '
                       f'use the first soil type in the lookup table as default soil type {default_soil_seq}.')
         with rasterio.open(workspace_soil_file, 'r+') as src_workspace:
             data = src_workspace.read(1)
             for missing_type in missing_values:
                 data[data == missing_type] = default_soil_seq
             src_workspace.write(data, 1)
-            print(f'Missing soil types in lookup table: {missing_values} '
+            logging.info(f'Missing soil types in lookup table: {missing_values} '
                   f'have been written as {default_soil_seq} into {workspace_soil_file}.')
 
     @staticmethod

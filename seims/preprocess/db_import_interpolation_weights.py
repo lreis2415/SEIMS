@@ -13,6 +13,7 @@ from pathos import multiprocessing
 import os
 import sys
 from io import open
+import logging
 
 from numpy import arange
 from pyproj import CRS
@@ -215,7 +216,7 @@ class ImportWeightData(object):
         myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
+        logging.info('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
         return True
 
     @staticmethod
@@ -364,7 +365,7 @@ class ImportWeightData(object):
                                 thiessen_weight[res[1]] = 1
                                 line = pack('%df' % len(loc_list), *thiessen_weight)
                                 myfile.write(line)
-                print(f'saving weight data of {fname} in subbasin {subbsn_id}, conceptual={is_conceptual} done.')
+                logging.info(f'saving weight data of {fname} in subbasin {subbsn_id}, conceptual={is_conceptual} done.')
     @staticmethod
     def workflow(cfg, n_subbasins):
         """Workflow"""

@@ -14,7 +14,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 from datetime import timedelta
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -171,7 +171,7 @@ class ImportMeteoData(object):
         # if count % 500 != 0:
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
                                            bulk_requests)
-        print('Inserted %d data items!' % (results.inserted_count
+        logging.info('Inserted %d data items!' % (results.inserted_count
                                            if results is not None else 0))
 
         for item, cur_climate_stats in list(hydro_climate_stats.items()):
@@ -229,7 +229,7 @@ class ImportMeteoData(object):
     @staticmethod
     def workflow(cfg):
         """Workflow"""
-        print('Import Daily Meteorological Data... ')
+        logging.info('Import Daily Meteorological Data... ')
         site_m_loc = HydroClimateUtilClass.query_climate_sites(cfg.climatedb, 'M')
         ImportMeteoData.daily_data_from_txt(cfg.climatedb, cfg.Meteo_data, site_m_loc)
 
@@ -244,7 +244,7 @@ def main():
     st = time.time()
     ImportMeteoData.workflow(seims_cfg)
     et = time.time()
-    print(et - st)
+    logging.info(et - st)
 
 
 if __name__ == "__main__":

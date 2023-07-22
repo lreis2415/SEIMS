@@ -17,7 +17,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 from datetime import timedelta
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -192,7 +192,7 @@ class ImportObservedData(object):
 
         results = MongoUtil.run_bulk_write(hydro_clim_db[DBTableNames.observes],
                                            bulk_requests)
-        print('Inserted %d observed data!' % (results.inserted_count
+        logging.info('Inserted %d observed data!' % (results.inserted_count
                                               if results is not None else 0))
 
         # 3. Add measurement data with unit converted
