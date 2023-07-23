@@ -93,7 +93,6 @@ jobs:
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit_message: ${{ github.event.head_commit.message }}
-          disable_nojekyll: true
           publish_branch: gh-pages
           force_orphan: true
           publish_dir: html

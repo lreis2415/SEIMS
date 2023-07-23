@@ -86,14 +86,16 @@ public:
 
     void SetUp() OVERRIDE {
         // Read mask data without calculate valid positions
-        // Mask data that do not matched exactly
+        // Mask data that do not match exactly
         maskrs_ = IntRaster::Init(GetParam()->mask_name, false);
         ASSERT_NE(nullptr, maskrs_);
         EXPECT_FALSE(maskrs_->PositionsCalculated());
         EXPECT_EQ(maskrs_->GetRasterPositionDataPointer(), nullptr);
+        EXPECT_EQ(maskrs_->GetRasterPositionIndexPointer(), nullptr);
         maskrs_->SetCalcPositions();
         EXPECT_TRUE(maskrs_->PositionsCalculated());
         EXPECT_NE(maskrs_->GetRasterPositionDataPointer(), nullptr);
+        EXPECT_NE(maskrs_->GetRasterPositionIndexPointer(), nullptr);
 
         EXPECT_TRUE(maskrs_->PositionsCalculated());
         EXPECT_EQ(3, maskrs_->GetValidNumber());
@@ -111,9 +113,11 @@ public:
         ASSERT_NE(nullptr, maskrs2_);
         EXPECT_FALSE(maskrs2_->PositionsCalculated());
         EXPECT_EQ(maskrs2_->GetRasterPositionDataPointer(), nullptr);
+        EXPECT_EQ(maskrs2_->GetRasterPositionIndexPointer(), nullptr);
         maskrs2_->SetCalcPositions();
         EXPECT_TRUE(maskrs2_->PositionsCalculated());
         EXPECT_NE(maskrs2_->GetRasterPositionDataPointer(), nullptr);
+        EXPECT_NE(maskrs2_->GetRasterPositionIndexPointer(), nullptr);
 
         EXPECT_TRUE(maskrs2_->PositionsCalculated());
         EXPECT_EQ(5, maskrs2_->GetValidNumber());
@@ -176,6 +180,7 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactNoPosNoMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_EQ(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_EQ(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -304,9 +309,12 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactNoPosNoMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
     mongors_valid->SetPositions(poslen, posdata);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -360,6 +368,7 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactNoPosUseMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -487,9 +496,12 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactNoPosUseMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -543,6 +555,7 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactCalPosNoMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -668,9 +681,12 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactCalPosNoMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -724,6 +740,7 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactCalPosUseMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -851,9 +868,12 @@ TEST_P(clsRasterDataTestMaskExceed, MatchExactCalPosUseMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -908,6 +928,7 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactNoPosNoMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_EQ(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_EQ(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -1033,9 +1054,12 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactNoPosNoMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -1090,6 +1114,7 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactNoPosUseMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -1224,9 +1249,12 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactNoPosUseMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -1281,6 +1309,7 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactCalPosNoMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -1406,9 +1435,12 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactCalPosNoMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
@@ -1463,6 +1495,7 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactCalPosUseMaskExt) {
     EXPECT_NE(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_EQ(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -1588,9 +1621,12 @@ TEST_P(clsRasterDataTestMaskExceed, NotMatchExactCalPosUseMaskExt) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr,
