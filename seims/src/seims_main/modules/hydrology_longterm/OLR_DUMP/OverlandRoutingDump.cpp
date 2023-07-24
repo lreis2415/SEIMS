@@ -102,7 +102,7 @@ int OverlandRoutingDump::Execute() {
 #pragma omp critical
         {
             for (int n = 1; n <= m_nSubbasins; n++) {
-                m_Q_SBOF[n] = tmp_qsSub[n] * 0.001 / m_timeStep;
+                m_Q_SBOF[n] += tmp_qsSub[n] * 0.001 / m_timeStep;
             }
         }
         delete[] tmp_qsSub;

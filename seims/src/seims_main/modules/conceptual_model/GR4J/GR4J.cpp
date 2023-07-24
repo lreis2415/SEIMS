@@ -24,10 +24,11 @@ void GR4J::printSoilWater() {
 }
 
 GR4J::GR4J() :
+    N_SOIL_LAYERS(4),SOIL_PRODUCT_LAYER(1),SOIL_ROUTING_LAYER(2),SOIL_TEMP_LAYER(3),SOIL_GW_LAYER(4),
     m_nCells(-1), m_timeStep(-1), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     //infiltration
-    m_pcp(nullptr), m_soilThickness(nullptr), m_soilPorosity(nullptr), m_soilCapacity(nullptr),
+    m_pcp(nullptr),m_NEPR_input(nullptr), m_soilThickness(nullptr), m_soilPorosity(nullptr), m_soilCapacity(nullptr),
     m_infil(nullptr), m_soilWaterStorage(nullptr), m_pcpExcess(nullptr),m_netEvapCapacity(nullptr),
     //soil evaporation
     m_pet(nullptr), m_soilET(nullptr),
@@ -57,7 +58,13 @@ void GR4J::InitialOutputs() {
     Initialize1DArray(m_nCells, m_convEntering2, 0.);
 
 
-//#pragma omp parallel for
+    if (m_NEPR_input != nullptr) {
+#pragma omp parallel for
+        for (int i = 0; i < m_nCells; i++) {
+            m_pcp[i] = m_NEPR_input[i];
+        }
+    }
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < N_SOIL_LAYERS; ++j) {
             m_soilCapacity[i][j] = m_soilPorosity[i][j] * m_soilThickness[i][j];
@@ -113,6 +120,7 @@ void GR4J::Set1DData(const char* key, int n, FLTPT* data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_PCP[0])) { m_pcp = data; }
+    else if (StringMatch(sk, VAR_NEPR[0])) { m_NEPR_input = data; }
     else if (StringMatch(sk, VAR_PET[0])) { m_pet = data; }
     else if (StringMatch(sk, VAR_GR4J_X4[0])) { m_GR4J_X4 = data; }
     else {
@@ -279,8 +287,8 @@ void GR4J::Percolation(int fromSoilLayer, int toSoilLayer) {
             continue;
         }
         //TODO: In Raven, it is:
-        //    rates[0]=stor*(1.0-pow(1.0+pow(4.0/9.0*Max(stor/max_stor,0.0),4),-0.25))/Options.timestep;
-        FLTPT perc = stor * (1.0 - pow(1.0 + pow(4.0 / 9.0 * Max(stor / maxStor, 0.0), 4), -0.25));
+        //    rates[0]=stor*(1.0-CalPow(1.0+CalPow(4.0/9.0*Max(stor/max_stor,0.0),4),-0.25))/Options.timestep;
+        FLTPT perc = stor * (1.0 - CalPow(1.0 + CalPow(4.0 / 9.0 * Max(stor / maxStor, 0.0), 4), -0.25));
 
         m_soilWaterStorage[i][fromSoilLayer] -= perc;
         m_soilWaterStorage[i][toSoilLayer] += perc;
@@ -300,7 +308,7 @@ void GR4J::PercolationExch(int fromSoilLayer, int toSoilLayer) {
         FLTPT x3 = m_GR4J_X3[i][fromSoilLayer];
 
         //note - x2 can be negative (exports) or positive (imports/baseflow)
-        FLTPT perc = -x2 * pow(Max(Min(stor / x3, 1.0), 0.0), 3.5);
+        FLTPT perc = -x2 * CalPow(Max(Min(stor / x3, 1.0), 0.0), 3.5);
 
         m_soilWaterStorage[i][fromSoilLayer] -= perc;
         m_soilWaterStorage[i][toSoilLayer] += perc;
@@ -320,7 +328,7 @@ void GR4J::PercolationExch2(int fromSoilLayer, int toSoilLayer) {
         FLTPT x3 = m_GR4J_X3[i][SOIL_ROUTING_LAYER];
 
         //note - x2 can be negative (exports) or positive (imports/baseflow)
-        FLTPT perc = -x2 * pow(Max(Min(stor / x3, 1.0), 0.0), 3.5);
+        FLTPT perc = -x2 * CalPow(Max(Min(stor / x3, 1.0), 0.0), 3.5);
         m_soilWaterStorage[i][fromSoilLayer] -= perc;
         m_soilWaterStorage[i][toSoilLayer] += perc;
     }
@@ -389,7 +397,7 @@ void GR4J::Convolve(ConvoleType t) {
         toSoilLayer = SOIL_TEMP_LAYER;
     }
     else {
-        throw ModelException(CM_GR4J[0], "Convolve", "unknown convolution type " + std::to_string(t));
+        throw ModelException(CM_GR4J[0], "Convolve", "unknown convolution type " + ValueToString(t));
     }
 
     //FLTPT t1 = 0;
@@ -448,7 +456,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
             unitHydro = &m_unitHydro2;
         }
         else {
-            throw ModelException(CM_GR4J[0], "GenerateUnitHydrograph", "unknown convolution type " + std::to_string(t));
+            throw ModelException(CM_GR4J[0], "GenerateUnitHydrograph", "unknown convolution type " + ValueToString(t));
         }
 
         int N = ceil(maxTime / tstep);
@@ -460,7 +468,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
         for (int n = 0; n < N; ++n) {
             FLTPT h = 0.0;
             if (t == CONVOL_GR4J_1) {
-                h = Min(pow((n+1)*tstep/x4,2.5), 1.0) - Min(pow(n*tstep/x4,2.5), 1.0);
+                h = Min(CalPow((n+1)*tstep/x4,2.5), 1.0) - Min(CalPow(n*tstep/x4,2.5), 1.0);
             }
             else if (t == CONVOL_GR4J_2) {
                 h = GR4J_SH2((n + 1) * tstep, x4) - GR4J_SH2(n * tstep, x4);
@@ -478,10 +486,10 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
 
 FLTPT GR4J::GR4J_SH2(const FLTPT& t, const FLTPT& x4) {
     if (t / x4 < 1.0) {
-        return 0.5 * pow(t / x4, 2.5);
+        return 0.5 * CalPow(t / x4, 2.5);
     }
     else if (t / x4 < 2.0) {
-        return 1.0 - 0.5 * pow(2 - t / x4, 2.5);
+        return 1.0 - 0.5 * CalPow(2 - t / x4, 2.5);
     }
     else {
         return 1.0;
@@ -494,7 +502,7 @@ void GR4J::Baseflow(int fromSoilLayer) {
     for (int i = 0; i < m_nCells; i++) {
         FLTPT x3 = m_GR4J_X3[i][fromSoilLayer];
         FLTPT stor = m_soilWaterStorage[i][fromSoilLayer];
-        FLTPT q = stor * (1.0 - pow(1.0 + pow(Max(stor/x3, 0.0), 4), -0.25));
+        FLTPT q = stor * (1.0 - CalPow(1.0 + CalPow(Max(stor/x3, 0.0), 4), -0.25));
         t1 += q;
         m_pcpExcess[i] += q;
         m_soilWaterStorage[i][fromSoilLayer] -= q;

@@ -40,7 +40,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
     }
     is_subbasin_conceptual = factory->isSubbasinConceptual(subbasin_id_);
-    is_lumped = factory->isLumped();
+    //is_lumped = factory->isLumped(); //TODO: check if lumped model is OK if commented. --wyj
     if (is_subbasin_conceptual) {
         CLOG(INFO, LOG_INIT) << "Process " << mpi_rank_ << ": Subbasin " << subbasin_id_ << " is conceptual";
     }
@@ -50,9 +50,9 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
 
     outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
     n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);
-    if(is_lumped && n_subbasins_ > 1) {
-        throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "isLumped=0 in preprocess.ini but model structure config is lumped!");
-    }
+    //if(is_lumped && n_subbasins_ > 1) {
+    //    throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "isLumped=0 in preprocess.ini but model structure config is lumped!");
+    //}
 
     if (outlet_id_ < 0 || n_subbasins_ < 0) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
@@ -125,7 +125,11 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     string mask_filename = GetUpper(oss.str());
     STRING_MAP opts;
     if (is_subbasin_conceptual) {
+#ifdef HAS_VARIADIC_TEMPLATES
         opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_CONEPTUAL);
+#else
+        opts.insert(make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_CONEPTUAL));
+#endif
     }
     mask_raster_ = IntRaster::Init(spatial_gridfs_, mask_filename.c_str(),
         false,nullptr,true,NODATA_VALUE,opts);
@@ -136,9 +140,13 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 #else
     rs_int_map_.insert(make_pair(mask_filename, mask_raster_));
 #endif
-    
+
     if (is_subbasin_conceptual) {
+#ifdef HAS_VARIADIC_TEMPLATES
         opts.emplace(HEADER_INC_NODATA, "FALSE");
+#else
+        opts.insert(make_pair(HEADER_INC_NODATA, "FALSE"));
+#endif
     }
     /// 6. Constructor Subbasin data. Subbasin and slope data are required!
     oss.str("");

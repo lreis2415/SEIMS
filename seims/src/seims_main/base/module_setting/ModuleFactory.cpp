@@ -58,9 +58,8 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     set<int> structureSubbasins; // 1,2,5,6,7,8,9,10 subbasins are `isConceptual`
     bool isConceptual = false;
 
-    for(string cfg_file:cfg_files)
-    {
-        if (!ReadConfigFile(cfg_file.c_str(), moduleIDs, moduleSettings, structureSubbasins, isConceptual))
+    for(auto cfg_file=cfg_files.begin();cfg_file!=cfg_files.end();++cfg_file){
+        if (!ReadConfigFile(cfg_file->c_str(), moduleIDs, moduleSettings, structureSubbasins, isConceptual))
             return nullptr;
         if (structureSubbasins.find(input_args->subbasin_id) != structureSubbasins.end()){
             break;
@@ -787,9 +786,8 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         */
         if (i == 0) {
             vector<string> subbasinTokens = SplitString(line, ',');
-            for (string token : subbasinTokens)
-            {
-                vector<string> subbasins = SplitString(token, '-');
+            for(auto token=subbasinTokens.begin();token!=subbasinTokens.end();++token) {
+                vector<string> subbasins = SplitString(*token, '-');
                 int start = atoi(subbasins.at(0).c_str());
 
                 if (subbasins.size() == 1) {
@@ -856,7 +854,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
                     // For time series data reading modules, e.g.:
                     //   0 | TimeSeries | | TSD_RD
                     // will be updated as:
-                    //   0 | TimeSeries_P | | TSD_RD, etc. ����ģ����ƴ�������������ͣ����硰P��
+                    //   0 | TimeSeries_P | | TSD_RD, etc.
                     tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
@@ -898,7 +896,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.emplace_back(module);// ģ��id = .cfg�ļ��е�MODULE ID + "d"  + "_" + ��������"P", eg."TSD_RDd_P" ��"TSD_RDd_TMEAN"
+                moduleIDs.emplace_back(module);
             }
         }
     } catch (...) {

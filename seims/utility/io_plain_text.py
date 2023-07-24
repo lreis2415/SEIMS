@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """Read and write of plain text file.
 
     @author   : Liangjun Zhu
@@ -80,7 +80,7 @@ def read_simulation_from_txt(ws,  # type: AnyStr
     for i, v in enumerate(plot_vars):
         txtfile = ws + os.path.sep + v + '.txt'
         if not FileClass.is_file_exists(txtfile):
-            print('WARNING: Simulation variable file: %s is not existed!' % txtfile)
+            logging.warning('Simulation variable file: %s is not existed!' % txtfile)
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False
@@ -107,6 +107,6 @@ def read_simulation_from_txt(ws,  # type: AnyStr
         if data_available:
             plot_vars_existed.append(v)
 
-    print('Read simulation from %s to %s done.' % (stime.strftime('%c'),
-                                                   etime.strftime('%c')))
+    logging.debug('Read simulation from %s to %s done.' % (stime.strftime('%c'),
+                                                          etime.strftime('%c')))
     return plot_vars_existed, sim_data_dict
