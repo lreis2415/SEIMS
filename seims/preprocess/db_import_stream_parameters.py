@@ -16,6 +16,7 @@ import shutil
 import os
 import sys
 from io import open
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -182,7 +183,7 @@ class ImportReaches2Mongo(object):
         UtilClass.mkdir(wp + os.path.sep + 'kmetis')
         UtilClass.mkdir(wp + os.path.sep + 'pmetis')
         for n in nlist:
-            print('divide number: %d' % n)
+            logging.info('divide number: %d' % n)
             if n <= 1:
                 for subbsn_id in g.nodes():
                     group_dict[subbsn_id]['group'].append(1)
@@ -300,7 +301,7 @@ class ImportReaches2Mongo(object):
         if outlet < 0:
             raise ValueError('Cannot find outlet subbasin ID, please check the '
                              'threshold for stream extraction!')
-        print('outlet subbasin:%d' % outlet)
+        logging.info('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins from 1
         downstream_up_order_dic = dict()

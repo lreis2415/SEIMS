@@ -282,7 +282,8 @@ class SpatialNamesUtils(object):
     _CHDEPTH = 'CH_DEPTH'
     _LANDUSEMFILE = 'LANDUSE'
     _CROPMFILE = 'LANDCOVER'  # added by LJ.
-    _SOILTYPEMFILE = 'SOILTYPE'
+    _SOILTYPEMFILE_PHYSICAL = 'SOILTYPE_PHYSICAL'
+    _SOILTYPEMFILE_CONCEPTUAL = 'SOILTYPE_CONCEPTUAL'
     # _MGTFIELDMFILE = 'mgt_fields'
     _SOILTEXTURE = 'SOIL_TEXTURE'
     _HYDROGROUP = 'HYDRO_GROUP'
@@ -334,7 +335,8 @@ class SpatialNamesUtils(object):
         self.chdepth = spa_dir + SEP + self._CHDEPTH + '.tif'
         self.landuse = spa_dir + SEP + self._LANDUSEMFILE + '.tif'
         self.crop = spa_dir + SEP + self._CROPMFILE + '.tif'
-        self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE + '.tif'
+        self.soil_type_physical = spa_dir + SEP + self._SOILTYPEMFILE_PHYSICAL + '.tif'
+        self.soil_type_conceptual = spa_dir + SEP + self._SOILTYPEMFILE_CONCEPTUAL + '.tif'
         # self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
         self.mgt_field = list()
         self.soil_texture = spa_dir + SEP + self._SOILTEXTURE + '.tif'
@@ -384,26 +386,18 @@ class VectorNameUtils(object):
 
 class LogNameUtils(object):
     """predefined log file names"""
-    _STATUS_DELINEATION = 'status_SubbasinDelineation.txt'
-    _STATUS_EXTRACTSOILPARAM = 'status_ExtractSoilParameters.txt'
-    _STATUS_EXTRACTLANDUSEPARAM = 'status_ExtractLanduseParameters.txt'
-    _STATUS_EXTRACTTERRAINPARAM = 'status_ExtractTerrainParameters.txt'
-    _STATUS_MONGO = 'status_BuildMongoDB.txt'
     _CONFIG_MASKRASTERS = 'config_maskDelineatedRaster.txt'
-    _CONFIG_RECLASSIFYSOIL = 'config_reclassSoil.txt'
+    _CONFIG_RECLASSIFYSOIL_PHYSICAL = 'config_reclassSoilPhysical.txt'
+    _CONFIG_RECLASSIFYSOIL_CONCEPTUAL = 'config_reclassSoilConceptual.txt'
     _CONFIG_RECLASSIFYLU = 'config_reclassLanduse.txt'
     _CONFIG_RECLASSIFYLC = 'config_reclassLandcoverSpecific.txt'
     _CONFIG_RECLASSIFYLC_DEF = 'config_reclassLandcoverDefault.txt'
 
     def __init__(self, log_dir):
         """assign log file path"""
-        self.delineation = log_dir + SEP + LogNameUtils._STATUS_DELINEATION
-        self.extract_soil = log_dir + SEP + LogNameUtils._STATUS_EXTRACTSOILPARAM
-        self.extract_lu = log_dir + SEP + LogNameUtils._STATUS_EXTRACTLANDUSEPARAM
-        self.extract_terrain = log_dir + SEP + LogNameUtils._STATUS_EXTRACTTERRAINPARAM
-        self.build_mongo = log_dir + SEP + LogNameUtils._STATUS_MONGO
         self.mask_cfg = log_dir + SEP + LogNameUtils._CONFIG_MASKRASTERS
-        self.reclasssoil_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL
+        self.reclasssoil_physical_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL_PHYSICAL
+        self.reclasssoil_conceptual_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYSOIL_CONCEPTUAL
         self.reclasslu_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLU
         self.reclasslc_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLC
         self.reclasslc_cfg = log_dir + SEP + LogNameUtils._CONFIG_RECLASSIFYLC
@@ -422,6 +416,7 @@ class RasterMetadata(object):
     cellsize = 'CELLSIZE'
     subbasin = 'SUBBASIN'
     cellnum = 'CELLSNUM'
+    datatype_out = 'DATATYPE_OUT'
     # for weight data
     site_num = 'NUM_SITES'
     srs = 'SRS'

@@ -15,9 +15,12 @@ SNO_SP::SNO_SP() :
 }
 
 SNO_SP::~SNO_SP() {
-    if (m_snowMelt != nullptr) Release1DArray(m_snowMelt);
-    if (m_SA != nullptr) Release1DArray(m_SA);
-    if (m_packT != nullptr) Release1DArray(m_packT);
+    Release1DArray(m_snowMelt);
+    Release1DArray(m_SA);
+    Release1DArray(m_packT);
+    Release1DArray(m_snowAccum);
+    Release1DArray(m_SE);
+
 }
 
 bool SNO_SP::CheckInputData() {

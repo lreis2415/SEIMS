@@ -17,6 +17,7 @@ from __future__ import absolute_import, unicode_literals
 import math
 import os
 import sys
+import logging
 
 from preprocess.sp_soil_base import SoilPropertyBase, SoilUtilClass
 from preprocess.text import ParamAbstractionTypes

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """Read and write of plain text file.
 
     @author   : Liangjun Zhu
@@ -9,6 +9,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import logging
 from io import open
 import os
 from collections import OrderedDict
@@ -28,15 +29,15 @@ class SpecialJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def status_output(status_msg, percent, file_name):
-    # type: (AnyStr, Union[int, float], AnyStr) -> None
+def status_output(status_msg, percent):
+    # type: (AnyStr, Union[int, float]) -> None
     """Print status and flush to file.
     Args:
         status_msg: status message
         percent: percentage rate of progress
         file_name: file name
     """
-    UtilClass.writelog(file_name, "[Output] %d..., %s" % (percent, status_msg), 'a')
+    logging.info("[%d] %s" % (percent, status_msg))
 
 
 def read_data_items_from_txt(txt_file):
@@ -79,7 +80,7 @@ def read_simulation_from_txt(ws,  # type: AnyStr
     for i, v in enumerate(plot_vars):
         txtfile = ws + os.path.sep + v + '.txt'
         if not FileClass.is_file_exists(txtfile):
-            print('WARNING: Simulation variable file: %s is not existed!' % txtfile)
+            logging.warning('Simulation variable file: %s is not existed!' % txtfile)
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False
@@ -106,6 +107,6 @@ def read_simulation_from_txt(ws,  # type: AnyStr
         if data_available:
             plot_vars_existed.append(v)
 
-    print('Read simulation from %s to %s done.' % (stime.strftime('%c'),
-                                                   etime.strftime('%c')))
+    logging.debug('Read simulation from %s to %s done.' % (stime.strftime('%c'),
+                                                          etime.strftime('%c')))
     return plot_vars_existed, sim_data_dict

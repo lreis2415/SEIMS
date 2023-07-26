@@ -17,7 +17,11 @@ from __future__ import absolute_import, unicode_literals
 import math
 import os
 import sys
-import functools
+import logging
+import numpy as np
+import rasterio
+
+from preprocess.config import PreprocessConfig
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -31,7 +35,6 @@ from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
 from utility import status_output, read_data_items_from_txt
 from utility import mask_rasterio
 from preprocess.text import ParamAbstractionTypes
-
 
 class SoilPropertyBase(object):
     SEQN = "SEQN"
@@ -80,7 +83,6 @@ class SoilPropertyBase(object):
     def _construct(self):
         pass
 
-    # @construct_wrapper
     def construct(self):
         if self.SOILLAYERS == DEFAULT_NODATA:
             raise ValueError("Soil layer numbers is REQUIRED, please check the input file!")
@@ -102,7 +104,16 @@ class SoilPropertyBase(object):
         self._construct()
 
     def find_and_set_attr(self, attr, value):
-        if hasattr(self, attr):
+        if not hasattr(self, attr):
+            return
+        # if attr = [...], value = [...], replace it
+        if isinstance(getattr(self, attr), list) and isinstance(value, list):
+            setattr(self, attr, value)
+        # elseif attr = [...], value = ..., append it
+        elif isinstance(getattr(self, attr), list) and not isinstance(value, list):
+            getattr(self, attr).append(value)
+        # else if attr is single value, replace it
+        else:
             setattr(self, attr, value)
 
 
@@ -113,10 +124,40 @@ class SoilUtilClass(object):
         pass
 
     @staticmethod
-    def _get_soil_property_instances(soil_property_class, soil_lookup_file):
+    def _reclassify_missing_soil_types_in_lookup(original_soil_file, workspace_soil_file, soil_types_in_lookup, default_soil_seq):
+        """Reclassify missing soil types in lookup table to default soil type."""
+        with rasterio.open(original_soil_file, 'r') as src_origin:
+            data = src_origin.read(1)
+            unique_values = np.unique(data)
+            missing_values = set(unique_values) - set(soil_types_in_lookup) - {src_origin.nodata}
+            if not missing_values:
+                return
+            if default_soil_seq is None or default_soil_seq not in soil_types_in_lookup:
+                default_soil_seq = soil_types_in_lookup[0]
+                logging.info('Default soil type is not specified or not in the lookup table, '
+                      f'use the first soil type in the lookup table as default soil type {default_soil_seq}.')
+        with rasterio.open(workspace_soil_file, 'r+') as src_workspace:
+            data = src_workspace.read(1)
+            for missing_type in missing_values:
+                data[data == missing_type] = default_soil_seq
+            src_workspace.write(data, 1)
+            logging.info(f'Missing soil types in lookup table: {missing_values} '
+                  f'have been written as {default_soil_seq} into {workspace_soil_file}.')
+
+    @staticmethod
+    def _get_soil_property_instances(cfg, soil_property_class, soil_lookup_file):
         soil_lookup_data = read_data_items_from_txt(soil_lookup_file)
         soil_instances = list()
         soil_prop_flds = soil_lookup_data[0][:]
+
+        if soil_property_class.soil_param_type() == ParamAbstractionTypes.PHYSICAL:
+            workspace_soil_file = cfg.spatials.soil_type_physical
+        else:
+            workspace_soil_file = cfg.spatials.soil_type_conceptual
+        SoilUtilClass._reclassify_missing_soil_types_in_lookup(cfg.soil,
+                                                               workspace_soil_file,
+                                                               [int(row[0]) for row in soil_lookup_data[1:]],
+                                                               cfg.default_soil)
 
         for i in range(1, len(soil_lookup_data)):
             cur_soil_data_item = soil_lookup_data[i][:]
@@ -144,14 +185,15 @@ class SoilUtilClass(object):
         return soil_instances
 
     @staticmethod
-    def lookup_soil_parameters(soil_property_class, soil_lookup_file):
+    def lookup_soil_parameters(cfg, soil_property_class, soil_lookup_file):
         """Reclassify soil parameters by lookup table.
 
         Returns:
             recls_dict: dict, e.g., {'OM': '201:1.3|1.2|0.6,202:1.4|1.1|0.8'}
         """
         #  Read soil properties from txt file
-        soil_instances = SoilUtilClass._get_soil_property_instances(soil_property_class, soil_lookup_file)
+
+        soil_instances = SoilUtilClass._get_soil_property_instances(cfg, soil_property_class, soil_lookup_file)
 
         soil_prop_dict = dict()
         for sol in soil_instances:
@@ -313,42 +355,35 @@ class SoilUtilClass(object):
     @staticmethod
     def parameters_extraction(cfg, soil_property_class):
         """Soil spatial parameters extraction."""
-        f = cfg.logs.extract_soil
-
-        soil_property_file = None
-        if soil_property_class.soil_param_type() == ParamAbstractionTypes.CONCEPTUAL:
-            status_output('Calculating initial soil conceptual parameters...', 30, f)
-            soil_property_file = cfg.soil_property_conceptual
-        elif soil_property_class.soil_param_type() == ParamAbstractionTypes.PHYSICAL:
-            status_output('Calculating initial soil physical and chemical parameters...', 30, f)
+        # if conceptual
+        soil_property_file = cfg.soil_property_conceptual
+        inoutcfg_soilfile = cfg.spatials.soil_type_conceptual
+        maskfile = cfg.conceptual_mask_file
+        cfg_file_name = cfg.logs.reclasssoil_conceptual_cfg
+        if soil_property_class.soil_param_type() == ParamAbstractionTypes.PHYSICAL:
             soil_property_file = cfg.soil_property_physical
-        else:
-            raise ValueError('Unknown soil property type: %s. Known types: %s' %
-                             (soil_property_class.soil_param_type(), ParamAbstractionTypes.as_list()))
-        recls_dict = SoilUtilClass.lookup_soil_parameters(soil_property_class, soil_property_file)
+            inoutcfg_soilfile = cfg.spatials.soil_type_physical
+            maskfile = cfg.spatials.subbsn
+            cfg_file_name = cfg.logs.reclasssoil_physical_cfg
 
-        status_output('Decomposing to MongoDB and exclude nodata values to save space...', 50, f)
+        SoilUtilClass._parameters_extraction(cfg, inoutcfg_soilfile, maskfile, soil_property_file, cfg_file_name, soil_property_class)
+
+
+    @staticmethod
+    def _parameters_extraction(cfg:PreprocessConfig, inoutcfg_soilfile, maskfile, soil_property_file, cfg_file_name, soil_property_class):
+        recls_dict = SoilUtilClass.lookup_soil_parameters(cfg, soil_property_class, soil_property_file)
         inoutcfg = list()
         for k, v in recls_dict.items():
-            inoutcfg.append([cfg.spatials.soil_type, k,
+            inoutcfg.append([inoutcfg_soilfile, k,
                              DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
-                      maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasssoil_cfg,
+                      maskfile=maskfile, cfgfile=cfg_file_name,
                       include_nodata=False, mode='MASKDEC',
-                      abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
-
-        mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
-                      maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasssoil_cfg,
-                      include_nodata=False, mode='MASKDEC',
-                      abstraction_type=ParamAbstractionTypes.PHYSICAL)
-
-        # other soil related spatial parameters
-        status_output('Calculating initial soil moisture...', 90, f)
+                      abstraction_type=soil_property_class.soil_param_type())
         SoilUtilClass.initial_soil_moisture(cfg.spatials.d8acc, cfg.spatials.slope,
                                             cfg.spatials.init_somo)
 
-        status_output('Soil related spatial parameters extracted done!', 100, f)
 
 
 def main():

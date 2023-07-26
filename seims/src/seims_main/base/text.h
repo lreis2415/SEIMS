@@ -162,6 +162,7 @@ CONST_CHARS_LIST VAR_SUBBASIN_PARAM[] = {"SubbasinParam", "Statistics of subbasi
 // Files or database constant strings
 CONST_CHARS TextExtension =                         "txt"; ///< plain text format
 CONST_CHARS File_Config =                           "config.fig"; ///< modules list
+CONST_CHARS File_Structure_Config_Suffix_Pattern =  "structure*.config"; ///< modules list
 CONST_CHARS File_Input =                            "file.in"; ///< simulation period, timestep, etc.
 CONST_CHARS File_Output =                           "file.out"; ///< define output variables
 CONST_CHARS Source_HydroClimateDB =                 "HydroClimateDB"; ///< hydro and climate database

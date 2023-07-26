@@ -12,15 +12,17 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import logging
 import sys
 import os
 from os.path import join as pjoin
 
 from pymongo import InsertOne
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from pathlib import Path
+from utility import logger
 from configparser import ConfigParser
 
 from pymongo.mongo_client import MongoClient
@@ -80,7 +82,11 @@ class PreprocessConfig(object):
         self.fields_partition = False
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
-        self.conceptual_subbasins = None
+        self.has_conceptual_subbasin = False
+        self.is_lumped = False
+        self.hru_property_names = list()
+        self.hru_property_files = list()
+        self.conceptual_mask_file = None
         # 5. Option parameters
         self.acc_thresh = 0
         self.np = 4
@@ -126,9 +132,8 @@ class PreprocessConfig(object):
                 UtilClass.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
-                print('WARNING: Make WORKING_DIR failed! Use the default: %s' % self.workspace)
+                logging.warning('Make WORKING_DIR failed! Use the default: %s' % self.workspace)
                 UtilClass.mkdir(self.workspace)
-
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
         self.vecs = VectorNameUtils(self.dirs.geoshp)
@@ -137,26 +142,30 @@ class PreprocessConfig(object):
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.prepscript_dir + os.path.sep + 'database')
 
+        logger.configure_logging(self.dirs.log, "preprocess")
+
         if not self.clim_dir or not FileClass.is_dir_exists(self.clim_dir):
-            print('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
+            logging.info('The CLIMATE_DATA_DIR is not specified or does not exist. Try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.path.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
-                raise IOError('Preprocess configuration file error! Nor is the CLIMATE_DATA_DIR specified, or the default folder named "climate" exist in BASE_DATA_DIR.')
+                raise IOError(
+                    'Preprocess configuration file error! Nor is the CLIMATE_DATA_DIR specified, or the default folder named "climate" exist in BASE_DATA_DIR.')
 
         if not self.spatial_dir or not FileClass.is_dir_exists(self.spatial_dir):
-            print('The SPATIAL_DATA_DIR is not specified or does not exist. Try the default folder name "spatial".')
+            logging.info('The SPATIAL_DATA_DIR is not specified or does not exist. Try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.path.sep + 'spatial'
             if not FileClass.is_dir_exists(self.spatial_dir):
-                raise IOError('Preprocess configuration file error! Nor is the SPATIAL_DATA_DIR specified, or the default folder named "spatial" exist in BASE_DATA_DIR.')
+                raise IOError(
+                    'Preprocess configuration file error! Nor is the SPATIAL_DATA_DIR specified, or the default folder named "spatial" exist in BASE_DATA_DIR.')
 
         if not self.txt_db_dir or not FileClass.is_dir_exists(self.txt_db_dir):
-            print('The TXT_DB_DIR is not specified or does not exist. Try the default folder name "lookup".')
+            logging.info('The TXT_DB_DIR is not specified or does not exist. Try the default folder name "lookup".')
             self.txt_db_dir = self.base_dir + os.path.sep + 'lookup'
             if not FileClass.is_dir_exists(self.txt_db_dir):
                 self.txt_db_dir = None
 
         if not self.observe_dir or not FileClass.is_dir_exists(self.observe_dir):
-            print('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
+            logging.info('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
                   'Try the default folder name "observed".')
             self.observe_dir = self.base_dir + os.path.sep + 'observed'
             if not FileClass.is_dir_exists(self.observe_dir):
@@ -164,7 +173,7 @@ class PreprocessConfig(object):
                 self.use_observed = False
 
         if not self.scenario_dir or not FileClass.is_dir_exists(self.scenario_dir):
-            print('The BMP_DATA_DIR is not specified or does not exist. Try the default folder name "scenario".')
+            logging.info('The BMP_DATA_DIR is not specified or does not exist. Try the default folder name "scenario".')
             self.scenario_dir = self.base_dir + os.path.sep + 'scenario'
             if not FileClass.is_dir_exists(self.scenario_dir):
                 self.scenario_dir = None
@@ -232,13 +241,17 @@ class PreprocessConfig(object):
                 self.soil_property_physical = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntext'))
                 if_at_least_has_one = True
             elif cf.has_option('SPATIAL', 'soilseqntextphysical'):
-                self.soil_property_physical = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntextphysical'))
+                self.soil_property_physical = pjoin(self.txt_db_dir,
+                                                    get_option_value(cf, 'SPATIAL', 'soilseqntextphysical'))
                 if_at_least_has_one = True
             if cf.has_option('SPATIAL', 'soilseqntextconceptual'):
-                self.soil_property_conceptual = pjoin(self.txt_db_dir, get_option_value(cf, 'SPATIAL', 'soilseqntextconceptual'))
+                self.soil_property_conceptual = pjoin(self.txt_db_dir,
+                                                      get_option_value(cf, 'SPATIAL', 'soilseqntextconceptual'))
                 if_at_least_has_one = True
             if not if_at_least_has_one:
-                raise ValueError('At least one of the soil property files MUST be specified in [SPATIAL]! (soilSEQNTextPhysical or soilSEQNTextConceptual)')
+                raise ValueError(
+                    'At least one of the soil property files MUST be specified in [SPATIAL]!'
+                    ' (soilSEQNTextPhysical or soilSEQNTextConceptual)')
 
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = get_option_value(cf, 'SPATIAL', 'additionalfile')
@@ -258,11 +271,37 @@ class PreprocessConfig(object):
                     self.fields_partition = True
 
             # Conceptual subbasins
-            if cf.has_option('SPATIAL', 'conceptualSubbasins'):
-                conceptuals = get_option_value(cf, 'SPATIAL', 'conceptualSubbasins', str)  # Type: str
-                conceptuals = list(map(int, conceptuals.split(',')))
-                self._set_conceptual_subbasins(conceptuals)
-                self._save_conceptual_subbasins_to_mongodb()
+            if cf.has_option('SPATIAL', 'hasConceptualSubbasin'):
+                value = get_option_value(cf, 'SPATIAL', 'hasConceptualSubbasin', int)
+                if value == 1:
+                    self.has_conceptual_subbasin = True
+            if cf.has_option('SPATIAL', 'isLumped'):
+                value = get_option_value(cf, 'SPATIAL', 'isLumped', int)
+                if value == 1:
+                    self.is_lumped = True
+
+            # HRU property files
+            if cf.has_option('SPATIAL', 'HRU_properties'):
+                hru_properties = get_option_value(cf, 'SPATIAL', 'HRU_properties', str)
+                # split and strip
+                hru_properties = [x.strip() for x in hru_properties.split(',')]
+                for prop in hru_properties:
+                    if prop == SpatialNamesUtils._SOILTYPEMFILE_CONCEPTUAL:
+                        self.hru_property_names.append(SpatialNamesUtils._SOILTYPEMFILE_PHYSICAL)
+                        self.hru_property_files.append(self.spatials.soil_type_conceptual)
+                    elif prop == SpatialNamesUtils._LANDUSEMFILE:
+                        self.hru_property_names.append(SpatialNamesUtils._LANDUSEMFILE)
+                        self.hru_property_files.append(self.spatials.landuse)
+                    else:
+                        raise ValueError('Warning: [SPATIAL] `HRU_properties` field may be incorrectly written.\n'
+                                         'Correct example: HRU_properties = LANDUSE, SOILTYPE_CONCEPTUAL')
+            self._check_conceptual_setting()
+            if self.is_lumped: # TODO: lump may use a single raster cell to represent the whole basin, using hru_subbasin_id. --wyj
+                self.conceptual_mask_file = self.spatials.mask
+            elif self.has_conceptual_subbasin:
+                self.conceptual_mask_file = self.spatials.hru_subbasin_id
+
+
 
         else:
             raise ValueError('Spatial input file names MUST be specified in [SPATIAL]!')
@@ -293,44 +332,14 @@ class PreprocessConfig(object):
             self.default_landuse = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultlanduse', int)
             self.default_soil = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultsoil', int)
 
-    def _set_conceptual_subbasins(self, clist):
-        """
-        Set conceptual subbasins.
-        -1 means no conceptual subbasins, all physical
-        0 means all conceptual
-        1, 2, 3, ... means conceptual subbasin ID
-        """
-        # if 0 and -1 both in clist, then invalid
-        if len(clist) > 1 and 0 in clist and -1 in clist:
-            raise ValueError('Conceptual subbasins cannot be both 0 (all) and -1 (none)!')
-        if -1 in clist:
-            return
-        if 0 in clist:
-            self.conceptual_subbasins = [0]
-        else:
-            self.conceptual_subbasins = clist
+    def _check_conceptual_setting(self):
+        if not self.has_conceptual_subbasin and self.is_lumped:
+            raise ValueError('Warning: [SPATIAL] Error if isLumped=1 and hasConceptualSubbasin=0.')
 
-    def _save_conceptual_subbasins_to_mongodb(self):
-        if not self.has_conceptual_subbasins():
-            value_str =  '-1'
-        else:
-            value_str = ','.join([str(c) for c in self.conceptual_subbasins])
-        coll = self.maindb[DBTableNames.main_subbasin_abstraction]
-        dic = {
-            ModelCfgFields.tag: 'CONCEPTUAL_SUBBASINS',
-            ModelCfgFields.value: value_str
-        }
-        res = coll.find_one_and_update({ModelCfgFields.tag: 'CONCEPTUAL_SUBBASINS'}, {'$set': dic}, upsert=True)
-        # execute import operators
-        print(res)
+    def fork_connection(self):
+        """Fork a new connection to MongoDB database."""
+        return ConnectMongoDB(self.hostname, self.port).conn
 
-    def has_conceptual_subbasins(self):
-        if self.conceptual_subbasins is None or len(self.conceptual_subbasins) == 0:
-            return False
-        return True
-
-    def is_lumped(self):
-        return self.has_conceptual_subbasins() and 0 in self.conceptual_subbasins
 
 def parse_ini_configuration():
     """Load model configuration from *.ini file"""

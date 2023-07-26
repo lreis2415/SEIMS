@@ -13,6 +13,7 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from utility import logger
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -30,7 +31,6 @@ def main():
         print('%s is not one of the available demo watershed: %s' %
               (wtsd_name, ','.join(list(DEMO_MODELS.keys()))))
         exit(-1)
-
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
     model_paths = ModelPaths(SEIMS_path, wtsd_name, DEMO_MODELS[wtsd_name])

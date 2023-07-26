@@ -14,7 +14,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 from datetime import timedelta
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -79,7 +79,7 @@ class ImportPrecipitation(object):
 
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
                                            bulk_requests)
-        print('Inserted %d initial parameters!' % (results.inserted_count
+        logging.info('Inserted %d initial parameters!' % (results.inserted_count
                                                    if results is not None else 0))
         # Create index
         climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
@@ -108,7 +108,7 @@ class ImportPrecipitation(object):
         elif origin_unit == 'mm/h':
             origin_index = 2
         else:
-            print("origin unit is not supported")
+            logging.error("origin unit is not supported")
             exit()
 
         if new_unit == 'mm/s':
@@ -118,7 +118,7 @@ class ImportPrecipitation(object):
         elif new_unit == 'mm/h':
             new_index = 2
         else:
-            print("new unit is not supported")
+            logging.error("new unit is not supported")
             exit()
         conversion_factor = conversion_matrix[origin_index][new_index]
 
@@ -211,7 +211,7 @@ class ImportPrecipitation(object):
         elif origin_unit == 'mm/h':
             origin_index = 2
         else:
-            print("origin unit is not supported")
+            logging.error("origin unit is not supported")
             exit()
 
         if new_unit == 'mm/s':
@@ -221,7 +221,7 @@ class ImportPrecipitation(object):
         elif new_unit == 'mm/h':
             new_index = 2
         else:
-            print("new unit is not supported")
+            logging.error("new unit is not supported")
             exit()
         conversion_factor = conversion_matrix[origin_index][new_index]
 
@@ -336,7 +336,7 @@ class ImportPrecipitation(object):
     @staticmethod
     def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Workflow"""
-        print('Import Daily Precipitation Data... ')
+        logging.info('Import Daily Precipitation Data... ')
         # Please add an argument in the preprocess.ini to decide
         # to import regular, or storm, or both
         # Neither of two import functions should be commented.
@@ -354,7 +354,7 @@ def main():
     st = time.time()
     ImportPrecipitation.workflow(seims_cfg)
     et = time.time()
-    print(et - st)
+    logging.info(et - st)
 
 
 if __name__ == "__main__":

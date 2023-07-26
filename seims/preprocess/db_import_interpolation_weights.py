@@ -9,9 +9,17 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+from pathos import multiprocessing
 import os
 import sys
 from io import open
+import logging
+
+from numpy import arange
+from pyproj import CRS
+from tqdm import tqdm, trange
+
+from preprocess.config import PreprocessConfig
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -31,6 +39,7 @@ from utility import UTIL_ZERO
 
 class ImportWeightData(object):
     """Spatial weight and its related data"""
+
 
     @staticmethod
     def cal_dis(x1, y1, x2, y2):
@@ -85,10 +94,11 @@ class ImportWeightData(object):
         return s, i_min
 
     @staticmethod
-    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, has_conceptual_subbasins):
+    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, has_conceptual_subbasin):
         ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.PHYSICAL)
-        if has_conceptual_subbasins:
+        if has_conceptual_subbasin:
             ImportWeightData._generate_weight_dependent_parameters(conn, maindb, subbsn_id, ParamAbstractionTypes.CONCEPTUAL)
+
     @staticmethod
     def _generate_weight_dependent_parameters(conn, maindb, subbsn_id, param_abstraction_type):
         """Generate some parameters dependent on weight data and only should be calculated once.
@@ -206,25 +216,34 @@ class ImportWeightData(object):
         myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
+        logging.info('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
         return True
 
     @staticmethod
-    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, is_conceptual):
-        ImportWeightData._climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, False)
+    def climate_itp_weight_thiessen(cfg: PreprocessConfig, subbsn_id):
+        """
+        Required options in cfg:
+            cfg.has_conceptual_subbasin: directory to store weight data as txt file
+        """
+        is_conceptual = cfg.has_conceptual_subbasin
+
+        ImportWeightData._climate_itp_weight_thiessen(cfg, subbsn_id, False)
         if is_conceptual:
-            ImportWeightData._climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, True)
+            ImportWeightData._climate_itp_weight_thiessen(cfg, subbsn_id, True)
 
     @staticmethod
-    def _climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, is_conceptual):
+    def _climate_itp_weight_thiessen(cfg: PreprocessConfig, subbsn_id, is_conceptual):
         """Generate and import weight information using Thiessen polygon method.
 
-        Args:
-            conn:
-            db_model: workflow database object
-            subbsn_id: subbasin id
-            geodata2dbdir: directory to store weight data as txt file
+        Required options in cfg:
+            cfg.conn:
+            cfg.maindb: workflow database object
+            cfg.dirs.geodata2db,: subbasin id
         """
+        conn = cfg.fork_connection()
+        db_model = conn[cfg.spatial_db]
+        geodata2dbdir = cfg.dirs.geodata2db
+
         spatial_gfs = GridFS(db_model, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
         mask_name = '%d_SUBBASIN' % subbsn_id
@@ -261,11 +280,12 @@ class ImportWeightData(object):
 
         # count number of valid cells using numpy
         data = np.array(data)
-        #count non nan
+
+        # count non nan
         num = np.count_nonzero(~np.isnan(data))
 
         # read stations information from database, collection SITELIST
-        meta_param_abstraction= {ParamAbstractionTypes.get_field_key(): param_abstraction_type}
+        meta_param_abstraction = {ParamAbstractionTypes.get_field_key(): param_abstraction_type}
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num,
                    RasterMetadata.inc_nodata: 'FALSE',
@@ -290,6 +310,7 @@ class ImportWeightData(object):
             del type_list[2]
             del site_lists[2]
 
+
         # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
         #     type_list = [DataType.p]
         #     site_lists = [p_list]
@@ -309,7 +330,7 @@ class ImportWeightData(object):
                 cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
 
                 # meteorology station can also be used as precipitation station
-                if hydro_clim_db[DBTableNames.sites].count_documents(q_dic) == 0 and\
+                if hydro_clim_db[DBTableNames.sites].count_documents(q_dic) == 0 and \
                     type_list[type_i] == DataType.p:
                     q_dic = {StationFields.id.upper(): {'$in': site_list},
                              StationFields.type.upper(): DataType.m}
@@ -322,24 +343,29 @@ class ImportWeightData(object):
                     if site[StationFields.id] in site_list:
                         id_list.append(site[StationFields.id])
                         loc_list.append([site[StationFields.x], site[StationFields.y]])
-                # print('loclist', locList)
-                # interpolate using the locations
-                myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
+
+                # loc_list [[x1,y1],[x2,y2],...[xn,yn]]
+                # construct kdtree for nearest neighbor search
+                from scipy.spatial import cKDTree
+                loc_kdtree = cKDTree(loc_list)
+                x_coords = arange(xll, xll + xsize * dx, dx)
+                y_coords = arange(yll, yll + ysize * dx, dx)
+
                 txtfile = '%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id, type_list[type_i])
-                with open(txtfile, 'w', encoding='utf-8') as f_test:
+                with spatial_gfs.new_file(filename=fname, metadata=metadic) as myfile, \
+                    open(txtfile, 'w', encoding='utf-8') as f_test:
                     for y in range(0, ysize):
                         for x in range(0, xsize):
                             index = int(y * xsize + x)
                             if abs(data[index] - nodata_value) > UTIL_ZERO:
                                 x_coor = xll + x * dx
                                 y_coor = yll + (ysize - y - 1) * dx
-                                line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
-                                                                             loc_list)
+                                res = loc_kdtree.query((x_coor, y_coor), k=1, workers=1)
+                                thiessen_weight = np.zeros(len(loc_list), dtype=np.int8)
+                                thiessen_weight[res[1]] = 1
+                                line = pack('%df' % len(loc_list), *thiessen_weight)
                                 myfile.write(line)
-                                fmt = '%df' % (len(loc_list))
-                                f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
-                myfile.close()
-
+                logging.info(f'saving weight data of {fname} in subbasin {subbsn_id}, conceptual={is_conceptual} done.')
     @staticmethod
     def workflow(cfg, n_subbasins):
         """Workflow"""
@@ -348,10 +374,14 @@ class ImportWeightData(object):
             subbasin_start_id = 1
             n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
 
+        pool = multiprocessing.Pool(cfg.np)
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
-            ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
-                                                         cfg.dirs.geodata2db, cfg.has_conceptual_subbasins())
-            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasins())
+            pool.apply_async(ImportWeightData.climate_itp_weight_thiessen, [cfg, subbsn_id])
+        pool.close()
+        pool.join()
+        # Memory-consuming, not parallelized.
+        for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
+            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasin)
 
 
 def main():
@@ -361,7 +391,6 @@ def main():
     seims_cfg = parse_ini_configuration()
 
     ImportWeightData.workflow(seims_cfg, 0)
-
 
 
 if __name__ == "__main__":

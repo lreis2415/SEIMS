@@ -154,8 +154,12 @@ class TerrainUtilClass(object):
                 last_stid = stid
             except Exception:
                 depression_grid0 = dep_sd0[landu_id][last_stid]
-
             depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            # try:
+            #     depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            # except OverflowError:
+            #     print('cal_dep() OverflowError: %d, %d, %f' % (landu_id, stid, slp))
+            #     depression_grid = DEFAULT_NODATA
             # TODO, check if it is  (landu_id >= 98)? By LJ
             if landu_id == 106 or landu_id == 107 or landu_id == 105:
                 return 0.5 * imper_perc + (1. - imper_perc) * depression_grid
@@ -471,21 +475,20 @@ class TerrainUtilClass(object):
     @staticmethod
     def parameters_extraction(cfg):
         """Main entrance for terrain related spatial parameters extraction."""
-        f = cfg.logs.extract_terrain
         # To make use of old code, we have to export some rasters from MongoDB
         mask_rasterio(cfg.seims_bin,
                       [['0_MANNING', cfg.spatials.manning]],
                       mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
                       maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin,
                           [['0_MANNING', cfg.spatials.manning]],
                           mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
                           maskfile=cfg.spatials.subbsn,
                           include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Calculate initial channel width and added to reach.shp...', 10, f)
+        status_output('Calculate initial channel width and added to reach.shp...', 10)
         TerrainUtilClass.calculate_channel_width_depth(cfg.spatials.d8acc,
                                                        cfg.spatials.chwidth,
                                                        cfg.spatials.chdepth)
@@ -494,14 +497,14 @@ class TerrainUtilClass(object):
                                                         cfg.spatials.chwidth,
                                                         cfg.spatials.chdepth)
 
-        status_output('Generating depression storage capacity...', 20, f)
+        status_output('Generating depression storage capacity...', 20)
         TerrainUtilClass.depression_capacity(cfg.maindb, cfg.spatials.landuse,
-                                             cfg.spatials.soil_texture,
                                              cfg.spatials.slope,
+                                             cfg.spatials.soil_texture,
                                              cfg.spatials.depression,
                                              cfg.imper_perc_in_urban)
 
-        status_output('Prepare parameters for IUH...', 30, f)
+        status_output('Prepare parameters for IUH...', 30)
         # Note: IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
         TerrainUtilClass.hydrological_radius(cfg.spatials.d8acc, cfg.spatials.radius, 'T2')
         TerrainUtilClass.flow_velocity(cfg.spatials.slope, cfg.spatials.radius,
@@ -520,13 +523,13 @@ class TerrainUtilClass(object):
                                                     cfg.spatials.delta_s,
                                                     flow_model_code)
 
-        status_output('Calculate latitude dependent parameters...', 40, f)
+        status_output('Calculate latitude dependent parameters...', 40)
         TerrainUtilClass.calculate_latitude_dependent_parameters(cfg.spatials.cell_lat,
                                                                  cfg.spatials.dayl_min,
                                                                  cfg.spatials.dorm_hr,
                                                                  cfg.dorm_hr)
 
-        status_output('Terrain related spatial parameters extracted done!', 100, f)
+        status_output('Terrain related spatial parameters extracted done!', 100)
 
 
 def main():

@@ -17,7 +17,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetDescription(CM_GR4J[1]);
     mdi.SetID(CM_GR4J[0]);
     mdi.SetName(CM_GR4J[0]);
-    mdi.SetVersion("0.1");
+    mdi.SetVersion("1.0");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
@@ -41,6 +41,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     /// Set inputs from other modules (Source_Module or Source_Module_Optional)
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D);
+    mdi.AddOutput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], DT_Raster1D);
     mdi.AddInput(VAR_PET[0], UNIT_WTRDLT_MMD, VAR_PET[1], Source_Module, DT_Raster1D);
 
     /// Set output variables of the current module

@@ -196,7 +196,6 @@ def initialize_calibrations(cf):
 def calibration_objectives(cali_obj, ind):
     """Evaluate the objectives of given individual.
     """
-    start = time.time()
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
     model_args.setdefault('calibration_id', -1)
@@ -252,7 +251,6 @@ def calibration_objectives(cali_obj, ind):
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
-    print('calibration_objectives() func time: ', time.time() - start)
     return ind
 
 

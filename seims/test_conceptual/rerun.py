@@ -1,61 +1,48 @@
-import os
 import shutil
-
-from pygeoc.utils import UtilClass
 
 from preprocess.db_import_model_parameters import ImportParam2Mongo
 from test_conceptual.demo_config import *
 from run_seims import MainSEIMS
 from postprocess.plot_timeseries import TimeSeriesPlots
-import pandas as pd
 from pathlib import Path
-
-outdir = Path('C:\src\SEIMS\data\youwuzhen\demo_youwuzhen30m_conceptual_model\OUTPUT_D8_DOWN_UP-0-')
-pngdir = outdir / 'png'
-
-out_pngdir = outdir.parent/'out-png'
-out_pngdir.mkdir(exist_ok=True)
-# clean all files in outdir, including its subfolders
-for f in outdir.glob('*'):
-    if f.is_file():
-        f.unlink()
-    else:
-        shutil.rmtree(f)
+from datetime import datetime
+import argparse
 
 
-wtsd_name = 'youwuzhen'
+def rerun(config_files_dir):
+    config_files_dir = Path(config_files_dir)
+    preprocess_config_file = config_files_dir / 'preprocess.ini'
+    run_config_file = config_files_dir / 'runmodel.ini'
+    postprocess_config_file = config_files_dir / 'postprocess.ini'
 
-cur_path = UtilClass.current_path(lambda: 0)
-SEIMS_path = os.path.abspath(cur_path + '../../..')
-model_paths = ModelPaths(SEIMS_path, wtsd_name, DEMO_MODELS[wtsd_name])
-seims_cfg = write_preprocess_config_file(model_paths, 'preprocess.ini')
+    cf = ConfigParser()
+    cf.read(preprocess_config_file)
+    preprocess_config = PreprocessConfig(cf)
+    ImportParam2Mongo.workflow(preprocess_config)
 
-ImportParam2Mongo.workflow(seims_cfg)
+    cf = ConfigParser()
+    cf.read(run_config_file)
+    run_config = ParseSEIMSConfig(cf)
+    seims_obj = MainSEIMS(args_dict=run_config.ConfigDict)
 
-runmodel_cfg = write_runmodel_config_file(model_paths, 'runmodel.ini')
+    time = datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
 
-seims_obj = MainSEIMS(args_dict=runmodel_cfg.ConfigDict)
-seims_obj.run()
-for l in seims_obj.runlogs:
-    print(l)
+    seims_obj.run()
 
-params = pd.read_csv('C:\src\SEIMS\data\youwuzhen\demo_youwuzhen30m_conceptual_model\param.cali', index_col=0 ,header=None)
-params_list = [
-    params.loc['SOILTHICK'].values[0],
-    params.loc['GR4J_X2'].values[0],
-    params.loc['GR4J_X3'].values[0],
-    params.loc['GR4J_X4'].values[0],
-]
-params_str = '-'.join([str(p) for p in params_list])
+    cf = ConfigParser()
+    cf.read(postprocess_config_file)
+    postprocess_config = PostConfig(cf)
 
-scenario_id = 0
-calibration_id = -1
-post_cfg = write_postprocess_config_file(model_paths, 'postprocess.ini',
-                                         scenario_id, calibration_id)
-plt = TimeSeriesPlots(post_cfg).generate_plots(params_str)
-plt.show()
+    plt = TimeSeriesPlots(postprocess_config).generate_plots()
 
-# copy png files in pngdir out from outdir, overwrite if exists
-for f in pngdir.glob('*.png'):
-    shutil.copy(f, out_pngdir)
+    out_dir = Path(seims_obj.output_dir)
+    shutil.move(out_dir, out_dir.parent / f'{out_dir.name}_{time}')
 
+    plt.show()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', type=str, help='Path to the directory containing the config files', )
+    args = parser.parse_args()
+    rerun(args.d)

@@ -14,6 +14,7 @@ import os
 import sys
 from datetime import datetime
 from collections import OrderedDict
+import logging
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -35,13 +36,15 @@ class ReadModelData(object):
             conn: `MongoClient` instance that can be created by ConnectMongoDB(host, port)
             dbname: Main spatial database name
         """
+
         self.maindb = conn[dbname]
         self.filein_tab = self.maindb[DBTableNames.main_filein]
         self.fileout_tab = self.maindb[DBTableNames.main_fileout]
         self._climdb_name = self.HydroClimateDBName
         self.climatedb = conn[self._climdb_name]
         self._scenariodb_name = self.ScenarioDBName
-        self.scenariodb = conn[self._scenariodb_name]
+        if self._scenariodb_name is not None:
+            self.scenariodb = conn[self._scenariodb_name]
         self._mode = ''
         self._interval = -1
         # UTCTIME
@@ -81,8 +84,9 @@ class ReadModelData(object):
                 found_flag = True
                 break
         if not found_flag:
-            raise RuntimeError('%s Collection is not existed or empty!' %
-                               DBTableNames.main_scenario)
+            # raise RuntimeError('%s Collection is not existed or empty!' %
+            #                    DBTableNames.main_scenario)
+            return None
         return self._scenariodb_name
 
     @property
@@ -210,7 +214,7 @@ class ReadModelData(object):
         for t, v in pcp_dict.items():
             # print(str(t), v)
             pcp_date_value.append([t, v])
-        print('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
+        logging.info('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
                                                           end_time.strftime('%c')))
         return pcp_date_value
 
@@ -283,7 +287,7 @@ class ReadModelData(object):
             for i in delidx:
                 del adata[i]
 
-        print('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
+        logging.debug('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
                                                                    start_time.strftime('%c'),
                                                                    end_time.strftime('%c')))
         return vars_existed, data_dict
@@ -330,7 +334,7 @@ class ReadModelData(object):
         collection = self.scenariodb[DBTableNames.scenarios]
         for _id in scenario_ids:
             collection.delete_one({'ID': _id})  # deprecated: collection.remove({'ID': _id})
-            print('Delete scenario: %d in MongoDB completed!' % _id)
+            logging.info('Delete scenario: %d in MongoDB completed!' % _id)
 
 
 def main():
@@ -347,9 +351,9 @@ def main():
     client = ConnectMongoDB(host, port).get_conn()
 
     rd = ReadModelData(client, dbname)
-    print(rd.HydroClimateDBName)
-    print(rd.Precipitation(4, stime, etime))
-    print(rd.Observation(4, ['Q'], stime, etime))
+    logging.info(rd.HydroClimateDBName)
+    logging.info(rd.Precipitation(4, stime, etime))
+    logging.info(rd.Observation(4, ['Q'], stime, etime))
 
 
 if __name__ == "__main__":

@@ -61,7 +61,6 @@ def pre_processing(cfg):
         TauDEMWorkflow.watershed_delineation(cfg.proc, cfg.dem, cfg.outlet, cfg.d8_stream_thresh,
                                              single_basin,
                                              cfg.ws.pre_dir, cfg.mpi_dir, cfg.bin_dir,
-                                             logfile=cfg.log.preproc, runtime_file=cfg.log.runtime,
                                              hostfile=cfg.hostfile)
     # use outlet_m or not
     outlet_use = None

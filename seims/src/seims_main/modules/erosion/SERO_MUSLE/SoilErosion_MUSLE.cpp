@@ -20,7 +20,6 @@ SERO_MUSLE::SERO_MUSLE() :
 SERO_MUSLE::~SERO_MUSLE() {
     if (m_usleMult != nullptr) Release1DArray(m_usleMult);
     if (m_slopeForPq != nullptr) Release1DArray(m_slopeForPq);
-    if (m_slpLen != nullptr) Release1DArray(m_slpLen);
     if (m_usleL != nullptr) Release1DArray(m_usleL);
     if (m_usleS != nullptr) Release1DArray(m_usleS);
     if (m_usleC != nullptr) Release1DArray(m_usleC);

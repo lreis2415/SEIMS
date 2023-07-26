@@ -165,6 +165,9 @@ class ParseSEIMSConfig(object):
         if self.version.lower() == 'omp':
             self.nprocess = 1
             self.npernode = 1
+        if self.version.lower() == 'mpi':
+            if self.nprocess is None or self.mpi_bin is None:
+                raise ValueError('MPI version MUST specify nprocess and mpi_bin!')
         # Nodes required for each SEIMS-based model
         self.nnodes = self.nprocess // self.npernode + self.nprocess % self.npernode
 
@@ -173,6 +176,7 @@ class ParseSEIMSConfig(object):
         self.fdirmtd = get_option_value(cf, sec_name, 'fdirmtd', valtyp=int)
         self.lyrmtd = get_option_value(cf, sec_name, ['lyrmtd', 'layeringmethod'], valtyp=int)
         self.scenario_id = get_option_value(cf, sec_name, ['scenario_id', 'scenarioid'], valtyp=int)
+        self.use_scenario = get_option_value(cf, sec_name, ['use_scenario'], valtyp=bool)
         self.calibration_id = get_option_value(cf, sec_name,
                                                ['calibration_id', 'calibrationid'], valtyp=int)
         self.subbasin_id = get_option_value(cf, sec_name, ['subbasin_id', 'subbasinid'], valtyp=int)

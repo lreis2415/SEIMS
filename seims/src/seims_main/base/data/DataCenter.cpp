@@ -202,10 +202,6 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
                                       const bool is_optional /* = false */, STRING_MAP* opts /* =nullptr */) {
     FloatRaster* raster = nullptr;
     if (!ReadRasterData(remote_filename, raster, opts) || nullptr == raster) {
-        //bool is_module_conceptual = opts->at(HEADER_RS_PARAM_ABSTRACTION_TYPE), PARAM_ABSTRACTION_TYPE_CONEPTUAL);
-        //if(!is_subbasin_conceptual&&StringMatch() {
-        //    
-        //}
         if (is_optional) { return; }
         throw ModelException("DataCenter", "LoadAdjustRasterData",
                              "Load " + remote_filename + " failed!");
@@ -429,12 +425,20 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
         STRING_MAP opts;
         bool is_module_conceptual = StringMatch(module_informations[id].ModuleAbstractionType, PARAM_ABSTRACTION_TYPE_CONEPTUAL);
         if (is_subbasin_conceptual && is_module_conceptual) {
-            opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType);
+#ifdef HAS_VARIADIC_TEMPLATES
+        opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType);
+#else
+        opts.insert(make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, module_informations[id].ModuleAbstractionType));
+#endif
         }else if (is_subbasin_conceptual && !is_module_conceptual){
             throw ModelException("DataCenter", "LoadParametersForModules",
                 "Conceptual Subbasin must use conceptual modules. While module `"+id+"` is physical only.");
         }else {
-            opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
+#ifdef HAS_VARIADIC_TEMPLATES
+        opts.emplace(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL);
+#else
+        opts.insert(make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_PHYSICAL));
+#endif
         }
 
         for (size_t j = 0; j < parameters.size(); j++) {

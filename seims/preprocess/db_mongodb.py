@@ -12,6 +12,7 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -37,7 +38,7 @@ class ConnectMongoDB(object):
         try:
             self.conn.admin.command('ismaster')
         except ConnectionFailure as err:
-            sys.stderr.write('Could not connect to MongoDB: %s' % err)
+            logging.error('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
 
     def get_conn(self):  # type: (...) -> MongoClient
@@ -83,7 +84,7 @@ class MongoUtil(object):
         try:
             bulk.execute()
         except InvalidOperation:
-            print('WARNING: %s' % errmsg)
+            logging.error(errmsg)
 
     @staticmethod
     def run_bulk_write(coll, req_list):

@@ -19,6 +19,7 @@ import random
 import time
 import sys
 from io import open
+import logging
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -253,7 +254,7 @@ def main(cfg):
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
     scoop_log(output_str)
-    UtilClass.writelog(cfg.opt.logfile, output_str, mode='replace')
+    logging.info(output_str)
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
 
@@ -329,7 +330,7 @@ def main(cfg):
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
         scoop_log(hyper_str)
-        UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
+        logging.info(hyper_str)
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
@@ -373,7 +374,7 @@ def main(cfg):
                     output_str += ind.vali.output_efficiency(kkk, vvv)
             output_str += str(ind)
             output_str += '\n'
-        UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
+        logging.info(output_str)
 
         # TODO: Figure out if we should terminate the evolution
 

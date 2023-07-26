@@ -26,24 +26,27 @@ NutrientMovementViaWater::NutrientMovementViaWater() :
 }
 
 NutrientMovementViaWater::~NutrientMovementViaWater() {
-    if (m_latNO3 != nullptr) Release1DArray(m_latNO3);
-    if (m_latNO3ToCh != nullptr) Release1DArray(m_latNO3ToCh);
+    Release1DArray(m_latNO3);
+    Release1DArray(m_percoN);
+    Release1DArray(m_percoP);
+    Release1DArray(m_surfRfNO3);
+    Release1DArray(m_surfRfNH4);
+    Release1DArray(m_surfRfSolP);
 
-    if (m_surfRfNO3 != nullptr) Release1DArray(m_surfRfNO3);
-    if (m_surfRfNH4 != nullptr) Release1DArray(m_surfRfNH4);
-    if (m_surfRfSolP != nullptr) Release1DArray(m_surfRfSolP);
-    if (m_surfRfCod != nullptr) Release1DArray(m_surfRfCod);
-    if (m_surfRfChlA != nullptr) Release1DArray(m_surfRfChlA);
+    Release1DArray(m_latNO3ToCh);
+    Release1DArray(m_surfRfNO3ToCh);
+    Release1DArray(m_surfRfNH4ToCh);
+    Release1DArray(m_surfRfSolPToCh);
+    Release1DArray(m_surfRfCodToCh);
+    Release1DArray(m_percoNGw);
+    Release1DArray(m_percoPGw);
 
-    if (m_surfRfNO3ToCh != nullptr) Release1DArray(m_surfRfNO3ToCh);
-    if (m_surfRfNH4ToCh != nullptr) Release1DArray(m_surfRfNH4ToCh);
-    if (m_surfRfSolPToCh != nullptr) Release1DArray(m_surfRfSolPToCh);
-    if (m_surfRfCodToCh != nullptr) Release1DArray(m_surfRfCodToCh);
-
-    if (m_percoN != nullptr) Release1DArray(m_percoN);
-    if (m_percoP != nullptr) Release1DArray(m_percoP);
-    if (m_percoNGw != nullptr) Release1DArray(m_percoNGw);
-    if (m_percoPGw != nullptr) Release1DArray(m_percoPGw);
+    Release1DArray(m_surfRfCod);
+    Release1DArray(m_surfRfChlA);
+    
+    Release2DArray(m_subSurfRf);
+    Release2DArray(m_soilPerco);
+    Release1DArray(m_drainLyr);
 }
 
 void NutrientMovementViaWater::SumBySubbasin() {
@@ -313,29 +316,29 @@ void NutrientMovementViaWater::InitialOutputs() {
     CHECK_POSITIVE(M_NUTRMV[0], m_maxSoilLyrs);
     if (m_cellArea < 0.) m_cellArea = m_cellWth * m_cellWth * 0.0001; /// unit: ha
     // allocate the output variables
-    if (nullptr == m_latNO3) Initialize1DArray(m_nCells, m_latNO3, 0.);
-    if (nullptr == m_percoN) Initialize1DArray(m_nCells, m_percoN, 0.);
-    if (nullptr == m_percoP) Initialize1DArray(m_nCells, m_percoP, 0.);
-    if (nullptr == m_surfRfNO3) Initialize1DArray(m_nCells, m_surfRfNO3, 0.);
-    if (nullptr == m_surfRfNH4) Initialize1DArray(m_nCells, m_surfRfNH4, 0.);
-    if (nullptr == m_surfRfSolP) Initialize1DArray(m_nCells, m_surfRfSolP, 0.);
+    Initialize1DArray(m_nCells, m_latNO3, 0.);
+    Initialize1DArray(m_nCells, m_percoN, 0.);
+    Initialize1DArray(m_nCells, m_percoP, 0.);
+    Initialize1DArray(m_nCells, m_surfRfNO3, 0.);
+    Initialize1DArray(m_nCells, m_surfRfNH4, 0.);
+    Initialize1DArray(m_nCells, m_surfRfSolP, 0.);
 
-    if (nullptr == m_latNO3ToCh) Initialize1DArray(m_nSubbsns + 1, m_latNO3ToCh, 0.);
-    if (nullptr == m_surfRfNO3ToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfNO3ToCh, 0.);
-    if (nullptr == m_surfRfNH4ToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfNH4ToCh, 0.);
-    if (nullptr == m_surfRfSolPToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfSolPToCh, 0.);
-    if (nullptr == m_surfRfCodToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfCodToCh, 0.);
-    if (nullptr == m_percoNGw) Initialize1DArray(m_nSubbsns + 1, m_percoNGw, 0.);
-    if (nullptr == m_percoPGw) Initialize1DArray(m_nSubbsns + 1, m_percoPGw, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_latNO3ToCh, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_surfRfNO3ToCh, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_surfRfNH4ToCh, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_surfRfSolPToCh, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_surfRfCodToCh, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_percoNGw, 0.);
+    Initialize1DArray(m_nSubbsns + 1, m_percoPGw, 0.);
 
-    if (nullptr == m_surfRfCod) Initialize1DArray(m_nCells, m_surfRfCod, 0.);
-    if (nullptr == m_surfRfChlA) Initialize1DArray(m_nCells, m_surfRfChlA, 0.);
+    Initialize1DArray(m_nCells, m_surfRfCod, 0.);
+    Initialize1DArray(m_nCells, m_surfRfChlA, 0.);
     if (m_wshdLchP < 0.) m_wshdLchP = 0.;
 
     // input variables
-    if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.0001);
-    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.0001);
-    if (nullptr == m_drainLyr) Initialize1DArray(m_nCells, m_drainLyr, -1.);
+    Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.0001);
+    Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.0001);
+    Initialize1DArray(m_nCells, m_drainLyr, -1.);
     if (m_qtile < 0.) m_qtile = 0.0001;
 }
 

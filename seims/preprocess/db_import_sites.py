@@ -12,7 +12,7 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
-
+import logging
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -65,7 +65,7 @@ class ImportHydroClimateSites(object):
         sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
         if not site_data_items or len(site_data_items) <= 1:
-            print('db_import_sites.sites_table: No data loaded from %s' % site_file)
+            logging.error('db_import_sites.sites_table: No data loaded from %s' % site_file)
             return None
         site_flds = site_data_items[0]
         for i in range(1, len(site_data_items)):
@@ -109,7 +109,7 @@ class ImportHydroClimateSites(object):
         """Import variables table"""
         var_data_items = read_data_items_from_txt(var_file)
         if not var_data_items or len(var_data_items) <= 1:
-            print('db_import_sites.variable_table: No data loaded from %s' % var_file)
+            logging.error('db_import_sites.variable_table: No data loaded from %s' % var_file)
             return None
         var_flds = var_data_items[0]
         for i in range(1, len(var_data_items)):
@@ -172,6 +172,17 @@ class ImportHydroClimateSites(object):
         # mode = 'STORM'
         # if is_storm:  # todo: Do some compatible work to support DAILY and STORM simultaneously.
         #     mode = 'STORM'
+        import geopandas as gpd
+        #check if subbsn and thissen are in same projection
+        subbsn_proj = gpd.read_file(subbsn_file).crs
+        for thissen_file in thissen_file_list:
+            thissen_proj = gpd.read_file(thissen_file).crs
+            if subbsn_proj != thissen_proj:
+                raise RuntimeError(f'The projection of subbasin file ({subbsn_file}) `{subbsn_proj}` and '
+                                   f'thiessen file ({thissen_file}) `{thissen_proj}` are not the same! '
+                                   'Projection coordinate is recommended.')
+
+
         subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file,
                                                                                  subbsn_field_id)
         n_subbasins = len(subbasin_list)

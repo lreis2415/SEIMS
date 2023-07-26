@@ -248,7 +248,9 @@ class LanduseUtilClass(object):
         nodata_value2 = landu_raster.noDataValue
 
         slo_data = RasterUtilClass.read_raster(slope_file).data
-        soil_texture_array = RasterUtilClass.read_raster(soil_texture_file).data
+        soil_texture_obj = RasterUtilClass.read_raster(soil_texture_file)
+        soil_texture_array = soil_texture_obj.data
+        soil_nodata = soil_texture_obj.noDataValue
         id_omited = list()
 
         def coef_cal(lu_id, soil_texture, slope):
@@ -259,6 +261,8 @@ class LanduseUtilClass(object):
                 if int(lu_id) not in id_omited:
                     print('The landuse ID: %d does not exist.' % int(lu_id))
                     id_omited.append(int(lu_id))
+            if soil_texture == soil_nodata:
+                return nodata_value2
             stid = int(soil_texture) - 1
             c0 = runoff_c0[int(lu_id)][stid]
             s0 = runoff_s0[int(lu_id)][stid] / 100.
@@ -287,11 +291,10 @@ class LanduseUtilClass(object):
     @staticmethod
     def parameters_extraction(cfg):
         """Landuse spatial parameters extraction."""
-        f = cfg.logs.extract_lu
-        status_output('Getting reclassification from landuse lookup tables...', 10, f)
+        status_output('Getting reclassification from landuse lookup tables...', 10)
         lurecls_dict = LanduseUtilClass.lookup_landuse_parameters_from_mongodb(cfg)
 
-        status_output('Decomposing landuse parameters excluding nodata to MongoDB...', 30, f)
+        status_output('Decomposing landuse parameters excluding nodata to MongoDB...', 30)
         inoutcfg = list()
         for k, v in lurecls_dict.items():
             inoutcfg.append([cfg.spatials.landuse, k,
@@ -300,14 +303,14 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslu_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Getting user-specific landcover parameters...', 50, f)
+        status_output('Getting user-specific landcover parameters...', 50)
         lcrecls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(cfg)
-        status_output('Decomposing user-specific landcover parameters to MongoDB...', 60, f)
+        status_output('Decomposing user-specific landcover parameters to MongoDB...', 60)
         lcinoutcfg = list()
         for k, v in lcrecls_dict.items():
             lcinoutcfg.append([cfg.spatials.landuse, k,
@@ -315,21 +318,21 @@ class LanduseUtilClass(object):
         mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Getting default landcover parameters...', 70, f)
+        status_output('Getting default landcover parameters...', 70)
         lcrecls_dict2 = LanduseUtilClass.read_crop_lookup_table(cfg)
-        status_output('Decomposing default landcover parameters to MongoDB...', 80, f)
+        status_output('Decomposing default landcover parameters to MongoDB...', 80)
         lcinoutcfg2 = list()
         for k, v in lcrecls_dict2.items():
             lcinoutcfg2.append(['0_LANDCOVER', k, DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
         mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_def_cfg,
                       include_nodata=False, mode='MASKDEC')
-        if cfg.has_conceptual_subbasins():
+        if cfg.has_conceptual_subbasin:
             mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_def_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
@@ -347,18 +350,18 @@ class LanduseUtilClass(object):
         #                   mongoargs=mongoargs, maskfile=cfg.spatials.hru_subbasin_id,
         #                   include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Calculating Curve Number according to landuse...', 90, f)
+        status_output('Calculating Curve Number according to landuse...', 90)
         LanduseUtilClass.generate_cn2(cfg.maindb, cfg.spatials.landuse,
                                       cfg.spatials.hydro_group, cfg.spatials.cn2)
 
-        status_output('Calculating potential runoff coefficient...', 95, f)
+        status_output('Calculating potential runoff coefficient...', 95)
         LanduseUtilClass.generate_runoff_coefficient(cfg.maindb,
                                                      cfg.spatials.landuse,
                                                      cfg.spatials.slope,
                                                      cfg.spatials.soil_texture,
                                                      cfg.spatials.runoff_coef,
                                                      cfg.imper_perc_in_urban)
-        status_output('Landuse/Landcover related spatial parameters extracted done!', 100, f)
+        status_output('Landuse/Landcover related spatial parameters extracted done!', 100)
 
 
 def main():

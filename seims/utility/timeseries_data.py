@@ -13,6 +13,7 @@ from datetime import datetime
 
 from typing import List, Dict, Optional, Union, AnyStr
 from pygeoc.utils import MathClass
+import logging
 
 
 def match_simulation_observation(sim_vars,  # type: List[AnyStr]
@@ -69,7 +70,7 @@ def match_simulation_observation(sim_vars,  # type: List[AnyStr]
     #     print('Observation-Simulation of %s' % param)
     #     for d, o, s in zip(values[DataValueFields.utc], values['Obs'], values['Sim']):
     #         print(str(d), o, s)
-    print('Match observation and simulation done.')
+    logging.debug('Match observation and simulation done.')
     return sim_obs_dict
 
 

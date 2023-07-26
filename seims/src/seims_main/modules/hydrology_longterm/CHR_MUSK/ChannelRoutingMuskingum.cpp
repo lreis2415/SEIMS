@@ -30,14 +30,6 @@ void ChannelRoutingMuskingum::InitialOutputs() {
     Initialize1DArray(m_nReaches + 1, m_Q_in, 0.);
     Initialize1DArray(m_nReaches + 1, m_Q_inLast, 0.);
     
-    for (int i = 1; i <= m_nReaches; i++) {
-        m_Q_inLast[i] = m_Q_in[i];
-        m_Q_outLast[i] = m_Q_out[i];
-        m_Q_out[i] = 0;
-        m_Q_in[i] = 0;
-
-        //m_Q_out[i] = m_Q_SBOF[i];
-    }
 }
 
 bool ChannelRoutingMuskingum::CheckInputData(void) {
@@ -146,7 +138,7 @@ int ChannelRoutingMuskingum::Execute() {
     }
     printf("\n");
 #endif
-
+    
     for (auto it = m_routeLayers.begin(); it != m_routeLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -180,6 +172,11 @@ int ChannelRoutingMuskingum::Execute() {
 
 
 void ChannelRoutingMuskingum::ChannelFlow(const int i){
+
+    m_Q_inLast[i] = m_Q_in[i];
+    m_Q_outLast[i] = m_Q_out[i];
+    m_Q_out[i] = 0;
+    m_Q_in[i] = 0;
 
     FLTPT tstep = m_dt / 60.0 / 60.0 / 24.0;
     FLTPT dt = Min(K, tstep);

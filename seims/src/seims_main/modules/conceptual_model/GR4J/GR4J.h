@@ -91,17 +91,18 @@ private:
     /// subbasin grid (subbasins ID)
     int* m_cellsMappingToSubbasinId;
 
-    int N_SOIL_LAYERS = 4;
-    const int SOIL_PRODUCT_LAYER = 0;
-    const int SOIL_ROUTING_LAYER = 1;
-    const int SOIL_TEMP_LAYER = 2;
-    const int SOIL_GW_LAYER = 3;
+    int N_SOIL_LAYERS;
+    int SOIL_PRODUCT_LAYER;
+    int SOIL_ROUTING_LAYER;
+    int SOIL_TEMP_LAYER;
+    int SOIL_GW_LAYER;
 
     /****************
      * Infintration: (PCP - PET) -> ProductLayer
      ****************/
     //input variables
     FLTPT* m_pcp; ///< precipitation
+    FLTPT* m_NEPR_input; ///< precipitation
     FLTPT** m_soilThickness; ///< soil thickness
     FLTPT** m_soilPorosity; ///< soil porosity
     FLTPT** m_soilCapacity; ///< conceptual soil capacity

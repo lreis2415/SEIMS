@@ -9,6 +9,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os
 import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -41,7 +42,7 @@ class ImportScenario2Mongo(object):
         """
         if not cfg.use_scenario:
             return False
-        print('Import BMP Scenario Data... ')
+        logging.info('Import BMP Scenario Data... ')
         bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt', '.csv'])
         bmp_tabs = list()
         bmp_tabs_path = list()

@@ -17,7 +17,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import FileClass
 from run_seims import ParseSEIMSConfig
-from utility import get_optimization_config, parse_datetime_from_ini
+from utility import get_optimization_config, parse_datetime_from_ini, get_option_value
 from utility import ParseNSGA2Config, PlotConfig
 
 
@@ -53,7 +53,6 @@ class CaliConfig(object):
         if self.cali_stime >= self.cali_etime or (self.calc_validation and
                                                   self.vali_stime >= self.vali_etime):
             raise ValueError("Wrong time settings in [CALI_Settings]!")
-
         # 3. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None

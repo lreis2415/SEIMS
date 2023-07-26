@@ -434,11 +434,6 @@ bool MUSK_CH::ChannelFlow(const int i) {
         if (m_qgRchOut[*upRchID] > 0.) qgUp += m_qgRchOut[*upRchID];
     }
     qIn += qsUp + qiUp + qgUp;
-#ifdef PRINT_DEBUG
-    cout << "ID: " << i << ", surfaceQ: " << m_qsSub[i] << ", subsurfaceQ: " << qiSub <<
-        ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
-        ", UPsurfaceQ: " << qsUp << ", UPsubsurface: " << qiUp << ", UPground: " << qgUp << endl;
-#endif
     // 1.3. water from bank storage
     FLTPT bankOut = m_bankSto[i] * (1. - CalExp(-m_aBank));
     m_bankSto[i] -= bankOut;
@@ -505,10 +500,7 @@ bool MUSK_CH::ChannelFlow(const int i) {
         c2 += c1;
         c3 = 0.;
     }
-
-#ifdef PRINT_DEBUG
-    cout << " chStorage before routing " << m_chStorage[i] << endl;
-#endif
+    
     m_rteWtrOut[i] = qIn * m_dt;   // m^3
     FLTPT wtrin = qIn * m_dt / nn; // Inflow during a sub time interval, m^3
     FLTPT vol = 0.;               // volume of water in reach, m^3
@@ -682,10 +674,6 @@ bool MUSK_CH::ChannelFlow(const int i) {
     }
 
     // todo, compute revap from bank storage. In SWAT, revap coefficient is equal to gw_revap.
-#ifdef PRINT_DEBUG
-    cout << " chStorage after routing " << m_chStorage[i] << endl;
-    cout << " surfq: " << m_qsCh[i] << ", ifluq: " << m_qiCh[i] << ", groudq: " << m_qgCh[i] << endl;
-#endif
     return true;
 }
 
