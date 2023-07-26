@@ -12,7 +12,7 @@
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, const char** argv) {
-    _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
+    //_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF); // intend to debug "heap corruption", but it turns out with little help
     /// Parse input arguments
     InputArgs* input_args = InputArgs::Init(argc, argv, true);
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
@@ -58,10 +58,10 @@ int main(int argc, const char** argv) {
         START_EASYLOGGINGPP(argc, argv);
         Logging::init();
         if (rank == 0) {
-            Logging::setLoggingToFile(input_args->output_path + SEP + 
+            Logging::setLoggingToFile(input_args->output_path + SEP +
                                       input_args->output_scene + ".log");
         } else {
-            Logging::setLoggingToFile(input_args->output_path + SEP + 
+            Logging::setLoggingToFile(input_args->output_path + SEP +
                                       input_args->output_scene + "-mpi-rank" +
                                       ValueToString(rank) + ".log");
         }
