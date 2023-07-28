@@ -28,10 +28,10 @@ using std::vector;
 class Settings: Interface {
 public:
     //! Constructor
-    Settings() {};
+    Settings() {}
 
     //! Constructor via 2D string vector
-    explicit Settings(vector<vector<string> >& str2dvec) : m_Settings(str2dvec) {};
+    explicit Settings(vector<vector<string> >& str2dvec) : m_Settings(str2dvec) {}
 
     //! Constructor via 1D string vector
     explicit Settings(vector<string>& str1dvec);

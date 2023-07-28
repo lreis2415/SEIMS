@@ -17,11 +17,15 @@ using std::vector;
 /*!
  * \ingroup module_setting
  * \class SEIMSModuleSetting
- * \brief
+ * \brief Module settings parsed from config.fig
  */
 class SEIMSModuleSetting: Interface {
 public:
     SEIMSModuleSetting(string& module_id, string& setting);
+
+    void activateStormMode() { m_stormMode = true; }
+
+    bool isStormMode() { return m_stormMode; }
 
     ///< data type
     int dataType();
@@ -38,6 +42,7 @@ public:
 
 private:
     string m_moduleId;         ///< module's ID
+    bool m_stormMode;          ///< Activate STORM mode?
     string m_settingString;    ///< PROCESS NAME with suffix, e.g., Interpolation_P_0 and TimeSeries_M
     vector<string> m_settings; ///< module settings
 };

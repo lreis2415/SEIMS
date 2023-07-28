@@ -6,7 +6,7 @@
 using namespace utils_string;
 
 SEIMSModuleSetting::SEIMSModuleSetting(string& module_id, string& setting) :
-    m_moduleId(module_id), m_settingString(setting) {
+    m_moduleId(module_id), m_stormMode(false), m_settingString(setting) {
     m_settings = SplitString(m_settingString, '_');
 }
 

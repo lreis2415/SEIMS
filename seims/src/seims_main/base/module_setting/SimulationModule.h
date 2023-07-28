@@ -59,6 +59,10 @@ public:
         SetOpenMPThread(thread_num);
     }
 
+    virtual void SetSimulationMode() {
+        m_stormMode = true;
+    }
+
     //! Set climate data type, P, M, PET etc.
     virtual void SetClimateDataType(int data_type) {
     }
@@ -246,6 +250,8 @@ public:
     }
 
 protected:
+    /// is this module be invoked in STORM MODE?
+    bool m_stormMode;
     /// date time
     time_t m_date;
     /// index of current year of simulation, e.g., the simulation period from 2010 to 2015,  m_yearIdx is 2 when simulate 2012.

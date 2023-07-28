@@ -62,14 +62,14 @@ public:
     /*!
      * \brief Initialization for exception-safe constructor
      */
-    static ModuleFactory* Init(const string& module_path, InputArgs* input_args,
+    static ModuleFactory* Init(const string& module_path, InputArgs* input_args, bool storm_mode = false,
                                int mpi_rank = 0, int mpi_size = -1);
 
     //! Destructor
     ~ModuleFactory();
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
-    void CreateModuleList(vector<SimulationModule *>& modules, int nthread = 1);
+    void CreateModuleList(vector<SimulationModule *>& modules, bool storm_mode, int nthread = 1);
 
     //! Get value from dependency modules
     void GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules);
@@ -177,15 +177,6 @@ public:
 
     //! Get module instance by moduleID
     SimulationModule* GetInstance(const string& moduleID) { return m_instanceFuncs[moduleID](); }
-
-    //! Match data type, e.g., 1D array
-    static dimensionTypes MatchType(const string &strType);
-
-    //! Match time interval type, e.g., TI_Storm
-    static intervalTypes MatchIntervalType(const string& tiType);
-
-    //! Match data transfer type, e.g., TF_SingleValue
-    static transferTypes MatchTransferType(const string& tfType);
 
     //! Is constant input?
     static bool IsConstantInputFromName(const string& name);

@@ -29,11 +29,13 @@ public:
      * \param[in] client MongoDB connection client
      * \param[in] spatial_gfs_in MongoDB GridFS that stores input data
      * \param[in] spatial_gfs_out MongoDB GridFS that stores output data
+     * \param[in] simu_in Simulation input setting parsed from file.in
      * \param[in] factory SEIMS modules factory
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                       MongoGridFs* spatial_gfs_in, MongoGridFs* spatial_gfs_out,
+                      SettingsInput* simu_in,
                       ModuleFactory* factory, int subbasin_id = 0);
     //! Destructor
     ~DataCenterMongoDB();

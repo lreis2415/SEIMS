@@ -4,9 +4,10 @@
  *
  * Changelog:
  *   - 1. 2018-3-16 - lj - Simplify code, and add In/Output parameters related for MPI version.
+ *   - 2. 2023-7-27 - lj - Add intervalTypes to indicate simulation time scale
  *
  * \author Junzhi Liu, Liangjun Zhu
- * \version 1.1
+ * \version 1.2
  */
 #ifndef SEIMS_METADATA_INFO_H
 #define SEIMS_METADATA_INFO_H
@@ -20,13 +21,43 @@ using namespace ccgl;
 using std::vector;
 
 /*!
- * \ingroup module_setting
- * \struct ModelClass
- * \brief Module basic description
+ * \brief Convert dimension type of data to string
  */
-struct ModelClass {
-    ModelClass(): Name(""), Description("") {
-    }
+string dimensionTypeToString(dimensionTypes dt);
+
+/*!
+ * \brief Match string to dimension type of data, e.g., 1D array
+ */
+dimensionTypes matchDimensionType(const string& type_str);
+
+/*!
+ * \brief Convert transfer type of data to string
+ */
+string transferTypeToString(transferTypes tt);
+
+/*!
+ * \brief Match data transfer type, e.g., TF_SingleValue
+ */
+transferTypes matchTransferType(const string& tf_type);
+
+/*!
+ * \brief Convert interval type of simulation to string
+ */
+string intervalTypeToString(intervalTypes it);
+
+/*!
+ * \brief Match time interval type, e.g., TI_Storm
+ */
+intervalTypes matchIntervalType(const string& ti_type);
+
+
+/*!
+ * \ingroup module_setting
+ * \struct ModuleClass
+ * \brief Module class, e.g., climate, hydrology, erosion
+ */
+struct ModuleClass {
+    ModuleClass() { }
 
     string Name;
     string Description;
@@ -34,21 +65,20 @@ struct ModelClass {
 
 /*!
  * \ingroup module_setting
- * \struct Information
+ * \struct ModuleInfo
  *
- * \brief Module development information class
+ * \brief Module identification information
  */
-struct Information {
-    Information() : Id(""), Name(""), Description(""), Version(""), Author(""),
-                    EMail(""), Website(""), Helpfile("") {
-    }
+struct ModuleInfo {
+    ModuleInfo() { }
 
-    string Id;          ///< Module ID
-    string Name;        ///< Module Name
-    string Description; ///< Module Description
+    string Id;          ///< Module ID, without spaces and unique in module library
+    string Name;        ///< Module Name, which can be more detail than ID
+    string Description; ///< Module description
+    string TimeScale;   ///< Time Scale of simulation
     string Version;     ///< Module Version
     string Author;      ///< Author
-    string EMail;       ///< Email
+    string Email;       ///< Email
     string Website;     ///< Website
     string Helpfile;    ///< Helpfile
 };
@@ -60,8 +90,7 @@ struct Information {
  * \brief Basic model parameter information
  */
 struct baseParameter {
-    baseParameter() : Name(""), Units(""), Description(""),
-                      Dimension(DT_Unknown), timeType(TI_Unlimit) {
+    baseParameter() : Dimension(DT_Unknown), timeType(TI_Unlimit) {
     }
 
     string Name;              ///< Name
@@ -78,8 +107,7 @@ struct baseParameter {
  * \brief Model parameter information class
  */
 struct Parameter: baseParameter {
-    Parameter() : Source("") {
-    }
+    Parameter() : baseParameter() { }
 
     string Source; ///< Source type
 };
@@ -91,7 +119,7 @@ struct Parameter: baseParameter {
  * \brief Input variable information class
  */
 struct InputVariable: Parameter {
-    InputVariable() : tfType(TF_None) {
+    InputVariable() : Parameter(), tfType(TF_None) {
     }
 
     transferTypes tfType;
@@ -103,7 +131,7 @@ struct InputVariable: Parameter {
  * \brief Output variable information class
  */
 struct OutputVariable: baseParameter {
-    OutputVariable() : tfType(TF_None) {
+    OutputVariable() : baseParameter(), tfType(TF_None) {
     }
 
     transferTypes tfType;
@@ -115,8 +143,7 @@ struct OutputVariable: baseParameter {
  * \brief Input and output variable information class
  */
 struct InOutputVariable: InputVariable {
-    InOutputVariable() {
-    }
+    InOutputVariable(): InputVariable() { }
 };
 
 /*!
@@ -146,6 +173,10 @@ public:
 
     string GetName() { return m_Info.Name; }
 
+    void SetTimeScale(intervalTypes ts) { m_Info.TimeScale = intervalTypeToString(ts); }
+
+    string GetTimeScale() { return m_Info.TimeScale; }
+
     void SetDescription(const char* description) { m_Info.Description = description; }
 
     string GetDescription() { return m_Info.Description; }
@@ -158,9 +189,9 @@ public:
 
     string GetAuthor() { return m_Info.Author; }
 
-    void SetEmail(const char* email) { m_Info.EMail = email; }
+    void SetEmail(const char* email) { m_Info.Email = email; }
 
-    string GetEmail() { return m_Info.EMail; }
+    string GetEmail() { return m_Info.Email; }
 
     void SetWebsite(const char* site) { m_Info.Website = site; }
 
@@ -312,27 +343,25 @@ public:
 
     int GetDependencyCount() { return CVT_INT(m_vDependencies.size()); }
 
-    int AddDependency(const char* name, const char* description);
+    int AddDependency(const char* id);
 
-    string GetDependencyName(int index) {
-        return index >= 0 && index < m_vDependencies.size() ? m_vDependencies[index].Name : "";
+    int AddDependency(const char* id, const char* description); // todo: remove in future. lj
+
+    string GetDependencyName(int index) { // todo: remove in future. lj
+        return GetDependency(index);
     }
 
-    string GetDependencyDescription(int index) {
-        return index >= 0 && index < m_vDependencies.size() ? m_vDependencies[index].Description : "";
-    }
-
-    ModelClass GetDependency(int index) {
-        return index >= 0 && index < m_vDependencies.size() ? m_vDependencies[index] : ModelClass();
+    string GetDependency(int index) {
+        return index >= 0 && index < m_vDependencies.size() ? m_vDependencies[index] : "";
     }
 
     string GetXMLDocument();
 
-    void OpenTag(string name, string attributes, int indent, string* sb);
+    static void OpenTag(string name, string attributes, int indent, string* sb);
 
-    void CloseTag(string name, int indent, string* sb);
+    static void CloseTag(string name, int indent, string* sb);
 
-    void FullTag(const string& name, int indent, string& content, string* sb);
+    static void FullTag(const string& name, int indent, string& content, string* sb);
 
     void WriteClass(int indent, string* sb);
 
@@ -348,23 +377,23 @@ public:
 
     void WriteDependencies(int indent, string* sb);
 
-    void WriteXMLHeader(string* sb);
+    static void WriteXMLHeader(string* sb);
 
-    void DimensionTag(string tag, int indent, dimensionTypes dimType, string* sb);
+    static void DimensionTag(string tag, int indent, dimensionTypes dimType, string* sb);
 
-    void TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb);
+    static void TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb);
 
-    void TimeIntervalTypeTag(string tag, int indent, intervalTypes tiType, string* sb);
+    static void TimeIntervalTypeTag(string tag, int indent, intervalTypes tiType, string* sb);
 
 private:
     string m_strSchemaVersion;             ///< latest XML schema version supported by this class
-    ModelClass m_oClass;                   ///< class name for the module
-    Information m_Info;                    ///< the general information for the module
+    ModuleClass m_oClass;                  ///< class name for the module
+    ModuleInfo m_Info;                     ///< the general information for the module
     vector<Parameter> m_vParameters;       ///< list of parameters for the module
     vector<InputVariable> m_vInputs;       ///< list of input parameters for the module
     vector<OutputVariable> m_vOutputs;     ///< list of output parameters for the module
     vector<InOutputVariable> m_vInOutputs; ///< list of In/Output parameters for the module for MPI version
-    vector<ModelClass> m_vDependencies;    ///< list of dependency classes for the module
+    vector<string> m_vDependencies;        ///< list of dependency classes for the module
 };
 
 #endif /* SEIMS_METADATA_INFO_H */

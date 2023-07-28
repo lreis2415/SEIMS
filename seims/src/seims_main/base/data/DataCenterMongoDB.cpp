@@ -23,7 +23,8 @@ const char* SOILWATER_VARS[] = {
 
 DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                                      MongoGridFs* spatial_gfs_in, MongoGridFs* spatial_gfs_out,
-                                     ModuleFactory* factory,
+                                     SettingsInput* simu_in,
+                                     ModuleFactory* factory, 
                                      const int subbasin_id /* = 0 */) :
     DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
     mongodb_port_(input_args->port),
@@ -31,13 +32,21 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
     //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
     //spatial_gfs_out_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_OUT_SPATIAL));
-    if (DataCenterMongoDB::GetFileInStringVector()) {
-        input_ = SettingsInput::Init(file_in_strs_);
-        if (nullptr == input_) {
-            throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_input!");
+
+    if (nullptr != simu_in) {
+        input_ = simu_in;
+    }
+    else {
+        if (DataCenterMongoDB::GetFileInStringVector()) {
+            input_ = SettingsInput::Init(file_in_strs_);
+            if (nullptr == input_) {
+                throw ModelException("DataCenterMongoDB", "Constructor",
+                                     "Failed to initialize input settings of simulation!");
+            }
         }
-    } else {
-        throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
+        else {
+            throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
+        }
     }
     outlet_id_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_OUTLETID[0]);
     n_subbasins_ = DataCenterMongoDB::ReadIntParameterInDB(VAR_SUBBSNID_NUM[0]);

@@ -30,6 +30,7 @@ const string TagClassDescription = "description";
 const string TagInformation = "information";
 const string TagInfoId = "id";
 const string TagInfoName = "name";
+const string TagInfoTimeScale = "timescale";
 const string TagInfoDescription = "description";
 const string TagInfoVersion = "version";
 const string TagInfoAuthor = "author";
@@ -51,6 +52,7 @@ const string TagVariableUnits = "units";
 const string TagVariableDescription = "description";
 const string TagVariableSource = "source";
 const string TagVariableDimension = "dimension";
+const string TagVariableTimescale = "timescale";
 const string TagVariableTransfer = "transfer";
 
 const string TagDependencies = "dependencies";
