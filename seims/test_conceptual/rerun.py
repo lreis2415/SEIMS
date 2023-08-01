@@ -1,3 +1,4 @@
+import logging
 import shutil
 
 from preprocess.db_import_model_parameters import ImportParam2Mongo
@@ -15,11 +16,13 @@ def rerun(config_files_dir):
     run_config_file = config_files_dir / 'runmodel.ini'
     postprocess_config_file = config_files_dir / 'postprocess.ini'
 
+    logging.info(f'Using {preprocess_config_file}')
     cf = ConfigParser()
     cf.read(preprocess_config_file)
     preprocess_config = PreprocessConfig(cf)
     ImportParam2Mongo.workflow(preprocess_config)
 
+    logging.info(f'Using {run_config_file}')
     cf = ConfigParser()
     cf.read(run_config_file)
     run_config = ParseSEIMSConfig(cf)
@@ -29,6 +32,7 @@ def rerun(config_files_dir):
 
     seims_obj.run()
 
+    logging.info(f'Using {postprocess_config_file}')
     cf = ConfigParser()
     cf.read(postprocess_config_file)
     postprocess_config = PostConfig(cf)

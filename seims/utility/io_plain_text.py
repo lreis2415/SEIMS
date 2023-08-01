@@ -78,9 +78,15 @@ def read_simulation_from_txt(ws,  # type: AnyStr
     plot_vars_existed = list()
     sim_data_dict = OrderedDict()
     for i, v in enumerate(plot_vars):
-        txtfile = ws + os.path.sep + v + '.txt'
-        if not FileClass.is_file_exists(txtfile):
-            logging.warning('Simulation variable file: %s is not existed!' % txtfile)
+        txtfile = None
+        txtfile_tests = [ws + os.path.sep + v + '.txt',
+                         f'{ws}{os.path.sep}{v}_{subbsnID}.txt']
+        for fn in txtfile_tests:
+            if FileClass.is_file_exists(fn):
+                txtfile = fn
+                break
+        if txtfile is None:
+            logging.warning('Simulation variable file: %s is not existed!' % v)
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False
