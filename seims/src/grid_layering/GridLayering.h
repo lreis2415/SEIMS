@@ -160,7 +160,7 @@ protected:
     /*!
      * \brief Output grid layering related data to MongoDB GridFS
      */
-    bool OutputToMongodb(const char* name, vint number, char* s, STRING_MAP& opts = STRING_MAP());
+    bool OutputToMongodb(const char* name, vint number, char* s, const STRING_MAP& opts = STRING_MAP());
 
     /*!
     * \brief Ouput 2D array as MongoDB-GridFS

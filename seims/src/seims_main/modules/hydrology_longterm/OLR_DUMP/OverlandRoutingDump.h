@@ -51,7 +51,7 @@ public:
 
     void SetValue(const char *key, int value) OVERRIDE;
     void Set1DData(const char *key, int nRows, FLTPT *data)  OVERRIDE;
-    void OverlandRoutingDump::Set1DData(const char* key, int n, int* data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
     void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
 
     void Get1DData(const char *key, int *nRows, FLTPT **data) OVERRIDE;

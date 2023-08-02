@@ -741,7 +741,7 @@ bool GridLayering::GridLayeringEvenly() {
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s, STRING_MAP& opts) {
+bool GridLayering::OutputToMongodb(const char* name, const vint number, char* s, const STRING_MAP& opts) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", subbasin_id_);
     BSON_APPEND_UTF8(&p, "TYPE", name);

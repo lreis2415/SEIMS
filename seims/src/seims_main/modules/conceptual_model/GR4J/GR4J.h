@@ -72,7 +72,7 @@ public:
     void CalculateSoilCapacity();
     FLTPT GR4J_SH2(const FLTPT& t, const FLTPT& x4); //<unit S-hydrograph (cumulative hydrograph) for GR4J #2
 
-    void GR4J::printSoilWater();
+    void printSoilWater();
 
 private:
     bool m_isInitialized;
