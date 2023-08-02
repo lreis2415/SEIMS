@@ -110,7 +110,7 @@ int ChannelRoutingDump::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-//#pragma omp parallel for  TODO: Don't understand why parallelism can be put here. --wyj
+//#pragma omp parallel for  //TODO: Don't understand why parallelism can be put here. --wyj
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
             if (m_inputSubbasinId == 0 || m_inputSubbasinId == reachIndex) {
