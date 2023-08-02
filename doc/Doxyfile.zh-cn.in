@@ -891,8 +891,8 @@ INPUT                  = ./README.zh-cn.md \
                          ./seims/src/ccgl/src \
                          ./seims/src/seims_main/doxygen_def_modules.h \
                          ./seims/src/seims_main/base \
-                         ./seims/src/seims_main/main/main_omp \
-                         ./seims/src/seims_main/main/main_mpi
+                         ./seims/src/seims_main/main \
+                         ./seims/src/seims_main/modules
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
