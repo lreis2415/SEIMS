@@ -17,6 +17,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 from math import exp, sqrt
 import os
 import sys
@@ -34,7 +35,7 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
-from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from utility import UTIL_ZERO, DEFAULT_NODATA
 from utility import mask_rasterio
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 
@@ -488,7 +489,7 @@ class TerrainUtilClass(object):
                           maskfile=cfg.spatials.subbsn,
                           include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Calculate initial channel width and added to reach.shp...', 10)
+        logging.info('Calculate initial channel width and added to reach.shp...')
         TerrainUtilClass.calculate_channel_width_depth(cfg.spatials.d8acc,
                                                        cfg.spatials.chwidth,
                                                        cfg.spatials.chdepth)
@@ -497,14 +498,14 @@ class TerrainUtilClass(object):
                                                         cfg.spatials.chwidth,
                                                         cfg.spatials.chdepth)
 
-        status_output('Generating depression storage capacity...', 20)
+        logging.info('Generating depression storage capacity...')
         TerrainUtilClass.depression_capacity(cfg.maindb, cfg.spatials.landuse,
                                              cfg.spatials.slope,
                                              cfg.spatials.soil_texture,
                                              cfg.spatials.depression,
                                              cfg.imper_perc_in_urban)
 
-        status_output('Prepare parameters for IUH...', 30)
+        logging.info('Prepare parameters for IUH...')
         # Note: IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
         TerrainUtilClass.hydrological_radius(cfg.spatials.d8acc, cfg.spatials.radius, 'T2')
         TerrainUtilClass.flow_velocity(cfg.spatials.slope, cfg.spatials.radius,
@@ -523,13 +524,13 @@ class TerrainUtilClass(object):
                                                     cfg.spatials.delta_s,
                                                     flow_model_code)
 
-        status_output('Calculate latitude dependent parameters...', 40)
+        logging.info('Calculate latitude dependent parameters...')
         TerrainUtilClass.calculate_latitude_dependent_parameters(cfg.spatials.cell_lat,
                                                                  cfg.spatials.dayl_min,
                                                                  cfg.spatials.dorm_hr,
                                                                  cfg.dorm_hr)
 
-        status_output('Terrain related spatial parameters extracted done!', 100)
+        logging.info('Terrain related spatial parameters extracted done!')
 
 
 def main():

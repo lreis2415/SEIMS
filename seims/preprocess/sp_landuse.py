@@ -8,6 +8,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 from io import open
 import os
 import sys
@@ -20,7 +21,7 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass, is_string
 
-from utility import status_output, read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
+from utility import read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
 from utility import mask_rasterio
 from preprocess.text import ModelParamDataUtils, ParamAbstractionTypes
 
@@ -291,10 +292,10 @@ class LanduseUtilClass(object):
     @staticmethod
     def parameters_extraction(cfg):
         """Landuse spatial parameters extraction."""
-        status_output('Getting reclassification from landuse lookup tables...', 10)
+        logging.info('Getting reclassification from landuse lookup tables...')
         lurecls_dict = LanduseUtilClass.lookup_landuse_parameters_from_mongodb(cfg)
 
-        status_output('Decomposing landuse parameters excluding nodata to MongoDB...', 30)
+        logging.info('Decomposing landuse parameters excluding nodata to MongoDB...')
         inoutcfg = list()
         for k, v in lurecls_dict.items():
             inoutcfg.append([cfg.spatials.landuse, k,
@@ -308,9 +309,9 @@ class LanduseUtilClass(object):
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Getting user-specific landcover parameters...', 50)
+        logging.info('Getting user-specific landcover parameters...')
         lcrecls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(cfg)
-        status_output('Decomposing user-specific landcover parameters to MongoDB...', 60)
+        logging.info('Decomposing user-specific landcover parameters to MongoDB...')
         lcinoutcfg = list()
         for k, v in lcrecls_dict.items():
             lcinoutcfg.append([cfg.spatials.landuse, k,
@@ -323,9 +324,9 @@ class LanduseUtilClass(object):
                           maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
                           include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Getting default landcover parameters...', 70)
+        logging.info('Getting default landcover parameters...')
         lcrecls_dict2 = LanduseUtilClass.read_crop_lookup_table(cfg)
-        status_output('Decomposing default landcover parameters to MongoDB...', 80)
+        logging.info('Decomposing default landcover parameters to MongoDB...')
         lcinoutcfg2 = list()
         for k, v in lcrecls_dict2.items():
             lcinoutcfg2.append(['0_LANDCOVER', k, DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
@@ -350,18 +351,18 @@ class LanduseUtilClass(object):
         #                   mongoargs=mongoargs, maskfile=cfg.spatials.hru_subbasin_id,
         #                   include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
-        status_output('Calculating Curve Number according to landuse...', 90)
+        logging.info('Calculating Curve Number according to landuse...')
         LanduseUtilClass.generate_cn2(cfg.maindb, cfg.spatials.landuse,
                                       cfg.spatials.hydro_group, cfg.spatials.cn2)
 
-        status_output('Calculating potential runoff coefficient...', 95)
+        logging.info('Calculating potential runoff coefficient...')
         LanduseUtilClass.generate_runoff_coefficient(cfg.maindb,
                                                      cfg.spatials.landuse,
                                                      cfg.spatials.slope,
                                                      cfg.spatials.soil_texture,
                                                      cfg.spatials.runoff_coef,
                                                      cfg.imper_perc_in_urban)
-        status_output('Landuse/Landcover related spatial parameters extracted done!', 100)
+        logging.info('Landuse/Landcover related spatial parameters extracted done!')
 
 
 def main():

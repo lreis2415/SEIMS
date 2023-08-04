@@ -1043,6 +1043,5 @@ bool ModuleFactory::isLumped(){
     return isSubbasinConceptual(0);
 }
 bool ModuleFactory::isSubbasinConceptual(int subbasinId){
-    return  m_structureSubbasins.find(0) != m_structureSubbasins.end() ||
-        (m_structureSubbasins.find(subbasinId) != m_structureSubbasins.end() && m_isConceptual);
+    return m_structureSubbasins.find(subbasinId) != m_structureSubbasins.end() && m_isConceptual;
 }

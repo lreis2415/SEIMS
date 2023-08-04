@@ -126,9 +126,6 @@ void ModelMain::StepOverall(time_t start_t, time_t end_t) {
     }
 }
 
-/**
- * \brief
- */
 void ModelMain::Execute() {
     double t1 = TimeCounting();
     time_t startTime = m_input->getStartTime();
@@ -138,9 +135,10 @@ void ModelMain::Execute() {
     int preYearIdx = -1;
     //bool updated = false;
 
+    int last_simulation_progress = 0;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
         //cout << endl << "Timestep: " << t << endl;
-        //cout << ConvertToString(t) << endl;
+        cout << ConvertToString(t) << endl;
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
@@ -152,7 +150,11 @@ void ModelMain::Execute() {
         //        (*it)->SetReCalIntermediateParams(true);
         //    }
         //}
-
+        int simulation_progress = (t - startTime) * 100 / (endTime - startTime);
+        if (last_simulation_progress != simulation_progress && simulation_progress % 5 == 0) {
+            last_simulation_progress = simulation_progress;
+            cout << "Simulating progress: " << simulation_progress << "%" << endl;
+        }
         // update bmp parameters with variable effectiveness
         if (m_dataCenter->UpdateScenarioParametersDynamic(m_dataCenter->GetSubbasinID(), t)){
             for (vector<SimulationModule* >::iterator it = m_simulationModules.begin();

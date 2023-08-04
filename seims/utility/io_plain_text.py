@@ -29,17 +29,6 @@ class SpecialJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def status_output(status_msg, percent):
-    # type: (AnyStr, Union[int, float]) -> None
-    """Print status and flush to file.
-    Args:
-        status_msg: status message
-        percent: percentage rate of progress
-        file_name: file name
-    """
-    logging.info("[%d] %s" % (percent, status_msg))
-
-
 def read_data_items_from_txt(txt_file):
     # type: (AnyStr) -> List[List[AnyStr]]
     """Read data items include title from text file, each data element are split by TAB or COMMA.

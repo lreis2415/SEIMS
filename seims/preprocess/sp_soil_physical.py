@@ -31,7 +31,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
 from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from utility import status_output, read_data_items_from_txt
+from utility import read_data_items_from_txt
 from utility import mask_rasterio
 
 

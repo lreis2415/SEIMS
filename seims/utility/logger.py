@@ -34,7 +34,7 @@ def configure_logging(log_path, log_file_prefix):
             logging.FileHandler(log_file_name, 'w', 'utf8'),
             h1, h2
         ],
-        level=logging.INFO
+        level=logging.DEBUG
     )
 
 

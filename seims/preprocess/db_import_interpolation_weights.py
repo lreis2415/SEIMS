@@ -9,6 +9,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import gridfs
 from pathos import multiprocessing
 import os
 import sys
@@ -31,7 +32,7 @@ import copy
 from gridfs import GridFS
 import numpy as np
 
-from preprocess.db_mongodb import MongoQuery, MongoUtil
+from preprocess.db_mongodb import MongoQuery, MongoUtil, ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName, ParamAbstractionTypes
 from utility import UTIL_ZERO
@@ -39,7 +40,6 @@ from utility import UTIL_ZERO
 
 class ImportWeightData(object):
     """Spatial weight and its related data"""
-
 
     @staticmethod
     def cal_dis(x1, y1, x2, y2):
@@ -118,10 +118,11 @@ class ImportWeightData(object):
         # read WEIGHT_M file from mongodb
         weight_m_name = '%d_WEIGHT_M' % subbsn_id
         mask = maindb[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
-        weight_m = maindb[DBTableNames.gridfs_spatial].files.find({
+        weight_m: gridfs.GridOutCursor = maindb[DBTableNames.gridfs_spatial].files.find({
             'filename': weight_m_name,
             'metadata.%s' % ParamAbstractionTypes.get_field_key(): param_abstraction_type,
         })[0]
+        logging.debug('Read weight_m file from MongoDB: %s' % weight_m_name)
         num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
@@ -220,19 +221,19 @@ class ImportWeightData(object):
         return True
 
     @staticmethod
-    def climate_itp_weight_thiessen(cfg: PreprocessConfig, subbsn_id):
+    def climate_itp_weight_thiessen(hostname, port, spatial_db, goedata2db_dir, subbsn_id, is_conceptual):
         """
         Required options in cfg:
             cfg.has_conceptual_subbasin: directory to store weight data as txt file
         """
-        is_conceptual = cfg.has_conceptual_subbasin
+        logging.debug(f'entering climate_itp_weight_thiessen, subbasin {subbsn_id}')
 
-        ImportWeightData._climate_itp_weight_thiessen(cfg, subbsn_id, False)
+        ImportWeightData._climate_itp_weight_thiessen(hostname, port, spatial_db, goedata2db_dir, subbsn_id, False)
         if is_conceptual:
-            ImportWeightData._climate_itp_weight_thiessen(cfg, subbsn_id, True)
+            ImportWeightData._climate_itp_weight_thiessen(hostname, port, spatial_db, goedata2db_dir, subbsn_id, True)
 
     @staticmethod
-    def _climate_itp_weight_thiessen(cfg: PreprocessConfig, subbsn_id, is_conceptual):
+    def _climate_itp_weight_thiessen(hostname, port, spatial_db, goedata2db_dir, subbsn_id, is_conceptual):
         """Generate and import weight information using Thiessen polygon method.
 
         Required options in cfg:
@@ -240,9 +241,10 @@ class ImportWeightData(object):
             cfg.maindb: workflow database object
             cfg.dirs.geodata2db,: subbasin id
         """
-        conn = cfg.fork_connection()
-        db_model = conn[cfg.spatial_db]
-        geodata2dbdir = cfg.dirs.geodata2db
+        logging.debug(f'start saving weight data of subbasin {subbsn_id}, conceptual={is_conceptual}')
+        conn = ConnectMongoDB(hostname, port).conn
+        db_model = conn[spatial_db]
+        geodata2dbdir = goedata2db_dir
 
         spatial_gfs = GridFS(db_model, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
@@ -310,7 +312,6 @@ class ImportWeightData(object):
             del type_list[2]
             del site_lists[2]
 
-
         # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
         #     type_list = [DataType.p]
         #     site_lists = [p_list]
@@ -365,7 +366,8 @@ class ImportWeightData(object):
                                 thiessen_weight[res[1]] = 1
                                 line = pack('%df' % len(loc_list), *thiessen_weight)
                                 myfile.write(line)
-                logging.info(f'saving weight data of {fname} in subbasin {subbsn_id}, conceptual={is_conceptual} done.')
+                logging.info(f'save weight data of {fname} in subbasin {subbsn_id}, conceptual={is_conceptual} done.')
+
     @staticmethod
     def workflow(cfg, n_subbasins):
         """Workflow"""
@@ -374,11 +376,32 @@ class ImportWeightData(object):
             subbasin_start_id = 1
             n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
 
-        pool = multiprocessing.Pool(cfg.np)
+        # for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
+        #     ImportWeightData.climate_itp_weight_thiessen(cfg.hostname,
+        #                                                  cfg.port,
+        #                                                  cfg.spatial_db,
+        #                                                  cfg.dirs.geodata2db,
+        #                                                  subbsn_id,
+        #                                                  cfg.has_conceptual_subbasin)
+
+        ### Parallel version, not working on Linux. The jobs do not wait at join()
+        pool_size = min(cfg.np, n_subbasins + 1 - subbasin_start_id)
+        pool = multiprocessing.Pool(pool_size)
+        logging.debug('Starting pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() of subbasins %d to %d' %
+                      (pool_size, subbasin_start_id, n_subbasins + 1))
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
-            pool.apply_async(ImportWeightData.climate_itp_weight_thiessen, [cfg, subbsn_id])
+            pool.apply_async(ImportWeightData.climate_itp_weight_thiessen,
+                             [cfg.hostname,
+                              cfg.port,
+                              cfg.spatial_db,
+                              cfg.dirs.geodata2db,
+                              subbsn_id,
+                              cfg.has_conceptual_subbasin])
+            logging.debug(f'climate_itp_weight_thiessen({subbsn_id}) applied to pool.')
         pool.close()
         pool.join()
+        logging.debug('Pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() completed.' % pool_size)
+
         # Memory-consuming, not parallelized.
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id, cfg.has_conceptual_subbasin)

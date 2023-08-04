@@ -47,7 +47,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                   MONG_HYDRO_DATA_UTC, BCON_INT32(1),
                              "}");
 
-    // StatusMessage(bson_as_json(q, NULL));
+    StatusMessage(bson_as_json(q, NULL));
 
     // perform query and read measurement data
     std::unique_ptr<MongoCollection>

@@ -97,7 +97,7 @@ def mask_rasterio(bin_dir, inoutcfg,
         parsed_inout.append(cur_dict)
 
     if np == -1:
-        np = os.cpu_count() // 2
+        np = multiprocessing.cpu_count() // 2
     elif np > 0:
         if np > os.cpu_count():
             raise Exception("Number of processes cannot excess number of CPU cores!")

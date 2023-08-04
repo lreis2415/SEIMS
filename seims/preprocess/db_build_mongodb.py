@@ -20,7 +20,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import UtilClass, FileClass
 
-from utility import status_output, DEFAULT_NODATA, mask_rasterio
+from utility import DEFAULT_NODATA, mask_rasterio
 from preprocess.config import SpatialNamesUtils, PreprocessConfig
 from preprocess.db_import_bmpscenario import ImportScenario2Mongo
 from preprocess.db_import_interpolation_weights import ImportWeightData
@@ -87,14 +87,13 @@ class ImportMongodbClass(object):
         mask_raster_cfg.append([cfg.taudems.mfdmd_dir, SpatialNamesUtils._DIRCODEMFDMD,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # mfdmd compound dir
         mask_raster_cfg.append([[FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
-                                for i in range(1, 9, 1)], SpatialNamesUtils._FLOWFRACTIONMFDMD,
+                                 for i in range(1, 9, 1)], SpatialNamesUtils._FLOWFRACTIONMFDMD,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # flow fraction, mfdmd
 
         mask_raster_cfg.append([cfg.taudems.dist2stream_d8, SpatialNamesUtils._DIST2STREAMD8M,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dist down V, d8
         mask_raster_cfg.append([cfg.taudems.dist2stream_dinf, SpatialNamesUtils._DIST2STREAMDINFM,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dist down V, dinf
-
 
         # from SpatialDelineation.calculate_terrain_related_params()
         mask_raster_cfg.append([cfg.spatials.cell_lat, SpatialNamesUtils._CELLLAT,
@@ -149,7 +148,7 @@ class ImportMongodbClass(object):
                 v = cfg.spatial_dir + os.path.sep + org_v
                 if not FileClass.is_file_exists(v):
                     logging.info('WARNING: The additional file %s MUST be located in '
-                          'SPATIAL_DATA_DIR, or provided as full file path!' % k)
+                                 'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
             mask_raster_cfg.append([v, k.upper(), DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])
 
@@ -162,7 +161,7 @@ class ImportMongodbClass(object):
             # We also need to save fullsize raster of subbasin to be used as MASK!
             mask_rasterio(cfg.seims_bin,
                           [[cfg.spatials.subbsn, SpatialNamesUtils._SUBBASINOUT,
-                           DEFAULT_NODATA, DEFAULT_NODATA, 'INT32']],
+                            DEFAULT_NODATA, DEFAULT_NODATA, 'INT32']],
                           mongoargs=mongoargs, include_nodata=True, mode='MASKDEC')
 
     @staticmethod
@@ -180,7 +179,7 @@ class ImportMongodbClass(object):
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.mkdir(layering_dir)
-        str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' %\
+        str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' % \
                   (cfg.seims_bin, algorithm, cfg.vecs.reach, layering_dir,
                    cfg.hostname, cfg.port,
                    cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
@@ -190,22 +189,22 @@ class ImportMongodbClass(object):
     def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Building MongoDB workflow"""
 
-        # status_output('Import model parameters to MongoDB', 10, f)
+        # logging.info('Import model parameters to MongoDB', 10, f)
         ImportParam2Mongo.workflow(cfg)
         n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
         logging.info('Number of subbasins: %d' % n_subbasins)
 
-        status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20)
+        logging.info('Extract spatial parameters for reaches, landuse, soil, etc...')
         extract_spatial_parameters(cfg)
 
-        status_output('Generating reach table with initialized parameters...', 40)
+        logging.info('Generating reach table with initialized parameters...')
         ImportReaches2Mongo.generate_reach_table(cfg)
 
-        status_output('Importing necessary raster to MongoDB....', 50)
+        logging.info('Importing necessary raster to MongoDB....')
         ImportMongodbClass.spatial_rasters(cfg)
 
         pool = multiprocessing.Pool(cfg.np)
-        status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60)
+        logging.info('Generating and importing IUH (Instantaneous Unit Hydrograph)....')
         pool.apply_async(ImportMongodbClass.iuh, (cfg, 0))
         pool.apply_async(ImportMongodbClass.iuh, (cfg, n_subbasins))
 
@@ -216,29 +215,30 @@ class ImportMongodbClass(object):
         pool.close()
         pool.join()
 
-        status_output('Finish importing IUH and grid_layering with multiprocessing pool.', 70)
+        logging.info('Finish importing IUH and grid_layering with multiprocessing pool.')
 
         # Import hydro-climate data
-        status_output('Import climate data....', 80)
+        logging.info('Import climate data....')
         ImportMongodbClass.climate_data(cfg)
 
         # Import weight and related data, this should after ImportMongodbClass.climate_data()
-        status_output('Generating weight data for interpolation of meteorology data '
-                      'and weight dependent parameters....', 85)
+        logging.info('Generating weight data for interpolation of meteorology data '
+                     'and weight dependent parameters....')
         ImportWeightData.workflow(cfg, 0)
         ImportWeightData.workflow(cfg, n_subbasins)
         # Measurement Data, such as discharge, sediment yield.
-        status_output('Import observed data, such as discharge, sediment yield....', 90)
+        logging.info('Import observed data, such as discharge, sediment yield....')
         ImportObservedData.workflow(cfg)
 
         # Import BMP scenario database to MongoDB
-        status_output('Importing bmp scenario....', 95)
+        logging.info('Importing bmp scenario....')
         ImportScenario2Mongo.scenario_from_texts(cfg)
 
-        status_output('Build DB: %s finished!' % cfg.spatial_db, 100)
+        logging.info('Build DB: %s finished!' % cfg.spatial_db)
 
         # close connection to MongoDB
         # client.close()  # No need to explicitly close MongoClient! By lj.
+
 
 def main():
     """TEST CODE"""

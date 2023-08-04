@@ -17,6 +17,7 @@ import sys
 import os
 from os.path import join as pjoin
 
+from pathos import multiprocessing
 from pymongo import InsertOne
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -34,7 +35,6 @@ from preprocess.text import TauDEMbasedNames, VectorNameUtils, \
     SpatialNamesUtils, ModelParamDataUtils
 from preprocess.db_mongodb import ConnectMongoDB, MongoUtil
 from utility.parse_config import get_option_value
-
 
 class PreprocessConfig(object):
     """Parse SEIMS project configuration."""
