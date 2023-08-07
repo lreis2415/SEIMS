@@ -51,7 +51,7 @@ int IUH_OL::Execute() {
     for (int n = 0; n <= m_nSubbsns; n++) {
         m_Q_SBOF[n] = 0.;
     }
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //forward one time step
         for (int j = 0; j < m_cellFlowCols - 1; j++) {
@@ -65,24 +65,24 @@ int IUH_OL::Execute() {
         int max = CVT_INT(m_iuhCell[i][1]);
         int col = 2;
         for (int k = min; k <= max; k++) {
-            m_cellFlow[i][k] += m_surfRf[i] * 0.001 * m_iuhCell[i][col] * m_cellArea[i];
+            m_cellFlow[i][k] += m_surfRf[i] * 0.001 * m_iuhCell[i][col] * m_cellArea[i] / m_TimeStep;
             col++;
         }
     }
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
-#pragma omp parallel
+//#pragma omp parallel
     {
         FLTPT* tmp_qsSub = new FLTPT[m_nSubbsns + 1];
         for (int i = 0; i <= m_nSubbsns; i++) {
             tmp_qsSub[i] = 0.;
         }
-#pragma omp for
+//#pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
             m_OL_Flow[i] = m_cellFlow[i][0];
             m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000. / m_cellArea[i]; // m3/s -> mm
         }
-#pragma omp critical
+//#pragma omp critical
         {
             for (int i = 1; i <= m_nSubbsns; i++) {
                 m_Q_SBOF[i] += tmp_qsSub[i];

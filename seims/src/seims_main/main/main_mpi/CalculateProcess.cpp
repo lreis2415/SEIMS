@@ -223,6 +223,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                 if (cur_sim_loop_num > max_loop_num) cur_sim_loop_num %= max_loop_num;
                 for (auto it = subbsn_layers[cur_ilyr].begin(); it != subbsn_layers[cur_ilyr].end(); ++it) {
                     int subbasin_id = *it;
+                    //cout << "subbasin " << subbasin_id << endl;
                     time_t cur_time = ts + lyr_dlt * dt_ch;
                     // If subbasin_id of the actual loop already executed, continue.
                     if (ts_subbsn_loop[subbasin_id] >= act_loop_num + lyr_dlt) {

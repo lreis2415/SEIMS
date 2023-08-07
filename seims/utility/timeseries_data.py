@@ -118,14 +118,20 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
         obsl = values['Obs'][sidx:eidx]
         siml = values['Sim'][sidx:eidx]
 
-        nse_value = MathClass.nashcoef(obsl, siml)
         r2_value = MathClass.rsquare(obsl, siml)
         rmse_value = MathClass.rmse(obsl, siml)
         pbias_value = MathClass.pbias(obsl, siml)
         rsr_value = MathClass.rsr(obsl, siml)
-        lnnse_value = MathClass.nashcoef(obsl, siml, log=True)
-        nse1_value = MathClass.nashcoef(obsl, siml, expon=1)
-        nse3_value = MathClass.nashcoef(obsl, siml, expon=3)
+        try:
+            nse_value = MathClass.nashcoef(obsl, siml)
+            lnnse_value = MathClass.nashcoef(obsl, siml, log=True)
+            nse1_value = MathClass.nashcoef(obsl, siml, expon=1)
+            nse3_value = MathClass.nashcoef(obsl, siml, expon=3)
+        except ValueError:
+            nse_value = -9999
+            lnnse_value = -9999
+            nse1_value = -9999
+            nse3_value = -9999
 
         values['NSE'] = nse_value
         values['R-square'] = r2_value
