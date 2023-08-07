@@ -193,6 +193,7 @@ class Sensitivity(object):
                                            self.cfg.morris.num_levels,
                                            optimal_trajectories=self.cfg.morris.optimal_t,
                                            local_optimization=self.cfg.morris.local_opt)
+            print(self.param_values)
         elif self.cfg.method == 'fast':
             self.param_values = fast_spl(self.param_defs, self.cfg.fast.N, self.cfg.fast.M)
         else:
@@ -339,7 +340,7 @@ class Sensitivity(object):
             obs_vars, obs_data_dict = output_models[0].ReadOutletObservations(input_eva_vars)
             output_models[0].UnsetMongoClient()
 
-            if (len(obs_vars)) < 1:  # Make sure the observation data exists.
+            if obs_vars is None or (len(obs_vars)) < 1:  # Make sure the observation data exists.
                 continue
             # Loop the executed models
             eva_values = list()

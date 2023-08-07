@@ -175,7 +175,7 @@ void Biomass_EPIC::Set2DData(const char* key, const int nrows, const int ncols, 
     if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_RSD[0])) m_soilRsd = data;
-    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
+    else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_SOLP[0])) m_soilSolP = data;

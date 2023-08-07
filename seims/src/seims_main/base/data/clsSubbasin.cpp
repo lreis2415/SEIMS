@@ -98,8 +98,9 @@ clsSubbasins::clsSubbasins(map<string, IntRaster*>& rs_int_map,
         int* tmp = new int[n_cells_tmp];
         for (int j = 0; j < n_cells_tmp; j++){
             tmp[j] = it->second.at(j);
-            subbasin_area += tmp[j] * cell_area[j];
+            subbasin_area += cell_area[j];
         }
+        //why here *tmp is referenced and not deleted? Will not *tmp be deleted when return? --wyj
         new_sub->SetCellList(n_cells_tmp, tmp);
         new_sub->SetArea(subbasin_area);
         subbasin_objs_[sub_id] = new_sub;

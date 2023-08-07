@@ -28,7 +28,7 @@ from pymongo import ASCENDING, InsertOne, UpdateOne
 from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
 from preprocess.text import ModelParamFields, ModelParamDataUtils, \
-    DBTableNames, SubbsnStatsName, ModelCfgFields
+    DBTableNames, SubbsnStatsName, ModelCfgFields, ParamAbstractionTypes, RasterMetadata
 
 
 class ImportParam2Mongo(object):
@@ -327,7 +327,14 @@ class ImportParam2Mongo(object):
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg):
-        """Import lookup tables (from txt file) as Collection and GridFS
+        """save lookup tables (from txt file) as Collection and GridFS to MongoDB
+        Lookup tables such as:
+            SoilLookup.csv -> SOILLOOKUP
+            LanduseLookup.csv -> LANDUSELOOKUP
+            TillageLookup.csv -> TIILAGELOOKUP
+            UrbanLookup.csv -> URBANLOOKUP
+            CropLookup.csv -> CROPLOOKUP
+            FertilizerLookup.csv -> FERTILIZERLOOKUP
         Args:
             cfg: SEIMS config object
             maindb: workflow model database
@@ -382,19 +389,22 @@ class ImportParam2Mongo(object):
                                          (tablename, n_col, len(item_values[i])))
                     else:
                         item_values[i].insert(0, n_col)
+                for abstraction in ParamAbstractionTypes.as_list():
 
-                metadic = {ModelParamDataUtils.item_count: n_row,
-                           ModelParamDataUtils.field_count: n_col}
-                cur_lookup_gridfs = spatial.new_file(filename=tablename.upper(), metadata=metadic)
-                header = [n_row]
-                fmt = '%df' % 1
-                s = pack(fmt, *header)
-                cur_lookup_gridfs.write(s)
-                fmt = '%df' % (n_col + 1)
-                for i in range(n_row):
-                    s = pack(fmt, *item_values[i])
+                    metadic = {ModelParamDataUtils.item_count: n_row,
+                               ModelParamDataUtils.field_count: n_col,
+                               RasterMetadata.inc_nodata: "FALSE",
+                               ParamAbstractionTypes.get_field_key(): abstraction}
+                    cur_lookup_gridfs = spatial.new_file(filename=tablename.upper(), metadata=metadic)
+                    header = [n_row]
+                    fmt = '%df' % 1
+                    s = pack(fmt, *header)
                     cur_lookup_gridfs.write(s)
-                cur_lookup_gridfs.close()
+                    fmt = '%df' % (n_col + 1)
+                    for i in range(n_row):
+                        s = pack(fmt, *item_values[i])
+                        cur_lookup_gridfs.write(s)
+                    cur_lookup_gridfs.close()
 
     @staticmethod
     def workflow(cfg):

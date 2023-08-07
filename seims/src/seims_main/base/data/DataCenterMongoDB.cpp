@@ -17,7 +17,7 @@ const char* METEO_VARS[] = {
 
 const int SOILWATER_VARS_NUM = 5;
 const char* SOILWATER_VARS[] = {
-    VAR_SOL_WPMM[0], VAR_SOL_AWC[0], VAR_SOL_UL[0],
+    VAR_SOL_WPMM[0], VAR_SOL_AWC_AMOUNT[0], VAR_SOL_UL[0],
     VAR_SOL_SUMAWC[0], VAR_SOL_SUMSAT[0]
 };
 
@@ -159,7 +159,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     assert(nullptr != subbasins_);
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
-    if(is_lumped) {
+    if(n_subbasins_==1) {
         reaches_ = new clsReaches();
     } else {
         reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);

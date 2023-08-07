@@ -19,6 +19,7 @@ import os
 import sys
 import logging
 import numpy as np
+from osgeo import gdal
 import rasterio
 
 from preprocess.config import PreprocessConfig
@@ -173,12 +174,12 @@ class SoilUtilClass(object):
                 cur_soil_ins.find_and_set_attr(soil_prop_flds[j], cur_flds)
                 # special cases
                 cur_soil_ins.SOILLAYERS = int(cur_soil_ins.SOILLAYERS)
-
+            soil_dict_items = cur_soil_ins.soil_dict().items()
             if_size_equal = [len(v) == cur_soil_ins.SOILLAYERS
-                             for k, v in cur_soil_ins.soil_dict().items()
+                             for k, v in soil_dict_items
                              if isinstance(v, list)]
             if if_size_equal.count(False) > 0:
-                raise IndexError("Sizes of soil properties and soil layer must be equal!")
+                raise IndexError("Sizes of soil properties and soil layers must be equal!")
 
             cur_soil_ins.construct()
             soil_instances.append(cur_soil_ins)

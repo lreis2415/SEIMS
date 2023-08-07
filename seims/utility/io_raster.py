@@ -96,46 +96,24 @@ def mask_rasterio(bin_dir, inoutcfg,
             cur_dict['-reclass'] = inout[reclsidx]
         parsed_inout.append(cur_dict)
 
-    if np == -1:
-        np = multiprocessing.cpu_count() // 2
-    elif np > 0:
-        if np > os.cpu_count():
-            raise Exception("Number of processes cannot excess number of CPU cores!")
-    else:
-        raise Exception("Please set number of processes within [1, cpu_cores]!")
-    pool = multiprocessing.Pool(np)
     if cfgfile is not None:
-        cfgfile_names = [f'{cfgfile}_{i}' for i in range(len(parsed_inout))]
-        cfgfiles = [open(fname, 'w', encoding='utf-8') for fname in cfgfile_names]
-        run_results = []
-        current_commands = [commands[:] + ['-configfile', f] for f in cfgfile_names]
-        for i in range(len(parsed_inout)):
-            f = cfgfiles[i]
-            dic = parsed_inout[i]
-            f.write('%s;%s;%s;%s;%s;%s' % (dic['-in'],
-                                           dic['-out'] if '-out' in dic else '',
-                                           dic['-default'] if '-default' in dic else '',
-                                           dic['-nodata'] if '-nodata' in dic else '',
-                                           dic['-outdatatype'] if '-outdatatype' in dic else '',
-                                           dic['-reclass'] if '-reclass' in dic else ''))
-            f.close()
-            # logging.info(f'Starting command: %s', ' '.join(current_commands[i]))
-            run_results.append(pool.apply_async(run_command, [current_commands[i]]))
-        pool.close()
-        pool.join()
-        logging.info(f'Finished {len(parsed_inout)} tasks ({cfgfile}) in multiprocessing pool size={np}.')
+        with open(cfgfile, 'w', encoding='utf-8') as f:
+            for dic in parsed_inout:
+                f.write('%s;%s;%s;%s;%s;%s\n' % (dic['-in'],
+                                                 dic['-out'] if '-out' in dic else '',
+                                                 dic['-default'] if '-default' in dic else '',
+                                                 dic['-nodata'] if '-nodata' in dic else '',
+                                                 dic['-outdatatype'] if '-outdatatype' in dic else '',
+                                                 dic['-reclass'] if '-reclass' in dic else ''))
+        commands += ['-configfile', cfgfile]
+        UtilClass.run_command(commands)
     else:
-        run_results = []
         for curargs in parsed_inout:
-            current_command = commands[:]
+            curcommands = commands[:]
             for ck, cv in curargs.items():
-                current_command.append(ck)
-                current_command.append(cv)
-            # logging.info('Starting command: %s', ' '.join(current_command))
-            run_results.append(pool.apply_async(run_command, [current_command]))
-        pool.close()
-        pool.join()
-        logging.info(f'Finished {len(parsed_inout)} tasks in multiprocessing pool size={np}.')
+                curcommands.append(ck)
+                curcommands.append(cv)
+            UtilClass.run_command(curcommands)
 
 
 @trace_unhandled_exceptions

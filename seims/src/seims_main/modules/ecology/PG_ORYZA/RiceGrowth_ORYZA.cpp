@@ -196,7 +196,7 @@ void ORYZA::Set2DData(const char* key, int nrows, int ncols, float** data) {
     if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThick = data;
     else if (StringMatch(sk, VAR_SOL_RSD[0])) m_soilRsd = data;
-    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilAWC = data;
+    else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilAWC = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilStorage = data;
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_sol_sat = data;

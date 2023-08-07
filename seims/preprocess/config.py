@@ -297,7 +297,7 @@ class PreprocessConfig(object):
                                          'Correct example: HRU_properties = LANDUSE, SOILTYPE_CONCEPTUAL')
             self._check_conceptual_setting()
             if self.is_lumped: # TODO: lump may use a single raster cell to represent the whole basin, using hru_subbasin_id. --wyj
-                self.conceptual_mask_file = self.spatials.mask
+                self.conceptual_mask_file = self.spatials.hru_subbasin_id
             elif self.has_conceptual_subbasin:
                 self.conceptual_mask_file = self.spatials.hru_subbasin_id
 

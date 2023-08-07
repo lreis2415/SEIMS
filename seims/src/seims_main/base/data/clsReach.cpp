@@ -342,12 +342,18 @@ void clsReach::DerivedParameters() {
 
 clsReaches::clsReaches() {
     reach_num_ = 1;
-    reach_up_streams_.resize(1);
+    reach_up_streams_.resize(2);
     //reach_up_streams_.at(1).emplace_back(1);
-
+    vector<int> route_layer0;
+    vector<int> route_layer1;
 #ifdef HAS_VARIADIC_TEMPLATES
-    reach_layers_.emplace(1, vector<int>());
+    route_layer0.emplace_back(0);
+    route_layer1.emplace_back(1);
+    reach_layers_.emplace(0, route_layer0);
+    reach_layers_.emplace(1, route_layer1);
 #else
+    route_layer.insert(0);
+    reach_layers_.insert(make_pair(0, vector<int>()));
     reach_layers_.insert(make_pair(1, vector<int>()));
 #endif
     //reach_layers_.at(1).emplace_back(1);

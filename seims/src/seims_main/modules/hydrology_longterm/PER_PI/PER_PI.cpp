@@ -133,7 +133,7 @@ void PER_PI::Set2DData(const char* key, const int nrows, const int ncols, float*
     string sk(key);
     if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
-    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
+    else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_WPMM[0])) m_soilWP = data;
     else if (StringMatch(sk, VAR_POREIDX[0])) m_poreIdx = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;

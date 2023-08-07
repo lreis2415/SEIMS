@@ -58,7 +58,7 @@ void AET_PT_H::Set2DData(const char* key, const int n, const int col, FLTPT** da
     string sk(key);
     if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
-    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_solFC = data;
+    else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_solFC = data;
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_solNo3 = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else {

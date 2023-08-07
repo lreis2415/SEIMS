@@ -203,19 +203,25 @@ class ImportMongodbClass(object):
         logging.info('Importing necessary raster to MongoDB....')
         ImportMongodbClass.spatial_rasters(cfg)
 
-        pool = multiprocessing.Pool(cfg.np)
-        logging.info('Generating and importing IUH (Instantaneous Unit Hydrograph)....')
-        pool.apply_async(ImportMongodbClass.iuh, (cfg, 0))
-        pool.apply_async(ImportMongodbClass.iuh, (cfg, n_subbasins))
-
+        ImportMongodbClass.iuh(cfg, 0)
+        ImportMongodbClass.iuh(cfg, n_subbasins)
         for alg in ['d8', 'dinf', 'mfdmd']:
-            pool.apply_async(ImportMongodbClass.grid_layering, (cfg, 0, alg))
-            pool.apply_async(ImportMongodbClass.grid_layering, (cfg, n_subbasins, alg))
-
-        pool.close()
-        pool.join()
-
+            ImportMongodbClass.grid_layering(cfg, 0, alg)
+            ImportMongodbClass.grid_layering(cfg, n_subbasins, alg)
         logging.info('Finish importing IUH and grid_layering with multiprocessing pool.')
+
+        # pool = multiprocessing.Pool(cfg.np)
+        # logging.info('Generating and importing IUH (Instantaneous Unit Hydrograph)....')
+        # pool.apply_async(ImportMongodbClass.iuh, (cfg, 0))
+        # pool.apply_async(ImportMongodbClass.iuh, (cfg, n_subbasins))
+        #
+        # for alg in ['d8', 'dinf', 'mfdmd']:
+        #     pool.apply_async(ImportMongodbClass.grid_layering, (cfg, 0, alg))
+        #     pool.apply_async(ImportMongodbClass.grid_layering, (cfg, n_subbasins, alg))
+        #
+        # pool.close()
+        # pool.join()
+        # logging.info('Finish importing IUH and grid_layering with multiprocessing pool.')
 
         # Import hydro-climate data
         logging.info('Import climate data....')

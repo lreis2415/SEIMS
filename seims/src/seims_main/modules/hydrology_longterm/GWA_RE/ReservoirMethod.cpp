@@ -98,7 +98,7 @@ int ReservoirMethod::Execute() {
         FLTPT kg = m_Kg * slopeCoef;
         FLTPT groundRunoff = kg * CalPow(m_gwSto[subID], m_Base_ex); // mm
         FLTPT QGConvert = curSub->GetArea() / m_dt * 0.001; // mm ==> m3/s
-        FLTPT groundQ = groundRunoff * curCellsNum * QGConvert;     // groundwater discharge (m3/s)
+        FLTPT groundQ = groundRunoff * QGConvert;     // groundwater discharge (m3/s)
         FLTPT groundStorage = m_gwSto[subID];
         groundStorage += perco - revap - percoDeep - groundRunoff;
 
@@ -113,7 +113,7 @@ int ReservoirMethod::Execute() {
         groundStorage = Max(groundStorage, 0.);
         if (groundStorage > m_GWMAX) {
             groundRunoff += groundStorage - m_GWMAX;
-            groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
+            groundQ = groundRunoff * QGConvert; // groundwater discharge (m3/s)
             groundStorage = m_GWMAX;
         }
 

@@ -102,7 +102,7 @@ void SET_LM::Set1DData(const char* key, const int nrows, int* data) {
 void SET_LM::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     CheckInputSize2D(M_SET_LM[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
-    if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
+    if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
     else {

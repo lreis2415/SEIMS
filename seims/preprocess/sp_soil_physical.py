@@ -17,7 +17,6 @@ from __future__ import absolute_import, unicode_literals
 import math
 import os
 import sys
-import logging
 
 from preprocess.sp_soil_base import SoilPropertyBase, SoilUtilClass
 from preprocess.text import ParamAbstractionTypes
@@ -26,13 +25,8 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
-from osgeo.gdal import GDT_Float32
-from pygeoc.raster import RasterUtilClass
-from pygeoc.utils import StringClass
 
-from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from utility import read_data_items_from_txt
-from utility import mask_rasterio
+from utility import DEFAULT_NODATA, UTIL_ZERO
 
 
 class SoilPropertyPhysical(SoilPropertyBase):
@@ -118,6 +112,7 @@ class SoilPropertyPhysical(SoilPropertyBase):
         self.SOL_SUMWP = 0.
         self.SOL_FC = list()  # FIELDCAP, Field capacity
         self.SOL_AWC = list()
+        self.SOL_AWC_AMOUNT = list()
         self.SOL_SUMAWC = 0.
         self.SOL_POROSITY = list()  # POROSITY
         self.POREINDEX = list()
@@ -329,10 +324,12 @@ class SoilPropertyPhysical(SoilPropertyBase):
         elif not self.SOL_AWC:
             for i in range(self.SOILLAYERS):
                 self.SOL_AWC.append(self.SOL_FC[i] - self.SOL_WP[i])
+                self.SOL_AWC_AMOUNT.append(self.SOL_AWC[i] * self.SOILTHICK[i])
         elif DEFAULT_NODATA in self.SOL_AWC:
             for i in range(self.SOILLAYERS):
                 if self.SOL_AWC[i] == DEFAULT_NODATA:
                     self.SOL_AWC[i] = self.SOL_FC[i] - self.SOL_WP[i]
+                    self.SOL_AWC_AMOUNT[i] = self.SOL_AWC[i] * self.SOILTHICK[i]
 
         if self.POREINDEX and len(self.POREINDEX) != self.SOILLAYERS:
             raise IndexError("Pore disconnectedness index must have a size "
@@ -356,21 +353,22 @@ class SoilPropertyPhysical(SoilPropertyBase):
             for i in range(self.SOILLAYERS):
                 if self.SOL_POROSITY[i] == DEFAULT_NODATA:
                     self.SOL_POROSITY[i] = 1. - self.SOL_BD[i] / 2.65
-        if self.SOL_K and len(self.SOL_K) != self.SOILLAYERS:
-            raise IndexError("Saturated conductivity must have a size equal to soil layers number!")
-        elif not self.SOL_K or DEFAULT_NODATA in self.SOL_K:
-            tmp_k = list()
-            for i in range(self.SOILLAYERS):
-                lamda = self.POREINDEX[i]
-                fc = tmp_fc[i]
-                sat = tmp_sat[i]
-                tmp_k.append(1930. * pow(sat - fc, 3. - lamda))
-            if not self.SOL_K:
-                self.SOL_K = tmp_k[:]
-            elif DEFAULT_NODATA in self.SOL_K:
-                for i in range(self.SOILLAYERS):
-                    if self.SOL_K[i] == DEFAULT_NODATA:
-                        self.SOL_K[i] = tmp_k[i]
+        if not self.SOL_K or len(self.SOL_K) != self.SOILLAYERS:
+            raise IndexError("Saturated conductivity is required, and should have a size equal to soil layers!")
+            # raise IndexError("Saturated conductivity must have a size equal to soil layers number!")
+        # elif not self.SOL_K or DEFAULT_NODATA in self.SOL_K:
+        #     tmp_k = list()
+        #     for i in range(self.SOILLAYERS):
+        #         lamda = self.POREINDEX[i]
+        #         fc = tmp_fc[i]
+        #         sat = tmp_sat[i]
+        #         tmp_k.append(1930. * pow(sat - fc, 3. - lamda))
+        #     if not self.SOL_K:
+        #         self.SOL_K     = tmp_k[:]
+        #     elif DEFAULT_NODATA in self.SOL_K:
+        #         for i in range(self.SOILLAYERS):
+        #             if self.SOL_K[i] == DEFAULT_NODATA:
+        #                 self.SOL_K[i] = tmp_k[i]
         # calculate water content of soil at -1.5 MPa and -0.033 MPa, refers to soil_phys.f in SWAT
         if not self.SOL_WP:
             for i in range(self.SOILLAYERS):
@@ -433,11 +431,9 @@ class SoilPropertyPhysical(SoilPropertyBase):
             sumpor += pormm
             self.SOL_UL.append((self.SOL_POROSITY[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
             self.SOL_SUMUL += self.SOL_UL[i]
-            # if SOL_AWC is not provided, calculate it from SOL_FC and SOL_WP
-            if not self.SOL_AWC:
-                self.SOL_AWC.append((self.SOL_FC[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
-            self.SOL_SUMAWC += self.SOL_AWC[i]
-            self.SOL_HK.append((self.SOL_UL[i] - self.SOL_AWC[i]) / self.SOL_K[i])
+            self.SOL_AWC_AMOUNT.append((self.SOL_FC[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
+            self.SOL_SUMAWC += self.SOL_AWC_AMOUNT[i]
+            self.SOL_HK.append((self.SOL_UL[i] - self.SOL_AWC_AMOUNT[i]) / self.SOL_K[i])
             if self.SOL_HK[i] < 1.:
                 self.SOL_HK[i] = 1.
             self.SOL_WPMM.append(self.SOL_WP[i] * self.SOILTHICK[i])
@@ -480,7 +476,7 @@ class SoilPropertyPhysical(SoilPropertyBase):
                         self.USLE_K[i] = tmp_usle_k[i]
         if self.SOIL_TEXTURE == DEFAULT_NODATA or self.HYDRO_GROUP == DEFAULT_NODATA:
             st, hg, uslek = SoilUtilClass.get_soil_texture_usda(self.SOL_CLAY[0], self.SOL_SILT[0],
-                                                              self.SOL_SAND[0])
+                                                                self.SOL_SAND[0])
             self.SOIL_TEXTURE = st
             self.HYDRO_GROUP = hg
         # Unit conversion for general soil chemical properties
@@ -503,7 +499,6 @@ class SoilPropertyPhysical(SoilPropertyBase):
         if self.SOL_ORGP and len(self.SOL_ORGP) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_ORGP[j] = self.SOL_ORGP[j] * wt1[j]
-
 
 
 def main():

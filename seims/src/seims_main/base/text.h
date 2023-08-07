@@ -876,7 +876,7 @@ CONST_CHARS_LIST VAR_SOILTHICK[] = {"soilthick", "soil thickness of each soil la
 CONST_CHARS_LIST VAR_SOL_ACTP[] = {"sol_actp", "amount of phosphorus stored in the active mineral phosphorus pool"}; /// m_soilActvMinP
 CONST_CHARS_LIST VAR_SOL_ALB[] = {"sol_alb", "albedo when soil is moist"}; /// m_soilAlb
 CONST_CHARS_LIST VAR_SOL_AORGN[] = {"sol_aorgn", "amount of nitrogen stored in the active organic (humic) nitrogen pool"}; /// m_soilActvOrgN
-CONST_CHARS_LIST VAR_SOL_AWC[] = {"sol_awc", "amount of water available to plants in soil layer at field capacity (AWC=FC-WP)"}; /// m_soilFC
+CONST_CHARS_LIST VAR_SOL_AWC_AMOUNT[] = {"sol_awc_amount", "amount of water available to plants in soil layer at field capacity (AWC=FC-WP)"}; /// m_soilFC
 CONST_CHARS_LIST VAR_SOL_BD[] = {"sol_bd", "bulk density of the soil"}; /// m_soilBD
 CONST_CHARS_LIST VAR_SOL_CBN[] = {"sol_cbn", "soil carbon content"}; /// m_soilCbn
 CONST_CHARS_LIST VAR_SOL_COV[] = {"sol_cov", "amount of residue on soil surface"}; /// m_rsdCovSoil

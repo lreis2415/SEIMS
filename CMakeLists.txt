@@ -223,6 +223,10 @@ IF(SEIMS_DOC)
   #                    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
 ENDIF()
 
+IF (PRINT_DEBUG EQUAL 1)
+  add_definitions(-DPRINT_DEBUG)
+ENDIF ()
+
 ### Build platform.
 STATUS("")
 STATUS("  Platform:")
@@ -278,6 +282,7 @@ ENDIF()
 
 ### Dependencies.
 STATUS("")
+STATUS("    PRINT_DEBUG (verbose mode):"     PRINT_DEBUG      THEN "YES" ELSE "NO")
 STATUS("    Use MPI:"     MPI_FOUND      THEN "YES (LIB: ${MPI_LIBRARIES}, INC: ${MPI_INCLUDE_PATH})" ELSE "NO")
 STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
 STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")

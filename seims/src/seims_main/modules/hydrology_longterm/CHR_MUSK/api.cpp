@@ -32,9 +32,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_MSK_K[0], UNIT_NON_DIM, VAR_MSK_K[1], Source_ParameterDB, DT_Single);
 
     mdi.AddInput(VAR_SBOF[0], UNIT_DEPTH_MM, VAR_SBOF[1], Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SBIF[0], UNIT_FLOW_CMS, VAR_SBIF[1], Source_Module_Optional, DT_Array1D);
+    mdi.AddInput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], Source_Module_Optional, DT_Array1D);
 
     mdi.AddInOutput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], DT_Array1D, TF_SingleValue);
-    
+
     // write out the XML file.
     string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];

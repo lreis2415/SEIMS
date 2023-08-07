@@ -36,10 +36,10 @@ class HruConstructor(object):
         property_raster_list = []
         for i in range(len(self._property_names)):
             property_raster_path = self._property_raster_paths[i]
-            src = rasterio.open(property_raster_path)
-            property_raster_src_list.append(src)
-            property_raster = src.read(1)
-            property_raster_list.append(property_raster)
+            with rasterio.open(property_raster_path) as src:
+                property_raster_src_list.append(src)
+                property_raster = src.read(1)
+                property_raster_list.append(property_raster)
         property_raster_list.append(subbasin)
 
         hru_dist_map = property_raster_list[0].copy()

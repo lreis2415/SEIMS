@@ -170,7 +170,6 @@ int clsPI_MCS::Execute() {
         } else {
             m_IntcpET[i] = m_canSto[i];
         }
-        m_IntcpET[i] = m_canSto[i];
         m_canSto[i] -= m_IntcpET[i];
 
 #endif

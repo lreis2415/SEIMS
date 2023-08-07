@@ -15,13 +15,21 @@ h2 = logging.StreamHandler(sys.stderr)
 h2.setLevel(logging.WARNING)
 h2.addFilter(lambda record: record.levelno > logging.INFO)
 
+LOCK = False
+
 
 def set_logging_level_warning():
     logging.getLogger().setLevel(logging.WARNING)
 
 
-def configure_logging(log_path, log_file_prefix):
-    log_file_name = datetime.datetime.now().strftime(f'{log_path}/{log_file_prefix}_%Y.%m.%d-%H.%M.%S.log')
+def configure_logging(log_path, log_file_prefix, logging_level=logging.INFO, lock=False):
+    if lock:
+        global LOCK
+        if LOCK:
+            return
+        LOCK = True
+    log_file_name = datetime.datetime.now().strftime('%s/%s' % (log_path, log_file_prefix) +
+                                                     '_%Y.%m.%d-%H.%M.%S.log')
     os.makedirs(os.path.dirname(log_file_name), exist_ok=True)
 
     # https://stackoverflow.com/questions/12158048/changing-loggings-basicconfig-which-is-already-set
@@ -34,8 +42,13 @@ def configure_logging(log_path, log_file_prefix):
             logging.FileHandler(log_file_name, 'w', 'utf8'),
             h1, h2
         ],
-        level=logging.DEBUG
+        level=logging_level
     )
+
+
+def unlock_logging():
+    global LOCK
+    LOCK = False
 
 
 if __name__ == '__main__':

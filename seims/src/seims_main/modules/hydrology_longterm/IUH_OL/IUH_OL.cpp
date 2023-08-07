@@ -30,7 +30,7 @@ bool IUH_OL::CheckInputData() {
 
 void IUH_OL::InitialOutputs() {
     CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
-    
+
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbsns + 1, m_Q_SBOF, 0.);
         for (int i = 0; i < m_nCells; i++) {
@@ -51,7 +51,7 @@ int IUH_OL::Execute() {
     for (int n = 0; n <= m_nSubbsns; n++) {
         m_Q_SBOF[n] = 0.;
     }
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //forward one time step
         for (int j = 0; j < m_cellFlowCols - 1; j++) {
@@ -65,27 +65,29 @@ int IUH_OL::Execute() {
         int max = CVT_INT(m_iuhCell[i][1]);
         int col = 2;
         for (int k = min; k <= max; k++) {
-            m_cellFlow[i][k] += m_surfRf[i] * 0.001 * m_iuhCell[i][col] * m_cellArea[i] / m_TimeStep;
+            m_cellFlow[i][k] += m_surfRf[i] * m_iuhCell[i][col];
             col++;
         }
+        //printf("[IUH_OL] allQ factor: %f\n", 0.001 * m_cellArea[i] / m_TimeStep);
     }
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
-//#pragma omp parallel
+#pragma omp parallel
     {
         FLTPT* tmp_qsSub = new FLTPT[m_nSubbsns + 1];
         for (int i = 0; i <= m_nSubbsns; i++) {
             tmp_qsSub[i] = 0.;
         }
-//#pragma omp for
+#pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
-            m_OL_Flow[i] = m_cellFlow[i][0];
-            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000. / m_cellArea[i]; // m3/s -> mm
+            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0] * 0.001 * m_cellArea[i] / m_TimeStep; //get new value // mm -> m3/s
+            //printf("m_Q_SBOF[%d] += %f * 0.001 * %f / %d\n", i, tmp_qsSub[i], m_cellArea[i], m_TimeStep);
+            m_OL_Flow[i] = m_cellFlow[i][0] ;
         }
-//#pragma omp critical
+#pragma omp critical
         {
             for (int i = 1; i <= m_nSubbsns; i++) {
                 m_Q_SBOF[i] += tmp_qsSub[i];
+                //printf("m_Q_SBOF[%d] += %f\n", i, tmp_qsSub[i]);
             }
         }
         delete[] tmp_qsSub;
@@ -96,6 +98,26 @@ int IUH_OL::Execute() {
         //get overland flow routing for entire watershed.
         m_Q_SBOF[0] += m_Q_SBOF[n];
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        if(m_surfRf[i]<0) {
+            printf("m_surfRf[%d]<0 !!!\n", i);
+            continue;
+        }
+        if(m_cellFlow[i][0]<0) {
+            printf("m_cellFlow[%d][0]<0 !!!\n", i);
+            continue;
+        }
+        s1 += m_surfRf[i];
+        s2 += m_cellFlow[i][0];
+        //printf("[IUH_OL-%d]m_surfRf->m_cellFlow = %f->%f\n", i, m_surfRf[i], m_cellFlow[i][0]);
+    }
+    printf("[IUH_OL]m_surfRf->m_cellFlow->SBOF: %f->%f->%f.\n", s1, s2, m_Q_SBOF[0]);
+    fflush(stdout);
+#endif
+
     return 0;
 }
 

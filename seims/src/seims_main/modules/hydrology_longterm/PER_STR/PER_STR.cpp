@@ -23,6 +23,20 @@ void PER_STR::InitialOutputs() {
 int PER_STR::Execute() {
     CheckInputData();
     InitialOutputs();
+#ifdef PRINT_DEBUG
+    FLTPT sums[4];
+    for (int j = 0; j < 4; ++j) {
+        sums[j] = 0;
+    }
+    for (int i = 0; i < m_nCells; ++i) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); ++j) {
+            sums[j] += m_soilWtrSto[i][j];
+        }
+    }
+    printf("[PER_STR]Soil Before Execute(): >> %f, %f, %f, %f\n", sums[0], sums[1], sums[2], sums[3]);
+    fflush(stdout);
+#endif
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
@@ -99,12 +113,19 @@ int PER_STR::Execute() {
             m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
         }
     }
-    // DEBUG
-    //cout << "PER_STR, cell id 14377, m_soilStorage: ";
-    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
-    //    cout << m_soilStorage[14377][i] << ", ";
-    //cout << endl;
-    // END OF DEBUG
+#ifdef PRINT_DEBUG
+    for (int j = 0; j < 4; ++j) {
+        sums[j] = 0;
+    }
+    for (int i = 0; i < m_nCells; ++i) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); ++j) {
+            sums[j] += m_soilWtrSto[i][j];
+        }
+    }
+    printf("[PER_STR]Soil After Execute(): >> %f, %f, %f, %f\n", sums[0], sums[1], sums[2], sums[3]);
+    fflush(stdout);
+#endif
+
     return 0;
 }
 
@@ -151,7 +172,7 @@ void PER_STR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT
     if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
-    else if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
+    else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else {
         throw ModelException(M_PER_STR[0], "Set2DData",

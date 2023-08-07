@@ -17,7 +17,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import FileClass
 from run_seims import ParseSEIMSConfig
-from utility import get_optimization_config, parse_datetime_from_ini, get_option_value
+from utility import get_optimization_config, parse_datetime_from_ini, get_option_value, logger
 from utility import ParseNSGA2Config, PlotConfig
 
 
@@ -29,7 +29,6 @@ class CaliConfig(object):
         """Initialization."""
         # 1. SEIMS model related
         self.model = ParseSEIMSConfig(cf)
-
         # 2. Common settings of auto-calibration
         if 'CALI_Settings' not in cf.sections():
             raise ValueError("[CALI_Settings] section MUST be existed in *.ini file.")
@@ -59,6 +58,7 @@ class CaliConfig(object):
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
 
+        logger.configure_logging(self.opt.dirname, "calibration")
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
 

@@ -76,6 +76,7 @@ IF (BSON_FOUND AND MONGOC_FOUND)
   ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 ENDIF ()
 
+
 ########  Stand-alone libraries/programs   ###########
 SET(BASE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/base)
 SET(BASE_INC ${BASE_HOME} ${BASE_HOME}/util ${BASE_HOME}/common_algorithm

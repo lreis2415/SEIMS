@@ -2,7 +2,7 @@
 #include "text.h"
 
 
-ChannelRoutingMuskingum::ChannelRoutingMuskingum():  
+ChannelRoutingMuskingum::ChannelRoutingMuskingum():
     m_isInitialized(false),
     m_nCells(-1),
     m_nReaches(-1),
@@ -10,6 +10,8 @@ ChannelRoutingMuskingum::ChannelRoutingMuskingum():
     m_outletID(-1),
     m_reachDownStream(nullptr),
     m_Q_SBOF(nullptr),
+    m_Q_SBIF(nullptr),
+    m_Q_SBQG(nullptr),
     m_Q_in(nullptr),
     m_Q_inLast(nullptr),
     m_Q_outLast(nullptr),
@@ -29,7 +31,7 @@ void ChannelRoutingMuskingum::InitialOutputs() {
     Initialize1DArray(m_nReaches + 1, m_Q_outLast, 0.);
     Initialize1DArray(m_nReaches + 1, m_Q_in, 0.);
     Initialize1DArray(m_nReaches + 1, m_Q_inLast, 0.);
-    
+
 }
 
 bool ChannelRoutingMuskingum::CheckInputData(void) {
@@ -70,7 +72,7 @@ void ChannelRoutingMuskingum::SetValueByIndex(const char* key, const int index, 
     if (m_inputSubbasinId == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nReaches) return; // index should belong 1 ~ m_nreach
     if (nullptr == m_Q_out) InitialOutputs();
-    
+
     string sk(key);
     if (StringMatch(sk, VAR_QRECH[0])) m_Q_out[index] = value;
     else {
@@ -84,6 +86,12 @@ void ChannelRoutingMuskingum::Set1DData(const char* key, const int n, FLTPT* dat
     if (StringMatch(sk, VAR_SBOF[0])) {
         CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
         m_Q_SBOF = data;
+    } else if (StringMatch(sk, VAR_SBIF[0])) {
+        CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
+        m_Q_SBIF = data;
+    } else if (StringMatch(sk, VAR_SBQG[0])) {
+        CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
+        m_Q_SBQG = data;
     } else {
         throw ModelException(M_CHR_MUSK[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
@@ -138,21 +146,41 @@ int ChannelRoutingMuskingum::Execute() {
     }
     printf("\n");
 #endif
-    
+
     for (auto it = m_routeLayers.begin(); it != m_routeLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
+
             if ((m_inputSubbasinId == 0 || m_inputSubbasinId == reachIndex)) {
                 // for OpenMP version, all reaches will be executed,
                 // for MPI version, only the current reach will be executed.
                 ChannelFlow(reachIndex);
             }
             m_Q_out[reachIndex] += m_Q_SBOF[reachIndex];
+            if (nullptr != m_Q_SBIF) {
+                m_Q_out[reachIndex] += m_Q_SBIF[reachIndex];
+            }
+            if (nullptr != m_Q_SBQG) {
+                m_Q_out[reachIndex] += m_Q_SBQG[reachIndex];
+            }
+#ifdef PRINT_DEBUG
+            printf("\n[ChannelRoutingMuskingum] Reach%d m_Q_out(%f): m_Q_SBOF(%f),m_Q_SBIF(%f), m_Q_SBQG(%f)",
+                reachIndex,
+                m_Q_out[reachIndex],
+                m_Q_SBOF[reachIndex],
+                m_Q_SBIF[reachIndex],
+                m_Q_SBQG[reachIndex]
+                );
+            for (int i = 0; i < m_nReaches; i++) {
+                printf("%f, ", m_Q_out[i]);
+            }
+            fflush(stdout);
+#endif
         }
 
 #ifdef PRINT_DEBUG
@@ -201,6 +229,6 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
 
         m_Q_outLast[i] = m_Q_out[i];
     }
-    
-    
+
+
 }

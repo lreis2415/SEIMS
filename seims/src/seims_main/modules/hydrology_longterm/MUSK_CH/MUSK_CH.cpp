@@ -182,6 +182,7 @@ int MUSK_CH::Execute() {
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
 #ifdef PRINT_DEBUG
+    printf("\nBefore executing:");
     PrintVars();
 #endif
 
@@ -191,7 +192,7 @@ int MUSK_CH::Execute() {
         int reachNum = CVT_INT(it->second.size());
         size_t errCount = 0;
         // the size of m_rteLyrs (map) is equal to the maximum stream order
-#pragma omp parallel for reduction(+:errCount)
+//#pragma omp parallel for reduction(+:errCount)
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
             if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
@@ -206,6 +207,7 @@ int MUSK_CH::Execute() {
             throw ModelException(M_MUSK_CH[0], "Execute", "Error occurred!");
         }
 #ifdef PRINT_DEBUG
+        printf("\After executing:");
         PrintVars();
 #endif
     }
@@ -678,7 +680,6 @@ bool MUSK_CH::ChannelFlow(const int i) {
 }
 
 void MUSK_CH::PrintVars() {
-    printf("\nBefore executing:");
     printf("\n[MUSK_CH] m_olQ2Rch=");
     for (int i = 0; i < m_nreach + 1; i++) {
         printf("%f, ", m_olQ2Rch[i]);

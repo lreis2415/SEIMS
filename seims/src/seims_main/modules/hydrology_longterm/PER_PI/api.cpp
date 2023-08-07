@@ -32,10 +32,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_POREIDX[0], UNIT_NON_DIM, VAR_POREIDX[1], Source_ParameterDB, DT_Raster2D);
     //mdi.AddParameter(VAR_POROST[0], UNIT_NON_DIM, VAR_POROST[1], Source_ParameterDB, DT_Raster2D); => VAR_SOL_UL[0]
-    //mdi.AddParameter(VAR_FIELDCAP[0], UNIT_WAT_RATIO, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D); => VAR_SOL_AWC[0]
+    //mdi.AddParameter(VAR_FIELDCAP[0], UNIT_WAT_RATIO, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D); => VAR_SOL_AWC_AMOUNT[0]
     //mdi.AddParameter(VAR_WILTPOINT[0],UNIT_WAT_RATIO, VAR_WILTPOINT[1], Source_ParameterDB, DT_Raster2D); => VAR_SOL_WPMM[0]
     mdi.AddParameter(VAR_SOL_UL[0], UNIT_DEPTH_MM, VAR_SOL_UL[1], Source_ParameterDB, DT_Raster2D);     // m_sat
-    mdi.AddParameter(VAR_SOL_AWC[0], UNIT_DEPTH_MM, VAR_SOL_AWC[1], Source_ParameterDB, DT_Raster2D);   // m_fc
+    mdi.AddParameter(VAR_SOL_AWC_AMOUNT[0], UNIT_DEPTH_MM, VAR_SOL_AWC_AMOUNT[1], Source_ParameterDB, DT_Raster2D);   // m_fc
     mdi.AddParameter(VAR_SOL_WPMM[0], UNIT_DEPTH_MM, VAR_SOL_WPMM[1], Source_ParameterDB, DT_Raster2D); // m_wp
     mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1D);
     mdi.AddInput(VAR_SOTE[0], UNIT_TEMP_DEG, VAR_SOTE[1], Source_Module, DT_Raster1D);

@@ -9,6 +9,8 @@ from pathlib import Path
 from datetime import datetime
 import argparse
 
+from utility import logger
+
 
 def rerun(config_files_dir):
     config_files_dir = Path(config_files_dir)
@@ -16,30 +18,35 @@ def rerun(config_files_dir):
     run_config_file = config_files_dir / 'runmodel.ini'
     postprocess_config_file = config_files_dir / 'postprocess.ini'
 
-    logging.info(f'Using {preprocess_config_file}')
-    cf = ConfigParser()
-    cf.read(preprocess_config_file)
-    preprocess_config = PreprocessConfig(cf)
-    ImportParam2Mongo.workflow(preprocess_config)
+    logging.info('Using %s' % preprocess_config_file)
+    parser1 = ConfigParser()
+    parser1.read(preprocess_config_file)
+    preprocess_config = PreprocessConfig(parser1)
 
-    logging.info(f'Using {run_config_file}')
-    cf = ConfigParser()
-    cf.read(run_config_file)
-    run_config = ParseSEIMSConfig(cf)
+    logging.info(f'Using %s' % run_config_file)
+    parser2 = ConfigParser()
+    parser2.read(run_config_file)
+    run_config = ParseSEIMSConfig(parser2)
+
+    logging.info(f'Using %s' % postprocess_config_file)
+    parser3 = ConfigParser()
+    parser3.read(postprocess_config_file)
+    postprocess_config = PostConfig(parser3)
+
     seims_obj = MainSEIMS(args_dict=run_config.ConfigDict)
+
+    logger.configure_logging(seims_obj.output_dir, "rerun", logging_level=logging.INFO, lock=True)
+
+    ImportParam2Mongo.workflow(preprocess_config)
 
     time = datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
 
     seims_obj.run()
 
-    logging.info(f'Using {postprocess_config_file}')
-    cf = ConfigParser()
-    cf.read(postprocess_config_file)
-    postprocess_config = PostConfig(cf)
-
     plt = TimeSeriesPlots(postprocess_config).generate_plots()
 
     out_dir = Path(seims_obj.output_dir)
+    logging.shutdown()
     shutil.move(out_dir, out_dir.parent / f'{out_dir.name}_{time}')
 
     plt.show()

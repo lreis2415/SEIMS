@@ -77,6 +77,12 @@ int SUR_MR::Execute() {
     CheckInputData();
     InitialOutputs();
     m_maxPcpRf *= m_dt * 1.1574074074074073e-05; /// 1. / 86400. = 1.1574074074074073e-05;
+#ifdef PRINT_DEBUG
+    FLTPT soilWtrBefore = 0;
+    FLTPT soilWtrAfter = 0;
+    FLTPT rpSum = 0;
+#endif
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT hWater = 0.;
@@ -88,6 +94,9 @@ int SUR_MR::Execute() {
                 m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
             }
             FLTPT smFraction = Min(m_soilWtrStoPrfl[i] / m_soilSumSat[i], 1.);
+#ifdef PRINT_DEBUG
+            soilWtrBefore += m_soilWtrStoPrfl[i];
+#endif
             // for frozen soil, no infiltration will occur
             if (m_soilTemp[i] <= m_soilFrozenTemp && smFraction >= m_soilFrozenWtrRatio) {
                 m_exsPcp[i] = m_netPcp[i];
@@ -105,7 +114,9 @@ int SUR_MR::Execute() {
                 } else {
                     runoffPercentage = m_potRfCoef[i] * CalPow(smFraction, alpha);
                 }
-
+#ifdef PRINT_DEBUG
+                rpSum += runoffPercentage;
+#endif
                 FLTPT surfq = hWater * runoffPercentage;
                 if (surfq > hWater) surfq = hWater;
                 m_infil[i] = hWater - surfq;
@@ -123,6 +134,25 @@ int SUR_MR::Execute() {
             m_soilWtrSto[i][0] += m_infil[i];
         }
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1=0;
+    FLTPT s2=0;
+    FLTPT s3=0;
+    FLTPT s4=0;
+    for (int i = 0; i < m_nCells; i++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+            soilWtrAfter += m_soilWtrSto[i][ly];
+        }
+        s1 += m_netPcp[i];
+        s2 += m_exsPcp[i];
+        s3 += m_infil[i];
+        s4 += m_deprSto[i];
+    }
+    printf("[SUR_MR]soil water: %f->%f\n", soilWtrBefore,soilWtrAfter);
+    printf("[SUR_MR]m_netPcp+dep->m_exsPcp+m_infil: %f+%f->%f+%f\n", s1,s4, s2,s3);
+    printf("[SUR_MR]runoffPercentage avg: %f\n", rpSum/m_nCells);
+    fflush(stdout);
+#endif
     return 0;
 }
 
@@ -178,7 +208,7 @@ void SUR_MR::Set1DData(const char* key, const int n, int* data) {
 void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     CheckInputSize2D(M_SUR_MR[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
-    if (StringMatch(sk, VAR_SOL_AWC[0])) m_soilFC = data;
+    if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
     else {
         throw ModelException(M_SUR_MR[0], "Set2DData",

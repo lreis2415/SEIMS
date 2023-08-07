@@ -43,45 +43,55 @@ void DepressionFSDaily::InitialOutputs() {
 int DepressionFSDaily::Execute() {
     CheckInputData();
     InitialOutputs();
+    FLTPT deltaSdSum = 0;
+    FLTPT sdSum0 = 0;
+    FLTPT sdSum1 = 0;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //////////////////////////////////////////////////////////////////////////
         // runoff
-		// ����ݵ����Ϊ0��m_sr = m_pe����������ȣ��ݵ���ˮ��� = 0
+        // if depression depth is 0, all excess precipitation is runoff, no depression storage
         if (m_depCap[i] < 0.001) {
             m_sr[i] = m_pe[i];
             m_sd[i] = 0.;
         } else if (m_pe[i] > 0.) {
-			// ����ݵ����> 0������Ǳ����ɢ��� > 0���ر�������� = ���� - ���������ݵ���ˮ = ������
+			// if depression depth > 0 and excess precp >0, runoff = excess precp - depression storage
             FLTPT pc = m_pe[i] - m_depCap[i] * CalLn(1. - m_sd[i] / m_depCap[i]);
             FLTPT deltaSd = m_pe[i] * CalExp(-pc / m_depCap[i]);
+#ifdef PRINT_DEBUG
+            if (isnan(pc)) {
+                printf("[DEP_LINS] pc %f = %f - %f * CalLn(1 - %f / %f)\n", pc, m_pe[i], m_depCap[i], m_sd[i], m_depCap[i]);
+                printf("[DEP_LINS] deltaSd %f = %f * CalExp(%f / %f)\n", deltaSd, m_pe[i], -pc, m_depCap[i]);
+            }
+#endif
+
             if (deltaSd > m_depCap[i] - m_sd[i]) {
                 deltaSd = m_depCap[i] - m_sd[i];
             }
+            deltaSdSum += deltaSd;
             m_sd[i] += deltaSd;
             m_sr[i] = m_pe[i] - deltaSd;
         } else {
-			// ����ݵ����> 0������Ǳ����ɢ��� = 0����ر�������� = 0���ݵ���ˮ��� = �ݵ���ˮ��� + �����������
-            m_sd[i] += m_pe[i];
+			m_sd[i] += m_pe[i];
             m_sr[i] = 0.;
         }
-
+        sdSum0 += m_sd[i];
         //////////////////////////////////////////////////////////////////////////
-        // evaporation
-		// ����ݵ���ˮ��� > 0
+        // evaporation only if has depression storage
         if (m_sd[i] > 0) {
             /// TODO: Is this logically right? PET is just potential, which include
             ///       not only ET from surface water, but also from plant and soil.
             ///       Please Check the corresponding theory. By LJ.
             // evaporation from depression storage
-			// �����Ǳ����ɢ��� - ֲ�������������� < �ݵ���ˮ��ȣ��ݵ����� = ��Ǳ����ɢ��� - ֲ��������������
-			// �����Ǳ����ɢ��� - ֲ�������������� > �ݵ���ˮ��ȣ��ݵ����� = �ݵ���ˮ���(ȫ������)
             if (m_pet[i] - m_ei[i] < m_sd[i]) {
                 m_ed[i] = m_pet[i] - m_ei[i];
             } else {
                 m_ed[i] = m_sd[i];
             }
-			// �ݵ���ˮ��� - �ݵ��������
+            if (m_ed[i]<0) {
+                printf("[DepressionLinsley] Warning! m_ed[%d](%f) < 0! m_pet[%d](%f) m_ei[%d](%f)\n",i,m_ed[i],i,m_pet[i],i,m_ei[i]);
+                m_ed[i] = 0;
+            }
             m_sd[i] -= m_ed[i];
         } else {
             m_ed[i] = 0.;
@@ -95,7 +105,25 @@ int DepressionFSDaily::Execute() {
                 m_sd[i] = 0.;
             }
         }
+        sdSum1 += m_sd[i];
+
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1=0;
+    FLTPT s2=0;
+    FLTPT s3=0;
+    FLTPT s4=0;
+    for (int i = 0; i < m_nCells; i++) {
+        s1 += m_pe[i];
+        s2 += m_sd[i];
+        s3 += m_ed[i];
+        s4 += m_sr[i];
+    }
+    printf("[DEP_LINSLEY] deltaSdSum(%f), sdSum@runoff(%f), sdSum@evap(%f) \n", deltaSdSum, sdSum0, sdSum1);
+    printf("[DEP_LINSLEY] pe->dep+E+SURU: %f -> %f + %f + %f\n", s1, s2, s3, s4);
+    fflush(stdout);
+#endif
+
     return true;
 }
 

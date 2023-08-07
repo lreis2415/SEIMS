@@ -396,7 +396,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, FLTPT**
         m_soilStabMinP = data;
     } else if (StringMatch(sk, VAR_SOL_RSD[0])) {
         m_soilRsd = data;
-    } else if (StringMatch(sk, VAR_SOL_AWC[0])) {
+    } else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) {
         m_soilFC = data;
     } else if (StringMatch(sk, VAR_SOL_UL[0])) {
         m_soilSat = data;

@@ -70,7 +70,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
-    
+
     map<int, ModuleFactory*> factory_map;
     /// Create lists of data center objects and SEIMS model objects
     map<int, DataCenterMongoDB *> data_center_map;
@@ -85,13 +85,13 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
             LOG(ERROR) << "subbasin " << input_args->subbasin_id << " cannot find corresponding model structure.config!";
             MPI_Abort(MCW, 1);
         }
-#ifdef HAS_VARIADIC_TEMPLATES 
+#ifdef HAS_VARIADIC_TEMPLATES
         factory_map.emplace(*it_id, tmp_module_factory);
-#else 
+#else
         factory_map.insert(make_pair(*it_id, tmp_module_factory));
 #endif
         transfer_count=tmp_module_factory->GetTransferredInputsCount();
-        
+
         /// Create data center according to subbasin number
         DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
                                                                tmp_module_factory, *it_id);
@@ -202,7 +202,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                 last_simulation_progress = simulation_progress;
                 cout << "Simulating progress: " << simulation_progress << "%" << endl;
             }
-            //cout << endl << ConvertToString(ts) << endl;
             //write progress to log file.
             if (pre_year_idx != year_idx) {
                 LOG(DEBUG) << "  Simulation year: " << start_year + year_idx;
@@ -223,7 +222,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                 if (cur_sim_loop_num > max_loop_num) cur_sim_loop_num %= max_loop_num;
                 for (auto it = subbsn_layers[cur_ilyr].begin(); it != subbsn_layers[cur_ilyr].end(); ++it) {
                     int subbasin_id = *it;
-                    //cout << "subbasin " << subbasin_id << endl;
+#ifdef PRINT_DEBUG
+                    cout << "subbasin " << subbasin_id << endl;
+#endif
                     time_t cur_time = ts + lyr_dlt * dt_ch;
                     // If subbasin_id of the actual loop already executed, continue.
                     if (ts_subbsn_loop[subbasin_id] >= act_loop_num + lyr_dlt) {

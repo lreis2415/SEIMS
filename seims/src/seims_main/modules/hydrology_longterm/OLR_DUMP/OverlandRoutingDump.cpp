@@ -85,6 +85,7 @@ void OverlandRoutingDump::SetSubbasins(clsSubbasins* subbsns) {
 int OverlandRoutingDump::Execute() {
     InitialOutputs();
     CheckInputData();
+    FLTPT s1 = 0;
      for (int n = 0; n <= m_nSubbasins; n++) {
         m_Q_SBOF[n] = 0;
      }
@@ -97,6 +98,7 @@ int OverlandRoutingDump::Execute() {
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             tmp_qsSub[CVT_INT(m_cellsMappingToSubbasinId[i])] += m_surfaceRunoff[i] * m_cellArea[i];
+            s1 += m_surfaceRunoff[i];
             m_surfaceRunoff[i] = 0.0;
         } 
 #pragma omp critical
@@ -108,14 +110,13 @@ int OverlandRoutingDump::Execute() {
         delete[] tmp_qsSub;
         tmp_qsSub = nullptr;
     } /* END of //#pragma omp parallel */
-
     for (int n = 1; n <= m_nSubbasins; n++) {
         //get overland flow routing for entire watershed.
         m_Q_SBOF[0] += m_Q_SBOF[n];
     }
-
+    
 #ifdef PRINT_DEBUG
-    printf("\n[OverlandRoutingDump] m_Q_SBOF[0]=%f\n", m_Q_SBOF[0]);
+    printf("[OLR_DUMP]m_surfaceRunoff->m_Q_SBOF = %f->%f\n", s1, m_Q_SBOF[0]);
     fflush(stdout);
 #endif
     return 0;

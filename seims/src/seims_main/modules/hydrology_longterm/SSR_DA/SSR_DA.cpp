@@ -203,6 +203,15 @@ int SSR_DA::Execute() {
     for (int i = 1; i <= m_nSubbsns; i++) {
         m_ifluQ2Rch[0] += m_ifluQ2Rch[i];
     }
+#ifdef PRINT_DEBUG
+    printf("[SSR_DA] m_ifluQ2Rch: ");
+    for (int i = 0; i <= m_nSubbsns; i++) {
+        printf("%f, ", m_ifluQ2Rch[i]);
+    }
+    printf("\n");
+    fflush(stdout);
+#endif
+
     return 0;
 }
 
@@ -277,7 +286,7 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, FLTPT*
     } else if (StringMatch(sk, VAR_SOL_UL[0])) {
         CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilSat = data;
-    } else if (StringMatch(sk, VAR_SOL_AWC[0])) {
+    } else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) {
         CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilFC = data;
     } else if (StringMatch(sk, VAR_SOL_WPMM[0])) {
