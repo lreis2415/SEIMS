@@ -81,6 +81,10 @@ int DepressionFSDaily::Execute() {
             } else {
                 m_ed[i] = m_sd[i];
             }
+            if (m_ed[i] < 0) {
+                printf("[DepressionLinsley] Warning! m_ed[%d](%f) < 0! m_pet[%d](%f) m_ei[%d](%f)\n", i, m_ed[i], i, m_pet[i], i, m_ei[i]);
+                m_ed[i] = 0;
+            }
 			// �ݵ���ˮ��� - �ݵ��������
             m_sd[i] -= m_ed[i];
         } else {
