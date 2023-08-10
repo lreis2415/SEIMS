@@ -18,15 +18,4 @@ Please refer to Zhu et al. (2019, EM&S) for more information.
     - SEIMS issues: https://github.com/lreis2415/SEIMS/issues
     - Emails of developers:
         - Dr. Liang-Jun Zhu (zlj@lreis.ac.cn)
-        - Dr. Junzhi Liu (liujunzhi@njnu.edu.cn)
-
-
-Q&A 1. Insert an image
-
-- Markdown format:
-
-![gitremote](../img/gitremotev.png)
-
-- Doxygen accepted format:
-
-![gitremote](doc/img/gitremotev.png)
+        - Dr. Junzhi Liu (liujunzhi@lzu.edu.cn)

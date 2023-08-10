@@ -41,24 +41,8 @@ SEIMS is still being developing and any constructive feedback
 (issues or push requests) will be welcome and appreciated.
 
 ## Installation
-
-### Python environment
-Install Python environment for running pySEIMS,
-including preprocess, postprocess, parameters_sensitivity,
-calibration, and scenario_analysis
-
-We recommend to use Python3.x, although Python2.7 is still supported.
-`Conda` is highly recommended to run pySEIMS.
-Please use the following commands in Anaconda shell to config python environment for SEIMS.
-
-```bash
-cd SEIMS/seims
-conda env create -f pyseims_env.yml
-conda activate pyseims
-```
-
-### C++ compilation
-TODO.
+Users are highly recommended to take a look at the automatic workflow of installation and testing of SEIMS on Windows, Linux, and macOS through GitHub actions. The configuration yml scripts are located in `SEIMS/.github/workflows`. 
+The detailed instruction for installing SEIMS can be found [here](https://lreis2415.github.io/SEIMS/download_installation.html).
 
 ## Selected peer-reviewed papers
 
