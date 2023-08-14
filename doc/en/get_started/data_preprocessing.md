@@ -37,50 +37,50 @@ The simple usage of the data preprocessing includes two steps such as generating
 
 SEIMS takes the `INI` file as the format of configuration files. `INI` files are plain text files with a basic structure composed of sections and options (an option is a pair of property and value). Semicolons (`;`) or number sign (`#`) at the beginning of the line indicate a comment which will be ignored. The data preprocessing configuration content of Youwuzhen watershed is as follows:
 ```ini
-01 [PATH]
-02 PREPROC_SCRIPT_DIR = d:\demo\SEIMS\seims\preprocess
-03 CPP_PROGRAM_DIR = d:\demo\SEIMS\bin
-04 MPIEXEC_DIR = None
-05 BASE_DATA_DIR = d:\demo\SEIMS\data\youwuzhen
-06 CLIMATE_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\climate
-07 SPATIAL_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\spatial
-08 MEASUREMENT_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\observed
-09 BMP_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\scenario
-10 MODEL_DIR = d:\demo\SEIMS\data\youwuzhen\demo_youwuzhen30m_longterm_model
-11 TXT_DB_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\lookup
-12 WORKING_DIR = d:\demo\SEIMS\data\youwuzhen\workspace
-13 [MONGODB]
-14 HOSTNAME = 127.0.0.1
-15 PORT = 27017
-16 ClimateDBName = demo_youwuzhen30m_HydroClimate
-17 BMPScenarioDBName = demo_youwuzhen30m_Scenario
-18 SpatialDBName = demo_youwuzhen30m_longterm_model
-19 [CLIMATE]
-20 HydroClimateVarFile = Variables.csv
-21 MeteoSiteFile = Sites_M.csv
-22 PrecSiteFile = Sites_P.csv
-23 MeteoDataFile = meteo_daily.csv
-24 PrecDataFile = pcp_daily.csv
-25 thiessenIdField = ID
-26 [SPATIAL]
-27 dem = ywzdem30m.tif
-28 outlet_file = outlet_beijing1954.shp
-29 PrecSitesThiessen = thiessen_pcp.shp
-30 MeteoSitesThiessen = thiessen_meteo.shp
-31 landuseFile = ywzlanduse30m.tif
-32 landcoverInitFile = landcover_initial_parameters.csv
-33 soilSEQNFile = ywzsoil30m.tif
-34 soilSEQNText = soil_properties_lookup.csv
-35 field_partition_thresh = 15
-36 [OPTIONAL_PARAMETERS]
-37 D8AccThreshold = 35
-38 np = 4
-39 D8DownMethod = Surface
-40 dorm_hr = -1.
-41 T_base = 0.
-42 imperviousPercInUrbanCell = 0.3
-43 defaultLanduse = 33
-44 defaultSoil = 201
+[PATH]
+PREPROC_SCRIPT_DIR = d:\demo\SEIMS\seims\preprocess
+CPP_PROGRAM_DIR = d:\demo\SEIMS\bin
+MPIEXEC_DIR = None
+BASE_DATA_DIR = d:\demo\SEIMS\data\youwuzhen
+CLIMATE_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\climate
+SPATIAL_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\spatial
+MEASUREMENT_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\observed
+BMP_DATA_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\scenario
+MODEL_DIR = d:\demo\SEIMS\data\youwuzhen\demo_youwuzhen30m_longterm_model
+TXT_DB_DIR = d:\demo\SEIMS\data\youwuzhen\data_prepare\lookup
+WORKING_DIR = d:\demo\SEIMS\data\youwuzhen\workspace
+[MONGODB]
+HOSTNAME = 127.0.0.1
+PORT = 27017
+ClimateDBName = demo_youwuzhen30m_HydroClimate
+BMPScenarioDBName = demo_youwuzhen30m_Scenario
+SpatialDBName = demo_youwuzhen30m_longterm_model
+[CLIMATE]
+HydroClimateVarFile = Variables.csv
+MeteoSiteFile = Sites_M.csv
+PrecSiteFile = Sites_P.csv
+MeteoDataFile = meteo_daily.csv
+PrecDataFile = pcp_daily.csv
+thiessenIdField = ID
+[SPATIAL]
+dem = ywzdem30m.tif
+outlet_file = outlet_beijing1954.shp
+PrecSitesThiessen = thiessen_pcp.shp
+MeteoSitesThiessen = thiessen_meteo.shp
+landuseFile = ywzlanduse30m.tif
+landcoverInitFile = landcover_initial_parameters.csv
+soilSEQNFile = ywzsoil30m.tif
+soilSEQNText = soil_properties_lookup.csv
+field_partition_thresh = 15
+[OPTIONAL_PARAMETERS]
+D8AccThreshold = 35
+np = 4
+D8DownMethod = Surface
+dorm_hr = -1.
+T_base = 0.
+imperviousPercInUrbanCell = 0.3
+defaultLanduse = 33
+defaultSoil = 201
 ```
 
 The configuration file for data preprocessing, such as that of the Youwuzhen watershed, includes five sections, i.e., `PATH`, `MONGODB`, `CLIMATE`, `SPATIAL`, and `OPTIONAL_PARAMETERS`. 

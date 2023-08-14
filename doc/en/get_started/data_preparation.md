@@ -27,15 +27,15 @@ SUBSCENARIO,NAME,LANDUSE,PARAMETERS
 ``` 
 can be parsed as a Python data structure of dictionary like:
 ```
-01 demo_dict = {
-02     'SUBSCENARIO': 1,
-03     'NAME':'Closing measures'
-04     'LANDUSE': [7, 16],
-05     'PARAMETERS': [
-06         ['Interc_max', 'Maximum Interception Capacity', 'AC', 1],
-07         ['Conductivity', 'Soil hydraulic conductivity', 'RC', 3.5]        
-08     ]
-09 }
+demo_dict = {
+    'SUBSCENARIO': 1,
+    'NAME':'Closing measures'
+    'LANDUSE': [7, 16],
+    'PARAMETERS': [
+        ['Interc_max', 'Maximum Interception Capacity', 'AC', 1],
+        ['Conductivity', 'Soil hydraulic conductivity', 'RC', 3.5]        
+    ]
+}
 ```
 # Spatial data
 The demo data named Youwuzhen watershed (~5.39 km<sup>2</sup>) is located in Changting County of Fujian province, China (Figure 1). It belongs to the typical red-soil hilly region in southeastern China and suffers from severe soil erosion. The study area has hills with steep slopes (up to 52.9° and with an average slope of 16.8°) and broad alluvial valleys. The elevation ranges from 295.0 m to 556.5 m. The landuse types are mainly forest (59.8%), paddy field (20.6%), and orchard (12.8%) (Figure 2). Soil types in the study area are red soil (78.4%) and paddy soil (21.6%) which can be classified as *Ultisols* and *Inceptisols* in US Soil Taxonomy, respectively (Figure 3). 
@@ -396,27 +396,27 @@ SUBSCENARIO,NAME,DESC,REFERENCE,LANDUSE,SLPPOS,PARAMETERS,EFFECTIVENESS,CAPEX,OP
 1,fengjin, CM (closing measures),Qin et al (2018),8-6,1-4,OM:Organic matter:RC:1.22-Density:bulk density:RC:0.98-Porosity:Total porosity:RC:1.02-USLE_K:USLE soil erodibility:RC:1.01-Conductivity:Soil hydraulic conductivity:RC:0.81-FieldCap:Soil field capacity:RC:1.02-Wiltingpoint:Wiltingpoint:RC:1.02-SOL_AWC:Soil available water:RC:1.02-SOL_UL:Soil saturated water:RC:1.02-SOL_CBN:Soil carbon content:RC:1.22-USLE_P:USLE practice factor:RC:0.9,3,15.5,1.5,2.0
 ```
 which can be parsed as a Python data structure of dictionary like:
-```json
-01 demo_dict = {'NAME': 'fengjin',
-02               'DESC': 'CM (closing measures)',
-03               'REFERENCE': 'Qin et al (2018)',
-04               'LANDUSE': [8, 6],
-05               'SLPPOS': [1, 4],
-06               'PARAMETERS': [
-07                               {'NAME': 'OM',
-08                                'DESC': 'ORGANIC MATTER',
-09                                'CHANGE': 'RC',
-10                                'IMPACT': 1.22
-11                                },
-12                               {'NAME': 'DENSITY',
-13                                'DESC': 'BULK DENSITY',
-14                                'CHANGE': 'RC',
-15                                'IMPACT': 0.98
-16                                }
-17                               ],
-18               'EFFECTIVENESS': 3,
-19               'CAPEX': 15.5,
-20               'OPEX': 1.5,
-21               'INCOME': 2,
-22               }
+```
+demo_dict = {'NAME': 'fengjin',
+            'DESC': 'CM (closing measures)',
+            'REFERENCE': 'Qin et al (2018)',
+            'LANDUSE': [8, 6],
+            'SLPPOS': [1, 4],
+            'PARAMETERS': [
+                            {'NAME': 'OM',
+                            'DESC': 'ORGANIC MATTER',
+                            'CHANGE': 'RC',
+                            'IMPACT': 1.22
+                            },
+                            {'NAME': 'DENSITY',
+                            'DESC': 'BULK DENSITY',
+                            'CHANGE': 'RC',
+                            'IMPACT': 0.98
+                            }
+                            ],
+            'EFFECTIVENESS': 3,
+            'CAPEX': 15.5,
+            'OPEX': 1.5,
+            'INCOME': 2,
+            }
 ```
