@@ -70,6 +70,7 @@ jobs:
     - name: Upload to CodeCov
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         files: ${{github.workspace}}/build/ccov/unittest.info
         flags: unittest # optional
         name: codecov-umbrella # optional
