@@ -216,9 +216,6 @@ ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
 IF(SEIMS_DOC)
   ADD_SUBDIRECTORY(./doc)
-  # ADD_CUSTOM_TARGET(travis_doc)
-  # ADD_CUSTOM_COMMAND(TARGET travis_doc
-  #                    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
 ENDIF()
 
 ### Build platform.
