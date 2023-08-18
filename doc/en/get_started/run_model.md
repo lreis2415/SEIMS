@@ -1,4 +1,4 @@
-2.4 Running a SEIMS-based waterhsed model {#run_seims_model}
+Running a SEIMS-based waterhsed model {#getstart_run_seims_model}
 ============================================================
 
 [TOC]
@@ -11,7 +11,7 @@ D:
 python demo_runmodel.py –name youwuzhen
 ```
 
-The simulation will be finished in a ~28 seconds (Figure 1). The predefined output information can be found in the model folder (i.e., `MODEL_DIR\OUTPUT0`), such as Figure 2.
+The simulation will be finished in about 28 seconds (Figure 1). The predefined output information can be found in the model folder (i.e., `MODEL_DIR\OUTPUT0`), such as Figure 2.
 
 ![ywzrunmodelsimple](../../img/screenshot-runmodel-simple-usage.jpg) <img src="screenshot-runmodel-simple-usage.jpg" alt="ywzrunmodelsimple" width="400"/>
 
@@ -29,7 +29,7 @@ The `file.in` and `file.out` for basic model configuration are required, while `
 The `config.fig` file, the most important configuration file for constructing a SEIMS-based watershed model, is responsible for selecting SEIMS modules to participate in the watershed simulation, as well as specifying the simulation order of SEIMS modules.
 
 ## file.in
-The `file.in` file is designed to define the simulation mode with time-step and the simulation period. Different from the plain text format described in Section 2:2.1.2, the basic format is `[TAG]|[VALUE]`. Currently, there are four required `TAG`s which must appear in this file.
+The `file.in` file is designed to define the simulation mode with time-step and the simulation period. Different from the plain text format described in [here](@ref dataprep_basic_plaintest), the basic format is `[TAG]|[VALUE]`. Currently, there are four required `TAG`s which must appear in this file.
 + `MODE`: A string that indicates a long-term or storm event simulation. The string here can only be `Daily` or `Storm` (case insensitive).
 + `INTERVAL`: An integer to specify the time-step (or the so-called temporal resolution) of simulation according to the simulation `MODE`. For long-term simulation, the unit is day, e.g., `INTERVAL|1` means the time-step is one day. For storm event simulation, the unit is second, e.g., `INTERVAL|3600` means the time-step is one hour. 
     
@@ -47,7 +47,7 @@ ENDTIME|2015-12-31 23:59:59
 ```
 
 ## file.out
-The `file.out` file is designed to define the outputs of a SEIMS-based watershed model. The format follows the plain text format described in Section 2:2.1.2. Each line is corresponding to one output variable. The available fields of each line are listed in Table 1. 
+The `file.out` file is designed to define the outputs of a SEIMS-based watershed model. The format follows the plain text format described in [here](@ref dataprep_basic_plaintest). Each line is corresponding to one output variable. The available fields of each line are listed in Table 1. 
 
 Table 1 Available fields of `file.out` configuration file
 
@@ -126,7 +126,7 @@ The `config.fig` file is designed to define SEIMS modules used in a SEIMS-based 
 30 0 | Nutrient | Channel routing | NutrCH_QUAL2E
 ```
 
-As shown above, different from the plain text format described in Section 2:2.1.2, the basic format for each selected SEIMS module is `[MODULE NO.]|[PROCESS NAME]|[METHOD NAME]|[MODULE ID]`, in which,
+As shown above, different from the plain text format described in [here](@ref dataprep_basic_plaintest), the basic format for each selected SEIMS module is `[MODULE NO.]|[PROCESS NAME]|[METHOD NAME]|[MODULE ID]`, in which,
 + `MODULE NO.` could be any number
 + `PROCESS NAME` is the name of the corresponding watershed process
 + `METHOD NAME` is the name of the algorithm to simulate the watershed process

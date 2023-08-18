@@ -1,15 +1,18 @@
-2.1 Download and Installation {#download_installation}
+Download and Installation {#getstart_download_installation}
 ======================================================
 
 [TOC]
 
-SEIMS is hosted on Github (https://github.com/lreis2415/SEIMS). SEIMS is dependent on several open-source software, e.g., GDAL (https://www.gdal.org/) and mongo-c-driver (https://github.com/mongodb/mongo-c-driver). Currently, there are no compiled binaries for distribution, but only through source code. 
+SEIMS is hosted on [Github](https://github.com/lreis2415/SEIMS). SEIMS is dependent on several open-source software, e.g., [GDAL](https://www.gdal.org/) and[mongo-c-driver](https://github.com/mongodb/mongo-c-driver). Currently, there are no compiled binaries for distribution, but only through source code. 
+
 Users are encouraged to download and install (means compile from the source code) SEIMS manually. Generally, the `master` branch of SEIMS repository (https://github.com/lreis2415/SEIMS/tree/master) is the relative stable version, while the `dev` branch reflects the latest development changes and now is the default branch. 
 
 Users are highly recommended to take a look at the automatic workflow of installation and testing of SEIMS on Windows, Linux, and macOS through GitHub actions:
 
 [![Build on Windows using MSVC](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Windows.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Windows.yml)
+
 [![Build on Ubuntu using GCC](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Linux.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_Linux.yml)
+
 [![Build on macOS using AppleClang](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml)
 
 The configuration yml scripts are located in `SEIMS/.github/workflows`. 
@@ -99,7 +102,7 @@ The [GISInternals support site](http://www.gisinternals.com/index.html) maintain
     GDAL_DATA=C:\GDAL\bin\gdal-data
     GDAL_PATHS=C:\GDAL;C:\GDAL\bin;C:\GDAL\bin\proj\apps;C:\GDAL\bin\gdal\apps;C:\GDAL\bin\ms\apps;C:\GDAL\bin\curl;
     ```
-+ Then, append `%GDAL_PATHS%` to the end of the system variable `PATH`.
++ Then, append `%%GDAL_PATHS%` to the end of the system variable `PATH`.
 + The GDAL library for C/C++ has been installed, as well as executable utility tools of GDAL, e.g., `gdalinfo`. Open a new CMD window, and enter 
 `gdalinfo --version`, something like `GDAL 1.11.4, released 2016/01/25` should be printed.
 
@@ -144,7 +147,7 @@ The mongo-c-driver library for MongoDB (https://github.com/mongodb/mongo-c-drive
     MONGOC_ROOT=C:\mongo-c-driver-vs201x
     MONGOC_LIB=C:\mongo-c-driver-vs201x\bin
     ```
-+ Then, append `%MONGOC_LIB%` to the end of the system variable `PATH`.
++ Then, append `%%MONGOC_LIB%` to the end of the system variable `PATH`.
 
 #### apt-get for Ubuntu
 On Ubuntu, the GDAL can be installed simply by `apt-get` command:
@@ -182,11 +185,13 @@ Download the previous stable release version 3.6.9 https://fastdl.mongodb.org/wi
     `D:\MongoDB\bin\mongo.exe`
     If the last line is connecting to: test, the connection to MongoDB is successful. The default database named test is connected.
     - Continue to test:
-        ```shell
-        use test
-        db.foo.save({hello:0})
-        db.foo.find()
-        ```
+
+    ```
+    use test
+    db.foo.save({hello:0})
+    db.foo.find()
+    ```
+
         If something like `{ "_id" : ObjectId("5c222fdff492e1436718e00b"), "Hello" : 0 }` showed in the last line, the key-value data (i.e., key is `hello` and value is `0`) has been inserted into the newly created collection `foo` in `test` database successfully.
     - Enter `exit` to leave MongoDB.
 + 2. Register MongoDB as system service
@@ -202,7 +207,7 @@ Download the previous stable release version 3.6.9 https://fastdl.mongodb.org/wi
 ### MongoDB GUI
 To view, query, and update data stored in MongoDB, a user-friendly and efficient GUI is urgently needed. 
 Robo 3T is what we need (https://robomongo.org/download). Download the proper version for your system and install it.
-Open Robo 3T and connect to the localhost:27017 (i.e., 127.0.0.1:27017). The key-pair data we just inserted can be found.
+Open Robo 3T and connect to the `localhost:27017` (i.e., `127.0.0.1:27017`). The key-pair data we just inserted can be found.
 
 ## Python environment
 Install Python environment for running SEIMS,
@@ -213,7 +218,7 @@ We recommend to use Python3.x, although Python2.7 is still supported.
 `Conda` is highly recommended to run pySEIMS.
 Please use the following commands in Anaconda or Miniconda shell to create a new python environment for SEIMS.
 
-```bash
+```shell
 cd SEIMS/seims
 conda env create -f pyseims_env.yml
 conda activate pyseims
@@ -236,7 +241,7 @@ ctest -C Debug --rerun-failed --output-on-failure
 Specifically, for users using MSVC on Windows, please follow the steps below:
 - Open a new VS2015 Developer Command Prompt, and navigate to the directory of CCGL, e.g., `D:\demo\SEIMS\seims\src\ccgl`, and assume the directory for building CCGL is `D:\compile\CCGL_vs2015`.
 - Execute following commands:
-    ```batch
+    ```bat
     cd D:\demo\SEIMS\seims\src\ccgl
     cmake -G "Visual Studio 14 2015 Win64" -B D:\compile\CCGL_vs2015 -DUNITTEST=1
     cmake --build D:\compile\CCGL_vs2015 --config Debug -- /m:4
@@ -250,7 +255,7 @@ SEIMS is mainly written by C++ and Python. Python is an interpreted language whi
 The C++ applications of SEIMS not only include the main programs and modules for watershed modeling, but also the integrated programs for preprocessing such as watershed delineation by TauDEM (http://hydrology.usu.edu/taudem/taudem5/index.html) and static task scheduling with the graph of subbasins by METIS (http://glaros.dtc.umn.edu/gkhome/metis/metis/overview). All the C++ applications are organized by CMake and can be built, compiled, and installed at one time.
 
 Common commands to compile SEIMS:
-```
+```shell
 cd <path-to-SEIMS>
 mkdir build
 cd build
@@ -262,7 +267,7 @@ make install
 Specifically, for users using MSVC on Windows, please follow the steps below:
 + Open a new VS2013 Developer Command Prompt, and navigate to the directory of SEIMS, e.g., `D:\demo\SEIMS`.
 + Build the Visual Studio solution by CMake and compile the whole SEIMS solution by `msbuild.exe`.
-    ```batch
+    ```bat
     cd D:\demo\SEIMS
     d:
     mkdir build

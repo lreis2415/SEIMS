@@ -1,4 +1,4 @@
-2.6 Parameters sensitivity analysis {#parameters_sensitivity}
+Parameters sensitivity analysis {#getstart_parameters_sensitivity}
 =============================================================
 
 [TOC]
@@ -81,10 +81,12 @@ DPI = 300
 ```
 
 # Advanced usage
-The Python scripts of parameter sensitivity analysis are in `SEIMS/seims/parameters_sensitivity`. The main.py is the entrance which can be executed though the unified format of running SEIMS Python scripts, e.g.,
+The Python scripts of parameter sensitivity analysis are in `SEIMS/seims/parameters_sensitivity`. The `main.py` is the entrance which can be executed though the unified format of running SEIMS Python scripts, e.g.,
 
 ```python
 cd D:\demo\SEIMS\seims\parameters_sensitivity
 python main.py -ini D:\demo\SEIMS\data\youwuzhen\workspace\sensitivity_analysis.ini
 ```
 
+# See more...
+Also see introduction of the Python package @subpage intro_parameters_sensitivity_pkg

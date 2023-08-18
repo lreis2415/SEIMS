@@ -6,10 +6,10 @@ Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.e
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations
-  * [PDF version in English](SEIMS-UserManual.pdf)
-  * Online versions (**Under Construction!**):
+  * [Archieved PDF version in English](SEIMS-UserManual.pdf)
+  * Online versions:
   [English version](https://lreis2415.github.io/SEIMS/),
-  [简体中文版](https://lreis2415.github.io/SEIMS/zh-cn/)
+  [简体中文版 (**尚未完成!**)](https://lreis2415.github.io/SEIMS/zh-cn/)
 
 ## Build Status
 

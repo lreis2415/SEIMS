@@ -1,4 +1,4 @@
-2.5 Postprocessing {#postprocessing}
+Postprocessing {#getstart_runmodel_postprocessing}
 ======================================================
 
 [TOC]
@@ -36,8 +36,8 @@ The configuration file of postprocessing, such as that of the Youwuzhen watershe
     + `LANG_CN`: Whether Chinese are included (True) or not (False) in labels and legend texts, etc.
     + `FONT_TITLE`: Font title (font name) for the output figures. Below are tips to check the available fonts or use new ones.
         + Get the currently available font titles by the following Python code.
-
-            ```python
+            @code
+            ```py
             from matplotlib import font_manager
             flist = font_manager.get_fontconfig_fonts()
             font_names = list()
@@ -47,8 +47,8 @@ The configuration file of postprocessing, such as that of the Youwuzhen watershe
                 except IOError or Exception:
                     continue
             print(font_names)
-
             ```
+            @endcode
 
         + To add and use a new font:
             + Download a font with `.ttf` format such as YaHei Mono which supports a hybrid of Chinese and English. If you have only .ttc formatted font file, you may want to convert it to .ttf file using transfonter.
@@ -93,12 +93,13 @@ DPI = 300
 
 # Advanced usage
 The Python scripts of postprocessing are in `SEIMS/seims/postprocess`. The `main.py` is the entrance of postprocessing which can be executed though the unified format of running SEIMS Python scripts, e.g.,
+
 ```python
 cd D:\demo\SEIMS\seims\postprocess
 python main.py -ini D:\demo\SEIMS\data\youwuzhen\workspace\postprocess.ini
 ```
 
-To illustrate the functionality of postprocessing, Figure 2:5 4 showed the calibration and validation of the simulated streamflow (Q, m3/s) at the watershed outlet derived from the demo Youwuzhen watershed model with default model parameters with Chinese labels and legend texts based on `YaHei Mono` font (changes of the configuration was shown in Figure 2:5 5). 
+To illustrate the functionality of postprocessing, Figure 4 showed the calibration and validation of the simulated streamflow (Q, m<sup>3</sup>/s) at the watershed outlet derived from the demo Youwuzhen watershed model with default model parameters with Chinese labels and legend texts based on `YaHei Mono font` (see below for changes of the configuration). 
 
 ```
 [OPTIONAL_PARAMETERS]
@@ -115,5 +116,5 @@ LANG_CN = True
 FONT_TITLE = YaHei Mono
 ```
 
-
+# See more...
 Also see introduction of the Python package @subpage intro_postprocess_pkg

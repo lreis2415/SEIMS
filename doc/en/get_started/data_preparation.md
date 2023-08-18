@@ -1,4 +1,4 @@
-2.2 Data preparation of demo watershed {#data_preparation}
+Data preparation of demo watershed {#getstart_data_preparation}
 ==========================================================
 
 [TOC]
@@ -12,12 +12,12 @@ Basically, the input data of SEIMS-based watershed model includes two categories
 Spatial data includes raster data and vector data. Theoretically, all formats of raster (https://www.gdal.org/formats_list.html) and vector (https://www.gdal.org/ogr_formats.html) data supported by GDAL are acceptable for SEIMS. Even though, the most commonly used GeoTIFF and ESRI Shapefile are highly recommended for raster and vector data, respectively.
 + Please make sure all spatial data have the same projected coordinate system, NOT geographic coordinate system.
 + The spatial extents of different raster data are not necessarily the same. However, the gridded cells at the same location are preferably coincident. Otherwise, the raster data will be interpolated based on the DEM data which may cause undesired distortion. 
-## Plain text
+## Plain text {#dataprep_basic_plaintest}
 Except for the spatial data, almost all the other data can be provided as plain text. The basic conventions of plain text are designed as:
-+ The line starts with number sign (‘#’) will be regarded as a comment line and ignored by SEIMS. However, there is one exception when the first line of one plain text file is for recording the time-system and timezone, e.g., `#LOCALTIME 8` means date time recorded in the current file is east 8th district time and `#UTCTIME` means Coordinated Universal Time which is also known as Greenwich Mean Time (GMT).
++ The line starts with number sign (`#`) will be regarded as a comment line and ignored by SEIMS. However, there is one exception when the first line of one plain text file is for recording the time-system and timezone, e.g., `#LOCALTIME 8` means date time recorded in the current file is east 8th district time and `#UTCTIME` means Coordinated Universal Time which is also known as Greenwich Mean Time (GMT).
 + The first valid line is headers if needed.
-+ Comma (‘,’) is the delimiter for values within each data line.
-+ En dash (‘-’) is the primary delimiter within each value while colon (‘:’) is the secondary delimiter.
++ Comma (`,`) is the delimiter for values within each data line.
++ En dash (`-`) is the primary delimiter within each value while colon (`:`) is the secondary delimiter.
 
 For example, the following plain text 
 ```
@@ -38,33 +38,36 @@ demo_dict = {
 }
 ```
 # Spatial data
-The demo data named Youwuzhen watershed (~5.39 km<sup>2</sup>) is located in Changting County of Fujian province, China (Figure 1). It belongs to the typical red-soil hilly region in southeastern China and suffers from severe soil erosion. The study area has hills with steep slopes (up to 52.9° and with an average slope of 16.8°) and broad alluvial valleys. The elevation ranges from 295.0 m to 556.5 m. The landuse types are mainly forest (59.8%), paddy field (20.6%), and orchard (12.8%) (Figure 2). Soil types in the study area are red soil (78.4%) and paddy soil (21.6%) which can be classified as *Ultisols* and *Inceptisols* in US Soil Taxonomy, respectively (Figure 3). 
+The demo data named Youwuzhen watershed (~5.39 km<sup>2</sup>) is located in Changting County of Fujian province, China ([Fig. Youwuzhen Map](@ref fig_ywz_loc)). It belongs to the typical red-soil hilly region in southeastern China and suffers from severe soil erosion. The study area has hills with steep slopes (up to 52.9° and with an average slope of 16.8°) and broad alluvial valleys. The elevation ranges from 295.0 m to 556.5 m. The landuse types are mainly forest (59.8%), paddy field (20.6%), and orchard (12.8%) ([Fig. Youwuzhen Landuse](@ref fig_ywz_lucc)). Soil types in the study area are red soil (78.4%) and paddy soil (21.6%) which can be classified as *Ultisols* and *Inceptisols* in US Soil Taxonomy, respectively ([Fig. Youwuzhen Soil Type](@ref fig_ywz_soiltype)).
+
 To improve the computational efficiency for demonstration in this manual, the DEM (`ywzdem30m.tif`), landuse (`ywzlanduse30m.tif`), and soil (`ywzsoil30m.tif`) map are all unified to be of 30 m resolution.
 
-![ywzloc](../../img/youwuzhen_location_en.jpg) <img src="youwuzhen_location_en.jpg" alt="ywzloc" width="400"/>
+\anchor fig_ywz_loc ![ywzloc](../../img/youwuzhen_location_en.jpg) <img src="youwuzhen_location_en.jpg" alt="ywzloc" width="400"/>
 
-Figure 1 Location of the demo watershed named Youwuzhen watershed
+**Fig. Location of the demo watershed named Youwuzhen watershed**
 
-![ywzlucc](../../img/youwuzhen_landuse_en.jpg) <img src="youwuzhen_landuse_en.jpg" alt="ywzlucc" width="400"/>
+\anchor fig_ywz_lucc ![ywzlucc](../../img/youwuzhen_landuse_en.jpg) <img src="youwuzhen_landuse_en.jpg" alt="ywzlucc" width="400"/>
 
-Figure 2 Landuse map of the Youwuzhen watershed
+**Fig. Landuse map of the Youwuzhen watershed**
 
-![ywzsoil](../../img/youwuzhen_soil_en.jpg) <img src="youwuzhen_soil_en.jpg" alt="ywzsoil" width="400"/>
+\anchor fig_ywz_soiltype ![ywzsoil](../../img/youwuzhen_soil_en.jpg) <img src="youwuzhen_soil_en.jpg" alt="ywzsoil" width="400"/>
 
-Figure 3 Soil map of the Youwuzhen watershed
+**Fig. Soil map of the Youwuzhen watershed**
 
 The outlet location (i.e., as vector point) of the Youwuzhen watershed is prepared as ESRI Shapefile. If the outlet data cannot be predetermined, the location (i.e., center of the gridded cell) with largest flow accumulation will be marked as the outlet of the current study area.
+
 In the current version of SEIMS, the Thiessen polygon of meteorological stations and precipitation stations that covers the entire watershed should also be provided as vector polygon data, e.g., `thiessen_meteo.shp` and `thiessen_pcp.shp`, respectively. The attributes of each polygon should include the unique ID (`ID`) which is coincident with station ID introduced in the following section, station name (`Name`), X and Y coordinates under the projected coordinate system (`LocalX` and `LocalY`), latitude and longitude under the WGS84 coordinate system (`Lat` and `Lon`), and altitude (`Elevation`).
 
->**TODO**: The requirements of the Thiessen polygon of meteorological stations and precipitation stations should be removed since the spatial information of these stations presented as plain text (see Section 2:2.3.1) can provide similar information.
+> **TODO**: The requirements of the Thiessen polygon of meteorological stations and precipitation stations should be removed since the spatial information of these stations presented as plain text (see [here](@ref dataprep_spatial_pcp_station)) can provide similar information.
+
 All these spatial data are in `SEIMS\data\youwuzhen\data_prepare\spatial`.
 
 # Precipitation data
 The annual average precipitation of the Youwuzhen watershed is 1697.0 mm and intense short-duration thunderstorm events contribute about three-quarters of annual precipitation from March to August.
-## Spatial information of precipitation station
-The fields of spatial information of precipitation station are shown in Table 1.
+## Spatial information of precipitation station {#dataprep_spatial_pcp_station}
+The fields of spatial information of precipitation station are shown in [Tab. Precipitation Station](@ref tab_pcpstation).
 
-Table 1 Fields of precipitation station
+\anchor tab_pcpstation **Tab. Fields of precipitation station**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -83,10 +86,10 @@ StationID,Name,LocalX,LocalY,Lon,Lat,Elevation
 ```
 
 ## Records of precipitation data
-The first line is to state the time-system and time zone (see Section 2:2.1.2). If not provided, `#UTCTIME` will be regarded as the default.
-The fields and formats of precipitation data are shown in Table 2.
+The first line is to state the time-system and time zone (see [here](@ref dataprep_basic_plaintest)). If not provided, `#UTCTIME` will be regarded as the default.
+The fields and formats of precipitation data are as follows.
 
-Table 2 Fields and formats of precipitation data item
+\anchor tab_pcp_dataitem **Tab. Fields and formats of precipitation data item**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -106,12 +109,12 @@ DATETIME,81502750
 ```
 
 # Meteorological data
-The Youwuzhen watershed is characterized by a mid-subtropical monsoon moist climate and has an annual average temperature of 18.3 ℃. 
-The format of meteorological station is the same as that of precipitation station (see Section 2:2.3.1), e.g., `SEIMS\data\youwuzhen\data_prepare\climate\Sites_M.csv`.
-Same to precipitation data, the first line of meteorological data text is to state the time-system and timezone (see Section 2:2.1.2). If not provided, `#UTCTIME` will be regarded as default. The fields and formats of meteorological data are shown in Table 3. 
-Note that there is no fixed order of these fields.
+The Youwuzhen watershed is characterized by a mid-subtropical monsoon moist climate and has an annual average temperature of 18.3 °C. 
+The format of meteorological station is the same as that of precipitation station (see [here](@ref dataprep_spatial_pcp_station)), e.g., `SEIMS\data\youwuzhen\data_prepare\climate\Sites_M.csv`.
 
-Table 3 Fields and formats of meteorological data item
+Same to precipitation data, the first line of meteorological data text is to state the time-system and timezone (see [here](@ref dataprep_basic_plaintest)). If not provided, `#UTCTIME` will be regarded as default. The fields and formats of meteorological data are as follows. **Note that there is no fixed order of these fields.**
+
+\anchor tab_meteo_dataitem **Tab. Fields and formats of meteorological data item**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -142,9 +145,9 @@ Besides, the units of each type of data should also be provided, e.g., `SEIMS\da
 # Observed data
 The periodic site-monitoring streamflow, sediment, or nutrient data collected within the watershed are regarded as observed data. The observed data is organized as one site information file and several data files corresponding to the number of monitoring sites and monitoring variables.
 ## Spatial information of monitoring sites
-The fields of spatial information of monitoring sites are shown in Table 4. 
+The fields of spatial information of monitoring sites are as follows. 
 
-Table 4 Fields of observed data
+\anchor tab_obs_site **Tab. Fields of monitoring site data**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -166,17 +169,17 @@ StationID,Name,Type,Lat,Lon,LocalX,LocalY,Unit,Elevation,isOutlet
 1,hetianzhan,Q,25.680207,116.406401,440409.511725,2841541.17804,m3/s,280,1
 ```
 
-Note that the observed data is primarily used for postprocessing such as matching to the corresponding simulated values. Thus, the `Type` should be accord with the output of SEIMS-based watershed model. All the currently available outputs can be found in `SEIMS\seims\preprocess\database\AvailableOutputs.csv`. For example, if the total nitrogen data is monitored, the type should be `CH_TN` according to the value of the `FILENAME` field (obviously, not include the suffix, e.g., `'.txt'`) in the output item of total nitrogen amount in reach:
+Note that the observed data is primarily used for postprocessing such as matching to the corresponding simulated values. Thus, the `Type` should be accord with the output of SEIMS-based watershed model. All the currently available outputs can be found in `SEIMS\seims\preprocess\database\AvailableOutputs.csv`. For example, if the total nitrogen data is monitored, the type should be `CH_TN` according to the value of the `FILENAME` field (obviously, not include the suffix, e.g., `.txt`) in the output item of total nitrogen amount in reach:
 ```
 MODULE_CLASS,OUTPUTID,DESCRIPTION,UNIT,TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN,FILENAME,USE
 NutrientTransport,CH_TN,total nitrogen amount in reach,kg,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,CH_TN.txt,0
 ```
 
 ## Records of observed data
-Like the format of precipitation data, the first line is optionally to state the time-system and timezone (see Section 2:2.1.2). If not provided, `#UTCTIME` will be regarded as the default.
-The fields and formats of observed data are shown in Table 5.
+Like the format of precipitation data, the first line is optionally to state the time-system and timezone (see [here](@ref dataprep_basic_plaintest)). If not provided, `#UTCTIME` will be regarded as the default.
+The fields and formats of observed data are as follows.
 
-Table 5 Fields and formats of observed data item
+\anchor tab_obs_dataitem **Tab. Fields and formats of observed data item**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -198,10 +201,10 @@ StationID,DATETIME,Type,VALUE
 Lookup tables, including crop, fertilizer, tillage, lanuse, soil, and urban, are adopted from SWAT and predefined in `SEIMS\seims\preprocess\database`. Parameters specific to study areas can be appended to these lookup tables or prepared in separate files in `SEIMS\data\youwuzhen\data_prepare\lookup`.
 The details of the most common used lookup tables are as follows. 
 ## Soil properties
-Soil properties include physical properties and chemical properties. The fields and descriptions are shown in Table 6. The optional parameters can be omitted.
-Note that the `SEQN` and `NAME` may not be consistent with soil types (`SOILCODE`), so that to represent heterogeneity of the same soil type according to different landcover or topographic positions. However, the `SEQN` **MUST** be consistent with the values in soil map, i.e., `ywzsoil30m.tif`. The soil properties of multiple layers are concatenated with En dash (‘-’) as described in Section 2:2.1.2.
+Soil properties include physical properties and chemical properties. The fields and descriptions are shown in [Tab. Soil Lookup](@ref tab_soil_lookup). The optional parameters can be omitted.
+Note that the `SEQN` and `NAME` may not be consistent with soil types (`SOILCODE`), so that to represent heterogeneity of the same soil type according to different landcover or topographic positions. However, the `SEQN` **MUST** be consistent with the values in soil map, i.e., `ywzsoil30m.tif`. The soil properties of multiple layers are concatenated with En dash (`-`) as described in [here](@ref dataprep_basic_plaintest).
 
-Table 6 Fields and description in lookup table of soil properties
+\anchor tab_soil_lookup **Tab. Fields and description in lookup table of soil properties**
 
 |      Field name     |      Datatype     |      Unit     |      Description     |
 |---|---|---|---|
@@ -214,7 +217,7 @@ Table 6 Fields and description in lookup table of soil properties
 |     SOL_SILT    |     Float array    |     %    |     Silt content, 0.002 mm < D < 0.05 mm    |
 |     SOL_SAND    |     Float array    |     %    |     Sand content, 0.05 mm < D < 2 mm    |
 |     SOL_ROCK    |     Float array    |     %    |     Rock fragment content, D > 2 mm    |
-|     SOL_BD    |     Float array    |     Mg/m3    |     Moist bulk density, value ranges 1.1 ~ 1.9    |
+|     SOL_BD    |     Float array    |     Mg/m<sup>3</sup>    |     Moist bulk density, value ranges 1.1 ~ 1.9    |
 |     SOL_AWC    |     Float array    |     mm    |     Available water capacity    |
 |     SOL_ZMX    |     Float    |     mm    |     (Optional) Maximum rooting depth of soil profile    |
 |     ANION_EXCL    |     Float    |     -    |     (optional) Fraction of porosity (void space) from which anions are   excluded, default is 0.5    |
@@ -239,9 +242,9 @@ SEQN,SNAM,SOILLAYERS,SOL_ZMX,SOL_Z,SOL_BD,SOL_OM,SOL_CLAY,SOL_SILT,SOL_SAND,SOL_
 ```
 
 ## Initial landcover parameters
-Some parameters of landcover at the beginning of simulation should be defined. The fields and descriptions are shown in Table 7. Please refers to the predefined database `seims/preprocess/database/CropLookup.csv` and `LanduseLookup.csv`.
+Some parameters of landcover at the beginning of simulation should be defined. The fields and descriptions are shown in [Tab. LUCC Lookup](@ref tab_soil_lookup). Please refers to the predefined database `seims/preprocess/database/CropLookup.csv` and `LanduseLookup.csv`.
 
-Table 7 Fields and descriptions in the lookup table of initial landcover parameters
+\anchor tab_lucc_lookup **Tab. Fields and descriptions in the lookup table of initial landcover parameters**
 
 |      Field name     |      Datatype     |      Unit     |      Description     |
 |---|---|---|---|
@@ -280,9 +283,9 @@ In this section, the organization of BMP scenario is firstly presented, then fol
 
 ##	BMP scenario
 A BMP scenario is a collection of different BMPs which will be applied to an SEIMS-based watershed model to affect watershed behaviors.
-There can be many different BMP scenarios for the BMP scenarios analysis based on one watershed model. Each BMP scenario is identified using a unique integer ID. For each BMP of one scenario, the location and parameters must be specified. For reach BMPs, the location is the reach ID. For two areal BMPs, the location is the areas identified by a raster data, i.e., the so-called BMP configuration units. The BMP parameters are defined in separate plain text files, in which different combinations of parameters are allowed and distinguished by unique ID, i.e., `SUBSCENARIO`. The fields and descriptions of BMP scenario table are shown in Table 8.
+There can be many different BMP scenarios for the BMP scenarios analysis based on one watershed model. Each BMP scenario is identified using a unique integer ID. For each BMP of one scenario, the location and parameters must be specified. For reach BMPs, the location is the reach ID. For two areal BMPs, the location is the areas identified by a raster data, i.e., the so-called BMP configuration units. The BMP parameters are defined in separate plain text files, in which different combinations of parameters are allowed and distinguished by unique ID, i.e., `SUBSCENARIO`. The fields and descriptions of BMP scenario table are as follows.
 
-Table 8 Fields and descriptions of BMP scenario table
+\anchor tab_bmpscenario **Tab. Fields and descriptions of BMP scenario table**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -290,7 +293,7 @@ Table 8 Fields and descriptions of BMP scenario table
 |     NAME    |     String    |     Scenario name    |
 |     BMPID    |     Integer    |     Predefined BMP ID (e.g., `SEIMS\data\youwuzhen\scenario\BMP_index.csv`)    |
 |     SUBSCENARIO    |     Integer    |     Sub-scenario ID of BMP defined in specific BMP parameters    |
-|     DISTRIBUTION    |     String    |     The format is `<Type>\|<Filename>`. `<Type>` may be `REACH` or `RASTER` for reach BMP and areal BMP,   respectively. `<Filename>` is the corresponding reach table name or raster filename. For example, `RASTER\|LANDUSE` means the configuration of the   current areal BMP is based on landuse types.    |
+|     DISTRIBUTION    |     String    |     The format is `<Type>|<Filename>`. `<Type>` may be `REACH` or `RASTER` for reach BMP and areal BMP,   respectively. `<Filename>` is the corresponding reach table name or raster filename. For example, `RASTER|LANDUSE` means the configuration of the   current areal BMP is based on landuse types.    |
 |     COLLECTION    |     String    |     The name of the plain text file that defines the BMP parameters (e.g.,   `SEIMS\data\youwuzhen\scenario\plant_management.csv`)    |
 |     LOCATION    |     Integer array    |     Location values of `DISTRIBUTION` for configuring BMP, e.g., 33 means the BMP will be configured on the landuse type of 33. Multiple location values are separated by En dash.    |
 
@@ -303,7 +306,23 @@ ID,NAME,BMPID,SUBSCENARIO,DISTRIBUTION,COLLECTION,LOCATION
 The scenario `ID` of 0 named `base` includes one BMP with the `BMPID` of 12 which is plant management according to `BMP_index.csv`. The configuration unit of this BMP is based on `LANDUSE` map and the landuse of 33 will be configured. The parameters of this BMP can be loaded from `plant_management.csv` and the `SUBSCENARIO` of 0 will be applied.
 
 ## Plant management
-By drawing lessons from the SWAT model, a total of 15 different types of plant management operations are considered in the BMP module of SEIMS. A combination of several plant management operations (e.g., plant, fertilize, harvest, etc.) is regarded as a `SUBSCENARIO` of plant management practices such as the crop rotation practices with rice and winter wheat. Each management operation of one `SUBSCENARIO` has the same fields such as Table 9.
+By drawing lessons from the SWAT model, a total of 15 different types of plant management operations are considered in the BMP module of SEIMS. A combination of several plant management operations (e.g., plant, fertilize, harvest, etc.) is regarded as a `SUBSCENARIO` of plant management practices such as the crop rotation practices with rice and winter wheat. Each management operation of one `SUBSCENARIO` has the same fields such as follows.
+
+\anchor tab_plt_mgt **Tab. Fields and descriptions of plant management practices**
+
+|      Field name     |      Datatype     |      Description     |
+|---|---|---|
+|     SUBSCENARIO    |     Integer    |     Unique sub-scenario ID in current BMP parameters table    |
+|     NAME    |     String    |     Sub-Scenario name, e.g., `Crop_rotation`    |
+|     LANDUSE_ID    |     Integer    |     Landuse type that the `SUBSCENARIO`   can be applied    |
+|     SEQUENCE    |     Integer    |     Sequence No. of the plant management related operations of the `SUBSCENARIO`, start from 1    |
+|     YEAR    |     Integer    |     Year No. of the `SUBSCENARIO`,   start from 1    |
+|     MONTH    |     Integer    |     Month of the operation takes place    |
+|     DAY    |     Integer    |     Day of the operation takes place    |
+|     BASE_HU    |     Boolean    |     Use (1) the fraction of annual total heat units (`HU`) or the fraction of total heat   units of a plant to reach maturity (`PHU`) (0)    |
+|     HUSC    |     Float    |     Heat unit scheduling for operation expressed as the fraction of `PHU` or the fraction of `HU` if `BASE_HU=1`    |
+|     MGT_OP    |     Integer    |     Management operation number    |
+|     `MGT<N>`    |     Float array    |     Operation related parameters. `<N>` ranges from 1 to 10. Multiple   location values are separated by Comma.    |
 
 Plant management practices are scheduled according to heat units and/or operation date from local experiences. The operation can be performed if either of the conditions is met. For example, the plant operation is set at 5<sup>th</sup>, May or `HUSC` greater or equal to 0.2. If the `BASE_HU` is used and the `HUSC` which represents the fraction of annual total heat units (`HU`) has reached 0.2 at 1<sup>st</sup>, May, then the plant operation will occur since the `HUSC` condition is first met than `MONTH/DAY`.
 
@@ -326,27 +345,11 @@ The type of plant management operation simulated is identified by the code given
 15.	Continuous pesticide. Apply pesticides to the soil surface on a continuous basis
 16.	Burning operation. Remove the user-specified portion of pant biomass from the location.
 
-The parameters of different plant management operations are listed in Table 10. Please refers to `SWAT 2012 Input/Output Documentation` for more details of each parameter. 
+The parameters of different plant management operations are listed in [Tab.](@ref tab_plt_mgt_op). Please refers to `SWAT 2012 Input/Output Documentation` for more details of each parameter. 
+
 Note that, to simulate the water level changes in different growth stages of paddy rice, the parameters of the release/impound operation are expanded than SWAT, i.e., maximum ponding depth (`MAX_PND`), minimum fitting depth (`MIN_FIT`), and maximum fitting depth (`MAX_FIT`).
 
-Table 9 Fields and descriptions of plant management practices
-
-|      Field name     |      Datatype     |      Description     |
-|---|---|---|
-|     SUBSCENARIO    |     Integer    |     Unique sub-scenario ID in current BMP parameters table    |
-|     NAME    |     String    |     Sub-Scenario name, e.g., `Crop_rotation`    |
-|     LANDUSE_ID    |     Integer    |     Landuse type that the `SUBSCENARIO`   can be applied    |
-|     SEQUENCE    |     Integer    |     Sequence No. of the plant management related operations of the `SUBSCENARIO`, start from 1    |
-|     YEAR    |     Integer    |     Year No. of the `SUBSCENARIO`,   start from 1    |
-|     MONTH    |     Integer    |     Month of the operation takes place    |
-|     DAY    |     Integer    |     Day of the operation takes place    |
-|     BASE_HU    |     Boolean    |     Use (1) the fraction of annual total heat units (`HU`) or the fraction of total heat   units of a plant to reach maturity (`PHU`) (0)    |
-|     HUSC    |     Float    |     Heat unit scheduling for operation expressed as the fraction of `PHU` or the fraction of `HU` if `BASE_HU=1`    |
-|     MGT_OP    |     Integer    |     Management operation number    |
-|     `MGT<N>`    |     Float array    |     Operation related parameters. `<N>` ranges from 1 to 10. Multiple   location values are separated by Comma.    |
-
-
-Table 10 Parameters defined for plant management operations
+\anchor tab_plt_mgt_op **Tab. Parameters defined for plant management operations**
 
 |     NAME    |     OP    |     MGT1    |     MGT2    |     MGT3    |     MGT4    |     MGT5    |     MGT6    |     MGT7    |     MGT8    |     MGT9    |     MGT10    |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -370,11 +373,11 @@ Table 10 Parameters defined for plant management operations
 > Note: NONE means the reserved position for further potential parameters and the default value is 0.
 
 ## General areal structural BMP
-Generally, the areal structural BMP takes effects by modifying watershed modeling related parameters on the locations that configured with BMP. Thus, a general table for areal structural BMP is designed as shown in Table 11, which basically includes spatial parameters (e.g., suitable `LANDUSE` and `SLPPOS`), environmental effectiveness parameters (e.g., `PARAMETERS` and `EFFECTIVENESS`), and economic benefits (e.g., `CAPEX`, `OPEX`, and `INCOME`).
+Generally, the areal structural BMP takes effects by modifying watershed modeling related parameters on the locations that configured with BMP. Thus, a general table for areal structural BMP is designed as shown in [Tab. General Areal Structual BMP](@ref tab_general_areal_bmp), which basically includes spatial parameters (e.g., suitable `LANDUSE` and `SLPPOS`), environmental effectiveness parameters (e.g., `PARAMETERS` and `EFFECTIVENESS`), and economic benefits (e.g., `CAPEX`, `OPEX`, and `INCOME`).
 
 Note that, fields of the general areal structural BMP can be extended or modified by users according to the requirements of scenario analysis. These fields will be used in the predefined scenario analysis program (e.g., `SEIMS\seims\scenario_analysis\spatialunits`) or other scenario analysis program developed based on the base class in SEIMS (`SEIMS\seims\scenario_analysis`).
 
-Table 11 Fields and descriptions of general areal structural management practices
+\anchor tab_general_areal_bmp **Tab. Fields and descriptions of general areal structural management practices**
 
 |      Field name     |      Datatype     |      Description     |
 |---|---|---|
@@ -420,3 +423,6 @@ demo_dict = {'NAME': 'fengjin',
             'INCOME': 2,
             }
 ```
+
+# See more...
+Predefined database: @subpage intro_predefined_database

@@ -1,4 +1,4 @@
-2.3 Data preprocessing for watershed modeling {#data_preprocessing}
+Data preprocessing for watershed modeling {#getstart_data_preprocessing}
 ===================================================================
 
 [TOC]
@@ -195,3 +195,10 @@ The screenshot of the structure of the watershed modeling database was shown in 
     1. BMP IDs, i.e., `BMP_INDEX`.
     2. BMP scenarios, i.e., `BMP_SCENARIOS`.
     3. Various BMPs parameters, the collection names are dependent on the plain text filename located in management practices data (e.g., `SEIMS\data\youwuzhen\data_prepare\scenario`), such as `PLANT_MANAGEMENT` and `AREAL_STRUCT_MANAGEMENT` in this demo study.
+
+# See more...
+Also see introduction of the Python package @subpage intro_preprocess_pkg
+
+AutoFuzSlpPos Python package: @subpage intro_autofuzslppos_pkg
+
+Predefined database: @subpage intro_predefined_database
