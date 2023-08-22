@@ -30,6 +30,7 @@ Configure and run SEIMS model.
 from __future__ import absolute_import, unicode_literals
 
 import bisect
+import logging
 from copy import deepcopy
 from collections import OrderedDict
 from configparser import ConfigParser
@@ -518,10 +519,12 @@ class MainSEIMS(object):
         eidx = bisect.bisect_right(list(self.sim_value.keys()), etime)
 
         def slice_odict(odict, start=None, end=None):
-            return OrderedDict([(k, v) for (k, v) in odict.items()
+            res = OrderedDict([(k, v) for (k, v) in odict.items()
                                 if k in list(odict.keys())[start:end]])
-
-        return self.sim_vars, slice_odict(self.sim_value, sidx, eidx)
+            return res
+        odict = slice_odict(self.sim_value, sidx, eidx)
+        logging.debug(f'Extract {len(odict)} simulated records from {sidx} to {eidx}')
+        return self.sim_vars, odict
 
     def ExtractSimObsData(self, stime=None, etime=None):
         # type: (Optional[datetime], Optional[datetime]) -> Dict[AnyStr, Dict[AnyStr, List[Union[datetime, float]]]]
@@ -532,6 +535,12 @@ class MainSEIMS(object):
             ext_dict[param] = dict()
             sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
             eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
+            if len(values['UTCDATETIME']) < eidx:
+                logging.error(f'The length of UTCDATETIME is less than eidx ({len(values["UTCDATETIME"])} < {eidx})')
+            if len(values['Obs']) < eidx:
+                logging.error(f'The length of Obs is less than eidx ({len(values["Obs"])} < {eidx})')
+            if len(values['Sim']) < eidx:
+                logging.error(f'The length of Sim is less than eidx ({len(values["Sim"])} < {eidx})')
             ext_dict[param]['UTCDATETIME'] = values['UTCDATETIME'][sidx:eidx]
             ext_dict[param]['Obs'] = values['Obs'][sidx:eidx]
             ext_dict[param]['Sim'] = values['Sim'][sidx:eidx]
@@ -546,6 +555,7 @@ class MainSEIMS(object):
         # type: (...) -> (List[AnyStr], List[float])
         objnames = calculate_statistics(sim_obs_dict, stime, etime)
         if objnames is None:
+            logging.error(f'Calculate statistics failed! From time {stime} to {etime}. {sim_obs_dict}')
             return None, None
         comb_vars = list()
         obj_values = list()
@@ -714,7 +724,7 @@ class MainSEIMS(object):
         """
         stime = time.time()
         if not os.path.isdir(self.output_dir) or not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+            os.makedirs(self.output_dir,exist_ok=True)
         # If the input time period is not consistent with the predefined time period in FILE_IN.
         if self.simu_stime and self.simu_etime and self.simu_stime != self.start_time \
             and self.simu_etime != self.end_time:

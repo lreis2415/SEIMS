@@ -13,6 +13,6 @@ import scoop
 
 def scoop_log(msg):
     if os.name != 'nt':
-        scoop.logger.warn(msg)
+        scoop.logger.warning(msg)
     else:
         print(msg)

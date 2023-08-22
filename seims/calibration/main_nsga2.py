@@ -121,6 +121,31 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 #         self.fitness = FitnessMulti()
 
 # Register NSGA-II related operations
+
+# from dask_jobqueue import PBSCluster
+# cluster = PBSCluster(  # <-- scheduler started here
+#      cores=4,
+#      memory='5GB',
+#      processes=2,
+#      # local_directory='$TMPDIR',
+#      resource_spec='nodes=2:ppn=8',
+#      queue='workq',
+#      account='wyj',
+#      walltime='00:01:00',
+# )
+
+# from dask.distributed import Client
+# client = Client(processes=False)
+# # cluster.scale(jobs=4)
+# # print('cluster job script:')
+# # print(cluster.job_script())
+# print('create client:')
+# print(client)
+# def dask_map(*args, **kwargs):
+#     print('dask_map')
+#     print(client)
+#     return client.gather(client.map(*args, **kwargs))
+
 toolbox = base.Toolbox()
 toolbox.register('gene_values', initialize_calibrations)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
@@ -207,6 +232,7 @@ def main(cfg):
         try:  # parallel on multi-processors or clusters using SCOOP
             from scoop import futures
             invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+            # invalid_pops = list(dask_map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:

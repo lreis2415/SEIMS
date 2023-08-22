@@ -11,6 +11,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import time
 from collections import OrderedDict
 import os
@@ -196,6 +197,7 @@ def initialize_calibrations(cf):
 def calibration_objectives(cali_obj, ind):
     """Evaluate the objectives of given individual.
     """
+    logging.debug('Evaluate the objectives of individual %d' % ind.id)
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
     model_args.setdefault('calibration_id', -1)
@@ -230,6 +232,8 @@ def calibration_objectives(cali_obj, ind):
                                                             cali_obj.cfg.cali_etime)
     if ind.cali.objnames and ind.cali.objvalues:
         ind.cali.valid = True
+    else:
+        logging.error('Calibration period is not valid, please check the data.')
 
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of validation period
     if cali_obj.cfg.calc_validation:
@@ -244,13 +248,15 @@ def calibration_objectives(cali_obj, ind):
                                                                 cali_obj.cfg.vali_etime)
         if ind.vali.objnames and ind.vali.objvalues:
             ind.vali.valid = True
-
+        else:
+            logging.error('Validation period is not valid, please check the data.')
     # Get timespan
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
 
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
+    logging.debug(ind)
     return ind
 
 

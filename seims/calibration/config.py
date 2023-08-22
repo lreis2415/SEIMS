@@ -58,7 +58,7 @@ class CaliConfig(object):
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
 
-        logger.configure_logging(self.opt.dirname, "calibration")
+        logger.configure_logging(log_file_prefix='calibration')
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
 

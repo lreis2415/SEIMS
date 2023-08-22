@@ -53,6 +53,8 @@ def output_population_details(pops, outdir, gen_num,
                               plot_cfg=None  # type: Optional[PlotConfig]
                               ):
     """Output population details, i.e., the simulation data, etc."""
+
+
     # Save as json, which can be loaded by json.load()
     # 1. Save the time series simulation data of the entire simulation period
     all_sim_data = list()
