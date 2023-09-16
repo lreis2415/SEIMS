@@ -523,7 +523,7 @@ class MainSEIMS(object):
                                 if k in list(odict.keys())[start:end]])
             return res
         odict = slice_odict(self.sim_value, sidx, eidx)
-        logging.debug(f'Extract {len(odict)} simulated records from {sidx} to {eidx}')
+        logging.debug('Extract %d simulated records from %d to %d' % (len(odict), sidx, eidx))
         return self.sim_vars, odict
 
     def ExtractSimObsData(self, stime=None, etime=None):
@@ -536,11 +536,11 @@ class MainSEIMS(object):
             sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
             eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
             if len(values['UTCDATETIME']) < eidx:
-                logging.error(f'The length of UTCDATETIME is less than eidx ({len(values["UTCDATETIME"])} < {eidx})')
+                logging.error('The length of UTCDATETIME is less than eidx (%d < %d)' % (len(values['UTCDATETIME']), eidx))
             if len(values['Obs']) < eidx:
-                logging.error(f'The length of Obs is less than eidx ({len(values["Obs"])} < {eidx})')
+                logging.error('The length of Obs is less than eidx (%d < %d)' % (len(values['Obs']), eidx))
             if len(values['Sim']) < eidx:
-                logging.error(f'The length of Sim is less than eidx ({len(values["Sim"])} < {eidx})')
+                logging.error('The length of Sim is less than eidx (%d < %d)' % (len(values['Sim']), eidx)
             ext_dict[param]['UTCDATETIME'] = values['UTCDATETIME'][sidx:eidx]
             ext_dict[param]['Obs'] = values['Obs'][sidx:eidx]
             ext_dict[param]['Sim'] = values['Sim'][sidx:eidx]
@@ -555,7 +555,7 @@ class MainSEIMS(object):
         # type: (...) -> (List[AnyStr], List[float])
         objnames = calculate_statistics(sim_obs_dict, stime, etime)
         if objnames is None:
-            logging.error(f'Calculate statistics failed! From time {stime} to {etime}. {sim_obs_dict}')
+            logging.error('Calculate statistics failed! From time %s to %s. %s' % (stime, etime, sim_obs_dict))
             return None, None
         comb_vars = list()
         obj_values = list()
