@@ -17,12 +17,9 @@ import sys
 import os
 from os.path import join as pjoin
 
-from pathos import multiprocessing
-from pymongo import InsertOne
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pathlib import Path
 from utility import logger
 from configparser import ConfigParser
 

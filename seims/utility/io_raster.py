@@ -8,8 +8,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import functools
-from pathos import multiprocessing
-import os
 import traceback
 from io import open
 from pygeoc.utils import UtilClass, FileClass, is_string

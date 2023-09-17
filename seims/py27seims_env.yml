@@ -1,7 +1,7 @@
 # Use the following commands in Anaconda shell to config python env for SEIMS.
 #   cd SEIMS/seims
 #   conda env create -f py27seims_env.yml
-#   
+#
 #   If errors occurred about pip installation, please use the following commands to manually
 #     install some packaged by pip.
 #
@@ -10,6 +10,11 @@
 #   pip install --timeout 1000 "https://github.com/DEAP/deap/archive/master.zip"
 #   pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
 #
+#   when encountering encoding issues, try:
+#   set PYTHONIOENCODING=UTF-8
+
+#   when encountering network issues, try with proxy:
+#   set http_proxy=http://127.0.0.1:8001
 #
 # Latest updated: 05/21/2023
 
@@ -19,8 +24,6 @@ channels:
   - defaults
 dependencies:
   - python=2.7
-  - gdal
-  - Shapely
   - matplotlib
   - pymongo>=3.0
   - networkx>=1.10,<=2.2
@@ -29,5 +32,7 @@ dependencies:
   - configparser
   - pyzmq>=13.0.0,<=19.0.2
   - pip
+  - rasterio
+  - geopandas
   - pip:
     - -r requirements.txt

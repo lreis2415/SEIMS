@@ -69,7 +69,8 @@ def read_simulation_from_txt(ws,  # type: AnyStr
     for i, v in enumerate(plot_vars):
         txtfile = None
         txtfile_tests = [ws + os.path.sep + v + '.txt',
-                         f'{ws}{os.path.sep}{v}_{subbsnID}.txt']
+                         '%s%s%s_%s.txt' % (ws, os.path.sep, v, subbsnID),
+                         ]
         for fn in txtfile_tests:
             if FileClass.is_file_exists(fn):
                 txtfile = fn
