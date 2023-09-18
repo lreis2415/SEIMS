@@ -105,6 +105,19 @@ int SNO_SP::Execute() {
             }
         }
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    FLTPT s3 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        s1 += m_snowMelt[i];
+        s2 += m_snowAccum[i];
+        s3 += m_netPcp[i];
+    }
+    printf("[SNO_SP]m_netPcp(%f), m_snowMelt(%f), m_snowAccum(%f).\n", s3, s1, s2);
+    fflush(stdout);
+#endif
+
     return 0;
 }
 

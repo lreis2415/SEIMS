@@ -109,7 +109,7 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
     if not sim_obs_dict:
         return None
     elif len(list(sim_obs_dict.values())[0]['Obs']) == 0 or len(list(sim_obs_dict.values())[0]['Sim']) == 0:
-        logging.error('Length of observation or simulation is 0. From time "%s" to "%s".' % (stime, etime)
+        logging.error('Length of observation or simulation is 0. From time "%s" to "%s".' % (stime, etime))
         return None
     for param, values in sim_obs_dict.items():
         if stime is None and etime is None:

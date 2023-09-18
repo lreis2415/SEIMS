@@ -540,7 +540,7 @@ class MainSEIMS(object):
             if len(values['Obs']) < eidx:
                 logging.error('The length of Obs is less than eidx (%d < %d)' % (len(values['Obs']), eidx))
             if len(values['Sim']) < eidx:
-                logging.error('The length of Sim is less than eidx (%d < %d)' % (len(values['Sim']), eidx)
+                logging.error('The length of Sim is less than eidx (%d < %d)' % (len(values['Sim']), eidx))
             ext_dict[param]['UTCDATETIME'] = values['UTCDATETIME'][sidx:eidx]
             ext_dict[param]['Obs'] = values['Obs'][sidx:eidx]
             ext_dict[param]['Sim'] = values['Sim'][sidx:eidx]
