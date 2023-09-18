@@ -17,7 +17,8 @@
 #   set http_proxy=http://127.0.0.1:8001
 #
 # Latest updated: 05/21/2023
-
+conda install -c conda-forge matplotlib pymongo>=3.0 networkx>=1.10,<=2.2 pathlib2>=2.0.0 six configparser pyzmq>=13.0.0,<=19.0.2 rasterio geopandas
+conda install -c conda-forge matplotlib
 name: py27seims
 channels:
   - conda-forge
