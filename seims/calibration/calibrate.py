@@ -156,6 +156,7 @@ class Calibration(object):
             names.append(item[0])
             bounds.append([float(item[1]), float(item[2])])
         self.param_defs = {'names': names, 'bounds': bounds, 'num_vars': num_vars}
+        logging.info(self.param_defs)
         return self.param_defs
 
     def reset_simulation_timerange(self):
