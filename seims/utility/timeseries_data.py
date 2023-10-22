@@ -119,7 +119,9 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
             sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
             eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
         if len(values['Obs']) < eidx or len(values['Sim']) < eidx:
-            logging.error(f"Length of observation ({len(values['Obs'])}) or simulation ({len(values['Sim'])}) is less than end index ({eidx}). Date range: {stime} - {etime}.")
+            #logging.error(f"Length of observation ({len(values['Obs'])}) or simulation ({len(values['Sim'])}) is less than end index ({eidx}). Date range: {stime} - {etime}.")
+            logging.error("Length of observation (%d) or simulation (%d) is less than end index (%d). Date range: %s - %s." %
+                          (len(values['Obs']), len(values['Sim']), eidx, stime, etime))
         obsl = values['Obs'][sidx:eidx]
         siml = values['Sim'][sidx:eidx]
 

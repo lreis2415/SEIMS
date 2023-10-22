@@ -31,7 +31,7 @@ from preprocess.text import DBTableNames
 from run_seims import MainSEIMS
 from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
-
+import socket
 
 class TimeseriesData(object):
     """Time series data, for observation and simulation data."""
@@ -199,6 +199,7 @@ def calibration_objectives(cali_obj, ind):
     """Evaluate the objectives of given individual.
     """
     logging.debug('Evaluate the objectives of individual %d' % ind.id)
+    logging.info('execution ip: %s' % socket.gethostbyname(socket.gethostname()))
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
     model_args.setdefault('calibration_id', -1)
