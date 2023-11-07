@@ -21,7 +21,10 @@ import logging
 from math import exp, sqrt
 import os
 import sys
+import osgeo
+import rasterio
 
+from preprocess.sd_hru_aggregate import hru_rasterio
 from preprocess.text import SpatialNamesUtils, ParamAbstractionTypes
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -477,17 +480,31 @@ class TerrainUtilClass(object):
     def parameters_extraction(cfg):
         """Main entrance for terrain related spatial parameters extraction."""
         # To make use of old code, we have to export some rasters from MongoDB
+        mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin,
                       [['0_MANNING', cfg.spatials.manning]],
-                      mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
+                      mongoargs=mongoargs,
                       maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
         if cfg.has_conceptual_subbasin:
-            mask_rasterio(cfg.seims_bin,
-                          [['0_MANNING', cfg.spatials.manning]],
-                          mongoargs=[cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL'],
-                          maskfile=cfg.spatials.subbsn,
-                          include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+            # not sure if MANNING is needed for conceptual subbasin
+            hru_rasterio(
+                out_property_name='0_MANNING',
+                hru_property_raster_path=cfg.spatials.manning,
+                hru_id_raster_path=cfg.spatials.hru_id,
+                # aggregate by subbasins, rather than HRUs, for 0_MANNING
+                hru_distribution_raster_path=cfg.spatials.subbsn,
+                aggregation_type=None,
+                hru_data_type=rasterio.float64,
+                seims_bin=cfg.seims_bin,
+                mongoargs=mongoargs,
+                hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
+            )
+            # mask_rasterio(cfg.seims_bin,
+            #               [['0_MANNING', cfg.spatials.manning]],
+            #               mongoargs=mongoargs,
+            #               maskfile=cfg.spatials.subbsn,
+            #               include_nodata=False, mode='MASK', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         logging.info('Calculate initial channel width and added to reach.shp...')
         TerrainUtilClass.calculate_channel_width_depth(cfg.spatials.d8acc,

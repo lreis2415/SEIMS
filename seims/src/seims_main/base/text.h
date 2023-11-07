@@ -317,6 +317,10 @@ CONST_CHARS_LIST M_SRD_MB[] = {"SRD_MB", "Original WetSpa algorithm"};
 CONST_CHARS_LIST MCLS_SNO_SB[] = {"Snow sublimation", "Calculate the amount of snow sublimation."}; ///<
 CONST_CHARS_LIST M_SSM_PE[] = {"SSM_PE", "A simple method that used in the old WetSpa to calculate snow sublimation."}; ///<
 
+// Snow/Glacier melt related modules
+CONST_CHARS_LIST MCLS_PMELT_DD[] = {"Potential Melt", "Calculate Potential Melt by degree-day method."};
+CONST_CHARS_LIST M_PMELT_DD[] = {"PMELT_DD", "Potential Melt by degree-day method"};
+
 // Snow melt related modules
 CONST_CHARS_LIST MCLS_SNOW[] = {"Snow accumulation and melt", "Snow accumulation and melt."}; ///<
 CONST_CHARS_LIST M_SNO_WB[] = {"SNO_WB", "Calculate snow water balance"}; ///<
@@ -1138,6 +1142,10 @@ CONST_CHARS_LIST VAR_OP_OUTLET[] = {"organicp_outlet", "organicp concentration a
 CONST_CHARS_LIST VAR_DP_OUTLET[] = {"disolvp_outlet", "disolvp concentration at the watershed outlet"};
 CONST_CHARS_LIST VAR_COD_OUTLET[] = {"cod_outlet", "cod concentration at the watershed outlet"};
 CONST_CHARS_LIST VAR_CHL_OUTLET[] = {"chlora_outlet", "chlora concentration at the watershed outlet"};
+
+CONST_CHARS_LIST VAR_MA[] = {"Ma", "Melt factor"};
+CONST_CHARS_LIST VAR_MELT_TEMP[] = {"MELT_TEMP", "Melt temperature"};
+CONST_CHARS_LIST VAR_POTENTIAL_MELT[] = {"POTENTIALMELT", "Potential Melt"};
 
 CONST_CHARS_LIST VAR_A_DAYS[] = {"a_days", "days since P Application"}; /// m_phpApldDays
 CONST_CHARS_LIST VAR_B_DAYS[] = {"b_days", "days since P deficit"}; /// m_phpDefDays

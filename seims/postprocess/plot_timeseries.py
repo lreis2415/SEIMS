@@ -15,6 +15,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -53,8 +54,9 @@ class TimeSeriesPlots(object):
         """Constructor"""
         self.model = MainSEIMS(args_dict=cfg.model_cfg.ConfigDict)
         self.ws = self.model.output_dir
-        if not FileClass.is_dir_exists(self.ws):
-            raise ValueError('The output directory %s is not existed!' % self.ws)
+        # if not FileClass.is_dir_exists(self.ws):
+        #     raise ValueError('The output directory %s is not existed!' % self.ws)
+        Path(self.ws).mkdir(parents=True, exist_ok=True)
         self.plot_vars = cfg.plot_vars
         self.plot_cfg = cfg.plot_cfg  # type: PlotConfig
         # UTCTIME, calibration period
@@ -73,13 +75,12 @@ class TimeSeriesPlots(object):
         # check start and end time of calibration
         st, et = self.readData.SimulationPeriod
         self.plot_validation = True
-        if st > self.stime:
+
+        if not self.stime:
             self.stime = st
-        if et < self.etime:
+        if not self.etime:
             self.etime = et
         if st > self.etime > self.stime:
-            self.stime = st
-            self.etime = et
             # in this circumstance, no validation should be calculated.
             self.vali_stime = None
             self.vali_etime = None
@@ -97,6 +98,9 @@ class TimeSeriesPlots(object):
                 self.vali_etime = et
         else:
             self.plot_validation = False
+
+
+    def init_plot_vals(self, sim_data = None):
         # Set start time and end time of both calibration and validation periods
         start = self.stime
         end = self.etime
@@ -107,10 +111,18 @@ class TimeSeriesPlots(object):
         # read precipitation
         self.pcp_date_value = self.readData.Precipitation(self.subbsnID, start, end)
         # read simulated data and update the available variables
-        self.plot_vars, self.sim_data_dict = read_simulation_from_txt(self.ws, self.plot_vars,
+        if sim_data:
+            self.sim_data_dict = sim_data
+        else:
+            self.plot_vars, self.sim_data_dict = read_simulation_from_txt(self.ws, self.plot_vars,
                                                                       self.outletid,
                                                                       start, end)
         self.sim_data_value = list()  # type: List[List[Union[datetime, float]]]
+        # filter the data to fit the start - end period
+        for k in list(self.sim_data_dict.keys()):
+            if not start <= k <= end:
+                del self.sim_data_dict[k]
+
         for d, vs in self.sim_data_dict.items():
             self.sim_data_value.append([d] + vs[:])
         # reset start time and end time
@@ -135,6 +147,7 @@ class TimeSeriesPlots(object):
                                                                   start_time=self.vali_stime,
                                                                   end_time=self.vali_etime)
             calculate_statistics(self.vali_sim_obs_dict)
+
 
     def generate_plots(self, image_file_suffix=None):
         """Generate hydrographs of discharge, sediment, nutrient (amount or concentrate), etc."""

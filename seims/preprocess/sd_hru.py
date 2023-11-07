@@ -4,11 +4,55 @@ import geopandas as gpd
 import numpy as np
 from rasterio import features  # Cannot call rasterio.features, can only be imported.
 from pygeoc.utils import DEFAULT_NODATA
-
+from pathlib import Path
 from preprocess.config import PreprocessConfig
 from preprocess.db_build_mongodb import ImportMongodbClass
 from preprocess.text import SpatialNamesUtils, ParamAbstractionTypes
 from utility import mask_rasterio
+
+
+class HruPropertyNames:
+    SUBBASIN = 'subbasin'
+    SOIL = 'soil'
+    LANDUSE = 'landuse'
+    TERRAIN = 'terrain'
+
+
+class HruConstitution:
+    """ e.g.:
+    {
+        {
+            constituent_name: 'soil',
+            constituent_type: 200101,
+            constituent_percent: 0.3
+        },
+        {
+            constituent_name: 'soil',
+            constituent_type: 200101,
+            constituent_percent: 0.3
+        },
+        {
+            constituent_name: 'landuse',
+            constituent_type: 103,
+            constituent_percent: 0.2
+        }
+    }
+    """
+
+    def __init__(self):
+        self._properties = {}
+
+    def add_property(self, property_name: str, property_type: int, property_percent: float):
+        self._properties[property_name] = {
+            'property_type': property_type,
+            'property_percent': property_percent
+        }
+
+
+# HRU object to store in MongoDB
+class Hru:
+    def __init__(self):
+        hru_id = 0
 
 
 class HruConstructor(object):
@@ -100,7 +144,7 @@ class HruConstructor(object):
             dst.write(raster, 1)
 
     def generate_cell_area_file(self, cfg: PreprocessConfig, mongoargs):
-        """Generate cell area raster.
+        """Generate cell area raster. (physical)
         """
         with rasterio.open(cfg.spatials.mask) as src:
             cell_area = src.read(1)
@@ -109,7 +153,7 @@ class HruConstructor(object):
             meta.update(dtype=rasterio.float32, nodata=DEFAULT_NODATA)
             self._write_raster(cfg.spatials.cell_area, cell_area, meta)
         cell_area_cfg = [cfg.spatials.cell_area, SpatialNamesUtils._CELLAREA,
-                        DEFAULT_NODATA, DEFAULT_NODATA, 'FLOAT32']
+                         DEFAULT_NODATA, DEFAULT_NODATA, 'FLOAT32']
         mask_rasterio(cfg.seims_bin, [cell_area_cfg], mongoargs=mongoargs,
                       # maskfile=cfg.spatials.subbsn, include_nodata=False, mode='MASKDEC',
                       maskfile=cfg.spatials.subbsn, include_nodata=False, mode='MASKDEC',
@@ -166,6 +210,9 @@ class HruConstructor(object):
         ImportMongodbClass.spatial_rasters(cfg,
                                            mask_rasterio_maskfile=cfg.spatials.hru_subbasin_id,
                                            abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+
+
+
 
 
 def main():

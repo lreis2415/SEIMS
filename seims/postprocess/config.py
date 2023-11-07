@@ -51,11 +51,11 @@ class PostConfig(object):
         self.cali_etime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'cali_time_end')
         self.vali_stime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'vali_time_start')
         self.vali_etime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'vali_time_end')
-
-        if not self.cali_stime or not self.cali_etime or self.cali_stime >= self.cali_etime:
-            raise ValueError("Wrong time settings of calibration in [OPTIONAL_PARAMETERS]!")
-        if self.vali_stime and self.vali_etime and self.vali_stime >= self.vali_etime:
-            raise ValueError("Wrong time settings of validation in [OPTIONAL_PARAMETERS]!")
+        # self.use_configured_period = cf.getboolean('OPTIONAL_PARAMETERS', 'use_configured_period')
+        # if not self.cali_stime or not self.cali_etime or self.cali_stime >= self.cali_etime:
+        #     raise ValueError("Wrong time settings of calibration in [OPTIONAL_PARAMETERS]!")
+        # if self.vali_stime and self.vali_etime and self.vali_stime >= self.vali_etime:
+        #     raise ValueError("Wrong time settings of validation in [OPTIONAL_PARAMETERS]!")
         # 4. Plot settings based on matplotlib
         self.plot_cfg = PlotConfig(cf)
 

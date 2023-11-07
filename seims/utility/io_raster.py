@@ -8,6 +8,8 @@
 from __future__ import absolute_import, unicode_literals
 
 import functools
+
+import numpy as np
 from pathos import multiprocessing
 import os
 import traceback
