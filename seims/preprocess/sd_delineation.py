@@ -11,6 +11,8 @@ import os
 import sys
 from io import open
 
+from preprocess.sp_terrain import TerrainUtilClass
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -87,7 +89,6 @@ class SpatialDelineation(object):
         # D-inf flow direction
         TauDEM.dinfflowdir(cfg.np, cfg.taudems.filldem, cfg.taudems.dinf, cfg.taudems.dinf_slp,
                            workingdir=cfg.dirs.taudem, mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin,)
-
         # Convert Dinf to compressed flow direction according to ArcGIS encoding rule
         DinfUtil.output_compressed_dinf(cfg.taudems.dinf, cfg.taudems.dinf_d8dir,
                                         cfg.taudems.dinf_weight,

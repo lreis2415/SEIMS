@@ -27,7 +27,7 @@ import rasterio
 from utility import read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
 from utility import mask_rasterio
 from preprocess.text import ModelParamDataUtils, ParamAbstractionTypes
-from sd_hru_aggregate import hru_rasterio
+from preprocess.sd_hru_aggregate import hru_rasterio
 
 
 class LanduseUtilClass(object):
@@ -45,7 +45,7 @@ class LanduseUtilClass(object):
             recls_dict: dict, e.g., {'MANNING': '1:0.15,2:0.15,10:0.2'}
         """
         query_result = cfg.maindb['LANDUSELOOKUP'].find()
-        if query_result is None or query_result.retrieved == 0:
+        if query_result is None:
             raise RuntimeError('LanduseLookup Collection not exist or empty!')
         lu_dict = dict()
         parm_dict = dict()
@@ -310,21 +310,9 @@ class LanduseUtilClass(object):
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslu_cfg,
                       include_nodata=False, mode='MASKDEC')
         if cfg.has_conceptual_subbasin:
-            hru_rasterio(
-                out_property_name=None,
-                hru_property_raster_path=cfg.spatials.landuse,
-                hru_id_raster_path=cfg.spatials.hru_id,
-                hru_distribution_raster_path=cfg.spatials.hru_dist,
-                aggregation_type=None,
-                hru_data_type=rasterio.float64,
-                seims_bin=cfg.seims_bin,
-                mongoargs=mongoargs,
-                hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
-                reclassify_dict=lurecls_dict
-            )
-            # mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
-            #               maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
-            #               include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+            mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslu_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         logging.info('Getting user-specific landcover parameters...')
         lcrecls_dict = LanduseUtilClass.lookup_specific_landcover_parameters(cfg)
@@ -337,21 +325,9 @@ class LanduseUtilClass(object):
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_cfg,
                       include_nodata=False, mode='MASKDEC')
         if cfg.has_conceptual_subbasin:
-            hru_rasterio(
-                out_property_name=None,
-                hru_property_raster_path=cfg.spatials.landuse,
-                hru_id_raster_path=cfg.spatials.hru_id,
-                hru_distribution_raster_path=cfg.spatials.hru_dist,
-                aggregation_type=None,
-                hru_data_type=rasterio.float64,
-                seims_bin=cfg.seims_bin,
-                mongoargs=mongoargs,
-                hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
-                reclassify_dict=lcrecls_dict
-            )
-            # mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
-            #               maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
-            #               include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+            mask_rasterio(cfg.seims_bin, lcinoutcfg, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         logging.info('Getting default landcover parameters...')
         lcrecls_dict2 = LanduseUtilClass.read_crop_lookup_table(cfg)
@@ -363,21 +339,9 @@ class LanduseUtilClass(object):
                       maskfile=cfg.spatials.subbsn, cfgfile=cfg.logs.reclasslc_def_cfg,
                       include_nodata=False, mode='MASKDEC')
         if cfg.has_conceptual_subbasin:
-            hru_rasterio(
-                out_property_name=None,
-                hru_property_raster_path=cfg.spatials.landuse,
-                hru_id_raster_path=cfg.spatials.hru_id,
-                hru_distribution_raster_path=cfg.spatials.hru_dist,
-                aggregation_type=None,
-                hru_data_type=rasterio.float64,
-                seims_bin=cfg.seims_bin,
-                mongoargs=mongoargs,
-                hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
-                reclassify_dict=lcrecls_dict2
-            )
-            # mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
-            #               maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_def_cfg,
-            #               include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+            mask_rasterio(cfg.seims_bin, lcinoutcfg2, mongoargs=mongoargs,
+                          maskfile=cfg.spatials.hru_subbasin_id, cfgfile=cfg.logs.reclasslc_def_cfg,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
         # other LUCC related parameters
         # To make use of old code, we have to export some raster from MongoDB
         mask_rasterio(cfg.seims_bin,

@@ -31,6 +31,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
+from scipy import signal
 from osgeo.gdal import GDT_Float32
 from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTReal
@@ -477,6 +478,55 @@ class TerrainUtilClass(object):
         del ds_reach
 
     @staticmethod
+    def aspect(dem_path, out_path, mask_path=None):
+        """Calculate aspect from DEM.
+        https://desktop.arcgis.com/zh-cn/arcmap/10.3/tools/spatial-analyst-toolbox/how-aspect-works.htm
+
+        a b c
+        d e f
+        g h i
+
+        像元 e 在 x 方向上的变化率将通过以下算法进行计算：
+        [dz/dx] = ((c + 2f + i) - (a + 2d + g)) / 8
+
+        像元 e 在 y 方向上的变化率将通过以下算法进行计算：
+        [dz/dy] = ((g + 2h + i) - (a + 2b + c)) / 8
+
+        代入像元 e 在 x 方向和 y 方向上的变化率，坡向将通过以下算法进行计算：
+        aspect = 57.29578 * atan2 ([dz/dy], -[dz/dx])
+
+        然后，坡向值将根据以下规则转换为罗盘方向值（0 到 360 度）：
+        if aspect < 0
+            cell = 90.0 - aspect
+        else if aspect > 90.0
+            cell = 360.0 - aspect + 90.0
+        else
+            cell = 90.0 - aspect
+        """
+        dem = rasterio.open(dem_path)
+        dem_array = dem.read(1)
+        # set nodata to nan
+        dem_array = numpy.where(dem_array == dem.nodata, numpy.nan, dem_array)
+        kernal_x = numpy.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+        kernal_y = numpy.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+        dx = signal.convolve2d(dem_array, kernal_x, mode='same')
+        dy = signal.convolve2d(dem_array, kernal_y, mode='same')
+        aspect_array = numpy.degrees(numpy.arctan2(dy, -dx))
+        # create an all nodata array
+        cell = numpy.ones(dem_array.shape) * dem.nodata
+        cell = numpy.where(aspect_array <= 90, 90.0 - aspect_array, cell)
+        cell = numpy.where(aspect_array > 90.0, 360.0 - aspect_array + 90.0, cell)
+
+        if mask_path is not None:
+            mask = rasterio.open(mask_path)
+            cell = numpy.where(mask.read(1) == mask.nodata, dem.nodata, cell)
+
+        meta = dem.meta.copy()
+        meta.update(dtype=rasterio.float32)
+        with rasterio.open(out_path, 'w', **meta) as dst:
+            dst.write(cell.astype(rasterio.float32), 1)
+
+    @staticmethod
     def parameters_extraction(cfg):
         """Main entrance for terrain related spatial parameters extraction."""
         # To make use of old code, we have to export some rasters from MongoDB
@@ -494,8 +544,6 @@ class TerrainUtilClass(object):
                 hru_id_raster_path=cfg.spatials.hru_id,
                 # aggregate by subbasins, rather than HRUs, for 0_MANNING
                 hru_distribution_raster_path=cfg.spatials.subbsn,
-                aggregation_type=None,
-                hru_data_type=rasterio.float64,
                 seims_bin=cfg.seims_bin,
                 mongoargs=mongoargs,
                 hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
@@ -547,6 +595,13 @@ class TerrainUtilClass(object):
                                                                  cfg.spatials.dorm_hr,
                                                                  cfg.dorm_hr)
 
+        logging.info('Calculate aspect...')
+        TerrainUtilClass.aspect(cfg.taudems.filldem, cfg.spatials.aspect)
+        mask_rasterio(cfg.seims_bin,
+                      [['0_ASPECT', cfg.spatials.aspect]],
+                      mongoargs=mongoargs,
+                      maskfile=cfg.spatials.subbsn,
+                      include_nodata=False, mode='MASK')
         logging.info('Terrain related spatial parameters extracted done!')
 
 

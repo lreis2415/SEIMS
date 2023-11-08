@@ -34,7 +34,7 @@ def extract_spatial_parameters(cfg):
     LanduseUtilClass.parameters_extraction(cfg)
 
     # 3. Terrain related and other spatial parameters
-    # TerrainUtilClass.parameters_extraction(cfg)
+    TerrainUtilClass.parameters_extraction(cfg)
 
 
 def main():

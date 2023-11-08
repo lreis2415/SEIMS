@@ -11,7 +11,7 @@ from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
 from pygeoc.TauDEM import TauDEMExtFiles
-
+from pathlib import Path
 
 # This is intended to be deprecated, since one database is desirable
 #   for both storm and daily models. By lj. 2018-8-23
@@ -263,6 +263,7 @@ class SpatialNamesUtils(object):
     # masked and output to mongoDB file names
     _CELLAREA = 'CELLAREA'
     _SLOPEM = 'SLOPE'
+    _ASPECT = 'ASPECT'
     _FILLEDDEMM = 'DEM'
     _ACCM = 'ACC'
     _STREAMORDERM = 'STREAM_ORDER'
@@ -313,6 +314,7 @@ class SpatialNamesUtils(object):
         self.mask = spa_dir + SEP + self._MASK_TO_EXT + '.tif'
         self.subbsn = spa_dir + SEP + self._SUBBASINOUT + '.tif'
         self.d8flow = spa_dir + SEP + self._FLOWDIROUT + '.tif'
+        self.aspect = spa_dir + SEP + self._ASPECT + '.tif'
         self.stream_link = spa_dir + SEP + self._STREAMLINKOUT + '.tif'
         self.hillslope = spa_dir + SEP + self._HILLSLOPEOUT + '.tif'
         self.slope = spa_dir + SEP + self._SLOPEM + '.tif'
@@ -340,9 +342,7 @@ class SpatialNamesUtils(object):
         # self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
         self.mgt_field = list()
         self.soil_texture = spa_dir + SEP + self._SOILTEXTURE + '.tif'
-        self.soil_texture_conceptual = spa_dir + SEP + self._SOILTEXTURE + '_CONCEPTUAL.tif'
         self.hydro_group = spa_dir + SEP + self._HYDROGROUP + '.tif'
-        self.hydro_group_conceptual = spa_dir + SEP + self._HYDROGROUP + '_CONCEPTUAL.tif'
         self.usle_k = spa_dir + SEP + self._USLEK + '.tif'
         self.init_somo = spa_dir + SEP + self._INITSOILMOIST + '.tif'
         self.depression = spa_dir + SEP + self._DEPRESSIONFILE + '.tif'
@@ -359,6 +359,12 @@ class SpatialNamesUtils(object):
         self.hru_area = spa_dir + SEP + self._HRU_AREA + '.tif'  # [900, 4500,...]
         self.cell_area = spa_dir + SEP + self._CELLAREA + '.tif'  # [900, 900,...]
         self.hru_subbasin_id = spa_dir + SEP + self._HRU_SUBBASIN_ID + '.tif'  # [1,1,2,2,2,3,...]
+
+    @staticmethod
+    def get_name_stem(filename):
+        """get file name stem"""
+        return Path(filename).stem
+
 
 class VectorNameUtils(object):
     """predefined vector(shp and geojson) file names"""

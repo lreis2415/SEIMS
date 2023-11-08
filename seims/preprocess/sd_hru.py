@@ -101,7 +101,7 @@ class HruConstructor(object):
         hru_position_dict = dict()
 
         hru_id_seq = 1
-        nodata_list = [src.nodata for src in property_raster_src_list]
+        nodata_list = [src.nodata for src in property_raster_src_list] + [subbasin_meta['nodata']]
         concat = np.dstack(property_raster_list)
 
         cell_area = subbasin_meta['transform'][0] * -subbasin_meta['transform'][4]
@@ -140,6 +140,8 @@ class HruConstructor(object):
 
     @staticmethod
     def _write_raster(raster_path, raster, meta):
+        # add compress='lzw' to meta
+        meta.update(compress='lzw')
         with rasterio.open(raster_path, 'w', **meta) as dst:
             dst.write(raster, 1)
 
@@ -206,13 +208,6 @@ class HruConstructor(object):
                       # maskfile=cfg.spatials.subbsn, include_nodata=False, mode='MASKDEC',
                       maskfile=cfg.spatials.hru_subbasin_id, include_nodata=True, mode='MASKDEC',
                       abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
-
-        ImportMongodbClass.spatial_rasters(cfg,
-                                           mask_rasterio_maskfile=cfg.spatials.hru_subbasin_id,
-                                           abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
-
-
-
 
 
 def main():

@@ -379,24 +379,10 @@ class SoilUtilClass(object):
             inoutcfg.append([inoutcfg_soilfile, k,
                              DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE', v])
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
-        if soil_property_class.soil_param_type() == ParamAbstractionTypes.CONCEPTUAL:
-            hru_rasterio(
-                out_property_name=None,
-                hru_property_raster_path=cfg.spatials.soil_texture_conceptual,
-                hru_id_raster_path=cfg.spatials.hru_id,
-                hru_distribution_raster_path=cfg.spatials.hru_dist,
-                aggregation_type=None,
-                hru_data_type=rasterio.float64,
-                seims_bin=cfg.seims_bin,
-                mongoargs=mongoargs,
-                hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
-                reclassify_dict=recls_dict,
-            )
-        elif soil_property_class.soil_param_type() == ParamAbstractionTypes.PHYSICAL:
-            mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
-                          maskfile=maskfile, cfgfile=cfg_file_name,
-                          include_nodata=False, mode='MASKDEC',
-                          abstraction_type=soil_property_class.soil_param_type())
+        mask_rasterio(cfg.seims_bin, inoutcfg, mongoargs=mongoargs,
+                      maskfile=maskfile, cfgfile=cfg_file_name,
+                      include_nodata=False, mode='MASKDEC',
+                      abstraction_type=soil_property_class.soil_param_type())
         SoilUtilClass.initial_soil_moisture(cfg.spatials.d8acc, cfg.spatials.slope,
                                             cfg.spatials.init_somo)
 

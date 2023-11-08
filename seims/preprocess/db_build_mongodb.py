@@ -10,10 +10,11 @@
 """
 from __future__ import absolute_import, unicode_literals
 
-from pathos import multiprocessing
 import os
 import sys
 import logging
+
+from preprocess.sd_hru_aggregate import HruAggregationFunctions, hru_rasterio
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -32,7 +33,7 @@ from preprocess.db_import_sites import ImportHydroClimateSites
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.sp_extraction import extract_spatial_parameters
-from preprocess.text import DBTableNames, SubbsnStatsName
+from preprocess.text import DBTableNames, SubbsnStatsName, ParamAbstractionTypes
 
 
 class ImportMongodbClass(object):
@@ -74,6 +75,8 @@ class ImportMongodbClass(object):
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # filled dem
         mask_raster_cfg.append([cfg.spatials.slope, SpatialNamesUtils._SLOPEM,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # slope
+        mask_raster_cfg.append([cfg.spatials.aspect, SpatialNamesUtils._ASPECT,
+                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # aspect
         mask_raster_cfg.append([cfg.spatials.d8flow, SpatialNamesUtils._FLOWDIROUT,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # flow direction D8
         mask_raster_cfg.append([cfg.spatials.d8acc, SpatialNamesUtils._ACCM,
@@ -153,9 +156,36 @@ class ImportMongodbClass(object):
             mask_raster_cfg.append([v, k.upper(), DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])
 
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
-        mask_rasterio(cfg.seims_bin, mask_raster_cfg, mongoargs=mongoargs,
-                      maskfile=mask_rasterio_maskfile,
-                      include_nodata=False, mode='MASKDEC', abstraction_type=abstraction_type)
+
+        if abstraction_type == ParamAbstractionTypes.CONCEPTUAL:
+            aggregatable_rasters = {
+                SpatialNamesUtils.get_name_stem(cfg.spatials.filldem): cfg.spatials.filldem,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.slope): cfg.spatials.slope,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.aspect): cfg.spatials.aspect,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.cell_lat): cfg.spatials.cell_lat,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.depression): cfg.spatials.depression,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.radius): cfg.spatials.radius,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.t0_s): cfg.spatials.t0_s,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.delta_s): cfg.spatials.delta_s,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.dayl_min): cfg.spatials.dayl_min,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.dorm_hr): cfg.spatials.dorm_hr,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.cn2): cfg.spatials.cn2,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.runoff_coef): cfg.spatials.runoff_coef,
+            }
+            for k, v in aggregatable_rasters.items():
+                hru_rasterio(
+                    out_property_name=k,
+                    hru_property_raster_path=v,
+                    hru_id_raster_path=cfg.spatials.hru_id,
+                    hru_distribution_raster_path=cfg.spatials.hru_dist,
+                    seims_bin=cfg.seims_bin,
+                    mongoargs=mongoargs,
+                    hru_subbasin_id_path=cfg.spatials.hru_subbasin_id,
+                )
+        else:
+            mask_rasterio(cfg.seims_bin, mask_raster_cfg, mongoargs=mongoargs,
+                          maskfile=mask_rasterio_maskfile,
+                          include_nodata=False, mode='MASKDEC', abstraction_type=abstraction_type)
 
         if mask_rasterio_maskfile is not None:
             # We also need to save fullsize raster of subbasin to be used as MASK!
@@ -202,6 +232,10 @@ class ImportMongodbClass(object):
 
         logging.info('Importing necessary raster to MongoDB....')
         ImportMongodbClass.spatial_rasters(cfg)
+
+        ImportMongodbClass.spatial_rasters(cfg,
+                                           mask_rasterio_maskfile=cfg.spatials.hru_subbasin_id,
+                                           abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         ImportMongodbClass.iuh(cfg, 0)
         ImportMongodbClass.iuh(cfg, n_subbasins)
