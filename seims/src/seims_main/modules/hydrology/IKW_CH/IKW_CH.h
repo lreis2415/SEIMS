@@ -74,8 +74,6 @@ private:
     float m_CellWidth;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
     //LayeringMethod m_layeringMethod;
-    /// time step (second)
-    float m_dt;
 
     /// slope (radian)
     float *m_sRadian;

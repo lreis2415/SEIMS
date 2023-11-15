@@ -11,6 +11,7 @@
 #ifndef SEIMS_METADATA_INFO_H
 #define SEIMS_METADATA_INFO_H
 
+#include <text.h>
 #include <vector>
 
 #include "basic.h"
@@ -363,4 +364,17 @@ private:
     vector<ModelClass> m_vDependencies;    ///< list of dependency classes for the module
 };
 
+class MetadataInfoHillslope : public MetadataInfo {
+public:
+    MetadataInfoHillslope() {
+        AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_SingleInt);
+    }
+};
+
+class MetadataInfoChannel : public MetadataInfo {
+public:
+    MetadataInfoChannel() {
+        AddParameter(Tag_ChannelTimeStep[0], UNIT_SECOND, Tag_ChannelTimeStep[1], File_Input, DT_SingleInt);
+    }
+};
 #endif /* SEIMS_METADATA_INFO_H */

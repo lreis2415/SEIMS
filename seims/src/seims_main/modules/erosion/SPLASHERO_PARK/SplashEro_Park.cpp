@@ -27,8 +27,6 @@ void SplashEro_Park::Get1DData(const char *key, int *n, FLTPT **data) {
 void SplashEro_Park::Set1DData(const char *key, int nRows, FLTPT *data) {
     string s(key);
 
-    CheckInputSize(key, nRows);
-
     if (StringMatch(s, VAR_SLOPE[0])) {
         m_Slope = data;
         //else if(StringMatch(s,"GrassFrac"))		m_GrassFrac = data;
@@ -135,21 +133,7 @@ bool SplashEro_Park::CheckInputData() {
 }
 
 bool SplashEro_Park::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_SplashEro_Park[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
-            throw ModelException(M_SplashEro_Park[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void SplashEro_Park:: InitialOutputs() {

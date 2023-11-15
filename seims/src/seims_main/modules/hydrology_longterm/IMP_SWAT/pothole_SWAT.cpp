@@ -30,6 +30,7 @@ IMP_SWAT::IMP_SWAT() :
     m_surSolPToCh(nullptr), m_surCodToCh(nullptr),
     m_sedOrgNToCh(nullptr), m_sedOrgPToCh(nullptr), m_sedMinPAToCh(nullptr), m_sedMinPSToCh(nullptr) {
     //m_potSedIn(nullptr), m_potSandIn(nullptr), m_potSiltIn(nullptr), m_potClayIn(nullptr), m_potSagIn(nullptr), m_potLagIn(nullptr),
+    SetModuleName(M_IMP_SWAT[0]);
 }
 
 IMP_SWAT::~IMP_SWAT() {
@@ -53,14 +54,14 @@ IMP_SWAT::~IMP_SWAT() {
 }
 
 bool IMP_SWAT::CheckInputData() {
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_nCells);
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_cellWidth);
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_maxSoilLyrs);
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_nRteLyrs);
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_evLAI);
-    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potTilemm);
-    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potNo3Decay);
-    CHECK_NONNEGATIVE(M_IMP_SWAT[0], m_potSolPDecay);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_cellWidth);
+    CHECK_POSITIVE(GetModuleName(), m_maxSoilLyrs);
+    CHECK_POSITIVE(GetModuleName(), m_nRteLyrs);
+    CHECK_POSITIVE(GetModuleName(), m_evLAI);
+    CHECK_NONNEGATIVE(GetModuleName(), m_potTilemm);
+    CHECK_NONNEGATIVE(GetModuleName(), m_potNo3Decay);
+    CHECK_NONNEGATIVE(GetModuleName(), m_potSolPDecay);
     return true;
 }
 
@@ -78,7 +79,7 @@ void IMP_SWAT::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(sk, VAR_KN_PADDY[0])) m_kNitri = value;
     else if (StringMatch(sk, VAR_POT_K[0])) m_pot_k = value;
     else {
-        throw ModelException(M_IMP_SWAT[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -87,7 +88,7 @@ void IMP_SWAT::SetValue(const char* key, const int value) {
     string sk(key);
     if (StringMatch(sk, Tag_TimeStep[0])) m_timestep = value;
     else {
-        throw ModelException(M_IMP_SWAT[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -135,7 +136,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, FLTPT* data) {
         m_nSubbasins = n - 1;
         return;
     }
-    CheckInputSize(M_IMP_SWAT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     if (StringMatch(sk, VAR_SLOPE[0])) m_slope = data;
     else if (StringMatch(sk, VAR_SOL_SUMAWC[0])) m_sol_sumfc = data;
     else if (StringMatch(sk, VAR_POT_VOLMAXMM[0])) m_potVolMax = data;
@@ -161,7 +162,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, FLTPT* data) {
     else if (StringMatch(sk, VAR_SEDMINPA[0])) m_sedActiveMinP = data;
     else if (StringMatch(sk, VAR_SEDMINPS[0])) m_sedStableMinP = data;
     else {
-        throw ModelException(M_IMP_SWAT[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -169,26 +170,26 @@ void IMP_SWAT::Set1DData(const char* key, const int n, FLTPT* data) {
 
 void IMP_SWAT::Set1DData(const char* key, const int n, int* data) {
     string sk(key);
-    CheckInputSize(M_IMP_SWAT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_SUBBSN[0])) m_subbasin = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impoundTrig = data;
     else {
-        throw ModelException(M_IMP_SWAT[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void IMP_SWAT::Set2DData(const char* key, const int n, const int col, FLTPT** data) {
     string sk(key);
-    CheckInputSize2D(M_IMP_SWAT[0], key, n, col, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, n, col, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThick = data;
     else if (StringMatch(sk, VAR_POROST[0])) m_sol_por = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilStorage = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_sol_sat = data;
     else {
-        throw ModelException(M_IMP_SWAT[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -200,12 +201,12 @@ void IMP_SWAT::Set2DData(const char* key, const int n, const int col, int** data
         m_rteLyrs = data;
         return;
     }
-    throw ModelException(M_IMP_SWAT[0], "Set2DData",
+    throw ModelException(GetModuleName(), "Set2DData",
                          "Integer Parameter " + sk + " does not exist.");
 }
 
 void IMP_SWAT::InitialOutputs() {
-    CHECK_POSITIVE(M_IMP_SWAT[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (m_potArea == nullptr) Initialize1DArray(m_nCells, m_potArea, 0.);
     if (m_potVol == nullptr) Initialize1DArray(m_nCells, m_potVol, 0.);
     if (m_potNo3 == nullptr) Initialize1DArray(m_nCells, m_potNo3, 0.);
@@ -847,7 +848,7 @@ void IMP_SWAT::Get1DData(const char* key, int* n, FLTPT** data) {
     else if (StringMatch(sk, VAR_POT_NH4[0])) *data = m_potNH4;
     else if (StringMatch(sk, VAR_POT_SOLP[0])) *data = m_potSolP;
     else {
-        throw ModelException(M_IMP_SWAT[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Parameter" + sk + "does not exist.");
     }
     *n = m_nCells;

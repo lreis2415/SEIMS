@@ -114,7 +114,7 @@ void SOL_WB::Set1DData(const char* key, const int nrows, FLTPT* data) {
         }
         return;
     }
-    CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     if (StringMatch(s, VAR_SOL_ZMX[0])) {
         m_soilMaxRootD = data;
     } else if (StringMatch(s, VAR_NEPR[0])) {
@@ -151,7 +151,7 @@ void SOL_WB::Set1DData(const char* key, const int nrows, FLTPT* data) {
 
 void SOL_WB::Set1DData(const char* key, const int nrows, int* data) {
     string s(key);
-    CheckInputSize(M_SOL_WB[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     if (StringMatch(s, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
     } else {
@@ -161,7 +161,7 @@ void SOL_WB::Set1DData(const char* key, const int nrows, int* data) {
 }
 
 void SOL_WB::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_SOL_WB[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
     if (StringMatch(s, VAR_PERCO[0])) {
         m_soilPerco = data;

@@ -38,7 +38,7 @@ private:
     FLTPT* m_t_mean; ///< daily average temperature
 
     //parameters
-    FLTPT m_Ma; ///< Melt factor
+    FLTPT* m_Ma; ///< Melt factor
     FLTPT m_t_melt; ///< Melt temperature
     // FLTPT m_subdaily_corr; ///< Subdaily correction factor
 

@@ -77,8 +77,6 @@ void HS_WB::SetValue(const char *key, float value) {
 void HS_WB::Set1DData(const char *key, int nRows, float *data) {
     string s(key);
 
-    this->CheckInputSize(key, nRows);
-
     if (StringMatch(s, VAR_QOVERLAND[0])) { this->m_qs = data; }
     else if (StringMatch(s, VAR_QSOIL[0])) { this->m_qi = data; }
     else if (StringMatch(s, VAR_SUBBSN[0])) { this->m_subbasin = data; }
@@ -132,21 +130,5 @@ bool HS_WB::CheckInputData() {
 }
 
 bool HS_WB::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_HS_WB[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) {
-            this->m_nCells = n;
-        } else {
-            cout << key << "\t" << n << "\t" << m_nCells << endl;
-            throw ModelException(M_HS_WB[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }

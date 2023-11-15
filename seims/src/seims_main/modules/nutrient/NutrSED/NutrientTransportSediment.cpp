@@ -122,7 +122,7 @@ void NutrientTransportSediment::SetValue(const char* key, const int value) {
 }
 
 void NutrientTransportSediment::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_NUTRSED[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SEDYLD[0])) {
         m_olWtrEroSed = data;
@@ -135,7 +135,7 @@ void NutrientTransportSediment::Set1DData(const char* key, const int n, FLTPT* d
 }
 
 void NutrientTransportSediment::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_NUTRSED[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
@@ -148,7 +148,7 @@ void NutrientTransportSediment::Set1DData(const char* key, const int n, int* dat
 }
 
 void NutrientTransportSediment::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_NUTRSED[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_BD[0])) m_soilBD = data;

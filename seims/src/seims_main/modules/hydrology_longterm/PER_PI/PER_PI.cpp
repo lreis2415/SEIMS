@@ -116,7 +116,7 @@ void PER_PI::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
 }
 
 void PER_PI::Set1DData(const char* key, const int nrows, float* data) {
-    CheckInputSize(M_PER_PI[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE[0])) m_soilTemp = data;
     else if (StringMatch(sk, VAR_INFIL[0])) m_infil = data;
@@ -129,7 +129,7 @@ void PER_PI::Set1DData(const char* key, const int nrows, float* data) {
 }
 
 void PER_PI::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize2D(M_PER_PI[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;

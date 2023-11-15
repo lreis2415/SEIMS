@@ -91,7 +91,7 @@ void SoilTemperatureFINPL::SetValue(const char* key, const FLTPT value) {
 }
 
 void SoilTemperatureFINPL::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_STP_FP[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_LANDUSE[0])) m_landUse = data;
     else {
@@ -100,7 +100,7 @@ void SoilTemperatureFINPL::Set1DData(const char* key, const int n, int* data) {
 }
 
 void SoilTemperatureFINPL::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_STP_FP[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOIL_T10[0])) m_soilTempRelFactor10 = data;
     else if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = data;

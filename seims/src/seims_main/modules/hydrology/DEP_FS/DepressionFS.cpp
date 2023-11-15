@@ -105,22 +105,7 @@ int DepressionFS::Execute() {
 }
 
 bool DepressionFS::CheckInputSize(const char* key, int n) {
-    if (n <= 0) {
-        //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                    m_nCells << ".\n";
-            throw ModelException(M_DEP_FS[0], "CheckInputSize", oss.str());
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void DepressionFS::SetValue(const char* key, float data) {
@@ -135,7 +120,6 @@ void DepressionFS::SetValue(const char* key, float data) {
 
 void DepressionFS::Set1DData(const char* key, int n, float* data) {
     //check the input data
-    CheckInputSize(key, n);
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION[0])) {
         m_depCap = data;

@@ -76,10 +76,10 @@ void NutrientinGroundwater::Set1DData(const char* key, const int n, FLTPT* data)
 void NutrientinGroundwater::Set1DData(const char* key, const int n, int* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
-        CheckInputSize(M_NUTRGW[0], key, n, m_nCells);
+        CheckInputSize(key, n, m_nCells);
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
-        CheckInputSize(M_NUTRGW[0], key, n, m_nCells);
+        CheckInputSize(key, n, m_nCells);
         m_nSoilLyrs = data;
     }
     else {
@@ -89,7 +89,7 @@ void NutrientinGroundwater::Set1DData(const char* key, const int n, int* data) {
 }
 
 void NutrientinGroundwater::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_NUTRGW[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_SOLP[0])) m_soilSolP = data;

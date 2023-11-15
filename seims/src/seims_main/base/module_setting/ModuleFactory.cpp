@@ -760,7 +760,7 @@ void ModuleFactory::ReadInformation(string& moduleID, TiXmlDocument& doc, map<st
     if (nullptr != elItem && nullptr != elItem->GetText()) {
         informations[moduleID].ModuleAbstractionType = elItem->GetText();
     }
-    
+
 }
 
 
@@ -953,15 +953,17 @@ void ModuleFactory::GetValueFromDependencyModule(const int iModule, vector<Simul
         int dataLen;
         if (dependParam->Dimension == DT_Array1D || dependParam->Dimension == DT_Raster1D) {
             FLTPT* data;
-            modules[k]->Get1DData(compareName.c_str(), &dataLen, &data);
-            modules[iModule]->Set1DData(inputs[j]->Name.c_str(), dataLen, data);
+            modules[k]->Get1DDataBase(compareName.c_str(), &dataLen, &data);
+            //cout << "Module " << id << " search " << compareName << ". Got length " << dataLen
+            //    << " from module " << m_moduleIDs[k] << endl;
+            modules[iModule]->Set1DDataBase(inputs[j]->Name.c_str(), dataLen, data);
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         } else if (dependParam->Dimension == DT_Array2D || dependParam->Dimension == DT_Raster2D) {
             int nCol;
             FLTPT** data;
-            modules[k]->Get2DData(compareName.c_str(), &dataLen, &nCol, &data);
-            modules[iModule]->Set2DData(inputs[j]->Name.c_str(), dataLen, nCol, data);
+            modules[k]->Get2DDataBase(compareName.c_str(), &dataLen, &nCol, &data);
+            modules[iModule]->Set2DDataBase(inputs[j]->Name.c_str(), dataLen, nCol, data);
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         } else if (dependParam->Dimension == DT_Single) {
@@ -994,16 +996,16 @@ void ModuleFactory::GetValueFromDependencyModule(const int iModule, vector<Simul
         int dataLen;
         if (dependParam->Dimension == DT_Array1DInt || dependParam->Dimension == DT_Raster1DInt) {
             int* data;
-            modules[k]->Get1DData(compareName.c_str(), &dataLen, &data);
-            modules[iModule]->Set1DData(inputsInt[j]->Name.c_str(), dataLen, data);
+            modules[k]->Get1DDataBase(compareName.c_str(), &dataLen, &data);
+            modules[iModule]->Set1DDataBase(inputsInt[j]->Name.c_str(), dataLen, data);
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         }
         else if (dependParam->Dimension == DT_Array2DInt || dependParam->Dimension == DT_Raster2DInt) {
             int nCol;
             int** data;
-            modules[k]->Get2DData(compareName.c_str(), &dataLen, &nCol, &data);
-            modules[iModule]->Set2DData(inputsInt[j]->Name.c_str(), dataLen, nCol, data);
+            modules[k]->Get2DDataBase(compareName.c_str(), &dataLen, &nCol, &data);
+            modules[iModule]->Set2DDataBase(inputsInt[j]->Name.c_str(), dataLen, nCol, data);
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         }

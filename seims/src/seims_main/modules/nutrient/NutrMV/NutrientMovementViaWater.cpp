@@ -225,7 +225,7 @@ void NutrientMovementViaWater::SetValue(const char* key, const int value) {
 }
 
 void NutrientMovementViaWater::Set1DData(const char* key, const int n, FLTPT* data) {
-    if (!CheckInputSize(M_NUTRMV[0], key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
     string sk(key);
     if (StringMatch(sk, VAR_OLFLOW[0])) {
         m_surfRf = data;
@@ -251,7 +251,7 @@ void NutrientMovementViaWater::Set1DData(const char* key, const int n, FLTPT* da
 
 
 void NutrientMovementViaWater::Set1DData(const char* key, const int n, int* data) {
-    if (!CheckInputSize(M_NUTRMV[0], key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
@@ -276,7 +276,7 @@ void NutrientMovementViaWater::Set2DData(const char* key, const int nrows, const
         m_flowOutFrac = data;
         return;
     }
-    if (!CheckInputSize2D(M_NUTRMV[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
+    if (!CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
 
     if (StringMatch(sk, VAR_SSRU[0])) m_subSurfRf = data;
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;

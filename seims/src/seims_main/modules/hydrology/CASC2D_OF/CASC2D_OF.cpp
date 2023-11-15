@@ -8,7 +8,7 @@ CASC2D_OF::CASC2D_OF() :
     m_chSinuosity(nullptr) , m_dem(nullptr), m_chWtrDepth(nullptr) , m_Slope(nullptr), m_chQ(nullptr), m_ovQ(nullptr), m_outQ(0.0), m_outV(0.0),
     m_InitialInputs(true)
 {
-
+    SetModuleName("CASC2D_OF");
 }
 
 CASC2D_OF::~CASC2D_OF() {
@@ -33,7 +33,7 @@ void CASC2D_OF::SetValueByIndex(const char* key, int index, float value) {
 
 void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
     /* todo Convert 1DArray rainfall data to 2DArray to m_rint** */
-    if (!CheckInputSize("CASC2D_OF", key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
     string sk(key);
     if (StringMatch(sk, VAR_SURU[0])) {
         m_surWtrDepth = data;  
@@ -63,7 +63,7 @@ void CASC2D_OF::Set1DData(const char* key, int n, float* data) {
         m_chDepth = data;
     }else
     {
-        throw ModelException("CASC2D_OF", "Set1DData", "parameter " + string(key) + " is not exist");
+        throw ModelException(GetModuleName(), "Set1DData", "parameter " + string(key) + " is not exist");
     }
 }
 
@@ -75,7 +75,7 @@ void CASC2D_OF::Set2DData(const char* key, int n, int col, float** data) {
 
 void CASC2D_OF::SetReaches(clsReaches* rches) {
     if (nullptr == rches) {
-        throw ModelException("CASC2D_OF", "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nreach = rches->GetReachNumber();
     m_reachLayers = rches->GetReachLayers();

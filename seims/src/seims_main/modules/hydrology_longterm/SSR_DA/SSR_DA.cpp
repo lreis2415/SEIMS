@@ -14,6 +14,7 @@ SSR_DA::SSR_DA() :
     m_nRteLyrs(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
     /// outputs
     m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {
+    SetModuleName(M_SSR_DA[0]);
 }
 
 SSR_DA::~SSR_DA() {
@@ -156,7 +157,7 @@ int SSR_DA::Execute() {
             if (!FlowInSoil(id)) errCount++;
         }
         if (errCount > 0) {
-            throw ModelException(M_SSR_DA[0], "Execute:FlowInSoil",
+            throw ModelException(GetModuleName(), "Execute:FlowInSoil",
                                  "Please check the error message for more information");
         }
     }
@@ -224,7 +225,7 @@ void SSR_DA::SetValue(const char* key, const FLTPT value) {
     } else if (StringMatch(s, Tag_CellWidth[0])) {
         m_CellWth = value;
     } else {
-        throw ModelException(M_SSR_DA[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + s + " does not exist.");
     }
 }
@@ -238,14 +239,14 @@ void SSR_DA::SetValue(const char* key, const int value) {
     } else if (StringMatch(s, Tag_TimeStep[0])) {
         m_dt = value;
     } else {
-        throw ModelException(M_SSR_DA[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + s + " does not exist.");
     }
 }
 
 void SSR_DA::Set1DData(const char* key, const int nrows, FLTPT* data) {
     string s(key);
-    CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     if (StringMatch(s, VAR_SLOPE[0])) {
         m_slope = data;
     } else if (StringMatch(s, VAR_CHWIDTH[0])) {
@@ -255,14 +256,14 @@ void SSR_DA::Set1DData(const char* key, const int nrows, FLTPT* data) {
     } else if (StringMatch(s, VAR_SOL_SW[0])) {
         m_soilWtrStoPrfl = data;
     } else {
-        throw ModelException(M_SSR_DA[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + s + " does not exist.");
     }
 }
 
 void SSR_DA::Set1DData(const char* key, const int nrows, int* data) {
     string s(key);
-    CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     if (StringMatch(s, VAR_STREAM_LINK[0])) {
         m_rchID = data;
     } else if (StringMatch(s, VAR_SUBBSN[0])) {
@@ -270,7 +271,7 @@ void SSR_DA::Set1DData(const char* key, const int nrows, int* data) {
     } else if (StringMatch(s, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
     } else {
-        throw ModelException(M_SSR_DA[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + s + " does not exist.");
     }
 }
@@ -278,31 +279,31 @@ void SSR_DA::Set1DData(const char* key, const int nrows, int* data) {
 void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SOILTHICK[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilThk = data;
     } else if (StringMatch(sk, VAR_CONDUCT[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_ks = data;
     } else if (StringMatch(sk, VAR_SOL_UL[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilSat = data;
     } else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilFC = data;
     } else if (StringMatch(sk, VAR_SOL_WPMM[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilWP = data;
     } else if (StringMatch(sk, VAR_POREIDX[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_poreIdx = data;
     } else if (StringMatch(sk, VAR_SOL_ST[0])) {
-        CheckInputSize2D(M_SSR_DA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilWtrSto = data;
     } else if (StringMatch(sk, Tag_FLOWIN_FRACTION[0])) {
-        CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
+        CheckInputSize(key, nrows, m_nCells);
         m_flowInFrac = data;
     } else {
-        throw ModelException(M_SSR_DA[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -310,13 +311,13 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, FLTPT*
 void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, int** data) {
     string sk(key);
     if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
-        CheckInputSize(M_SSR_DA[0], key, nrows, m_nRteLyrs);
+        CheckInputSize(key, nrows, m_nRteLyrs);
         m_rteLyrs = data;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
-        CheckInputSize(M_SSR_DA[0], key, nrows, m_nCells);
+        CheckInputSize(key, nrows, m_nCells);
         m_flowInIdx = data;
     } else {
-        throw ModelException(M_SSR_DA[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -326,7 +327,7 @@ void SSR_DA::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBIF[0])) *data = m_ifluQ2Rch;
     else {
-        throw ModelException(M_SSR_DA[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk + " does not exist.");
     }
     *n = m_nSubbsns + 1;
@@ -343,37 +344,37 @@ void SSR_DA::Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) {
     } else if (StringMatch(sk, VAR_SSRUVOL[0])) {
         *data = m_subSurfRfVol;
     } else {
-        throw ModelException(M_SSR_DA[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 }
 
 bool SSR_DA::CheckInputData() {
-    CHECK_NONNEGATIVE(M_SSR_DA[0], m_inputSubbsnID);
-    CHECK_POSITIVE(M_SSR_DA[0], m_nCells);
-    CHECK_POSITIVE(M_SSR_DA[0], m_ki);
-    CHECK_NODATA(M_SSR_DA[0], m_soilFrozenTemp);
-    CHECK_POSITIVE(M_SSR_DA[0], m_dt);
-    CHECK_POSITIVE(M_SSR_DA[0], m_CellWth);
-    CHECK_POSITIVE(M_SSR_DA[0], m_nSubbsns);
-    CHECK_POSITIVE(M_SSR_DA[0], m_nRteLyrs);
-    CHECK_POINTER(M_SSR_DA[0], m_subbsnID);
-    CHECK_POINTER(M_SSR_DA[0], m_nSoilLyrs);
-    CHECK_POINTER(M_SSR_DA[0], m_soilThk);
-    CHECK_POINTER(M_SSR_DA[0], m_slope);
-    CHECK_POINTER(M_SSR_DA[0], m_poreIdx);
-    CHECK_POINTER(M_SSR_DA[0], m_ks);
-    CHECK_POINTER(M_SSR_DA[0], m_soilSat);
-    CHECK_POINTER(M_SSR_DA[0], m_soilFC);
-    CHECK_POINTER(M_SSR_DA[0], m_soilWP);
-    CHECK_POINTER(M_SSR_DA[0], m_soilWtrSto);
-    CHECK_POINTER(M_SSR_DA[0], m_soilWtrStoPrfl);
-    CHECK_POINTER(M_SSR_DA[0], m_soilTemp);
-    CHECK_POINTER(M_SSR_DA[0], m_chWidth);
-    CHECK_POINTER(M_SSR_DA[0], m_rchID);
-    CHECK_POINTER(M_SSR_DA[0], m_flowInIdx);
+    CHECK_NONNEGATIVE(GetModuleName(), m_inputSubbsnID);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_ki);
+    CHECK_NODATA(GetModuleName(), m_soilFrozenTemp);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_POSITIVE(GetModuleName(), m_CellWth);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
+    CHECK_POSITIVE(GetModuleName(), m_nRteLyrs);
+    CHECK_POINTER(GetModuleName(), m_subbsnID);
+    CHECK_POINTER(GetModuleName(), m_nSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_soilThk);
+    CHECK_POINTER(GetModuleName(), m_slope);
+    CHECK_POINTER(GetModuleName(), m_poreIdx);
+    CHECK_POINTER(GetModuleName(), m_ks);
+    CHECK_POINTER(GetModuleName(), m_soilSat);
+    CHECK_POINTER(GetModuleName(), m_soilFC);
+    CHECK_POINTER(GetModuleName(), m_soilWP);
+    CHECK_POINTER(GetModuleName(), m_soilWtrSto);
+    CHECK_POINTER(GetModuleName(), m_soilWtrStoPrfl);
+    CHECK_POINTER(GetModuleName(), m_soilTemp);
+    CHECK_POINTER(GetModuleName(), m_chWidth);
+    CHECK_POINTER(GetModuleName(), m_rchID);
+    CHECK_POINTER(GetModuleName(), m_flowInIdx);
     // m_flowInFrac should not be checked since it is optional for single flow direction alg.
-    CHECK_POINTER(M_SSR_DA[0], m_rteLyrs);
+    CHECK_POINTER(GetModuleName(), m_rteLyrs);
     /** TEST CODE START **/
     /*
     for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
@@ -398,8 +399,8 @@ bool SSR_DA::CheckInputData() {
 }
 
 void SSR_DA::InitialOutputs() {
-    CHECK_POSITIVE(M_SSR_DA[0], m_nCells);
-    CHECK_POSITIVE(M_SSR_DA[0], m_nSubbsns);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
     if (nullptr == m_ifluQ2Rch) Initialize1DArray(m_nSubbsns + 1, m_ifluQ2Rch, 0.);
     if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.);
     if (nullptr == m_subSurfRfVol) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRfVol, 0.);

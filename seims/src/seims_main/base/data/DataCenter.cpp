@@ -420,7 +420,6 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
 
     for (size_t i = 0; i < module_ids.size(); i++) {
         string id = module_ids[i];
-        vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
 
         STRING_MAP opts;
         bool is_module_conceptual = StringMatch(module_informations[id].ModuleAbstractionType, PARAM_ABSTRACTION_TYPE_CONEPTUAL);
@@ -441,6 +440,7 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
 #endif
         }
 
+        vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo<FLTPT>* param = parameters[j];
             if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) { continue; }
@@ -595,8 +595,8 @@ void DataCenter::SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
         } else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
-                throw ModelException("ModuleFactory", "SetValue",
-                                     param->Name + " must be specified!");
+                throw ModelException("DataCenter", "SetValue (FLTPT)",
+                                     param->Name +" of module " + p_module->GetModuleName() + " is required in metadata but never set!");
             }
             return; // if optional, just return without assignment
         }
@@ -621,8 +621,12 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
         param->Value = CVT_INT(input_->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep[0])) {
         param->Value = CVT_INT(input_->getDtHillslope());
+        p_module->SetTimeStep(param->Value);
+        return;
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep[0])) {
         param->Value = CVT_INT(input_->getDtChannel());
+        p_module->SetTimeStep(param->Value);
+        return;
     } else if (StringMatch(param->Name, Tag_LayeringMethod[0])) {
         param->Value = lyr_method_;
     } else if (StringMatch(param->Name, Tag_FlowDirectionMethod[0])) {
@@ -634,8 +638,8 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
         }
         else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
-                throw ModelException("ModuleFactory", "SetValue",
-                                     param->Name + " must be specified!");
+                throw ModelException("DataCenter", "SetValue (int)",
+                    param->Name + " of module " + p_module->GetModuleName() + " is required in metadata but never set!");
             }
             return; // if optional, just return without assignment
         }
@@ -654,7 +658,9 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
     /// If the data has been read and stored in `array1d_map_` successfully
     if (array1d_map_.find(remote_filename) != array1d_map_.end()) {
         data = array1d_map_.at(remote_filename);
-        p_module->Set1DData(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
+//        cout << "Module " << p_module->GetModuleName() << " Set1DDataBase(param: " << para_name << ")"
+//            << " loading remote file " << remote_filename << "and its length" << endl;
+        p_module->Set1DDataBase(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
         return;
     }
     if (!is_optional) {
@@ -674,7 +680,7 @@ void DataCenter::Set1DDataInt(const string& para_name, const string& remote_file
     /// If the data has been read and stored in `array1d_map_` successfully
     if (array1d_int_map_.find(remote_filename) != array1d_int_map_.end()) {
         data = array1d_int_map_.at(remote_filename);
-        p_module->Set1DData(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
+        p_module->Set1DDataBase(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
         return;
     }
     if (!is_optional) {
@@ -704,7 +710,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
         n_rows = array2d_rows_map_.at(real_filename);
         n_cols = array2d_cols_map_.at(real_filename);
 
-        p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
+        p_module->Set2DDataBase(para_name.c_str(), n_rows, n_cols, data);
         return;
     }
     if (!is_optional) {
@@ -738,7 +744,7 @@ void DataCenter::Set2DDataInt(const string& para_name, const string& remote_file
         n_rows = array2d_int_rows_map_.at(real_filename);
         n_cols = array2d_int_cols_map_.at(real_filename);
 
-        p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
+        p_module->Set2DDataBase(para_name.c_str(), n_rows, n_cols, data);
         return;
     }
     if (!is_optional) {
@@ -779,12 +785,14 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
-        p_module->Set2DData(para_name.c_str(), n, lyrs, data2d);
+        p_module->Set2DDataBase(para_name.c_str(), n, lyrs, data2d);
     } else {
         if (!raster->GetRasterData(&n, &data)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
-        p_module->Set1DData(para_name.c_str(), n, data);
+//        cout << "Module " << p_module->GetModuleName() << " Set1DDataBase(param: " << para_name << ", length:" << n << ")"
+//        <<" using remote file "<< remote_filename << endl;
+        p_module->Set1DDataBase(para_name.c_str(), n, data);
     }
 }
 
@@ -806,13 +814,13 @@ void DataCenter::SetRasterInt(const string& para_name, const string& remote_file
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
             throw ModelException("DataCenter", "SetRasterInt", "Load " + remote_filename + " failed!");
         }
-        p_module->Set2DData(para_name.c_str(), n, lyrs, data2d);
+        p_module->Set2DDataBase(para_name.c_str(), n, lyrs, data2d);
     }
     else {
         if (!raster->GetRasterData(&n, &data)) {
             throw ModelException("DataCenter", "SetRasterInt", "Load " + remote_filename + " failed!");
         }
-        p_module->Set1DData(para_name.c_str(), n, data);
+        p_module->Set1DDataBase(para_name.c_str(), n, data);
     }
 }
 
@@ -889,7 +897,8 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                         data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue();
                     }
                 }
-                p_module->Set1DData(DataType_Prefix_TS, datalen, data);
+//                cout << "Module "<< module_ids[i] << " Set1DDataBase(param: "<< DataType_Prefix_TS <<", length:" << datalen<<")" << endl;
+                p_module->Set1DDataBase(DataType_Prefix_TS, datalen, data);
             }
         }
     }

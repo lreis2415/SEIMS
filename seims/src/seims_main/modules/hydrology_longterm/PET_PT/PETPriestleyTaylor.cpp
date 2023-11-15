@@ -9,7 +9,9 @@ PETPriestleyTaylor::PETPriestleyTaylor() :
     m_sr(nullptr), m_rhd(nullptr), m_dem(nullptr),
     m_nCells(-1), m_petFactor(1.f), m_cellLat(nullptr),
     m_phuAnn(nullptr), m_snowTemp(NODATA_VALUE),
-    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
+    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) 
+{
+    SetModuleName(M_PET_PT[0]);
 }
 
 PETPriestleyTaylor::~PETPriestleyTaylor() {
@@ -28,7 +30,7 @@ void PETPriestleyTaylor::Get1DData(const char* key, int* n, FLTPT** data) {
     else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else if (StringMatch(sk, VAR_PET[0])) *data = m_pet;
     else {
-        throw ModelException(M_PET_PT[0], "Get1DData", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "Get1DData", "Parameter " + sk +
                              " does not exist. Please contact the module developer.");
     }
 }
@@ -133,14 +135,14 @@ int PETPriestleyTaylor::Execute() {
             cout << "cell id: " << i << ", pet: " << m_pet[i] << ", meanT: " << m_meanTemp[i] <<
                     ", rhd: " << m_rhd[i] << ", rbo: " << rbo << ", sr: " << m_sr[i] << ", m_srMax: "
                     << srMax << ", rto: " << rto << ", satVaporPressure: " << satVaporPressure << endl;
-            throw ModelException(M_PET_PT[0], "Execute", "Calculation error occurred!\n");
+            throw ModelException(GetModuleName(), "Execute", "Calculation error occurred!\n");
         }
     }
     return 0;
 }
 
 void PETPriestleyTaylor::Set1DData(const char* key, const int n, FLTPT* value) {
-    CheckInputSize(M_PET_PT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
     else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
@@ -151,7 +153,7 @@ void PETPriestleyTaylor::Set1DData(const char* key, const int n, FLTPT* value) {
     else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
     else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
     else {
-        throw ModelException(M_PET_PT[0], "Set1DData", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -161,7 +163,7 @@ void PETPriestleyTaylor::SetValue(const char* key, const FLTPT value) {
     if (StringMatch(sk, VAR_T_SNOW[0])) m_snowTemp = value;
     else if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else {
-        throw ModelException(M_PET_PT[0], "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }

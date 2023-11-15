@@ -17,6 +17,7 @@ clsPI_MCS::clsPI_MCS() :
     m_hilldt = -1;
     m_slope = nullptr;
 #endif
+    SetModuleName(M_PI_MCS[0]);
 }
 
 clsPI_MCS::~clsPI_MCS() {
@@ -29,7 +30,7 @@ clsPI_MCS::~clsPI_MCS() {
 }
 
 void clsPI_MCS::Set1DData(const char* key, int nrows, FLTPT* data) {
-    CheckInputSize(M_PI_MCS[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_PCP[0])) m_pcp = data;
     else if (StringMatch(s, VAR_PET[0])) {
@@ -39,17 +40,17 @@ void clsPI_MCS::Set1DData(const char* key, int nrows, FLTPT* data) {
     } else if (StringMatch(s, VAR_INTERC_MAX[0])) m_maxIntcpStoCap = data;
     else if (StringMatch(s, VAR_INTERC_MIN[0])) m_minIntcpStoCap = data;
     else {
-        throw ModelException(M_PI_MCS[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + s + " does not exist.");
     }
 }
 
 void clsPI_MCS::Set1DData(const char* key, int nrows, int* data) {
-    CheckInputSize(M_PI_MCS[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_LANDUSE[0])) m_landUse = data;
     else {
-        throw ModelException(M_PI_MCS[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + s + " does not exist.");
     }
 }
@@ -64,7 +65,7 @@ void clsPI_MCS::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) m_hilldt = data;
 #endif // STORM_MODE
     else {
-        throw ModelException(M_PI_MCS[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + s + " does not exist.");
     }
 }
@@ -74,7 +75,7 @@ void clsPI_MCS::SetValue(const char* key, const int value) {
 #ifdef STORM_MODE
     if (StringMatch(s, Tag_HillSlopeTimeStep[0])) m_hilldt = data;
     else {
-        throw ModelException(M_PI_MCS[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + s + " does not exist.");
     }
 #endif // STORM_MODE
@@ -94,7 +95,7 @@ void clsPI_MCS::Get1DData(const char* key, int* nRows, FLTPT** data) {
     } else if (StringMatch(s, VAR_NEPR[0])) {
         *data = m_netPcp;
     } else {
-        throw ModelException(M_PI_MCS[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + s + " does not exist.");
     }
     *nRows = m_nCells;
@@ -118,12 +119,19 @@ void clsPI_MCS::InitialOutputs() {
 }
 
 int clsPI_MCS::Execute() {
-    //check input data
     CheckInputData();
-    /// initialize outputs
     InitialOutputs();
-
-//#pragma omp parallel for
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    for (int i = 0; i < m_nCells; i++)
+    {
+        s1 += m_pcp[i];
+        s2 += m_canSto[i];
+    }
+    printf("[PI_MCS] Before: PCP=%f, canStor=%f\n", s1, s2);
+#endif
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_pcp[i] > 0.) {
 #ifdef STORM_MODE
@@ -174,33 +182,39 @@ int clsPI_MCS::Execute() {
 
 #endif
     }
-    //float total_netPcp = 0.0;
-    //float ave_netPcp = 0.0;
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	total_netPcp += m_netPcp[i];
-    //}
-    //ave_netPcp = total_netPcp / m_nCells;
-    //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
+#ifdef PRINT_DEBUG
+    FLTPT s3 = 0;
+    FLTPT s4 = 0;
+    FLTPT s5 = 0;
+    FLTPT s6 = 0;
+    for (int i = 0; i < m_nCells; i++)
+    {
+        s3 += m_netPcp[i];
+        s4 += m_canSto[i];
+        s5 += m_intcpLoss[i]; 
+        s6 += m_IntcpET[i];
+    }
+    printf("[PI_MCS] After: NEPR=%f, canStor=%f, intcpLoss=%f, intcpET=%f\n", s3, s4,s5,s6);
+#endif
     return 0;
 }
 
 bool clsPI_MCS::CheckInputData() {
-    CHECK_POSITIVE(M_PI_MCS[0], m_date);
-    CHECK_POSITIVE(M_PI_MCS[0], m_nCells);
-    CHECK_POINTER(M_PI_MCS[0], m_pcp);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POINTER(GetModuleName(), m_pcp);
 #ifndef STORM_MODE
-    CHECK_POINTER(M_PI_MCS[0], m_pet);
+    CHECK_POINTER(GetModuleName(), m_pet);
 #else
-    CHECK_POINTER(M_PI_MCS[0], m_slope);
-    CHECK_POINTER(M_PI_MCS[0], m_hilldt);
+    CHECK_POINTER(GetModuleName(), m_slope);
+    CHECK_POINTER(GetModuleName(), m_hilldt);
 #endif
-    CHECK_POINTER(M_PI_MCS[0], m_maxIntcpStoCap);
-    CHECK_POINTER(M_PI_MCS[0], m_minIntcpStoCap);
-    CHECK_DATA(M_PI_MCS[0], m_intcpStoCapExp > 1.5 || m_intcpStoCapExp < 0.5,
+    CHECK_POINTER(GetModuleName(), m_maxIntcpStoCap);
+    CHECK_POINTER(GetModuleName(), m_minIntcpStoCap);
+    CHECK_DATA(GetModuleName(), m_intcpStoCapExp > 1.5 || m_intcpStoCapExp < 0.5,
                "The interception storage capacity exponent "
                "can not be " + ValueToString(m_intcpStoCapExp) + ". It should between 0.5 and 1.5.");
-    CHECK_DATA(M_PI_MCS[0], m_initIntcpSto > 1. || m_initIntcpSto < 0.,
+    CHECK_DATA(GetModuleName(), m_initIntcpSto > 1. || m_initIntcpSto < 0.,
                "The Initial interception storage cannot "
                "be " + ValueToString(m_initIntcpSto) + ". It should between 0 and 1.");
     return true;

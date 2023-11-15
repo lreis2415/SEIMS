@@ -11,8 +11,9 @@ StormGreenAmpt::StormGreenAmpt() :
     m_meanTmp(nullptr), m_netPcp(nullptr), m_deprSto(nullptr),
     m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
     m_capillarySuction(nullptr), m_accumuDepth(nullptr),
-    m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr) {
-
+    m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr) 
+{
+    SetModuleName(M_SUR_SGA[0]);
 }
 
 StormGreenAmpt::~StormGreenAmpt() {
@@ -26,9 +27,9 @@ StormGreenAmpt::~StormGreenAmpt() {
 void StormGreenAmpt:: InitialOutputs() {
     // Only check necessary variables
     CHECK_POSITIVE(M_SUR_MR[0], m_nCells);
-    CHECK_POINTER(M_SUR_SGA[0], m_nSoilLyrs);
-    CHECK_POINTER(M_SUR_SGA[0], m_initSoilWtrStoRatio);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilFC);
+    CHECK_POINTER(GetModuleName(), m_nSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_initSoilWtrStoRatio);
+    CHECK_POINTER(GetModuleName(), m_soilFC);
 
     if (nullptr == m_infil) {
         output_icell_min = 0;
@@ -65,7 +66,7 @@ void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
     } else if (StringMatch(sk, VAR_ACC_INFIL[0])) {
         *data = m_accumuDepth;
     } else {
-        throw ModelException(M_SUR_SGA[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -80,27 +81,27 @@ void StormGreenAmpt::Get2DData(const char* key, int* nrows, int* ncols, float***
         *data = m_soilWtrSto;
     }
     else {
-        throw ModelException(M_SUR_SGA[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 }
 
 bool StormGreenAmpt::CheckInputData() {
-    CHECK_POSITIVE(M_SUR_SGA[0], m_dt);
-    CHECK_POSITIVE(M_SUR_SGA[0], m_nCells);
-    CHECK_POSITIVE(M_SUR_SGA[0], m_maxSoilLyrs);
-    CHECK_POINTER(M_SUR_SGA[0], m_nSoilLyrs);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilDepth);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilPor);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilClay);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilSand);
-    CHECK_POINTER(M_SUR_SGA[0], m_ks);
-    CHECK_POINTER(M_SUR_SGA[0], m_initSoilWtrStoRatio);
-    CHECK_POINTER(M_SUR_SGA[0], m_soilFC);
-    CHECK_POINTER(M_SUR_SGA[0], m_meanTmp);
-    CHECK_POINTER(M_SUR_SGA[0], m_netPcp);
-    CHECK_POINTER(M_SUR_SGA[0], m_deprSto);
-    CHECK_POINTER(M_SUR_SGA[0], m_surfRf);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_maxSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_nSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_soilDepth);
+    CHECK_POINTER(GetModuleName(), m_soilPor);
+    CHECK_POINTER(GetModuleName(), m_soilClay);
+    CHECK_POINTER(GetModuleName(), m_soilSand);
+    CHECK_POINTER(GetModuleName(), m_ks);
+    CHECK_POINTER(GetModuleName(), m_initSoilWtrStoRatio);
+    CHECK_POINTER(GetModuleName(), m_soilFC);
+    CHECK_POINTER(GetModuleName(), m_meanTmp);
+    CHECK_POINTER(GetModuleName(), m_netPcp);
+    CHECK_POINTER(GetModuleName(), m_deprSto);
+    CHECK_POINTER(GetModuleName(), m_surfRf);
 
     return true;
 }
@@ -146,7 +147,7 @@ int StormGreenAmpt::Execute(void) {
         }
     }
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             float snowMelt = 0.f;
@@ -260,14 +261,14 @@ void StormGreenAmpt::SetValue(const char *key, const float value) {
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
     } else {
-        throw ModelException(M_SUR_SGA[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist.");
     }
 
 }
 
 void StormGreenAmpt::Set1DData(const char *key, const int n, float *data) {
-    CheckInputSize(M_SUR_SGA[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN[0])) {
         m_meanTmp = data;
@@ -280,14 +281,14 @@ void StormGreenAmpt::Set1DData(const char *key, const int n, float *data) {
     } else if (StringMatch(sk, VAR_MOIST_IN[0])) {
         m_initSoilWtrStoRatio = data;
     } else {
-        throw ModelException(M_SUR_SGA[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void StormGreenAmpt::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(M_SUR_SGA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_CONDUCT[0])) {
         m_ks = data;
     } else if (StringMatch(sk, VAR_CLAY[0])) {
@@ -301,7 +302,7 @@ void StormGreenAmpt::Set2DData(const char* key, int nrows, int ncols, float** da
     } else if (StringMatch(sk, VAR_SOILDEPTH[0])) {
         m_soilDepth = data;
     } else {
-        throw ModelException(M_SUR_SGA[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }

@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
-    MetadataInfo mdi;
+    MetadataInfoChannel mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
     mdi.SetClass(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
@@ -23,9 +23,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
 
-    //mdi.AddParameter(Tag_LayeringMethod[0], UNIT_NON_DIM, Tag_LayeringMethod[1], File_Input, DT_Single);
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
-    mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
+   mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_FLOWDIR[0], UNIT_NON_DIM, VAR_FLOWDIR[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHWIDTH[0], UNIT_LEN_M, VAR_CHWIDTH[1], Source_ParameterDB, DT_Raster1D);

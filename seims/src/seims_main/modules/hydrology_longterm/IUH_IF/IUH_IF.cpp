@@ -8,6 +8,7 @@ IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_cellArea(nullptr), m_nsub
 
     m_Q_SBIF = NULL;
     m_cellFlow = NULL;
+    SetModuleName("IUH_IF");
 }
 
 IUH_IF::~IUH_IF(void) {
@@ -17,39 +18,39 @@ IUH_IF::~IUH_IF(void) {
 
 bool IUH_IF::CheckInputData(void) {
     if (m_nCells < 0) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_nCells has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_nCells has not been set.");
         return false;
     }
     CHECK_POINTER(M_IUH_IF[0], m_cellArea);
     if (m_TimeStep <= 0) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_TimeStep has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_TimeStep has not been set.");
         return false;
     }
 
     if (m_subbasin == NULL) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_subbasin has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_subbasin has not been set.");
         return false;
     }
     /*if (m_uhmaxCell == NULL)
     {
-    throw ModelException("IUH_IF","CheckInputData","The parameter: m_uhmaxCell has not been set.");
+    throw ModelException(GetModuleName(),"CheckInputData","The parameter: m_uhmaxCell has not been set.");
     return false;
     }
     if (m_uhminCell == NULL)
     {
-    throw ModelException("IUH_IF","CheckInputData","The parameter: m_uhminCell has not been set.");
+    throw ModelException(GetModuleName(),"CheckInputData","The parameter: m_uhminCell has not been set.");
     return false;
     }*/
     if (m_iuhCell == NULL) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_iuhCell has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_iuhCell has not been set.");
         return false;
     }
     if (m_ssru == NULL) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_rs has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_rs has not been set.");
         return false;
     }
     if (m_date < 0) {
-        throw ModelException("IUH_IF", "CheckInputData", "The parameter: m_date has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_date has not been set.");
         return false;
     }
 
@@ -58,7 +59,7 @@ bool IUH_IF::CheckInputData(void) {
 
 void IUH_IF:: InitialOutputs() {
     if (this->m_nCells <= 0 || this->m_subbasin == NULL) {
-        throw ModelException("IUH_IF", "CheckInputData", "The dimension of the input data can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
     // allocate the output variables
 
@@ -106,7 +107,7 @@ int IUH_IF::Execute() {
     //int nt = 0;
     //FLTPT qs_cell = 0.0f;
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //forward one time step
         for (int j = 0; j < m_cellFlowCols; j++) {
@@ -123,7 +124,7 @@ int IUH_IF::Execute() {
         if (m_nsub == 1) {
             subi = 1;
         } else if (subi >= m_nsub + 1) {
-            throw ModelException("IUH_IF", "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+            throw ModelException(GetModuleName(), "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
         }
 
         FLTPT v_rs = m_ssru[i];
@@ -153,21 +154,7 @@ int IUH_IF::Execute() {
 }
 
 bool IUH_IF::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("IUH_IF", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException("IUH_IF", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void IUH_IF::SetValue(const char *key, FLTPT value) {
@@ -177,13 +164,12 @@ void IUH_IF::SetValue(const char *key, FLTPT value) {
     } else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = int(value);
     } else {
-        throw ModelException("IUH_IF", "SetValue", "Parameter " + sk
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk
             + " does not exist in IUH_IF method. Please contact the module developer.");
     }
 }
 
 void IUH_IF::Set1DData(const char *key, int n, FLTPT *data) {
-    CheckInputSize(key, n);
     //set the value
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
@@ -193,7 +179,7 @@ void IUH_IF::Set1DData(const char *key, int n, FLTPT *data) {
     } else if (StringMatch(sk, VAR_SSRU[0])) {
         m_ssru = data;
     } else {
-        throw ModelException("IUH_IF", "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
             " does not exist in IUH_IF method. Please contact the module developer.");
     }
 }
@@ -201,11 +187,11 @@ void IUH_IF::Set1DData(const char *key, int n, FLTPT *data) {
 void IUH_IF::Set2DData(const char *key, int nRows, int nCols, FLTPT **data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH[0])) {
-        CheckInputSize(VAR_OL_IUH[0], nRows);
+        CheckInputSize(key, nRows);
         m_iuhCell = data;
         m_iuhCols = nCols;
     } else {
-        throw ModelException("IUH_IF", "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
             " does not exist in IUH_IF method. Please contact the module developer.");
     }
 }
@@ -215,7 +201,7 @@ void IUH_IF::Get1DData(const char *key, int *n, FLTPT **data) {
     if (StringMatch(sk, VAR_SBIF[0])) {
         *data = m_Q_SBIF;
     } else {
-        throw ModelException("IUH_IF", "getResult", "Result " + sk +
+        throw ModelException(GetModuleName(), "getResult", "Result " + sk +
             " does not exist in IUH_IF method. Please contact the module developer.");
     }
     *n = this->m_nsub + 1;

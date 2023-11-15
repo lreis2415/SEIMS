@@ -53,7 +53,7 @@ public:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *, int);
+    bool CheckInputSize(const char *, int) OVERRIDE;
 
 private:
 

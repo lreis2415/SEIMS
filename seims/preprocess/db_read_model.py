@@ -239,7 +239,9 @@ class ReadModelData(object):
         isoutlet = 0
         if subbsn_id == self.OutletID:
             isoutlet = 1
-
+        else:
+            logging.warning(f"The specified plotting subbasin {subbsn_id} id is not the outlet subbasin id."
+                            f" This may not be the expected behavior. The postprocess config file might be checked")
         def get_observed_name(name):
             """To avoid the prefix of subbasin number."""
             if '_' in name:

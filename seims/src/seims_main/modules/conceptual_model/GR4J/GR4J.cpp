@@ -35,7 +35,9 @@ GR4J::GR4J() :
     //percolation
     m_GR4J_X2(nullptr), m_GR4J_X3(nullptr),
     //split and convolve
-    m_GR4J_X4(nullptr), m_convEntering1(nullptr), m_convEntering2(nullptr){
+    m_GR4J_X4(nullptr), m_convEntering1(nullptr), m_convEntering2(nullptr)
+{
+        SetModuleName(CM_GR4J[0]);
 }
 
 void GR4J::InitialOutputs() {
@@ -99,24 +101,22 @@ void GR4J::SetValue(const char* key, int value) {
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbasins = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnId = value;
     else {
-        throw ModelException(CM_GR4J[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void GR4J::Set1DData(const char* key, int n, int* data) {
-    CheckInputSize(key, n);
     string sk(key);
 
     if (StringMatch(sk, VAR_SUBBSN[0])) m_cellsMappingToSubbasinId = data;
     else {
-        throw ModelException(CM_GR4J[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void GR4J::Set1DData(const char* key, int n, FLTPT* data) {
-    CheckInputSize(key, n);
     string sk(key);
 
     if (StringMatch(sk, VAR_PCP[0])) { m_pcp = data; }
@@ -124,48 +124,37 @@ void GR4J::Set1DData(const char* key, int n, FLTPT* data) {
     else if (StringMatch(sk, VAR_PET[0])) { m_pet = data; }
     else if (StringMatch(sk, VAR_GR4J_X4[0])) { m_GR4J_X4 = data; }
     else {
-        throw ModelException(CM_GR4J[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void GR4J::Set2DData(const char* key, int nrows, int ncols, FLTPT** data) {
     string sk(key);
-    CheckInputSize2D(CM_GR4J[0], key, nrows, ncols, m_nCells, N_SOIL_LAYERS);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, N_SOIL_LAYERS);
     if (StringMatch(sk, VAR_SOILTHICK[0])) { m_soilThickness = data; }
     else if (StringMatch(sk, VAR_POROST[0])) { m_soilPorosity = data; }
     else if (StringMatch(sk, VAR_GR4J_X2[0])) { m_GR4J_X2 = data; }
     else if (StringMatch(sk, VAR_GR4J_X3[0])) { m_GR4J_X3 = data; }
     else {
-        throw ModelException(CM_GR4J[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 bool GR4J::CheckInputSize(const char* key, int n) {
-    if (n <= 0) {
-        throw ModelException(CM_GR4J[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
-            throw ModelException(CM_GR4J[0], "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 bool GR4J::CheckInputData(void) {
     if (m_nCells <= 0) {
-        throw ModelException(CM_GR4J[0], "CheckInputData", "Input data is invalid. The size could not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
         return false;
     }
-    CHECK_POINTER(CM_GR4J[0], m_pcp);
-    CHECK_POINTER(CM_GR4J[0], m_soilThickness);
-    CHECK_POINTER(CM_GR4J[0], m_soilPorosity);
-    CHECK_POSITIVE(CM_GR4J[0], m_GR4J_X4);
+    CHECK_POINTER(GetModuleName(), m_pcp);
+    CHECK_POINTER(GetModuleName(), m_soilThickness);
+    CHECK_POINTER(GetModuleName(), m_soilPorosity);
+    CHECK_POSITIVE(GetModuleName(), m_GR4J_X4);
     return true;
 }
 
@@ -181,7 +170,7 @@ void GR4J::Get1DData(const char* key, int* n, FLTPT** data) {
     if (StringMatch(sk, VAR_SURU[0])) { *data = m_pcpExcess; }
     else if (StringMatch(sk, VAR_AET_PLT[0])) { *data = m_soilET;}
     else {
-        throw ModelException(CM_GR4J[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
@@ -194,7 +183,7 @@ void GR4J::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
     *nCols = N_SOIL_LAYERS;
     if (StringMatch(sk, VAR_SOL_ST[0])) { *data = m_soilWaterStorage; }
     else {
-        throw ModelException(CM_GR4J[0], "Get2DData", "Output " + sk
+        throw ModelException(GetModuleName(), "Get2DData", "Output " + sk
                              + " does not exist. Please contact the module developer.");
     }
 }
@@ -397,7 +386,7 @@ void GR4J::Convolve(ConvoleType t) {
         toSoilLayer = SOIL_TEMP_LAYER;
     }
     else {
-        throw ModelException(CM_GR4J[0], "Convolve", "unknown convolution type " + ValueToString(t));
+        throw ModelException(GetModuleName(), "Convolve", "unknown convolution type " + ValueToString(t));
     }
 
     //FLTPT t1 = 0;
@@ -409,7 +398,7 @@ void GR4J::Convolve(ConvoleType t) {
     //    }
     //}
     //printf("[Conv] Entering=%f, Transport=%f", t1, t3);
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // moving entering water into transport water array
         convTransport->at(i).at(0) = convEntering[i];
@@ -456,13 +445,13 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
             unitHydro = &m_unitHydro2;
         }
         else {
-            throw ModelException(CM_GR4J[0], "GenerateUnitHydrograph", "unknown convolution type " + ValueToString(t));
+            throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "unknown convolution type " + ValueToString(t));
         }
 
         int N = ceil(maxTime / tstep);
 
         if (N == 0) { N = 1; }
-        if (N > 50) { throw ModelException(CM_GR4J[0], "GenerateUnitHydrograph", "unit hydrograph duration for convolution too long"); }
+        if (N > 50) { throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "unit hydrograph duration for convolution too long"); }
 
         FLTPT sum = 0.0;
         for (int n = 0; n < N; ++n) {
@@ -477,7 +466,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
             convTransport->at(i).push_back(0);
             sum += h;
         }
-        if (sum == 0.0) { throw ModelException(CM_GR4J[0], "GenerateUnitHydrograph", "bad unit hydrograph constructed"); }
+        if (sum == 0.0) { throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "bad unit hydrograph constructed"); }
         for (int n = 0; n < N; ++n) { unitHydro->at(i).at(n) /= sum; }
     }
     convTransport = nullptr;

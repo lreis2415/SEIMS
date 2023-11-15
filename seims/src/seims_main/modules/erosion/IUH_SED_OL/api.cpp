@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_OL_ROUTING[0], MCLS_OL_ROUTING[1]);

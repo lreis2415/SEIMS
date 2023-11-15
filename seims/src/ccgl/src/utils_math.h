@@ -130,6 +130,10 @@ namespace utils_math {
 #ifndef Abs
 #define Abs(x) ((x) >= 0 ? (x) : -(x))
 #endif
+/*! Return non-negative value */
+# ifndef NonNeg
+# define NonNeg(x) ((x) >= 0 ? (x) : 0)
+# endif
 
 /*!
  * \brief Whether v1 is equal to v2

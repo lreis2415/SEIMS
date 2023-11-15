@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import osgeo
 import rasterio
@@ -111,6 +113,7 @@ def hru_rasterio(
     aggregation_type: str = HruAggregationFunctions.ARITHMETIC_MEAN,
     aggregation_multiplier=1,
 ):
+    logging.info(f'Aggregating HRU property {out_property_name}...')
     hru_id_map_dataset = rasterio.open(hru_id_raster_path)
     hru_id_map = hru_id_map_dataset.read(1)
     hru_id_map = hru_id_map.astype(np.float64)

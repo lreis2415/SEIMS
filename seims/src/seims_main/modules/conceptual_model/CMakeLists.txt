@@ -1,2 +1,4 @@
 MESSAGE(STATUS "      Compiling SEIMS_subdir: conceptual_model...")
-ADD_SUBDIRECTORY(./GR4J)
+FOREACH(subdir ${SUBDIRS})
+  ADD_SUBDIRECTORY(${subdir})
+ENDFOREACH()

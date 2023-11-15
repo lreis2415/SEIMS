@@ -6,6 +6,7 @@ HydroVarsUpdate::HydroVarsUpdate():
 m_nCells(-1),
 m_subbasins(nullptr),
 m_petSubbsn(nullptr), m_gwSto(nullptr),m_SBIF(nullptr), m_SBQG(nullptr) {
+    SetModuleName("HydroVarsUpdate");
 }
 
 HydroVarsUpdate::~HydroVarsUpdate() {
@@ -34,7 +35,7 @@ void HydroVarsUpdate::Get1DData(const char *key, int *nRows, FLTPT **data) {
         *data = m_SBQG;
 
     }else {
-        throw ModelException("HydroVarsUpdate", "getResult", "Result " + s +
+        throw ModelException(GetModuleName(), "getResult", "Result " + s +
             " does not exist in HydroVarsUpdate method. Please contact the module developer.");
     }
 
@@ -47,7 +48,7 @@ void HydroVarsUpdate::SetValue(const char *key, int value) {
     else if (StringMatch(s, VAR_SUBBSNID_NUM[0])) {m_nSubbasins = value;}
     else if (StringMatch(s, Tag_SubbasinId)) {m_inputSubbsnId = value;}
     else {
-        throw ModelException("HydroVarsUpdate", "SetValue", "Parameter " + s +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + s +
             " does not exist in HydroVarsUpdate method. Please contact the module developer.");
     }
 }
@@ -62,7 +63,7 @@ void HydroVarsUpdate::Set1DData(const char* key, int n, int* data) {
 
     if (StringMatch(sk, VAR_SUBBSN[0])) m_cellsMappingToSubbasinId = data;
     else {
-        throw ModelException(CM_GR4J[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -71,7 +72,7 @@ void HydroVarsUpdate::Set1DData(const char* key, int n, FLTPT* data) {
 
     if (StringMatch(sk, VAR_PET[0])) { m_pet = data; }
     else {
-        throw ModelException(CM_GR4J[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }

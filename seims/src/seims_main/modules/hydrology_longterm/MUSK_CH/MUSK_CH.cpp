@@ -23,6 +23,7 @@ MUSK_CH::MUSK_CH() :
     m_qRchOut(nullptr), m_qsRchOut(nullptr), m_qiRchOut(nullptr), m_qgRchOut(nullptr),
     m_chSto(nullptr), m_rteWtrIn(nullptr), m_rteWtrOut(nullptr), m_bankSto(nullptr),
     m_chWtrDepth(nullptr), m_chWtrWth(nullptr), m_chBtmWth(nullptr), m_chCrossArea(nullptr) {
+    SetModuleName(M_MUSK_CH[0]);
 }
 
 MUSK_CH::~MUSK_CH() {
@@ -51,30 +52,30 @@ MUSK_CH::~MUSK_CH() {
 }
 
 bool MUSK_CH::CheckInputData() {
-    CHECK_POSITIVE(M_MUSK_CH[0], m_dt);
-    CHECK_NONNEGATIVE(M_MUSK_CH[0], m_inputSubbsnID);
-    CHECK_POSITIVE(M_MUSK_CH[0], m_nreach);
-    CHECK_POSITIVE(M_MUSK_CH[0], m_outletID);
-    CHECK_NODATA(M_MUSK_CH[0], m_Epch);
-    CHECK_NODATA(M_MUSK_CH[0], m_Bnk0);
-    CHECK_NODATA(M_MUSK_CH[0], m_Chs0_perc);
-    CHECK_NODATA(M_MUSK_CH[0], m_aBank);
-    CHECK_NODATA(M_MUSK_CH[0], m_bBank);
-    //CHECK_NODATA(M_MUSK_CH[0], m_mskX); // Do not throw exception, since they have default values.
-    //CHECK_NODATA(M_MUSK_CH[0], m_mskCoef1);
-    //CHECK_NODATA(M_MUSK_CH[0], m_mskCoef2);
-    CHECK_POINTER(M_MUSK_CH[0], m_subbsnID);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_NONNEGATIVE(GetModuleName(), m_inputSubbsnID);
+    CHECK_POSITIVE(GetModuleName(), m_nreach);
+    CHECK_POSITIVE(GetModuleName(), m_outletID);
+    CHECK_NODATA(GetModuleName(), m_Epch);
+    CHECK_NODATA(GetModuleName(), m_Bnk0);
+    CHECK_NODATA(GetModuleName(), m_Chs0_perc);
+    CHECK_NODATA(GetModuleName(), m_aBank);
+    CHECK_NODATA(GetModuleName(), m_bBank);
+    //CHECK_NODATA(GetModuleName(), m_mskX); // Do not throw exception, since they have default values.
+    //CHECK_NODATA(GetModuleName(), m_mskCoef1);
+    //CHECK_NODATA(GetModuleName(), m_mskCoef2);
+    CHECK_POINTER(GetModuleName(), m_subbsnID);
 
-    CHECK_POINTER(M_MUSK_CH[0], m_petSubbsn);
-    CHECK_POINTER(M_MUSK_CH[0], m_gwSto);
-    CHECK_POINTER(M_MUSK_CH[0], m_olQ2Rch);
-    CHECK_POINTER(M_MUSK_CH[0], m_ifluQ2Rch);
-    CHECK_POINTER(M_MUSK_CH[0], m_gndQ2Rch);
+    CHECK_POINTER(GetModuleName(), m_petSubbsn);
+    CHECK_POINTER(GetModuleName(), m_gwSto);
+    CHECK_POINTER(GetModuleName(), m_olQ2Rch);
+    CHECK_POINTER(GetModuleName(), m_ifluQ2Rch);
+    CHECK_POINTER(GetModuleName(), m_gndQ2Rch);
     return true;
 }
 
 void MUSK_CH::InitialOutputs() {
-    CHECK_POSITIVE(M_MUSK_CH[0], m_nreach);
+    CHECK_POSITIVE(GetModuleName(), m_nreach);
     if (nullptr != m_qRchOut) return; // DO NOT Initial Outputs repeatedly.
     if (m_mskX < 0.) m_mskX = 0.2;
     if (m_mskCoef1 < 0. || m_mskCoef1 > 1.) {
@@ -204,7 +205,7 @@ int MUSK_CH::Execute() {
             }
         }
         if (errCount > 0) {
-            throw ModelException(M_MUSK_CH[0], "Execute", "Error occurred!");
+            throw ModelException(GetModuleName(), "Execute", "Error occurred!");
         }
 #ifdef PRINT_DEBUG
         printf("\After executing:");
@@ -224,7 +225,7 @@ void MUSK_CH::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(sk, VAR_MSK_X[0])) m_mskX = value;
     else if (StringMatch(sk, VAR_MSK_CO1[0])) m_mskCoef1 = value;
     else {
-        throw ModelException(M_MUSK_CH[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -235,7 +236,7 @@ void MUSK_CH::SetValue(const char* key, const int value) {
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
     else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = value;
     else {
-        throw ModelException(M_MUSK_CH[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -251,7 +252,7 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const FLTPT valu
     else if (StringMatch(sk, VAR_QI[0])) m_qiRchOut[index] = value;
     else if (StringMatch(sk, VAR_QG[0])) m_qgRchOut[index] = value;
     else {
-        throw ModelException(M_MUSK_CH[0], "SetValueByIndex",
+        throw ModelException(GetModuleName(), "SetValueByIndex",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -259,22 +260,22 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const FLTPT valu
 void MUSK_CH::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBPET[0])) {
-        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
+        CheckInputSize(key, n - 1, m_nreach);
         m_petSubbsn = data;
     } else if (StringMatch(sk, VAR_SBGS[0])) {
-        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
+        CheckInputSize(key, n - 1, m_nreach);
         m_gwSto = data;
     } else if (StringMatch(sk, VAR_SBOF[0])) {
-        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
+        CheckInputSize(key, n - 1, m_nreach);
         m_olQ2Rch = data;
     } else if (StringMatch(sk, VAR_SBIF[0])) {
-        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
+        CheckInputSize(key, n - 1, m_nreach);
         m_ifluQ2Rch = data;
     } else if (StringMatch(sk, VAR_SBQG[0])) {
-        CheckInputSize(M_MUSK_CH[0], key, n - 1, m_nreach);
+        CheckInputSize(key, n - 1, m_nreach);
         m_gndQ2Rch = data;
     } else {
-        throw ModelException(M_MUSK_CH[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -284,7 +285,7 @@ void MUSK_CH::Set1DData(const char* key, const int n, int* data) {
     if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
     } else {
-        throw ModelException(M_MUSK_CH[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -298,7 +299,7 @@ void MUSK_CH::GetValue(const char* key, FLTPT* value) {
     else if (StringMatch(sk, VAR_QI[0]) && m_inputSubbsnID > 0) *value = m_qiRchOut[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QG[0]) && m_inputSubbsnID > 0) *value = m_qgRchOut[m_inputSubbsnID];
     else {
-        throw ModelException(M_MUSK_CH[0], "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -343,7 +344,7 @@ void MUSK_CH::Get1DData(const char* key, int* n, FLTPT** data) {
         m_chCrossArea[0] = m_chCrossArea[m_outletID];
         *data = m_chCrossArea;
     } else {
-        throw ModelException(M_MUSK_CH[0], "Get1DData", "Output " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Output " + sk + " does not exist.");
     }
 }
 
@@ -361,13 +362,13 @@ void MUSK_CH::SetScenario(Scenario* sce) {
             }
         }
     } else {
-        // throw ModelException(M_MUSK_CH[0], "SetScenario", "The scenario can not to be NULL.");
+        // throw ModelException(GetModuleName(), "SetScenario", "The scenario can not to be NULL.");
     }
 }
 
 void MUSK_CH::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(M_MUSK_CH[0], "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nreach = reaches->GetReachNumber();
 

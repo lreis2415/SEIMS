@@ -1,3 +1,5 @@
+import logging
+
 import osgeo  # Note! This is a workaround for a 'ImportError: DLL load failed' of `import rasterio`!
 import rasterio
 import geopandas as gpd
@@ -173,12 +175,14 @@ class HruConstructor(object):
             subbasin_mask = subbasin_mask_src.read(1)
             subbasin_mask[subbasin_mask != subbasin_mask_src.nodata] = 1
             subbasin_meta = subbasin_mask_src.meta.copy()
+            logging.info("Constructing HRU based on a lumped basin")
         else:
             # if not lumped, use SUBBASIN.tif
             subbasin_mask_path = cfg.spatials.subbsn
             subbasin_mask_src = rasterio.open(subbasin_mask_path)
             subbasin_mask = subbasin_mask_src.read(1)
             subbasin_meta = subbasin_mask_src.meta.copy()
+            logging.info("Constructing HRU based on subbasins")
 
         hru_dist_map, meta_int, hru_id_map, meta_int, hru_area_map, meta_float, hru_id_dict = \
             self._create_hru_map(subbasin_meta, subbasin_mask)
@@ -186,6 +190,7 @@ class HruConstructor(object):
         self._write_raster(cfg.spatials.hru_dist, hru_dist_map, meta_int)
         self._write_raster(cfg.spatials.hru_id, hru_id_map, meta_int)
         self._write_raster(cfg.spatials.hru_area, hru_area_map, meta_float)
+        logging.info(f"HRU map generated. ({cfg.spatials.hru_dist}, {cfg.spatials.hru_id}, {cfg.spatials.hru_area})")
 
         # mask subbasin_mask by hru_id_map, only keep its hru_id area
         subbasin_mask[hru_id_map == DEFAULT_NODATA] = DEFAULT_NODATA
@@ -208,6 +213,7 @@ class HruConstructor(object):
                       # maskfile=cfg.spatials.subbsn, include_nodata=False, mode='MASKDEC',
                       maskfile=cfg.spatials.hru_subbasin_id, include_nodata=True, mode='MASKDEC',
                       abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+        logging.info(f"HRU maps saved to MongoDB. ({cfg.spatials.hru_subbasin_id}, {cfg.spatials.hru_area})")
 
 
 def main():

@@ -17,7 +17,9 @@ AET_PT_H::AET_PT_H() :
     m_snowAccum(nullptr), m_snowSublim(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
     /// output
-    m_maxPltET(nullptr), m_soilET(nullptr) {
+    m_maxPltET(nullptr), m_soilET(nullptr) 
+{
+    SetModuleName(M_AET_PTH[0]);
 }
 
 AET_PT_H::~AET_PT_H() {
@@ -26,7 +28,6 @@ AET_PT_H::~AET_PT_H() {
 }
 
 void AET_PT_H::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_AET_PTH[0], key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_ESCO[0])) m_esco = data;
     else if (StringMatch(sk, DataType_MeanTemperature)) m_tMean = data;
@@ -38,23 +39,22 @@ void AET_PT_H::Set1DData(const char* key, const int n, FLTPT* data) {
     else if (StringMatch(sk, VAR_SOL_COV[0]))m_rsdCovSoil = data;
     else if (StringMatch(sk, VAR_SOL_SW[0]))m_soilWtrStoPrfl = data;
     else {
-        throw ModelException(M_AET_PTH[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void AET_PT_H::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_AET_PTH[0], key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else {
-        throw ModelException(M_AET_PTH[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void AET_PT_H::Set2DData(const char* key, const int n, const int col, FLTPT** data) {
-    CheckInputSize2D(M_AET_PTH[0], key, n, col, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, n, col, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
@@ -62,34 +62,37 @@ void AET_PT_H::Set2DData(const char* key, const int n, const int col, FLTPT** da
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_solNo3 = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else {
-        throw ModelException(M_AET_PTH[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
+bool AET_PT_H::CheckInputSize(const char* key, const int n) {
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
+}
 
 bool AET_PT_H::CheckInputData() {
-    CHECK_POSITIVE(M_AET_PTH[0], m_nCells);
-    CHECK_POSITIVE(M_AET_PTH[0], m_maxSoilLyrs);
-    CHECK_POINTER(M_AET_PTH[0], m_esco);
-    CHECK_POINTER(M_AET_PTH[0], m_nSoilLyrs);
-    CHECK_POINTER(M_AET_PTH[0], m_tMean);
-    CHECK_POINTER(M_AET_PTH[0], m_lai);
-    CHECK_POINTER(M_AET_PTH[0], m_pet);
-    CHECK_POINTER(M_AET_PTH[0], m_snowAccum);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_maxSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_esco);
+    CHECK_POINTER(GetModuleName(), m_nSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_tMean);
+    CHECK_POINTER(GetModuleName(), m_lai);
+    CHECK_POINTER(GetModuleName(), m_pet);
+    CHECK_POINTER(GetModuleName(), m_snowAccum);
     /// If m_snowSB is not provided, it will be initialized in  InitialOutputs().
-    // CHECK_POINTER(M_AET_PTH[0], m_snowSB);
-    CHECK_POINTER(M_AET_PTH[0], m_rsdCovSoil);
-    CHECK_POINTER(M_AET_PTH[0], m_soilDepth);
-    CHECK_POINTER(M_AET_PTH[0], m_soilThk);
-    CHECK_POINTER(M_AET_PTH[0], m_solFC);
-    CHECK_POINTER(M_AET_PTH[0], m_solNo3);
-    CHECK_POINTER(M_AET_PTH[0], m_soilWtrSto);
-    CHECK_POINTER(M_AET_PTH[0], m_soilWtrStoPrfl);
+    // CHECK_POINTER(GetModuleName(), m_snowSB);
+    CHECK_POINTER(GetModuleName(), m_rsdCovSoil);
+    CHECK_POINTER(GetModuleName(), m_soilDepth);
+    CHECK_POINTER(GetModuleName(), m_soilThk);
+    CHECK_POINTER(GetModuleName(), m_solFC);
+    CHECK_POINTER(GetModuleName(), m_solNo3);
+    CHECK_POINTER(GetModuleName(), m_soilWtrSto);
+    CHECK_POINTER(GetModuleName(), m_soilWtrStoPrfl);
     return true;
 }
 
 void AET_PT_H::InitialOutputs() {
-    CHECK_POSITIVE(M_AET_PTH[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.);
     if (nullptr == m_soilET) Initialize1DArray(m_nCells, m_soilET, 0.);
     if (nullptr == m_snowSublim) Initialize1DArray(m_nCells, m_snowSublim, 0.);
@@ -237,7 +240,7 @@ void AET_PT_H::Get1DData(const char* key, int* n, FLTPT** data) {
     if (StringMatch(sk, VAR_PPT[0])) *data = m_maxPltET;
     else if (StringMatch(sk, VAR_SOET[0])) *data = m_soilET;
     else {
-        throw ModelException(M_AET_PTH[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk + " does not exist.");
     }
     *n = m_nCells;

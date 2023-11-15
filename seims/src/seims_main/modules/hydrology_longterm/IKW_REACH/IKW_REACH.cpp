@@ -12,7 +12,9 @@ IKW_REACH::IKW_REACH() : m_dt(-1), m_nreach(-1), m_Kchb(nullptr),
                          m_bankStorage(nullptr), m_seepage(nullptr),
                          m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
                          m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
-                         m_qUpReach(0.f), m_deepGroudwater(0.f) {
+                         m_qUpReach(0.f), m_deepGroudwater(0.f)
+{
+    SetModuleName("IKW_REACH");
 }
 
 IKW_REACH::~IKW_REACH() {
@@ -31,52 +33,52 @@ IKW_REACH::~IKW_REACH() {
 
 bool IKW_REACH::CheckInputData() {
     if (m_dt < 0) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_dt has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_dt has not been set.");
     }
 
     if (m_nreach < 0) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_nreach has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_nreach has not been set.");
     }
 
     if (nullptr == m_Kchb) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: K_chb has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: K_chb has not been set.");
     }
     if (nullptr == m_Kbank) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: K_bank has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: K_bank has not been set.");
     }
     if (FloatEqual(m_Epch, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: Ep_ch has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Ep_ch has not been set.");
     }
     if (FloatEqual(m_Bnk0, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: Bnk0 has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Bnk0 has not been set.");
     }
     if (FloatEqual(m_Chs0, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: Chs0 has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Chs0 has not been set.");
     }
     if (FloatEqual(m_aBank, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: A_bnk has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: A_bnk has not been set.");
     }
     if (FloatEqual(m_bBank, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: B_bnk has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: B_bnk has not been set.");
     }
     if (FloatEqual(m_Vseep0, NODATA_VALUE)) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_Vseep0 has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_Vseep0 has not been set.");
     }
     if (nullptr == m_subbasin) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_subbasin has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: m_subbasin has not been set.");
     }
     if (nullptr == m_qsSub) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: Q_SBOF has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Q_SBOF has not been set.");
     }
     if (nullptr == m_chWidth) {
-        throw ModelException("IKW_REACH", "CheckInputData", "The parameter: RchParam has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: RchParam has not been set.");
     }
     return true;
 }
 
 void IKW_REACH:: InitialOutputs() {
     if (m_nreach <= 0) {
-        throw ModelException("IKW_REACH", "initialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "initialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     //initial channel storage
@@ -148,7 +150,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             ostringstream oss;
             oss << "Input data for "+string(key) << " is invalid with size: " << n << ". The origin size is " << m_nreach << ".\n";
-            throw ModelException("IKW_REACH","CheckInputSize",oss.str());
+            throw ModelException(GetModuleName(),"CheckInputSize",oss.str());
         }
     }
 #else
@@ -160,7 +162,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: "
                     << n << ". The origin size is " << m_nreach << ".\n";
-            throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
+            throw ModelException(GetModuleName(), "CheckInputSize", oss.str());
         }
     }
 #endif /* STORM_MODE */
@@ -194,7 +196,7 @@ void IKW_REACH::SetValue(const char *key, FLTPT value) {
     } else if (StringMatch(sk, VAR_MSK_CO1[0])) {
         m_co1 = value;
     } else {
-        throw ModelException("IKW_REACH", "SetSingleData",
+        throw ModelException(GetModuleName(), "SetSingleData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 
@@ -225,7 +227,7 @@ void IKW_REACH::Set1DData(const char *key, int n, FLTPT *value) {
     } else if (StringMatch(sk, VAR_SBGS[0])) {
         m_gwStorage = value;
     } else {
-        throw ModelException("IKW_REACH", "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 
@@ -273,7 +275,7 @@ void IKW_REACH::Get1DData(const char *key, int *n, FLTPT **data) {
         m_chWTdepth[0] = m_chWTdepth[iOutlet];
         *data = m_chWTdepth;
     } else {
-        throw ModelException("IKW_REACH", "Get1DData", "Output " + sk
+        throw ModelException(GetModuleName(), "Get1DData", "Output " + sk
             +
                 " does not exist in the IKW_REACH module. Please contact the module developer.");
     }
@@ -282,13 +284,13 @@ void IKW_REACH::Get1DData(const char *key, int *n, FLTPT **data) {
 
 void IKW_REACH::Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data) {
     string sk(key);
-    throw ModelException("IKW_REACH", "Get2DData", "Output " + sk +
+    throw ModelException(GetModuleName(), "Get2DData", "Output " + sk +
             " does not exist in the IKW_REACH module. Please contact the module developer.");
 }
 
 void IKW_REACH::SetReaches(clsReaches *reaches) {
     if (nullptr == reaches) {
-        throw ModelException("IKW_REACH", "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nreach = reaches->GetReachNumber();
 

@@ -61,7 +61,9 @@ ORYZA::ORYZA() :
     // parameter related to the N of plant and soil
     m_plantUpTkN(nullptr), m_ancrf(nullptr), m_anlv(nullptr),
     // rice related parameters, output
-    sowDay(-1), m_dvs(nullptr), m_lai(nullptr), m_wrr(nullptr) {
+    sowDay(-1), m_dvs(nullptr), m_lai(nullptr), m_wrr(nullptr) 
+{
+    SetModuleName(M_PG_ORYZA[0]);
 }
 
 
@@ -157,12 +159,12 @@ void ORYZA::SetValue(const char* key, float value) {
     else if (StringMatch(sk, VAR_LLDL[0])) m_lldl = value;
     else if (StringMatch(sk, VAR_ULDL[0])) m_uldl = value;
     else
-        throw ModelException(M_PG_ORYZA[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk + " does not exist.");
 }
 
 void ORYZA::Set1DData(const char* key, int n, float* data) {
     string sk(key);
-    CheckInputSize(M_PG_ORYZA[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     //// climate
     if (StringMatch(sk, DataType_MeanTemperature)) m_meanTemp = data;
     else if (StringMatch(sk, DataType_MinimumTemperature)) m_tMin = data;
@@ -187,12 +189,12 @@ void ORYZA::Set1DData(const char* key, int n, float* data) {
     else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = data;
     else if (StringMatch(sk, VAR_ANCRF[0])) m_ancrf = data;
     else
-        throw ModelException(M_PG_ORYZA[0], "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk + " does not exist.");
 }
 
 void ORYZA::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(M_PG_ORYZA[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThick = data;
     else if (StringMatch(sk, VAR_SOL_RSD[0])) m_soilRsd = data;
@@ -202,7 +204,7 @@ void ORYZA::Set2DData(const char* key, int nrows, int ncols, float** data) {
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_sol_sat = data;
     else if (StringMatch(sk, VAR_SOL_WPMM[0])) m_soilWP = data;
     else {
-        throw ModelException(M_PG_ORYZA[0], "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -882,54 +884,54 @@ int ORYZA::Execute() {
 
 bool ORYZA::CheckInputData() {
     /// DT_Single
-    CHECK_POSITIVE(M_PG_ORYZA[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (m_nCells <= 0)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     if (m_maxSoilLyrs <= 0)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The layer number of the input 2D raster data can not be less than zero.");
     if (FloatEqual(m_co2, NODATA_VALUE))
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The ambient atmospheric CO2 concentration must be provided.");
     /// DT_Raster1D
     if (m_tMin == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The min temperature data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The min temperature data can not be NULL.");
     if (m_tMax == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The max temperature data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The max temperature data can not be NULL.");
     if (m_meanTemp == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The mean temperature data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The mean temperature data can not be NULL.");
     if (m_SR == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The solar radiation data can not be NULL.");
     if (m_nSoilLyrs == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil layers data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil layers data can not be NULL.");
     if (m_soilZMX == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The maximum rooting depth in soil profile can not be NULL.");
     if (m_soilALB == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The albedo when soil is moist can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The albedo when soil is moist can not be NULL.");
     if (m_soilWtrStoPrfl == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The amount of water stored in the soil profile can not be NULL.");
     if (m_totSoilAWC == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The amount of water held in soil profile at field capacity can not be NULL.");
     if (m_totSoilSat == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The amount of water held in soil profile at saturation can not be NULL.");
     /// DT_Raster2D
     if (m_soilDepth == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil depth data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil depth data can not be NULL.");
     if (m_soilThick == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil thickness data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil thickness data can not be NULL.");
     if (m_soilAWC == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The water available to plants in soil layer at field capacity can not be NULL.");
     if (m_soilStorage == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData", "The soil moisture in soil layers can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil moisture in soil layers can not be NULL.");
     if (m_soilNO3 == nullptr)
-        throw ModelException(M_PG_ORYZA[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The nitrogen stored in the nitrate pool in soil layer can not be NULL.");
     return true;
 }
@@ -1086,7 +1088,7 @@ void ORYZA::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_DVS[0])) *data = m_dvs;
     else if (StringMatch(sk, VAR_ANCRF[0])) *data = m_ancrf;
     else {
-        throw ModelException(M_PG_ORYZA[0], "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Result " + sk + " does not exist.");
     }
 }
 
@@ -1097,6 +1099,6 @@ void ORYZA::Get2DData(const char* key, int* n, int* col, float*** data) {
     *col = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_RSD[0])) *data = m_soilRsd;
     else {
-        throw ModelException(M_PG_ORYZA[0], "Get2DData", "Result " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Get2DData", "Result " + sk + " does not exist.");
     }
 }

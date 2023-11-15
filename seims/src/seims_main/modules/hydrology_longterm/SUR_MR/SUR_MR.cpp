@@ -3,13 +3,14 @@
 #include "text.h"
 
 SUR_MR::SUR_MR() :
-    m_dt(-1), m_nCells(-1), m_netPcp(nullptr), m_potRfCoef(nullptr),
+    m_nCells(-1), m_netPcp(nullptr), m_potRfCoef(nullptr),
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilFC(nullptr), m_soilSat(nullptr), m_soilSumSat(nullptr), m_initSoilWtrStoRatio(nullptr),
     m_rfExp(NODATA_VALUE), m_maxPcpRf(NODATA_VALUE), m_deprSto(nullptr), m_meanTemp(nullptr),
     m_soilFrozenTemp(NODATA_VALUE), m_soilFrozenWtrRatio(NODATA_VALUE), m_soilTemp(nullptr),
     m_potVol(nullptr), m_impndTrig(nullptr),
     m_exsPcp(nullptr), m_infil(nullptr), m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr) {
+    SetModuleName(M_SUR_MR[0]);
 }
 
 SUR_MR::~SUR_MR() {
@@ -20,25 +21,25 @@ SUR_MR::~SUR_MR() {
 }
 
 bool SUR_MR::CheckInputData() {
-    CHECK_POSITIVE(M_SUR_MR[0], m_date);
-    CHECK_POSITIVE(M_SUR_MR[0], m_dt);
-    CHECK_POSITIVE(M_SUR_MR[0], m_nCells);
-    CHECK_NODATA(M_SUR_MR[0], m_soilFrozenTemp);
-    CHECK_NODATA(M_SUR_MR[0], m_rfExp);
-    CHECK_NODATA(M_SUR_MR[0], m_maxPcpRf);
-    CHECK_NODATA(M_SUR_MR[0], m_soilFrozenWtrRatio);
-    CHECK_POINTER(M_SUR_MR[0], m_initSoilWtrStoRatio);
-    CHECK_POINTER(M_SUR_MR[0], m_potRfCoef);
-    CHECK_POINTER(M_SUR_MR[0], m_soilFC);
-    CHECK_POINTER(M_SUR_MR[0], m_meanTemp);
-    CHECK_POINTER(M_SUR_MR[0], m_soilTemp);
-    CHECK_POINTER(M_SUR_MR[0], m_netPcp);
-    CHECK_POINTER(M_SUR_MR[0], m_deprSto);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_NODATA(GetModuleName(), m_soilFrozenTemp);
+    CHECK_NODATA(GetModuleName(), m_rfExp);
+    CHECK_NODATA(GetModuleName(), m_maxPcpRf);
+    CHECK_NODATA(GetModuleName(), m_soilFrozenWtrRatio);
+    CHECK_POINTER(GetModuleName(), m_initSoilWtrStoRatio);
+    CHECK_POINTER(GetModuleName(), m_potRfCoef);
+    CHECK_POINTER(GetModuleName(), m_soilFC);
+    CHECK_POINTER(GetModuleName(), m_meanTemp);
+    CHECK_POINTER(GetModuleName(), m_soilTemp);
+    CHECK_POINTER(GetModuleName(), m_netPcp);
+    CHECK_POINTER(GetModuleName(), m_deprSto);
     return true;
 }
 
 void SUR_MR::InitialOutputs() {
-    CHECK_POSITIVE(M_SUR_MR[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_exsPcp) {
         Initialize1DArray(m_nCells, m_exsPcp, 0.);
         Initialize1DArray(m_nCells, m_infil, 0.);
@@ -163,22 +164,13 @@ void SUR_MR::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(sk, VAR_P_MAX[0])) m_maxPcpRf = value;
     else if (StringMatch(sk, VAR_S_FROZEN[0])) m_soilFrozenWtrRatio = value;
     else {
-        throw ModelException(M_SUR_MR[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
-void SUR_MR::SetValue(const char* key, const int value) {
-    string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) m_dt = value;
-    else {
-        throw ModelException(M_SUR_MR[0], "SetValue",
-                             "Integer Parameter " + sk + " does not exist.");
-    }
-}
-
 void SUR_MR::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_SUR_MR[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_RUNOFF_CO[0])) m_potRfCoef = data;
     else if (StringMatch(sk, VAR_NEPR[0])) m_netPcp = data;
@@ -189,29 +181,29 @@ void SUR_MR::Set1DData(const char* key, const int n, FLTPT* data) {
     else if (StringMatch(sk, VAR_SOTE[0])) m_soilTemp = data;
     else if (StringMatch(sk, VAR_POT_VOL[0])) m_potVol = data;
     else {
-        throw ModelException(M_SUR_MR[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void SUR_MR::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_SUR_MR[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impndTrig = data;
     else {
-        throw ModelException(M_SUR_MR[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
-    CheckInputSize2D(M_SUR_MR[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_UL[0])) m_soilSat = data;
     else {
-        throw ModelException(M_SUR_MR[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -226,7 +218,7 @@ void SUR_MR::Get1DData(const char* key, int* n, FLTPT** data) {
     } else if (StringMatch(sk, VAR_SOL_SW[0])) {
         *data = m_soilWtrStoPrfl;
     } else {
-        throw ModelException(M_SUR_MR[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk + " does not exist.");
     }
     *n = m_nCells;
@@ -240,7 +232,7 @@ void SUR_MR::Get2DData(const char* key, int* nRows, int* nCols, FLTPT*** data) {
     if (StringMatch(sk, VAR_SOL_ST[0])) {
         *data = m_soilWtrSto;
     } else {
-        throw ModelException(M_SUR_MR[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 }

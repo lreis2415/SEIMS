@@ -17,6 +17,7 @@ SNO_WB::SNO_WB(void) {
     this->m_SM = NULL;
     this->m_WindSpeed = NULL;
     this->m_P = NULL;
+    SetModuleName(M_SNO_WB[0]);
 }
 
 SNO_WB::~SNO_WB(void) {
@@ -24,53 +25,53 @@ SNO_WB::~SNO_WB(void) {
 }
 
 bool SNO_WB::CheckInputData(void) {
-    if (this->m_date <= 0) throw ModelException(M_SNO_WB[0], "CheckInputData", "You have not set the time.");
+    if (this->m_date <= 0) throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
     if (this->m_nCells <= 0) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     if (this->m_P == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The precipitation data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The precipitation data can not be NULL.");
     }
     if (this->m_tMean == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The mean temperature data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The mean temperature data can not be NULL.");
     }
     if (this->m_tMax == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The max temperature data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The max temperature data can not be NULL.");
     }
     if (this->m_WindSpeed == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The wind speed data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The wind speed data can not be NULL.");
     }
     if (this->m_kblow == NODATA_VALUE) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The fraction coefficient of snow blowing into or out of the watershed can not be NULL.");
     }
     if (this->m_t0 == NODATA_VALUE) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snowmelt threshold temperature can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snowmelt threshold temperature can not be NULL.");
     }
     if (this->m_tsnow == NODATA_VALUE) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snowfall threshold temperature can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snowfall threshold temperature can not be NULL.");
     }
     if (this->m_swe0 == NODATA_VALUE) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The Initial snow water equivalent can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The Initial snow water equivalent can not be NULL.");
     }
-    //if(this->m_subbasinSelected == NULL)	throw ModelException(M_SNO_WB[0],"CheckInputData","The subbasin selected can not be NULL.");
-    //if(this->m_subbasinSelectedCount < 0)	throw ModelException(M_SNO_WB[0],"CheckInputData","The number of subbasin selected can not be lower than 0.");
-    //if(this->m_subbasin == NULL)	throw ModelException(M_SNO_WB[0],"CheckInputData","The subbasin data can not be NULL.");
+    //if(this->m_subbasinSelected == NULL)	throw ModelException(GetModuleName(),"CheckInputData","The subbasin selected can not be NULL.");
+    //if(this->m_subbasinSelectedCount < 0)	throw ModelException(GetModuleName(),"CheckInputData","The number of subbasin selected can not be lower than 0.");
+    //if(this->m_subbasin == NULL)	throw ModelException(GetModuleName(),"CheckInputData","The subbasin data can not be NULL.");
     if (this->m_Pnet == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The net precipitation data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The net precipitation data can not be NULL.");
     }
-    if (this->m_SM == NULL) throw ModelException(M_SNO_WB[0], "CheckInputData", "The snow melt data can not be NULL.");
-    //if(this->m_SR == NULL)			throw ModelException(M_SNO_WB[0],"CheckInputData","The snow redistribution data can not be NULL.");
+    if (this->m_SM == NULL) throw ModelException(GetModuleName(), "CheckInputData", "The snow melt data can not be NULL.");
+    //if(this->m_SR == NULL)			throw ModelException(GetModuleName(),"CheckInputData","The snow redistribution data can not be NULL.");
     if (this->m_SE == NULL) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData", "The snow sublimation data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snow sublimation data can not be NULL.");
     }
     return true;
 }
 
 void SNO_WB:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(M_SNO_WB[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
     /// m_isInitial should be removed and replaced by initialOutputs.By LJ.
@@ -135,20 +136,7 @@ int SNO_WB::Execute() {
 }
 
 bool SNO_WB::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_SNO_WB[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException(M_SNO_WB[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void SNO_WB::SetValue(const char *key, float data) {
@@ -159,7 +147,7 @@ void SNO_WB::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_SWE0[0])) { this->m_swe0 = data; }
     else if (StringMatch(s, Tag_CellSize[0])) { this->m_nCells = (int) data; }
     else {
-        throw ModelException(M_SNO_WB[0], "SetValue", "Parameter " + s
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + s
             +
                 " does not exist in current module. Please contact the module developer.");
     }
@@ -180,7 +168,6 @@ void SNO_WB::Set1DData(const char *key, int n, float *data) {
     //	this->m_nCells = n;
     //	return;
     //}
-    this->CheckInputSize(key, n);
     if (StringMatch(s, VAR_NEPR[0])) { this->m_Pnet = data; }
     else if (StringMatch(s, VAR_SNRD[0])) { this->m_SR = data; }
     else if (StringMatch(s, VAR_SNSB[0])) { this->m_SE = data; }
@@ -192,7 +179,7 @@ void SNO_WB::Set1DData(const char *key, int n, float *data) {
         this->m_P = data;
         //else if(StringMatch(s, VAR_SUBBSN[0]))		this->m_subbasin = data;
     } else {
-        throw ModelException(M_SNO_WB[0], "Set1DData", "Parameter " + s
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + s
             +
                 " does not exist in current module. Please contact the module developer.");
     }
@@ -206,7 +193,7 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
         *data = this->m_SA;
         *n = this->m_nCells;
     } else {
-        throw ModelException(M_SNO_WB[0], "Get1DData", "Result " + s +
+        throw ModelException(GetModuleName(), "Get1DData", "Result " + s +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -216,7 +203,7 @@ void SNO_WB::GetValue(const char *key, float *data) {
     string s(key);
     if (StringMatch(s, VAR_SWE[0])) { *data = this->m_SWE; }
     else {
-        throw ModelException(M_SNO_WB[0], "GetValue", "Result " + s +
+        throw ModelException(GetModuleName(), "GetValue", "Result " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }

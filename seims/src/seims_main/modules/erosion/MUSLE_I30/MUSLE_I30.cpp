@@ -239,21 +239,7 @@ int MUSLE_I30::Execute() {
 }
 
 bool MUSLE_I30::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("MUSLE_I30", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_cellSize != n) {
-        if (this->m_cellSize <= 0) { this->m_cellSize = n; }
-        else {
-            throw ModelException("MUSLE_I30", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_cellSize);
 }
 
 void MUSLE_I30::SetValue(const char *key, float data) {
@@ -270,10 +256,6 @@ void MUSLE_I30::SetValue(const char *key, float data) {
 }
 
 void MUSLE_I30::Set1DData(const char *key, int n, float *data) {
-
-    this->CheckInputSize(key, n);
-
-    //set the value
     string s(key);
 
     if (StringMatch(s, "USLE_C")) { this->m_usle_c = data; }

@@ -131,20 +131,7 @@ int SSM_PE::Execute() {
 }
 
 bool SSM_PE::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_SSM_PE[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException(M_SSM_PE[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void SSM_PE::SetValue(const char *key, float data) {
@@ -166,8 +153,6 @@ void SSM_PE::SetValue(const char *key, float data) {
 void SSM_PE::Set1DData(const char *key, int n, float *data) {
     //check the input data
     string s(key);
-
-    this->CheckInputSize(key, n);
 
     if (StringMatch(s, VAR_PET[0])) { this->m_PET = data; }
     else if (StringMatch(s, VAR_NEPR[0])) { this->m_Pnet = data; }

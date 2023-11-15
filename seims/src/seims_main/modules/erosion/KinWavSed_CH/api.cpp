@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 // function to return the XML Metadata document string
 //Set up metadata information
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoChannel mdi;
 
     // set the information properties
     mdi.SetAuthor("Hui Wu");

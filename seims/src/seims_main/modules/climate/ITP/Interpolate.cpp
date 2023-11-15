@@ -4,10 +4,11 @@
 #include "text.h"
 
 Interpolate::Interpolate() :
-    m_dataType(0), m_nStations(-1),
-    m_stationData(nullptr), m_nCells(-1), m_itpWeights(nullptr), m_itpVertical(false),
-    m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr),
-    m_itpOutput(nullptr) {
+m_dataType(0), m_nStations(-1),
+m_stationData(nullptr), m_nCells(-1), m_itpWeights(nullptr), m_itpVertical(false),
+m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr),
+m_itpOutput(nullptr) {
+    SetModuleName(M_ITP[0]);
 }
 
 void Interpolate::SetClimateDataType(const int data_type) {
@@ -54,7 +55,7 @@ int Interpolate::Execute() {
         m_itpOutput[i] = value;
     }
     if (err_count > 0) {
-        throw ModelException(M_ITP[0], "Execute",
+        throw ModelException(GetModuleName(), "Execute",
                              "Error occurred in interpolation based on weight data of stations!");
     }
     return true;
@@ -67,7 +68,7 @@ void Interpolate::SetValue(const char* key, const int value) {
     } else if (StringMatch(sk, Tag_VerticalInterpolation[0])) {
         m_itpVertical = value > 0;
     } else {
-        throw ModelException(M_ITP[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -76,14 +77,14 @@ void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols,
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
             int n_month = 12;
-            CheckInputSize(M_ITP[0], key, n_rows, n_month);
+            CheckInputSize(key, n_rows, n_month);
             m_lapseRate = data;
         }
     } else if (StringMatch(sk, Tag_Weight[0])) {
-        CheckInputSize2D(M_ITP[0], key, n_rows, n_cols, m_nCells, m_nStations);
+        CheckInputSize2D(key, n_rows, n_cols, m_nCells, m_nStations);
         m_itpWeights = data;
     } else {
-        throw ModelException(M_ITP[0], "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -91,36 +92,36 @@ void Interpolate::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEM[0])) {
         if (m_itpVertical) {
-            CheckInputSize(M_ITP[0], key, n, m_nCells);
+            CheckInputSize(key, n, m_nCells);
             m_dem = data;
         }
     } else if (StringMatch(sk, Tag_Elevation_Precipitation) || StringMatch(sk, Tag_Elevation_Meteorology)
         || StringMatch(sk, Tag_Elevation_Temperature) || StringMatch(sk, Tag_Elevation_PET)) {
         if (m_itpVertical) {
-            CheckInputSize(M_ITP[0], key, n, m_nStations);
+            CheckInputSize(key, n, m_nStations);
             m_hStations = data;
         }
     } else {
         string prefix = sk.substr(0, 1);
         if (StringMatch(prefix, DataType_Prefix_TS)) {
-            CheckInputSize(M_ITP[0], key, n, m_nStations);
+            CheckInputSize(key, n, m_nStations);
             m_stationData = data;
         } else {
-            throw ModelException(M_ITP[0], "Set1DData", "Parameter " + sk + " does not exist.");
+            throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk + " does not exist.");
         }
     }
 }
 
 bool Interpolate::CheckInputData() {
-    CHECK_NONNEGATIVE(M_ITP[0], m_dataType);
-    CHECK_NONNEGATIVE(M_ITP[0], m_month);
-    CHECK_POINTER(M_ITP[0], m_itpWeights);
+    CHECK_NONNEGATIVE(GetModuleName(), m_dataType);
+    CHECK_NONNEGATIVE(GetModuleName(), m_month);
+    CHECK_POINTER(GetModuleName(), m_itpWeights);
     if (m_itpVertical) {
-        CHECK_POINTER(M_ITP[0], m_lapseRate);
-        CHECK_POINTER(M_ITP[0], m_dem);
-        CHECK_POINTER(M_ITP[0], m_hStations);
+        CHECK_POINTER(GetModuleName(), m_lapseRate);
+        CHECK_POINTER(GetModuleName(), m_dem);
+        CHECK_POINTER(GetModuleName(), m_hStations);
     }
-    CHECK_POINTER(M_ITP[0], m_stationData);
+    CHECK_POINTER(GetModuleName(), m_stationData);
     return true;
 }
 

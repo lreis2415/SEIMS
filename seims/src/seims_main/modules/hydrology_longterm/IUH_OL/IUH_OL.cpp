@@ -7,6 +7,7 @@ IUH_OL::IUH_OL() :
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
     m_iuhCell(nullptr), m_iuhCols(-1), m_surfRf(nullptr),
     m_cellFlow(nullptr), m_cellFlowCols(-1), m_Q_SBOF(nullptr), m_OL_Flow(nullptr) {
+    SetModuleName(M_IUH_OL[0]);
 }
 
 IUH_OL::~IUH_OL() {
@@ -16,20 +17,20 @@ IUH_OL::~IUH_OL() {
 }
 
 bool IUH_OL::CheckInputData() {
-    CHECK_POSITIVE(M_IUH_OL[0], m_date);
-    CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
-    CHECK_NONNEGATIVE(M_IUH_OL[0], m_inputSubbsnID);
-    CHECK_POSITIVE(M_IUH_OL[0], m_nCells);
-    CHECK_POINTER(M_IUH_OL[0], m_cellArea);
-    CHECK_NONNEGATIVE(M_IUH_OL[0], m_TimeStep);
-    CHECK_POINTER(M_IUH_OL[0], m_subbsnID);
-    CHECK_POINTER(M_IUH_OL[0], m_iuhCell);
-    CHECK_POINTER(M_IUH_OL[0], m_surfRf);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
+    CHECK_NONNEGATIVE(GetModuleName(), m_inputSubbsnID);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POINTER(GetModuleName(), m_cellArea);
+    CHECK_NONNEGATIVE(GetModuleName(), m_TimeStep);
+    CHECK_POINTER(GetModuleName(), m_subbsnID);
+    CHECK_POINTER(GetModuleName(), m_iuhCell);
+    CHECK_POINTER(GetModuleName(), m_surfRf);
     return true;
 }
 
 void IUH_OL::InitialOutputs() {
-    CHECK_POSITIVE(M_IUH_OL[0], m_nSubbsns);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
 
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbsns + 1, m_Q_SBOF, 0.);
@@ -129,30 +130,30 @@ void IUH_OL::SetValue(const char* key, const int value) {
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
     else {
-        throw ModelException(M_IUH_OL[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_IUH_OL[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SURU[0])) {
         m_surfRf = data;
     } else if (StringMatch(sk, VAR_CELL_AREA[0])) {
         m_cellArea = data;
     } else {
-        throw ModelException(M_IUH_OL[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void IUH_OL::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_IUH_OL[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) m_subbsnID = data;
     else {
-        throw ModelException(M_IUH_OL[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -160,11 +161,11 @@ void IUH_OL::Set1DData(const char* key, const int n, int* data) {
 void IUH_OL::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH[0])) {
-        CheckInputSize2D(M_IUH_OL[0], VAR_OL_IUH[0], nrows, ncols, m_nCells, m_iuhCols);
+        CheckInputSize2D(VAR_OL_IUH[0], nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
         m_iuhCols = ncols;
     } else {
-        throw ModelException(M_IUH_OL[0], "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -175,7 +176,7 @@ void IUH_OL::GetValue(const char* key, FLTPT* value) {
         /// For MPI version to transfer data across subbasins
         *value = m_Q_SBOF[m_inputSubbsnID];
     } else {
-        throw ModelException(M_IUH_OL[0], "GetValue", "Result " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "GetValue", "Result " + sk + " does not exist.");
     }
 }
 
@@ -189,6 +190,6 @@ void IUH_OL::Get1DData(const char* key, int* n, FLTPT** data) {
         *data = m_OL_Flow;
         *n = m_nCells;
     } else {
-        throw ModelException(M_IUH_OL[0], "Get1DData", "Result " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Result " + sk + " does not exist.");
     }
 }

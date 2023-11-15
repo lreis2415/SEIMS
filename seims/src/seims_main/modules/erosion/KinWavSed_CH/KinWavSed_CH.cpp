@@ -80,8 +80,6 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
 void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     string s(key);
 
-    CheckInputSize(key, nRows);
-
     if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
     else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
     else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
@@ -240,21 +238,7 @@ bool KinWavSed_CH::CheckInputData() {
 }
 
 bool KinWavSed_CH::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_KINWAVSED_CH[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
-            throw ModelException(M_KINWAVSED_CH[0], "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void KinWavSed_CH::initial() {

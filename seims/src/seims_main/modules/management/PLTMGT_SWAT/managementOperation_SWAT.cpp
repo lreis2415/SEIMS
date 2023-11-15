@@ -195,7 +195,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, FLTPT* data) {
         m_shallowWaterDepth = data;
         return;
     }
-    CheckInputSize(M_PLTMGT_SWAT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     /// Soil related parameters from MongoDB
     if (StringMatch(sk, VAR_SOL_ZMX[0])) {
         m_soilMaxRootD = data;
@@ -273,7 +273,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, FLTPT* data) {
 
 void MGTOpt_SWAT::Set1DData(const char* key, const int n, int* data) {
     string sk(key);
-    CheckInputSize(M_PLTMGT_SWAT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     if (StringMatch(sk, VAR_SUBBSN[0])) {
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_LANDUSE[0])) {
@@ -352,7 +352,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, FLTPT**
         return;
     }
     /// 2D raster data
-    CheckInputSize2D(M_PLTMGT_SWAT[0], key, n, col, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, n, col, m_nCells, m_maxSoilLyrs);
     /// Soil related parameters from MongoDB
     if (StringMatch(sk, VAR_SOILDEPTH[0])) {
         m_soilDepth = data;

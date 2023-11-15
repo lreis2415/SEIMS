@@ -8,7 +8,9 @@ PER_STR::PER_STR() :
     m_soilSat(nullptr), m_soilFC(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
     m_surfRf(nullptr), m_potVol(nullptr), m_impoundTrig(nullptr),
-    m_soilPerco(nullptr) {
+    m_soilPerco(nullptr) 
+{
+    SetModuleName(M_PER_STR[0]);
 }
 
 PER_STR::~PER_STR() {
@@ -16,7 +18,7 @@ PER_STR::~PER_STR() {
 }
 
 void PER_STR::InitialOutputs() {
-    CHECK_POSITIVE(M_PER_STR[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.);
 }
 
@@ -136,13 +138,13 @@ void PER_STR::Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) 
     *ncols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_PERCO[0])) *data = m_soilPerco;
     else {
-        throw ModelException(M_PER_STR[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 }
 
 void PER_STR::Set1DData(const char* key, const int nrows, FLTPT* data) {
-    CheckInputSize(M_PER_STR[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE[0])) m_soilTemp = data;
     else if (StringMatch(sk, VAR_INFIL[0])) m_infil = data;
@@ -150,24 +152,24 @@ void PER_STR::Set1DData(const char* key, const int nrows, FLTPT* data) {
     else if (StringMatch(sk, VAR_POT_VOL[0])) m_potVol = data;
     else if (StringMatch(sk, VAR_SURU[0])) m_surfRf = data;
     else {
-        throw ModelException(M_PER_STR[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void PER_STR::Set1DData(const char* key, const int nrows, int* data) {
-    CheckInputSize(M_PER_STR[0], key, nrows, m_nCells);
+    CheckInputSize(key, nrows, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impoundTrig = data;
     else {
-        throw ModelException(M_PER_STR[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void PER_STR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_PER_STR[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_CONDUCT[0])) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK[0])) m_soilThk = data;
@@ -175,7 +177,7 @@ void PER_STR::Set2DData(const char* key, const int nrows, const int ncols, FLTPT
     else if (StringMatch(sk, VAR_SOL_AWC_AMOUNT[0])) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else {
-        throw ModelException(M_PER_STR[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -184,7 +186,7 @@ void PER_STR::SetValue(const char* key, const FLTPT value) {
     string s(key);
     if (StringMatch(s, VAR_T_SOIL[0])) m_soilFrozenTemp = value;
     else {
-        throw ModelException(M_PER_STR[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + s + " does not exist in current module.");
     }
 }
@@ -193,23 +195,23 @@ void PER_STR::SetValue(const char* key, const int value) {
     string s(key);
     if (StringMatch(s, Tag_TimeStep[0])) m_dt = value;
     else {
-        throw ModelException(M_PER_STR[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + s + " does not exist in current module.");
     }
 }
 
 bool PER_STR::CheckInputData() {
-    CHECK_POSITIVE(M_PER_STR[0], m_date);
-    CHECK_POSITIVE(M_PER_STR[0], m_nCells);
-    CHECK_POSITIVE(M_PER_STR[0], m_dt);
-    CHECK_POINTER(M_PER_STR[0], m_ks);
-    CHECK_POINTER(M_PER_STR[0], m_soilSat);
-    CHECK_NODATA(M_PER_STR[0], m_soilFrozenTemp);
-    CHECK_POINTER(M_PER_STR[0], m_soilFC);
-    CHECK_POINTER(M_PER_STR[0], m_soilWtrSto);
-    CHECK_POINTER(M_PER_STR[0], m_soilWtrStoPrfl);
-    CHECK_POINTER(M_PER_STR[0], m_soilThk);
-    CHECK_POINTER(M_PER_STR[0], m_soilTemp);
-    CHECK_POINTER(M_PER_STR[0], m_infil);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_POINTER(GetModuleName(), m_ks);
+    CHECK_POINTER(GetModuleName(), m_soilSat);
+    CHECK_NODATA(GetModuleName(), m_soilFrozenTemp);
+    CHECK_POINTER(GetModuleName(), m_soilFC);
+    CHECK_POINTER(GetModuleName(), m_soilWtrSto);
+    CHECK_POINTER(GetModuleName(), m_soilWtrStoPrfl);
+    CHECK_POINTER(GetModuleName(), m_soilThk);
+    CHECK_POINTER(GetModuleName(), m_soilTemp);
+    CHECK_POINTER(GetModuleName(), m_infil);
     return true;
 }

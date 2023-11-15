@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 /// function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
 
     mdi.SetAuthor("Liangjun Zhu");
     mdi.SetClass("TEST", "Functionality test of the module template!");

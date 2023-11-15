@@ -203,21 +203,7 @@ int SRD_MB::Execute() {
 }
 
 bool SRD_MB::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("SRD_MB", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException("SRD_MB", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void SRD_MB::SetValue(const char *key, float data) {
@@ -250,8 +236,6 @@ void SRD_MB::Set1DData(const char *key, int n, float *data) {
         this->m_wsSize = n;
         return;
     }
-
-    this->CheckInputSize(key, n);
 
     if (StringMatch(s, "slope_wind")) { this->m_slope_wind = data; }
     else if (StringMatch(s, "curva_wind")) { this->m_curva_wind = data; }

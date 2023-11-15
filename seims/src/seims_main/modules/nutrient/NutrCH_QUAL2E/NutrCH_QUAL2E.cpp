@@ -326,7 +326,7 @@ void NutrCH_QUAL2E::Set1DData(const char* key, const int n, FLTPT* data) {
         return;
     }
 
-    CheckInputSize(M_NUTRCH_QUAL2E[0], key, n - 1, m_nReaches);
+    CheckInputSize(key, n - 1, m_nReaches);
     if (StringMatch(sk, VAR_QRECH[0])) m_qRchOut = data;
     else if (StringMatch(sk, VAR_CHST[0])) {
         m_chStorage = data;

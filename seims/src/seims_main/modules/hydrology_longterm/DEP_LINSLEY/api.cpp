@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_DEP[0], MCLS_DEP[1]);
@@ -30,6 +30,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], Source_Module, DT_Raster1D); //Excess precipitation
     mdi.AddInput(VAR_IMPOUND_TRIG[0], UNIT_NON_DIM, VAR_IMPOUND_TRIG[1], Source_Module_Optional, DT_Raster1DInt);
     mdi.AddInput(VAR_POT_VOL[0], UNIT_DEPTH_MM, VAR_POT_VOL[1], Source_Module_Optional, DT_Raster1D);
+
+    mdi.AddInput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], Source_Module_Optional, DT_Raster1D);
 
     mdi.AddOutput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], DT_Raster1D);
     mdi.AddOutput(VAR_DEET[0], UNIT_DEPTH_MM, VAR_DEET[1], DT_Raster1D);

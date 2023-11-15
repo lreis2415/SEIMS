@@ -219,7 +219,7 @@ class ImportMongodbClass(object):
     def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Building MongoDB workflow"""
 
-        # logging.info('Import model parameters to MongoDB', 10, f)
+        logging.info('Import model parameters to MongoDB')
         ImportParam2Mongo.workflow(cfg)
         n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
         logging.info('Number of subbasins: %d' % n_subbasins)
@@ -232,10 +232,10 @@ class ImportMongodbClass(object):
 
         logging.info('Importing necessary raster to MongoDB....')
         ImportMongodbClass.spatial_rasters(cfg)
-
-        ImportMongodbClass.spatial_rasters(cfg,
-                                           mask_rasterio_maskfile=cfg.spatials.hru_subbasin_id,
-                                           abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
+        if cfg.has_conceptual_subbasin:
+            ImportMongodbClass.spatial_rasters(cfg,
+                                               mask_rasterio_maskfile=cfg.spatials.hru_subbasin_id,
+                                               abstraction_type=ParamAbstractionTypes.CONCEPTUAL)
 
         ImportMongodbClass.iuh(cfg, 0)
         ImportMongodbClass.iuh(cfg, n_subbasins)

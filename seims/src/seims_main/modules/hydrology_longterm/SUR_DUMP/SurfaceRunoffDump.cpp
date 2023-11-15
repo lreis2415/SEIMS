@@ -5,6 +5,7 @@ SurfaceRunoffDump::SurfaceRunoffDump():
     m_nCells(-1),
     //infiltration
     m_pcp(nullptr), m_surfaceRunoff(nullptr){
+    SetModuleName(M_SUR_DUMP[0]);
 }
 
 void SurfaceRunoffDump::InitialOutputs() {
@@ -19,45 +20,31 @@ void SurfaceRunoffDump::SetValue(const char* key, int value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellSize[0])) m_nCells = value;
     else {
-        throw ModelException(M_SUR_DUMP[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void SurfaceRunoffDump::Set1DData(const char* key, int n, FLTPT* data) {
-    CheckInputSize(key, n);
     string sk(key);
 
     if (StringMatch(sk, VAR_PCP[0])) { m_pcp = data; }
     else {
-        throw ModelException(M_SUR_DUMP[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
 
 bool SurfaceRunoffDump::CheckInputSize(const char* key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_SUR_DUMP[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
-            throw ModelException(M_SUR_DUMP[0], "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 bool SurfaceRunoffDump::CheckInputData(void) {
     if (m_nCells <= 0) {
-        throw ModelException(M_SUR_DUMP[0], "CheckInputData", "Input data is invalid. The size could not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
         return false;
     }
-    CHECK_POINTER(M_SUR_DUMP[0], m_pcp);
+    CHECK_POINTER(GetModuleName(), m_pcp);
     return true;
 }
 
@@ -65,7 +52,7 @@ void SurfaceRunoffDump::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SURU[0])) { *data = m_surfaceRunoff; }
     else {
-        throw ModelException(M_SUR_DUMP[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }

@@ -10,6 +10,7 @@ SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NU
                        m_T0(NODATA_VALUE), m_SM(NULL),
                        m_SA(NULL), m_TS(NULL), m_mask(NULL), m_INFIL(NULL), m_PE(NULL), m_date(-1), m_w1(NULL),
                        m_w2(NULL), m_sMax(NULL), m_wfmp(NULL) {
+    SetModuleName("SUR_GreenAmpt");
 }
 
 SUR_GreenAmpt::~SUR_GreenAmpt(void) {
@@ -24,128 +25,128 @@ SUR_GreenAmpt::~SUR_GreenAmpt(void) {
 
 bool SUR_GreenAmpt::CheckInputData(void) {
     if (this->m_date < 0) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "You have not set the time.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
         return false;
     }
 
     if (this->m_cellSize <= 0) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
     if (this->m_Conductivity == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The saturated hydraulic conductivity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_porosity == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil porosity of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil porosity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_clay == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The percent of clay content of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_sand == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The percent of sand content of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_rootDepth == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The root depth of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The root depth of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_cn2 == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The CN under moisture condition II of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_P_NET == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The net precipitation of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The net precipitation of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_fieldCap == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The water content of soil at field capacity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_wiltingPoint == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The plant wilting point moisture of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_soilMoisture == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil moisture of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil moisture of the input data can not be NULL.");
         return false;
     }
 
     //if (this->m_INFRate == NULL)
     //{
-    //	throw ModelException("SUR_GreenAmpt","CheckInputData","The initial infiltration rate of the input data can not be NULL.");
+    //	throw ModelException(GetModuleName(),"CheckInputData","The initial infiltration rate of the input data can not be NULL.");
     //	return false;
     //}
 
     if (FloatEqual(this->m_Sfrozen, NODATA_VALUE)) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The frozen soil moisture of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The frozen soil moisture of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SD == NULL) {
-        throw ModelException("SUR_GreenAmpt",
+        throw ModelException(GetModuleName(),
                              "CheckInputData",
                              "The depression storage or the depression storage capacity and depression storage coefficient of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_tMax == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The maximum temperature of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The maximum temperature of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_tMin == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The minimum temperature of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The minimum temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_Tsnow, NODATA_VALUE)) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snowfall temperature of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snowfall temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_Tsoil, NODATA_VALUE)) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The soil freezing temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_T0, NODATA_VALUE)) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The snowmelt threshold temperature of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SM == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snowmelt of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snowmelt of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SA == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snow accumulation of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snow accumulation of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_TS == NULL) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil temperature of the input data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil temperature of the input data can not be NULL.");
         return false;
     }
 
@@ -159,7 +160,7 @@ bool SUR_GreenAmpt::CheckInputData(void) {
 
 void SUR_GreenAmpt::InitalOutputs() {
     if (m_cellSize <= 0) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The dimension of the input data can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
     // allocate the output variables
     if (this->m_PE == NULL) {
@@ -322,7 +323,7 @@ int SUR_GreenAmpt::Execute() {
             oss << "Cell(Row:" << m_mask[iCell][0] << ", Col:" << m_mask[iCell][1] << "\n Infiltration =" <<
                 m_INFIL[iCell]
                 << "\n Precipitation(mm) = " << pNet << "\n InfiltrationRate(m/h) = " << rateinf << "\n";
-            throw ModelException("SUR_GreenAmpt", "Execute",
+            throw ModelException(GetModuleName(), "Execute",
                                  "Output data error: infiltration is out of reasonable range. Where:\n"
                                      + oss.str() + "Please contact the module developer. ");
         }
@@ -331,21 +332,7 @@ int SUR_GreenAmpt::Execute() {
 }
 
 bool SUR_GreenAmpt::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("SUR_GreenAmpt", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_cellSize != n) {
-        if (this->m_cellSize <= 0) { this->m_cellSize = n; }
-        else {
-            throw ModelException("SUR_GreenAmpt", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_cellSize);
 }
 
 void SUR_GreenAmpt::SetValue(const char *key, float value) {
@@ -364,7 +351,7 @@ void SUR_GreenAmpt::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, "s_frozen")) {
         this->m_Sfrozen = value;
     } else {
-        throw ModelException("SUR_GreenAmpt", "SetValue", "Parameter " + sk
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk
             +
                 " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
@@ -372,8 +359,6 @@ void SUR_GreenAmpt::SetValue(const char *key, float value) {
 }
 
 void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
-
-    this->CheckInputSize(key, n);
 
     //set the value
     string sk(key);
@@ -424,7 +409,7 @@ void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, "D_SOTE")) {
         m_TS = data;
     } else {
-        throw ModelException("SUR_GreenAmpt", "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
             " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
@@ -437,7 +422,7 @@ void SUR_GreenAmpt::Get1DData(const char *key, int *n, float **data) {
     } else if (StringMatch(sk, "EXCP")) {
         *data = m_PE;
     } else {
-        throw ModelException("SUR_GreenAmpt", "getResult", "Result " + sk +
+        throw ModelException(GetModuleName(), "getResult", "Result " + sk +
             " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 

@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoChannel mdi;
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_CH_ROUTING[0], MCLS_CH_ROUTING[1]);
     mdi.SetDescription(M_CH_DW[1]);
@@ -21,7 +21,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetHelpfile("");
 
     // Parameters from database
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellSize[0], UNIT_NON_DIM, Tag_CellSize[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_DEM[0], UNIT_LEN_M, VAR_DEM[1], Source_ParameterDB, DT_Raster1D);

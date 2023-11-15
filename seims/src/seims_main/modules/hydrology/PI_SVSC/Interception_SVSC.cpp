@@ -14,6 +14,7 @@ clsPI_SVSC::clsPI_SVSC() :
     m_hilldt = -1.f;
     m_slope = NULL;
 #endif
+    SetModuleName(M_PI_SVSC[0]);
 }
 
 clsPI_SVSC::~clsPI_SVSC(void) {
@@ -26,8 +27,6 @@ clsPI_SVSC::~clsPI_SVSC(void) {
 }
 
 void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
-    this->CheckInputSize(key, nRows);
-
     string s(key);
     if (StringMatch(s, VAR_PCP[0])) {
         m_P = data;
@@ -41,7 +40,7 @@ void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
     } else if (StringMatch(s, VAR_INTERC_MIN[0])) {
         m_minSt = data;
     } else {
-        throw ModelException(M_PI_SVSC[0], "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
 
@@ -53,7 +52,7 @@ void clsPI_SVSC::SetValue(const char *key, float data) {
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_hilldt = data; }
 #endif // STORM_MODE
     else {
-        throw ModelException(M_PI_SVSC[0], "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + s + " does not exist.");
     }
 }
 
@@ -71,7 +70,7 @@ void clsPI_SVSC::Get1DData(const char *key, int *nRows, float **data) {
     } else if (StringMatch(s, VAR_NEPR[0])) {
         *data = m_netPrecipitation;
     } else {
-        throw ModelException(M_PI_SVSC[0], "Get1DData", "Result " + s + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Result " + s + " does not exist.");
     }
     *nRows = this->m_nCells;
 }
@@ -148,46 +147,46 @@ int clsPI_SVSC::Execute() {
 
 bool clsPI_SVSC::CheckInputData() {
     if (this->m_date < 0) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData", "You have not set the time.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
     }
 
     if (m_nCells <= 0) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
     }
 
     if (this->m_P == NULL) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The precipitation data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The precipitation data can not be NULL.");
     }
 #ifndef STORM_MODE
     if (this->m_PET == NULL) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The PET data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The PET data can not be NULL.");
     }
 #else
     if (this->m_slope == NULL) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The slope gradient can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The slope gradient can not be NULL.");
     }
     if (this->m_hilldt < 0) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData", "The Hillslope scale time step must greater than 0.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The Hillslope scale time step must greater than 0.");
     }
 #endif
     if (this->m_maxSt == NULL) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The maximum interception storage capacity can not be NULL.");
     }
 
     if (this->m_minSt == NULL) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The minimum interception storage capacity can not be NULL.");
     }
 
     if (this->m_Pi_b > 1.5f || this->m_Pi_b < 0.5f) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The interception storage capacity exponent can not be " + ValueToString(this->m_Pi_b) +
                              ". It should between 0.5 and 1.5.");
     }
     if (this->m_Init_IS > 1.f || this->m_Init_IS < 0.f) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputData",
+        throw ModelException(GetModuleName(), "CheckInputData",
                              "The Initial interception storage can not be " + ValueToString(this->m_Init_IS) +
                              ". It should between 0 and 1.");
     }
@@ -195,16 +194,5 @@ bool clsPI_SVSC::CheckInputData() {
 }
 
 bool clsPI_SVSC::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_PI_SVSC[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException(M_PI_SVSC[0], "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }

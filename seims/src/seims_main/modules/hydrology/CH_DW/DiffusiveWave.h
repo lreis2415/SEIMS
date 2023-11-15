@@ -52,7 +52,6 @@ private:
 
     int m_nCells;  ///< Valid cells number
     float m_CellWidth; ///< cell width of the grid (m)
-    float m_dt; ///< channel routing time step (seconds)
     float *m_s0; ///< slope (percent)
     float *m_chWidth; ///< channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells) 
     float *m_elevation; ///< elevation

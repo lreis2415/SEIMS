@@ -143,7 +143,7 @@ void Nutrient_Transformation::SetValue(const char* key, const int value) {
 }
 
 void Nutrient_Transformation::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_NUTR_TF[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_PL_RSDCO[0])) {
         m_pltRsdDecCoef = data;
@@ -174,7 +174,7 @@ void Nutrient_Transformation::Set1DData(const char* key, const int n, FLTPT* dat
     }
 }
 void Nutrient_Transformation::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_NUTR_TF[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_LANDCOVER[0])) {
         m_landCover = data;
@@ -188,7 +188,7 @@ void Nutrient_Transformation::Set1DData(const char* key, const int n, int* data)
     }
 }
 void Nutrient_Transformation::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_NUTR_TF[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
     if (StringMatch(sk, VAR_SOL_CBN[0])) {
         m_soilCbn = data;

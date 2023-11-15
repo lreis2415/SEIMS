@@ -10,6 +10,7 @@ ChannelRoutingDump::ChannelRoutingDump():
     m_reachDownStream(nullptr),
     m_Q_SBOF(nullptr), 
     m_Q_outlet(nullptr){
+        SetModuleName(M_CHR_DUMP[0]);
 }
 
 ChannelRoutingDump::~ChannelRoutingDump() {
@@ -23,9 +24,9 @@ void ChannelRoutingDump::InitialOutputs() {
 }
 
 bool ChannelRoutingDump::CheckInputData(void) {
-    CHECK_POSITIVE(M_MUSK_CH[0], m_nReaches);
-    CHECK_POSITIVE(M_MUSK_CH[0], m_outletID);
-    CHECK_POINTER(M_MUSK_CH[0], m_Q_SBOF);
+    CHECK_POSITIVE(GetModuleName(), m_nReaches);
+    CHECK_POSITIVE(GetModuleName(), m_outletID);
+    CHECK_POINTER(GetModuleName(), m_Q_SBOF);
     return true;
 }
 
@@ -34,7 +35,7 @@ void ChannelRoutingDump::SetValue(const char* key, int value) {
     if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbasinId = value;
     else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = value;
     else {
-        throw ModelException(M_CHR_DUMP[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -47,7 +48,7 @@ void ChannelRoutingDump::SetValueByIndex(const char* key, const int index, const
     string sk(key);
     if (StringMatch(sk, VAR_QRECH[0])) m_Q_outlet[index] = value;
     else {
-        throw ModelException(M_CHR_DUMP[0], "SetValueByIndex",
+        throw ModelException(GetModuleName(), "SetValueByIndex",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -55,17 +56,17 @@ void ChannelRoutingDump::SetValueByIndex(const char* key, const int index, const
 void ChannelRoutingDump::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBOF[0])) {
-        CheckInputSize(M_CHR_DUMP[0], key, n - 1, m_nReaches);
+        CheckInputSize(key, n - 1, m_nReaches);
         m_Q_SBOF = data;
     } else {
-        throw ModelException(M_CHR_DUMP[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void ChannelRoutingDump::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(M_CHR_DUMP[0], "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nReaches = reaches->GetReachNumber();
 
@@ -86,7 +87,7 @@ void ChannelRoutingDump::GetValue(const char* key, FLTPT* value){
     /// IN/OUTPUT variables
     if (StringMatch(sk, VAR_QRECH[0]) && m_inputSubbasinId > 0) *value = m_Q_outlet[m_inputSubbasinId];
     else {
-        throw ModelException(M_CHR_DUMP[0], "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -96,7 +97,7 @@ void ChannelRoutingDump::Get1DData(const char *key, int *nRows, FLTPT **data) {
         m_Q_outlet[0] = m_Q_outlet[m_outletID];
         *data = m_Q_outlet;
     } else {
-        throw ModelException(M_CHR_DUMP[0], "Get1DData", "Output " + s + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Output " + s + " does not exist.");
     }
     *nRows = m_nReaches + 1;
 }

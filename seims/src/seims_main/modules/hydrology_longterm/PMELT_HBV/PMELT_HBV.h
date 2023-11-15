@@ -2,6 +2,7 @@
 #define SEIMS_MODULE_PMELT_HBV_H
 
 #include "SimulationModule.h"
+#include "basic.h"
 
 class PMELT_HBV : public SimulationModule {
 public:
@@ -28,17 +29,20 @@ private:
     int m_nCells; ///< valid cells number
 
     //input variables
-    FLTPT* m_temp_daily_ave; ///< daily average temperature
+    FLTPT* m_t_mean; ///< daily average temperature
 
     //parameters
-    FLTPT m_Ma; ///< Melt factor
-    FLTPT m_Ma_min; ///< Minimum melt factor
-    FLTPT m_AM; ///< HBV melt aspect correction
-    FLTPT m_MRF; ///< HBV melt forest correction
-    FLTPT m_Fc; ///< Forest coverage
-    FLTPT m_t_melt; ///< Melt temperature
-    FLTPT m_slope_corr; ///< Slope correction
-    FLTPT m_rain_energy; ///< Rain energy
+    FLTPT* m_lat; ///< Latitude
+    FLTPT* m_melt_factor; ///< Melt factor
+    FLTPT* m_melt_factor_min; ///< Melt factor min
+    FLTPT m_aspect_corr; ///< Aspect correction
+    FLTPT* m_forest_corr; ///< Forest correction
+    FLTPT* m_forest_cov; ///< coverage
+    FLTPT* m_landuse; ///< Landuse
+    FLTPT m_melt_temperature; ///< Melt temperature
+
+    FLTPT* m_slope{}; ///< Slope
+    FLTPT* m_aspect{}; ///< Aspect
 
     //output variables
     FLTPT* m_potentialMelt; ///< Potential Melt

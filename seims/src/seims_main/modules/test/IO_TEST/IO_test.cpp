@@ -7,6 +7,7 @@ IO_TEST::IO_TEST() :
     m_nSoilLyrs(nullptr), m_raster2D(nullptr),
     m_output1Draster(nullptr), m_output2Draster(nullptr),
     m_scenario(nullptr), m_reaches(nullptr) {
+    SetModuleName("IO_TEST");
 }
 
 IO_TEST::~IO_TEST() {
@@ -16,7 +17,7 @@ IO_TEST::~IO_TEST() {
 }
 
 void IO_TEST::Set1DData(const char* key, const int n, float* data) {
-    if (!CheckInputSize("IO_TEST", key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
     string sk(key);
     if (StringMatch(sk, VAR_CN2[0])) m_raster1D = data;
     else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
@@ -27,7 +28,7 @@ void IO_TEST::Set1DData(const char* key, const int n, float* data) {
 
 void IO_TEST::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
-    if (!CheckInputSize2D("IO_TEST", key, n, col, m_nCells, m_maxSoilLyrs)) return;
+    if (!CheckInputSize2D(key, n, col, m_nCells, m_maxSoilLyrs)) return;
     if (StringMatch(sk, VAR_CONDUCT[0])) {
         m_raster2D = data;
     }

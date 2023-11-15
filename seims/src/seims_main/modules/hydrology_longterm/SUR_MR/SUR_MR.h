@@ -49,8 +49,6 @@ public:
 
     void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void SetValue(const char* key, int value) OVERRIDE;
-
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
     void Set1DData(const char* key, int n, int* data) OVERRIDE;
@@ -68,8 +66,6 @@ public:
     void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) OVERRIDE;
 
 private:
-    /// Hillslope time step (second)
-    int m_dt;
     /// count of valid cells
     int m_nCells;
     /// net precipitation of each cell (mm)

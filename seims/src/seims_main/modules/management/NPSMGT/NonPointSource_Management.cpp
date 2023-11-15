@@ -31,7 +31,7 @@ void NPS_Management::SetValue(const char* key, const float value) {
 }
 
 void NPS_Management::Set2DData(const char* key, const int n, const int col, float** data) {
-    CheckInputSize(M_NPSMGT[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOL_ST[0])) m_soilWtrSto = data;
     else if (StringMatch(sk, VAR_SOL_NO3[0])) m_soilNO3 = data;

@@ -46,7 +46,7 @@ public:
     void Set2DData(const char* key, int n, int col, FLTPT** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
-
+    bool CheckInputSize(const char* key, const int n) OVERRIDE;
     void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;

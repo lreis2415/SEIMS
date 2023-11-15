@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
 
     mdi.SetAuthor("Chunping Ou, Liangjun Zhu");
     mdi.SetClass(MCLS_SOIL[0], MCLS_SOIL[1]);

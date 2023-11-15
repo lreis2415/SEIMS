@@ -8,27 +8,28 @@ DepressionFSDaily::DepressionFSDaily() :
     m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr),
     m_ei(nullptr), m_pe(nullptr), m_sd(nullptr),
     m_ed(nullptr), m_sr(nullptr) {
+    SetModuleName(M_DEP_LINSLEY[0]);
 }
 
 DepressionFSDaily::~DepressionFSDaily() {
-    if (m_sd != nullptr) Release1DArray(m_sd);
-    if (m_ed != nullptr) Release1DArray(m_ed);
-    if (m_sr != nullptr) Release1DArray(m_sr);
+    Release1DArray(m_sd);
+    Release1DArray(m_ed);
+    Release1DArray(m_sr);
 }
 
 bool DepressionFSDaily::CheckInputData() {
-    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_date);
-    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_nCells);
-    CHECK_NODATA(M_DEP_LINSLEY[0], m_depCo);
-    CHECK_POINTER(M_DEP_LINSLEY[0], m_depCap);
-    CHECK_POINTER(M_DEP_LINSLEY[0], m_pet);
-    CHECK_POINTER(M_DEP_LINSLEY[0], m_ei);
-    CHECK_POINTER(M_DEP_LINSLEY[0], m_pe);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_NODATA(GetModuleName(), m_depCo);
+    CHECK_POINTER(GetModuleName(), m_depCap);
+    CHECK_POINTER(GetModuleName(), m_pet);
+    CHECK_POINTER(GetModuleName(), m_ei);
+    CHECK_POINTER(GetModuleName(), m_pe);
     return true;
 }
 
 void DepressionFSDaily::InitialOutputs() {
-    CHECK_POSITIVE(M_DEP_LINSLEY[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_sd) {
         Initialize1DArray(m_nCells, m_sd, 0.);
         Initialize1DArray(m_nCells, m_ed, 0.);
@@ -131,12 +132,12 @@ void DepressionFSDaily::SetValue(const char* key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPREIN[0])) m_depCo = value;
     else {
-        throw ModelException(M_DEP_LINSLEY[0], "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void DepressionFSDaily::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_DEP_LINSLEY[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION[0])) {
         m_depCap = data;
@@ -149,18 +150,18 @@ void DepressionFSDaily::Set1DData(const char* key, const int n, FLTPT* data) {
     } else if (StringMatch(sk, VAR_POT_VOL[0])) {
         m_potVol = data;
     } else {
-        throw ModelException(M_DEP_LINSLEY[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void DepressionFSDaily::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_DEP_LINSLEY[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) {
         m_impoundTriger = data;
     } else {
-        throw ModelException(M_DEP_LINSLEY[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -176,7 +177,7 @@ void DepressionFSDaily::Get1DData(const char* key, int* n, FLTPT** data) {
     } else if (StringMatch(sk, VAR_SURU[0])) {
         *data = m_sr;
     } else {
-        throw ModelException(M_DEP_LINSLEY[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Output " + sk + " does not exist.");
     }
 }

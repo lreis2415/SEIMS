@@ -9,6 +9,7 @@ ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL),
                                    m_sd(NULL), m_soilMoisture(NULL), m_pNet(NULL), m_tMax(NULL), m_tMin(NULL),
                                    m_tSnow(0.0f), m_t0(1.0f), m_snowAccu(NULL), m_snowMelt(NULL),
                                    m_tFrozen(-5.0f), m_sFrozen(0.5f), m_soilTemp(NULL) {
+    SetModuleName("SUR_ES");
 }
 
 ExcessRunoff::~ExcessRunoff(void) {
@@ -30,7 +31,7 @@ void ExcessRunoff::Get1DData(const char *key, int *n, float **data) {
     {
         *data = m_soilMoisture;
     } else {
-        throw ModelException("SUR_ES", "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
 
     }
@@ -42,65 +43,65 @@ void ExcessRunoff::clearInputs() {
 
 bool ExcessRunoff::CheckInputData() {
     if (this->m_date < 0) {
-        throw ModelException("SUR_ES", "CheckInputData", "You have not set the time.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
         return false;
     }
     if (this->m_dt < 0) {
-        throw ModelException("SUR_ES", "CheckInputData", "You have not set the time step.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time step.");
         return false;
     }
     if (this->m_nCells <= 0) {
-        throw ModelException("SUR_ES", "CheckInputData", "The cell number can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The cell number can not be less than zero.");
         return false;
     }
 
     if (this->m_pNet == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The net precipitation can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The net precipitation can not be NULL.");
         return false;
     }
     if (this->m_sd == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The depression storage can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The depression storage can not be NULL.");
         return false;
     }
 
     if (m_tMax == NULL || m_tMin == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The temperature can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The temperature can not be NULL.");
         return false;
     }
 
     if (this->m_snowAccu == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The snow accumulation data can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The snow accumulation data can not be NULL.");
         return false;
     }
     //if (this->m_snowMelt == NULL)
     //{
-    //	throw ModelException("SUR_ES","CheckInputData","The snow melt can not be NULL.");
+    //	throw ModelException(GetModuleName(),"CheckInputData","The snow melt can not be NULL.");
     //	return false;
     //}
     if (this->m_soilTemp == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The soil temperature can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil temperature can not be NULL.");
         return false;
     }
 
     if (this->m_porosity == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The soil porosity can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil porosity can not be NULL.");
         return false;
     }
     if (this->m_ks == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The hydraulic conductivity can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The hydraulic conductivity can not be NULL.");
         return false;
     }
 
     if (this->m_fieldCap == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The Field Capacity can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The Field Capacity can not be NULL.");
         return false;
     }
     if (this->m_rootDepth == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The root depth can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The root depth can not be NULL.");
         return false;
     }
     if (this->m_initSoilMoisture == NULL) {
-        throw ModelException("SUR_ES", "CheckInputData", "The initial soil temperature can not be NULL.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The initial soil temperature can not be NULL.");
         return false;
     }
 
@@ -108,24 +109,7 @@ bool ExcessRunoff::CheckInputData() {
 }
 
 bool ExcessRunoff::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("SUR_ES", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
-        else {
-            throw ModelException("SUR_ES", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
-            throw ModelException("SUR_ES", "CheckInputSize", oss.str());
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 //
 //string ExcessRunoff::getDate(time_t *date) {
@@ -237,16 +221,12 @@ void ExcessRunoff::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, "ThreadNum")) {
         SetOpenMPThread((int) value);
     } else {
-        throw ModelException("SUR_ES", "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
     }
 
 }
 
 void ExcessRunoff::Set1DData(const char *key, int n, float *data) {
-    //check the input data
-    if (!this->CheckInputSize(key, n)) return;
-
-    //set the value
     string sk(key);
 
     if (StringMatch(sk, "Moist_in")) {
@@ -282,7 +262,7 @@ void ExcessRunoff::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, "D_SNME")) {
         m_snowMelt = data;
     } else {
-        throw ModelException("SUR_ES", "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 }

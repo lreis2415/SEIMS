@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
 
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Zhiqiang Yu, Liangjun Zhu");
@@ -23,7 +23,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetAbstractionTypeToConceptual();
 
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(VAR_T_SOIL[0], UNIT_TEMP_DEG, VAR_T_SOIL[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_K_RUN[0], UNIT_NON_DIM, VAR_K_RUN[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_P_MAX[0], UNIT_DEPTH_MM, VAR_P_MAX[1], Source_ParameterDB, DT_Single);

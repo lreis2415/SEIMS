@@ -48,23 +48,7 @@ bool GWaterReservoir::CheckInputData() {
 }
 
 bool GWaterReservoir::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException(M_GW_RSVR[0], "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) {
-            this->m_nCells = n;
-        } else {
-            //throw ModelException(M_GW_RSVR[0],"CheckInputSize","Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
-            throw ModelException(M_GW_RSVR[0], "CheckInputSize", oss.str());
-        }
-    }
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 //void GWaterReservoir::InitOutputs(void) {
@@ -155,9 +139,6 @@ void GWaterReservoir::SetValue(const char *key, FLTPT value) {
 }
 
 void GWaterReservoir::Set1DData(const char *key, int n, FLTPT *data) {
-    //check the input data
-    if (!this->CheckInputSize(key, n)) return;
-    //set the value
     string sk(key);
     if (StringMatch(sk, VAR_PERCO[0])) {
         m_recharge = data;

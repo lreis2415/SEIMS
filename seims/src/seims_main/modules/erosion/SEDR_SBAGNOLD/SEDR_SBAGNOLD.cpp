@@ -279,7 +279,7 @@ void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const FLTP
 
 void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
-    CheckInputSize(M_SEDR_SBAGNOLD[0], key, n - 1, m_nreach);
+    CheckInputSize(key, n - 1, m_nreach);
     if (StringMatch(sk, VAR_SED_TO_CH[0])) m_sedtoCh = data; // for longterm model
     else if (StringMatch(sk, VAR_SAND_TO_CH[0])) m_sandtoCh = data;
     else if (StringMatch(sk, VAR_SILT_TO_CH[0])) m_silttoCh = data;

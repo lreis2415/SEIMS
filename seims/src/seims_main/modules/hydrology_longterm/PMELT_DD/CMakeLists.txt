@@ -1,5 +1,5 @@
-MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: PMELT_DD...")
-SET(MODNAME PMETL_DD)
+GET_FILENAME_COMPONENT(MODNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: " ${MODNAME} "...")
 PROJECT(SEIMS_MODULE_${MODNAME})
 FILE(GLOB SRC_LIST *.cpp *.h)
 ADD_LIBRARY(${MODNAME} SHARED ${SRC_LIST})

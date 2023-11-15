@@ -8,7 +8,9 @@ PETHargreaves::PETHargreaves() :
     m_nCells(-1), m_HCoef_pet(0.0023), m_petFactor(1.),
     m_cellLat(nullptr), m_phuAnn(nullptr),
     m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr), m_rhd(nullptr),
-    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
+    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) 
+{
+    SetModuleName(M_PET_H[0]);
 }
 
 PETHargreaves::~PETHargreaves() {
@@ -23,13 +25,13 @@ void PETHargreaves::SetValue(const char* key, const FLTPT value) {
     if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else if (StringMatch(sk, VAR_PET_HCOEF[0])) m_HCoef_pet = value;
     else {
-        throw ModelException(M_PET_H[0], "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
                              " does not exist in current module.");
     }
 }
 
 void PETHargreaves::Set1DData(const char* key, const int n, FLTPT* value) {
-    CheckInputSize(M_PET_H[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
     else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
@@ -38,25 +40,25 @@ void PETHargreaves::Set1DData(const char* key, const int n, FLTPT* value) {
     else if (StringMatch(sk, VAR_CELL_LAT[0])) m_cellLat = value;
     else if (StringMatch(sk, VAR_PHUTOT[0])) m_phuAnn = value;
     else {
-        throw ModelException(M_PET_H[0], "Set1DData", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk +
                              " does not exist in current module.");
     }
 }
 
 bool PETHargreaves::CheckInputData() {
-    CHECK_POSITIVE(M_PET_H[0], m_date);
-    CHECK_POSITIVE(M_PET_H[0], m_nCells);
-    CHECK_POINTER(M_PET_H[0], m_maxTemp);
-    CHECK_POINTER(M_PET_H[0], m_meanTemp);
-    CHECK_POINTER(M_PET_H[0], m_minTemp);
-    CHECK_POINTER(M_PET_H[0], m_rhd);
-    CHECK_POINTER(M_PET_H[0], m_cellLat);
-    CHECK_POINTER(M_PET_H[0], m_phuAnn);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POINTER(GetModuleName(), m_maxTemp);
+    CHECK_POINTER(GetModuleName(), m_meanTemp);
+    CHECK_POINTER(GetModuleName(), m_minTemp);
+    CHECK_POINTER(GetModuleName(), m_rhd);
+    CHECK_POINTER(GetModuleName(), m_cellLat);
+    CHECK_POINTER(GetModuleName(), m_phuAnn);
     return true;
 }
 
 void PETHargreaves::InitialOutputs() {
-    CHECK_POSITIVE(M_PET_H[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.);
     if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.);
@@ -115,6 +117,6 @@ void PETHargreaves::Get1DData(const char* key, int* n, FLTPT** data) {
     else if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
     else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else {
-        throw ModelException(M_PET_H[0], "Get1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }

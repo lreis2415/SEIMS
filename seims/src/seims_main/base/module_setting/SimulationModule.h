@@ -16,6 +16,7 @@
 
 #include "basic.h"
 #include "utils_time.h"
+#include "utils_math.h"
 #include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
@@ -49,7 +50,6 @@ public:
 
     //! Execute the simulation. Return 0 for success.
     virtual int Execute() { return -1; }
-
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
     virtual void SetDate(time_t t, int year_idx);
 
@@ -59,91 +59,109 @@ public:
     }
 
     //! Set climate data type, P, M, PET etc.
-    virtual void SetClimateDataType(int data_type) {
-    }
-
+    virtual void SetClimateDataType(int data_type) {}
+    
     //! Set data, DT_Single, integer
     virtual void SetValue(const char* key, int value) {
         throw ModelException("SimulationModule", "SetValue",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set data, DT_Single, float point number (float or double)
     virtual void SetValue(const char* key, FLTPT value) {
         throw ModelException("SimulationModule", "SetValue",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set single value to array1D by index, used in MPI version for passing values of subbasins, integer
     virtual void SetValueByIndex(const char* key, int index, int value) {
         throw ModelException("SimulationModule", "SetValueByIndex",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set single value to array1D by index, used in MPI version for passing values of subbasins, float
     virtual void SetValueByIndex(const char* key, int index, FLTPT value) {
         throw ModelException("SimulationModule", "SetValueByIndex",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set 1D data, by default, DT_Raster1D, integer
+    void Set1DDataBase(const char* key, int n, int* data) {
+        CheckInputSize(key, n);
+        Set1DData(key, n, data);
+    }
     virtual void Set1DData(const char* key, int n, int* data) {
         throw ModelException("SimulationModule", "Set1DData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set 1D data, by default, DT_Raster1D, float
+    void Set1DDataBase(const char* key, int n, FLTPT* data) {
+        //cout << key << " Set1DData size: " << n << endl;
+        CheckInputSize(key, n);
+        Set1DData(key, n, data);
+    }
     virtual void Set1DData(const char* key, int n, FLTPT* data) {
         throw ModelException("SimulationModule", "Set1DData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set 2D data, by default, DT_Raster2D, integer
+    void Set2DDataBase(const char* key, int nrows, int ncols, int** data) {
+        Set2DData(key, nrows, ncols, data);
+    }
     virtual void Set2DData(const char* key, int nrows, int ncols, int** data) {
         throw ModelException("SimulationModule", "Set2DData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set 2D data, by default, DT_Raster2D, float
+    void Set2DDataBase(const char* key, int nrows, int ncols, FLTPT** data) {
+        Set2DData(key, nrows, ncols, data);
+    }
     virtual void Set2DData(const char* key, int nrows, int ncols, FLTPT** data) {
         throw ModelException("SimulationModule", "Set2DData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
+            "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get value, DT_Single, integer
     virtual void GetValue(const char* key, int* value) {
         throw ModelException("SimulationModule", "GetValue",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get value, DT_Single, float
     virtual void GetValue(const char* key, FLTPT* value) {
         throw ModelException("SimulationModule", "GetValue",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get 1D data, by default, DT_Raster1D, integer
+    void Get1DDataBase(const char* key, int* n, int** data);
     virtual void Get1DData(const char* key, int* n, int** data) {
         throw ModelException("SimulationModule", "Get1DData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get 1D data, by default, DT_Raster1D, float
+    void Get1DDataBase(const char* key, int* n, FLTPT** data);
     virtual void Get1DData(const char* key, int* n, FLTPT** data) {
         throw ModelException("SimulationModule", "Get1DData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get 2D data, by default, DT_Raster2D, integer
+    void Get2DDataBase(const char* key, int* nrows, int* ncols, int*** data);
     virtual void Get2DData(const char* key, int* nrows, int* ncols, int*** data) {
         throw ModelException("SimulationModule", "Get2DData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Get 2D data, by default, DT_Raster2D, float
+    void Get2DDataBase(const char* key, int* nrows, int* ncols, FLTPT*** data);
     virtual void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data) {
         throw ModelException("SimulationModule", "Get2DData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
+            "Get function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
@@ -169,6 +187,10 @@ public:
      * \return bool The validity of the input data.
      */
     virtual bool CheckInputData() { return true; }
+    
+    virtual bool CheckInputSize(const char* key, int nrows) {
+        return true;
+    }
 
     /*!
      * \brief Check data length of the first dimension (i.e., nRows) of the input array-based data
@@ -178,7 +200,7 @@ public:
      * \param[in] nrows size of the first dimension
      * \param[out] m_nrows the expected size, if m_nrows less or equal to 0, then m_nrows = mrows
      */
-    virtual bool CheckInputSize(const char* module_id, const char* key, int nrows, int& m_nrows);
+    bool CheckInputSize(const char* key, int nrows, int& m_nrows);
 
     /*!
      * \brief Check data length of the two dimensions (i.e., nRows and nCols) of the input array-based data
@@ -190,7 +212,7 @@ public:
      * \param[out] m_nrows the expected rows size, if m_nrows less or equal to 0, then m_nrows = mrows
      * \param[out] m_ncols the expected cols size, if m_ncols less or equal to 0, then m_ncols = ncols
      */
-    virtual bool CheckInputSize2D(const char* module_id, const char* key, int nrows, int ncols, int& m_nrows, int& m_ncols);
+    virtual bool CheckInputSize2D(const char* key, int nrows, int ncols, int& m_nrows, int& m_ncols);
 
     /*!
      * \brief Initialize output variables.
@@ -223,7 +245,10 @@ public:
     virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_HILLSLOPE;
     }
-
+    void SetTimeStep(int dt) {
+        m_dt = dt;
+        m_dt_day = static_cast<FLTPT>(dt) / 60.0 / 60.0 / 24.0;
+    }
     //! Reset subtime step
     virtual void ResetSubTimeStep() {
         m_tsCounter = 1;
@@ -260,6 +285,46 @@ public:
 	//		"Set SetReachDepthData function is not implemented.");
 	//}
 
+    FLTPT getDayAngle() {
+        FLTPT leap_year = 0.0;
+        if (IsLeapYear(m_year)) {
+            leap_year = 1.0;
+        }
+        FLTPT day_angle = 2.0 * M_PI * (m_dayOfYear - 1) / 365.0 + leap_year;
+        return day_angle;
+    }
+
+    inline void Convey(FLTPT& from, FLTPT& to, FLTPT rate) {
+        if (rate > 0) {
+            FLTPT convey = Min(rate * m_dt_day, from);
+            from -= convey;
+            to += convey;
+        }
+        else {
+            FLTPT convey = Min(-rate * m_dt_day, to);
+            from += convey;
+            to -= convey;
+        }
+    }
+    inline void Convey(FLTPT* from, FLTPT* to, int m_nCells, FLTPT rate) {
+#pragma omp parallel for
+        for (int i = 0; i < m_nCells; i++) {
+            Convey(from[i], to[i], rate);
+        }
+    }
+    inline void Flush(FLTPT& from, FLTPT& to) {
+        to += NonNeg(from);
+        from = 0;
+    }
+    inline void Supply(FLTPT& to, FLTPT rate) {
+        to += rate * m_dt_day;
+    }
+    void SetModuleName(const char* name) {
+        m_moduleName = string(name);
+    }
+    string GetModuleName() {
+        return m_moduleName;
+    }
 protected:
     /// date time
     time_t m_date;
@@ -275,11 +340,15 @@ protected:
     int m_dayOfYear;
     /// sub-timestep counter
     int m_tsCounter;
+    int m_dt;
+    FLTPT m_dt_day;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool m_inputsSetDone;
+    bool m_outputsInitialized;
     /// need to recalculate intermediate parameters?
     bool m_reCalIntermediates;
-
+private:
+    string m_moduleName;
 
 };
 

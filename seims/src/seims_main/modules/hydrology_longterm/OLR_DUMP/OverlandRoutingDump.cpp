@@ -6,6 +6,7 @@ OverlandRoutingDump::OverlandRoutingDump():
     m_nCells(-1), m_timeStep(-1), m_cellArea(nullptr), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     m_Q_SBOF(nullptr), m_Q_SB_ZEROS(nullptr){
+    SetModuleName(M_OLR_DUMP[0]);
 }
 
 OverlandRoutingDump::~OverlandRoutingDump() {
@@ -24,7 +25,7 @@ void OverlandRoutingDump::InitialOutputs() {
 
 bool OverlandRoutingDump::CheckInputData(void) {
     if (m_nCells <= 0) {
-        throw ModelException(M_OLR_DUMP[0], "CheckInputData", "Input data is invalid. The size could not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
         return false;
     }
     return true;
@@ -37,7 +38,7 @@ void OverlandRoutingDump::SetValue(const char* key, int value) {
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbasins = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbasinId = value;
     else {
-        throw ModelException(M_OLR_DUMP[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -47,7 +48,7 @@ void OverlandRoutingDump::Set1DData(const char* key, int n, int* data) {
 
     if (StringMatch(sk, VAR_SUBBSN[0])) m_cellsMappingToSubbasinId = data;
     else {
-        throw ModelException(M_OLR_DUMP[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -57,7 +58,7 @@ void OverlandRoutingDump::Set1DData(const char* key, const int n, FLTPT* data){
     if (StringMatch(sk, VAR_SURU[0])) m_surfaceRunoff = data;
     else if (StringMatch(sk, VAR_CELL_AREA[0])) { m_cellArea = data; }
     else {
-        throw ModelException(M_OLR_DUMP[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -68,7 +69,7 @@ void OverlandRoutingDump::Get1DData(const char *key, int *nRows, FLTPT **data) {
     else if (StringMatch(s, VAR_SBIF[0])) { *data = m_Q_SB_ZEROS; }
     else if (StringMatch(s, VAR_SBQG[0])) { *data = m_Q_SB_ZEROS; }
     else {
-        throw ModelException(M_OLR_DUMP[0], "getResult", "Result " + s +
+        throw ModelException(GetModuleName(), "getResult", "Result " + s +
             " does not exist in OverlandRoutingDump method. Please contact the module developer.");
     }
     *nRows = m_nSubbasins + 1;

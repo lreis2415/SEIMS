@@ -138,7 +138,7 @@ void ModelMain::Execute() {
     int last_simulation_progress = 0;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
 #ifdef PRINT_DEBUG
-        cout << ConvertToString(t) << endl;
+        cout << endl << ConvertToString(t) << endl;
 #endif
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);

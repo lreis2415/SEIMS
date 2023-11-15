@@ -230,6 +230,7 @@ class SpatialDelineation(object):
         hru = HruConstructor()
         for name, file in zip(cfg.hru_property_names, cfg.hru_property_files):
             hru.add_property(name, file)
+        logging.info(f'Constructing HRU using {cfg.hru_property_names}, {cfg.hru_property_files}')
         hru.delineate(cfg)
 
     @staticmethod

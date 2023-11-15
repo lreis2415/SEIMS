@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res;
-    MetadataInfo mdi;
+    MetadataInfoChannel mdi;
 
     // set the information properties
     mdi.SetAuthor("Junzhi Liu; Liangjun Zhu");

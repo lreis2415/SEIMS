@@ -110,7 +110,7 @@ void IUH_SED_OL::SetValue(const char* key, const int value) {
 }
 
 void IUH_SED_OL::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_IUH_SED_OL[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOER[0])) m_sedYield = data;
     else {
@@ -120,7 +120,7 @@ void IUH_SED_OL::Set1DData(const char* key, const int n, FLTPT* data) {
 }
 
 void IUH_SED_OL::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_IUH_SED_OL[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN[0])) m_subbsnID = data;
     else {
@@ -132,7 +132,7 @@ void IUH_SED_OL::Set1DData(const char* key, const int n, int* data) {
 void IUH_SED_OL::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH[0])) {
-        CheckInputSize2D(M_IUH_SED_OL[0], key, nrows, ncols, m_nCells, m_iuhCols);
+        CheckInputSize2D(key, nrows, ncols, m_nCells, m_iuhCols);
         m_iuhCell = data;
     } else {
         throw ModelException(M_IUH_SED_OL[0], "Set2DData",

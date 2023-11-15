@@ -8,7 +8,9 @@ InterFlow_IKW::InterFlow_IKW() :
     m_s0(nullptr), m_rootDepth(nullptr), m_ks(nullptr), m_landuseFactor(1.f),
     m_soilWtrSto(nullptr), m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
     m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),
-    m_q(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr) {
+    m_q(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr) 
+{
+    SetModuleName(M_IKW_IF[0]);
 }
 
 InterFlow_IKW::~InterFlow_IKW(void) {
@@ -19,22 +21,22 @@ InterFlow_IKW::~InterFlow_IKW(void) {
 
 bool InterFlow_IKW::CheckInputData(void) {
     if (m_date <= 0) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the Date variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the Date variable.");
         return false;
     }
 
     if (m_nCells <= 0) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
     if (m_dt <= 0) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the TimeStep variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the TimeStep variable.");
         return false;
     }
 
     if (m_CellWidth <= 0) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "You have not set the CellWidth variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the CellWidth variable.");
         return false;
     }
 
@@ -43,40 +45,40 @@ bool InterFlow_IKW::CheckInputData(void) {
     }
 
     if (m_flowInIndex == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: flow in index has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: flow in index has not been set.");
     }
     if (m_routingLayers == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: routingLayers has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: routingLayers has not been set.");
     }
 
     if (m_s0 == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: slope has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: slope has not been set.");
     }
     if (m_rootDepth == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: soil depth has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: soil depth has not been set.");
     }
     if (m_ks == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter: Conductivity has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Conductivity has not been set.");
     }
 
     if (m_porosity == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The porosity can not be nullptr.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The porosity can not be nullptr.");
     }
     if (m_poreIndex == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The pore index can not be nullptr.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The pore index can not be nullptr.");
     }
     if (m_fieldCapacity == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The field capacity can not be nullptr.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The field capacity can not be nullptr.");
     }
     if (m_soilWtrSto == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil moistrue can not be nullptr.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The soil moistrue can not be nullptr.");
     }
     if (m_streamLink == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The STREAM_LINK can not be nullptr.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The STREAM_LINK can not be nullptr.");
     }
 
     if (m_sr == nullptr) {
-        throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter D_SURU is not set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter D_SURU is not set.");
     }
 
     return true;
@@ -84,7 +86,7 @@ bool InterFlow_IKW::CheckInputData(void) {
 
 void InterFlow_IKW:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(M_IKW_IF[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     if (m_q == nullptr) {
@@ -180,7 +182,7 @@ int InterFlow_IKW::Execute() {
             if (!FlowInSoil(id)) errCount++;
         }
         if (errCount > 0) {
-            throw ModelException(M_IKW_IF[0], "Execute:FlowInSoil",
+            throw ModelException(GetModuleName(), "Execute:FlowInSoil",
                                  "Please check the error message for more information");
         }
     }
@@ -188,22 +190,7 @@ int InterFlow_IKW::Execute() {
 }
 
 bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
-            //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
-                    ". The origin size is " << m_nCells << ".\n";
-            throw ModelException(M_IKW_IF[0], "CheckInputSize", oss.str());
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
 void InterFlow_IKW::SetValue(const char *key, float data) {
@@ -217,15 +204,13 @@ void InterFlow_IKW::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_KI[0])) {
         m_landuseFactor = data;
     } else {
-        throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "SetSingleData", "Parameter " + sk
                              + " does not exist.");
     }
 
 }
 
 void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
-    //check the input data
-    CheckInputSize(key, n);
     string s(key);
     if (StringMatch(s, VAR_SLOPE[0])) {
         m_s0 = data;
@@ -250,7 +235,7 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(s, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
     } else {
-        throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + s
                              + " does not exist.");
     }
 
@@ -266,7 +251,7 @@ void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {
     } else if (StringMatch(sk, VAR_RETURNFLOW[0])) {
         *data = m_hReturnFlow;
     } else {
-        throw ModelException(M_IKW_IF[0], "Get1DData", "Output " + sk
+        throw ModelException(GetModuleName(), "Get1DData", "Output " + sk
                              + " does not exist.");
     }
 }
@@ -313,7 +298,7 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
 		m_ks = data;
 	}
 	else {
-        throw ModelException(M_IKW_IF[0], "Set2DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 }

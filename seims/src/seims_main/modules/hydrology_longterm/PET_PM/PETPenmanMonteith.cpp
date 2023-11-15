@@ -14,7 +14,9 @@ PETPenmanMonteith::PETPenmanMonteith() :
     m_snowTemp(-1),
     m_petFactor(1.f),
     m_pet(nullptr), m_maxPltET(nullptr), m_vpd(nullptr), m_dayLen(nullptr),
-    m_phuBase(nullptr) {
+    m_phuBase(nullptr) 
+{
+    SetModuleName(M_PET_PM[0]);
 }
 
 PETPenmanMonteith::~PETPenmanMonteith() {
@@ -25,24 +27,24 @@ PETPenmanMonteith::~PETPenmanMonteith() {
 }
 
 bool PETPenmanMonteith::CheckInputData() {
-    CHECK_POSITIVE(M_PET_PM[0], m_date);
-    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
-    CHECK_POINTER(M_PET_PM[0], m_canHgt);
-    CHECK_POINTER(M_PET_PM[0], m_dem);
-    CHECK_POINTER(M_PET_PM[0], m_igro);
-    CHECK_POINTER(M_PET_PM[0], m_lai);
-    CHECK_POINTER(M_PET_PM[0], m_alb);
-    CHECK_POINTER(M_PET_PM[0], m_rhd);
-    CHECK_POINTER(M_PET_PM[0], m_sr);
-    CHECK_POINTER(M_PET_PM[0], m_maxTemp);
-    CHECK_POINTER(M_PET_PM[0], m_meanTemp);
-    CHECK_POINTER(M_PET_PM[0], m_minTemp);
-    CHECK_POINTER(M_PET_PM[0], m_cellLat);
-    CHECK_POINTER(M_PET_PM[0], m_ws);
-    CHECK_POINTER(M_PET_PM[0], m_gsi);
-    CHECK_POINTER(M_PET_PM[0], m_minTemp);
-    CHECK_POINTER(M_PET_PM[0], m_vpdfr);
-    CHECK_POINTER(M_PET_PM[0], m_frgmax);
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POINTER(GetModuleName(), m_canHgt);
+    CHECK_POINTER(GetModuleName(), m_dem);
+    CHECK_POINTER(GetModuleName(), m_igro);
+    CHECK_POINTER(GetModuleName(), m_lai);
+    CHECK_POINTER(GetModuleName(), m_alb);
+    CHECK_POINTER(GetModuleName(), m_rhd);
+    CHECK_POINTER(GetModuleName(), m_sr);
+    CHECK_POINTER(GetModuleName(), m_maxTemp);
+    CHECK_POINTER(GetModuleName(), m_meanTemp);
+    CHECK_POINTER(GetModuleName(), m_minTemp);
+    CHECK_POINTER(GetModuleName(), m_cellLat);
+    CHECK_POINTER(GetModuleName(), m_ws);
+    CHECK_POINTER(GetModuleName(), m_gsi);
+    CHECK_POINTER(GetModuleName(), m_minTemp);
+    CHECK_POINTER(GetModuleName(), m_vpdfr);
+    CHECK_POINTER(GetModuleName(), m_frgmax);
     return true;
 }
 
@@ -52,13 +54,13 @@ void PETPenmanMonteith::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(sk, VAR_T_SNOW[0])) m_snowTemp = value;
     else if (StringMatch(sk, VAR_K_PET[0])) m_petFactor = value;
     else {
-        throw ModelException(M_PET_PM[0], "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void PETPenmanMonteith::Set1DData(const char* key, const int n, FLTPT* value) {
-    CheckInputSize(M_PET_PM[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN[0])) m_meanTemp = value;
     else if (StringMatch(sk, VAR_TMAX[0])) m_maxTemp = value;
@@ -76,23 +78,23 @@ void PETPenmanMonteith::Set1DData(const char* key, const int n, FLTPT* value) {
     else if (StringMatch(sk, VAR_VPDFR[0])) m_vpdfr = value;
     else if (StringMatch(sk, VAR_FRGMAX[0])) m_frgmax = value;
     else {
-        throw ModelException(M_PET_PM[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void PETPenmanMonteith::Set1DData(const char* key, const int n, int* value) {
-    CheckInputSize(M_PET_PM[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_IGRO[0])) m_igro = value;
     else {
-        throw ModelException(M_PET_PM[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
 
 void PETPenmanMonteith::InitialOutputs() {
-    CHECK_POSITIVE(M_PET_PM[0], m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.);
     if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.);
     if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.);
@@ -263,8 +265,16 @@ int PETPenmanMonteith::Execute() {
             cout << "PET_PM: is less than zero" << m_maxPltET[j] << endl;
         }
 #endif // _DEBUG
-
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        s1 += m_pet[i];
+        s2 += m_maxPltET[i];
+    }
+    printf("[PET_PM] PET=%f, MaxPltET=%f\n", s1, s2);
+#endif
     return 0;
 }
 
@@ -278,7 +288,7 @@ void PETPenmanMonteith::Get1DData(const char* key, int* n, FLTPT** data) {
     else if (StringMatch(sk, VAR_DAYLEN[0])) *data = m_dayLen;
     else if (StringMatch(sk, VAR_PHUBASE[0])) *data = m_phuBase;
     else {
-        throw ModelException(M_PET_PM[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }

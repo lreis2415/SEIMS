@@ -298,6 +298,7 @@ CONST_CHARS TFType_Array1D =                        "TFARRAY1D"; ///<
 CONST_CHARS_LIST MCLS_CLIMATE[] = {"HydroClimate", "HydroClimate data modules"}; ///<
 CONST_CHARS_LIST M_TSD_RD[] = {"TSD_RD", "Read time series data from HydroClimate database."}; ///<
 CONST_CHARS_LIST M_ITP[] = {"ITP", "Interpolation of P, T, etc."}; ///<
+CONST_CHARS_LIST M_RAINSNOW_HBV[] = {"RAINSNOW_HBV", "Calculate rain to snow percentage."}; ///<
 
 // Soil properties related modules
 CONST_CHARS_LIST MCLS_SOIL[] = {"Soil property", "Soil properties related modules"}; ///<
@@ -318,14 +319,23 @@ CONST_CHARS_LIST MCLS_SNO_SB[] = {"Snow sublimation", "Calculate the amount of s
 CONST_CHARS_LIST M_SSM_PE[] = {"SSM_PE", "A simple method that used in the old WetSpa to calculate snow sublimation."}; ///<
 
 // Snow/Glacier melt related modules
-CONST_CHARS_LIST MCLS_PMELT_DD[] = {"Potential Melt", "Calculate Potential Melt by degree-day method."};
+CONST_CHARS_LIST MCLS_GLAC[] = {"Snow/Glacier Melt", "Melt related modules"};
 CONST_CHARS_LIST M_PMELT_DD[] = {"PMELT_DD", "Potential Melt by degree-day method"};
+CONST_CHARS_LIST M_PMELT_HBV[] = {"PMELT_HBV", "Potential Melt by HBV method"};
+CONST_CHARS_LIST M_GMELT_SIMPLE[] = {"GMELT_SIMPLE", "Glacier melt by simple method"};
+CONST_CHARS_LIST M_GMELT_HBV[] = {"GMELT_HBV", "Glacier melt by HBV method"};
+CONST_CHARS_LIST M_GREL_LINEAR[] = {"GREL_LINEAR", "Glacier release by linear storage method"};
+CONST_CHARS_LIST M_GREL_HBV[] = {"GREL_HBV", "Glacier release by HBV method"};
 
 // Snow melt related modules
 CONST_CHARS_LIST MCLS_SNOW[] = {"Snow accumulation and melt", "Snow accumulation and melt."}; ///<
 CONST_CHARS_LIST M_SNO_WB[] = {"SNO_WB", "Calculate snow water balance"}; ///<
 CONST_CHARS_LIST M_SNO_DD[] = {"SNO_DD", "Degree-Day method (Martinec et al., 1983) for snow melt modeling"}; ///<
 CONST_CHARS_LIST M_SNO_SP[] = {"SNO_SP", "Snowpack Daily method from SWAT"}; ///<
+CONST_CHARS_LIST M_SNOW_REFREEZE[] = {"SNO_REFREEZE", "snow refreeze from liquid to snow accumulation"}; ///<
+CONST_CHARS_LIST M_SNO_SIMPLE[] = {"SNO_SIMPLE", "Snow melt by simple method"}; ///<
+CONST_CHARS_LIST M_SNO_HBV[] = {"SNO_HBV", "snow balance by HBV method"}; ///<
+
 
 // Potential Evapotranspiration related modules
 CONST_CHARS_LIST MCLS_PET[] = {"Potential Evapotranspiration", "Calculate the potential evapotranspiration"}; ///<
@@ -338,6 +348,10 @@ CONST_CHARS_LIST MCLS_AET[] = {"Actual Evapotranspiration", "Calculates potentia
                                "and potential and actual soil evaporation."}; ///<
 CONST_CHARS_LIST M_AET_PTH[] = {"AET_PTH", "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods"}; ///<
 CONST_CHARS_LIST M_SET_LM[] = {"SET_LM", "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"}; ///<
+
+CONST_CHARS_LIST MCLS_EVAP[] = {"Evaporation", "Evaporation related modules"}; ///<
+CONST_CHARS_LIST M_CAN_EVAP[] = {"CAN_EVAP", "Canopy evaporation"}; ///<
+CONST_CHARS_LIST M_CAN_SUBLIMATION[] = {"CAN_SUBLIMATION", "Canopy sublimation"}; ///<
 
 // Depression related modules
 CONST_CHARS_LIST MCLS_DEP[] = {"Depression", "Fill depression"}; ///<
@@ -636,6 +650,9 @@ CONST_CHARS_LIST VAR_INFILCAPSURPLUS[] = {"INFILCAPSURPLUS", "surplus of infiltr
 CONST_CHARS_LIST VAR_INIT_IS[] = {"Init_IS", "Initial interception storage"}; /// m_initIntcpSto
 CONST_CHARS_LIST VAR_INLO[] = {"INLO", "Interception loss"}; /// m_intcpLoss
 CONST_CHARS_LIST VAR_CANSTOR[] = {"canstor", "amount of water held in canopy storage"}; /// m_canSto
+CONST_CHARS_LIST VAR_CANSTOR_SNOW[] = {"canstor_snow", "amount of snow held in canopy storage"}; /// m_canStoSnow
+CONST_CHARS_LIST VAR_CANEVAP[] = {"canevap", "amount of water evaporated from canopy storage"}; /// m_canEvap
+CONST_CHARS_LIST VAR_CANSLM[] = {"canslm", "amount of snow sublimated from canopy storage"}; /// m_canSlm
 CONST_CHARS_LIST VAR_INTERC_MAX[] = {"Interc_max", "Maximum Interception Storage Capacity"}; /// m_maxIntcpStoCap
 CONST_CHARS_LIST VAR_INTERC_MIN[] = {"Interc_min", "Minimum Interception Storage Capacity"}; /// m_minIntcpStoCap
 CONST_CHARS_LIST VAR_IRR_FLAG[] = {"irr_flag", "irrigation flag, 1 or 0"}; /// m_irrFlag
@@ -862,6 +879,7 @@ CONST_CHARS_LIST VAR_SEEPAGE[] = {"SEEPAGE", "seepage"};
 CONST_CHARS_LIST VAR_SHALLST[] = {"shallst", "depth of water in shallow aquifer"};
 CONST_CHARS_LIST VAR_SILT[] = {"sol_silt", "Percent of silt content"}; /// m_soilSilt
 CONST_CHARS_LIST VAR_SLOPE[] = {"slope", "Slope gradient (drop/distance, i.e., tan, or percent)"}; /// m_slope
+CONST_CHARS_LIST VAR_ASPECT[] = {"aspect", "Aspect of the slope (degrees counterclockwise from north)"}; /// m_aspect
 CONST_CHARS_LIST VAR_SLPLEN[] = {"slope_length", "Slope length"};
 CONST_CHARS_LIST VAR_SNAC[] = {"SNAC", "snow accumulation"}; /// m_snowAccum
 CONST_CHARS_LIST VAR_SNME[] = {"SNME", "snow melt"}; /// m_snowMelt
@@ -1143,10 +1161,6 @@ CONST_CHARS_LIST VAR_DP_OUTLET[] = {"disolvp_outlet", "disolvp concentration at 
 CONST_CHARS_LIST VAR_COD_OUTLET[] = {"cod_outlet", "cod concentration at the watershed outlet"};
 CONST_CHARS_LIST VAR_CHL_OUTLET[] = {"chlora_outlet", "chlora concentration at the watershed outlet"};
 
-CONST_CHARS_LIST VAR_MA[] = {"Ma", "Melt factor"};
-CONST_CHARS_LIST VAR_MELT_TEMP[] = {"MELT_TEMP", "Melt temperature"};
-CONST_CHARS_LIST VAR_POTENTIAL_MELT[] = {"POTENTIALMELT", "Potential Melt"};
-
 CONST_CHARS_LIST VAR_A_DAYS[] = {"a_days", "days since P Application"}; /// m_phpApldDays
 CONST_CHARS_LIST VAR_B_DAYS[] = {"b_days", "days since P deficit"}; /// m_phpDefDays
 
@@ -1154,6 +1168,30 @@ CONST_CHARS_LIST VAR_GR4J_X2[] = {"GR4J_X2", "The 2nd parameter of GR4J model. P
 CONST_CHARS_LIST VAR_GR4J_X3[] = {"GR4J_X3", "The 3rd parameter of GR4J model. Routing store capacity."}; /// m_GR4J_X3
 CONST_CHARS_LIST VAR_GR4J_X4[] = {"GR4J_X4", "The 4th parameter of GR4J model. Unit hydrograph time constant."}; /// m_GR4J_X4
 
+//////////////////////////////////////////////////////////////////////////
+//Melt factor for snow/glacier
+//parameters
+CONST_CHARS_LIST VAR_MELT_FACTOR[] = {"MELT_FACTOR", "Melt factor"};
+CONST_CHARS_LIST VAR_MIN_MELT_FACTOR[] = {"MIN_MELT_FACTOR", "Minimum melt factor"};
+CONST_CHARS_LIST VAR_HBV_GLAC_MELT_CORR[] = {"HBV_GLAC_MELT_CORR", "Correction factor for melt in HBV. Landuse param."};
+CONST_CHARS_LIST VAR_HBV_MELT_FOREST_CORR[] = {"HBV_MELT_FOREST_CORR", "Correction factor for melt in forested area"};
+CONST_CHARS_LIST VAR_HBV_MELT_ASPECT_CORR[] = {"HBV_MELT_ASPECT_CORR", "Correction factor for melt due to aspect"};
+CONST_CHARS_LIST VAR_SNOW_REFREEZE_FACTOR[] = {"SNOW_REFREEZE_FACTOR", "Refreezing factor for snow. Landuse parameter."};
+CONST_CHARS_LIST VAR_SWI[] = {"snow_SWI", "Maximum liquid water content of snow. Also water saturation fraction of snow. Global Parameter."};
+CONST_CHARS_LIST VAR_T_RAIN_SNOW_DELTA[] = {"T_rain_snow_delta", "The range of temperatures, ◦C, over which there will be a rain/snow mix when partitioning total precipitation into rain and snow components. The midpoint of the range is T_rain_snow."};
+
+//variables
+CONST_CHARS_LIST VAR_GLAC_STOR_COEF[] = {"GLAC_STOR_COEF", "Glacier storage coefficient. Landuse Parameter."};
+CONST_CHARS_LIST VAR_HBV_GREL_KMIN[] = {"HBV_GLACIER_KMIN", "Minimum glacier release coefficient for HBV. Landuse Parameter."};
+CONST_CHARS_LIST VAR_HBV_GREL_AG[] = {"HBV_GLACIER_AG", "extinction coefficient for diminishing storage coefficient for HBV. Landuse Parameter."};
+CONST_CHARS_LIST VAR_POTENTIAL_MELT[] = {"POTENTIAL_MELT", "Potential Melt"};
+CONST_CHARS_LIST VAR_GLAC_MELT[] = {"GMELT", "Glacier melt (not released yet)."};
+CONST_CHARS_LIST VAR_GLAC_REL[] = {"GREL", "Glacier release."};
+CONST_CHARS_LIST VAR_SNOW_LIQUID[] = {"snow_liquid", "liquid state of snow."};
+
+//Landuse related
+CONST_CHARS_LIST VAR_FOREST_COV[] = {"FOREST_COV", "forest coverage"};
+//////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 /// Define units common used in SEIMS, in case of inconsistency //////////
@@ -1183,6 +1221,8 @@ CONST_CHARS UNIT_KGM3 = "kg/m3";
 CONST_CHARS UNIT_LAP_RATE = "/100m";                       /// Lapse rate
 CONST_CHARS UNIT_LEN_M = "m";                              /// Meter of length
 CONST_CHARS UNIT_LONLAT_DEG = "degree";                    /// Degree of longitude and latitude
+CONST_CHARS UNIT_ANGLE_DEG = "degree";                           /// Degree angle
+CONST_CHARS UNIT_ANGLE_RAD = "radian";                           /// radian angle
 CONST_CHARS UNIT_MELT_FACTOR = "mm/deg C/day";                 /// Melt factor
 CONST_CHARS UNIT_NON_DIM = "";                             /// Non dimension
 CONST_CHARS UNIT_NUTR_RATIO = "mg/mg";         /// mg H2O/mg Nutrient
@@ -1203,6 +1243,7 @@ CONST_CHARS UNIT_VOL_FRA_M3M3 = "m3/m3";
 CONST_CHARS UNIT_VOL_M3 = "m3";                           /// volume
 CONST_CHARS UNIT_AREA_M2 = "m2";               /// Area
 CONST_CHARS UNIT_WAT_RATIO = "mm/mm";         /// mm H2O/mm Soil
+CONST_CHARS UNIT_PER_MM = "1/mm";         /// 
 CONST_CHARS UNIT_WTRDLT_MMD = "mm/d";                      /// Millimeter per day of water changes
 CONST_CHARS UNIT_WTRDLT_MMH = "mm/h";                      /// Millimeter per hour of water changes
 

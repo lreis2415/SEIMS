@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """Plot time-series variables.
 
     @author   : Liangjun Zhu
@@ -99,8 +99,9 @@ class TimeSeriesPlots(object):
         else:
             self.plot_validation = False
 
+        self.sim_data_dict = None
 
-    def init_plot_vals(self, sim_data = None):
+    def init_plot_vals(self, sim_data=None):
         # Set start time and end time of both calibration and validation periods
         start = self.stime
         end = self.etime
@@ -115,8 +116,8 @@ class TimeSeriesPlots(object):
             self.sim_data_dict = sim_data
         else:
             self.plot_vars, self.sim_data_dict = read_simulation_from_txt(self.ws, self.plot_vars,
-                                                                      self.outletid,
-                                                                      start, end)
+                                                                          self.outletid,
+                                                                          start, end)
         self.sim_data_value = list()  # type: List[List[Union[datetime, float]]]
         # filter the data to fit the start - end period
         for k in list(self.sim_data_dict.keys()):
@@ -148,9 +149,10 @@ class TimeSeriesPlots(object):
                                                                   end_time=self.vali_etime)
             calculate_statistics(self.vali_sim_obs_dict)
 
-
     def generate_plots(self, image_file_suffix=None):
         """Generate hydrographs of discharge, sediment, nutrient (amount or concentrate), etc."""
+        if not self.sim_data_dict:
+            self.init_plot_vals()
         # set ticks direction, in or out
         plt.rcParams['xtick.direction'] = 'out'
         plt.rcParams['ytick.direction'] = 'out'

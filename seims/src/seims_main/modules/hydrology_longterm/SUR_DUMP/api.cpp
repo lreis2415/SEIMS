@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 /// function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    MetadataInfo mdi;
+    MetadataInfoHillslope mdi;
 
     mdi.SetAuthor("Yujing Wang");
     mdi.SetClass(MCLS_SUR_RUNOFF[0], MCLS_SUR_RUNOFF[1]);

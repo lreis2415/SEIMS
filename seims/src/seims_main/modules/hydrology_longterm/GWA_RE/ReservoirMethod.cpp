@@ -16,7 +16,9 @@ ReservoirMethod::ReservoirMethod() :
     m_T_PerDep(nullptr), m_T_RG(nullptr),
     /// outputs
     m_T_QG(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
-    m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbasinsInfo(nullptr) {
+    m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbasinsInfo(nullptr) 
+{
+    SetModuleName(M_GWA_RE[0]);
 }
 
 ReservoirMethod::~ReservoirMethod() {
@@ -32,7 +34,7 @@ ReservoirMethod::~ReservoirMethod() {
 }
 
 void ReservoirMethod::InitialOutputs() {
-    CHECK_POSITIVE(M_GWA_RE[0], m_nSubbsns);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
     int nLen = m_nSubbsns + 1;
     if (m_T_Perco == nullptr) Initialize1DArray(nLen, m_T_Perco, 0.);
     if (m_T_Revap == nullptr) Initialize1DArray(nLen, m_T_Revap, 0.);
@@ -192,24 +194,24 @@ int ReservoirMethod::Execute() {
 }
 
 bool ReservoirMethod::CheckInputData() {
-    CHECK_POSITIVE(M_GWA_RE[0], m_nCells);
-    CHECK_POSITIVE(M_GWA_RE[0], m_nSubbsns);
-    CHECK_POSITIVE(M_GWA_RE[0], m_dt);
-    CHECK_POSITIVE(M_GWA_RE[0], m_maxSoilLyrs);
-    CHECK_NODATA(M_GWA_RE[0], m_dp_co);
-    CHECK_NODATA(M_GWA_RE[0], m_Kg);
-    CHECK_NODATA(M_GWA_RE[0], m_Base_ex);
-    CHECK_POINTER(M_GWA_RE[0], m_soilPerco);
-    CHECK_POINTER(M_GWA_RE[0], m_IntcpET);
-    CHECK_POINTER(M_GWA_RE[0], m_deprStoET);
-    CHECK_POINTER(M_GWA_RE[0], m_soilET);
-    CHECK_POINTER(M_GWA_RE[0], m_actPltET);
-    CHECK_POINTER(M_GWA_RE[0], m_pet);
-    CHECK_POINTER(M_GWA_RE[0], m_slope);
-    CHECK_POINTER(M_GWA_RE[0], m_soilWtrSto);
-    CHECK_POINTER(M_GWA_RE[0], m_nSoilLyrs);
-    CHECK_POINTER(M_GWA_RE[0], m_soilThk);
-    CHECK_POINTER(M_GWA_RE[0], m_subbasinsInfo);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POSITIVE(GetModuleName(), m_nSubbsns);
+    CHECK_POSITIVE(GetModuleName(), m_dt);
+    CHECK_POSITIVE(GetModuleName(), m_maxSoilLyrs);
+    CHECK_NODATA(GetModuleName(), m_dp_co);
+    CHECK_NODATA(GetModuleName(), m_Kg);
+    CHECK_NODATA(GetModuleName(), m_Base_ex);
+    CHECK_POINTER(GetModuleName(), m_soilPerco);
+    CHECK_POINTER(GetModuleName(), m_IntcpET);
+    CHECK_POINTER(GetModuleName(), m_deprStoET);
+    CHECK_POINTER(GetModuleName(), m_soilET);
+    CHECK_POINTER(GetModuleName(), m_actPltET);
+    CHECK_POINTER(GetModuleName(), m_pet);
+    CHECK_POINTER(GetModuleName(), m_slope);
+    CHECK_POINTER(GetModuleName(), m_soilWtrSto);
+    CHECK_POINTER(GetModuleName(), m_nSoilLyrs);
+    CHECK_POINTER(GetModuleName(), m_soilThk);
+    CHECK_POINTER(GetModuleName(), m_subbasinsInfo);
     return true;
 }
 
@@ -221,7 +223,7 @@ void ReservoirMethod::SetValue(const char* key, const FLTPT value) {
     else if (StringMatch(sk, VAR_GW0[0])) m_GW0 = value;
     else if (StringMatch(sk, VAR_GWMAX[0])) m_GWMAX = value;
     else {
-        throw ModelException(M_GWA_RE[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Parameter " + sk + " does not exist in current module.");
     }
 }
@@ -232,7 +234,7 @@ void ReservoirMethod::SetValue(const char* key, const int value) {
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbsns = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
     else {
-        throw ModelException(M_GWA_RE[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist in current module.");
     }
 }
@@ -244,7 +246,7 @@ void ReservoirMethod::Set1DData(const char* key, const int n, FLTPT* data) {
         return;
     }
     //check the input data
-    if (!CheckInputSize(M_GWA_RE[0], key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
 
     //set the value
     if (StringMatch(sk, VAR_INET[0])) {
@@ -260,7 +262,7 @@ void ReservoirMethod::Set1DData(const char* key, const int n, FLTPT* data) {
     } else if (StringMatch(sk, VAR_SLOPE[0])) {
         m_slope = data;
     } else {
-        throw ModelException(M_GWA_RE[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist in current module.");
     }
 }
@@ -268,18 +270,18 @@ void ReservoirMethod::Set1DData(const char* key, const int n, FLTPT* data) {
 
 void ReservoirMethod::Set1DData(const char* key, const int n, int* data) {
     string sk(key);
-    if (!CheckInputSize(M_GWA_RE[0], key, n, m_nCells)) return;
+    if (!CheckInputSize(key, n, m_nCells)) return;
     if (StringMatch(sk, VAR_SOILLAYERS[0])) {
         m_nSoilLyrs = data;
     } else {
-        throw ModelException(M_GWA_RE[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist in current module.");
     }
 }
 
 void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
     string sk(key);
-    CheckInputSize2D(M_GWA_RE[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
 
     if (StringMatch(sk, VAR_PERCO[0])) {
         m_soilPerco = data;
@@ -290,7 +292,7 @@ void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncol
     } else if (StringMatch(sk, VAR_SOILTHICK[0])) {
         m_soilThk = data;
     } else {
-        throw ModelException(M_GWA_RE[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -322,7 +324,7 @@ void ReservoirMethod::Get1DData(const char* key, int* nrows, FLTPT** data) {
         *data = m_petSubbsn;
         *nrows = m_nSubbsns + 1;
     } else {
-        throw ModelException(M_GWA_RE[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -335,7 +337,7 @@ void ReservoirMethod::Get2DData(const char* key, int* nrows, int* ncols, FLTPT**
         *nrows = m_nSubbsns + 1;
         *ncols = 6;
     } else {
-        throw ModelException(M_GWA_RE[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Parameter " + sk + " does not exist in current module.");
     }
 }

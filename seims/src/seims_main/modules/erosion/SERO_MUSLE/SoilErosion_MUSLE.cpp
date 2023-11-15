@@ -272,7 +272,7 @@ void SERO_MUSLE::SetValue(const char* key, const int value) {
 }
 
 void SERO_MUSLE::Set1DData(const char* key, const int n, FLTPT* data) {
-    CheckInputSize(M_SERO_MUSLE[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_USLE_C[0])) m_aveAnnUsleC = data;
     else if (StringMatch(s, VAR_SOL_COV[0])) m_rsdCovSoil = data;
@@ -296,7 +296,7 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, FLTPT* data) {
 }
 
 void SERO_MUSLE::Set1DData(const char* key, const int n, int* data) {
-    CheckInputSize(M_SERO_MUSLE[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_LANDCOVER[0])) m_landCover = data;
     else if (StringMatch(s, VAR_STREAM_LINK[0])) m_rchID = data;
@@ -307,7 +307,7 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, int* data) {
 }
 
 void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, FLTPT** data) {
-    CheckInputSize2D(M_SERO_MUSLE[0], key, nrows, ncols, m_nCells, m_maxSoilLyrs);
+    CheckInputSize2D(key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
     m_maxSoilLyrs = ncols;
     if (StringMatch(s, VAR_USLE_K[0])) m_usleK = data;

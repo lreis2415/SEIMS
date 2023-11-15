@@ -3,7 +3,7 @@
 #include "text.h"
 
 DiffusiveWave::DiffusiveWave() :
-    m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
+    m_nCells(-1), m_CellWidth(-1.0f), m_chNumber(-1),
     m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_reachN(nullptr),
     m_chWidth(nullptr),
     m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_qSubbasin(nullptr),
@@ -11,7 +11,9 @@ DiffusiveWave::DiffusiveWave() :
     m_flowLen(nullptr), m_qi(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
     m_streamLink(nullptr),
     m_sourceCellIds(nullptr),
-    m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
+    m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f)
+{
+    SetModuleName(M_CH_DW[0]);
 }
 
 DiffusiveWave::~DiffusiveWave() {
@@ -30,43 +32,43 @@ DiffusiveWave::~DiffusiveWave() {
 //! Check input data
 bool DiffusiveWave::CheckInputData(void) {
     if (this->m_date <= 0) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the Date variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the Date variable.");
         return false;
     }
 
     if (this->m_nCells <= 0) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
     if (this->m_dt <= 0) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the TimeStep variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the TimeStep variable.");
         return false;
     }
 
     if (this->m_CellWidth <= 0) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "You have not set the CellWidth variable.");
+        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the CellWidth variable.");
         return false;
     }
     if (m_s0 == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: slope has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: slope has not been set.");
     }
     if (m_direction == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: flow direction has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: flow direction has not been set.");
     }
 
     if (m_chWidth == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: CHWIDTH has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: CHWIDTH has not been set.");
     }
     if (m_streamLink == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: STREAM_LINK has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: STREAM_LINK has not been set.");
     }
 
     if (m_prec == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
     }
     if (m_elevation == nullptr) {
-        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: Elevation has not been set.");
+        throw ModelException(GetModuleName(), "CheckInputData", "The parameter: Elevation has not been set.");
     }
 
     return true;
@@ -75,7 +77,7 @@ bool DiffusiveWave::CheckInputData(void) {
 //! Initial outputs
 void DiffusiveWave:: InitialOutputs() {
     if (m_nCells <= 0) {
-        throw ModelException(M_CH_DW[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
+        throw ModelException(GetModuleName(), "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
     if (m_hCh == nullptr) {
@@ -284,7 +286,7 @@ void DiffusiveWave::SetValue(const char *key, const float value) {
     } else if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
     } else {
-        throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
+        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk
                              + " does not exist. Please contact the module developer.");
     }
 }
@@ -292,7 +294,7 @@ void DiffusiveWave::SetValue(const char *key, const float value) {
 void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     //check the input data
-    CheckInputSize(M_CH_DW[0], key, n, m_nCells);
+    CheckInputSize(key, n, m_nCells);
 
     if (StringMatch(sk, VAR_SLOPE[0])) {
         m_s0 = data;
@@ -319,14 +321,14 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
             }
         }
     } else {
-        throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist.");
     }
 }
 
 void DiffusiveWave::SetReaches(clsReaches *reaches) {
     if (nullptr == reaches) {
-        throw ModelException(M_CH_DW[0], "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_chNumber = reaches->GetReachNumber();
 
@@ -354,7 +356,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
         *data = m_chwath;
         }*/
     else {
-        throw ModelException(M_CH_DW[0], "Get1DData",
+        throw ModelException(GetModuleName(), "Get1DData",
                              "Output " + sk + " does not exist.");
     }
 }
@@ -367,7 +369,7 @@ void DiffusiveWave::Get2DData(const char *key, int *nrows, int *ncols, float ***
     } else if (StringMatch(sk, VAR_HCH[0])) {
         *data = m_hCh;
     } else {
-        throw ModelException(M_CH_DW[0], "Get2DData",
+        throw ModelException(GetModuleName(), "Get2DData",
                              "Output " + sk + " does not exist.");
     }
 
@@ -378,7 +380,7 @@ void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **dat
     if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
-        throw ModelException(M_CH_DW[0], "Set2DData",
+        throw ModelException(GetModuleName(), "Set2DData",
                              "Parameter " + sk + " does not exist.");
     }
 }

@@ -98,8 +98,6 @@ void UnsaturatedFlow::SetValue(const char *key, float data) {
 void UnsaturatedFlow::Set1DData(const char *key, int nRows, float *data) {
     string s(key);
 
-    this->CheckInputSize(key, nRows);
-
     if (StringMatch(s, "Fieldcap")) { this->m_FieldCap = data; }
     else if (StringMatch(s, "Wiltingpoint")) { this->m_WiltPoint = data; }
     else if (StringMatch(s, "RootDepth")) { this->m_rootDepth = data; }
@@ -160,19 +158,5 @@ bool UnsaturatedFlow::CheckInputData() {
 }
 
 bool UnsaturatedFlow::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        throw ModelException("UnsaturatedFlow", "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_cellSize != n) {
-        if (this->m_cellSize <= 0) { this->m_cellSize = n; }
-        else {
-            throw ModelException("UnsaturatedFlow", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
-            return false;
-        }
-    }
-
-    return true;
+    return SimulationModule::CheckInputSize(key, n, m_cellSize);
 }

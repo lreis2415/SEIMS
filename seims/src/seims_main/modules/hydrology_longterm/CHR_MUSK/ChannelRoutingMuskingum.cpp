@@ -4,7 +4,6 @@
 
 ChannelRoutingMuskingum::ChannelRoutingMuskingum():
     m_isInitialized(false),
-    m_nCells(-1),
     m_nReaches(-1),
     m_inputSubbasinId(-1),
     m_outletID(-1),
@@ -16,6 +15,7 @@ ChannelRoutingMuskingum::ChannelRoutingMuskingum():
     m_Q_inLast(nullptr),
     m_Q_outLast(nullptr),
     m_Q_out(nullptr){
+        SetModuleName(M_CHR_MUSK[0]);
 }
 
 ChannelRoutingMuskingum::~ChannelRoutingMuskingum() {
@@ -35,14 +35,14 @@ void ChannelRoutingMuskingum::InitialOutputs() {
 }
 
 bool ChannelRoutingMuskingum::CheckInputData(void) {
-    CHECK_POSITIVE(M_CHR_MUSK[0], m_nReaches);
-    CHECK_POSITIVE(M_CHR_MUSK[0], m_outletID);
-    CHECK_POINTER(M_CHR_MUSK[0], m_Q_SBOF);
+    CHECK_POSITIVE(GetModuleName(), m_nReaches);
+    CHECK_POSITIVE(GetModuleName(), m_outletID);
+    CHECK_POINTER(GetModuleName(), m_Q_SBOF);
     // 2KX < t < 2K(1-X)
 
     //FLTPT t = m_dt/60/60/24;
     //if(2*K*X>=t || 2*K*(1-X)<=t){
-    //    throw ModelException(M_CHR_MUSK[0], "CheckInputData",
+    //    throw ModelException(GetModuleName(), "CheckInputData",
     //                         "Muskingum routing parameter error.");
     //}
     return true;
@@ -50,11 +50,10 @@ bool ChannelRoutingMuskingum::CheckInputData(void) {
 
 void ChannelRoutingMuskingum::SetValue(const char* key, int value) {
     string sk(key);
-    if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = value;
-    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbasinId = value;
+    if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbasinId = value;
     else if (StringMatch(sk, VAR_OUTLETID[0])) m_outletID = value;
     else {
-        throw ModelException(M_CHR_MUSK[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -63,7 +62,7 @@ void ChannelRoutingMuskingum::SetValue(const char* key, FLTPT value) {
     if (StringMatch(sk, VAR_MSK_X[0])) X = value;
     else if (StringMatch(sk, VAR_MSK_K[0])) K = value;
     else {
-        throw ModelException(M_CHR_MUSK[0], "SetValue",
+        throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + sk + " does not exist.");
     }
 }
@@ -76,7 +75,7 @@ void ChannelRoutingMuskingum::SetValueByIndex(const char* key, const int index, 
     string sk(key);
     if (StringMatch(sk, VAR_QRECH[0])) m_Q_out[index] = value;
     else {
-        throw ModelException(M_CHR_MUSK[0], "SetValueByIndex",
+        throw ModelException(GetModuleName(), "SetValueByIndex",
                              "Parameter " + sk + " does not exist.");
     }
 }
@@ -84,23 +83,23 @@ void ChannelRoutingMuskingum::SetValueByIndex(const char* key, const int index, 
 void ChannelRoutingMuskingum::Set1DData(const char* key, const int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBOF[0])) {
-        CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
+        CheckInputSize(key, n - 1, m_nReaches);
         m_Q_SBOF = data;
     } else if (StringMatch(sk, VAR_SBIF[0])) {
-        CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
+        CheckInputSize(key, n - 1, m_nReaches);
         m_Q_SBIF = data;
     } else if (StringMatch(sk, VAR_SBQG[0])) {
-        CheckInputSize(M_CHR_MUSK[0], key, n - 1, m_nReaches);
+        CheckInputSize(key, n - 1, m_nReaches);
         m_Q_SBQG = data;
     } else {
-        throw ModelException(M_CHR_MUSK[0], "Set1DData",
+        throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
     }
 }
 
 void ChannelRoutingMuskingum::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
-        throw ModelException(M_CHR_MUSK[0], "SetReaches", "The reaches input can not to be NULL.");
+        throw ModelException(GetModuleName(), "SetReaches", "The reaches input can not to be NULL.");
     }
     m_nReaches = reaches->GetReachNumber();
 
@@ -121,7 +120,7 @@ void ChannelRoutingMuskingum::GetValue(const char* key, FLTPT* value){
     /// IN/OUTPUT variables
     if (StringMatch(sk, VAR_QRECH[0]) && m_inputSubbasinId > 0) *value = m_Q_out[m_inputSubbasinId];
     else {
-        throw ModelException(M_CHR_MUSK[0], "GetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(GetModuleName(), "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -131,7 +130,7 @@ void ChannelRoutingMuskingum::Get1DData(const char *key, int *nRows, FLTPT **dat
         m_Q_out[0] = m_Q_out[m_outletID];
         *data = m_Q_out;
     } else {
-        throw ModelException(M_CHR_MUSK[0], "Get1DData", "Output " + s + " does not exist.");
+        throw ModelException(GetModuleName(), "Get1DData", "Output " + s + " does not exist.");
     }
     *nRows = m_nReaches + 1;
 }
@@ -205,16 +204,15 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
     m_Q_outLast[i] = m_Q_out[i];
     m_Q_out[i] = 0;
     m_Q_in[i] = 0;
-
-    FLTPT tstep = m_dt / 60.0 / 60.0 / 24.0;
-    FLTPT dt = Min(K, tstep);
+    
+    FLTPT dt = Min(K, m_dt_day);
 
     for (auto upReachID = m_reachUpStream.at(i).begin(); upReachID != m_reachUpStream.at(i).end(); ++upReachID) {
         m_Q_in[i] += m_Q_out[*upReachID];
     }
 
-    for (FLTPT t = 0; t < tstep; t += dt) {
-        if (dt > tstep - t) { dt = tstep - t; }
+    for (FLTPT t = 0; t < m_dt_day; t += dt) {
+        if (dt > m_dt_day - t) { dt = m_dt_day - t; }
 
         FLTPT denom = 2 * K * (1.0 - X) + dt;
         FLTPT c1 = (dt - 2 * K * X) / denom;
@@ -222,8 +220,8 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
         FLTPT c3 = (-dt + 2 * K * (1 - X)) / denom;
 
         FLTPT diff = m_Q_in[i] - m_Q_inLast[i];
-        FLTPT qIn = m_Q_inLast[i] + (t / tstep) * diff;
-        FLTPT qInNew = m_Q_inLast[i] + ((t + dt) / tstep) * diff;
+        FLTPT qIn = m_Q_inLast[i] + (t / m_dt_day) * diff;
+        FLTPT qInNew = m_Q_inLast[i] + ((t + dt) / m_dt_day) * diff;
 
         m_Q_out[i] = c1 * qInNew + c2 * qIn + c3 * m_Q_outLast[i];
 
