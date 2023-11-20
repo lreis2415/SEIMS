@@ -36,33 +36,6 @@ int main(const int argc, const char** argv) {
         /// Get module path
         string module_path = GetAppPath();
 
-        //TODO: output all DLL xml in a standalone program -- wyj
-//        vector<string> dll_paths;
-//        FindFiles(module_path.c_str(), "*.dll", dll_paths);
-//        vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
-//        map<string, InstanceFunction> instanceFuncs; // map of modules instance
-//        map<string, MetadataFunction> metadataFuncs; // Metadata map of modules
-//        for (auto dll_path : dll_paths) {
-//            string dll_name = GetCoreFileName(dll_path);
-//            cout << dll_name << endl;
-//            ModuleFactory::ReadDLL(module_path,dll_name,dll_name,dllHandles,instanceFuncs,metadataFuncs);
-//            MetadataFunction metadataInfo = metadataFuncs[dll_name];
-//            const char* current_metadata = metadataInfo();
-//            std::ostringstream oss;
-//            oss << "C:/src/SEIMS/data/youwuzhen/demo_youwuzhen30m_conceptual_model/knowledge/" << dll_name << ".xml";
-//
-//            std::ofstream myfile;
-//            myfile.open(oss.str().c_str());
-//            myfile << current_metadata;
-//            myfile.close();
-//
-//            // parse the metadata
-//            //TiXmlDocument doc;
-//            //doc.Parse(current_metadata);
-//            //doc.Print();
-//            //doc.SaveFile(oss.str().c_str());
-//        }
-
         /// Initialize the MongoDB connection client
         MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
         if (nullptr == mongo_client) {

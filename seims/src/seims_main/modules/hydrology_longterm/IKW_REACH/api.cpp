@@ -19,7 +19,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("IKW_REACH.chm");
     mdi.SetID("IKW_REACH");
-    mdi.SetName("MUSK_CH");
+    mdi.SetName("IKW_REACH");
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
 

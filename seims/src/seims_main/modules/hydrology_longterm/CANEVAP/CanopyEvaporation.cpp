@@ -32,10 +32,6 @@ bool CanopyEvaporation::CheckInputSize(const char* key, int n) {
 }
 
 bool CanopyEvaporation::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(M_CAN_EVAP[0], "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
-    }
     CHECK_POINTER(M_CAN_EVAP[0], m_canopyStorage);
     return true;
 }

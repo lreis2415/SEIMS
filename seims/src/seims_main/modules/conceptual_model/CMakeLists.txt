@@ -1,4 +1,8 @@
 MESSAGE(STATUS "      Compiling SEIMS_subdir: conceptual_model...")
-FOREACH(subdir ${SUBDIRS})
-  ADD_SUBDIRECTORY(${subdir})
+
+FILE(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
+FOREACH(child ${children})
+  IF(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
+    ADD_SUBDIRECTORY(${child})
+  ENDIF()
 ENDFOREACH()

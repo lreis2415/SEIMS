@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfoHillslope mdi;
 
     mdi.SetAuthor("Yujing Wang");
-    mdi.SetClass(MCLS_EVAP[0], MCLS_EVAP[1]);
+    mdi.SetClass(MCLS_INTERC[0], MCLS_INTERC[1]);
     mdi.SetDescription(M_CAN_EVAP[1]);
     mdi.SetEmail("");
     mdi.SetID(M_CAN_EVAP[0]);
