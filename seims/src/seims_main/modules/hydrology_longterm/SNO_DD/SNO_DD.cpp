@@ -149,7 +149,6 @@ void SNO_DD::Get1DData(const char *key, int *n, float **data) {
     string s(key);
     if (StringMatch(s, VAR_SNME[0])) { *data = this->m_SM; }
     else if (StringMatch(s, VAR_SNAC[0])) { *data = this->m_SA; }
-    else if (StringMatch(s, VAR_NEPR[0])) { *data = this->m_Pnet; }
     else {
         throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + s + " does not exist in current module. Please contact the module developer.");
