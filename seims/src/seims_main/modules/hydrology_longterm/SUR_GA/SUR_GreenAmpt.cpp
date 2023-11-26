@@ -10,7 +10,7 @@ SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NU
                        m_T0(NODATA_VALUE), m_SM(NULL),
                        m_SA(NULL), m_TS(NULL), m_mask(NULL), m_INFIL(NULL), m_PE(NULL), m_date(-1), m_w1(NULL),
                        m_w2(NULL), m_sMax(NULL), m_wfmp(NULL) {
-    SetModuleName("SUR_GreenAmpt");
+    SetModuleName(M_SUR_GA[0]);
 }
 
 SUR_GreenAmpt::~SUR_GreenAmpt(void) {
@@ -24,137 +24,36 @@ SUR_GreenAmpt::~SUR_GreenAmpt(void) {
 }
 
 bool SUR_GreenAmpt::CheckInputData(void) {
-    if (this->m_date < 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_cellSize);
 
-    if (this->m_cellSize <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The cell number of the input can not be less than zero.");
-        return false;
-    }
+    CHECK_POINTER(GetModuleName(), m_Conductivity);
+    CHECK_POINTER(GetModuleName(), m_porosity);
+    CHECK_POINTER(GetModuleName(), m_clay);
+    CHECK_POINTER(GetModuleName(), m_sand);
+    CHECK_POINTER(GetModuleName(), m_rootDepth);
+    CHECK_POINTER(GetModuleName(), m_cn2);
+    CHECK_POINTER(GetModuleName(), m_P_NET);
+    CHECK_POINTER(GetModuleName(), m_fieldCap);
+    CHECK_POINTER(GetModuleName(), m_wiltingPoint);
+    CHECK_POINTER(GetModuleName(), m_soilMoisture);
+    CHECK_POINTER(GetModuleName(), m_SD);
+    CHECK_POINTER(GetModuleName(), m_tMax);
+    CHECK_POINTER(GetModuleName(), m_tMin);
+    CHECK_POINTER(GetModuleName(), m_SM);
+    CHECK_POINTER(GetModuleName(), m_SA);
+    CHECK_POINTER(GetModuleName(), m_TS);
+    CHECK_POINTER(GetModuleName(), m_mask);
 
-    if (this->m_Conductivity == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The saturated hydraulic conductivity of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_porosity == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil porosity of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_clay == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The percent of clay content of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_sand == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The percent of sand content of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_rootDepth == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The root depth of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_cn2 == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The CN under moisture condition II of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_P_NET == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The net precipitation of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_fieldCap == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The water content of soil at field capacity of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_wiltingPoint == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The plant wilting point moisture of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_soilMoisture == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil moisture of the input data can not be NULL.");
-        return false;
-    }
-
-    //if (this->m_INFRate == NULL)
+    CHECK_NODATA(GetModuleName(), m_Sfrozen);
+    CHECK_NODATA(GetModuleName(), m_Tsnow);
+    CHECK_NODATA(GetModuleName(), m_Tsoil);
+    CHECK_NODATA(GetModuleName(), m_T0);
+    //if (m_INFRate == NULL)
     //{
     //	throw ModelException(GetModuleName(),"CheckInputData","The initial infiltration rate of the input data can not be NULL.");
     //	return false;
     //}
-
-    if (FloatEqual(this->m_Sfrozen, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The frozen soil moisture of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_SD == NULL) {
-        throw ModelException(GetModuleName(),
-                             "CheckInputData",
-                             "The depression storage or the depression storage capacity and depression storage coefficient of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_tMax == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The maximum temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_tMin == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The minimum temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (FloatEqual(this->m_Tsnow, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The snowfall temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (FloatEqual(this->m_Tsoil, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The soil freezing temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (FloatEqual(this->m_T0, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The snowmelt threshold temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_SM == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The snowmelt of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_SA == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The snow accumulation of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_TS == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil temperature of the input data can not be NULL.");
-        return false;
-    }
-
-    if (this->m_mask == NULL) {
-        throw ModelException("SUR_CN", "CheckInputData", "The mask of the input data can not be NULL.");
-        return false;
-    }
-
     return true;
 }
 
@@ -162,38 +61,23 @@ void SUR_GreenAmpt::InitalOutputs() {
     if (m_cellSize <= 0) {
         throw ModelException(GetModuleName(), "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
-    // allocate the output variables
-    if (this->m_PE == NULL) {
-        this->m_PE = new float[this->m_cellSize];
-    }
-    if (this->m_INFIL == NULL) {
-        this->m_INFIL = new float[this->m_cellSize];
-    }
-    // initialization
-    for (int i = 0; i < m_cellSize; i++) {
-        m_PE[i] = 0.0f;
-        m_INFIL[i] = 0.0f;
-    }
+    Initialize1DArray(m_cellSize, m_PE, 0.0f);
+    Initialize1DArray(m_cellSize, m_INFIL, 0.0f);
+    Initialize1DArray(m_cellSize, m_INFRate, 0.0f);
 
-    if (this->m_w1 == NULL) initalW1W2();
-    if (this->m_wfmp == NULL) this->initialWFMP();
-    if (this->m_INFRate == NULL) {
-        this->m_INFRate = new float[this->m_cellSize];
-        for (int iCell = 0; iCell < m_cellSize; iCell++) {
-            this->m_INFRate[iCell] = 0.0f;
-        }
-    }
+    if (m_w1 == NULL) initalW1W2();
+    if (m_wfmp == NULL) initialWFMP();
 }
 
 int SUR_GreenAmpt::Execute() {
-    this->CheckInputData();
+    CheckInputData();
 
-    this->InitalOutputs();
+    InitalOutputs();
 
     // define local variables
-    float sol_por, dthet, SW;
-    float adj_hc, sol_k, cnday, psidt, tst, f1, pNet;
-    float rateinf0, rateinf, cuminf, rintns, wfmp;
+    FLTPT sol_por, dthet, SW;
+    FLTPT adj_hc, sol_k, cnday, psidt, tst, f1, pNet;
+    FLTPT rateinf0, rateinf, cuminf, rintns, wfmp;
 
 #pragma omp parallel for
     for (int iCell = 0; iCell < m_cellSize; iCell++) {
@@ -201,14 +85,14 @@ int SUR_GreenAmpt::Execute() {
         rateinf = 0.0f;
         cuminf = 0.0f;
         pNet = 0.0f;
-        float pcp = 0.0f;  //rainfall - interception
-        float dep = 0.0f;  //depression storage
-        float sna = 0.0f;   // snow accumulation
-        float snm = 0.0f;  //snowmelt
-        float Tsoil = 0.0f;  //soil temperature
-        float t = 0.0f;  // air temperature
-        float sm_frozen = 0.0f; // frozen soil moisture relative to saturation
-        float soilmoist = 0.0f; //soil moisture
+        FLTPT pcp = 0.0f;  //rainfall - interception
+        FLTPT dep = 0.0f;  //depression storage
+        FLTPT sna = 0.0f;   // snow accumulation
+        FLTPT snm = 0.0f;  //snowmelt
+        FLTPT Tsoil = 0.0f;  //soil temperature
+        FLTPT t = 0.0f;  // air temperature
+        FLTPT sm_frozen = 0.0f; // frozen soil moisture relative to saturation
+        FLTPT soilmoist = 0.0f; //soil moisture
         //set values to variables
         pcp = m_P_NET[iCell];
         //if (m_SD == NULL)        // the depression storage module is not available, set the initial depression storage
@@ -257,12 +141,12 @@ int SUR_GreenAmpt::Execute() {
                 }
                 // calculate delta theta: the change in volumetric moisture content across the wetting front(mm/mm)
                 dthet = 0.0f;
-                float soilw = 0.0f;
+                FLTPT soilw = 0.0f;
                 //set infiltration rate for last time step or the initial infiltration rate
                 rateinf0 = m_INFRate[iCell];
 
                 SW = m_soilMoisture[iCell] * m_rootDepth[iCell];
-                float fieldcap = m_fieldCap[iCell] * m_rootDepth[iCell];
+                FLTPT fieldcap = m_fieldCap[iCell] * m_rootDepth[iCell];
                 if (SW >= fieldcap) {
                     soilw = 0.999f * fieldcap;
                 } else {
@@ -275,7 +159,7 @@ int SUR_GreenAmpt::Execute() {
                 psidt = 0.0;
                 //sol_clay = m_clay[iCell] / 100;
                 //sand = m_sand[iCell] / 100;
-                wfmp = this->m_wfmp[iCell];
+                wfmp = m_wfmp[iCell];
                 //wfmp = Calculate_WFMP(sol_por,sol_clay,sand);
                 psidt = dthet * wfmp;
 
@@ -335,7 +219,7 @@ bool SUR_GreenAmpt::CheckInputSize(const char *key, int n) {
     return SimulationModule::CheckInputSize(key, n, m_cellSize);
 }
 
-void SUR_GreenAmpt::SetValue(const char *key, float value) {
+void SUR_GreenAmpt::SetValue(const char *key, FLTPT value) {
     string sk(key);
 
     if (StringMatch(sk, "ThreadNum")) {
@@ -349,7 +233,7 @@ void SUR_GreenAmpt::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, "T0")) {
         m_T0 = value;
     } else if (StringMatch(sk, "s_frozen")) {
-        this->m_Sfrozen = value;
+        m_Sfrozen = value;
     } else {
         throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk
             +
@@ -358,7 +242,7 @@ void SUR_GreenAmpt::SetValue(const char *key, float value) {
 
 }
 
-void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
+void SUR_GreenAmpt::Set1DData(const char *key, int n, FLTPT *data) {
 
     //set the value
     string sk(key);
@@ -409,32 +293,32 @@ void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, "D_SOTE")) {
         m_TS = data;
     } else {
-        throw ModelException(GetModuleName(), "SetValue", "Parameter " + sk +
+        throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk +
             " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
 }
 
-void SUR_GreenAmpt::Get1DData(const char *key, int *n, float **data) {
+void SUR_GreenAmpt::Get1DData(const char *key, int *n, FLTPT **data) {
     string sk(key);
     if (StringMatch(sk, "INFIL")) {
         *data = m_INFIL;
     } else if (StringMatch(sk, "EXCP")) {
         *data = m_PE;
     } else {
-        throw ModelException(GetModuleName(), "getResult", "Result " + sk +
+        throw ModelException(GetModuleName(), "Get1DData", "Result " + sk +
             " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
-    *n = this->m_cellSize;
+    *n = m_cellSize;
 }
 
-float SUR_GreenAmpt::Calculate_CN(int cell) {
-    float sw, s, CNday, xx;
+FLTPT SUR_GreenAmpt::Calculate_CN(int cell) {
+    FLTPT sw, s, CNday, xx;
 
     s = 0.;
-    sw = this->m_soilMoisture[cell] * this->m_rootDepth[cell];
-    xx = this->m_w1[cell] - this->m_w2[cell] * sw;
+    sw = m_soilMoisture[cell] * m_rootDepth[cell];
+    xx = m_w1[cell] - m_w2[cell] * sw;
     if (xx < -20.f) {
         xx = -20.;
     }
@@ -443,7 +327,7 @@ float SUR_GreenAmpt::Calculate_CN(int cell) {
     }
     // traditional CN method (function of soil water)
     if ((sw + CalExp(xx)) > 0.001f) {
-        s = this->m_sMax[cell] * (1.f - sw / (sw + CalExp(xx)));  //2:1.1.6
+        s = m_sMax[cell] * (1.f - sw / (sw + CalExp(xx)));  //2:1.1.6
     }
 
     CNday = 25400.f / (s + 254.f);  //2:1.1.11
@@ -451,15 +335,16 @@ float SUR_GreenAmpt::Calculate_CN(int cell) {
 }
 
 void SUR_GreenAmpt::initalW1W2() {
-    this->m_w1 = new float[this->m_cellSize];
-    this->m_w2 = new float[this->m_cellSize];
-    this->m_sMax = new float[this->m_cellSize];
+    m_w1 = new FLTPT[m_cellSize];
+    m_w2 = new FLTPT[m_cellSize];
+    m_sMax = new FLTPT[m_cellSize];
 
-    for (int i = 0; i < this->m_cellSize; i++) {
-        float cnn = this->m_cn2[i];
-        float fieldcap = this->m_fieldCap[i] * this->m_rootDepth[i];
-        float wsat = this->m_porosity[i] * this->m_rootDepth[i];
-        float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
+#pragma omp parallel for
+    for (int i = 0; i < m_cellSize; i++) {
+        FLTPT cnn = m_cn2[i];
+        FLTPT fieldcap = m_fieldCap[i] * m_rootDepth[i];
+        FLTPT wsat = m_porosity[i] * m_rootDepth[i];
+        FLTPT c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
         c1 = cnn - 20.f * c2 / (c2 + CalExp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
         c1 = Max(c1, 0.4f * cnn);
@@ -479,27 +364,28 @@ void SUR_GreenAmpt::initalW1W2() {
             (wsat - fieldcap);    //soilWater :completely saturated  (= soil_por - sol_wp)  w1  2:1.1.8
         wrt1 = xx + (fieldcap * wrt2); //w2 2:1.1.7
 
-        this->m_w1[i] = wrt1;
-        this->m_w2[i] = wrt2;
-        this->m_sMax[i] = smx;
+        m_w1[i] = wrt1;
+        m_w2[i] = wrt2;
+        m_sMax[i] = smx;
     }
 }
 
 void SUR_GreenAmpt::initialWFMP() {
-    m_wfmp = new float[m_cellSize];
-    for (int i = 0; i < this->m_cellSize; i++) {
-        float sol_por = m_porosity[i];
-        float sol_clay = m_clay[i];
-        float sand = m_sand[i];
-        float wfmp = 0.0f;
+    m_wfmp = new FLTPT[m_cellSize];
+#pragma omp parallel for
+    for (int i = 0; i < m_cellSize; i++) {
+        FLTPT sol_por = m_porosity[i];
+        FLTPT sol_clay = m_clay[i];
+        FLTPT sand = m_sand[i];
+        FLTPT wfmp = 0.0f;
         wfmp = Calculate_WFMP(sol_por, sol_clay, sand);
         m_wfmp[i] = wfmp;
     }
 }
 
-float SUR_GreenAmpt::Calculate_WFMP(float sol_por, float sol_clay, float sand) {
+FLTPT SUR_GreenAmpt::Calculate_WFMP(FLTPT sol_por, FLTPT sol_clay, FLTPT sand) {
     //this function calculated the wetting front matric potential
-    float wfmp = 10.0f * CalExp(6.5309f - 7.32561f * sol_por + 3.809479f * CalPow(sol_por, 2) + 0.001583f *
+    FLTPT wfmp = 10.0f * CalExp(6.5309f - 7.32561f * sol_por + 3.809479f * CalPow(sol_por, 2) + 0.001583f *
         CalPow(sol_clay, 2) +
         0.000344f * sand * sol_clay - 0.049837f * sol_por * sand + 0.001608f *
         CalPow(sol_por, 2) * CalPow(sand, 2) +

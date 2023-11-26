@@ -363,6 +363,7 @@ CONST_CHARS_LIST MCLS_SUR_RUNOFF[] = {"Surface runoff", "Infiltration and surfac
 CONST_CHARS_LIST M_SUR_MR[] = {"SUR_MR", "Modified rational method to calculate infiltration and excess precipitation."}; ///<
 CONST_CHARS_LIST M_SUR_CN[] = {"SUR_CN", "SCS curve number method to calculate infiltration and excess precipitation."}; ///<
 CONST_CHARS_LIST M_SUR_SGA[] = {"SUR_SGA", "Green-Ampt method for infiltration and excess precipitation in storm mode."}; ///<
+CONST_CHARS_LIST M_SUR_GA[] = {"SUR_GA", "Green-Ampt method for infiltration and excess precipitation."}; ///<
 CONST_CHARS_LIST M_SUR_GR4J[] = {"SUR_GR4J", "GR4J's method for infiltration and excess precipitation."}; ///<
 CONST_CHARS_LIST M_SUR_DUMP[] = {"SUR_DUMP", "Directly dump all precipitation to surface runoff."}; ///<
 

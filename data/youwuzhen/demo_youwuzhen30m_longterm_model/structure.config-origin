@@ -6,23 +6,11 @@ PHYSICAL
 0 | TimeSeries | | TSD_RD
 0 | Interpolation_0 | Thiessen | ITP
 ### Surface processes
-0|||PI_MCS
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-0|||
-
+0 | Soil temperature | Finn Plauborg | STP_FP
+#0 | PET | PriestleyTaylor | PET_PT
+0 | PET | PenmanMonteith | PET_PM
+0 | Interception | Maximum Canopy Storage | PI_MCS
+0 | Snow melt | Snowpeak Daily | SNO_SP
 0 | Infiltration | Modified rational | SUR_MR
 0 | Depression and Surface Runoff | Linsley | DEP_LINSLEY
 0 | Hillslope erosion | MUSLE | SERO_MUSLE
