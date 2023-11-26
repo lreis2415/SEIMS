@@ -49,7 +49,7 @@ int main(const int argc, const char **argv)
         MetadataFunction metadataInfo = metadataFuncs[dll_name];
         const char *current_metadata = metadataInfo();
         std::ostringstream oss;
-        oss << ConcatFullName(output_path, dll_name, ".xml");
+        oss << ConcatFullName(output_path, dll_name, "xml");
 
         std::ofstream myfile;
         myfile.open(oss.str().c_str());

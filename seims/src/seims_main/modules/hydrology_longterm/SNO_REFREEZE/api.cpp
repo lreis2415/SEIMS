@@ -22,8 +22,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddInput(VAR_SNOW_LIQUID[0], UNIT_DEPTH_MM, VAR_SNOW_LIQUID[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module, DT_Raster1D);
-    //mdi.AddOutput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], DT_Raster1D);
+    mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module_Optional, DT_Raster1D);
+    mdi.AddOutput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], DT_Raster1D);
 
     string res = mdi.GetXMLDocument();
 

@@ -21,6 +21,7 @@ void SNO_SIMPLE::Set1DData(const char* key, int n, FLTPT* data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_POTENTIAL_MELT[0])) { m_potentialMelt = data; }
+    else if (StringMatch(sk, VAR_SNAC[0])) { m_snowAcc = data; }
     else {
         throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
@@ -34,7 +35,6 @@ bool SNO_SIMPLE::CheckInputSize(const char* key, int n) {
 bool SNO_SIMPLE::CheckInputData(void) {
     if (m_nCells <= 0) {
         throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
     }
     CHECK_POINTER(GetModuleName(), m_potentialMelt);
     return true;
@@ -56,7 +56,7 @@ int SNO_SIMPLE::Execute() {
 
     #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        Supply(m_snowMelt[i], NonNeg(m_potentialMelt[i]));
+        Convey(m_snowAcc[i], m_snowMelt[i], NonNeg(m_potentialMelt[i]));
     }
 
     return 0; // Return 0 if everything is successful

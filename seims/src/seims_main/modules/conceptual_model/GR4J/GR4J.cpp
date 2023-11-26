@@ -149,7 +149,6 @@ bool GR4J::CheckInputSize(const char* key, int n) {
 bool GR4J::CheckInputData(void) {
     if (m_nCells <= 0) {
         throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
     }
     CHECK_POINTER(GetModuleName(), m_pcp);
     CHECK_POINTER(GetModuleName(), m_soilThickness);
@@ -225,6 +224,7 @@ void GR4J::Infiltration() {
         m_soilWaterStorage[i][SOIL_PRODUCT_LAYER] += infil;
         m_soilET[i] = m_pet[i]; // if AET = PET here, then SoilEvaporation will actually not happen.
     }
+#ifdef PRINT_DEBUG
     FLTPT t1 = 0;
     FLTPT t2 = 0;
     FLTPT t3 = 0;
@@ -234,7 +234,6 @@ void GR4J::Infiltration() {
         t2 += m_pet[i];
         t3 += m_pcpExcess[i];
     }
-#ifdef PRINT_DEBUG
     printf("[Infil] m_pcp=%f, m_pet=%f,  m_pcpExcess=%f\n",
         t1, t2, t3);
     printSoilWater();
@@ -362,10 +361,7 @@ void GR4J::Split() {
     }
 }
 
-/**
- * \brief
- * \param t
- */
+
 void GR4J::Convolve(ConvoleType t) {
 
     vector<vector<FLTPT>>* unitHydro = nullptr;

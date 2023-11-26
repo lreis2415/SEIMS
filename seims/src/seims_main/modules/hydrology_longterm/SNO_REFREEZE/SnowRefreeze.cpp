@@ -57,7 +57,6 @@ int SnowRefreeze::Execute() {
 
  #pragma omp parallel for
      for (int i = 0; i < m_nCells; i++) {
-         m_snowAcc[i] = m_snowLiq[i];
          Flush(m_snowLiq[i], m_snowAcc[i]);
      }
     return 0;

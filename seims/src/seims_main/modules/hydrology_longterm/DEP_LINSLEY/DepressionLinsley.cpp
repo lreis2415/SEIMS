@@ -149,6 +149,8 @@ void DepressionFSDaily::Set1DData(const char* key, const int n, FLTPT* data) {
         m_pe = data;
     } else if (StringMatch(sk, VAR_POT_VOL[0])) {
         m_potVol = data;
+    } else if (StringMatch(sk, VAR_SURU[0])) {
+        m_sr = data;
     } else {
         throw ModelException(GetModuleName(), "Set1DData",
                              "Parameter " + sk + " does not exist.");
@@ -158,9 +160,9 @@ void DepressionFSDaily::Set1DData(const char* key, const int n, FLTPT* data) {
 void DepressionFSDaily::Set1DData(const char* key, const int n, int* data) {
     CheckInputSize(key, n, m_nCells);
     string sk(key);
-    if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) {
-        m_impoundTriger = data;
-    } else {
+    if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) {m_impoundTriger = data;}
+
+    else {
         throw ModelException(GetModuleName(), "Set1DData",
                              "Integer Parameter " + sk + " does not exist.");
     }

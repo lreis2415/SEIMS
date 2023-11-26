@@ -34,6 +34,7 @@ private:
 
     //input variables
     FLTPT* m_potentialMelt;
+    FLTPT* m_snowAcc; ///< Snow Melt
 
     //output variables
     FLTPT* m_snowMelt; ///< Snow Melt
