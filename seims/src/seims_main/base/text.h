@@ -377,7 +377,7 @@ CONST_CHARS_LIST M_SSR_DA[] = {"SSR_DA", "Darcy's law and the kinematic approxim
 // Percolation related modules
 CONST_CHARS_LIST MCLS_PERCO[] = {"Percolation", "Water percolated out of the root zone."}; ///<
 CONST_CHARS_LIST M_PER_PI[] = {"PER_PI", "Percolation based on Darcy's law and Brooks-Corey equation"}; ///<
-CONST_CHARS_LIST M_PER_STR[] = {"PET_STR", "Percolation based on storage routing method"}; ///<
+CONST_CHARS_LIST M_PER_STR[] = {"PER_STR", "Percolation based on storage routing method"}; ///<
 CONST_CHARS_LIST M_PERCO_DARCY[] = {"PERCO_DARCY", "Original WetSpa method which relates percolation with "
                                     "soil moisture and pore size distribution index."}; ///<
 
