@@ -18,8 +18,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetDescription("Green and Ampt method to calculate infiltration and excess precipitation.");
     mdi.SetEmail("");
     mdi.SetHelpfile("SUR_GreenAmpt.chm");
-    mdi.SetID("SUR_GreenAmpt");
-    mdi.SetName("SUR_GreenAmpt");
+    mdi.SetID(M_SUR_GA[0]);
+    mdi.SetName(M_SUR_GA[0]);
     mdi.SetVersion("0.1");
     mdi.SetWebsite("http://www.website.com");
     mdi.SetAbstractionTypeToConceptual();

@@ -434,12 +434,12 @@ CONST_CHARS_LIST M_CHR_MUSK[] = {"CHR_MUSK", "Channel routing using original Mus
 
 // Nutrient related modules, e.g., carbon, nitrogen, and phosphorus mineralization and immobilization.
 CONST_CHARS_LIST MCLS_NUTRCYC[] = {"Nutrient cycling", "Carbon, nitrogen, and phosphorus cycling"}; ///<
-CONST_CHARS_LIST M_NUTR_TF[] = {"NUTR_TF", "Daily nitrogen and phosphorus mineralization and immobilization "
+CONST_CHARS_LIST M_NUTR_TF[] = {"NUTRTF", "Daily nitrogen and phosphorus mineralization and immobilization "
                                 "considering fresh organic material (plant residue) and active and stable humus material."}; ///<
 CONST_CHARS_LIST M_NUTRSED[] = {"NUTRSED", "Nutrient removed and loss in surface runoff, lateral flow, tile flow,"
                                 " and percolation out of the profile."}; ///<
-CONST_CHARS_LIST M_NUTRMV[] = {"NutrMV", "Simulates the loss of nitrate and phosphorus via surface runoff"}; ///<
-CONST_CHARS_LIST M_NUTRGW[] = {"NutrGW", "Simulates the tutrient loading contributed by groundwater flow"}; ///<
+CONST_CHARS_LIST M_NUTRMV[] = {"NUTRMV", "Simulates the loss of nitrate and phosphorus via surface runoff"}; ///<
+CONST_CHARS_LIST M_NUTRGW[] = {"NUTRGW", "Simulates the tutrient loading contributed by groundwater flow"}; ///<
 CONST_CHARS_LIST M_NUTRCH_QUAL2E[] = {"NutrCH_QUAL2E", "In-stream nutrient transformations"}; ///<
 
 // Atmospheric Deposition
