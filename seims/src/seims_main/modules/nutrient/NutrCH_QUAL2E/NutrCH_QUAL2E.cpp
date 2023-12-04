@@ -3,7 +3,7 @@
 #include "text.h"
 
 NutrCH_QUAL2E::NutrCH_QUAL2E() :
-    m_inputSubbsnID(-1), m_nCells(-1), m_dt(-1), m_reachDownStream(nullptr), m_nReaches(-1),
+    m_inputSubbsnID(-1), m_nCells(-1), m_reachDownStream(nullptr), m_nReaches(-1),
     m_ai0(-1.), m_ai1(-1.),
     m_ai2(-1.), m_ai3(-1.), m_ai4(-1.), m_ai5(-1.), m_ai6(-1.), m_lambda0(-1.),
     m_lambda1(-1.), m_lambda2(-1.), m_k_l(-1.), m_k_n(-1.), m_k_p(-1.), m_p_n(-1.),
@@ -258,7 +258,6 @@ void NutrCH_QUAL2E::SetValue(const char* key, const FLTPT value) {
 void NutrCH_QUAL2E::SetValue(const char* key, const int value) {
     string sk(key);
     if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
-    else if (StringMatch(sk, Tag_ChannelTimeStep[0])) m_dt = value;
     else if (StringMatch(sk, VAR_IGROPT[0])) igropt = value;
     else {
         throw ModelException(M_NUTRCH_QUAL2E[0], "SetValue",

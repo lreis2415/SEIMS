@@ -95,8 +95,6 @@ private:
     int m_inputSubbsnID;
     // cell number
     int m_nCells;
-    /// time step (sec)
-    int m_dt;
     /// downstream id (The value is 0 if there if no downstream reach)
     int* m_reachDownStream;
     /// Index of upstream Ids (The value is -1 if there if no upstream reach)

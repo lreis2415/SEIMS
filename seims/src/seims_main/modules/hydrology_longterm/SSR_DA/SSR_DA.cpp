@@ -5,7 +5,7 @@
 SSR_DA::SSR_DA() :
     m_inputSubbsnID(-1), m_nCells(-1), m_CellWth(-1.), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilThk(nullptr),
-    m_dt(-1), m_ki(NODATA_VALUE),
+    m_ki(NODATA_VALUE),
     m_soilFrozenTemp(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_soilSat(nullptr),
     m_poreIdx(nullptr),
     m_soilFC(nullptr), m_soilWP(nullptr),
@@ -26,6 +26,16 @@ SSR_DA::~SSR_DA() {
 FLTPT SSR_DA::GetFlowInFraction(const int id, const int up_idx) {
     if (nullptr == m_flowInFrac) return 1.;
     return m_flowInFrac[id][up_idx];
+}
+void SSR_DA::StoreUnflowedBackToSoil() {
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; ++i) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+            m_subSurfRfVol[i][j] -= m_subSurfRf[i][j];
+            Flush(m_subSurfRf[i][j], m_soilWtrSto[i][j]);
+            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
+        }
+    }
 }
 
 bool SSR_DA::FlowInSoil(const int id) {
@@ -51,7 +61,19 @@ bool SSR_DA::FlowInSoil(const int id) {
     // number of flow-in cells
     int nUpstream = CVT_INT(m_flowInIdx[id][0]);
     m_soilWtrStoPrfl[id] = 0.; // update soil storage on profile
-    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
+    int currentSoilLayerNum = CVT_INT(m_nSoilLyrs[id]);
+
+    //for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
+    //    int flowInID = CVT_INT(m_flowInIdx[id][upIndex]);
+    //    int upSoilLayerNum = CVT_INT(m_nSoilLyrs[flowInID]);
+    //    if (currentSoilLayerNum < upSoilLayerNum) {
+    //        for (int k=currentSoilLayerNum;k<upSoilLayerNum;k++){
+    //            Flush(m_subSurfRf[flowInID][k], m_soilWtrSto[flowInID][k]);
+    //            //m_soilWtrStoPrfl[flowInID] += m_soilWtrSto[flowInID][j];
+    //        }
+    //    }
+    //}
+    for (int j = 0; j < currentSoilLayerNum; j++) {
         FLTPT smOld = m_soilWtrSto[id][j]; // Just for potential error message print
         // Sum subsurface flow in from upstream cells
         FLTPT qUp = 0.;    // mm
@@ -62,8 +84,10 @@ bool SSR_DA::FlowInSoil(const int id) {
             if (CVT_INT(m_subbsnID[flowInID]) != CVT_INT(m_subbsnID[id])) { continue; }
             // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
             if (m_subSurfRf[flowInID][j] < 0.) { continue; }
-            qUp += m_subSurfRf[flowInID][j] * GetFlowInFraction(id, upIndex);
-            qUpVol += m_subSurfRfVol[flowInID][j] * GetFlowInFraction(id, upIndex);
+//            qUp += m_subSurfRf[flowInID][j] * GetFlowInFraction(id, upIndex);
+//            qUpVol += m_subSurfRfVol[flowInID][j] * GetFlowInFraction(id, upIndex);
+            Convey(m_subSurfRf[flowInID][j], qUp, GetFlowInFraction(id, upIndex));
+            Convey(m_subSurfRfVol[flowInID][j], qUpVol, GetFlowInFraction(id, upIndex));
         }
         if (qUp <= 0. || qUpVol <= 0.) {
             qUp = 0.;
@@ -122,13 +146,12 @@ bool SSR_DA::FlowInSoil(const int id) {
         } else if (soilWater - m_subSurfRf[id][j] < fcSoilWater) {
             m_subSurfRf[id][j] = soilWater - fcSoilWater;
         }
-        m_subSurfRf[id][j] = Max(0., m_subSurfRf[id][j]);
+        m_subSurfRf[id][j] = NonNeg(m_subSurfRf[id][j]);
 
-        m_subSurfRfVol[id][j] = m_subSurfRf[id][j] * 0.001 * m_CellWth * flowWidth; // m^3
-        m_subSurfRfVol[id][j] = Max(UTIL_ZERO, m_subSurfRfVol[id][j]);
+        m_subSurfRfVol[id][j] = NonNeg(m_subSurfRf[id][j] * 0.001 * m_CellWth * flowWidth); // m^3
         //Adjust the moisture content in the current layer, and the layer immediately below it
         m_soilWtrSto[id][j] -= m_subSurfRf[id][j];
-        m_soilWtrSto[id][j] = Max(UTIL_ZERO, m_soilWtrSto[id][j]);
+        m_soilWtrSto[id][j] = NonNeg(m_soilWtrSto[id][j]);
         m_soilWtrStoPrfl[id] += m_soilWtrSto[id][j];
 
         if (isinf(m_soilWtrSto[id][j]) ||isnan(m_soilWtrSto[id][j]) || m_soilWtrSto[id][j] < 0.) {
@@ -144,7 +167,21 @@ bool SSR_DA::FlowInSoil(const int id) {
 int SSR_DA::Execute() {
     CheckInputData();
     InitialOutputs();
-
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    FLTPT s3 = 0;
+    FLTPT s4 = 0;
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; ++i) {
+        s1 += m_soilWtrSto[i][0];
+        s2 += m_soilWtrSto[i][1];
+        s3 += m_soilWtrSto[i][2];
+        s4 += m_soilWtrSto[i][3];
+    }
+    printf("[SSR_DA] Before routing, soilStors: %f, %f, %f, %f\n", s1, s2, s3, s4);
+    fflush(stdout);
+#endif
     for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -204,7 +241,31 @@ int SSR_DA::Execute() {
     for (int i = 1; i <= m_nSubbsns; i++) {
         m_ifluQ2Rch[0] += m_ifluQ2Rch[i];
     }
+    StoreUnflowedBackToSoil();
 #ifdef PRINT_DEBUG
+    FLTPT s5 = 0;
+    FLTPT s6 = 0;
+    FLTPT s7 = 0;
+    FLTPT s8 = 0;
+    FLTPT s15 = 0;
+    FLTPT s16 = 0;
+    FLTPT s17 = 0;
+    FLTPT s18 = 0;
+
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; ++i) {
+        s5 += m_soilWtrSto[i][0];
+        s6 += m_soilWtrSto[i][1];
+        s7 += m_soilWtrSto[i][2];
+        s8 += m_soilWtrSto[i][3];
+        s15 += m_subSurfRf[i][0];
+        s16 += m_subSurfRf[i][1];
+        s17 += m_subSurfRf[i][2];
+        s18 += m_subSurfRf[i][3];
+
+    }
+    printf("[SSR_DA] After routing, soilStors: %f, %f, %f, %f\n", s5, s6, s7, s8);
+    printf("[SSR_DA] Subsurface routing: %f, %f, %f, %f\n", s15, s16, s17, s18);
     printf("[SSR_DA] m_ifluQ2Rch: ");
     for (int i = 0; i <= m_nSubbsns; i++) {
         printf("%f, ", m_ifluQ2Rch[i]);

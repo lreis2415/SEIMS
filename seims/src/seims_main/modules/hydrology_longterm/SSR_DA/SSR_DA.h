@@ -61,6 +61,7 @@ private:
     FLTPT GetFlowInFraction(int id, int up_idx);
 
     bool FlowInSoil(int id);
+    void StoreUnflowedBackToSoil();
 
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
