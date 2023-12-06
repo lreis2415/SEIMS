@@ -1,24 +1,24 @@
 #include "api.h"
 
-#include "Interception_MCS.h"
+#include "PI_NONE.h"
 #include "text.h"
 #include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
-    return new clsPI_MCS();
+    return new PI_NONE();
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfoHillslope mdi;
 
     // set the information properties
-    mdi.SetAuthor("Liangjun Zhu");
+    mdi.SetAuthor("");
     mdi.SetClass(MCLS_INTERC[0], MCLS_INTERC[1]);
-    mdi.SetDescription(M_PI_MCS[1]);
+    mdi.SetDescription(M_PI_NONE[1]);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(M_PI_MCS[0]);
-    mdi.SetName(M_PI_MCS[0]);
-    mdi.SetVersion("1.2");
+    mdi.SetID(M_PI_NONE[0]);
+    mdi.SetName(M_PI_NONE[0]);
+    mdi.SetVersion("1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     mdi.SetAbstractionTypeToConceptual();

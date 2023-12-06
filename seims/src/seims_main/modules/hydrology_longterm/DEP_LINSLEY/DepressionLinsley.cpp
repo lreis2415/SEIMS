@@ -79,31 +79,22 @@ int DepressionFSDaily::Execute() {
         sdSum0 += m_sd[i];
         //////////////////////////////////////////////////////////////////////////
         // evaporation only if has depression storage
-        if (m_sd[i] > 0) {
-            /// TODO: Is this logically right? PET is just potential, which include
-            ///       not only ET from surface water, but also from plant and soil.
-            ///       Please Check the corresponding theory. By LJ.
-            // evaporation from depression storage
-            if (m_pet[i] - m_ei[i] < m_sd[i]) {
-                m_ed[i] = m_pet[i] - m_ei[i];
-            } else {
-                m_ed[i] = m_sd[i];
-            }
-            if (m_ed[i]<0) {
-                printf("[DepressionLinsley] Warning! m_ed[%d](%f) < 0! m_pet[%d](%f) m_ei[%d](%f)\n",i,m_ed[i],i,m_pet[i],i,m_ei[i]);
-                m_ed[i] = 0;
-            }
-            m_sd[i] -= m_ed[i];
-        } else {
-            m_ed[i] = 0.;
-            m_sd[i] = 0.;
+        /// TODO: Is this logically right? PET is just potential, which include
+        ///       not only ET from surface water, but also from plant and soil.
+        ///       Please Check the corresponding theory. By LJ.
+        /// 2023.12.06: Not sure if this is theoretically right.
+        ///             But I refactored the code while keeping its original logic. -- WYJ.
+        m_ed[i] = 0.;
+        FLTPT restET = m_pet[i] - m_ei[i];
+        if (restET<0) {
+            printf("[DepressionLinsley] Warning! restET(%f) < 0! m_pet[%d](%f) m_ei[%d](%f)\n", restET, i, m_pet[i], i, m_ei[i]);
+            restET = 0;
         }
+        Convey(m_sd[i], m_ed[i], restET, 1);
         if (m_impoundTriger != nullptr && FloatEqual(m_impoundTriger[i], 0.f)) {
             if (m_potVol != nullptr) {
-                m_potVol[i] += m_sr[i];
-                m_potVol[i] += m_sd[i];
-                m_sr[i] = 0.;
-                m_sd[i] = 0.;
+                Flush(m_sr[i], m_potVol[i]);
+                Flush(m_sd[i], m_potVol[i]);
             }
         }
         sdSum1 += m_sd[i];

@@ -6,7 +6,6 @@ GREL_HBV::GREL_HBV():
     m_nCells(-1),
     m_glacMelt(nullptr),
     m_snowAcc(nullptr),
-    m_snowLiq(nullptr),
     m_landuse(nullptr),
     m_glacStorageCoef(0),
     m_kMin(0),
@@ -25,12 +24,9 @@ void GREL_HBV::InitialOutputs() {
 }
 
 bool GREL_HBV::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-    }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     CHECK_POINTER(GetModuleName(), m_glacMelt);
     CHECK_POINTER(GetModuleName(), m_snowAcc);
-    CHECK_POINTER(GetModuleName(), m_snowLiq);
     return true;
 }
 
@@ -50,7 +46,6 @@ void GREL_HBV::Set1DData(const char* key, int n, FLTPT* data) {
     
     if (StringMatch(sk, VAR_GLAC_MELT[0])) { m_glacMelt = data; }
     else if (StringMatch(sk, VAR_SNAC[0])) { m_snowAcc = data; }
-    else if (StringMatch(sk, VAR_SNOW_LIQUID[0])) { m_snowLiq = data; }
     else {
         throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
@@ -97,7 +92,7 @@ int GREL_HBV::Execute() {
         if (!IsGlacier(m_landuse[i])) {
             continue;
         }
-        FLTPT K = m_kMin + (m_glacStorageCoef-m_kMin)*exp(-m_ag*(m_snowAcc[i]+m_snowLiq[i]));
+        FLTPT K = m_kMin + (m_glacStorageCoef-m_kMin)*exp(-m_ag*m_snowAcc[i]);
         Convey(m_glacMelt[i],m_glacRelease[i],K*m_glacMelt[i]);
     }
 #ifdef PRINT_DEBUG
@@ -112,9 +107,8 @@ int GREL_HBV::Execute() {
         s2++;
         s1 += m_glacRelease[i];
         s3 += m_snowAcc[i];
-        s4 += m_snowLiq[i];
     }
-    printf("[GREL_HBV] %d Glacier cells. GRelease=%f. SnowAcc(%f), SnowLiq(%f)\n", s2, s1, s3, s4);
+    printf("[GREL_HBV] %d Glacier cells. GRelease=%f. SnowAcc(%f)\n", s2, s1, s3);
     fflush(stdout);
 #endif // PRINT_DEBUG
     return 0;

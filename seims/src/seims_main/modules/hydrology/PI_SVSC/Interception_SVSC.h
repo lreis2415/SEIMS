@@ -39,18 +39,18 @@ private:
     /* Parameters from database */
 
     //! Calibration parameter, the sine-shaped curve controller exponent b, default is 1.35
-    float m_Pi_b;
+    FLTPT m_Pi_b;
     //! Calibration parameter, the initial interception storage for all cells, mm
-    float m_Init_IS;
+    FLTPT m_Init_IS;
     //! Maximum storage capacity, mm
-    float *m_maxSt;
+    FLTPT *m_maxSt;
     //! Minimum storage capacity, mm
-    float *m_minSt;
+    FLTPT *m_minSt;
 #ifdef STORM_MODE
     //! hillslope time step, seconds
-    float m_hilldt;
+    FLTPT m_hilldt;
     //! slope for rainfall correction, height/width, i.e. tan(slope)
-    float *m_slope;
+    FLTPT *m_slope;
 #endif
 
     /* Input variables from other module's output */
@@ -59,10 +59,11 @@ private:
      * For STROM_MODE model, the unit is rainfall intensity mm/h
      * For LONGTERM_MODE model, the unit is mm
      */
-    float *m_P;
+    FLTPT* m_P;
+    FLTPT *m_snowfall;
 #ifndef STORM_MODE
     //! PET, mm
-    float *m_PET;
+    FLTPT *m_PET;
 #endif
 
     /* Results */
@@ -70,24 +71,25 @@ private:
     //! current interception storage, the initial value equal to 0, mm
     FLTPT *m_st;
     //! Interception loss, mm
-    float *m_interceptionLoss;
+    FLTPT *m_interceptionLoss;
 #ifndef STORM_MODE
     //! Evaporation loss from intercepted rainfall, mm
-    float *m_evaporationLoss;
+    FLTPT *m_evaporationLoss;
 #endif
     //! Net precipitation (after slope correction, of course), mm
-    float *m_netPrecipitation;
+    FLTPT* m_netPrecipitation;
+    FLTPT *m_snowAcc;
 
     /* Others */
 
     //!  number of valid cells
     int m_nCells;
 public:
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    virtual void Set1DData(const char *key, int nRows, FLTPT *data);
 
-    virtual void SetValue(const char *key, float data);
+    virtual void SetValue(const char *key, FLTPT data);
 
-    virtual void Get1DData(const char *key, int *nRows, float **data);
+    virtual void Get1DData(const char *key, int *nRows, FLTPT **data);
 
     virtual int Execute(void);
 

@@ -42,17 +42,13 @@ bool SNO_SP::CheckInputData() {
 
 void SNO_SP::InitialOutputs() {
     CHECK_POSITIVE(GetModuleName(), m_nCells);
-    if (nullptr == m_snowMelt) Initialize1DArray(m_nCells, m_snowMelt, 0.);
-    if (nullptr == m_SA) Initialize1DArray(m_nCells, m_SA, 0.);
-    if (nullptr == m_packT) Initialize1DArray(m_nCells, m_packT, 0.);
-    if (nullptr == m_snowAccum) {
-        /// the initialization should be removed when snow redistribution module is accomplished. LJ
-        Initialize1DArray(m_nCells, m_snowAccum, 0.);
-    }
-    if (nullptr == m_SE) {
-        /// Snow sublimation will be considered in AET_PTH
-        Initialize1DArray(m_nCells, m_SE, 0.);
-    }
+    Initialize1DArray(m_nCells, m_snowMelt, 0.);
+    Initialize1DArray(m_nCells, m_SA, 0.);
+    Initialize1DArray(m_nCells, m_packT, 0.);
+    /// the initialization should be removed when snow redistribution module is accomplished. LJ
+    Initialize1DArray(m_nCells, m_snowAccum, 0.);
+    /// Snow sublimation will be considered in AET_PTH
+    Initialize1DArray(m_nCells, m_SE, 0.);
 }
 
 int SNO_SP::Execute() {
@@ -73,6 +69,11 @@ int SNO_SP::Execute() {
         /// estimate snow pack temperature
         m_packT[rw] = m_packT[rw] * (1. - m_lagSnow) + m_meanTemp[rw] * m_lagSnow;
         /// calculate snow fall
+        /// 2023.12.06 WYJ: m_SE is found to be always 0, never set value.
+        ///     Don't understand why here m_SA[rw] += m_snowAccum[rw].
+        ///     The m_snowAccum is the output, not the redistributed snow as its comment says. But it is the m_SA that actually accumulates and melts.
+        ///     It seems m_SA is redundant, but I'm not sure whether to change it, since this module has been used with other modules.
+        ///     At least this module cannot be used interchangably with the SNO_HBV. Subsequent modules with VAR_SNAC as input should be paid attention.
         m_SA[rw] += m_snowAccum[rw] - m_SE[rw];
         if (m_meanTemp[rw] < m_snowTemp) {
             /// precipitation will be snow

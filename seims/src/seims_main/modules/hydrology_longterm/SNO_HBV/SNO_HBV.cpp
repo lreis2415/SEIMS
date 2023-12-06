@@ -4,7 +4,7 @@
 SNO_HBV::SNO_HBV():
     m_nCells(-1),
     m_potentialMelt(nullptr),
-    m_snowLiq(nullptr),
+    m_snowfall(nullptr),
     m_tMean(nullptr),
     m_snowRefreezeFactor(nullptr),
     m_tMelt(0),
@@ -40,7 +40,7 @@ void SNO_HBV::Set1DData(const char* key, int n, FLTPT* data) {
     if (StringMatch(sk, VAR_POTENTIAL_MELT[0])) { m_potentialMelt = data; }
     else if (StringMatch(sk, VAR_TMEAN[0])) { m_tMean = data; }
     else if (StringMatch(sk, VAR_SNOW_REFREEZE_FACTOR[0])) { m_snowRefreezeFactor = data; }
-    else if (StringMatch(sk, VAR_SNOW_LIQUID[0])) { m_snowLiq = data; }
+    else if (StringMatch(sk, VAR_SNOWFALL[0])) { m_snowfall = data; }
     else {
         throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
@@ -52,12 +52,9 @@ bool SNO_HBV::CheckInputSize(const char* key, int n) {
 }
 
 bool SNO_HBV::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     CHECK_POINTER(GetModuleName(), m_potentialMelt);
-    CHECK_POINTER(GetModuleName(), m_snowLiq);
+    CHECK_POINTER(GetModuleName(), m_snowfall);
     CHECK_POINTER(GetModuleName(), m_tMean);
     return true;
 }
@@ -76,15 +73,27 @@ void SNO_HBV::Get1DData(const char* key, int* n, FLTPT** data) {
 int SNO_HBV::Execute() {
     CheckInputData();
     InitialOutputs();
+
+#ifdef PRINT_DEBUG
+    FLTPT s02 = 0;
+    FLTPT s03 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        s02 += m_snowMelt[i];
+        s03 += m_snowAcc[i];
+    }
+    printf("[SNO_HBV] Before SNO_HBV. m_snowAcc=%f, m_snowMelt=%f\n", s03, s02);
+    fflush(stdout);
+#endif // PRINT_DEBUG
+
     // freezing temperature of water [C]. It's hardly affected by pressure/altitude.
     const FLTPT FREEZING_TEMP = 0.0;
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT Ka = m_snowRefreezeFactor[i]; // refreeze_factor [mm/d/K]
         FLTPT Ta = m_tMean[i]; // temp_daily_ave
-        FLTPT SWE = m_snowAcc[i]; // snow, SWE mm
-        FLTPT SLiq = m_snowLiq[i]; // liquid part of snowpack, mm
-
+        m_snowAcc[i] += m_snowfall[i];
+        FLTPT SWE = m_snowAcc[i]; // accumulated snow, SWE mm
+        FLTPT SLiq = 0; // liquid part of snowpack, mm
         FLTPT melt = Min(NonNeg(m_potentialMelt[i]), SWE / m_dt_day); // positive, constrained by available snow
         SWE -= melt * m_dt_day;
 
@@ -106,10 +115,10 @@ int SNO_HBV::Execute() {
             overflow += justMelted + (liq - liqCap)       // all melt and exceeded liq overflow 
         */
         if (SLiqCap > SLiq) {
-            Supply(m_snowLiq[i], Min(melt,SLiqCap - SLiq));
+            Supply(m_snowfall[i], Min(melt,SLiqCap - SLiq));
             m_snowMelt[i]+=0;
         } else{
-            m_snowLiq[i] += 0;
+            m_snowfall[i] += 0;
             Supply(m_snowMelt[i], SLiq - SLiqCap);
         }
         
@@ -137,11 +146,12 @@ int SNO_HBV::Execute() {
 #ifdef PRINT_DEBUG
     FLTPT s1 = 0;
     FLTPT s2 = 0;
+    FLTPT s3 = 0;
     for (int i = 0; i < m_nCells; i++) {
-        s1 += m_snowLiq[i];
         s2 += m_snowMelt[i];
+        s3 += m_snowAcc[i];
     }
-    printf("[SNO_HBV] m_snowLiq=%f, m_snowMelt=%f\n", s1,s2);
+    printf("[SNO_HBV] After SNO_HBV. m_snowAcc=%f, m_snowMelt=%f\n", s3, s2);
     fflush(stdout);
 #endif // PRINT_DEBUG
     return 0;

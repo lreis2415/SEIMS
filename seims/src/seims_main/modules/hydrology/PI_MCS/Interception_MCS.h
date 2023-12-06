@@ -77,6 +77,7 @@ private:
      * For LONGTERM_MODE model, the unit is mm
      */
     FLTPT* m_pcp;
+    FLTPT* m_snowfall;
 #ifndef STORM_MODE
     //! PET, mm
     FLTPT* m_pet;
@@ -94,6 +95,8 @@ private:
 #endif
     //! Net precipitation (after slope correction, of course), mm
     FLTPT* m_netPcp;
+    //! Snow accumulation, snow water equivalent (mm)
+    FLTPT* m_snowAcc;
 
     /* Others */
 

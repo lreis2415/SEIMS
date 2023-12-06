@@ -5,31 +5,35 @@
 #include "ClimateParams.h"
 
 clsPI_SVSC::clsPI_SVSC() :
-    m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
-    m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
+    m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f), m_P(nullptr), m_snowfall(nullptr),
+    m_netPrecipitation(nullptr), m_interceptionLoss(nullptr), m_st(nullptr), m_snowAcc(nullptr)
+{
 
 #ifndef STORM_MODE
-    m_evaporationLoss = NULL;
+    m_evaporationLoss = nullptr;
 #else
     m_hilldt = -1.f;
-    m_slope = NULL;
+    m_slope = nullptr;
 #endif
     SetModuleName(M_PI_SVSC[0]);
 }
 
 clsPI_SVSC::~clsPI_SVSC(void) {
-    if (this->m_interceptionLoss != NULL) Release1DArray(this->m_interceptionLoss);
-    if (this->m_st != NULL) Release1DArray(this->m_st);
-    if (this->m_netPrecipitation != NULL) Release1DArray(this->m_netPrecipitation);
+    Release1DArray(this->m_interceptionLoss);
+    Release1DArray(this->m_st);
+    Release1DArray(this->m_netPrecipitation);
+    Release1DArray(this->m_snowAcc);
 #ifndef STORM_MODE
-    if (this->m_evaporationLoss != NULL) Release1DArray(this->m_evaporationLoss);
+    Release1DArray(this->m_evaporationLoss);
 #endif
 }
 
-void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
+void clsPI_SVSC::Set1DData(const char *key, int nRows, FLTPT *data) {
     string s(key);
     if (StringMatch(s, VAR_PCP[0])) {
         m_P = data;
+    }else if (StringMatch(s, VAR_SNOWFALL[0])) {
+        m_snowfall = data;
     }
     else if (StringMatch(s, VAR_PET[0])) {
 #ifndef STORM_MODE
@@ -44,7 +48,7 @@ void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
     }
 }
 
-void clsPI_SVSC::SetValue(const char *key, float data) {
+void clsPI_SVSC::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, VAR_PI_B[0])) { m_Pi_b = data; }
     else if (StringMatch(s, VAR_INIT_IS[0])) { m_Init_IS = data; }
@@ -56,7 +60,7 @@ void clsPI_SVSC::SetValue(const char *key, float data) {
     }
 }
 
-void clsPI_SVSC::Get1DData(const char *key, int *nRows, float **data) {
+void clsPI_SVSC::Get1DData(const char *key, int *nRows, FLTPT **data) {
     InitialOutputs();
     string s = key;
     if (StringMatch(s, VAR_INLO[0])) {
@@ -69,27 +73,23 @@ void clsPI_SVSC::Get1DData(const char *key, int *nRows, float **data) {
         *data = m_st;
     } else if (StringMatch(s, VAR_NEPR[0])) {
         *data = m_netPrecipitation;
-    } else {
+    } else if (StringMatch(s, VAR_SNAC[0])) {
+        *data = m_snowAcc;
+    }
+    else {
         throw ModelException(GetModuleName(), "Get1DData", "Result " + s + " does not exist.");
     }
     *nRows = this->m_nCells;
 }
 
 void clsPI_SVSC:: InitialOutputs() {
-    if (this->m_st == NULL) {
-        Initialize1DArray(m_nCells, m_st, m_Init_IS);
-    }
+    Initialize1DArray(m_nCells, m_st, m_Init_IS);
 #ifndef STORM_MODE
-    if (this->m_evaporationLoss == NULL) {
-        Initialize1DArray(m_nCells, m_evaporationLoss, 0.f);
-    }
+    Initialize1DArray(m_nCells, m_evaporationLoss, 0.f);
 #endif
-    if (this->m_netPrecipitation == NULL) {
-        Initialize1DArray(m_nCells, m_netPrecipitation, 0.f);
-    }
-    if (this->m_interceptionLoss == NULL) {
-        Initialize1DArray(m_nCells, m_interceptionLoss, 0.f);
-    }
+    Initialize1DArray(m_nCells, m_netPrecipitation, 0.f);
+    Initialize1DArray(m_nCells, m_snowAcc, 0.f);
+    Initialize1DArray(m_nCells, m_interceptionLoss, 0.f);
 }
 
 int clsPI_SVSC::Execute() {
@@ -101,84 +101,54 @@ int clsPI_SVSC::Execute() {
     int julian = JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < this->m_nCells; i++) {
+        m_interceptionLoss[i] = 0.f;
+        m_netPrecipitation[i] = 0.f;
+        FLTPT availableSpace = 0;
         if (m_P[i] > 0.f) {
 #ifdef STORM_MODE
             /// correction for slope gradient, water spreads out over larger area
             m_P[i] = m_P[i] * m_hilldt / 3600.f * cos(atan(m_slope[i]));
 #endif // STORM_MODE
             //interception storage capacity
-            float degree = 2.f * PI * (julian - 87.f) / 365.f;
+            FLTPT degree = 2.f * PI * (julian - 87.f) / 365.f;
             /// For water, min and max are both 0, then no need for specific handling.
-            float min = m_minSt[i];
-            float max = m_maxSt[i];
-            float capacity = min + (max - min) * CalPow(0.5f + 0.5f * sin(degree), m_Pi_b);
+            FLTPT min = m_minSt[i];
+            FLTPT max = m_maxSt[i];
+            FLTPT capacity = min + (max - min) * CalPow(0.5f + 0.5f * sin(degree), m_Pi_b);
 
             //interception, currently, m_st[i] is storage of (t-1) time step
-            float availableSpace = capacity - m_st[i];
-            if (availableSpace < 0) {
-                availableSpace = 0.f;
-            }
-
-            if (availableSpace < m_P[i]) {
-                m_interceptionLoss[i] = availableSpace;
-            } else {
-                m_interceptionLoss[i] = m_P[i];
-            }
-
+            availableSpace = NonNeg(capacity - m_st[i]);
+            FLTPT loss = Convey(m_P[i], m_interceptionLoss[i], availableSpace, 1, false);
+            availableSpace -= loss;
+            availableSpace = NonNeg(availableSpace);
             //net precipitation
-            m_netPrecipitation[i] = m_P[i] - m_interceptionLoss[i];
-            m_st[i] += m_interceptionLoss[i];
-        } else {
-            m_interceptionLoss[i] = 0.f;
-            m_netPrecipitation[i] = 0.f;
+            m_netPrecipitation[i] = m_P[i] - loss;
+            m_st[i] += loss;
+        }
+        if (m_snowfall[i]>0 && availableSpace > 0) {
+            FLTPT loss = Convey(m_snowfall[i], m_interceptionLoss[i], availableSpace, 1, false);
+            m_snowAcc[i] += m_snowfall[i] - loss;
+            m_st[i] += loss;
         }
 #ifndef STORM_MODE
-        //evaporation
-        if (m_st[i] > m_PET[i]) {
-            m_evaporationLoss[i] = m_PET[i];
-        } else {
-            m_evaporationLoss[i] = m_st[i];
-        }
-        m_st[i] -= m_evaporationLoss[i];
+        Convey(m_st[i], m_evaporationLoss[i], m_PET[i], 1);
 #endif
     }
     return 0;
 }
 
 bool clsPI_SVSC::CheckInputData() {
-    if (this->m_date < 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
-    }
-
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-
-    if (this->m_P == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The precipitation data can not be NULL.");
-    }
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    CHECK_POINTER(GetModuleName(), m_P);
 #ifndef STORM_MODE
-    if (this->m_PET == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The PET data can not be NULL.");
-    }
+    CHECK_POINTER(GetModuleName(), m_PET);
 #else
-    if (this->m_slope == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The slope gradient can not be NULL.");
-    }
-    if (this->m_hilldt < 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The Hillslope scale time step must greater than 0.");
-    }
+    CHECK_POINTER(GetModuleName(), m_slope);
+    CHECK_POSITIVE(GetModuleName(), m_hilldt);
 #endif
-    if (this->m_maxSt == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The maximum interception storage capacity can not be NULL.");
-    }
-
-    if (this->m_minSt == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The minimum interception storage capacity can not be NULL.");
-    }
+    CHECK_POINTER(GetModuleName(), m_maxSt);
+    CHECK_POINTER(GetModuleName(), m_minSt);
 
     if (this->m_Pi_b > 1.5f || this->m_Pi_b < 0.5f) {
         throw ModelException(GetModuleName(), "CheckInputData",

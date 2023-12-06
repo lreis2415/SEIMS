@@ -21,10 +21,7 @@ void GMELT_SIMPLE::InitialOutputs() {
 }
 
 bool GMELT_SIMPLE::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(M_PMELT_DD[0], "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     CHECK_POINTER(GetModuleName(), m_potentialMelt);
     CHECK_POINTER(GetModuleName(), m_excessPcp);
     CHECK_POINTER(GetModuleName(), m_landuse);

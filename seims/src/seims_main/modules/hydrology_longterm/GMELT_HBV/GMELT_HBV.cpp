@@ -5,7 +5,7 @@
 GMELT_HBV::GMELT_HBV() :
     m_nCells(-1),
     m_potentialMelt(nullptr),
-    m_snowLiq(nullptr),
+    m_snowAcc(nullptr),
     m_landuse(nullptr),
     m_hbv_glacier_melt_correction(0),
     m_glacierMelt(nullptr)
@@ -22,10 +22,7 @@ void GMELT_HBV::InitialOutputs() {
 }
 
 bool GMELT_HBV::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     CHECK_POINTER(GetModuleName(), m_landuse);
     CHECK_POINTER(GetModuleName(), m_potentialMelt);
     return true;
@@ -43,7 +40,7 @@ void GMELT_HBV::SetValue(const char* key, FLTPT value) {
 void GMELT_HBV::Set1DData(const char* key, int n, FLTPT* data) {
     string sk(key);
     if (StringMatch(sk, VAR_POTENTIAL_MELT[0])) { m_potentialMelt = data; }
-    else if (StringMatch(sk, VAR_SNOW_LIQUID[0])) { m_snowLiq = data; }
+    else if (StringMatch(sk, VAR_SNAC[0])) { m_snowAcc = data; }
     else {
         throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
@@ -76,7 +73,7 @@ int GMELT_HBV::Execute() {
     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        if (m_snowLiq[i] > 0){
+        if (m_snowAcc[i] > 0){
             continue;
         }
         if (IsGlacier(m_landuse[i])) {

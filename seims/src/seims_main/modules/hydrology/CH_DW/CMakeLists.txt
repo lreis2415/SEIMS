@@ -1,5 +1,5 @@
-MESSAGE(STATUS "        Compiling hydrology_subdir: DiffusiveWave...")
-SET(MODNAME CH_DW)
+GET_FILENAME_COMPONENT(MODNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+MESSAGE(STATUS "        Compiling hydrology_subdir: " ${MODNAME} "...")
 PROJECT(SEIMS_MODULE_${MODNAME})
 FILE(GLOB SRC_LIST *.cpp *.h)
 ADD_LIBRARY(${MODNAME} SHARED ${SRC_LIST})

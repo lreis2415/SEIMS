@@ -299,6 +299,7 @@ CONST_CHARS_LIST MCLS_CLIMATE[] = {"HydroClimate", "HydroClimate data modules"};
 CONST_CHARS_LIST M_TSD_RD[] = {"TSD_RD", "Read time series data from HydroClimate database."}; ///<
 CONST_CHARS_LIST M_ITP[] = {"ITP", "Interpolation of P, T, etc."}; ///<
 CONST_CHARS_LIST M_RAINSNOW_HBV[] = {"RAINSNOW_HBV", "Calculate rain to snow percentage."}; ///<
+CONST_CHARS_LIST M_RAINSNOW_T[] = {"RAINSNOW_T", "Calculate rain to snow percentage."}; ///<
 
 // Soil properties related modules
 CONST_CHARS_LIST MCLS_SOIL[] = {"Soil property", "Soil properties related modules"}; ///<
@@ -309,6 +310,7 @@ CONST_CHARS_LIST M_SOL_WB[] = {"SOL_WB", "Soil water balance calculation" }; ///
 CONST_CHARS_LIST MCLS_INTERC[] = {"Interception", "Canopy interception module"}; ///<
 CONST_CHARS_LIST M_PI_SVSC[] = {"PI_SVSC", "Precipitation interception by seasonal variation of storage capacity method"}; ///<
 CONST_CHARS_LIST M_PI_MCS[] = {"PI_MCS", "Precipitation interception based on Maximum Canopy Storage"}; ///<
+CONST_CHARS_LIST M_PI_NONE[] = {"PI_NONE", "Precipitation interception by no interception"}; ///<
 
 // Snow redistribution related modules
 CONST_CHARS_LIST MCLS_SNO_RD[] = {"Snow redistribution", "Snow redistribution calculation"};
@@ -1188,7 +1190,8 @@ CONST_CHARS_LIST VAR_HBV_GREL_AG[] = {"HBV_GLACIER_AG", "extinction coefficient 
 CONST_CHARS_LIST VAR_POTENTIAL_MELT[] = {"POTENTIAL_MELT", "Potential Melt"};
 CONST_CHARS_LIST VAR_GLAC_MELT[] = {"GMELT", "Glacier melt (not released yet)."};
 CONST_CHARS_LIST VAR_GLAC_REL[] = {"GREL", "Glacier release."};
-CONST_CHARS_LIST VAR_SNOW_LIQUID[] = {"snow_liquid", "liquid state of snow."};
+CONST_CHARS_LIST VAR_SNOW_LIQUID[] = { "snow_liquid", "liquid state of snow." };
+CONST_CHARS_LIST VAR_SNOWFALL[] = {"snowfall", "snowfall, snow water equivalent (mm)."};
 
 //Landuse related
 CONST_CHARS_LIST VAR_FOREST_COV[] = {"FOREST_COV", "forest coverage"};

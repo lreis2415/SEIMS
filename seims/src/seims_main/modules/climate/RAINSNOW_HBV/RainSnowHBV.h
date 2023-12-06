@@ -35,7 +35,7 @@ private:
     FLTPT m_t_rain_snow_delta; ///< Temperature delta for rain and snow
 
     //output variables
-    FLTPT* m_snowLiq; ///< Snow liquid
+    FLTPT* m_snowfall; ///< Snow liquid
 };
 
 #endif /* SEIMS_MODULE_RAINSNOW_HBV_H */

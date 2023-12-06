@@ -78,7 +78,6 @@ bool AET_PT_H::CheckInputData() {
     CHECK_POINTER(GetModuleName(), m_tMean);
     CHECK_POINTER(GetModuleName(), m_lai);
     CHECK_POINTER(GetModuleName(), m_pet);
-    CHECK_POINTER(GetModuleName(), m_snowAccum);
     /// If m_snowSB is not provided, it will be initialized in  InitialOutputs().
     // CHECK_POINTER(GetModuleName(), m_snowSB);
     CHECK_POINTER(GetModuleName(), m_rsdCovSoil);
@@ -93,9 +92,9 @@ bool AET_PT_H::CheckInputData() {
 
 void AET_PT_H::InitialOutputs() {
     CHECK_POSITIVE(GetModuleName(), m_nCells);
-    if (nullptr == m_maxPltET) Initialize1DArray(m_nCells, m_maxPltET, 0.);
-    if (nullptr == m_soilET) Initialize1DArray(m_nCells, m_soilET, 0.);
-    if (nullptr == m_snowSublim) Initialize1DArray(m_nCells, m_snowSublim, 0.);
+    Initialize1DArray(m_nCells, m_maxPltET, 0.);
+    Initialize1DArray(m_nCells, m_soilET, 0.);
+    Initialize1DArray(m_nCells, m_snowSublim, 0.);
 }
 
 int AET_PT_H::Execute() {
@@ -140,7 +139,7 @@ int AET_PT_H::Execute() {
         cej = -5.e-5;
         es_max = 0.; ///maximum amount of evaporation (soil et)
         eos1 = 0.;
-        if (m_snowAccum[i] >= 0.5) {
+        if (m_snowAccum!=nullptr && m_snowAccum[i] >= 0.5) {
             eaj = 0.5;
         } else {
             eaj = CalExp(cej * (m_rsdCovSoil[i] + 0.1));
@@ -162,13 +161,14 @@ int AET_PT_H::Execute() {
         /// initialize soil evaporation variables
         esleft = es_max;
         /// compute sublimation, using the input m_snowSB from snow sublimation module, if not provided, initialized as 0
-        if (m_tMean[i] > 0.) {
+        if (m_snowAccum != nullptr && m_tMean[i] > 0.) {
             if (m_snowAccum[i] >= esleft) {
                 /// take all soil evap from snow cover
                 m_snowAccum[i] -= esleft;
                 m_snowSublim[i] += esleft;
                 esleft = 0.;
-            } else {
+            }
+            else {
                 /// take all soil evap from snow cover then start taking from soil
                 esleft -= m_snowAccum[i];
                 m_snowSublim[i] += m_snowAccum[i];

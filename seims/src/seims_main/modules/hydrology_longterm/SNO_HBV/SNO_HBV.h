@@ -35,7 +35,7 @@ private:
 
     //input variables
     FLTPT* m_potentialMelt;
-    FLTPT* m_snowLiq;
+    FLTPT* m_snowfall;
     FLTPT* m_tMean; ///< daily average temperature
 
     //parameters

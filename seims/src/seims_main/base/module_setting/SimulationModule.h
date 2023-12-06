@@ -294,17 +294,30 @@ public:
         return day_angle;
     }
 
-    inline void Convey(FLTPT& from, FLTPT& to, FLTPT rate) {
+    /**
+     * \brief Convey the value (e.g. water) from one variable to another.
+     * \param from 
+     * \param to 
+     * \param rate The rate of conveyance, to be multiplied by timestep. Because the unit of rate is by day, like mm/day.
+     * \param timestep 0 means use the module's default timestep, otherwise use the given timestep. 1 means 1 day, also used as one-off conveyance.
+     * \param realConvey If true, the value will be subtracted from `from`, otherwise not.
+     */
+    inline FLTPT Convey(FLTPT& from, FLTPT& to, FLTPT rate, FLTPT timestep=0 ,bool realConvey=true) {
+        if (timestep <= 0) {
+            timestep = m_dt_day;
+        }
+        FLTPT convey = 0;
         if (rate > 0) {
-            FLTPT convey = Min(rate * m_dt_day, from);
-            from -= convey;
+            convey = Min(rate * timestep, from);
+            if (realConvey) { from -= convey; }
             to += convey;
         }
         else {
-            FLTPT convey = Min(-rate * m_dt_day, to);
-            from += convey;
+            convey = Min(-rate * timestep, to);
+            if (realConvey) { from += convey; }
             to -= convey;
         }
+        return convey;
     }
     inline void Convey(FLTPT* from, FLTPT* to, int m_nCells, FLTPT rate) {
 #pragma omp parallel for
@@ -319,6 +332,7 @@ public:
     inline void Supply(FLTPT& to, FLTPT rate) {
         to += rate * m_dt_day;
     }
+
     void SetModuleName(const char* name) {
         m_moduleName = string(name);
     }

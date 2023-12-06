@@ -22,9 +22,9 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddInput(VAR_POTENTIAL_MELT[0], UNIT_DEPTH_MM, VAR_POTENTIAL_MELT[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SNOW_LIQUID[0], UNIT_DEPTH_MM, VAR_SNOW_LIQUID[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SNOWFALL[0], UNIT_DEPTH_MM, VAR_SNOWFALL[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_TMEAN[0], UNIT_DEPTH_MM, VAR_TMEAN[1], Source_Module, DT_Raster1D);
-    
+
     mdi.AddParameter(VAR_SNOW_REFREEZE_FACTOR[0], UNIT_NON_DIM, VAR_SNOW_REFREEZE_FACTOR[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_T0[0], UNIT_NON_DIM, VAR_T0[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SWI[0], UNIT_NON_DIM, VAR_SWI[1], Source_ParameterDB, DT_Single);

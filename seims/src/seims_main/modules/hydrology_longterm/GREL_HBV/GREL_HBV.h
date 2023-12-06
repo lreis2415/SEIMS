@@ -31,7 +31,6 @@ private:
     //input
     FLTPT* m_glacMelt; ///< melted glacier
     FLTPT* m_snowAcc; ///< Snow accumulation
-    FLTPT* m_snowLiq; ///< Snow liquid water content
 
     //parameters
     int* m_landuse; ///< Landuse

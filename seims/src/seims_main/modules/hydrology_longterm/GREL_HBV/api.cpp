@@ -23,7 +23,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     mdi.AddInput(VAR_GLAC_MELT[0], UNIT_DEPTH_MM, VAR_GLAC_MELT[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SNAC[0], UNIT_DEPTH_MM, VAR_SNAC[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_SNOW_LIQUID[0], UNIT_DEPTH_MM, VAR_SNOW_LIQUID[1], Source_Module, DT_Raster1D);
 
     mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_GLAC_STOR_COEF[0], UNIT_PER_DAY, VAR_GLAC_STOR_COEF[1], Source_ParameterDB, DT_Single);

@@ -26,6 +26,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the input variables (time series)
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D); /// ITP_P
+    mdi.AddInput(VAR_SNOWFALL[0], UNIT_DEPTH_MM, VAR_SNOWFALL[1], Source_Module, DT_Raster1D);
 #ifndef STORM_MODE
     mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D); /// PET
 #else

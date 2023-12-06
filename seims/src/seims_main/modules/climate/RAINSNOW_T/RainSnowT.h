@@ -1,20 +1,19 @@
-#ifndef SEIMS_MODULE_GMELT_HBV_H
-#define SEIMS_MODULE_GMELT_HBV_H
+#ifndef SEIMS_MODULE_RAINSNOW_T_H
+#define SEIMS_MODULE_RAINSNOW_T_H
 
 #include "SimulationModule.h"
-#include "basic.h"
 
-class GMELT_HBV : public SimulationModule {
+class RainSnowT : public SimulationModule {
 public:
-    GMELT_HBV(); //! Constructor
-    ~GMELT_HBV(); //! Destructor
+    RainSnowT(); //! Constructor
+    ~RainSnowT(); //! Destructor
 
     ///////////// SetData series functions /////////////
+
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
-    void Set1DData(const char* key, int n, int* data) OVERRIDE;
 
     ///////////// GetData series functions /////////////
-    void SetValue(const char* key, FLTPT value) OVERRIDE;
     void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
     ///////////// CheckInputData and InitialOutputs /////////////
@@ -27,16 +26,15 @@ public:
 
 private:
     int m_nCells; ///< valid cells number
-
     //input variables
-    FLTPT* m_potentialMelt; ///< Potential Melt
-    FLTPT* m_snowAcc;
+    FLTPT* m_t_mean; ///< daily average temperature
+    FLTPT* m_pcp; ///< 
 
-    int* m_landuse; ///< Landuse
-    FLTPT m_hbv_glacier_melt_correction; ///< HBV glacier melt correction
+    //parameters
+    FLTPT m_t_rain_snow; ///< Temperature for snowfall
 
     //output variables
-    FLTPT* m_glacierMelt;
+    FLTPT* m_snowfall; ///< Snow liquid
 };
 
-#endif /* SEIMS_MODULE_GMELT_HBV_H */
+#endif /* SEIMS_MODULE_RAINSNOW_T_H */

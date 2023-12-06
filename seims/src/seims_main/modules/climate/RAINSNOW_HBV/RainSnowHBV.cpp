@@ -6,16 +6,16 @@ m_nCells(-1),
 m_t_mean(nullptr),
 m_t_rain_snow(0),
 m_t_rain_snow_delta(0),
-m_snowLiq(nullptr) {
+m_snowfall(nullptr) {
     SetModuleName(M_RAINSNOW_HBV[0]);
 }
 
 RainSnowHBV::~RainSnowHBV() {
-    Release1DArray(m_snowLiq);
+    Release1DArray(m_snowfall);
 }
 
 void RainSnowHBV::InitialOutputs() {
-    Initialize1DArray(m_nCells, m_snowLiq, 0.f);
+    Initialize1DArray(m_nCells, m_snowfall, 0.f);
 }
 
 void RainSnowHBV::SetValue(const char* key, FLTPT value) {
@@ -36,8 +36,8 @@ void RainSnowHBV::Set1DData(const char* key, int n, FLTPT* data) {
 
 void RainSnowHBV::Get1DData(const char* key, int* n, FLTPT** data) {
     *n = m_nCells;
-    if (StringMatch(key, VAR_SNOW_LIQUID[0])) {
-        *data = m_snowLiq;
+    if (StringMatch(key, VAR_SNOWFALL[0])) {
+        *data = m_snowfall;
     } else {
         throw ModelException(GetModuleName(), "Get1DData", "Output " + string(key) + " does not exist.");
     }
@@ -65,7 +65,7 @@ int RainSnowHBV::Execute() {
         } else{
             frac = 0.5 + (m_t_rain_snow - m_t_rain_snow_delta) / m_t_rain_snow_delta;
         }
-        Convey(m_pcp[i], m_snowLiq[i], frac*m_pcp[i]);
+        Convey(m_pcp[i], m_snowfall[i], frac*m_pcp[i]);
     }
 #ifdef PRINT_DEBUG
     FLTPT s1 = 0;

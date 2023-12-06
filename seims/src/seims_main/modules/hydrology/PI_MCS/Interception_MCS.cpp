@@ -7,8 +7,8 @@ clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15), m_pcp2CanalFr(0.5), m_landUse(nullptr),
     m_intcpStoCapExp(-1.), m_initIntcpSto(0.), m_maxIntcpStoCap(nullptr),
     m_minIntcpStoCap(nullptr),
-    m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
-    m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
+    m_pcp(nullptr),m_snowfall(nullptr), m_pet(nullptr), m_canSto(nullptr),
+    m_intcpLoss(nullptr), m_netPcp(nullptr),m_snowAcc(nullptr), m_nCells(-1) {
 
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
@@ -21,11 +21,12 @@ clsPI_MCS::clsPI_MCS() :
 }
 
 clsPI_MCS::~clsPI_MCS() {
-    if (m_intcpLoss != nullptr) Release1DArray(m_intcpLoss);
-    if (m_canSto != nullptr) Release1DArray(m_canSto);
-    if (m_netPcp != nullptr) Release1DArray(m_netPcp);
+    Release1DArray(m_intcpLoss);
+    Release1DArray(m_canSto);
+    Release1DArray(m_netPcp);
+    Release1DArray(m_snowAcc);
 #ifndef STORM_MODE
-    if (m_IntcpET != nullptr) Release1DArray(m_IntcpET);
+    Release1DArray(m_IntcpET);
 #endif
 }
 
@@ -33,6 +34,7 @@ void clsPI_MCS::Set1DData(const char* key, int nrows, FLTPT* data) {
     CheckInputSize(key, nrows, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_PCP[0])) m_pcp = data;
+    else if (StringMatch(s, VAR_SNOWFALL[0])) m_snowfall = data;
     else if (StringMatch(s, VAR_PET[0])) {
 #ifndef STORM_MODE
         m_pet = data;
@@ -94,7 +96,10 @@ void clsPI_MCS::Get1DData(const char* key, int* nRows, FLTPT** data) {
         *data = m_canSto;
     } else if (StringMatch(s, VAR_NEPR[0])) {
         *data = m_netPcp;
-    } else {
+    } else if (StringMatch(s, VAR_SNAC[0])) {
+        *data = m_snowAcc;
+    }
+    else {
         throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + s + " does not exist.");
     }
@@ -102,20 +107,13 @@ void clsPI_MCS::Get1DData(const char* key, int* nRows, FLTPT** data) {
 }
 
 void clsPI_MCS::InitialOutputs() {
-    if (m_canSto == nullptr) {
-        Initialize1DArray(m_nCells, m_canSto, m_initIntcpSto);
-    }
+    Initialize1DArray(m_nCells, m_canSto, m_initIntcpSto);
 #ifndef STORM_MODE
-    if (m_IntcpET == nullptr) {
-        Initialize1DArray(m_nCells, m_IntcpET, 0.);
-    }
+    Initialize1DArray(m_nCells, m_IntcpET, 0.);
 #endif
-    if (m_netPcp == nullptr) {
-        Initialize1DArray(m_nCells, m_netPcp, 0.);
-    }
-    if (m_intcpLoss == nullptr) {
-        Initialize1DArray(m_nCells, m_intcpLoss, 0.);
-    }
+    Initialize1DArray(m_nCells, m_netPcp, 0.);
+    Initialize1DArray(m_nCells, m_snowAcc, 0.);
+    Initialize1DArray(m_nCells, m_intcpLoss, 0.);
 }
 
 int clsPI_MCS::Execute() {
@@ -133,6 +131,9 @@ int clsPI_MCS::Execute() {
 #endif
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+        m_intcpLoss[i] = 0.;
+        m_netPcp[i] = 0.;
+        FLTPT availableSpace = 0;
         if (m_pcp[i] > 0.) {
 #ifdef STORM_MODE
             /// correction for slope gradient, water spreads out over larger area
@@ -147,39 +148,26 @@ int clsPI_MCS::Execute() {
             FLTPT capacity = min + (max - min) * CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
 
             //interception, currently, m_st[i] is storage of (t-1) time step
-            FLTPT availableSpace = capacity - m_canSto[i];
-            if (availableSpace < 0) {
-                availableSpace = 0.;
-            }
-            if (availableSpace < m_pcp[i]) {
-                m_intcpLoss[i] = availableSpace;
-                // if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
-                if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
-                    //water added into ditches from low embankment, should be added to somewhere else.
-                    FLTPT pcp2canal = m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
-                    m_netPcp[i] = m_pcp[i] - m_intcpLoss[i] - pcp2canal;
-                } else {
-                    //net precipitation
-                    m_netPcp[i] = m_pcp[i] - m_intcpLoss[i];
-                }
-            } else {
-                m_intcpLoss[i] = m_pcp[i];
-                m_netPcp[i] = 0.;
-            }
+            availableSpace = NonNeg(capacity - m_canSto[i]);
+            availableSpace -= Convey(m_pcp[i], m_intcpLoss[i], availableSpace, 1, false);
             m_canSto[i] += m_intcpLoss[i];
-        } else {
-            m_intcpLoss[i] = 0.;
-            m_netPcp[i] = 0.;
+            // if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
+            FLTPT pcp2canal=0;
+            if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
+                //water added into ditches from low embankment, should be added to somewhere else.
+                pcp2canal = m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
+            }
+            m_netPcp[i] = m_pcp[i] - m_intcpLoss[i] - pcp2canal;
+        }
+        if (m_snowfall != nullptr && m_snowfall[i] > 0 && availableSpace > 0) {
+            FLTPT snowIntercept = Convey(m_snowfall[i], m_intcpLoss[i], availableSpace, 1, false);
+            m_canSto[i] += snowIntercept;
+            m_snowAcc[i] += m_snowfall[i] - snowIntercept;
         }
 #ifndef STORM_MODE
         //evaporation
-        if (m_canSto[i] > m_pet[i]) {
-            m_IntcpET[i] = m_pet[i];
-        } else {
-            m_IntcpET[i] = m_canSto[i];
-        }
-        m_canSto[i] -= m_IntcpET[i];
-
+        m_IntcpET[i]=0;
+        Convey(m_canSto[i], m_IntcpET[i], m_pet[i], 1);
 #endif
     }
 #ifdef PRINT_DEBUG
