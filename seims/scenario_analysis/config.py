@@ -54,7 +54,9 @@ class SAConfig(object):
         if cf.has_option('Scenario_Common', 'implementation_period') and cf.has_option('Scenario_Common', 'effectiveness_changeable') and \
          cf.has_option('Scenario_Common', 'change_frequency') and cf.has_option('Scenario_Common', 'enable_investment_quota') and \
          cf.has_option('Scenario_Common', 'investment_each_period') and cf.has_option('Scenario_Common', 'discount_rate') and \
-         cf.has_option('Scenario_Common', 'selected_scenario_file'):
+            cf.has_option('Scenario_Common', 'investment_float_range') and cf.has_option('Scenario_Common', 'years_first_period') and \
+            cf.has_option('Scenario_Common', 'selected_scenario_file') and cf.has_option('Scenario_Common', 'enable_implementation_order') and \
+            cf.has_option('Scenario_Common', 'investment_aver_constrain'):
             self.implementation_period = cf.getfloat('Scenario_Common', 'implementation_period')
             self.effectiveness_changeable = cf.getboolean('Scenario_Common', 'effectiveness_changeable')
             self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
@@ -63,6 +65,10 @@ class SAConfig(object):
             self.investment_each_period = eval(cf.get('Scenario_Common', 'investment_each_period'))
             self.discount_rate = cf.getfloat('Scenario_Common', 'discount_rate')
             self.selected_scenario_file = cf.get('Scenario_Common', 'selected_scenario_file')
+            self.enable_implementation_order = cf.getboolean('Scenario_Common', 'enable_implementation_order')
+            self.investment_float_range = cf.getfloat('Scenario_Common', 'investment_float_range')
+            self.years_first_period = cf.getfloat('Scenario_Common', 'years_first_period')
+            self.investment_aver_constrain = cf.getboolean('Scenario_Common', 'investment_aver_constrain')
         if cf.has_option('Scenario_Common', 'export_scenario_txt'):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
@@ -132,10 +138,25 @@ class SAConfig(object):
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config, None]
-        if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir,
-                                        'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
-                                                            self.bmps_cfg_method))
+        if self.opt_mtd == 'nsga2' and self.enable_implementation_order:
+            if self.enable_investment_quota:
+                self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                            'SA_NSGA2_S_T_CONSTRAINED_%s_%s' % (self.bmps_cfg_unit,
+                                                                    self.bmps_cfg_method))
+            else:
+                self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                            'SA_NSGA2_S_T_%s_%s' % (self.bmps_cfg_unit,
+                                                                self.bmps_cfg_method))
+        if self.opt_mtd == 'nsga2' and not self.enable_implementation_order:
+            if self.enable_investment_quota:
+                self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                            'SA_NSGA2_SPATIAL_CONSTRAINED_%s_%s' % (self.bmps_cfg_unit,
+                                                                            self.bmps_cfg_method))
+            else:
+                self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                            'SA_NSGA2_SPATIAL_%s_%s' % (self.bmps_cfg_unit,
+                                                                        self.bmps_cfg_method))
+
         # Using the existed population derived from previous scenario optimization
         self.initial_byinput = cf.getboolean(self.opt_mtd.upper(), 'inputpopulation') if \
             cf.has_option(self.opt_mtd.upper(), 'inputpopulation') else False

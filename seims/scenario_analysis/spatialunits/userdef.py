@@ -449,6 +449,184 @@ def mutate_with_bmps_order(indv, low, up, indpb, max_perc):
     return indv
 
 
+def mutate_rule_s(unitsinfo,  # type: Dict[Union[str, int], Any]
+                    gene2unit,  # type: Dict[int, int]
+                    unit2gene,  # type: OrderedDict[int, int]
+                    suitbmps,  # type: Dict[int, List[int]]
+                    individual,  # type: Union[array.array, List[int], Tuple[int]]
+                    perc,  # type: float
+                    indpb,  # type: float
+                    unit='SLPPOS',  # type: AnyStr
+                    method='SUIT',  # type: AnyStr
+                    bmpgrades=None,  # type: Optional[Dict[int, int]]
+                    tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # Slope position units
+                    ):
+    # type: (...) -> Union[array.array, List[int], Tuple[int]]
+    """
+    Mutation Gene values for rule-based BMP configuration strategies.
+    Old gene value is excluded from target values.
+
+    Args:
+        unitsinfo(dict): Spatial units information, see more detail on `SASPUConfig`.
+        gene2unit(dict): Gene index to slope position unit ID.
+        unit2gene(dict): Slope position unit ID to gene index.
+        suitbmps(dict): key is slope position tag, and value is available BMPs IDs list.
+        individual(list or tuple): Individual to be mutated.
+        perc(float): percent of gene length for mutate, default is 0.02
+        indpb(float): Independent probability for each attribute to be mutated.
+        unit(str): BMPs configuration unit type.
+        method(str): Domain knowledge-based rule method.
+        bmpgrades(dict): (Optional) Effectiveness grades of BMPs.
+        tagnames(list): (Optional) slope position tags and names, from up to bottom of hillslope.
+                        The format is [(tag, name),...].
+
+    Returns:
+        A tuple of one individual.
+    """
+    if perc > 0.5:
+        perc = 0.5
+    elif perc < 0.01:
+        perc = 0.01
+    try:
+        mut_num = random.randint(1, int(len(unit2gene) * perc))
+    except ValueError or Exception:
+        return individual
+    if _DEBUG:
+        print('  Max mutate num of BMP configuration units: %d' % mut_num)
+    muted = list()
+    # Mutate on BMP configuration units
+    unit2gene_list = list(viewitems(unit2gene))
+    for m in range(mut_num):
+        if random.random() > indpb:
+            continue
+        # mutate will happen
+        mpoint = random.randint(0, len(unit2gene) - 1)
+        while mpoint in muted:
+            mpoint = random.randint(0, len(unit2gene) - 1)
+
+        unitid = unit2gene_list[mpoint][0]
+        geneidx = unit2gene_list[mpoint][1]
+        oldgenev = individual[geneidx]
+        # begin to mutate on unitid
+        # get the potential BMP IDs
+        bmps = select_potential_bmps(unitid, suitbmps, unitsinfo, unit2gene, individual,
+                                     unit=unit, method=method,
+                                     bmpgrades=bmpgrades, tagnames=tagnames)
+        if bmps is None or len(bmps) == 0:
+            continue
+        # Get new BMP ID for current unit.
+        if 0 not in bmps:
+            bmps.append(0)
+        if oldgenev in bmps:
+            bmps.remove(oldgenev)
+        if len(bmps) > 0:
+            individual[geneidx] = bmps[random.randint(0, len(bmps) - 1)]
+            if _DEBUG:
+                print('  Mutate on unit: %d, oldgene: %d, potBMPs: %s, new gene: %d' %
+                      (unitid, oldgenev, bmps.__str__(), individual[geneidx]))
+            muted.append(mpoint)
+        else:  # No available BMP
+            pass
+
+
+def mutate_rule_s_t(unitsinfo,  # type: Dict[Union[str, int], Any]
+                    gene2unit,  # type: Dict[int, int]
+                    unit2gene,  # type: OrderedDict[int, int]
+                    suitbmps,  # type: Dict[int, List[int]]
+                    individual,  # type: Union[array.array, List[int], Tuple[int]]
+                    perc,  # type: float
+                    indpb,  # type: float
+                    low,   # type: int
+                    up,    # type: int
+                    unit='SLPPOS',  # type: AnyStr
+                    method='SUIT',  # type: AnyStr
+                    bmpgrades=None,  # type: Optional[Dict[int, int]]
+                    tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # Slope position units
+                    ):
+    # type: (...) -> Union[array.array, List[int], Tuple[int]]
+    """
+    Mutation Gene values for rule-based BMP configuration strategies with implementation orer.
+    Old gene value is excluded from target values.
+
+    Args:
+        unitsinfo(dict): Spatial units information, see more detail on `SASPUConfig`.
+        gene2unit(dict): Gene index to slope position unit ID.
+        unit2gene(dict): Slope position unit ID to gene index.
+        suitbmps(dict): key is slope position tag, and value is available BMPs IDs list.
+        individual(list or tuple): Individual to be mutated.
+        perc(float): percent of gene length for mutate, default is 0.02
+        indpb(float): Independent probability for each attribute to be mutated.
+        low(int): the initial implementation period.
+        up(int): the final implementation period.
+        unit(str): BMPs configuration unit type.
+        method(str): Domain knowledge-based rule method.
+        bmpgrades(dict): (Optional) Effectiveness grades of BMPs.
+        tagnames(list): (Optional) slope position tags and names, from up to bottom of hillslope.
+                        The format is [(tag, name),...].
+
+    Returns:
+        A tuple of one individual.
+    """
+    if perc > 0.5:
+        perc = 0.5
+    elif perc < 0.01:
+        perc = 0.01
+    try:
+        mut_num = random.randint(1, int(len(unit2gene) * perc))
+    except ValueError or Exception:
+        return individual
+    if _DEBUG:
+        print('  Max mutate num of BMP configuration units: %d' % mut_num)
+    muted = list()
+    # Step 1: Mutate on BMP configuration units
+    unit2gene_list = list(viewitems(unit2gene))
+    for m in range(mut_num):
+        if random.random() > indpb:
+            continue
+        # mutate will happen
+        mpoint = random.randint(0, len(unit2gene) - 1)
+        while mpoint in muted:
+            mpoint = random.randint(0, len(unit2gene) - 1)
+
+        unitid = unit2gene_list[mpoint][0]
+        geneidx = unit2gene_list[mpoint][1]
+        oldgenev = individual[geneidx]
+        # begin to mutate on unitid
+        # get the potential BMP IDs
+        bmps = select_potential_bmps(unitid, suitbmps, unitsinfo, unit2gene, individual,
+                                     unit=unit, method=method,
+                                     bmpgrades=bmpgrades, tagnames=tagnames)
+        if bmps is None or len(bmps) == 0:
+            continue
+        # Get new BMP ID for current unit.
+        if 0 not in bmps:
+            bmps.append(0)
+        if oldgenev in bmps:
+            bmps.remove(oldgenev)
+        if len(bmps) > 0:
+            individual[geneidx] = bmps[random.randint(0, len(bmps) - 1)]
+            if _DEBUG:
+                print('  Mutate on unit: %d, oldgene: %d, potBMPs: %s, new gene: %d' %
+                      (unitid, oldgenev, bmps.__str__(), individual[geneidx]))
+            muted.append(mpoint)
+        else:  # No available BMP
+            pass
+    # Step 2: mutate on implementation orders
+    mut_count = 0
+    for idx in range(len(individual)):
+        val = int(individual[idx])
+        if val == 0: continue
+        if random.random() < indpb:
+            bmp_type, impl_year = divmod(val, 1000)
+            new_impl_year = random.randint(low, up)
+            while impl_year == new_impl_year:
+                new_impl_year = random.randint(low, up)
+            new_val = bmp_type * 1000 + new_impl_year
+            individual[idx] = new_val
+            mut_count += 1
+    return individual
+
+
 def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
     # type: (int, float, float, float) -> None
     """Test mutate function."""
