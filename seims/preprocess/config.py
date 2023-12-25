@@ -114,16 +114,16 @@ class PreprocessConfig(object):
             raise ValueError('[PATH] section MUST be existed in *.ini file.')
 
         if not FileClass.is_dir_exists(self.base_dir):
-            raise IOError('BASE_DATA_DIR is required in PATH section!')
+            raise IOError(f'BASE_DATA_DIR ({self.base_dir}) specified in PATH section does not exist!')
 
         if not FileClass.is_dir_exists(self.model_dir):
-            raise IOError('MODEL_DIR is required in PATH section!')
+            raise IOError(f'MODEL_DIR ({self.model_dir}) specified in PATH section does not exist!')
 
         if not FileClass.is_dir_exists(self.prepscript_dir):
-            raise IOError('PREPROC_SCRIPT_DIR is required in PATH section!')
+            raise IOError(f'PREPROC_SCRIPT_DIR ({self.prepscript_dir}) specified in PATH section does not exist!')
 
         if not FileClass.is_dir_exists(self.seims_bin):
-            raise IOError('CPP_PROGRAM_DIR is required in PATH section!')
+            raise IOError(f'CPP_PROGRAM_DIR ({self.seims_bin}) specified in PATH section does not exist!')
 
         if not self.mpi_bin or not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None

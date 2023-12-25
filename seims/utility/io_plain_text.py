@@ -75,7 +75,7 @@ def read_simulation_from_txt(ws,  # type: AnyStr
                 txtfile = fn
                 break
         if txtfile is None:
-            logging.warning('Simulation variable file: %s is not existed!' % v)
+            logging.warning('Simulation variable file: %s.txt does not exist in %s!' % (v,ws))
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False

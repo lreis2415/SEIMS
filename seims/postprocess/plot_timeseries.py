@@ -202,18 +202,18 @@ class TimeSeriesPlots(object):
             if self.vali_sim_obs_dict and param in self.vali_sim_obs_dict:
                 obs_dates += self.vali_sim_obs_dict[param][DataValueFields.utc]
                 obs_values += self.vali_sim_obs_dict[param]['Obs']
-            if obs_values is not None:
+            if obs_values:
                 # TODO: if the observed data is continuous with datetime, plot line, otherwise, bar.
                 # bar graph
-                p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
-                            edgecolor='black',
-                            linewidth=0.5, align='center', hatch='//')
+                # p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
+                #             edgecolor='black',
+                #             linewidth=0.5, align='center', hatch='//')
                 # # line graph
-                # p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
-                #              markersize=2, linewidth=1)
+                p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
+                             markersize=1, linewidth=0.5)
             sim_list = [v[i + 1] for v in self.sim_data_value]
             p2, = ax.plot(sim_date, sim_list, label=sim_str, color='red',
-                          marker='+', markersize=2, linewidth=0.8)
+                          marker='+', markersize=1, linewidth=0.5)
             plt.xlabel(xaxis_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # format the ticks date axis
             date_fmt = mdates.DateFormatter('%m-%d-%y')
@@ -232,7 +232,7 @@ class TimeSeriesPlots(object):
 
             plt.ylabel(ylabel_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # plt.legend(bbox_to_anchor = (0.03, 0.85), loc = 2, shadow = True)
-            if obs_values is not None:
+            if obs_values:
                 ymax = max(max(sim_list), max(obs_values)) * 1.6
                 ymin = min(min(sim_list), min(obs_values)) * 0.8
             else:

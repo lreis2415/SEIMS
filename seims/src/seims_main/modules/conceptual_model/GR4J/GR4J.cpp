@@ -37,11 +37,12 @@ GR4J::GR4J() :
     //split and convolve
     m_GR4J_X4(nullptr), m_convEntering1(nullptr), m_convEntering2(nullptr)
 {
-        SetModuleName(CM_GR4J[0]);
+    SetModuleName(CM_GR4J[0]);
 }
 
 void GR4J::InitialOutputs() {
     Initialize1DArray(m_nCells, m_soilET, 0.);
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
         m_soilET[i] = 0;
     }
@@ -168,6 +169,8 @@ void GR4J::Get1DData(const char* key, int* n, FLTPT** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SURU[0])) { *data = m_pcpExcess; }
     else if (StringMatch(sk, VAR_AET_PLT[0])) { *data = m_soilET;}
+    else if (StringMatch(sk, VAR_SOL_SW[0])) { *data = m_soilProfileWater;}
+    else if (StringMatch(sk, VAR_SOET[0])) { *data = m_soilET;}
     else {
         throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk +
@@ -425,7 +428,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
     vector<vector<FLTPT>>* convTransport = nullptr;
 
     FLTPT tstep = 1; // days
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT maxTime = 0;
         FLTPT x4 = m_GR4J_X4[i];
@@ -447,7 +450,9 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
         int N = ceil(maxTime / tstep);
 
         if (N == 0) { N = 1; }
-        if (N > 50) { throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "unit hydrograph duration for convolution too long"); }
+        if (N > 50) {
+            throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "unit hydrograph duration for convolution too long");
+        }
 
         FLTPT sum = 0.0;
         for (int n = 0; n < N; ++n) {
@@ -462,7 +467,9 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
             convTransport->at(i).push_back(0);
             sum += h;
         }
-        if (sum == 0.0) { throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "bad unit hydrograph constructed"); }
+        if (sum == 0.0) {
+            throw ModelException(GetModuleName(), "GenerateUnitHydrograph", "bad unit hydrograph constructed");
+        }
         for (int n = 0; n < N; ++n) { unitHydro->at(i).at(n) /= sum; }
     }
     convTransport = nullptr;

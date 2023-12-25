@@ -139,10 +139,17 @@ int ChannelRoutingMuskingum::Execute() {
     InitialOutputs();
     CheckInputData();
 #ifdef PRINT_DEBUG
-    printf("\n[ChannelRoutingMuskingum] m_Q_SBOF: ");
-    for (int i = 0; i < m_nReaches; i++) {
-        printf("%f, ", m_Q_SBOF[i]);
+    FLTPT s1 = 0;
+    FLTPT s2 = 0;
+    FLTPT s3 = 0;
+#pragma omp parallel for
+    for (int i = 1; i < m_nReaches; i++) {
+        s1+=m_Q_SBOF[i];
+        s2+=m_Q_SBIF[i];
+        s3+=m_Q_SBQG[i];
+        //printf("%f, ", m_Q_SBOF[i]);
     }
+    printf("\n[ChannelRoutingMuskingum] Sum SBOF(%f), SBIF(%f), SBQG(%f).\n", s1, s2, s3);
     printf("\n");
 #endif
 
@@ -168,7 +175,7 @@ int ChannelRoutingMuskingum::Execute() {
                 m_Q_out[reachIndex] += m_Q_SBQG[reachIndex];
             }
 #ifdef PRINT_DEBUG
-            printf("\n[ChannelRoutingMuskingum] Reach%d m_Q_out(%f): m_Q_SBOF(%f),m_Q_SBIF(%f), m_Q_SBQG(%f)",
+            printf("\n[ChannelRoutingMuskingum] Reach%d m_Q_out(%f): m_Q_SBOF(%f),m_Q_SBIF(%f), m_Q_SBQG(%f) ",
                 reachIndex,
                 m_Q_out[reachIndex],
                 m_Q_SBOF[reachIndex],
@@ -191,7 +198,12 @@ int ChannelRoutingMuskingum::Execute() {
 #endif
     }
 #ifdef PRINT_DEBUG
+    printf("\n[ChannelRoutingMuskingum] m_Q_out: ");
+    for (int i = 1; i < m_nReaches; i++) {
+        printf("%f, ", m_Q_out[i]);
+    }
     printf("\n");
+    fflush(stdout);
 #endif
 
     return 0;

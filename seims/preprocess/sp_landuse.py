@@ -27,7 +27,6 @@ import rasterio
 from utility import read_data_items_from_txt, DEFAULT_NODATA, UTIL_ZERO
 from utility import mask_rasterio
 from preprocess.text import ModelParamDataUtils, ParamAbstractionTypes
-from preprocess.sd_hru_aggregate import hru_rasterio
 
 
 class LanduseUtilClass(object):

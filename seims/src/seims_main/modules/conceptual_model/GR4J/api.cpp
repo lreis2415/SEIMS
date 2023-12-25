@@ -48,6 +48,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], DT_Raster1D);
 
     mdi.AddOutput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], DT_Raster2D);
+    mdi.AddOutput(VAR_SOL_SW[0], UNIT_DEPTH_MM, VAR_SOL_SW[1], DT_Raster1D);
+    mdi.AddOutput(VAR_SOET[0], UNIT_DEPTH_MM, VAR_SOET[1], DT_Raster1D);
 
     /// Set In/Output variables with transferred data type
 

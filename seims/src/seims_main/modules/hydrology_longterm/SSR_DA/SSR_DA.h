@@ -81,8 +81,6 @@ private:
     ///
     //float *m_rootDepth;
 
-    /// timestep
-    int m_dt;
     /// Interflow scale factor
     FLTPT m_ki;
     /// soil freezing temperature threshold, deg C

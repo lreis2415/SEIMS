@@ -163,12 +163,14 @@ class ImportMongodbClass(object):
                 SpatialNamesUtils.get_name_stem(cfg.spatials.slope): cfg.spatials.slope,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.aspect): cfg.spatials.aspect,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.cell_lat): cfg.spatials.cell_lat,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.init_somo): cfg.spatials.init_somo,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.depression): cfg.spatials.depression,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.radius): cfg.spatials.radius,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.t0_s): cfg.spatials.t0_s,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.delta_s): cfg.spatials.delta_s,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.dayl_min): cfg.spatials.dayl_min,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.dorm_hr): cfg.spatials.dorm_hr,
+                SpatialNamesUtils.get_name_stem(cfg.spatials.landuse): cfg.spatials.landuse,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.cn2): cfg.spatials.cn2,
                 SpatialNamesUtils.get_name_stem(cfg.spatials.runoff_coef): cfg.spatials.runoff_coef,
             }
@@ -239,7 +241,7 @@ class ImportMongodbClass(object):
 
         ImportMongodbClass.iuh(cfg, 0)
         ImportMongodbClass.iuh(cfg, n_subbasins)
-        for alg in ['d8', 'dinf', 'mfdmd']:
+        for alg in ['d8']:
             ImportMongodbClass.grid_layering(cfg, 0, alg)
             ImportMongodbClass.grid_layering(cfg, n_subbasins, alg)
         logging.info('Finish importing IUH and grid_layering with multiprocessing pool.')

@@ -39,7 +39,7 @@ int PER_STR::Execute() {
     fflush(stdout);
 #endif
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
         // the first soil layer in other modules. By LJ
@@ -67,6 +67,7 @@ int PER_STR::Execute() {
                 if (m_soilPerco[i][j] > maxPerc) {
                     m_soilPerco[i][j] = maxPerc;
                 }
+
                 //Adjust the moisture content in the current layer, and the layer immediately below it
                 m_soilWtrSto[i][j] -= m_soilPerco[i][j];
                 excessWater -= m_soilPerco[i][j];
@@ -119,12 +120,14 @@ int PER_STR::Execute() {
     for (int j = 0; j < 4; ++j) {
         sums[j] = 0;
     }
-    for (int i = 0; i < m_nCells; ++i) {
+    FLTPT percoGW = 0;
+     for (int i = 0; i < m_nCells; ++i) {
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); ++j) {
             sums[j] += m_soilWtrSto[i][j];
         }
+        percoGW += m_soilPerco[i][CVT_INT(m_nSoilLyrs[i])-1];
     }
-    printf("[PER_STR]Soil After Execute(): >> %f, %f, %f, %f\n", sums[0], sums[1], sums[2], sums[3]);
+    printf("[PER_STR]Soil After Execute(): >> %f, %f, %f, %f. Perco to GW: %f.\n", sums[0], sums[1], sums[2], sums[3], percoGW);
     fflush(stdout);
 #endif
 

@@ -105,6 +105,14 @@ int PETHargreaves::Execute() {
         }
         m_vpd[i] = satVaporPressure - actualVaporPressure;
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        s1 += m_pet[i];
+    }
+    printf("[PET_H] PET=%f\n", s1);
+#endif
+
     return 0;
 }
 

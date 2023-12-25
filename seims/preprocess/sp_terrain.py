@@ -596,12 +596,12 @@ class TerrainUtilClass(object):
                                                                  cfg.dorm_hr)
 
         logging.info('Calculate aspect...')
-        TerrainUtilClass.aspect(cfg.taudems.filldem, cfg.spatials.aspect)
+        TerrainUtilClass.aspect(cfg.taudems.filldem, cfg.spatials.aspect+'_temp.tif')
         mask_rasterio(cfg.seims_bin,
-                      [['0_ASPECT', cfg.spatials.aspect]],
-                      mongoargs=mongoargs,
+                      [[cfg.spatials.aspect+'_temp.tif', cfg.spatials.aspect]],
                       maskfile=cfg.spatials.subbsn,
                       include_nodata=False, mode='MASK')
+        os.remove(cfg.spatials.aspect+'_temp.tif')
         logging.info('Terrain related spatial parameters extracted done!')
 
 

@@ -115,6 +115,7 @@ private:
     /// 
     FLTPT** m_soilWaterStorage;
     FLTPT* m_netEvapCapacity;
+    FLTPT* m_soilProfileWater; ///< Output, water amount in soil profile
 
 
     /****************

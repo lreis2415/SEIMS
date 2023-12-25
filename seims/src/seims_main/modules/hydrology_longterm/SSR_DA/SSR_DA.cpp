@@ -46,7 +46,7 @@ bool SSR_DA::FlowInSoil(const int id) {
         flowWidth -= m_chWidth[id];
     }
     // initialization for current cell of current timestep
-    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
+    for (int j = 0; j < m_maxSoilLyrs; j++) {
         m_subSurfRf[id][j] = 0.;
         m_subSurfRfVol[id][j] = 0.;
     }
@@ -63,16 +63,6 @@ bool SSR_DA::FlowInSoil(const int id) {
     m_soilWtrStoPrfl[id] = 0.; // update soil storage on profile
     int currentSoilLayerNum = CVT_INT(m_nSoilLyrs[id]);
 
-    //for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
-    //    int flowInID = CVT_INT(m_flowInIdx[id][upIndex]);
-    //    int upSoilLayerNum = CVT_INT(m_nSoilLyrs[flowInID]);
-    //    if (currentSoilLayerNum < upSoilLayerNum) {
-    //        for (int k=currentSoilLayerNum;k<upSoilLayerNum;k++){
-    //            Flush(m_subSurfRf[flowInID][k], m_soilWtrSto[flowInID][k]);
-    //            //m_soilWtrStoPrfl[flowInID] += m_soilWtrSto[flowInID][j];
-    //        }
-    //    }
-    //}
     for (int j = 0; j < currentSoilLayerNum; j++) {
         FLTPT smOld = m_soilWtrSto[id][j]; // Just for potential error message print
         // Sum subsurface flow in from upstream cells
@@ -84,10 +74,8 @@ bool SSR_DA::FlowInSoil(const int id) {
             if (CVT_INT(m_subbsnID[flowInID]) != CVT_INT(m_subbsnID[id])) { continue; }
             // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
             if (m_subSurfRf[flowInID][j] < 0.) { continue; }
-//            qUp += m_subSurfRf[flowInID][j] * GetFlowInFraction(id, upIndex);
-//            qUpVol += m_subSurfRfVol[flowInID][j] * GetFlowInFraction(id, upIndex);
-            Convey(m_subSurfRf[flowInID][j], qUp, GetFlowInFraction(id, upIndex));
-            Convey(m_subSurfRfVol[flowInID][j], qUpVol, GetFlowInFraction(id, upIndex));
+            qUp += m_subSurfRf[flowInID][j] * GetFlowInFraction(id, upIndex);
+            qUpVol += m_subSurfRfVol[flowInID][j] * GetFlowInFraction(id, upIndex);
         }
         if (qUp <= 0. || qUpVol <= 0.) {
             qUp = 0.;
@@ -159,6 +147,17 @@ bool SSR_DA::FlowInSoil(const int id) {
                     << m_soilWtrSto[id][j] << ", subsurface runoff: " << m_subSurfRf[id][j] << ", depth:"
                     << m_soilThk[id][j] << endl;
             return false;
+        }
+    }
+    for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
+        int flowInID = CVT_INT(m_flowInIdx[id][upIndex]);
+        int upSoilLayerNum = CVT_INT(m_nSoilLyrs[flowInID]);
+        if (currentSoilLayerNum >= upSoilLayerNum) {
+            break;
+        }
+        for (int k = currentSoilLayerNum; k < upSoilLayerNum; k++) {
+            Flush(m_subSurfRf[flowInID][k], m_soilWtrSto[flowInID][k]);
+            m_soilWtrStoPrfl[flowInID] += m_soilWtrSto[flowInID][k];
         }
     }
     return true;
@@ -241,7 +240,7 @@ int SSR_DA::Execute() {
     for (int i = 1; i <= m_nSubbsns; i++) {
         m_ifluQ2Rch[0] += m_ifluQ2Rch[i];
     }
-    StoreUnflowedBackToSoil();
+    //StoreUnflowedBackToSoil();
 #ifdef PRINT_DEBUG
     FLTPT s5 = 0;
     FLTPT s6 = 0;
@@ -297,8 +296,6 @@ void SSR_DA::SetValue(const char* key, const int value) {
         m_nSubbsns = value;
     } else if (StringMatch(s, Tag_SubbasinId)) {
         m_inputSubbsnID = value;
-    } else if (StringMatch(s, Tag_TimeStep[0])) {
-        m_dt = value;
     } else {
         throw ModelException(GetModuleName(), "SetValue",
                              "Integer Parameter " + s + " does not exist.");

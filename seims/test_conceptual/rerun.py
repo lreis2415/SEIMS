@@ -1,6 +1,10 @@
 import logging
 import shutil
 
+import os,sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from preprocess.db_import_model_parameters import ImportParam2Mongo
 from test_conceptual.demo_config import *
 from run_seims import MainSEIMS

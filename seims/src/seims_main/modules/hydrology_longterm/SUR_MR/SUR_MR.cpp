@@ -46,6 +46,9 @@ void SUR_MR::InitialOutputs() {
         Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0.);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, NODATA_VALUE);
 
+#ifdef PRINT_DEBUG
+        FLTPT s1 = 0;
+#endif
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
@@ -57,9 +60,18 @@ void SUR_MR::InitialOutputs() {
                     m_soilWtrSto[i][j] = 0.;
                 }
                 m_soilWtrStoPrfl[i] += m_soilWtrSto[i][j];
+#ifdef PRINT_DEBUG
+                s1+=m_soilWtrSto[i][j];
+#endif
+            }
+            for (int j=CVT_INT(m_nSoilLyrs[i]); j<m_maxSoilLyrs; j++) {
+                m_soilWtrSto[i][j] = 0.;
             }
         }
 
+#ifdef PRINT_DEBUG
+        printf("[SUR_MR]initial soil water: %f, AVG(%f)\n", s1, s1/m_nCells);
+#endif
         /// update (sol_sumul) amount of water held in soil profile at saturation
         if (nullptr == m_soilSumSat && m_soilSat != nullptr) {
             m_soilSumSat = new(nothrow) FLTPT[m_nCells];

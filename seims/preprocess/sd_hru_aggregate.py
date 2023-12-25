@@ -5,7 +5,7 @@ import osgeo
 import rasterio
 from pathlib import Path
 
-from preprocess.text import ParamAbstractionTypes
+from preprocess.text import ParamAbstractionTypes, SpatialNamesUtils
 from utility import DEFAULT_NODATA, mask_rasterio
 
 
@@ -26,6 +26,10 @@ class HruAggregationFunctions:
     def get_type_by_param_name(param_name):
         if param_name in ['some params']:
             return HruAggregationFunctions.AS_IS
+        elif param_name in [
+            SpatialNamesUtils._LANDUSEMFILE,
+        ]:
+            return HruAggregationFunctions.MODE
         else:
             return HruAggregationFunctions.ARITHMETIC_MEAN
 
@@ -82,7 +86,7 @@ class HruAggregationFunctions:
 
     @staticmethod
     def mode(hru_property):
-        return np.mode(hru_property)
+        return np.argmax(np.bincount(hru_property))
 
     @staticmethod
     def count(hru_property):
@@ -110,7 +114,7 @@ def hru_rasterio(
     seims_bin,
     mongoargs,
     hru_subbasin_id_path,
-    aggregation_type: str = HruAggregationFunctions.ARITHMETIC_MEAN,
+    aggregation_type: str = None,
     aggregation_multiplier=1,
 ):
     logging.info(f'Aggregating HRU property {out_property_name}...')
@@ -127,7 +131,12 @@ def hru_rasterio(
     hru_property_dataset = rasterio.open(hru_property_raster_path)
     out_meta = hru_property_dataset.meta.copy()
     hru_property = hru_property_dataset.read(1)
-    aggregation_function = HruAggregationFunctions.get_aggr_func_by_type_str(aggregation_type)
+    if aggregation_type:
+        aggregation_function = HruAggregationFunctions.get_aggr_func_by_type_str(aggregation_type)
+    else:
+        aggregation_function = HruAggregationFunctions.get_aggr_func_by_type_str(
+            HruAggregationFunctions.get_type_by_param_name(out_property_name)
+        )
     out_raster = _hru_aggregate(hru_property,
                                 hru_id_map,
                                 hru_dist_map,
@@ -135,12 +144,12 @@ def hru_rasterio(
                                 aggregation_multiplier,
                                 hru_nodata=hru_property_dataset.nodata)
 
-    out_path = Path(hru_property_raster_path).parent / (Path(hru_property_raster_path).stem + "_hru.tif")
+    hru_aggr_out_path = Path(hru_property_raster_path).parent / (Path(hru_property_raster_path).stem + "_hru.tif")
     out_meta.update(compress='lzw')
-    with rasterio.open(out_path, 'w', **out_meta) as dst:
+    with rasterio.open(hru_aggr_out_path, 'w', **out_meta) as dst:
         dst.write(out_raster, 1)
 
-    hru_cfg = [[out_path, out_property_name,
+    hru_cfg = [[hru_aggr_out_path, out_property_name,
                 DEFAULT_NODATA, DEFAULT_NODATA, out_meta.get('dtype')]]
 
     mask_rasterio(seims_bin, hru_cfg, mongoargs=mongoargs,

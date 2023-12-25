@@ -16,19 +16,14 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from preprocess.sp_landuse import LanduseUtilClass
-from preprocess.sp_soil_base import SoilUtilClass
-from preprocess.sp_soil_physical import SoilPropertyPhysical
-from preprocess.sp_soil_conceptual import SoilPropertyConceptual
+from preprocess.sp_soil_importer import SoilImporter
 from preprocess.sp_terrain import TerrainUtilClass
 
 
 def extract_spatial_parameters(cfg):
     """Main entrance for spatial parameters extraction."""
     # 1. Soil related
-    if cfg.soil_property_conceptual:
-        SoilUtilClass.parameters_extraction(cfg, SoilPropertyConceptual)
-    if cfg.soil_property_physical:
-        SoilUtilClass.parameters_extraction(cfg, SoilPropertyPhysical)
+    SoilImporter.parameters_extraction(cfg)
 
     # 2. Landuse/Landcover related
     LanduseUtilClass.parameters_extraction(cfg)

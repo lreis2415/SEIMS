@@ -138,6 +138,13 @@ int PETPriestleyTaylor::Execute() {
             throw ModelException(GetModuleName(), "Execute", "Calculation error occurred!\n");
         }
     }
+#ifdef PRINT_DEBUG
+    FLTPT s1 = 0;
+    for (int i = 0; i < m_nCells; i++) {
+        s1 += m_pet[i];
+    }
+    printf("[PET_PT] PET=%f\n", s1);
+#endif
     return 0;
 }
 

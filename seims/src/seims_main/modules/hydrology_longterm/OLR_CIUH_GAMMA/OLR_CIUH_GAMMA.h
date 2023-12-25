@@ -1,21 +1,23 @@
 /*!
- * \file OverlandRoutingDump.h
+ * \file OLR_CIUH_GAMMA.h
  * \brief 
  * \author Yujing Wang
  * \date 2023-06-15
  *
  */
 
-#ifndef SEIMS_OVERLAND_ROUTING_DUMP_H
-#define SEIMS_OVERLAND_ROUTING_DUMP_H
+#ifndef SEIMS_MODULE_OLR_CIUH_GAMMA_H
+#define SEIMS_MODULE_OLR_CIUH_GAMMA_H
 
+#include "Convolve.h"
 #include "SimulationModule.h"
 
-// using namespace std;  // Avoid this statement! by lj.
-
-class OverlandRoutingDump : public SimulationModule {
+class OLR_CIUH_GAMMA : public SimulationModule {
 private:
-    bool m_isInitialized;
+    FLTPT* m_gammaScale;
+    FLTPT* m_gammaShape;
+
+    ConvolveTransporterGAMMA* m_convolveTransporter;
 
     int m_nCells;
 
@@ -29,7 +31,7 @@ private:
     int m_inputSubbasinId;
     /// subbasin grid (subbasins ID)
     int* m_cellsMappingToSubbasinId;
-    
+
     /// cell area of the unit (m^2)
     FLTPT* m_cellArea;
 
@@ -37,21 +39,23 @@ private:
     FLTPT* m_surfaceRunoff;
 
     FLTPT* m_Q_SBOF;
-    FLTPT* m_Q_SB_ZEROS;
-
 public:
-    OverlandRoutingDump();
-    ~OverlandRoutingDump();
+    OLR_CIUH_GAMMA();
+    ~OLR_CIUH_GAMMA() OVERRIDE;
+    void InitUnitHydrograph();
+
     void InitialOutputs() OVERRIDE;
     bool CheckInputData() OVERRIDE;
+    bool CheckInputSize(const char* key, int n) OVERRIDE;
+    int Execute(void) OVERRIDE;
 
-    int Execute(void);
-
-    void SetValue(const char *key, int value) OVERRIDE;
-    void Set1DData(const char *key, int nRows, FLTPT *data)  OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
+    void Set1DData(const char* key, int nRows, FLTPT* data)  OVERRIDE;
     void Set1DData(const char* key, int n, int* data) OVERRIDE;
     void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
 
-    void Get1DData(const char *key, int *nRows, FLTPT **data) OVERRIDE;
+    void Get1DData(const char* key, int* nRows, FLTPT** data) OVERRIDE;
+
+
 };
-#endif /* SEIMS_OVERLAND_ROUTING_DUMP_H */
+#endif /* OLR_CIUH_GAMMA */

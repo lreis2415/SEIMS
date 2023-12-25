@@ -376,31 +376,31 @@ class ImportWeightData(object):
             subbasin_start_id = 1
             n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
 
-        # for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
-        #     ImportWeightData.climate_itp_weight_thiessen(cfg.hostname,
-        #                                                  cfg.port,
-        #                                                  cfg.spatial_db,
-        #                                                  cfg.dirs.geodata2db,
-        #                                                  subbsn_id,
-        #                                                  cfg.has_conceptual_subbasin)
+        for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
+            ImportWeightData.climate_itp_weight_thiessen(cfg.hostname,
+                                                         cfg.port,
+                                                         cfg.spatial_db,
+                                                         cfg.dirs.geodata2db,
+                                                         subbsn_id,
+                                                         cfg.has_conceptual_subbasin)
 
         ### Parallel version, not working on Linux. The jobs do not wait at join()
-        pool_size = min(cfg.np, n_subbasins + 1 - subbasin_start_id)
-        pool = multiprocessing.Pool(pool_size)
-        logging.debug('Starting pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() of subbasins %d to %d' %
-                      (pool_size, subbasin_start_id, n_subbasins + 1))
-        for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
-            pool.apply_async(ImportWeightData.climate_itp_weight_thiessen,
-                             [cfg.hostname,
-                              cfg.port,
-                              cfg.spatial_db,
-                              cfg.dirs.geodata2db,
-                              subbsn_id,
-                              cfg.has_conceptual_subbasin])
-            logging.debug(f'climate_itp_weight_thiessen({subbsn_id}) applied to pool.')
-        pool.close()
-        pool.join()
-        logging.debug('Pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() completed.' % pool_size)
+        # pool_size = min(cfg.np, n_subbasins + 1 - subbasin_start_id)
+        # pool = multiprocessing.Pool(pool_size)
+        # logging.debug('Starting pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() of subbasins %d to %d' %
+        #               (pool_size, subbasin_start_id, n_subbasins + 1))
+        # for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
+        #     pool.apply_async(ImportWeightData.climate_itp_weight_thiessen,
+        #                      [cfg.hostname,
+        #                       cfg.port,
+        #                       cfg.spatial_db,
+        #                       cfg.dirs.geodata2db,
+        #                       subbsn_id,
+        #                       cfg.has_conceptual_subbasin])
+        #     logging.debug(f'climate_itp_weight_thiessen({subbsn_id}) applied to pool.')
+        # pool.close()
+        # pool.join()
+        # logging.debug('Pool of size=%d: ImportWeightData.climate_itp_weight_thiessen() completed.' % pool_size)
 
         # Memory-consuming, not parallelized.
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):

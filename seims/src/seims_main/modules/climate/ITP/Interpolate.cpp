@@ -58,6 +58,14 @@ int Interpolate::Execute() {
         throw ModelException(GetModuleName(), "Execute",
                              "Error occurred in interpolation based on weight data of stations!");
     }
+#ifdef PRINT_DEBUG
+    FLTPT s = 0.;
+    for (int i = 0; i < m_nCells; i++) {
+        s += m_itpOutput[i];
+    }
+    printf("[ITP] %f\n", s);
+#endif
+
     return true;
 }
 

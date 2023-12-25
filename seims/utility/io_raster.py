@@ -8,6 +8,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import functools
+import pathlib
 
 import numpy as np
 from pathos import multiprocessing
@@ -38,8 +39,6 @@ def mask_rasterio(bin_dir, inoutcfg,
                   mongoargs=None, maskfile=None, cfgfile=None,
                   include_nodata=True, abstraction_type=None, mode='MASK', opts=None, np=-1):
     """Call mask_rasterio program (cpp version) to perform input/output of raster
-
-    TODO: this function is very preliminary, need to be improved and tested!
     """
     commands = ['"%s/mask_rasterio"' % bin_dir]
     if mode.upper() not in ['MASK', 'DEC', 'COM', 'MASKDEC']:
@@ -83,9 +82,11 @@ def mask_rasterio(bin_dir, inoutcfg,
 
         cur_dict = dict()
         if type(inout[inidx]) is list:
-            cur_dict['-in'] = ','.join(inout[inidx])
-        elif isinstance(inout[inidx], string_types) and inout[inidx] != '':
-            cur_dict['-in'] = inout[inidx]
+            cur_dict['-in'] = ' '.join([str(i) for i in inout[inidx]])
+        elif isinstance(inout[inidx], string_types) and inout[inidx] != '' or isinstance(inout[inidx], pathlib.Path):
+            cur_dict['-in'] = str(inout[inidx])
+        else:
+            raise ValueError('Invalid input: %s' % inout[inidx])
         if outidx > 0 and inout[outidx] != '':
             cur_dict['-out'] = inout[outidx]
         if dvidx > 0:

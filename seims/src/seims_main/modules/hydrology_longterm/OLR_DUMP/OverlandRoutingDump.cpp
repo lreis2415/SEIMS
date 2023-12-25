@@ -3,7 +3,7 @@
 
 
 OverlandRoutingDump::OverlandRoutingDump():  
-    m_nCells(-1), m_timeStep(-1), m_cellArea(nullptr), m_isInitialized(false),
+    m_nCells(-1), m_cellArea(nullptr), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     m_Q_SBOF(nullptr), m_Q_SB_ZEROS(nullptr){
     SetModuleName(M_OLR_DUMP[0]);
@@ -15,26 +15,18 @@ OverlandRoutingDump::~OverlandRoutingDump() {
 }
 
 void OverlandRoutingDump::InitialOutputs() {
-    
-    if(m_isInitialized) return;
     Initialize1DArray(m_nSubbasins + 1, m_Q_SB_ZEROS, 0.);
     Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.);
-    
-    m_isInitialized = true;
 }
 
 bool OverlandRoutingDump::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "Input data is invalid. The size could not be less than zero.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
     return true;
 }
 
 void OverlandRoutingDump::SetValue(const char* key, int value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellSize[0])) m_nCells = value;
-    else if (StringMatch(sk, Tag_TimeStep[0])) m_timeStep = value;
     else if (StringMatch(sk, VAR_SUBBSNID_NUM[0])) m_nSubbasins = value;
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbasinId = value;
     else {
@@ -66,7 +58,6 @@ void OverlandRoutingDump::Set1DData(const char* key, const int n, FLTPT* data){
 void OverlandRoutingDump::Get1DData(const char *key, int *nRows, FLTPT **data) {
     string s(key);
     if (StringMatch(s, VAR_SBOF[0])) {*data = m_Q_SBOF;} 
-    else if (StringMatch(s, VAR_SBIF[0])) { *data = m_Q_SB_ZEROS; }
     else if (StringMatch(s, VAR_SBQG[0])) { *data = m_Q_SB_ZEROS; }
     else {
         throw ModelException(GetModuleName(), "getResult", "Result " + s +
@@ -105,7 +96,7 @@ int OverlandRoutingDump::Execute() {
 #pragma omp critical
         {
             for (int n = 1; n <= m_nSubbasins; n++) {
-                m_Q_SBOF[n] += tmp_qsSub[n] * 0.001 / m_timeStep;
+                m_Q_SBOF[n] += tmp_qsSub[n] * 0.001 / m_dt;
             }
         }
         delete[] tmp_qsSub;

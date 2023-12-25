@@ -23,7 +23,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     mdi.AddInput(VAR_POTENTIAL_MELT[0], UNIT_DEPTH_MM, VAR_POTENTIAL_MELT[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], Source_Module, DT_Raster1D);
-    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDUSE[0], UNIT_NON_DIM, VAR_LANDUSE[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddOutput(VAR_GLAC_MELT[0], UNIT_DEPTH_MM, VAR_GLAC_MELT[1], DT_Raster1D);
 
     string res = mdi.GetXMLDocument();

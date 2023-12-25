@@ -375,6 +375,7 @@ CONST_CHARS_LIST MCLS_INTERFLOW[] = {"Interflow (subsurface flow) routing", "Int
 CONST_CHARS_LIST M_IKW_IF[] = {"IKW_IF", "interflow routing using the method of WetSpa model."}; ///< TODO rewrite the desc
 CONST_CHARS_LIST M_IUH_IF[] = {"IUH_IF", "IUH overland method to calculate interflow routing."}; ///<
 CONST_CHARS_LIST M_SSR_DA[] = {"SSR_DA", "Darcy's law and the kinematic approximation."}; ///<
+CONST_CHARS_LIST M_IF_PRMS[] = {"IF_PRMS", "Interflow by the PRMS method."}; ///<
 
 // Percolation related modules
 CONST_CHARS_LIST MCLS_PERCO[] = {"Percolation", "Water percolated out of the root zone."}; ///<
@@ -420,6 +421,8 @@ CONST_CHARS_LIST MCLS_OL_ROUTING[] = {"Overland routing", "Overland routing modu
 CONST_CHARS_LIST M_IKW_OL[] = {"IKW_OL", "Overland routing using 4-point implicit finite difference method."}; ///<
 CONST_CHARS_LIST M_IUH_OL[] = {"IUH_OL", "IUH overland method to calculate overland flow routing."}; ///<
 CONST_CHARS_LIST M_OLR_DUMP[] = {"OLR_DUMP", "Directly dump all surface runoff to channel."}; ///<
+CONST_CHARS_LIST M_OLR_CIUH[] = {"OLR_CIUH", "OverLand Routing, conceptual unit hydrograph. Base class."}; ///<
+CONST_CHARS_LIST M_OLR_CIUH_GAMMA[] = {"OLR_CIUH_GAMMA", "OverLand Routing, conceptual unit hydrograph by GAMMA function."}; ///<
 
 // Channel routing related modules
 CONST_CHARS_LIST MCLS_CH_ROUTING[] = {"Channel routing", "Channel routing modules"}; ///<
@@ -1171,6 +1174,12 @@ CONST_CHARS_LIST VAR_GR4J_X2[] = {"GR4J_X2", "The 2nd parameter of GR4J model. P
 CONST_CHARS_LIST VAR_GR4J_X3[] = {"GR4J_X3", "The 3rd parameter of GR4J model. Routing store capacity."}; /// m_GR4J_X3
 CONST_CHARS_LIST VAR_GR4J_X4[] = {"GR4J_X4", "The 4th parameter of GR4J model. Unit hydrograph time constant."}; /// m_GR4J_X4
 
+CONST_CHARS_LIST VAR_GAMMA_SCALE[] = {"GAMMA_SCALE", "Scale parameter of gamma distribution."}; /// m_gammaScale
+CONST_CHARS_LIST VAR_GAMMA_SHAPE[] = {"GAMMA_SHAPE", "Shape parameter of gamma distribution."}; /// m_gammaShape
+
+
+CONST_CHARS_LIST VAR_MAX_IF_RATE[] = {"MAX_IF_RATE", "Maximum interflow rate. Primarily used in IF_PRMS. mm/day"}; /// m_maxIfRate
+
 //////////////////////////////////////////////////////////////////////////
 //Melt factor for snow/glacier
 //parameters
@@ -1301,4 +1310,10 @@ CONST_CHARS MONG_SITELIST_DB =                      "DB";
 //#define HEADER_RS_SRS                          "SRS"
 
 #define OUTPUT_ICELL 1000;
+
+CONST_CHARS CONV_BASE = "CONV_BASE";
+CONST_CHARS CONV_GR4J_SLOW = "CONV_GR4J_SLOW";
+CONST_CHARS CONV_GR4J_FAST = "CONV_GR4J_FAST";
+CONST_CHARS CONV_GAMMA = "CONV_GAMMA";
+
 #endif

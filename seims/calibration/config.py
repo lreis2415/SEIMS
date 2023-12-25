@@ -9,9 +9,11 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import glob
 from configparser import ConfigParser
 import os
 import sys
+import shutil
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -57,6 +59,11 @@ class CaliConfig(object):
         self.opt = None
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
+
+        shutil.copy(self.param_range_def, self.opt.out_dir)
+        structure_files = glob.glob(os.path.join(self.model.model_dir, 'structure*.config'))
+        for sf in structure_files:
+            shutil.copy(sf, self.opt.out_dir)
 
         logger.configure_logging(log_file_prefix='calibration')
         # 4. (Optional) Plot settings for matplotlib

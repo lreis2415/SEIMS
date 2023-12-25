@@ -73,11 +73,11 @@ int RainSnowHBV::Execute() {
     FLTPT s3 = 0;
     for (int i = 0; i < m_nCells; i++) {
         s1 += m_pcp[i];
-        s2 += m_snowLiq[i];
+        s2 += m_snowfall[i];
         s3 += m_t_mean[i];
     }
     s3/=m_nCells;
-    printf("[RAINSNOW_HBV] T_mean=%f, pcp=%f, snowLiq=%f\n", s3, s1, s2);
+    printf("[RAINSNOW_HBV] T_mean=%f, pcp=%f, snowfall=%f\n", s3, s1, s2);
     fflush(stdout);
 #endif // PRINT_DEBUG
     return 0;

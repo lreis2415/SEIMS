@@ -236,3 +236,6 @@ Glacier,GLAC_STOR_COEF,Glacier storage coefficient,none,GREL_SIMPLE,0.1,0,AC,1,0
 Glacier,HBV_GLACIER_KMIN,Glacier minimum melt factor for HBV,mm/deg C/day,GREL_HBV,0.05,0,AC,-9999,-9999,FLT
 Glacier,HBV_GLACIER_AG,extinction coefficient for diminishing storage coefficient for HBV,mm/deg C/day,GREL_HBV,0.05,0,AC,-9999,-9999,FLT
 Glacier,HBV_GLAC_MELT_CORR,Correction factor for glacier melt,none,GMELT_HBV,1,0,AC,-9999,-9999,FLT
+Interflow,MAX_IF_RATE,Maximum interflow rate,mm/day,IF_PRMS,500,1,RC,-9999,-9999,FLT
+Discharge,GAMMA_SCALE,Scale parameter for gamma distribution,none,ALL,1,1,RC,-9999,-9999,FLT
+Discharge,GAMMA_SHAPE,Shape parameter for gamma distribution,none,ALL,3,1,RC,10,0.1,FLT

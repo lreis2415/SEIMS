@@ -6,7 +6,7 @@ m_nCells(-1),
 m_canopyStorage(nullptr),
 m_canopyEvaporation(nullptr)
 {
-    SetModuleName(VAR_CANSTOR[0]);
+    SetModuleName(M_CAN_EVAP[0]);
 }
 
 void CanopyEvaporation::InitialOutputs() {

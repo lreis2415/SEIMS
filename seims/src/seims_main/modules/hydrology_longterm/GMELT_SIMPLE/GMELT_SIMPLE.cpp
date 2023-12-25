@@ -39,7 +39,7 @@ void GMELT_SIMPLE::Set1DData(const char* key, int n, FLTPT* data) {
 }
 void GMELT_SIMPLE::Set1DData(const char* key, int n, int* data) {
     string sk(key);
-    if (StringMatch(sk, VAR_LANDUSE[0])) { m_landuse = data; }
+    if (StringMatch(sk, VAR_LANDUSE[0])) { m_landuse = data; }              
     else {
         throw ModelException(GetModuleName(), "Set1DData", "Parameter " + sk
             + " does not exist in current module. Please contact the module developer.");
@@ -63,7 +63,7 @@ bool GMELT_SIMPLE::CheckInputSize(const char* key, int n) {
 int GMELT_SIMPLE::Execute() {
     CheckInputData();
     InitialOutputs();
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (IsGlacier(m_landuse[i])) {
             Flush(m_excessPcp[i],m_glacMelt[i]);
