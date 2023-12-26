@@ -46,84 +46,55 @@ class SoilPropertyPhysical(SoilPropertyBase):
         """
         super().__init__(seq_num, seq_name)
 
-
-
     @staticmethod
     def soil_param_type():
         return ParamAbstractionTypes.PHYSICAL
 
+    def _add_default_septic_layer(self, dep_new=10.):
+        """
+        For every `list` type soil property,
+        add a septic layer at the top of soil profile whose value is the same as the first layer.
+        """
+        self.SOILLAYERS += 1
+        for k, v in self.__dict__.items():
+            if isinstance(v, list) and v:
+                v.insert(0, v[0])
+        self.SOL_Z[0] = dep_new
+
     def _add_septic_layer(self):
         # set a soil layer at dep_new and adjust all lower layers
         # add a septic layer:0-10mm, refers to layersplit.f in SWAT
-        dep_new = 10.
-        if self.SOL_Z[0] - dep_new >= 10.:
-            self.SOILLAYERS += 1
-            # Required attributes
-            self.SOL_Z.insert(0, dep_new)
-            if self.SOL_OM:
-                self.SOL_OM.insert(0, self.SOL_OM[0])
-            else:
-                raise ValueError("Organic matter must be provided!")
-            if self.SOL_CLAY:
-                self.SOL_CLAY.insert(0, self.SOL_CLAY[0])
-            else:
-                raise ValueError("Clay content must be provided!")
-            if self.SOL_SILT:
-                self.SOL_SILT.insert(0, self.SOL_SILT[0])
-            else:
-                raise ValueError("Silt content must be provided!")
-            if self.SOL_SAND:
-                self.SOL_SAND.insert(0, self.SOL_SAND[0])
-            else:
-                raise ValueError("Sand content must be provided!")
-            if self.SOL_ROCK:
-                self.SOL_ROCK.insert(0, self.SOL_ROCK[0])
-            else:
-                raise ValueError("Rock content must be provided!")
-            # Optional attributes
-            if self.SOL_FC:
-                self.SOL_FC.insert(0, self.SOL_FC[0])
-            if self.SOL_BD:
-                self.SOL_BD.insert(0, self.SOL_BD[0])
-            if self.SOL_K:
-                self.SOL_K.insert(0, self.SOL_K[0])
-            if self.SOL_WP:
-                self.SOL_WP.insert(0, self.SOL_WP[0])
-            if self.SOL_AWC:
-                self.SOL_AWC.insert(0, self.SOL_AWC[0])
-                for i in range(self.SOILLAYERS):
-                    if self.SOL_AWC[i] <= 0.:
-                        self.SOL_AWC[i] = 0.005
-                    elif self.SOL_AWC[i] <= 0.01:
-                        self.SOL_AWC[i] = 0.01
-                    elif self.SOL_AWC[i] >= 0.8:
-                        self.SOL_AWC[i] = 0.8
-            if self.SOL_POROSITY:
-                self.SOL_POROSITY.insert(0, self.SOL_POROSITY[0])
-            if self.USLE_K:
-                self.USLE_K.insert(0, self.USLE_K[0])
-            if self.SOL_NO3:
-                self.SOL_NO3.insert(0, self.SOL_NO3[0])
-            else:
-                self.SOL_NO3 = list(numpy.zeros(self.SOILLAYERS))
-            if self.SOL_NH4:
-                self.SOL_NH4.insert(0, self.SOL_NH4[0])
-            else:
-                self.SOL_NH4 = list(numpy.zeros(self.SOILLAYERS))
-            if self.SOL_ORGN:
-                self.SOL_ORGN.insert(0, self.SOL_ORGN[0])
-            else:
-                self.SOL_ORGN = list(numpy.zeros(self.SOILLAYERS))
-            if self.SOL_SOLP:
-                self.SOL_SOLP.insert(0, self.SOL_SOLP[0])
-            else:
-                self.SOL_SOLP = list(numpy.zeros(self.SOILLAYERS))
-            if self.SOL_ORGP:
-                self.SOL_ORGP.insert(0, self.SOL_ORGP[0])
-            else:
-                self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
+        septic_depth = 10.
+        if self.SOL_Z[0] < 2 * septic_depth:
+            return
+        self.check_layers(self.SOL_OM, is_required=True, nodata_allowed=False)
+        self.check_layers(self.SOL_CLAY, is_required=True, nodata_allowed=False)
+        self.check_layers(self.SOL_SILT, is_required=True, nodata_allowed=False)
+        self.check_layers(self.SOL_SAND, is_required=True, nodata_allowed=False)
+        self.check_layers(self.SOL_ROCK, is_required=True, nodata_allowed=False)
+        self._add_default_septic_layer(septic_depth)
 
-    def _pre_construct(self,*args, **kwargs):
+        if self.SOL_AWC:
+            for i in range(self.SOILLAYERS):
+                if self.SOL_AWC[i] <= 0.:
+                    self.SOL_AWC[i] = 0.005
+                elif self.SOL_AWC[i] <= 0.01:
+                    self.SOL_AWC[i] = 0.01
+                elif self.SOL_AWC[i] >= 0.8:
+                    self.SOL_AWC[i] = 0.8
+
+        if not self.SOL_NO3:
+            self.SOL_NO3 = list(numpy.zeros(self.SOILLAYERS))
+        if not self.SOL_NH4:
+            self.SOL_NH4 = list(numpy.zeros(self.SOILLAYERS))
+        if not self.SOL_ORGN:
+            self.SOL_ORGN = list(numpy.zeros(self.SOILLAYERS))
+        if not self.SOL_SOLP:
+            self.SOL_SOLP = list(numpy.zeros(self.SOILLAYERS))
+        if not self.SOL_ORGP:
+            self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
+
+    def _pre_construct(self, *args, **kwargs):
         """
         Pre-construct the soil parameters.
         args:
