@@ -6,7 +6,7 @@ CanopySublimation::CanopySublimation():
     m_canopySnowStorage(nullptr),
     m_canopySublimation(nullptr)
     {
-        SetModuleName(M_CAN_SUBLIMATION[0]);
+        SetModuleName(M_CANSLM[0]);
     }
 
 void CanopySublimation::InitialOutputs() {

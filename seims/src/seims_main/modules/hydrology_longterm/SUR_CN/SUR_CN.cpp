@@ -2,12 +2,12 @@
 #include "text.h"
 
 SUR_CN::SUR_CN(void) : m_nCells(-1), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE), m_T0(NODATA_VALUE),
-                       m_Sfrozen(NODATA_VALUE),
-                       m_cn2(NULL), m_initSoilMoisture(NULL), m_rootDepth(NULL),
-                       m_soilDepth(NULL), m_porosity(NULL), m_fieldCap(NULL), m_wiltingPoint(NULL),
-                       m_P_NET(NULL), m_SD(NULL), m_tMean(NULL), m_TS(NULL), m_SM(NULL), m_SA(NULL),
-                       m_PE(NULL), m_INFIL(NULL), m_soilMoisture(NULL),
-                       m_w1(NULL), m_w2(NULL), m_sMax(NULL) {
+                       m_Sfrozen(NODATA_VALUE), m_upSoilDepth(nullptr),
+                       m_cn2(nullptr), m_initSoilMoisture(nullptr), m_rootDepth(nullptr),
+                       m_soilDepth(nullptr), m_porosity(nullptr), m_fieldCap(nullptr), m_wiltingPoint(nullptr),
+                       m_P_NET(nullptr), m_SD(nullptr), m_tMean(nullptr), m_TS(nullptr), m_SM(nullptr), m_SA(nullptr),
+                       m_PE(nullptr), m_INFIL(nullptr), m_soilMoisture(nullptr), m_soilWtrStoPrfl(nullptr),
+                       m_w1(nullptr), m_w2(nullptr), m_sMax(nullptr) {
     // replaced by m_upSoilDepth. LJ
     //m_depth[0] = 10.f;
     //m_depth[1] = 90.f;
@@ -19,6 +19,7 @@ SUR_CN::~SUR_CN(void) {
     Release1DArray(m_PE);
     Release1DArray(m_INFIL);
     Release2DArray(m_soilMoisture);
+    Release1DArray(m_soilWtrStoPrfl);
     /// clean up temporary variables
     Release1DArray(m_w1);
     Release1DArray(m_w2);
@@ -26,139 +27,69 @@ SUR_CN::~SUR_CN(void) {
 }
 
 bool SUR_CN::CheckInputData(void) {
-    if (m_date < 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "You have not set the time.");
-        return false;
-    }
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The cell number of the input can not be less than zero.");
-        return false;
-    }
-    if (FloatEqual(m_Sfrozen, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The frozen soil moisture of the input data can not be NULL.");
-        return false;
-    }
-    if (FloatEqual(m_Tsnow, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The snowfall temperature of the input data can not be NULL.");
-        return false;
-    }
-    if (FloatEqual(m_Tsoil, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The soil freezing temperature of the input data can not be NULL.");
-        return false;
-    }
-    if (FloatEqual(m_T0, NODATA_VALUE)) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The snowmelt threshold temperature of the input data can not be NULL.");
-        return false;
-    }
-    if (m_cn2 == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The CN under moisture condition II of the input data can not be NULL.");
-        return false;
-    }
-    if (m_initSoilMoisture == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The initial soil moisture or soil moisture of the input data can not be NULL.");
-        return false;
-    }
-    if (m_rootDepth == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The root depth of the input data can not be NULL.");
-        return false;
-    }
-    if (m_soilDepth == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil depth of the input data can not be NULL.");
-        return false;
-    }
-    if (m_porosity == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil porosity of the input data can not be NULL.");
-        return false;
-    }
-    if (m_fieldCap == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The water content of soil at field capacity of the input data can not be NULL.");
-        return false;
-    }
-    if (m_wiltingPoint == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The plant wilting point moisture of the input data can not be NULL.");
-        return false;
-    }
-    if (m_P_NET == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The net precipitation of the input data can not be NULL.");
-        return false;
-    }
-    if (m_tMean == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The mean air temperature of the input data can not be NULL.");
-        return false;
-    }
-    if (m_TS == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The soil temperature of the input data can not be NULL.");
-        return false;
-    }
-    if (m_SD == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The depression storage of the input data can not be NULL.");
-        return false;
-    }
-    if (m_SM == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The snow melt of the input data can not be NULL.");
-        return false;
-    }
-    if (m_SA == NULL) {
-        throw ModelException(GetModuleName(), "CheckInputData", "The snow accumulation of the input data can not be NULL.");
-        return false;
-    }
+    CHECK_POSITIVE(GetModuleName(), m_date);
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+
+    CHECK_NODATA(GetModuleName(), m_Sfrozen);
+    CHECK_NODATA(GetModuleName(), m_Tsnow);
+    CHECK_NODATA(GetModuleName(), m_Tsoil);
+    CHECK_NODATA(GetModuleName(), m_T0);
+
+    CHECK_POINTER(GetModuleName(), m_cn2);
+    CHECK_POINTER(GetModuleName(), m_initSoilMoisture);
+    CHECK_POINTER(GetModuleName(), m_rootDepth);
+    CHECK_POINTER(GetModuleName(), m_soilDepth);
+    CHECK_POINTER(GetModuleName(), m_porosity);
+    CHECK_POINTER(GetModuleName(), m_fieldCap);
+    CHECK_POINTER(GetModuleName(), m_wiltingPoint);
+    CHECK_POINTER(GetModuleName(), m_P_NET);
+    CHECK_POINTER(GetModuleName(), m_tMean);
+    CHECK_POINTER(GetModuleName(), m_TS);
+    CHECK_POINTER(GetModuleName(), m_SD);
+    CHECK_POINTER(GetModuleName(), m_SM);
+    CHECK_POINTER(GetModuleName(), m_SA);
     return true;
 }
 
 void SUR_CN:: InitialOutputs() {
-    if (m_nCells <= 0) {
-        throw ModelException(GetModuleName(), "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
     // allocate the output variables
-    if (m_PE == NULL) {
-        m_PE = new float[m_nCells];
-        m_INFIL = new float[m_nCells];
-
-        m_soilMoisture = new float *[m_nCells];
-#pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            m_PE[i] = 0.0f;
-            m_INFIL[i] = 0.0f;
-
-            m_soilMoisture[i] = new float[m_nSoilLayers];
-            for (int j = 0; j < m_nSoilLayers; j++) {
-                m_soilMoisture[i][j] = m_initSoilMoisture[i] * m_fieldCap[i][j];
-            }
-        }
-        initalW1W2();
+    if (m_PE != nullptr) {
+        return;
     }
+    CHECK_POSITIVE(GetModuleName(), m_nCells);
+    Initialize1DArray(m_nCells, m_PE, 0);
+    Initialize1DArray(m_nCells, m_INFIL, 0);
+    Initialize1DArray(m_nCells, m_soilWtrStoPrfl, 0);
+    Initialize2DArray(m_nCells, m_nSoilLayers, m_soilMoisture, 0);
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        for (int j = 0; j < m_nSoilLayers; j++) {
+            m_soilMoisture[i][j] = m_initSoilMoisture[i] * m_fieldCap[i][j];
+            m_soilWtrStoPrfl[i] += m_soilMoisture[i][j];
+        }
+    }
+    initalW1W2();
 }
 
 int SUR_CN::Execute() {
     CheckInputData();
     InitialOutputs();
 
-    float cnday;
-    float pNet, surfq, infil;
 
 #pragma omp parallel for
     for (int iCell = 0; iCell < m_nCells; iCell++) {
         //initialize the variables
-        surfq = 0.0f;
-        infil = 0.0f;
-        pNet = 0.0f;
-        float pcp = m_P_NET[iCell];  //rainfall - interception
-        float dep = 0.0f;  //depression storage
-        float snm = 0.0f;  //snowmelt
-        float t = 0.0f;  // air temperature
+        FLTPT cnday = 0;
+        FLTPT pNet = 0;
+        FLTPT surfq = 0;
+        FLTPT infil = 0;
+        FLTPT pcp = m_P_NET[iCell];  //rainfall - interception
+        FLTPT dep = 0.0f;  //depression storage
+        FLTPT snm = 0.0f;  //snowmelt
+        FLTPT t = 0.0f;  // air temperature
 
         //set values to variables
-        if (m_SD == NULL)        // the depression storage module is not available, set the initial depression storage
+        if (m_SD == nullptr)        // the depression storage module is not available, set the initial depression storage
         {
             //dep = m_Depre_in * m_Depression[iCell];
             dep = 0.f;
@@ -166,7 +97,7 @@ int SUR_CN::Execute() {
             dep = m_SD[iCell];
         }
 
-        if (m_SM == NULL) {
+        if (m_SM == nullptr) {
             snm = 0.f;
         } else {
             snm = m_SM[iCell];
@@ -181,7 +112,7 @@ int SUR_CN::Execute() {
             //m_SA[iCell] += pcp;
         }
             // rain on snow, no snow melt
-        else if (t > m_Tsnow && t <= m_T0 && m_SA != NULL && m_SA[iCell] > pcp) {
+        else if (t > m_Tsnow && t <= m_T0 && m_SA != nullptr && m_SA[iCell] > pcp) {
             pNet = 0.0f;
             //m_SA[iCell] += pcp;
         } else {
@@ -189,9 +120,9 @@ int SUR_CN::Execute() {
         }
 
         if (pNet > 0.0f) {
-            float sm = 0.f;
-            float por = 0.f;
-            //float aboveDepth = 0.f;
+            FLTPT sm = 0.f;
+            FLTPT por = 0.f;
+            //FLTPT aboveDepth = 0.f;
 
             int curSoilLayers = -1, j;
             m_upSoilDepth[0] = m_soilDepth[iCell][0];
@@ -228,8 +159,8 @@ int SUR_CN::Execute() {
                 //for CN method
             else {
                 cnday = Calculate_CN(sm, iCell);
-                float bb, pb;
-                float s = 0.0f;
+                FLTPT bb, pb;
+                FLTPT s = 0.0f;
                 bb = 0.0f;
                 pb = 0.0f;
                 s = 25400.0f / cnday - 254.0f;
@@ -276,7 +207,7 @@ bool SUR_CN::CheckInputSize(const char *key, int n) {
     return SimulationModule::CheckInputSize(key, n, m_nCells);
 }
 
-void SUR_CN::SetValue(const char *key, float value) {
+void SUR_CN::SetValue(const char *key, FLTPT value) {
     string sk(key);
     if (StringMatch(sk, VAR_T_SNOW[0])) { m_Tsnow = value; }
     else if (StringMatch(sk, VAR_T_SOIL[0])) { m_Tsoil = value; }
@@ -289,7 +220,7 @@ void SUR_CN::SetValue(const char *key, float value) {
     }
 }
 
-void SUR_CN::Set1DData(const char *key, int n, float *data) {
+void SUR_CN::Set1DData(const char *key, int n, FLTPT *data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_CN2[0])) { m_cn2 = data; }
@@ -308,7 +239,7 @@ void SUR_CN::Set1DData(const char *key, int n, float *data) {
     }
 }
 
-void SUR_CN::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void SUR_CN::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     string sk(key);
     m_nSoilLayers = ncols;
     if (StringMatch(sk, VAR_SOILDEPTH[0])) { m_soilDepth = data; }
@@ -321,11 +252,12 @@ void SUR_CN::Set2DData(const char *key, int nrows, int ncols, float **data) {
     }
 }
 
-void SUR_CN::Get1DData(const char *key, int *n, float **data) {
+void SUR_CN::Get1DData(const char *key, int *n, FLTPT **data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_INFIL[0])) { *data = m_INFIL; }
     else if (StringMatch(sk, VAR_EXCP[0])) { *data = m_PE; }
+    else if (StringMatch(sk, VAR_SOL_SW[0])) { *data = m_soilWtrStoPrfl; }
     else {
         throw ModelException(GetModuleName(), "Get1DData",
                              "Result " + sk +
@@ -334,7 +266,7 @@ void SUR_CN::Get1DData(const char *key, int *n, float **data) {
     *n = m_nCells;
 }
 
-void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data) {
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;
@@ -345,8 +277,8 @@ void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     }
 }
 
-float SUR_CN::Calculate_CN(float sm, int cell) {
-    float sw, s, CNday, xx;
+FLTPT SUR_CN::Calculate_CN(FLTPT sm, int cell) {
+    FLTPT sw, s, CNday, xx;
 
     s = 0.;
     sw = sm * m_rootDepth[cell];
@@ -366,17 +298,18 @@ float SUR_CN::Calculate_CN(float sm, int cell) {
 }
 
 void SUR_CN::initalW1W2() {
-    m_w1 = new float[m_nCells];
-    m_w2 = new float[m_nCells];
-    m_sMax = new float[m_nCells];
-    if (m_upSoilDepth == NULL) {
-        m_upSoilDepth = new float[m_nSoilLayers];
+    m_w1 = new FLTPT[m_nCells];
+    m_w2 = new FLTPT[m_nCells];
+    m_sMax = new FLTPT[m_nCells];
+    if (m_upSoilDepth == nullptr) {
+        m_upSoilDepth = new FLTPT[m_nSoilLayers];
     }
 
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        float fieldcap = 0.f;
-        float wsat = 0.f;
-        //float aboveDepth = 0.f;
+        FLTPT fieldcap = 0.f;
+        FLTPT wsat = 0.f;
+        //FLTPT aboveDepth = 0.f;
         ///// add by LJ.
         int curSoilLayers = -1, j;
         m_upSoilDepth[0] = m_soilDepth[i][0];
@@ -397,10 +330,10 @@ void SUR_CN::initalW1W2() {
         /* fieldcap += m_fieldCap[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);
          wsat += m_porosity[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);*/
 
-        float cnn = m_cn2[i];
-        //float fieldcap = m_fieldCap[i] * m_rootDepth[i];
-        //float wsat = m_porosity[i] * m_rootDepth[i];
-        float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
+        FLTPT cnn = m_cn2[i];
+        //FLTPT fieldcap = m_fieldCap[i] * m_rootDepth[i];
+        //FLTPT wsat = m_porosity[i] * m_rootDepth[i];
+        FLTPT c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
         c1 = cnn - 20.f * c2 / (c2 + CalExp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
         c1 = Max(c1, 0.4f * cnn);
@@ -428,10 +361,10 @@ void SUR_CN::initalW1W2() {
 
 /// TODO: These code should be coupled to SUR_CN module. By LJ.
 /// curno.f in SWAT
-//float smxOld;
+//FLTPT smxOld;
 //if(m_CN1[i] > UTIL_ZERO)
 //	smxOld = 254. * (100. / m_CN1[i] - 1.);
-//float c2 = 0.f, c3 = 0.f;
+//FLTPT c2 = 0.f, c3 = 0.f;
 //m_CN3[i] = 0.f;
 //m_CN1[i] = 0.f;
 ///// calculate moisture condition I and III curve numbers
@@ -444,14 +377,14 @@ void SUR_CN::initalW1W2() {
 //m_reCoefSoilMois[i] = 254. * (100. / m_CN1[i] - 1.);
 
 //// calculate retention parameter value for CN3
-//float s3 = 254. * (100. / m_CN3[i] - 1.);
+//FLTPT s3 = 254. * (100. / m_CN3[i] - 1.);
 
 //// calculate fraction difference in retention parameters
-//float rto3 = 0.f, rtos = 0.f;
+//FLTPT rto3 = 0.f, rtos = 0.f;
 //rto3 = 1. - s3 / m_reCoefSoilMois[i];
 //rtos = 1. - 2.54 / m_reCoefSoilMois[i];
 ///// calculate shape parameters
-//float *w1, *w2;
+//FLTPT *w1, *w2;
 //getScurveShapeParameter(rto3, rtos, m_soilSumFC[i], m_soilSumUl[i], w1, w2);
 //if(m_yearIdx < 0) /// in SWAT, curyr is from 1 to nbyr. in SEIMS, m_yearIdx is start from 0
 //	m_reCoefCN[i] = 0.9 * m_reCoefSoilMois[i];

@@ -12,10 +12,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     mdi.SetAuthor("Yujing Wang");
     mdi.SetClass(MCLS_INTERC[0], MCLS_INTERC[1]);
-    mdi.SetDescription(M_CAN_EVAP[1]);
+    mdi.SetDescription(M_CANEVAP[1]);
     mdi.SetEmail("");
-    mdi.SetID(M_CAN_EVAP[0]);
-    mdi.SetName(M_CAN_EVAP[0]);
+    mdi.SetID(M_CANEVAP[0]);
+    mdi.SetName(M_CANEVAP[0]);
     mdi.SetVersion("1");
     mdi.SetWebsite("");
     mdi.SetHelpfile("CanopyEvaporation.chm");

@@ -6,7 +6,7 @@ m_nCells(-1),
 m_canopyStorage(nullptr),
 m_canopyEvaporation(nullptr)
 {
-    SetModuleName(M_CAN_EVAP[0]);
+    SetModuleName(M_CANEVAP[0]);
 }
 
 void CanopyEvaporation::InitialOutputs() {
@@ -22,7 +22,7 @@ void CanopyEvaporation::Set1DData(const char* key, int n, FLTPT* data) {
 
     if (StringMatch(sk, GetModuleName())) { m_canopyStorage = data; }
     else {
-        throw ModelException(M_CAN_EVAP[0], "Set1DData", "Parameter " + sk
+        throw ModelException(M_CANEVAP[0], "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -32,7 +32,7 @@ bool CanopyEvaporation::CheckInputSize(const char* key, int n) {
 }
 
 bool CanopyEvaporation::CheckInputData(void) {
-    CHECK_POINTER(M_CAN_EVAP[0], m_canopyStorage);
+    CHECK_POINTER(M_CANEVAP[0], m_canopyStorage);
     return true;
 }
 
@@ -41,7 +41,7 @@ void CanopyEvaporation::Get1DData(const char* key, int* n, FLTPT** data) {
     *n = m_nCells;
     if (StringMatch(sk, VAR_CANEVAP[0])) { *data = m_canopyEvaporation; }
     else {
-        throw ModelException(M_CAN_EVAP[0], "Get1DData", "Output " + sk
+        throw ModelException(M_CANEVAP[0], "Get1DData", "Output " + sk
                              + " does not exist in current module. Please contact the module developer.");
     }
 }

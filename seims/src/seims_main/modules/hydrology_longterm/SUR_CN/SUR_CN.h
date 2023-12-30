@@ -52,95 +52,97 @@ public:
     //! Destructor
     ~SUR_CN(void);
 
-    virtual int Execute(void);
+    virtual int Execute(void) OVERRIDE;
 
-    virtual void SetValue(const char *key, float data);
+    virtual void SetValue(const char *key, FLTPT data) OVERRIDE;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, FLTPT *data) OVERRIDE;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data) OVERRIDE;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    virtual void Get1DData(const char *key, int *n, FLTPT **data) OVERRIDE;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char *key, int n) OVERRIDE;
 
-    bool CheckInputData(void);
+    bool CheckInputData(void) OVERRIDE;
+
+    void InitialOutputs(void) OVERRIDE;
 
 private:
     /// number of soil layers, i.e., the maximum soil layers number of all soil types
     int m_nSoilLayers;
     /// soil depth
-    float **m_soilDepth;
+    FLTPT **m_soilDepth;
     ///// depth of the up two layers(The depth are 10mm and 100 mm, respectively).
-    //float m_depth[2];
-    /// soil depth of the current layer, replace float m_depth[2] in previous version.
-    float *m_upSoilDepth;
+    //FLTPT m_depth[2];
+    /// soil depth of the current layer, replace FLTPT m_depth[2] in previous version.
+    FLTPT *m_upSoilDepth;
     /// valid cells number
     int m_nCells;
     /// soil porosity
-    float **m_porosity;
+    FLTPT **m_porosity;
     /// water content of soil at field capacity
-    float **m_fieldCap;
+    FLTPT **m_fieldCap;
     /// plant wilting point moisture
-    float **m_wiltingPoint;
+    FLTPT **m_wiltingPoint;
 
     /// root depth of plants (mm)
-    float *m_rootDepth;
+    FLTPT *m_rootDepth;
     /// CN under moisture condition II
-    float *m_cn2;
+    FLTPT *m_cn2;
     /// Net precipitation calculated in the interception module (mm)
-    float *m_P_NET;
+    FLTPT *m_P_NET;
     /// Initial soil moisture
-    float *m_initSoilMoisture;
+    FLTPT *m_initSoilMoisture;
 
     /// depression storage
-    float *m_SD;    // SD(t-1) from the depression storage module
+    FLTPT *m_SD;    // SD(t-1) from the depression storage module
     /// from interpolation module
     /// mean air temperature of the current day
-    float *m_tMean;
+    FLTPT *m_tMean;
     /// snowfall temperature from the parameter database (deg C)
-    float m_Tsnow;
+    FLTPT m_Tsnow;
     /// threshold soil freezing temperature (deg C)
-    float m_Tsoil;
+    FLTPT m_Tsoil;
     /// frozen soil moisture relative to saturation above which no infiltration occur (m3/m3)
-    float m_Sfrozen;
+    FLTPT m_Sfrozen;
     /// snowmelt threshold temperature from the parameter database (deg C)
-    float m_T0;
+    FLTPT m_T0;
     /// snowmelt from the snowmelt module  (mm)
-    float *m_SM;
+    FLTPT *m_SM;
     /// snow accumulation from the snow balance module (mm) at t+1 timestep
-    float *m_SA;
+    FLTPT *m_SA;
     /// soil temperature obtained from the soil temperature module (deg C)
-    float *m_TS;
+    FLTPT *m_TS;
 
     /// Julian day, not used? by LJ
     //int m_julianDay;
 
     // output
     /// the excess precipitation (mm) of the total nCells
-    float *m_PE;
+    FLTPT *m_PE;
     /// soil moisture of each soil layer in current time step
-    float **m_soilMoisture;
+    FLTPT **m_soilMoisture;
     /// infiltration map of watershed (mm) of the total nCells
-    float *m_INFIL;
+    FLTPT *m_INFIL;
 
+    /// soil water storage in soil profile (mm)
+    FLTPT* m_soilWtrStoPrfl;
     //add by Zhiqiang
     /// the first shape coefficient in eq. 2:1.1.7 and 2:1.1.8 in SWAT theory 2009, p104
-    float *m_w1;
+    FLTPT *m_w1;
     /// the second shape coefficient in eq. 2:1.1.7 and 2:1.1.8 in SWAT theory 2009, p104
-    float *m_w2;
+    FLTPT *m_w2;
     /// the retention parameter for the moisture condition I curve number
-    float *m_sMax;
+    FLTPT *m_sMax;
 
     /// initialize m_w1 and m_w2
     void initalW1W2(void);
 
     /// Calculation SCS-CN number
-    float Calculate_CN(float sm, int cell);
-
-    /// initial outputs before execute main function
-    void InitialOutputs(void);
+    FLTPT Calculate_CN(FLTPT sm, int cell);
+    
 };
 #endif /* SEIMS_SUR_CN_H */

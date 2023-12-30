@@ -101,6 +101,15 @@ class TimeSeriesPlots(object):
 
         self.sim_data_dict = None
 
+    def is_date_continuous(self, dates:list[datetime]):
+        """Check if the dates are continuous."""
+        if not dates:
+            return False
+        for i in range(1, len(dates)):
+            if dates[i] - dates[i - 1] != self.interval:
+                return False
+        return True
+
     def init_plot_vals(self, sim_data=None):
         # Set start time and end time of both calibration and validation periods
         start = self.stime
@@ -202,12 +211,12 @@ class TimeSeriesPlots(object):
             if self.vali_sim_obs_dict and param in self.vali_sim_obs_dict:
                 obs_dates += self.vali_sim_obs_dict[param][DataValueFields.utc]
                 obs_values += self.vali_sim_obs_dict[param]['Obs']
-            if obs_values:
-                # TODO: if the observed data is continuous with datetime, plot line, otherwise, bar.
+            if obs_values and not self.is_date_continuous(obs_dates):
                 # bar graph
-                # p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
-                #             edgecolor='black',
-                #             linewidth=0.5, align='center', hatch='//')
+                p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
+                            edgecolor='black',
+                            linewidth=0.5, align='center', hatch='//')
+            elif obs_values and self.is_date_continuous(obs_dates):
                 # # line graph
                 p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
                              markersize=1, linewidth=0.5)

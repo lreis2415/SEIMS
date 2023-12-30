@@ -375,18 +375,28 @@ class SoilPropertyPhysical(SoilPropertyBase):
         if self.SOL_NO3 and len(self.SOL_NO3) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_NO3[j] = self.SOL_NO3[j] * wt1[j]
+        else:
+            self.SOL_NO3 = list(numpy.zeros(self.SOILLAYERS))
         if self.SOL_NH4 and len(self.SOL_NH4) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_NH4[j] = self.SOL_NH4[j] * wt1[j]
+        else:
+            self.SOL_NH4 = list(numpy.zeros(self.SOILLAYERS))
         if self.SOL_ORGN and len(self.SOL_ORGN) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_ORGN[j] = self.SOL_ORGN[j] * wt1[j]
+        else:
+            self.SOL_ORGN = list(numpy.zeros(self.SOILLAYERS))
         if self.SOL_SOLP and len(self.SOL_SOLP) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_SOLP[j] = self.SOL_SOLP[j] * wt1[j]
+        else:
+            self.SOL_SOLP = list(numpy.zeros(self.SOILLAYERS))
         if self.SOL_ORGP and len(self.SOL_ORGP) == self.SOILLAYERS:
             for j in range(self.SOILLAYERS):
                 self.SOL_ORGP[j] = self.SOL_ORGP[j] * wt1[j]
+        else:
+            self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
 
 
 def main():

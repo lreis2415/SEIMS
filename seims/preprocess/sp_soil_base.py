@@ -125,6 +125,8 @@ class SoilPropertyBase(object):
         self.SOL_SOLP = list()
 
         # Conceptual model parameters. Can be used in physical model as well.
+        self.GR4J_X2 = list()
+        self.GR4J_X3 = list()
         self.MAX_IF_RATE = list()
 
     @staticmethod
