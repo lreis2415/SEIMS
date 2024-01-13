@@ -21,7 +21,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(M_IUH_OL[0]);
     mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetAbstractionTypeToConceptual();
 
     mdi.AddParameter(Tag_TimeStep[0], UNIT_HOUR, Tag_TimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(VAR_CELL_AREA[0], UNIT_AREA_M2, VAR_CELL_AREA[1], Source_ParameterDB, DT_Raster1D);
