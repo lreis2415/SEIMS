@@ -11,7 +11,7 @@ from utility import DEFAULT_NODATA, UTIL_ZERO
 class SoilPropertyConceptual(SoilPropertyBase):
     def __init__(self, seq_num, seq_name):
         super().__init__(seq_num, seq_name)
-        # self.SOL_POROSITY = list()
+        self.SOL_POROSITY = list()
 
     @staticmethod
     def soil_param_type():
@@ -24,6 +24,7 @@ class SoilPropertyConceptual(SoilPropertyBase):
         self.check_layers(self.SOL_OM, False)
         if not self.auto_fill_SOM():
             return
+
         self.auto_fill_CBN()
         # Calculate sol_n = sol_cbn/11.
         self.auto_fill_N()
@@ -34,6 +35,7 @@ class SoilPropertyConceptual(SoilPropertyBase):
         is_soil_mechanical_composition_provided = self.SOL_CLAY and self.SOL_SILT and self.SOL_SAND and self.SOL_ROCK
         if not is_soil_mechanical_composition_provided:
             return
+
         # temporary variables
         tmp_fc = list()
         tmp_sat = list()

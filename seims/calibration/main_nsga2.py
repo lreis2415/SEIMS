@@ -463,3 +463,4 @@ if __name__ == "__main__":
     endT = time.time()
     scoop_log('### END OF CALIBRATION OPTIMIZING ###')
     scoop_log('Running time: %.2fs' % (endT - startT))
+    scoop_log('outdir:%s' % cali_cfg.opt.out_dir)

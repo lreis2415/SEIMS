@@ -39,7 +39,8 @@ class CaliConfig(object):
             self.param_range_def = cf.get('CALI_Settings', 'paramrngdef')
         self.param_range_def = self.model.model_dir + os.path.sep + self.param_range_def
         if not FileClass.is_file_exists(self.param_range_def):
-            raise IOError('Ranges of parameters MUST be provided!')
+            raise IOError('File %s not found! Ranges of parameters MUST be provided!'
+                          % self.param_range_def)
 
         # UTCTIME of calibration and validation (optional) periods
         if not (cf.has_option('CALI_Settings', 'cali_time_start') and
