@@ -346,6 +346,7 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     FLTPT** data = nullptr;
     string upper_name = GetUpper(para_name);
     /// Load data from DataCenter
+    cout << upper_name << endl;
     if (StringMatch(upper_name, TAG_OUT_OL_IUH)) {
         // Overland flow IUH
         ReadIuhData(remote_filename, n_rows, data, opts);
@@ -440,12 +441,7 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
 #endif
         }
 
-        vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
-        for (size_t j = 0; j < parameters.size(); j++) {
-            ParamInfo<FLTPT>* param = parameters[j];
-            if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) { continue; }
-            SetData(module_settings[id], param, modules[i], &opts);
-        }
+
         vector<ParamInfo<int>*>& parameters_int = module_parameters_int[id];
         for (size_t j = 0; j < parameters_int.size(); j++) {
             ParamInfo<int>* param = parameters_int[j];
@@ -455,6 +451,13 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
             }
             SetData(module_settings[id], param, modules[i], &opts);
         }
+        vector<ParamInfo<FLTPT>*>& parameters = module_parameters[id];
+        for (size_t j = 0; j < parameters.size(); j++) {
+            ParamInfo<FLTPT>* param = parameters[j];
+            if (StringMatch(param->Name, Tag_VerticalInterpolation[0])) { continue; }
+            SetData(module_settings[id], param, modules[i], &opts);
+        }
+
     }
     double timeconsume = TimeCounting() - t1;
     CLOG(TRACE, LOG_INIT) << "Loading data for modules, TIMESPAN " << timeconsume << " sec.";
@@ -608,6 +611,7 @@ void DataCenter::SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module) {
 void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
     if (StringMatch(param->Name, Tag_DataType)) {
         // the data type is got from config.fig
+        p_module->SetClimateDataType(param->Value);
         return;
     }
     if (StringMatch(param->Name, Tag_CellSize[0])) {

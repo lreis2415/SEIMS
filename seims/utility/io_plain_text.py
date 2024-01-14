@@ -10,14 +10,14 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import logging
-from io import open
 import os
 from collections import OrderedDict
 from datetime import datetime
+from io import open
+from typing import List, Dict, AnyStr
 
-from typing import List, Dict, Union, AnyStr
 from numpy import ndarray as np_array
-from pygeoc.utils import StringClass, UtilClass, FileClass
+from pygeoc.utils import StringClass, FileClass
 
 
 class SpecialJsonEncoder(json.JSONEncoder):
@@ -69,13 +69,13 @@ def read_simulation_from_txt(ws,  # type: AnyStr
     for i, v in enumerate(plot_vars):
         txtfile = None
         txtfile_tests = [ws + os.path.sep + v + '.txt',
-                         f'{ws}{os.path.sep}{v}_{subbsnID}.txt']
+                         '%s%s%s_%d.txt' % (ws, os.path.sep, v, subbsnID)]
         for fn in txtfile_tests:
             if FileClass.is_file_exists(fn):
                 txtfile = fn
                 break
         if txtfile is None:
-            logging.warning('Simulation variable file: %s.txt does not exist in %s!' % (v,ws))
+            logging.warning('Simulation variable file: %s.txt does not exist in %s!' % (v, ws))
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False
@@ -103,5 +103,5 @@ def read_simulation_from_txt(ws,  # type: AnyStr
             plot_vars_existed.append(v)
 
     logging.debug('Read simulation from %s to %s done.' % (stime.strftime('%c'),
-                                                          etime.strftime('%c')))
+                                                           etime.strftime('%c')))
     return plot_vars_existed, sim_data_dict

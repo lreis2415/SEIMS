@@ -66,7 +66,7 @@ class CaliConfig(object):
         for sf in structure_files:
             shutil.copy(sf, self.opt.out_dir)
 
-        logger.configure_logging(log_file_prefix='calibration')
+        # logger.configure_logging(log_file_prefix='calibration')
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
 

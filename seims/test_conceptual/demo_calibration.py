@@ -13,7 +13,6 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
-from utility import logger
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))

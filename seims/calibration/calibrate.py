@@ -152,9 +152,12 @@ class Calibration(object):
             if collection.count_documents({'NAME': item[0]}) <= 0:
                 print('WARNING: parameter %s is not existed!' % item[0])
                 continue
+            low,up = float(item[1]), float(item[2])
+            if low > up:
+                raise ValueError('Lower bound of parameter %s is larger than upper bound!' % item[0])
             num_vars += 1
             names.append(item[0])
-            bounds.append([float(item[1]), float(item[2])])
+            bounds.append([low, up])
         self.param_defs = {'names': names, 'bounds': bounds, 'num_vars': num_vars}
         return self.param_defs
 
@@ -194,9 +197,14 @@ def initialize_calibrations(cf):
     return cali.initialize()
 
 
-def calibration_objectives(cali_obj, ind):
+def calibration_objectives(pop):
     """Evaluate the objectives of given individual.
+    pop -> (cali_obj, ind)
     """
+    print(pop[0])
+    print(pop[1])
+    cali_obj = pop[0]
+    ind = pop[1]
     logging.debug('Evaluate the objectives of individual %d' % ind.id)
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
@@ -210,7 +218,7 @@ def calibration_objectives(cali_obj, ind):
     # Execute model
     model_obj.SetMongoClient()
     model_obj.run()
-    time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+    # time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
 
     # read simulation data of the entire simulation period (include calibration and validation)
     if model_obj.ReadTimeseriesSimulations():

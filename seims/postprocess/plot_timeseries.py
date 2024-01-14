@@ -101,7 +101,8 @@ class TimeSeriesPlots(object):
 
         self.sim_data_dict = None
 
-    def is_date_continuous(self, dates:list[datetime]):
+    def is_date_continuous(self, dates):
+        # type: (List[datetime]) -> bool
         """Check if the dates are continuous."""
         if not dates:
             return False

@@ -8,12 +8,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import bisect
+import logging
 from collections import OrderedDict
 from datetime import datetime
-
 from typing import List, Dict, Optional, Union, AnyStr
+
 from pygeoc.utils import MathClass
-import logging
 
 
 def match_simulation_observation(sim_vars,  # type: List[AnyStr]
@@ -72,7 +72,15 @@ def match_simulation_observation(sim_vars,  # type: List[AnyStr]
     #         print(str(d), o, s)
     logging.debug('Match observation and simulation done.')
     return sim_obs_dict
-
+def _set_failed_values(values):
+    values['NSE'] = -9999
+    values['R-square'] = 0
+    values['RMSE'] = 9999
+    values['PBIAS'] = 9999
+    values['RSR'] = 9999
+    values['lnNSE'] = -9999
+    values['NSE1'] = -9999
+    values['NSE3'] = -9999
 
 def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnyStr, Union[List[datetime], List[float], float]]]]
                          stime=None,  # type: Optional[datetime]
@@ -108,10 +116,15 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
     """
     if not sim_obs_dict:
         return None
-    elif len(list(sim_obs_dict.values())[0]['Obs']) == 0 or len(list(sim_obs_dict.values())[0]['Sim']) == 0:
-        logging.error(f'Length of observation or simulation is 0. From time "{stime}" to "{etime}".')
-        return None
     for param, values in sim_obs_dict.items():
+        _set_failed_values(values)
+    # if len(list(sim_obs_dict.values())[0]['Obs']) == 0 or len(list(sim_obs_dict.values())[0]['Sim']) == 0:
+    #     logging.error('Length of observation or simulation is 0. From time "%s" to "%s".' % (stime, etime))
+    #     return None
+    for param, values in sim_obs_dict.items():
+        if len(values['Obs']) == 0 or len(values['Sim']) == 0:
+            logging.error('Length of observation or simulation is 0. From time "%s" to "%s".' % (stime, etime))
+            continue
         if stime is None and etime is None:
             sidx = 0
             eidx = len(values['UTCDATETIME'])
@@ -119,7 +132,9 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
             sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
             eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
         if len(values['Obs']) < eidx or len(values['Sim']) < eidx:
-            logging.error(f"Length of observation ({len(values['Obs'])}) or simulation ({len(values['Sim'])}) is less than end index ({eidx}). Date range: {stime} - {etime}.")
+            logging.error('Length of observation (%d) or simulation (%d) is less than end index (%d). Date range: %s - %s.'
+                            % (len(values['Obs']), len(values['Sim']), eidx, stime, etime))
+            continue
         obsl = values['Obs'][sidx:eidx]
         siml = values['Sim'][sidx:eidx]
 

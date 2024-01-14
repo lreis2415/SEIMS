@@ -20,10 +20,13 @@ import time
 import sys
 from io import open
 import logging
+from pathlib import Path
+
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+import ray
 from typing import Dict
 import numpy
 from deap import base
@@ -31,8 +34,8 @@ from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
-from pygeoc.utils import UtilClass
 
+from utility.ray_map import ray_deap_map
 from utility.scoop_func import scoop_log
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
@@ -46,6 +49,9 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
+cf, method, processors, workers, processors_per_worker = get_optimization_config()
+cali_cfg = CaliConfig(cf, method=method)
+
 
 # All accepted objective function names from `postprocess::utility::calculate_statistics`
 accepted_objnames = ['NSE', 'RSR', 'PBIAS', 'R-square', 'RMSE', 'lnNSE', 'NSE1', 'NSE3']
@@ -101,18 +107,25 @@ multi_weight = tuple(l[1] for v in multiobj.values() for l in v)
 worse_objects = list(l[2] for v in multiobj.values() for l in v)
 conditions = list(l[3] if (len(l) > 3) else None for v in multiobj.values() for l in v)
 
-creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
-# The FitnessMulti class equals to (as an example):
-# class FitnessMulti(base.Fitness):
-#     weights = (2., -1., -1.)
-# NOTE that to maintain the compatibility with Python2 and Python3,
-#      the com typecode=str('d') MUST NOT changed to typecode='d', since
-#      the latter will raise TypeError that 'must be char, not unicode'!
-creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
-               gen=-1, id=-1,
-               obs=TimeseriesData, sim=TimeseriesData,
-               cali=ObsSimData, vali=ObsSimData,
-               io_time=0., comp_time=0., simu_time=0., runtime=0.)
+
+def creator_setup():
+    creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
+    # The FitnessMulti class equals to (as an example):
+    # class FitnessMulti(base.Fitness):
+    #     weights = (2., -1., -1.)
+    # NOTE that to maintain the compatibility with Python2 and Python3,
+    #      the com typecode=str('d') MUST NOT changed to typecode='d', since
+    #      the latter will raise TypeError that 'must be char, not unicode'!
+    creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
+                   gen=-1, id=-1,
+                   obs=TimeseriesData, sim=TimeseriesData,
+                   cali=ObsSimData, vali=ObsSimData,
+                   io_time=0., comp_time=0., simu_time=0., runtime=0.)
+
+
+# make sure to call locally
+creator_setup()
+
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -122,6 +135,10 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 
 # Register NSGA-II related operations
 
+
+############################
+# Test for dask. Not working.
+############################
 # from dask_jobqueue import PBSCluster
 # cluster = PBSCluster(  # <-- scheduler started here
 #      cores=4,
@@ -146,6 +163,7 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 #     print(client)
 #     return client.gather(client.map(*args, **kwargs))
 
+
 toolbox = base.Toolbox()
 toolbox.register('gene_values', initialize_calibrations)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
@@ -157,11 +175,18 @@ toolbox.register('mate', tools.cxSimulatedBinaryBounded)
 toolbox.register('mutate', tools.mutPolynomialBounded)
 toolbox.register('select', tools.selNSGA2)
 
+############################
+# Test for Ray
+############################
+ray.init(num_cpus=processors)
+# os.environ["RAY_DEDUP_LOGS"] = "0"
+toolbox.register('map', ray_deap_map, creator_setup=creator_setup, workers=workers, cpus_per_worker=processors_per_worker)
+logging.info(f'init Ray with total_cpus={processors}, workers={workers}, cpus_per_worker={processors_per_worker}')
 
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
-    scoop_log('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
+    logging.info('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
 
     # Initial timespan variables
     stime = time.time()
@@ -230,9 +255,15 @@ def main(cfg):
         popnum = len(invalid_pops)
         labels = list()
         try:  # parallel on multi-processors or clusters using SCOOP
-            from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+            ###### Working code of scoop
+            # from scoop import futures
+            # invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+
+            ###### Test for dask
             # invalid_pops = list(dask_map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+
+            ###### Test for ray
+            invalid_pops = list(toolbox.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
@@ -350,6 +381,8 @@ def main(cfg):
         pop = toolbox.select(pop, pop_select_num)
 
         output_population_details(pop, cfg.opt.simdata_dir, gen, plot_cfg=cali_obj.cfg.plot_cfg)
+        print(pop)
+        print(ref_pt)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
@@ -401,6 +434,9 @@ def main(cfg):
             output_str += str(ind)
             output_str += '\n'
         logging.info(output_str)
+        gen_fp = Path(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
+        with open(gen_fp,'w') as gen_f:
+            gen_f.write(output_str)
 
         # TODO: Figure out if we should terminate the evolution
 
@@ -446,8 +482,6 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    cf, method = get_optimization_config()
-    cali_cfg = CaliConfig(cf, method=method)
 
     scoop_log('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()

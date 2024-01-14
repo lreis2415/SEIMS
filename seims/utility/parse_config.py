@@ -27,6 +27,9 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     # define input arguments
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-ini', type=str, help="Full path of configuration file")
+    parser.add_argument('-p', type=int, help="num of total processors available", default=4)
+    parser.add_argument('-w', type=int, help="num of workers", default=4)
+    parser.add_argument('-ppw', type=int, help="num of processors per worker", default=1)
     # add mutually group
     psa_group = parser.add_mutually_exclusive_group()
     psa_group.add_argument('-nsga2', action='store_true', help='Run NSGA-II method')
@@ -40,7 +43,7 @@ def get_optimization_config(desc='The help information is supposed not be empty.
         raise ImportError('Configuration file is not existed: %s' % ini_file)
     cf = ConfigParser()
     cf.read(ini_file)
-    return cf, psa_mtd
+    return cf, psa_mtd, args.p, args.w, args.ppw
 
 
 def get_option_value_exactly(cf, secname, optname, valtyp=str):
@@ -61,7 +64,6 @@ def check_config_option(cf, secname, optnames, print_warn=False):
         raise IOError('ErrorInput: The first argument cf MUST be the object of `ConfigParser`!')
     if type(optnames) is not list:
         optnames = [optnames]  # type: List[AnyStr]
-
     if secname not in cf.sections():
         if print_warn:
             print('Warning: Section %s is NOT defined, try to find in DEFAULT section!' % secname)
