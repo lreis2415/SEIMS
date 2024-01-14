@@ -428,7 +428,7 @@ void GR4J::InitUnitHydrograph(ConvoleType t) {
     vector<vector<FLTPT>>* convTransport = nullptr;
 
     FLTPT tstep = 1; // days
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         FLTPT maxTime = 0;
         FLTPT x4 = m_GR4J_X4[i];

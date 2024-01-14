@@ -28,7 +28,7 @@ using std::map;
 class InputStation: Interface {
 public:
     //! Constructor
-    InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel);
+    InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel, string dataValueDirectory="");
 
     //! Destructor
     ~InputStation();
@@ -63,7 +63,7 @@ public:
      * \param[in] stormMode \a bool, false by default
      */
     void ReadSitesData(const string& hydroDBName, const string& sitesList, const string& siteType,
-                       time_t startDate, time_t endDate, bool stormMode = false);
+                       time_t startDate, time_t endDate, bool stormMode = false, bool fileDB = false);
 
 private:
     /*!
@@ -100,5 +100,7 @@ private:
     map<string, FLTPT*> m_latitude;
     //! site numbers of each site type
     map<string, int> m_numSites;
+
+    string m_dataValueDirectory;
 };
 #endif /* SEIMS_CLIMATE_STATION_H */

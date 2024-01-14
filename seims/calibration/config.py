@@ -10,16 +10,17 @@
 from __future__ import absolute_import, unicode_literals
 
 import glob
-from configparser import ConfigParser
 import os
-import sys
 import shutil
+import sys
+from configparser import ConfigParser
+from pathlib import Path
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import FileClass
 from run_seims import ParseSEIMSConfig
-from utility import get_optimization_config, parse_datetime_from_ini, get_option_value, logger
+from utility import get_optimization_config, parse_datetime_from_ini
 from utility import ParseNSGA2Config, PlotConfig
 
 
@@ -34,13 +35,15 @@ class CaliConfig(object):
         # 2. Common settings of auto-calibration
         if 'CALI_Settings' not in cf.sections():
             raise ValueError("[CALI_Settings] section MUST be existed in *.ini file.")
-        self.param_range_def = 'cali_param_rng.def'
+
+        self.param_range_defs = 'cali_param_rng.def'
         if cf.has_option('CALI_Settings', 'paramrngdef'):
-            self.param_range_def = cf.get('CALI_Settings', 'paramrngdef')
-        self.param_range_def = self.model.model_dir + os.path.sep + self.param_range_def
-        if not FileClass.is_file_exists(self.param_range_def):
-            raise IOError('File %s not found! Ranges of parameters MUST be provided!'
-                          % self.param_range_def)
+            self.param_range_defs = cf.get('CALI_Settings', 'paramrngdef')
+        suffix, postfix = self.param_range_defs.split('.')
+        self.param_range_defs = glob.glob(Path(self.model.model_dir, suffix + '*.' + postfix).as_posix())
+        if not self.param_range_defs:
+            raise IOError('Files with pattern %s not found! Ranges of parameters MUST be provided!'
+                          % (suffix + '*.' + postfix))
 
         # UTCTIME of calibration and validation (optional) periods
         if not (cf.has_option('CALI_Settings', 'cali_time_start') and
@@ -61,12 +64,13 @@ class CaliConfig(object):
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
 
-        shutil.copy(self.param_range_def, self.opt.out_dir)
+        for f in self.param_range_defs:
+            shutil.copy(f, self.opt.out_dir)
         structure_files = glob.glob(os.path.join(self.model.model_dir, 'structure*.config'))
         for sf in structure_files:
             shutil.copy(sf, self.opt.out_dir)
 
-        logger.configure_logging(log_file_prefix='calibration')
+        # logger.configure_logging(log_file_prefix='calibration')
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
 

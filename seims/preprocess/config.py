@@ -17,12 +17,9 @@ import sys
 import os
 from os.path import join as pjoin
 
-from pathos import multiprocessing
-from pymongo import InsertOne
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pathlib import Path
 from utility import logger
 from configparser import ConfigParser
 
@@ -114,16 +111,17 @@ class PreprocessConfig(object):
             raise ValueError('[PATH] section MUST be existed in *.ini file.')
 
         if not FileClass.is_dir_exists(self.base_dir):
-            raise IOError(f'BASE_DATA_DIR ({self.base_dir}) specified in PATH section does not exist!')
+            raise IOError('BASE_DATA_DIR (%s) specified in PATH section does not exist!' % self.base_dir)
 
         if not FileClass.is_dir_exists(self.model_dir):
-            raise IOError(f'MODEL_DIR ({self.model_dir}) specified in PATH section does not exist!')
+            raise IOError('MODEL_DIR (%s) specified in PATH section does not exist!' % self.model_dir)
 
         if not FileClass.is_dir_exists(self.prepscript_dir):
-            raise IOError(f'PREPROC_SCRIPT_DIR ({self.prepscript_dir}) specified in PATH section does not exist!')
+            raise IOError('PREPROC_SCRIPT_DIR (%s) specified in PATH section does not exist!' % self.prepscript_dir)
+
 
         if not FileClass.is_dir_exists(self.seims_bin):
-            raise IOError(f'CPP_PROGRAM_DIR ({self.seims_bin}) specified in PATH section does not exist!')
+            raise IOError('CPP_PROGRAM_DIR (%s) specified in PATH section does not exist!' % self.seims_bin)
 
         if not self.mpi_bin or not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None

@@ -31,7 +31,7 @@ def plot_best_simulation_hydrograph(cfg, pickle_path, index=None):
             best_plt.init_plot_vals(data[index])
         else:
             # otherwise, find the best individual
-            for i in trange(len(data)):
+            for i in range(len(data)):
                 plt = TimeSeriesPlots(cfg)
                 dic = data[i]
                 try:
@@ -40,6 +40,7 @@ def plot_best_simulation_hydrograph(cfg, pickle_path, index=None):
                     logging.error(f"Error plotting individual {best_ind}: {e}")
                     continue
                 nse = plt.sim_obs_dict['Q']['NSE']
+                logging.info(f"Individual {i}: NSE = {nse}")
                 if nse > best_nse:
                     best_nse = nse
                     best_ind = i

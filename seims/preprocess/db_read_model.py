@@ -8,13 +8,14 @@
     - 20-07-20  - lj - take MongoClient object as argument of ReadModelData class.
 """
 from __future__ import absolute_import, unicode_literals
-from future.utils import viewitems
 
+import logging
 import os
 import sys
-from datetime import datetime
 from collections import OrderedDict
-import logging
+from datetime import datetime
+
+from future.utils import viewitems
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -214,8 +215,8 @@ class ReadModelData(object):
         for t, v in pcp_dict.items():
             # print(str(t), v)
             pcp_date_value.append([t, v])
-        logging.info('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
-                                                          end_time.strftime('%c')))
+        logging.debug('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
+                                                                 end_time.strftime('%c')))
         return pcp_date_value
 
     def Observation(self, subbsn_id, vars, start_time, end_time):
@@ -240,8 +241,9 @@ class ReadModelData(object):
         if subbsn_id == self.OutletID:
             isoutlet = 1
         else:
-            logging.warning(f"The specified plotting subbasin {subbsn_id} id is not the outlet subbasin id."
-                            f" This may not be the expected behavior. The postprocess config file might be checked")
+            logging.warning("The specified plotting subbasin %s id is not the outlet subbasin id."
+                            " This may not be the expected behavior. The postprocess config file might be checked" % subbsn_id)
+
         def get_observed_name(name):
             """To avoid the prefix of subbasin number."""
             if '_' in name:
@@ -290,8 +292,8 @@ class ReadModelData(object):
                 del adata[i]
 
         logging.debug('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
-                                                                   start_time.strftime('%c'),
-                                                                   end_time.strftime('%c')))
+                                                                           start_time.strftime('%c'),
+                                                                           end_time.strftime('%c')))
         return vars_existed, data_dict
 
     def CleanOutputGridFs(self, scenario_id=-1, calibration_id=-1):

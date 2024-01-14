@@ -24,20 +24,29 @@ def set_logging_level_warning():
     logging.getLogger().setLevel(logging.WARNING)
 
 
-def configure_logging(log_path='.', log_file_prefix=None, logging_level=logging.INFO, lock=False):
+def configure_logging(log_path='.', log_file_prefix=None, log_file_suffix=None, logging_level=logging.INFO, lock=False):
     if lock:
         global LOCK
         if LOCK:
             return
         LOCK = True
     if log_file_prefix is None:
-        log_file_prefix = Path(inspect.stack()[1].filename).name
+        frame = inspect.stack()[1]
+        module = inspect.getmodule(frame[0])
+        filename = module.__file__
+        log_file_prefix = filename
     log_root = Path(__file__).parent.parent / 'logs'
     if Path(log_path).is_absolute():
         log_root = Path(log_path)
-    datetime_str = datetime.datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
-    log_file_name = log_root / f'{log_file_prefix}_{datetime_str}.log'
-    Path(log_file_name).parent.mkdir(parents=True, exist_ok=True)
+    if not log_file_suffix:
+        datetime_str = datetime.datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
+        log_file_name = log_root / ('%s_%s.log' %(log_file_prefix, datetime_str))
+    else:
+        log_file_name = log_root / ('%s_%s.log' %(log_file_prefix, log_file_suffix))
+    # Path(log_file_name).parent.mkdir(parents=True, exist_ok=True)
+    # python 2
+    if not os.path.exists(os.path.dirname(str(log_file_name))):
+        os.makedirs(os.path.dirname(str(log_file_name)))
 
     # https://stackoverflow.com/questions/12158048/changing-loggings-basicconfig-which-is-already-set
     for handler in logging.root.handlers[:]:
@@ -51,7 +60,7 @@ def configure_logging(log_path='.', log_file_prefix=None, logging_level=logging.
         ],
         level=logging_level
     )
-    logging.info(f'Log file: {log_file_name}')
+    logging.info('Log file: %s' %log_file_name)
 
 
 def unlock_logging():

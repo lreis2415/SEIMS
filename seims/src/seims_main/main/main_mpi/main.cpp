@@ -35,6 +35,7 @@ int main(int argc, const char** argv) {
         mongoc_init();
         uri = mongoc_uri_new_for_host_port(input_args->host.c_str(), input_args->port);
         mongoc_pool = mongoc_client_pool_new(uri);
+        mongoc_client_pool_max_size(mongoc_pool, 10000);
         mongoc_client_pool_set_error_api(mongoc_pool, MONGOC_ERROR_API_VERSION_2);
     }
     /// Initialize MPI environment

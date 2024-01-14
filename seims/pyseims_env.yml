@@ -31,3 +31,6 @@ dependencies:
   - pip:
       - -r requirements.txt
       - pathos
+      - ray[default]
+      - fastapi
+      - uvicorn[standard]

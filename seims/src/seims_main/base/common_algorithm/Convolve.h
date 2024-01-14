@@ -7,10 +7,49 @@
 
 class ConvolveTransporter {
 public:
+    ConvolveTransporter() = default;
+    
+    ConvolveTransporter(const ConvolveTransporter& other) {
+        m_convType = other.m_convType;
+        m_nCells = other.m_nCells;
+        m_isInitialized = other.m_isInitialized;
+        m_unitHydro = other.m_unitHydro;
+        m_convTransport = other.m_convTransport;
+    }
     ConvolveTransporter(int nCells) :
         m_convType(CONV_BASE), m_nCells(nCells), m_isInitialized(false) {
         m_unitHydro.resize(nCells);
         m_convTransport.resize(nCells);
+    }
+    // copy assignment operator
+    ConvolveTransporter& operator=(const ConvolveTransporter& other) {
+        if (this != &other) { // self-assignment check expected
+            m_convType = other.m_convType;
+            m_nCells = other.m_nCells;
+            m_isInitialized = other.m_isInitialized;
+            m_unitHydro = other.m_unitHydro;
+            m_convTransport = other.m_convTransport;
+        }
+        return *this;
+    }
+    // move constructor
+    ConvolveTransporter(ConvolveTransporter&& other) noexcept {
+        m_convType = other.m_convType;
+        m_nCells = other.m_nCells;
+        m_isInitialized = other.m_isInitialized;
+        m_unitHydro = other.m_unitHydro;
+        m_convTransport = other.m_convTransport;
+    }
+    // move assignment operator
+    ConvolveTransporter& operator=(ConvolveTransporter&& other) noexcept {
+        if (this != &other) { // self-assignment check expected
+            m_convType = other.m_convType;
+            m_nCells = other.m_nCells;
+            m_isInitialized = other.m_isInitialized;
+            m_unitHydro = other.m_unitHydro;
+            m_convTransport = other.m_convTransport;
+        }
+        return *this;
     }
 
     virtual ~ConvolveTransporter() {
@@ -42,6 +81,8 @@ public:
     int m_nCells;
     std::vector<vector<FLTPT>> m_unitHydro;
     std::vector<vector<FLTPT>> m_convTransport;
+
+
 };
 
 inline FLTPT IncompleteGamma(const double& x, const double& a)
@@ -115,14 +156,12 @@ inline FLTPT GammaCumDist(const double& t, const double& alpha, const double& be
 }
 class ConvolveTransporterGAMMA : public ConvolveTransporter {
 public:
+    ConvolveTransporterGAMMA() = default;
+
     ConvolveTransporterGAMMA(int nCells, FLTPT* gammaScale, FLTPT* gammaShape) :
         ConvolveTransporter(nCells), m_gammaScale(gammaScale), m_gammaShape(gammaShape) {
         m_convType = CONV_GAMMA;
         InitUnitHydrograph();
-    }
-
-    ~ConvolveTransporterGAMMA() OVERRIDE{
-        ConvolveTransporter::~ConvolveTransporter();
     }
 
     void InitUnitHydrograph() {

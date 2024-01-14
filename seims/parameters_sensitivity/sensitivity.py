@@ -50,7 +50,7 @@ from utility import save_png_eps
 from utility import SpecialJsonEncoder
 import global_mongoclient as MongoDBObj
 from run_seims import MainSEIMS
-from preprocess.text import DBTableNames
+from preprocess.text import DBTableNames, ModelParamFields
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
 from run_seims import ParseSEIMSConfig, create_run_model
@@ -215,10 +215,10 @@ class Sensitivity(object):
         conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.model.db_name]
         collection = db['PARAMETERS']
-        collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
+        collection.update_many({}, {'$unset': {ModelParamFields.cali_values: ''}})
         for idx, pname in enumerate(self.param_defs['names']):
             v2str = ','.join(str(v) for v in self.param_values[:, idx])
-            collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
+            collection.find_one_and_update({'NAME': pname}, {'$set': {ModelParamFields.cali_values: v2str}})
 
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.

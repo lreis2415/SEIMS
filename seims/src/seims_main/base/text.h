@@ -80,6 +80,7 @@ CONST_CHARS PARAM_FLD_USE =                         "USE"; ///< use or not
 CONST_CHARS PARAM_USE_Y =                           "Y"; ///<
 CONST_CHARS PARAM_USE_N =                           "N"; ///<
 CONST_CHARS PARAM_CALI_VALUES =                     "CALI_VALUES"; ///< replace Impact for model calibration
+CONST_CHARS PARAM_IMPACT_SUBBASINS =                "IMPACT_SUBBASINS"; ///< subbasin ids for each impact
 
 ////////////  Input and Output Tags   ///////////////
 // Fields in Model Configuration Collections //
@@ -267,6 +268,7 @@ CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET"; ///<
 CONST_CHARS Tag_Mode =                              "MODE"; ///<
 CONST_CHARS Tag_Mode_Storm =                        "STORM"; ///<
 CONST_CHARS Tag_Mode_Daily =                        "DAILY"; ///<`
+CONST_CHARS Tag_Use_File_DB =                           "FILEDB"; ///<
 
 CONST_CHARS Type_Scenario =                         "SCENARIO"; ///<
 CONST_CHARS Type_Reach =                            "REACH"; ///<
@@ -900,7 +902,7 @@ CONST_CHARS_LIST VAR_SOET[] = {"SOET", "evaporation from the soil water storage"
 CONST_CHARS_LIST VAR_SOIL_T10[] = {"soil_t10", "Factor of soil temperature relative to short grass (degree)"}; /// m_soilTempRelFactor10
 CONST_CHARS_LIST VAR_SOILDEPTH[] = {"sol_z", "depth to bottom of each soil layer"}; /// m_soilDepth
 CONST_CHARS_LIST VAR_SOILLAYERS[] = {"soillayers", "Soil layers number"}; /// m_nSoilLyrs
-CONST_CHARS_LIST VAR_SOILTHICK[] = {"soilthick", "soil thickness of each soil layer"}; /// m_soilThk
+CONST_CHARS_LIST VAR_SOILTHICK[] = {"SOILTHICK", "soil thickness of each soil layer"}; /// m_soilThk
 CONST_CHARS_LIST VAR_SOL_ACTP[] = {"sol_actp", "amount of phosphorus stored in the active mineral phosphorus pool"}; /// m_soilActvMinP
 CONST_CHARS_LIST VAR_SOL_ALB[] = {"sol_alb", "albedo when soil is moist"}; /// m_soilAlb
 CONST_CHARS_LIST VAR_SOL_AORGN[] = {"sol_aorgn", "amount of nitrogen stored in the active organic (humic) nitrogen pool"}; /// m_soilActvOrgN

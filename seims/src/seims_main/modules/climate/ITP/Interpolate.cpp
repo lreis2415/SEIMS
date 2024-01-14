@@ -13,13 +13,13 @@ m_itpOutput(nullptr) {
 
 void Interpolate::SetClimateDataType(const int data_type) {
     if (data_type == 1) {
-        m_dataType = 0; /// Precipitation
+        m_dataType = 1; /// Precipitation
     } else if (data_type == 2 || data_type == 3 || data_type == 4) {
-        m_dataType = 1; /// Temperature
+        m_dataType = 2; /// Temperature
     } else if (data_type == 5) {
-        m_dataType = 2; /// PET
+        m_dataType = 3; /// PET
     } else if (data_type == 6 || data_type == 7 || data_type == 8) {
-        m_dataType = 3; /// Meteorology
+        m_dataType = 4; /// Meteorology
     } else {
         m_dataType = -1; /// Unknown
     }

@@ -39,7 +39,7 @@ int PER_STR::Execute() {
     fflush(stdout);
 #endif
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
         // the first soil layer in other modules. By LJ

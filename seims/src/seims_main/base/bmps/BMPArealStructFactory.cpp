@@ -56,8 +56,8 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter): m_i
                     lastImpact = temp;
                 }
             }
-            p->Impact = p->ImpactSeries[0];//For compatibility with previous versions
-            cout << "BMPID: " << m_id << ", param_name: " << tmp_param_items[0] << ",value: " <<p->Impact<< endl;
+            p->Impacts = p->ImpactSeries;//For compatibility with previous versions
+            cout << "BMPID: " << m_id << ", param_name: " << tmp_param_items[0] << ",value: " <<p->GetImpactsString()<< endl;
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
 #else

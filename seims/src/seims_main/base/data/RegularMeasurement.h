@@ -36,7 +36,8 @@ public:
     RegularMeasurement(MongoClient* conn,
                        const string& hydroDBName, const string& sitesList, const string& siteType,
                        time_t startTime, time_t endTime, time_t interval);
-
+    RegularMeasurement(string& dataValueDirectory, const string& sitesList, const string& siteType,
+                       time_t startTime, time_t endTime, time_t interval);
     //! Destructor
     ~RegularMeasurement();
 

@@ -11,10 +11,14 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os
 import sys
 from datetime import timedelta
-import logging
+from pathlib import Path
+
+import pandas as pd
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -75,7 +79,7 @@ class ImportMeteoData(object):
     """Meteorological daily data import, and calculate related statistical values"""
 
     @staticmethod
-    def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
+    def daily_data_from_txt(climdb, model_dir, data_txt_file, sites_info_dict):
         """Import climate data table"""
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
         clim_data_items = read_data_items_from_txt(data_txt_file)
@@ -95,7 +99,7 @@ class ImportMeteoData(object):
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
                 raise ValueError('Meteorological Daily data MUST contain %s!' % fld)
-
+        filedb_data_list = list()
         bulk_requests = list()
         count = 0
         for i, cur_clim_data_item in enumerate(clim_data_items):
@@ -154,7 +158,12 @@ class ImportMeteoData(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.type] = fld
-
+                    filedb_data_list.append([
+                        cur_dic[DataValueFields.utc],
+                        cur_dic[DataValueFields.id],
+                        cur_dic[DataValueFields.type],
+                        cur_dic[DataValueFields.value],
+                    ])
                     bulk_requests.append(InsertOne(cur_dic))
                     count += 1
                     # if count % 500 == 0:  # execute each 500 records
@@ -172,7 +181,33 @@ class ImportMeteoData(object):
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
                                            bulk_requests)
         logging.info('Inserted %d data items!' % (results.inserted_count
-                                           if results is not None else 0))
+                                                  if results is not None else 0))
+
+        data_df = pd.DataFrame(filedb_data_list,
+                               columns=[DataValueFields.utc, DataValueFields.id, DataValueFields.type, DataValueFields.value])
+        # sort by (utc_time, id)
+        data_df.sort_values(by=[DataValueFields.utc, DataValueFields.id], inplace=True)
+        """
+        time, station_id, type, value
+        2017-01-01 00:00:00, 1, T, 10
+        2017-01-01 00:00:00, 2, T, 10
+        ->
+        df: type1
+        time, value of station1, value of station 2, ...
+
+        df: type2
+        time, value of station1, value of station 2, ...
+        """
+        # Pivot the DataFrame to wide format for each measurement type
+        df_dict = {}
+        for measurement_type in data_df[DataValueFields.type].unique():
+            df_dict[measurement_type] = data_df[data_df[DataValueFields.type] == measurement_type].pivot(
+                index=DataValueFields.utc, columns=DataValueFields.id, values=DataValueFields.value
+            )
+        for measurement_type, df in df_dict.items():
+            out_path = Path(model_dir, 'DataValuesAll', f'{measurement_type}.csv')
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            df.to_csv(out_path)
 
         for item, cur_climate_stats in list(hydro_climate_stats.items()):
             cur_climate_stats.annual_stats()
@@ -231,7 +266,7 @@ class ImportMeteoData(object):
         """Workflow"""
         logging.info('Import Daily Meteorological Data... ')
         site_m_loc = HydroClimateUtilClass.query_climate_sites(cfg.climatedb, 'M')
-        ImportMeteoData.daily_data_from_txt(cfg.climatedb, cfg.Meteo_data, site_m_loc)
+        ImportMeteoData.daily_data_from_txt(cfg.climatedb, cfg.model_dir, cfg.Meteo_data, site_m_loc)
 
 
 def main():

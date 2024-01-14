@@ -29,6 +29,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     mongodb_port_(input_args->port),
     mongo_client_(client), main_database_(nullptr),
     spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
+    double input_t = TimeCounting();
     //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
     //spatial_gfs_out_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_OUT_SPATIAL));
     if (DataCenterMongoDB::GetFileInStringVector()) {
@@ -92,6 +93,7 @@ DataCenterMongoDB::~DataCenterMongoDB() {
 
 bool DataCenterMongoDB::CheckModelPreparedData() {
     /// 1. Check and get the main model database
+    double input_t = TimeCounting();
     vector<string> existed_dbnames;
     mongo_client_->GetDatabaseNames(existed_dbnames);
     if (!ValueInVector(string(model_name_), existed_dbnames)) {
@@ -110,7 +112,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     }
 
     /// 3. Read climate site information from Climate database
-    clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel());
+    clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel(), model_path_);
     ReadClimateSiteList();
 
     /// 4. Read initial parameters
@@ -339,14 +341,14 @@ int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
 }
 
 void DataCenterMongoDB::ReadClimateSiteList() {
+    double input_t = TimeCounting();
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, Tag_SubbasinId, subbasin_id_); // subbasin id
     BSON_APPEND_UTF8(query, Tag_Mode, input_->getModelMode().c_str()); // mode
-    LOG(DEBUG) << "ReadClimateSiteList: " << bson_as_json(query, NULL);
     std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_,
                                                                         DB_TAB_SITELIST)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
-
+    
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
@@ -361,20 +363,20 @@ void DataCenterMongoDB::ReadClimateSiteList() {
             site_list = GetStringFromBsonIterator(&iter);
             for (int i = 0; i < METEO_VARS_NUM; ++i) {
                 clim_station_->ReadSitesData(clim_dbname_, site_list, METEO_VARS[i],
-                                             input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                             input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
             }
         }
-
+        
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P)) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_Precipitation,
-                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
         }
 
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_PET)) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_PotentialEvapotranspiration,
-                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
         }
     }
     bson_destroy(query);
@@ -405,7 +407,8 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         string module;
         FLTPT value;
         string change;
-        FLTPT impact = 0.;
+        vector<FLTPT> impact;
+        vector<vector<int>> impact_subbasins;
         FLTPT maximum = 0.;
         FLTPT minimum = 0.;
         bool isint = false;
@@ -425,7 +428,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             GetNumericFromBsonIterator(&iter, value);
         }
         if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
-            GetNumericFromBsonIterator(&iter, impact);
+            GetVectorFromBsonIter(&iter, impact);
         }
         if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
             change = GetStringFromBsonIterator(&iter);
@@ -440,17 +443,22 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             isint = StringMatch(GetStringFromBsonIterator(&iter), "INT");
         }
         if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && calibration_id_ >= 0) {
-            // Overwrite p->Impact according to calibration ID
-            string cali_values_str = GetStringFromBsonIterator(&iter);
-            vector<FLTPT> cali_values;
-            SplitStringForValues(cali_values_str, ',', cali_values);
+            vector<vector<FLTPT>> cali_values;
+            GetVectorVectorFromBsonIter(&iter, cali_values);
             if (calibration_id_ < CVT_INT(cali_values.size())) {
-                impact = cali_values[calibration_id_];
+                impact = cali_values.at(calibration_id_);
             }
         }
+        if (bson_iter_init_find(&iter, info, PARAM_IMPACT_SUBBASINS)) {
+            GetVectorVectorFromBsonIter(&iter, impact_subbasins);
+        }
         if (isint) {
+            vector<int> impact_int;
+            for (auto it = impact.begin(); it != impact.end(); ++it) {
+                impact_int.push_back(CVT_INT(*it));
+            }
             ParamInfo<int>* intp = new ParamInfo<int>(name, desc, unit, module, CVT_INT(value),
-                                                      change, CVT_INT(impact), CVT_INT(maximum),
+                                                      change, impact_int,impact_subbasins, CVT_INT(maximum),
                                                       CVT_INT(minimum), isint);
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!init_params_int_.emplace(name, intp).second) {
@@ -463,7 +471,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         }
         else {
             ParamInfo<FLTPT>* p = new ParamInfo<FLTPT>(name, desc, unit, module, value,
-                                                       change, impact, maximum, minimum, isint);
+                                                       change, impact,impact_subbasins, maximum, minimum, isint);
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!init_params_.emplace(name, p).second) {
 #else

@@ -31,18 +31,19 @@ from __future__ import absolute_import, unicode_literals
 
 import bisect
 import logging
-from copy import deepcopy
-from collections import OrderedDict
-from configparser import ConfigParser
-from datetime import datetime
-from io import open
 import math
 import os
+import platform
 import sys
-from shutil import rmtree
 import time
-from typing import Optional, Union, Dict, List, AnyStr
+from collections import OrderedDict
+from configparser import ConfigParser
+from copy import deepcopy
+from datetime import datetime
+from io import open
+from shutil import rmtree
 from subprocess import CalledProcessError
+from typing import Optional, Union, Dict, List, AnyStr
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -109,6 +110,7 @@ class ParseSEIMSConfig(object):
         self.hostfile = ''  # type: AnyStr
         self.nprocess = 1  # type: int
         self.npernode = 1  # type: int
+        self.partition = 'work' #type: AnyStr
         self.flag_npernode = ''  # type: AnyStr
         self.nthread = 2  # type: int
         self.fdirmtd = 0  # type: int
@@ -133,7 +135,6 @@ class ParseSEIMSConfig(object):
         # Don't raise exception, since DEFAULT session may be used.
         # if sec_name not in cf.sections():
         #     raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
-
         self.host = get_option_value(cf, sec_name, ['hostname', 'host', 'ip'])
         if not StringClass.is_valid_ip_addr(self.host):
             raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
@@ -161,8 +162,12 @@ class ParseSEIMSConfig(object):
         self.mpi_bin = get_option_value(cf, sec_name, 'mpi_bin')
         self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
         self.hostfile = get_option_value(cf, sec_name, 'hostfile')
+        if self.hostfile == 'local':
+            self.hostfile = platform.node()
+
         self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
         self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
+        self.partition = get_option_value(cf, sec_name, 'partition')
         if self.version.lower() == 'omp':
             self.nprocess = 1
             self.npernode = 1
@@ -207,7 +212,7 @@ class ParseSEIMSConfig(object):
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
                                 'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
-                                'nthread': self.nthread,
+                                'nthread': self.nthread, 'partition':self.partition,
                                 'fdirmtd': self.fdirmtd, 'lyrmtd': self.lyrmtd,
                                 'scenario_id': self.scenario_id,
                                 'calibration_id': self.calibration_id,
@@ -221,6 +226,7 @@ class ParseSEIMSConfig(object):
 
 class MainSEIMS(object):
     """Main entrance to SEIMS model."""
+
     def __init__(self,
                  args_dict=None,  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
                  host='127.0.0.1',  # type: AnyStr # MongoDB host address, default is `localhost`
@@ -236,6 +242,7 @@ class MainSEIMS(object):
                  nprocess=1,  # type: int # Process number of MPI
                  npernode=1,  # type: int # Process number per computing node
                  nnodes=1,  # type: int # Nodes required to execute
+                 partition='work',  # type:AnyStr # Partition name for slurm
                  flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
                  fdirmtd=0,  # type: int # Flow direction, can be 0 (d8), 1 (dinf), or 2 (mfdmd)
@@ -279,7 +286,7 @@ class MainSEIMS(object):
 
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.npernode = args_dict['npernode'] if 'npernode' in args_dict else npernode
-
+        self.partition = args_dict['partition'] if 'partition' in args_dict else partition
         self.nnodes = args_dict['nnodes'] if 'nnodes' in args_dict else nnodes
         self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict \
             else flag_npernode
@@ -359,14 +366,16 @@ class MainSEIMS(object):
                 self.cmd += ['-N', str(self.nnodes)]
                 if self.npernode >= 1:
                     self.cmd += ['--ntasks-per-node=%d' % self.npernode]
-                self.cmd += ['--cpu_bind=cores --cpus-per-task=%d' % self.nthread]
+                if self.partition:
+                    self.cmd += ['-p', self.partition]
+                self.cmd += ['--cpu_bind=cores', '--cpus-per-task=%d' % self.nthread]
                 self.cmd += ['--exclusive']
             else:
                 self.cmd += [self.mpi_bin]
-                if self.hostfile and os.path.exists(self.hostfile):
-                    self.cmd += [self.hosts_opt, self.hostfile]
-                    if self.npernode > 1 and self.flag_npernode != '':
-                        self.cmd += [self.flag_npernode, str(self.npernode)]
+                if self.hosts_opt and self.hostfile:
+                    self.cmd += ["%s=%s"%(self.hosts_opt, self.hostfile)]
+                if self.npernode > 1 and self.flag_npernode != '':
+                    self.cmd += [self.flag_npernode, str(self.npernode)]
 
             self.cmd += ['-n', str(self.nprocess)]
         self.cmd += [self.seims_exec,
@@ -520,10 +529,11 @@ class MainSEIMS(object):
 
         def slice_odict(odict, start=None, end=None):
             res = OrderedDict([(k, v) for (k, v) in odict.items()
-                                if k in list(odict.keys())[start:end]])
+                               if k in list(odict.keys())[start:end]])
             return res
+
         odict = slice_odict(self.sim_value, sidx, eidx)
-        logging.debug(f'Extract {len(odict)} simulated records from {sidx} to {eidx}')
+        logging.debug('Extract %s simulated records from %s to %s' % (len(odict), sidx, eidx))
         return self.sim_vars, odict
 
     def ExtractSimObsData(self, stime=None, etime=None):
@@ -536,11 +546,11 @@ class MainSEIMS(object):
             sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
             eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
             if len(values['UTCDATETIME']) < eidx:
-                logging.error(f'The length of UTCDATETIME is less than eidx ({len(values["UTCDATETIME"])} < {eidx})')
+                logging.error('The length of UTCDATETIME is less than eidx (%d < %d)' % (len(values['UTCDATETIME']), eidx))
             if len(values['Obs']) < eidx:
-                logging.error(f'The length of Obs is less than eidx ({len(values["Obs"])} < {eidx})')
+                logging.error('The length of Obs is less than eidx (%d < %d)' % (len(values['Obs']), eidx))
             if len(values['Sim']) < eidx:
-                logging.error(f'The length of Sim is less than eidx ({len(values["Sim"])} < {eidx})')
+                logging.error('The length of Sim is less than eidx (%d < %d)' % (len(values['Sim']), eidx))
             ext_dict[param]['UTCDATETIME'] = values['UTCDATETIME'][sidx:eidx]
             ext_dict[param]['Obs'] = values['Obs'][sidx:eidx]
             ext_dict[param]['Sim'] = values['Sim'][sidx:eidx]
@@ -554,8 +564,8 @@ class MainSEIMS(object):
                                  ):
         # type: (...) -> (List[AnyStr], List[float])
         objnames = calculate_statistics(sim_obs_dict, stime, etime)
-        if objnames is None:
-            logging.error(f'Calculate statistics failed! From time {stime} to {etime}. {sim_obs_dict}')
+        if not objnames:
+            logging.error('Calculate statistics failed! From time %s to %s. %s' % (stime, etime, sim_obs_dict))
             return None, None
         comb_vars = list()
         obj_values = list()
@@ -724,7 +734,7 @@ class MainSEIMS(object):
         """
         stime = time.time()
         if not os.path.isdir(self.output_dir) or not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir,exist_ok=True)
+            os.makedirs(self.output_dir)
         # If the input time period is not consistent with the predefined time period in FILE_IN.
         if self.simu_stime and self.simu_etime and self.simu_stime != self.start_time \
             and self.simu_etime != self.end_time:

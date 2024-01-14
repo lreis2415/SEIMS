@@ -12,8 +12,10 @@ import os
 import argparse
 from configparser import ConfigParser
 from datetime import datetime
+from pathlib import Path
 
 from typing import Optional, List, AnyStr
+
 from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, is_integer
 
 
@@ -27,11 +29,15 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     # define input arguments
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-ini', type=str, help="Full path of configuration file")
+    parser.add_argument('-p', type=int, help="num of total processors available", default=None)
+    parser.add_argument('-w', type=int, help="num of workers")
+    parser.add_argument('-ppw', type=int, help="num of processors per worker")
     # add mutually group
     psa_group = parser.add_mutually_exclusive_group()
     psa_group.add_argument('-nsga2', action='store_true', help='Run NSGA-II method')
     # parse arguments
     args = parser.parse_args()
+
     ini_file = args.ini
     psa_mtd = 'nsga2'  # Default
     if args.nsga2:
@@ -40,7 +46,10 @@ def get_optimization_config(desc='The help information is supposed not be empty.
         raise ImportError('Configuration file is not existed: %s' % ini_file)
     cf = ConfigParser()
     cf.read(ini_file)
-    return cf, psa_mtd
+    if args.p or args.w or args.ppw:
+        return cf, psa_mtd, args.p, args.w, args.ppw
+    else:
+        return cf, psa_mtd
 
 
 def get_option_value_exactly(cf, secname, optname, valtyp=str):
@@ -61,7 +70,6 @@ def check_config_option(cf, secname, optnames, print_warn=False):
         raise IOError('ErrorInput: The first argument cf MUST be the object of `ConfigParser`!')
     if type(optnames) is not list:
         optnames = [optnames]  # type: List[AnyStr]
-
     if secname not in cf.sections():
         if print_warn:
             print('Warning: Section %s is NOT defined, try to find in DEFAULT section!' % secname)
@@ -139,6 +147,7 @@ class ParseNSGA2Config(object):
             dir_template = 'NSGA2_Gen_%d_Pop_%d'
         self.dirname = dir_template % (self.ngens, self.npop)
         self.out_dir = wp + os.path.sep + self.dirname
+
         UtilClass.mkdir(self.out_dir)  # Do not remove if already existed
 
         self.hypervlog = self.out_dir + os.path.sep + 'hypervolume.txt'

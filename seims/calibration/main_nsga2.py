@@ -16,10 +16,11 @@ from __future__ import absolute_import, division, unicode_literals
 import array
 import os
 import random
-import time
 import sys
+import time
 from io import open
-import logging
+from pathlib import Path
+from scoop import futures
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -31,21 +32,21 @@ from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
-from pygeoc.utils import UtilClass
 
-from utility.scoop_func import scoop_log
+import logging
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
-
-from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
+from calibration import QuerySitelist
+from calibration.calibrate import Calibration, calibration_objectives
 from calibration.calibrate import TimeseriesData, ObsSimData
 from calibration.userdef import write_param_values_to_mongodb, output_population_details
-
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
+cf, method = get_optimization_config()
+cali_cfg = CaliConfig(cf, method=method)
 
 # All accepted objective function names from `postprocess::utility::calculate_statistics`
 accepted_objnames = ['NSE', 'RSR', 'PBIAS', 'R-square', 'RMSE', 'lnNSE', 'NSE1', 'NSE3']
@@ -82,16 +83,16 @@ else:
 
 # Check object variables
 if not multiobj:
-    print('Multiobjective MUST not be Empty!')
+    logging.info('Multiobjective MUST not be Empty!')
     exit(1)
 for k, v in list(multiobj.items()):
     for item in v:
         if len(item) < 3:
-            print('Each item of objective MUST have three elements, '
+            logging.info('Each item of objective MUST have three elements, '
                   'i.e., object name, weight, worse value for Hypervolum calculation.')
             exit(1)
         if item[0] not in accepted_objnames:
-            print('Object name % is unsupported! '
+            logging.info('Object name % is unsupported! '
                   'Please input one of %s!' % (item[0], ','.join(accepted_objnames)))
             exit(1)
 # Get parameters from `multiobj`
@@ -101,18 +102,25 @@ multi_weight = tuple(l[1] for v in multiobj.values() for l in v)
 worse_objects = list(l[2] for v in multiobj.values() for l in v)
 conditions = list(l[3] if (len(l) > 3) else None for v in multiobj.values() for l in v)
 
-creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
-# The FitnessMulti class equals to (as an example):
-# class FitnessMulti(base.Fitness):
-#     weights = (2., -1., -1.)
-# NOTE that to maintain the compatibility with Python2 and Python3,
-#      the com typecode=str('d') MUST NOT changed to typecode='d', since
-#      the latter will raise TypeError that 'must be char, not unicode'!
-creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
-               gen=-1, id=-1,
-               obs=TimeseriesData, sim=TimeseriesData,
-               cali=ObsSimData, vali=ObsSimData,
-               io_time=0., comp_time=0., simu_time=0., runtime=0.)
+
+def creator_setup():
+    creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
+    # The FitnessMulti class equals to (as an example):
+    # class FitnessMulti(base.Fitness):
+    #     weights = (2., -1., -1.)
+    # NOTE that to maintain the compatibility with Python2 and Python3,
+    #      the com typecode=str('d') MUST NOT changed to typecode='d', since
+    #      the latter will raise TypeError that 'must be char, not unicode'!
+    creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
+                   gen=-1, id=-1,
+                   obs=TimeseriesData, sim=TimeseriesData,
+                   cali=ObsSimData, vali=ObsSimData,
+                   io_time=0., comp_time=0., simu_time=0., runtime=0.)
+
+
+# make sure to call locally
+creator_setup()
+
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -122,34 +130,11 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 
 # Register NSGA-II related operations
 
-# from dask_jobqueue import PBSCluster
-# cluster = PBSCluster(  # <-- scheduler started here
-#      cores=4,
-#      memory='5GB',
-#      processes=2,
-#      # local_directory='$TMPDIR',
-#      resource_spec='nodes=2:ppn=8',
-#      queue='workq',
-#      account='wyj',
-#      walltime='00:01:00',
-# )
-
-# from dask.distributed import Client
-# client = Client(processes=False)
-# # cluster.scale(jobs=4)
-# # print('cluster job script:')
-# # print(cluster.job_script())
-# print('create client:')
-# print(client)
-# def dask_map(*args, **kwargs):
-#     print('dask_map')
-#     print(client)
-#     return client.gather(client.map(*args, **kwargs))
 
 toolbox = base.Toolbox()
-toolbox.register('gene_values', initialize_calibrations)
-toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
-toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+# toolbox.register('gene_values', initialize_calibrations)
+# toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
+# toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
 toolbox.register('evaluate', calibration_objectives)
 
 # mate and mutate
@@ -157,11 +142,10 @@ toolbox.register('mate', tools.cxSimulatedBinaryBounded)
 toolbox.register('mutate', tools.mutPolynomialBounded)
 toolbox.register('select', tools.selNSGA2)
 
-
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
-    scoop_log('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
+    logging.info('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
 
     # Initial timespan variables
     stime = time.time()
@@ -182,6 +166,12 @@ def main(cfg):
     # read observation data from MongoDB
     cali_obj = Calibration(cfg)
 
+    QuerySitelist.copy_to_data_values(
+        cfg.model.model_dir,
+        cfg.model.simu_stime,
+        cfg.model.simu_etime,
+    )
+
     # Read observation data just once
     model_cfg_dict = cali_obj.model.ConfigDict
     model_obj = MainSEIMS(args_dict=model_cfg_dict)
@@ -190,27 +180,27 @@ def main(cfg):
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
     model_obj.UnsetMongoClient()
 
+    pop_genes = cali_obj.init_pop_genes(cfg.opt.npop)
     # Initialize population
-    param_values = cali_obj.initialize(cfg.opt.npop)
     pop = list()
     for i in range(cfg.opt.npop):
-        ind = creator.Individual(param_values[i])
+        ind_genes = pop_genes[i]
+        ind = creator.Individual(ind_genes)
         ind.gen = 0
         ind.id = i
         ind.obs.vars = obs_vars[:]
         ind.obs.data = deepcopy(obs_data_dict)
         pop.append(ind)
-    param_values = numpy.array(param_values)
 
     # Write calibrated values to MongoDB
     # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
-    write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
+    write_param_values_to_mongodb(
+        cfg.model.db_name,
+        param_names=cali_obj.param_names,
+        pop_genes=pop_genes,
+        impact_subbasins=cali_obj.impact_subbasins
+    )
     # get the low and up bound of calibrated parameters
-    bounds = numpy.array(cali_obj.ParamDefs['bounds'])
-    low = bounds[:, 0]
-    up = bounds[:, 1]
-    low = low.tolist()
-    up = up.tolist()
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
     init_time = time.time() - stime
 
@@ -230,26 +220,38 @@ def main(cfg):
         popnum = len(invalid_pops)
         labels = list()
         try:  # parallel on multi-processors or clusters using SCOOP
-            from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+            ###### Working code of scoop
+            # from scoop import futures
+            invalid_pops = list(futures.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
+
+            ###### Test for dask
             # invalid_pops = list(dask_map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+
+            ###### Test for ray
+            # invalid_pops = list(toolbox.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
+            if not tmpind:
+                continue
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
+            valid = True
             for k, v in list(multiobj.items()):
                 tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
+                if None in tmpvalues or -9999 in tmpvalues:
+                    valid = False
                 tmpfitnessv += tmpvalues[:]
                 labels += tmplabel[:]
-            tmpind.fitness.values = tuple(tmpfitnessv)
+            if valid:
+                tmpind.fitness.values = tuple(tmpfitnessv)
 
         # Filter for a valid solution
         if filter_ind:
             invalid_pops = [tmpind for tmpind in invalid_pops
                             if check_validation(tmpind.fitness.values)]
             if len(invalid_pops) < 2:
-                print('The initial population should be greater or equal than 2. '
+                logging.error('The initial population should be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
                 exit(2)
         return invalid_pops, labels  # Currently, `invalid_pops` contains evaluated individuals
@@ -274,19 +276,18 @@ def main(cfg):
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
-    scoop_log(logbook.stream)
+    logging.info(logbook.stream)
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
-    scoop_log(output_str)
     logging.info(output_str)
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
 
     for gen in range(1, cfg.opt.ngens + 1):
         output_str = '###### Generation: %d ######\n' % gen
-        scoop_log(output_str)
+        logging.info(output_str)
 
         offspring = [toolbox.clone(ind) for ind in pop]
         # method1: use crowding distance (normalized as 0~1) as eta
@@ -297,29 +298,34 @@ def main(cfg):
                 if random.random() > cfg.opt.rcross:
                     continue
                 eta = i
-                toolbox.mate(ind1, ind2, eta, low, up)
-                toolbox.mutate(ind1, eta, low, up, cfg.opt.rmut)
-                toolbox.mutate(ind2, eta, low, up, cfg.opt.rmut)
+                toolbox.mate(ind1, ind2, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs)
+                toolbox.mutate(ind1, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
+                toolbox.mutate(ind2, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
                 del ind1.fitness.values, ind2.fitness.values
         else:
-            toolbox.mutate(offspring[0], 1., low, up, cfg.opt.rmut)
+            toolbox.mutate(offspring[0], 1., cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
             del offspring[0].fitness.values
 
         # Evaluate the individuals with an invalid fitness
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
         valid_inds = [ind for ind in offspring if ind.fitness.valid]
         if len(invalid_inds) == 0:  # No need to continue
-            scoop_log('Note: No invalid individuals available, the NSGA2 will be terminated!')
+            logging.info('Note: No invalid individuals available, the NSGA2 will be terminated!')
             break
 
         # Write new calibrated parameters to MongoDB
-        param_values = list()
+        pop_genes = list()
         for idx, ind in enumerate(invalid_inds):
             ind.gen = gen
             ind.id = idx
-            param_values.append(ind[:])
-        param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
+            pop_genes.append(ind[:])
+        pop_genes = numpy.array(pop_genes)
+        write_param_values_to_mongodb(
+            cfg.model.db_name,
+            param_names=cali_obj.param_names,
+            pop_genes=pop_genes,
+            impact_subbasins=cali_obj.impact_subbasins
+        )
         # Count the model runs, and execute models
         invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)
@@ -355,12 +361,10 @@ def main(cfg):
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
-        scoop_log(hyper_str)
         logging.info(hyper_str)
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
-        scoop_log(logbook.stream)
 
         # Count the newly generated near Pareto fronts
         new_count = 0
@@ -400,7 +404,9 @@ def main(cfg):
                     output_str += ind.vali.output_efficiency(kkk, vvv)
             output_str += str(ind)
             output_str += '\n'
-        logging.info(output_str)
+        gen_fp = os.path.join(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
+        with open(gen_fp, 'w') as gen_f:
+            gen_f.write(output_str)
 
         # TODO: Figure out if we should terminate the evolution
 
@@ -416,15 +422,15 @@ def main(cfg):
     allmodels_exect = numpy.array(allmodels_exect)
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=str(' '), fmt=str('%.4f'))
-    scoop_log('Running time of all SEIMS models:\n'
-              '\tIO\tCOMP\tSIMU\tRUNTIME\n'
-              'MAX\t%s\n'
-              'MIN\t%s\n'
-              'AVG\t%s\n'
-              'SUM\t%s\n' % ('\t'.join('%.3f' % t for t in allmodels_exect.max(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.min(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.mean(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.sum(0))))
+    logging.info('Running time of all SEIMS models:\n'
+                 '\tIO\tCOMP\tSIMU\tRUNTIME\n'
+                 'MAX\t%s\n'
+                 'MIN\t%s\n'
+                 'AVG\t%s\n'
+                 'SUM\t%s\n' % ('\t'.join('%.3f' % t for t in allmodels_exect.max(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.min(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.mean(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.sum(0))))
 
     exec_time = 0.
     for genid, tmptime in list(modelruns_time.items()):
@@ -436,31 +442,28 @@ def main(cfg):
     for genid, tmpcount in list(modelruns_count.items()):
         allcount += tmpcount
 
-    scoop_log('Initialization timespan: %.4f\n'
-              'Model execution timespan: %.4f\n'
-              'Sum of model runs timespan: %.4f\n'
-              'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
-                                                     exec_time_sum, plot_time))
+    logging.info('Initialization timespan: %.4f\n'
+                 'Model execution timespan: %.4f\n'
+                 'Sum of model runs timespan: %.4f\n'
+                 'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
+                                                        exec_time_sum, plot_time))
 
     return pop, logbook
 
 
 if __name__ == "__main__":
-    cf, method = get_optimization_config()
-    cali_cfg = CaliConfig(cf, method=method)
-
-    scoop_log('### START TO CALIBRATION OPTIMIZING ###')
+    logging.info('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
 
     fpop, fstats = main(cali_cfg)
 
     fpop.sort(key=lambda x: x.fitness.values)
-    scoop_log(fstats)
+    logging.info(fstats)
     with open(cali_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
         #   when using unicode_literals, please use '%s' to concatenate string!
         f.write('%s' % fstats.__str__())
     endT = time.time()
-    scoop_log('### END OF CALIBRATION OPTIMIZING ###')
-    scoop_log('Running time: %.2fs' % (endT - startT))
-    scoop_log('outdir:%s' % cali_cfg.opt.out_dir)
+    logging.info('### END OF CALIBRATION OPTIMIZING ###')
+    logging.info('Running time: %.2fs' % (endT - startT))
+    logging.info('outdir:%s' % cali_cfg.opt.out_dir)

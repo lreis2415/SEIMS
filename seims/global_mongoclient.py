@@ -24,6 +24,7 @@ this = sys.modules[__name__]
 
 # user specific parameters for their MongoDB server
 this.host = '127.0.0.1'
+# this.host = '10.109.82.255'
 this.port = 27017
 
 # this client will be created once for each process in the entire application
