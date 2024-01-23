@@ -36,7 +36,8 @@ from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
 
 from utility.ray_map import ray_deap_map
-from utility.scoop_func import scoop_log
+from utility.logger import configure_logging
+import logging
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
@@ -215,11 +216,18 @@ def main(cfg):
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
     model_obj.UnsetMongoClient()
 
+    param_values = cali_obj.init_param_values(cfg.opt.npop)
+
     # Initialize population
-    param_values = cali_obj.initialize(cfg.opt.npop)
     pop = list()
     for i in range(cfg.opt.npop):
-        ind = creator.Individual(param_values[i])
+        ind_genes = list()
+        ind_param_values = deepcopy(param_values)
+        for pn in sorted(ind_param_values.keys()):
+            for j in range(len(ind_param_values[pn])):
+                if 'values' in ind_param_values[pn][j]:
+                    ind_genes.append(ind_param_values[pn][j]['values'][i])
+        ind = creator.Individual(ind_genes)
         ind.gen = 0
         ind.id = i
         ind.obs.vars = obs_vars[:]
@@ -229,9 +237,9 @@ def main(cfg):
 
     # Write calibrated values to MongoDB
     # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
-    write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
+    write_param_values_to_mongodb(cfg.model.db_name, cali_obj.param_defs, param_values)
     # get the low and up bound of calibrated parameters
-    bounds = numpy.array(cali_obj.ParamDefs['bounds'])
+    bounds = numpy.array(cali_obj.param_defs['bounds'])
     low = bounds[:, 0]
     up = bounds[:, 1]
     low = low.tolist()
@@ -305,19 +313,19 @@ def main(cfg):
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
-    scoop_log(logbook.stream)
+    logging.info(logbook.stream)
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
-    scoop_log(output_str)
+    logging.info(output_str)
     logging.info(output_str)
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
 
     for gen in range(1, cfg.opt.ngens + 1):
         output_str = '###### Generation: %d ######\n' % gen
-        scoop_log(output_str)
+        logging.info(output_str)
 
         offspring = [toolbox.clone(ind) for ind in pop]
         # method1: use crowding distance (normalized as 0~1) as eta
@@ -340,7 +348,7 @@ def main(cfg):
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
         valid_inds = [ind for ind in offspring if ind.fitness.valid]
         if len(invalid_inds) == 0:  # No need to continue
-            scoop_log('Note: No invalid individuals available, the NSGA2 will be terminated!')
+            logging.info('Note: No invalid individuals available, the NSGA2 will be terminated!')
             break
 
         # Write new calibrated parameters to MongoDB
@@ -350,7 +358,7 @@ def main(cfg):
             ind.id = idx
             param_values.append(ind[:])
         param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.model.db_name, cali_obj.ParamDefs, param_values)
+        write_param_values_to_mongodb(cfg.model.db_name, cali_obj.param_defs, param_values)
         # Count the model runs, and execute models
         invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)
@@ -388,12 +396,12 @@ def main(cfg):
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
-        scoop_log(hyper_str)
+        logging.info(hyper_str)
         logging.info(hyper_str)
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
-        scoop_log(logbook.stream)
+        logging.info(logbook.stream)
 
         # Count the newly generated near Pareto fronts
         new_count = 0
@@ -452,7 +460,7 @@ def main(cfg):
     allmodels_exect = numpy.array(allmodels_exect)
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=str(' '), fmt=str('%.4f'))
-    scoop_log('Running time of all SEIMS models:\n'
+    logging.info('Running time of all SEIMS models:\n'
               '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
               'MIN\t%s\n'
@@ -472,7 +480,7 @@ def main(cfg):
     for genid, tmpcount in list(modelruns_count.items()):
         allcount += tmpcount
 
-    scoop_log('Initialization timespan: %.4f\n'
+    logging.info('Initialization timespan: %.4f\n'
               'Model execution timespan: %.4f\n'
               'Sum of model runs timespan: %.4f\n'
               'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
@@ -483,18 +491,18 @@ def main(cfg):
 
 if __name__ == "__main__":
 
-    scoop_log('### START TO CALIBRATION OPTIMIZING ###')
+    logging.info('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
 
     fpop, fstats = main(cali_cfg)
 
     fpop.sort(key=lambda x: x.fitness.values)
-    scoop_log(fstats)
+    logging.info(fstats)
     with open(cali_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
         #   when using unicode_literals, please use '%s' to concatenate string!
         f.write('%s' % fstats.__str__())
     endT = time.time()
-    scoop_log('### END OF CALIBRATION OPTIMIZING ###')
-    scoop_log('Running time: %.2fs' % (endT - startT))
-    scoop_log('outdir:%s' % cali_cfg.opt.out_dir)
+    logging.info('### END OF CALIBRATION OPTIMIZING ###')
+    logging.info('Running time: %.2fs' % (endT - startT))
+    logging.info('outdir:%s' % cali_cfg.opt.out_dir)

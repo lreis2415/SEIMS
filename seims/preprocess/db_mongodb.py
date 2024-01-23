@@ -10,15 +10,16 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os
 import sys
-import logging
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
-from preprocess.text import DBTableNames, ModelParamFields, ParamAbstractionTypes
+from preprocess.text import DBTableNames, ModelParamFields
 
 
 class ConnectMongoDB(object):
@@ -69,7 +70,7 @@ class MongoQuery(object):
         coll_param = db_model[DBTableNames.main_parameter]
         param_dict = coll_param.find_one({ModelParamFields.name: param_name})
         if param_dict is None or param_dict.get(field) is None:
-            raise RuntimeError('%s item is not existed in MongoDB!' % param_name)
+            raise RuntimeError('%s item is not existed in MongoDB collection %s!' % (param_name, DBTableNames.main_parameter))
         return param_dict.get(field)
 
 

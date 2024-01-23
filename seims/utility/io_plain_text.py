@@ -50,6 +50,47 @@ def read_data_items_from_txt(txt_file):
     return data_items
 
 
+def read_data_items_from_txt_with_subbasin_id(txt_file):
+    # type: (AnyStr) -> List[List[AnyStr]]
+    """Read data items include title from text file, each data element are split by TAB or COMMA.
+       Be aware, the separator for each line can only be TAB or COMMA, and COMMA is the recommended.
+    Args:
+        txt_file: full path of text data file
+            subbasin id in the first line, sep by comma, adajacent subbasin ids can be connected by -.
+            e.g., 1-4,7,10,12-19,29
+    Returns:
+        2D data array
+    """
+    data_items = list()
+    subbasin_ids = list()
+    first_line = True
+    with open(txt_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            if first_line:
+                # if line starts with a-z
+                if line[0].isalpha():
+                    subbasin_ids = [0]
+                    first_line = False
+                    continue
+                subbasin_strs = line.rstrip().split(',')
+                for subbasin_str in subbasin_strs:
+                    if subbasin_str.find('-') < 0:
+                        subbasin_ids.append(int(subbasin_str))
+                    else:
+                        subbasin_range = subbasin_str.split('-')
+                        for i in range(int(subbasin_range[0]), int(subbasin_range[1]) + 1):
+                            subbasin_ids.append(i)
+                first_line = False
+                continue
+            str_line = line.strip()
+            if str_line != '' and str_line.find('#') < 0:
+                line_list = StringClass.split_string(str_line, ['\t'])
+                if len(line_list) <= 1:
+                    line_list = StringClass.split_string(str_line, [','])
+                data_items.append(line_list)
+    return subbasin_ids,data_items
+
+
 def read_simulation_from_txt(ws,  # type: AnyStr
                              plot_vars,  # type: List[AnyStr]
                              subbsnID,  # type: int

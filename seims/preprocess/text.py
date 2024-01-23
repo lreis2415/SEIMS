@@ -143,6 +143,7 @@ class ModelParamFields(object):
     value = 'VALUE'
     impact = 'IMPACT'
     change = 'CHANGE'
+    cali_values = 'CALI_VALUES'
     max = 'MAX'
     min = 'MIN'
     type = 'TYPE'
@@ -152,6 +153,9 @@ class ModelParamFields(object):
     change_rc = 'RC'
     change_ac = 'AC'
     change_nc = 'NC'
+    # impact inner
+    subbasins = 'subbasins'
+    bounds = 'bounds'
 
 
 class ModelCfgFields(object):

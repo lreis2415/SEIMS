@@ -15,6 +15,9 @@ import pickle
 import os
 import sys
 from io import open
+
+from preprocess.text import ModelParamFields
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -43,10 +46,10 @@ def write_param_values_to_mongodb(spatial_db, param_defs, param_values):
     conn = MongoDBObj.client  # type: MongoClient
     db = conn[spatial_db]
     collection = db['PARAMETERS']
-    collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
-    for idx, pname in enumerate(param_defs['names']):
+    collection.update_many({}, {'$unset': {ModelParamFields.cali_values: ''}})
+    for idx, pname in enumerate(param_defs.keys()):
         v2str = ','.join(str(v) for v in param_values[:, idx])
-        collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
+        collection.find_one_and_update({'NAME': pname}, {'$set': {ModelParamFields.cali_values: v2str}})
 
 
 def output_population_details(pops, outdir, gen_num,

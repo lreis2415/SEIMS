@@ -10,9 +10,12 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import glob
 import os
 import sys
 import logging
+from pathlib import Path
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -25,7 +28,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING, InsertOne, UpdateOne
 
-from utility import read_data_items_from_txt
+from utility import read_data_items_from_txt, read_data_items_from_txt_with_subbasin_id
 from preprocess.db_mongodb import MongoUtil
 from preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields, ParamAbstractionTypes, RasterMetadata
@@ -96,34 +99,51 @@ class ImportParam2Mongo(object):
 
     @staticmethod
     def calibrated_params_from_txt(cfg):
-        """Read and update calibrated parameters."""
+        """Read and update calibrated parameters.
+        IMPACT
+        {
+            subbasinID: 1,
+            subbasinID: 2,
+        }
+        """
         # initialize bulk operator
         coll = cfg.maindb[DBTableNames.main_parameter]
         # read initial parameters from txt file
-        data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
-        # print(field_names)
-        # Clean up the existing calibration settings
+        param_base_filename = Path(cfg.modelcfgs.filecali)
+        param_fn, param_ext = param_base_filename.name.split('.')
+        param_cali_files = glob.glob(Path(param_base_filename.parent, param_fn + '*.' + param_ext).as_posix())
+
         coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
                          {'$set': {ModelParamFields.impact: -9999.}})
         coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
                          {'$set': {ModelParamFields.impact: 1.}})
         coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
                          {'$set': {ModelParamFields.impact: 0.}})
+        update_dict = dict()
         update_requests = list()
-        for i, cur_data_item in enumerate(data_items):
-            data_import = dict()
-            cur_filter = dict()
-            if len(cur_data_item) < 2:
-                raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
-            data_import[ModelParamFields.name] = cur_data_item[0]
-            data_import[ModelParamFields.impact] = float(cur_data_item[1])
-            cur_filter[ModelParamFields.name] = cur_data_item[0]
-            if len(cur_data_item) >= 3:
-                if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
-                                        ModelParamFields.change_rc, ModelParamFields.change_nc]:
-                    data_import[ModelParamFields.change] = cur_data_item[2]
+        for param_file in param_cali_files:
+            subbasin_ids, data_items = read_data_items_from_txt_with_subbasin_id(param_file)
+            # print(field_names)
+            # Clean up the existing calibration settings
+            for i, cur_data_item in enumerate(data_items):
+                data_import = dict()
+                if len(cur_data_item) < 2:
+                    raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
+                if cur_data_item[0] not in update_dict:
+                    update_dict[cur_data_item[0]] = dict()
+                for sid in subbasin_ids:
+                    update_dict[cur_data_item[0]][str(sid)] = float(cur_data_item[1])
+                if len(cur_data_item) >= 3:
+                    if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
+                                            ModelParamFields.change_rc, ModelParamFields.change_nc]:
+                        data_import[ModelParamFields.change] = cur_data_item[2]
 
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+        for var, update in update_dict.items():
+            update_requests.append(UpdateOne(
+                {ModelParamFields.name: var},
+                {'$set': {ModelParamFields.impact:update}}
+            ))
+
         # execute update operators
         results = MongoUtil.run_bulk_write(coll, update_requests)
         logging.info('Updated %d calibration parameters!' % (results.modified_count

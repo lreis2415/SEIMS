@@ -601,6 +601,38 @@ time_t GetDatetimeFromBson(bson_t* bmeta, const char* key) {
     return -1;
 }
 
+
+/*!
+parse the following json string to a map:
+{
+    CaliID: {
+        subbasinID: 1,
+        subbasinID: 2,
+    },
+    CaliID: {
+        subbasinID: 1,
+        subbasinID: 2,
+    },
+}
+ */
+void GetMapFromBson(bson_t* bmeta, map<int, map<int,double>>& cali_subbasin_map){
+    bson_iter_t iter;
+    if (bson_iter_init(&iter, bmeta)) {
+        while (bson_iter_next(&iter)) {
+            int cali_id = atoi(bson_iter_key(&iter));
+            bson_t subbasin_bson;
+            bson_iter_t subbasin_iter;
+            if (bson_iter_init(&subbasin_iter, &subbasin_bson)) {
+                while (bson_iter_next(&subbasin_iter)) {
+                    int subbasin_id = atoi(bson_iter_key(&subbasin_iter));
+                    double value = atof(bson_iter_utf8(&subbasin_iter, NULL));
+                    cali_subbasin_map[cali_id][subbasin_id] = value;
+                }
+            }
+        }
+    }
+}
+
 } /* namespace: db_mongoc */
 } /* namespace: ccgl */
 #endif /* USE_MONGODB */

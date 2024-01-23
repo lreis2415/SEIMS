@@ -280,5 +280,20 @@ time_t GetDatetimeFromBson(bson_t* bmeta, const char* key);
 } /* namespace: db_mongoc */
 } /* namespace: ccgl */
 
+/*!
+parse the following json string to a map:
+{
+    CaliID: {
+        subbasinID: 1,
+        subbasinID: 2,
+    },
+    CaliID: {
+        subbasinID: 1,
+        subbasinID: 2,
+    },
+}
+ */
+void GetMapFromBson(bson_t* bmeta, map<int, map<int,double>>& cali_subbasin_map);
+
 #endif /* USE_MONGODB */
 #endif /* CCGL_DB_MONGOC_H */

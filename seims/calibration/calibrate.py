@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 """Base class of calibration.
 
     @author   : Liangjun Zhu
@@ -12,10 +12,9 @@
 from __future__ import absolute_import, unicode_literals
 
 import logging
-import time
-from collections import OrderedDict
 import os
 import sys
+from collections import OrderedDict
 from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -23,11 +22,10 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from typing import Optional
 from pymongo import MongoClient
-from pygeoc.utils import FileClass
 
-from utility import read_data_items_from_txt
+from utility import read_data_items_from_txt_with_subbasin_id
 import global_mongoclient as MongoDBObj
-from preprocess.text import DBTableNames
+from preprocess.text import DBTableNames, ModelParamFields
 from run_seims import MainSEIMS
 from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
@@ -103,7 +101,21 @@ class Calibration(object):
 
     def __init__(self, cali_cfg, id=-1):
         # type: (CaliConfig, Optional[int]) -> None
-        """Initialize."""
+        """Initialize.
+        self.param_defs
+        {
+            param_name : [
+                {
+                    subbasins: [1,2,3]
+                    bounds: [0,1]
+                },
+                {
+                    subbasins: [0]
+                    bounds: [0,1]
+                }
+            ],
+        }
+        """
         self.cfg = cali_cfg
         self.model = cali_cfg.model
         self.ID = id
@@ -111,9 +123,9 @@ class Calibration(object):
         # run seims related
         self.modelrun = False
         self.reset_simulation_timerange()
+        self.init_param_defs()
 
-    @property
-    def ParamDefs(self):
+    def init_param_defs(self):
         """Read cali_param_rng.def file
 
            name,lower_bound,upper_bound
@@ -131,35 +143,33 @@ class Calibration(object):
                          (the length of names)
         """
         # read param_defs.json if already existed
-        if self.param_defs:
-            return self.param_defs
         # read param_range_def file and output to json file
         conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
 
-        names = list()
-        bounds = list()
-        num_vars = 0
-        if not FileClass.is_file_exists(self.cfg.param_range_def):
-            raise ValueError('Parameters definition file: %s is not'
-                             ' existed!' % self.cfg.param_range_def)
-        items = read_data_items_from_txt(self.cfg.param_range_def)
-        for item in items:
-            if len(item) < 3:
-                continue
-            # find parameter name, print warning message if not existed
-            if collection.count_documents({'NAME': item[0]}) <= 0:
-                print('WARNING: parameter %s is not existed!' % item[0])
-                continue
-            low,up = float(item[1]), float(item[2])
-            if low > up:
-                raise ValueError('Lower bound of parameter %s is larger than upper bound!' % item[0])
-            num_vars += 1
-            names.append(item[0])
-            bounds.append([low, up])
-        self.param_defs = {'names': names, 'bounds': bounds, 'num_vars': num_vars}
-        return self.param_defs
+        if not self.cfg.param_range_defs:
+            assert ValueError('Parameters definition file does not exist!'
+                              ' They should have been read and check when reading cfg!')
+
+        for cali_range_file in self.cfg.param_range_defs:
+            subbasin_ids, items = read_data_items_from_txt_with_subbasin_id(cali_range_file)
+            for item in items:
+                if len(item) < 3:
+                    continue
+                name = item[0]
+                low, up = float(item[1]), float(item[2])
+                if collection.count_documents({'NAME': name}) <= 0:
+                    logging.warning('parameter %s does not exist!' % name)
+                    continue
+                if low > up:
+                    raise ValueError('Lower bound of parameter %s is larger than upper bound!' % name)
+                if name not in self.param_defs:
+                    self.param_defs[name] = list()
+                dict_tmp = dict()
+                dict_tmp[ModelParamFields.subbasins] = subbasin_ids
+                dict_tmp[ModelParamFields.bounds] = [low, up]
+                self.param_defs[name].append(dict_tmp)
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
@@ -172,29 +182,35 @@ class Calibration(object):
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
 
-    def initialize(self, n=1):
+    def init_param_values(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
 
-        Returns:
-            A list contains parameter value at each gene location.
+        return: param_values
         """
-        param_num = self.ParamDefs['num_vars']
+        param_num = 0
+        for name, subbasin_range_list in self.param_defs.items():
+            param_num += len(subbasin_range_list)
+
         lhs_samples = lhs(param_num, n)
-        all = list()
-        for idx in range(n):
-            gene_values = list()
-            for i, param_bound in enumerate(self.ParamDefs['bounds']):
-                gene_values.append(lhs_samples[idx][i] * (param_bound[1] - param_bound[0]) +
-                                   param_bound[0])
-            all.append(gene_values)
-        return all
+        param_values = deepcopy(self.param_defs)
+        iter_count = 0
+        for name in sorted(param_values.keys()):
+            for i, rng_dict in enumerate(param_values[name]):
+                low, up = rng_dict['bounds']
+                gene_values = [(lhs_samples[iter_count][j] * (up - low) + low) for j in range(len(lhs_samples[iter_count]))]
+                param_values[name][i]['values'] = gene_values
+            iter_count += 1
+            if iter_count >= n:
+                break
+
+        return param_values
 
 
 def initialize_calibrations(cf):
     """Initial individual of population.
     """
     cali = Calibration(cf)
-    return cali.initialize()
+    return cali.param_defs
 
 
 def calibration_objectives(pop):
@@ -235,9 +251,9 @@ def calibration_objectives(pop):
                                                         cali_obj.cfg.cali_etime)
 
     ind.cali.objnames, \
-    ind.cali.objvalues = model_obj.CalcTimeseriesStatistics(ind.cali.sim_obs_data,
-                                                            cali_obj.cfg.cali_stime,
-                                                            cali_obj.cfg.cali_etime)
+        ind.cali.objvalues = model_obj.CalcTimeseriesStatistics(ind.cali.sim_obs_data,
+                                                                cali_obj.cfg.cali_stime,
+                                                                cali_obj.cfg.cali_etime)
     if ind.cali.objnames and ind.cali.objvalues:
         ind.cali.valid = True
     else:
@@ -251,9 +267,9 @@ def calibration_objectives(pop):
                                                             cali_obj.cfg.vali_etime)
 
         ind.vali.objnames, \
-        ind.vali.objvalues = model_obj.CalcTimeseriesStatistics(ind.vali.sim_obs_data,
-                                                                cali_obj.cfg.vali_stime,
-                                                                cali_obj.cfg.vali_etime)
+            ind.vali.objvalues = model_obj.CalcTimeseriesStatistics(ind.vali.sim_obs_data,
+                                                                    cali_obj.cfg.vali_stime,
+                                                                    cali_obj.cfg.vali_etime)
         if ind.vali.objnames and ind.vali.objvalues:
             ind.vali.valid = True
         else:
