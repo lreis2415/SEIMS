@@ -71,17 +71,17 @@ def read_data_items_from_txt_with_subbasin_id(txt_file):
                 if line[0].isalpha():
                     subbasin_ids = [0]
                     first_line = False
+                else:
+                    subbasin_strs = line.rstrip().split(',')
+                    for subbasin_str in subbasin_strs:
+                        if subbasin_str.find('-') < 0:
+                            subbasin_ids.append(int(subbasin_str))
+                        else:
+                            subbasin_range = subbasin_str.split('-')
+                            for i in range(int(subbasin_range[0]), int(subbasin_range[1]) + 1):
+                                subbasin_ids.append(i)
+                    first_line = False
                     continue
-                subbasin_strs = line.rstrip().split(',')
-                for subbasin_str in subbasin_strs:
-                    if subbasin_str.find('-') < 0:
-                        subbasin_ids.append(int(subbasin_str))
-                    else:
-                        subbasin_range = subbasin_str.split('-')
-                        for i in range(int(subbasin_range[0]), int(subbasin_range[1]) + 1):
-                            subbasin_ids.append(i)
-                first_line = False
-                continue
             str_line = line.strip()
             if str_line != '' and str_line.find('#') < 0:
                 line_list = StringClass.split_string(str_line, ['\t'])

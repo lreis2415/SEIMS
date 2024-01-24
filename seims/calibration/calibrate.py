@@ -16,6 +16,7 @@ import os
 import sys
 from collections import OrderedDict
 from copy import deepcopy
+import numpy as np
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -115,11 +116,21 @@ class Calibration(object):
                 }
             ],
         }
+        param_names: may duplicate for one param to be different in subbasins
+        MSK_X, MSK_X, MSK_K
+
+        impact_subbasins
+        [1,2,3],[4],[0]
+
         """
         self.cfg = cali_cfg
         self.model = cali_cfg.model
         self.ID = id
-        self.param_defs = dict()
+        self.param_names = list()  #
+        self.impact_subbasins = list()
+        self.param_bounds_lows = list()
+        self.param_bounds_highs = list()
+        # self.param_defs = dict()
         # run seims related
         self.modelrun = False
         self.reset_simulation_timerange()
@@ -127,23 +138,7 @@ class Calibration(object):
 
     def init_param_defs(self):
         """Read cali_param_rng.def file
-
-           name,lower_bound,upper_bound
-
-            e.g.,
-             Param1,0,1
-             Param2,0.5,1.2
-             Param3,-1.0,1.0
-
-        Returns:
-            a dictionary containing:
-            - names - the names of the parameters
-            - bounds - a list of lists of lower and upper bounds
-            - num_vars - a scalar indicating the number of variables
-                         (the length of names)
         """
-        # read param_defs.json if already existed
-        # read param_range_def file and output to json file
         conn = MongoDBObj.client  # type: MongoClient
         db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
@@ -158,18 +153,16 @@ class Calibration(object):
                 if len(item) < 3:
                     continue
                 name = item[0]
-                low, up = float(item[1]), float(item[2])
                 if collection.count_documents({'NAME': name}) <= 0:
                     logging.warning('parameter %s does not exist!' % name)
                     continue
-                if low > up:
+                low, high = float(item[1]), float(item[2])
+                if low > high:
                     raise ValueError('Lower bound of parameter %s is larger than upper bound!' % name)
-                if name not in self.param_defs:
-                    self.param_defs[name] = list()
-                dict_tmp = dict()
-                dict_tmp[ModelParamFields.subbasins] = subbasin_ids
-                dict_tmp[ModelParamFields.bounds] = [low, up]
-                self.param_defs[name].append(dict_tmp)
+                self.param_names.append(name)
+                self.param_bounds_lows.append(low)
+                self.param_bounds_highs.append(high)
+                self.impact_subbasins.append(subbasin_ids)
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
@@ -182,35 +175,67 @@ class Calibration(object):
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
 
-    def init_param_values(self, n=1):
+    def init_pop_genes(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
-
         return: param_values
+        --------------------
+        lhs_samples: (npop, nvar)
+        gene_values：(npop, nvar)
+            e.g., npop=2, nvar=3
+            0.1, 0.2, 0.3
+            0.1, 0.2, 0.3
         """
-        param_num = 0
-        for name, subbasin_range_list in self.param_defs.items():
-            param_num += len(subbasin_range_list)
+        param_num = len(self.param_names)
+        # to numpy array
+        lows, highs = np.array(self.param_bounds_lows), np.array(self.param_bounds_highs)
 
         lhs_samples = lhs(param_num, n)
-        param_values = deepcopy(self.param_defs)
-        iter_count = 0
+        gene_values = deepcopy(lhs_samples)
+        for i in range(n):
+            gene_values[i] = lhs_samples[i] * (highs - lows) + lows
+            # assign gene values to param_values
+        gene_values = np.array(gene_values)
+        return gene_values
+
+    @staticmethod
+    def convert_param_values_to_pop_genes(param_values):
+        """
+        param_values：{
+            param_name: [
+                {
+                    subbasins: [1,2,3]
+                    bounds: [0,1]
+                    values: [0.1, 0.2, 0.3]
+                },
+                {
+                    subbasins: [0]
+                    bounds: [0,1]
+                    values: [0.1]
+                }
+            ],
+        """
+        pop = list()
+        param_names = list()
+        impact_subbasins = list()
+        ups, downs = list(), list()
+        n = len(param_values[list(param_values.keys())[0]][0]['values'])
         for name in sorted(param_values.keys()):
-            for i, rng_dict in enumerate(param_values[name]):
-                low, up = rng_dict['bounds']
-                gene_values = [(lhs_samples[iter_count][j] * (up - low) + low) for j in range(len(lhs_samples[iter_count]))]
-                param_values[name][i]['values'] = gene_values
-            iter_count += 1
-            if iter_count >= n:
-                break
+            param_names.append(name)
+            for i in range(len(param_values[name])):
+                pop.append(param_values[name][i]['values'])
+                impact_subbasins.append(param_values[name][i]['subbasins'])
+                downs.append(param_values[name][i]['bounds'][0])
+                ups.append(param_values[name][i]['bounds'][1])
+        pop = np.array(pop)
+        pop = pop.reshape((n, -1))
+        return param_names, pop, impact_subbasins, downs, ups
 
-        return param_values
 
-
-def initialize_calibrations(cf):
-    """Initial individual of population.
-    """
-    cali = Calibration(cf)
-    return cali.param_defs
+# def initialize_calibrations(cf):
+#     """Initial individual of population.
+#     """
+#     cali = Calibration(cf)
+#     return cali.param_defs
 
 
 def calibration_objectives(pop):

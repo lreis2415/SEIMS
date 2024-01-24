@@ -475,7 +475,8 @@ void clsReaches::Update(map<string, ParamInfo<FLTPT> *>& caliparams_map, IntRast
             for (auto it2 = reaches_obj_.begin(); it2 != reaches_obj_.end(); ++it2) {
                 FLTPT pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
                 if (FloatEqual(pre_value, NODATA_VALUE)) continue;
-                it2->second->Set(REACH_PARAM_NAME[i], it->second->GetAdjustedValue(pre_value));
+                if (!IsValueInVectorVector(&it->second->ImpactSubbasins, reach_num_)) continue;
+                it2->second->Set(REACH_PARAM_NAME[i], it->second->GetAdjustedValue(pre_value, reach_num_));
             }
         }
         i++;

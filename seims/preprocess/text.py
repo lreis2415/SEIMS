@@ -144,6 +144,7 @@ class ModelParamFields(object):
     impact = 'IMPACT'
     change = 'CHANGE'
     cali_values = 'CALI_VALUES'
+    impact_subbasins = 'IMPACT_SUBBASINS'
     max = 'MAX'
     min = 'MIN'
     type = 'TYPE'
@@ -154,7 +155,6 @@ class ModelParamFields(object):
     change_ac = 'AC'
     change_nc = 'NC'
     # impact inner
-    subbasins = 'subbasins'
     bounds = 'bounds'
 
 

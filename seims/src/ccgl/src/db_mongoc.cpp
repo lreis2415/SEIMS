@@ -603,33 +603,53 @@ time_t GetDatetimeFromBson(bson_t* bmeta, const char* key) {
 
 
 /*!
-parse the following json string to a map:
-{
-    CaliID: {
-        subbasinID: 1,
-        subbasinID: 2,
-    },
-    CaliID: {
-        subbasinID: 1,
-        subbasinID: 2,
-    },
-}
+parse the following nested vector from bson_t:
+[1, 2, 3]
  */
-void GetMapFromBson(bson_t* bmeta, map<int, map<int,double>>& cali_subbasin_map){
-    bson_iter_t iter;
-    if (bson_iter_init(&iter, bmeta)) {
-        while (bson_iter_next(&iter)) {
-            int cali_id = atoi(bson_iter_key(&iter));
-            bson_t subbasin_bson;
-            bson_iter_t subbasin_iter;
-            if (bson_iter_init(&subbasin_iter, &subbasin_bson)) {
-                while (bson_iter_next(&subbasin_iter)) {
-                    int subbasin_id = atoi(bson_iter_key(&subbasin_iter));
-                    double value = atof(bson_iter_utf8(&subbasin_iter, NULL));
-                    cali_subbasin_map[cali_id][subbasin_id] = value;
-                }
+template<typename T>
+void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            const bson_value_t* sub_vv = bson_iter_value(&sub_iter);
+            if (sub_vv->value_type == BSON_TYPE_INT32) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int32));
+            } else if (sub_vv->value_type == BSON_TYPE_INT64) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int64));
+            } else if (sub_vv->value_type == BSON_TYPE_DOUBLE) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_double));
+            } else {
+                StatusMessage("Failed in get vector value.");
             }
         }
+    } else {
+        StatusMessage("Failed in get vector value.");
+    }
+}
+
+/*!
+parse the following nested vector from bson_t:
+[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+ */
+template<typename T>
+void GetVectorVectorFromBsonIter(bson_iter_t* iter, vector<vector<T>>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            vector<T> tmp;
+            GetVectorFromBsonIter(&sub_iter, tmp);
+            out.emplace_back(tmp);
+        }
+    } else {
+        StatusMessage("Failed in get vector value.");
     }
 }
 

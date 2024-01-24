@@ -16,12 +16,10 @@ from __future__ import absolute_import, division, unicode_literals
 import array
 import os
 import random
-import time
 import sys
+import time
 from io import open
-import logging
 from pathlib import Path
-
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -36,14 +34,13 @@ from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
 
 from utility.ray_map import ray_deap_map
-from utility.logger import configure_logging
 import logging
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
 
-from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
+from calibration.calibrate import Calibration, calibration_objectives
 from calibration.calibrate import TimeseriesData, ObsSimData
 from calibration.userdef import write_param_values_to_mongodb, output_population_details
 
@@ -52,7 +49,6 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 cf, method, processors, workers, processors_per_worker = get_optimization_config()
 cali_cfg = CaliConfig(cf, method=method)
-
 
 # All accepted objective function names from `postprocess::utility::calculate_statistics`
 accepted_objnames = ['NSE', 'RSR', 'PBIAS', 'R-square', 'RMSE', 'lnNSE', 'NSE1', 'NSE3']
@@ -166,9 +162,9 @@ creator_setup()
 
 
 toolbox = base.Toolbox()
-toolbox.register('gene_values', initialize_calibrations)
-toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
-toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+# toolbox.register('gene_values', initialize_calibrations)
+# toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
+# toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
 toolbox.register('evaluate', calibration_objectives)
 
 # mate and mutate
@@ -183,6 +179,7 @@ ray.init(num_cpus=processors)
 # os.environ["RAY_DEDUP_LOGS"] = "0"
 toolbox.register('map', ray_deap_map, creator_setup=creator_setup, workers=workers, cpus_per_worker=processors_per_worker)
 logging.info(f'init Ray with total_cpus={processors}, workers={workers}, cpus_per_worker={processors_per_worker}')
+
 
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
@@ -216,34 +213,27 @@ def main(cfg):
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
     model_obj.UnsetMongoClient()
 
-    param_values = cali_obj.init_param_values(cfg.opt.npop)
-
+    pop_genes = cali_obj.init_pop_genes(cfg.opt.npop)
     # Initialize population
     pop = list()
     for i in range(cfg.opt.npop):
-        ind_genes = list()
-        ind_param_values = deepcopy(param_values)
-        for pn in sorted(ind_param_values.keys()):
-            for j in range(len(ind_param_values[pn])):
-                if 'values' in ind_param_values[pn][j]:
-                    ind_genes.append(ind_param_values[pn][j]['values'][i])
+        ind_genes = pop_genes[i]
         ind = creator.Individual(ind_genes)
         ind.gen = 0
         ind.id = i
         ind.obs.vars = obs_vars[:]
         ind.obs.data = deepcopy(obs_data_dict)
         pop.append(ind)
-    param_values = numpy.array(param_values)
 
     # Write calibrated values to MongoDB
     # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
-    write_param_values_to_mongodb(cfg.model.db_name, cali_obj.param_defs, param_values)
+    write_param_values_to_mongodb(
+        cfg.model.db_name,
+        param_names=cali_obj.param_names,
+        pop_genes=pop_genes,
+        impact_subbasins=cali_obj.impact_subbasins
+    )
     # get the low and up bound of calibrated parameters
-    bounds = numpy.array(cali_obj.param_defs['bounds'])
-    low = bounds[:, 0]
-    up = bounds[:, 1]
-    low = low.tolist()
-    up = up.tolist()
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
     init_time = time.time() - stime
 
@@ -336,12 +326,12 @@ def main(cfg):
                 if random.random() > cfg.opt.rcross:
                     continue
                 eta = i
-                toolbox.mate(ind1, ind2, eta, low, up)
-                toolbox.mutate(ind1, eta, low, up, cfg.opt.rmut)
-                toolbox.mutate(ind2, eta, low, up, cfg.opt.rmut)
+                toolbox.mate(ind1, ind2, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs)
+                toolbox.mutate(ind1, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
+                toolbox.mutate(ind2, eta, cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
                 del ind1.fitness.values, ind2.fitness.values
         else:
-            toolbox.mutate(offspring[0], 1., low, up, cfg.opt.rmut)
+            toolbox.mutate(offspring[0], 1., cali_obj.param_bounds_lows, cali_obj.param_bounds_highs, cfg.opt.rmut)
             del offspring[0].fitness.values
 
         # Evaluate the individuals with an invalid fitness
@@ -352,13 +342,18 @@ def main(cfg):
             break
 
         # Write new calibrated parameters to MongoDB
-        param_values = list()
+        pop_genes = list()
         for idx, ind in enumerate(invalid_inds):
             ind.gen = gen
             ind.id = idx
-            param_values.append(ind[:])
-        param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.model.db_name, cali_obj.param_defs, param_values)
+            pop_genes.append(ind[:])
+        pop_genes = numpy.array(pop_genes)
+        write_param_values_to_mongodb(
+            cfg.model.db_name,
+            param_names=cali_obj.param_names,
+            pop_genes=pop_genes,
+            impact_subbasins=cali_obj.impact_subbasins
+        )
         # Count the model runs, and execute models
         invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)
@@ -443,7 +438,7 @@ def main(cfg):
             output_str += '\n'
         logging.info(output_str)
         gen_fp = Path(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
-        with open(gen_fp,'w') as gen_f:
+        with open(gen_fp, 'w') as gen_f:
             gen_f.write(output_str)
 
         # TODO: Figure out if we should terminate the evolution
@@ -461,14 +456,14 @@ def main(cfg):
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=str(' '), fmt=str('%.4f'))
     logging.info('Running time of all SEIMS models:\n'
-              '\tIO\tCOMP\tSIMU\tRUNTIME\n'
-              'MAX\t%s\n'
-              'MIN\t%s\n'
-              'AVG\t%s\n'
-              'SUM\t%s\n' % ('\t'.join('%.3f' % t for t in allmodels_exect.max(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.min(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.mean(0)),
-                             '\t'.join('%.3f' % t for t in allmodels_exect.sum(0))))
+                 '\tIO\tCOMP\tSIMU\tRUNTIME\n'
+                 'MAX\t%s\n'
+                 'MIN\t%s\n'
+                 'AVG\t%s\n'
+                 'SUM\t%s\n' % ('\t'.join('%.3f' % t for t in allmodels_exect.max(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.min(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.mean(0)),
+                                '\t'.join('%.3f' % t for t in allmodels_exect.sum(0))))
 
     exec_time = 0.
     for genid, tmptime in list(modelruns_time.items()):
@@ -481,16 +476,15 @@ def main(cfg):
         allcount += tmpcount
 
     logging.info('Initialization timespan: %.4f\n'
-              'Model execution timespan: %.4f\n'
-              'Sum of model runs timespan: %.4f\n'
-              'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
-                                                     exec_time_sum, plot_time))
+                 'Model execution timespan: %.4f\n'
+                 'Sum of model runs timespan: %.4f\n'
+                 'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
+                                                        exec_time_sum, plot_time))
 
     return pop, logbook
 
 
 if __name__ == "__main__":
-
     logging.info('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
 

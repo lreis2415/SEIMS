@@ -80,6 +80,7 @@ CONST_CHARS PARAM_FLD_USE =                         "USE"; ///< use or not
 CONST_CHARS PARAM_USE_Y =                           "Y"; ///<
 CONST_CHARS PARAM_USE_N =                           "N"; ///<
 CONST_CHARS PARAM_CALI_VALUES =                     "CALI_VALUES"; ///< replace Impact for model calibration
+CONST_CHARS PARAM_IMPACT_SUBBASINS =                "IMPACT_SUBBASINS"; ///< subbasin ids for each impact
 
 ////////////  Input and Output Tags   ///////////////
 // Fields in Model Configuration Collections //

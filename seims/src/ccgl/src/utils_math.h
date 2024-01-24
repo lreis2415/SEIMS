@@ -172,6 +172,13 @@ T MaxInArray(const T* a, int n);
 template <typename T>
 T MinInArray(const T* a, int n);
 
+
+template <typename T>
+bool IsVectorAllSame(const vector<T>* a, T value);
+
+template <typename T>
+bool IsValueInVector(const vector<T>* a, T value);
+
 /*!
  * \brief Sum of a numeric array
  * Get sum value of a double array with size row.
@@ -361,6 +368,29 @@ T MinInArray(const T* a, const int n) {
     return m;
 }
 
+template <typename T>
+bool IsVectorAllSame(const vector<T>* a, T value){
+    for (int i = 0; i < n; i++) {
+        if (a[i] != value) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+bool IsValueInVector(const vector<T>* a, T value){
+    return std::find(v.begin(), v.end(), x) != v.end();
+}
+template <typename T>
+bool IsValueInVectorVector(const vector< vector<T>>* a, T value) {
+    for (int i = 0; i < a.size(); i++) {
+        if (std::find(a[i].begin(), a[i].end(), value) != a[i].end()) {
+            return true;
+        }
+    }
+    return false;
+}
 template <typename T>
 T Sum(const int row, const T* data) {
     T tmp = 0;

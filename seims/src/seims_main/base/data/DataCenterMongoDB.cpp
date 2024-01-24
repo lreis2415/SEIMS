@@ -405,7 +405,8 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         string module;
         FLTPT value;
         string change;
-        FLTPT impact = 0.;
+        vector<FLTPT> impact;
+        vector<vector<int>> impact_subbasins;
         FLTPT maximum = 0.;
         FLTPT minimum = 0.;
         bool isint = false;
@@ -440,17 +441,20 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             isint = StringMatch(GetStringFromBsonIterator(&iter), "INT");
         }
         if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && calibration_id_ >= 0) {
-            // Overwrite p->Impact according to calibration ID
-            string cali_values_str = GetStringFromBsonIterator(&iter);
-            vector<FLTPT> cali_values;
-            SplitStringForValues(cali_values_str, ',', cali_values);
+            vector<vector<FLTPT>> cali_values;
+            GetVectorVectorFromBsonIter(&iter, cali_values);
             if (calibration_id_ < CVT_INT(cali_values.size())) {
-                impact = cali_values[calibration_id_];
+                impact = cali_values.at(calibration_id_);
             }
         }
+        if (bson_iter_init_find(&iter, info, PARAM_IMPACT_SUBBASINS) && calibration_id_ >= 0) {
+            GetVectorVectorFromBsonIter(&iter, impact_subbasins);
+        }
         if (isint) {
+            vector<int> impact_int;
+            std::copy_n(impact.begin(), impact.size(), impact_int.begin());
             ParamInfo<int>* intp = new ParamInfo<int>(name, desc, unit, module, CVT_INT(value),
-                                                      change, CVT_INT(impact), CVT_INT(maximum),
+                                                      change, impact_int,impact_subbasins, CVT_INT(maximum),
                                                       CVT_INT(minimum), isint);
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!init_params_int_.emplace(name, intp).second) {
@@ -463,7 +467,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         }
         else {
             ParamInfo<FLTPT>* p = new ParamInfo<FLTPT>(name, desc, unit, module, value,
-                                                       change, impact, maximum, minimum, isint);
+                                                       change, impact,impact_subbasins, maximum, minimum, isint);
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!init_params_.emplace(name, p).second) {
 #else

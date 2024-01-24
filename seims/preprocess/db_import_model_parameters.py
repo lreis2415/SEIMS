@@ -11,9 +11,9 @@
 from __future__ import absolute_import, unicode_literals
 
 import glob
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -92,19 +92,16 @@ class ImportParam2Mongo(object):
         # execute import operators
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_parameter], bulk_requests)
         logging.info('Inserted %d initial parameters!' % (results.inserted_count
-              if results is not None else 0))
+                                                          if results is not None else 0))
         # initialize index by parameter's type and name by ascending order.
         cfg.maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
-                                                             (ModelParamFields.name, ASCENDING)])
+                                                              (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
     def calibrated_params_from_txt(cfg):
         """Read and update calibrated parameters.
-        IMPACT
-        {
-            subbasinID: 1,
-            subbasinID: 2,
-        }
+        IMPACT: [0.1, 0.2]
+        IMPACT_SUBBASINS: [[1,2,3,5],[4,6]]
         """
         # initialize bulk operator
         coll = cfg.maindb[DBTableNames.main_parameter]
@@ -120,7 +117,6 @@ class ImportParam2Mongo(object):
         coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
                          {'$set': {ModelParamFields.impact: 0.}})
         update_dict = dict()
-        update_requests = list()
         for param_file in param_cali_files:
             subbasin_ids, data_items = read_data_items_from_txt_with_subbasin_id(param_file)
             # print(field_names)
@@ -129,25 +125,32 @@ class ImportParam2Mongo(object):
                 data_import = dict()
                 if len(cur_data_item) < 2:
                     raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
-                if cur_data_item[0] not in update_dict:
-                    update_dict[cur_data_item[0]] = dict()
-                for sid in subbasin_ids:
-                    update_dict[cur_data_item[0]][str(sid)] = float(cur_data_item[1])
+                name, impact = cur_data_item[0], float(cur_data_item[1])
+                if name not in update_dict:
+                    update_dict[name] = dict()
+                    update_dict[name]['impacts'] = list()
+                    update_dict[name]['subbasins'] = list()
+                update_dict[name]['impacts'].append(impact)
+                update_dict[name]['subbasins'].append(subbasin_ids)
                 if len(cur_data_item) >= 3:
                     if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
                                             ModelParamFields.change_rc, ModelParamFields.change_nc]:
                         data_import[ModelParamFields.change] = cur_data_item[2]
 
-        for var, update in update_dict.items():
+        update_requests = list()
+        for name, update in update_dict.items():
             update_requests.append(UpdateOne(
-                {ModelParamFields.name: var},
-                {'$set': {ModelParamFields.impact:update}}
+                {ModelParamFields.name: name},
+                {'$set': {
+                    ModelParamFields.impact: update['impacts'],
+                    ModelParamFields.impact_subbasins: update['subbasins'],
+                }}
             ))
 
         # execute update operators
         results = MongoUtil.run_bulk_write(coll, update_requests)
         logging.info('Updated %d calibration parameters!' % (results.modified_count
-              if results is not None else 0))
+                                                             if results is not None else 0))
 
     @staticmethod
     def subbasin_statistics(cfg):
@@ -271,6 +274,7 @@ class ImportParam2Mongo(object):
         # begin to import initial outputs settings
         file_out_items = read_data_items_from_txt(file_out_path)
         out_field_array = file_out_items[0]
+
         # print(out_data_array)
 
         def read_output_item(output_fields, item):
@@ -312,7 +316,7 @@ class ImportParam2Mongo(object):
             insert_requests.append(InsertOne(iitem_dict))
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], insert_requests)
         logging.info('Inserted %d initial outputs settings!' % (results.inserted_count
-              if results is not None else 0))
+                                                                if results is not None else 0))
 
         # begin to import the desired outputs
         # read initial parameters from txt file
@@ -343,7 +347,7 @@ class ImportParam2Mongo(object):
         # execute import operators
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], update_requests)
         logging.info('Updated %d desired outputs!' % (results.modified_count
-              if results is not None else 0))
+                                                      if results is not None else 0))
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg):
@@ -395,7 +399,7 @@ class ImportParam2Mongo(object):
                     item_values.append(item_value)
             res = MongoUtil.run_bulk_write(cfg.maindb[tablename.upper()], insert_requests)
             logging.info('Inserted %d items of %s!' % (res.inserted_count if res is not None else 0,
-                                                tablename))
+                                                       tablename))
             # begin import gridfs file
             n_row = len(item_values)
             # print(item_values)

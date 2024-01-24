@@ -281,19 +281,22 @@ time_t GetDatetimeFromBson(bson_t* bmeta, const char* key);
 } /* namespace: ccgl */
 
 /*!
-parse the following json string to a map:
-{
-    CaliID: {
-        subbasinID: 1,
-        subbasinID: 2,
-    },
-    CaliID: {
-        subbasinID: 1,
-        subbasinID: 2,
-    },
-}
+parse the following nested vector from bson_t:
+[1, 2, 3]
  */
-void GetMapFromBson(bson_t* bmeta, map<int, map<int,double>>& cali_subbasin_map);
+template<typename T>
+void GetVectorFromBsonIter(bson_iter_t* bs, vector<T>& cali_subbasin_map);
+
+/*!
+parse the following nested vector from bson_t:
+[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+ */
+template<typename T>
+void GetVectorVectorFromBsonIter(bson_iter_t* bs, vector<vector<T>>& cali_subbasin_map);
 
 #endif /* USE_MONGODB */
 #endif /* CCGL_DB_MONGOC_H */

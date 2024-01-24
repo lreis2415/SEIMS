@@ -155,13 +155,17 @@ void DataCenter::DumpCaliParametersInDB() {
     for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr == it->second) continue;
         ParamInfo<FLTPT>* tmp_param = it->second;
-        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(1.))) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(0))) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(NODATA_VALUE))) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             continue;
         }
-        fs << tmp_param->Name << "," << tmp_param->Impact << "," << tmp_param->Change << endl;
+        fs << tmp_param->Name << ",";
+        for (auto pv : tmp_param->Impacts) {
+            fs << pv << ",";
+        }
+        fs << tmp_param->Change << endl;
     }
     fs.close();
 }
@@ -172,9 +176,9 @@ bool DataCenter::CheckAdjustment(const string& para_name) {
     bool adjust_data = false;
     if (find_iter != init_params_.end()) {
         ParamInfo<FLTPT>* tmp_param = find_iter->second;
-        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(1.))) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(0))) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !IsVectorAllSame(&tmp_param->Impacts, static_cast<FLTPT>(NODATA_VALUE))) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             adjust_data = true;
         }
@@ -188,9 +192,9 @@ bool DataCenter::CheckAdjustmentInt(const string& para_name) {
     bool adjust_data = false;
     if (find_iter != init_params_int_.end()) {
         ParamInfo<int>* tmp_param = find_iter->second;
-        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.)) ||
-            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !IsVectorAllSame(&tmp_param->Impacts, 1)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !IsVectorAllSame(&tmp_param->Impacts, 0)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !IsVectorAllSame(&tmp_param->Impacts, static_cast<int>(NODATA_VALUE))) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             adjust_data = true;
         }
@@ -307,7 +311,7 @@ void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& re
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustment(upper_name)) {
-            init_params_[upper_name]->Adjust1DArray(n, data);
+            init_params_[upper_name]->Adjust1DArray(n, data, subbasin_id_);
         }
 #ifdef HAS_VARIADIC_TEMPLATES
         array1d_map_.emplace(remote_filename, data);
@@ -328,7 +332,7 @@ void DataCenter::LoadAdjustInt1DArrayData(const string& para_name, const string&
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustmentInt(upper_name)) {
-            init_params_int_[upper_name]->Adjust1DArray(n, data);
+            init_params_int_[upper_name]->Adjust1DArray(n, data, subbasin_id_);
         }
 #ifdef HAS_VARIADIC_TEMPLATES
         array1d_int_map_.emplace(remote_filename, data);
@@ -365,7 +369,7 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustment(upper_name)) {
-            init_params_[upper_name]->Adjust2DArray(n_rows, data);
+            init_params_[upper_name]->Adjust2DArray(n_rows, data, subbasin_id_);
         }
         /// insert to corresponding maps
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -392,7 +396,7 @@ void DataCenter::LoadAdjustInt2DArrayData(const string& para_name, const string&
     if (nullptr != data) {
         // Adjust data according to calibration parameters
         if (CheckAdjustmentInt(upper_name)) {
-            init_params_int_[upper_name]->Adjust2DArray(n_rows, data);
+            init_params_int_[upper_name]->Adjust2DArray(n_rows, data, subbasin_id_);
         }
         /// insert to corresponding maps
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -595,7 +599,7 @@ void DataCenter::SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module) {
         param->Value = CVT_FLT(mask_raster_->GetCellWidth()); //cell size
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
-            param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
+            param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue(subbasin_id_);
         } else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
                 throw ModelException("DataCenter", "SetValue (FLTPT)",
@@ -638,7 +642,7 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
     }
     else {
         if (init_params_int_.find(GetUpper(param->Name)) != init_params_int_.end()) {
-            param->Value = init_params_int_[GetUpper(param->Name)]->GetAdjustedValue();
+            param->Value = init_params_int_[GetUpper(param->Name)]->GetAdjustedValue(subbasin_id_);
         }
         else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
@@ -898,7 +902,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                 clim_station_->GetTimeSeriesData(t, data_type, &datalen, &data);
                 if (StringMatch(param->Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int i_data = 0; i_data < datalen; i_data++) {
-                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue();
+                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue(subbasin_id_);
                     }
                 }
 //                cout << "Module "<< module_ids[i] << " Set1DDataBase(param: "<< DataType_Prefix_TS <<", length:" << datalen<<")" << endl;
