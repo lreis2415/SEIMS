@@ -370,8 +370,8 @@ T MinInArray(const T* a, const int n) {
 
 template <typename T>
 bool IsVectorAllSame(const vector<T>* a, T value){
-    for (int i = 0; i < n; i++) {
-        if (a[i] != value) {
+    for (int i = 0; i < a->size(); i++) {
+        if (a->at(i) != value) {
             return false;
         }
     }
@@ -380,12 +380,12 @@ bool IsVectorAllSame(const vector<T>* a, T value){
 
 template <typename T>
 bool IsValueInVector(const vector<T>* a, T value){
-    return std::find(v.begin(), v.end(), x) != v.end();
+    return std::find(a->begin(), a->end(), value) != a->end();
 }
 template <typename T>
 bool IsValueInVectorVector(const vector< vector<T>>* a, T value) {
-    for (int i = 0; i < a.size(); i++) {
-        if (std::find(a[i].begin(), a[i].end(), value) != a[i].end()) {
+    for (int i = 0; i < a->size(); i++) {
+        if (std::find(a->at(i).begin(), a->at(i).end(), value) != a->at(i).end()) {
             return true;
         }
     }

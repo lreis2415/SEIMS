@@ -67,7 +67,7 @@ public:
      * \return adjusted float value
      */
     //T GetAdjustedValue(T pre_value = NODATA_VALUE);
-    T GetAdjustedValue(T pre_value = NODATA_VALUE, int currentSubbasinId);
+    T GetAdjustedValue(T pre_value = NODATA_VALUE, int currentSubbasinId=0);
 
     //! Adjust value with indexed impact
     T GetAdjustedValueWithImpactIndexes(T pre_value, int curImpactIndex, vector<T>* impactSeries=&ImpactSeries);
@@ -106,6 +106,20 @@ public:
     int Adjust2DRasterWithImpactIndexes(int n, int lyrs, T** data, const int* units,
                                         const vector<int>& selunits, const map<int, int>& impactIndexes,
                                         const int* lu, const vector<int>& sellu);
+
+    string GetImpactsString() {
+        string res = "";
+        for (int i = 0; i < Impacts.size(); i++) {
+            // res += CVT_STR(Impacts[i]);
+            // “static_cast”: 无法从“_Ty”转换为“std::string”	bmps
+            res += std::to_string(Impacts[i]);
+
+            if (i < Impacts.size() - 1) {
+                res += "|";
+            }
+        }
+        return res;
+    }
 
     //! Name
     string Name;
@@ -327,7 +341,7 @@ T ParamInfo<T>::GetAdjustedValueWithImpactIndexes(const T pre_value, const int c
         return res;
     }
 
-    T tmpImpact = impactSeries[curImpactIndex];
+    T tmpImpact = impactSeries->at(curImpactIndex);
     if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(tmpImpact, 1)) {
         res *= tmpImpact;
     }
@@ -414,7 +428,7 @@ int ParamInfo<T>::Adjust1DRaster(const int n, T* data, const int* units,
         if (find(sellu.begin(), sellu.end(), curlu) == sellu.end()) {
             continue;
         }
-        data[i] = GetAdjustedValue(data[i], subbasinId);
+        data[i] = GetAdjustedValue(data[i]);
         count += 1;
     }
     return count;
@@ -443,7 +457,7 @@ int ParamInfo<T>::Adjust1DRasterWithImpactIndexes(const int n, T* data, const in
         if (it == impactIndexes.end()) {
             continue;
         }
-        data[i] = GetAdjustedValueWithImpactIndexes(data[i], it->second, ImpactSeries);
+        data[i] = GetAdjustedValueWithImpactIndexes(data[i], it->second, &ImpactSeries);
         count += 1;
     }
     return count;
@@ -496,7 +510,7 @@ int ParamInfo<T>::Adjust2DRaster(const int n, const int lyrs, T** data,
             continue;
         }
         for (int j = 0; j < lyrs; j++) {
-            data[i][j] = GetAdjustedValue(data[i][j], subbasinId);
+            data[i][j] = GetAdjustedValue(data[i][j]);
         }
         count += 1;
     }
@@ -509,7 +523,6 @@ int ParamInfo<T>::Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, T
                                                   const map<int, int>& impactIndexes,
                                                   const int* lu, const vector<int>& sellu) {
     int count = 0;
-    int impact = GetImpactBySubbasinId(subbasinId);
     for (int i = 0; i < n; i++) {
         int curunit = units[i];
         int curlu = lu[i];
@@ -525,7 +538,7 @@ int ParamInfo<T>::Adjust2DRasterWithImpactIndexes(const int n, const int lyrs, T
             continue;
         }
         for (int j = 0; j < lyrs; j++) {
-            data[i][j] = GetAdjustedValueWithImpactIndexes(data[i][j], it->second, ImpactSeries);
+            data[i][j] = GetAdjustedValueWithImpactIndexes(data[i][j], it->second, &ImpactSeries);
         }
         count += 1;
     }

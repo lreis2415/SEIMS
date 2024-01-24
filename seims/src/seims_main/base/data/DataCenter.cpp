@@ -224,7 +224,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
                                  "Load " + remote_filename + " failed!");
         }
         if (nullptr != data2d) {
-            init_params_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
+            init_params_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d, subbasin_id_);
         }
     } else {
         if (!raster->GetRasterData(&n, &data)) {
@@ -233,7 +233,7 @@ void DataCenter::LoadAdjustRasterData(const string& para_name, const string& rem
                                  "Load " + remote_filename + " failed!");
         }
         if (nullptr != data) {
-            init_params_[upper_name]->Adjust1DRaster(n, data);
+            init_params_[upper_name]->Adjust1DRaster(n, data, subbasin_id_);
         }
     }
 }
@@ -260,7 +260,7 @@ void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& 
                                  "Load " + remote_filename + " failed!");
         }
         if (nullptr != data2d) {
-            init_params_int_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
+            init_params_int_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d, subbasin_id_);
         }
     }
     else {
@@ -270,7 +270,7 @@ void DataCenter::LoadAdjustIntRasterData(const string& para_name, const string& 
                                  "Load " + remote_filename + " failed!");
         }
         if (nullptr != data) {
-            init_params_int_[upper_name]->Adjust1DRaster(n, data);
+            init_params_int_[upper_name]->Adjust1DRaster(n, data, subbasin_id_);
         }
     }
 }

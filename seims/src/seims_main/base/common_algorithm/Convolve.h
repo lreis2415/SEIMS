@@ -7,6 +7,7 @@
 
 class ConvolveTransporter {
 public:
+    ConvolveTransporter() = default;
     ConvolveTransporter(int nCells) :
         m_convType(CONV_BASE), m_nCells(nCells), m_isInitialized(false) {
         m_unitHydro.resize(nCells);
@@ -42,6 +43,7 @@ public:
     int m_nCells;
     std::vector<vector<FLTPT>> m_unitHydro;
     std::vector<vector<FLTPT>> m_convTransport;
+
 };
 
 inline FLTPT IncompleteGamma(const double& x, const double& a)
@@ -115,6 +117,7 @@ inline FLTPT GammaCumDist(const double& t, const double& alpha, const double& be
 }
 class ConvolveTransporterGAMMA : public ConvolveTransporter {
 public:
+    ConvolveTransporterGAMMA() = default;
     ConvolveTransporterGAMMA(int nCells, FLTPT* gammaScale, FLTPT* gammaShape) :
         ConvolveTransporter(nCells), m_gammaScale(gammaScale), m_gammaShape(gammaShape) {
         m_convType = CONV_GAMMA;

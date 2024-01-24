@@ -492,6 +492,58 @@ bool MongoGridFs::WriteStreamData(const string& gfilename, char*& buf,
 /////////  bson related utilities   ///////////////
 ///////////////////////////////////////////////////
 
+
+/*!
+parse the following nested vector from bson_t:
+[1, 2, 3]
+ */
+template<typename T>
+void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            const bson_value_t* sub_vv = bson_iter_value(&sub_iter);
+            if (sub_vv->value_type == BSON_TYPE_INT32) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int32));
+            } else if (sub_vv->value_type == BSON_TYPE_INT64) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int64));
+            } else if (sub_vv->value_type == BSON_TYPE_DOUBLE) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_double));
+            } else {
+                StatusMessage("Failed in get vector value.");
+            }
+        }
+    } else {
+        StatusMessage("Failed in get vector value.");
+    }
+}
+
+/*!
+parse the following nested vector from bson_t:
+[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+ */
+template<typename T>
+void GetVectorVectorFromBsonIter(bson_iter_t* iter, vector<vector<T>>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            vector<T> tmp;
+            GetVectorFromBsonIter(&sub_iter, tmp);
+            out.emplace_back(tmp);
+        }
+    } else {
+        StatusMessage("Failed in get vector value.");
+    }
+}
+
 /*!
  * \param[in,out] bson_opts Instance of `bson_t`
  * \param[in] opts STRING_MAP key-value
@@ -602,56 +654,6 @@ time_t GetDatetimeFromBson(bson_t* bmeta, const char* key) {
 }
 
 
-/*!
-parse the following nested vector from bson_t:
-[1, 2, 3]
- */
-template<typename T>
-void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out){
-    const bson_value_t* vv = bson_iter_value(iter);
-    if (vv->value_type == BSON_TYPE_ARRAY) {
-        bson_iter_t sub_iter;
-        bson_iter_recurse(iter, &sub_iter);
-        while (bson_iter_next(&sub_iter)) {
-            const bson_value_t* sub_vv = bson_iter_value(&sub_iter);
-            if (sub_vv->value_type == BSON_TYPE_INT32) {
-                out.emplace_back(CVT_INT(sub_vv->value.v_int32));
-            } else if (sub_vv->value_type == BSON_TYPE_INT64) {
-                out.emplace_back(CVT_INT(sub_vv->value.v_int64));
-            } else if (sub_vv->value_type == BSON_TYPE_DOUBLE) {
-                out.emplace_back(CVT_INT(sub_vv->value.v_double));
-            } else {
-                StatusMessage("Failed in get vector value.");
-            }
-        }
-    } else {
-        StatusMessage("Failed in get vector value.");
-    }
-}
-
-/*!
-parse the following nested vector from bson_t:
-[
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-]
- */
-template<typename T>
-void GetVectorVectorFromBsonIter(bson_iter_t* iter, vector<vector<T>>& out){
-    const bson_value_t* vv = bson_iter_value(iter);
-    if (vv->value_type == BSON_TYPE_ARRAY) {
-        bson_iter_t sub_iter;
-        bson_iter_recurse(iter, &sub_iter);
-        while (bson_iter_next(&sub_iter)) {
-            vector<T> tmp;
-            GetVectorFromBsonIter(&sub_iter, tmp);
-            out.emplace_back(tmp);
-        }
-    } else {
-        StatusMessage("Failed in get vector value.");
-    }
-}
 
 } /* namespace: db_mongoc */
 } /* namespace: ccgl */

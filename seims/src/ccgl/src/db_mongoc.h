@@ -213,6 +213,24 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
 }
 
 /*!
+parse the following nested vector from bson_t:
+[1, 2, 3]
+ */
+template<typename T>
+void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out);
+
+/*!
+parse the following nested vector from bson_t:
+[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+ */
+template<typename T>
+void GetVectorVectorFromBsonIter(bson_iter_t* iter, vector<vector<T>>& out);
+
+/*!
  * \brief Get numeric value from `bson_t` according to a given key
  * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
@@ -277,26 +295,10 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t* iter);
  * \sa GetDatetimeFromBsonIterator()
  */
 time_t GetDatetimeFromBson(bson_t* bmeta, const char* key);
+
 } /* namespace: db_mongoc */
 } /* namespace: ccgl */
 
-/*!
-parse the following nested vector from bson_t:
-[1, 2, 3]
- */
-template<typename T>
-void GetVectorFromBsonIter(bson_iter_t* bs, vector<T>& cali_subbasin_map);
-
-/*!
-parse the following nested vector from bson_t:
-[
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-]
- */
-template<typename T>
-void GetVectorVectorFromBsonIter(bson_iter_t* bs, vector<vector<T>>& cali_subbasin_map);
 
 #endif /* USE_MONGODB */
 #endif /* CCGL_DB_MONGOC_H */
