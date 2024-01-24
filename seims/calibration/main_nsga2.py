@@ -20,11 +20,11 @@ import sys
 import time
 from io import open
 from pathlib import Path
+import ray
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-import ray
 from typing import Dict
 import numpy
 from deap import base

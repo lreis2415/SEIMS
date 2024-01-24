@@ -62,15 +62,17 @@ class ImportParam2Mongo(object):
                 continue
             # print(cur_data_item)
             # initial one default blank parameter dict.
-            data_import = {ModelParamFields.name: '', ModelParamFields.desc: '',
-                           ModelParamFields.unit: '', ModelParamFields.module: '',
-                           ModelParamFields.value: DEFAULT_NODATA,
-                           ModelParamFields.impact: DEFAULT_NODATA,
-                           ModelParamFields.change: 'NC',
-                           ModelParamFields.max: DEFAULT_NODATA,
-                           ModelParamFields.min: DEFAULT_NODATA,
-                           ModelParamFields.type: '',
-                           ModelParamFields.dtype: ''}
+            data_import = {
+                ModelParamFields.name: '', ModelParamFields.desc: '',
+                ModelParamFields.unit: '', ModelParamFields.module: '',
+                ModelParamFields.value: DEFAULT_NODATA,
+                ModelParamFields.impact: DEFAULT_NODATA,
+                ModelParamFields.change: 'NC',
+                ModelParamFields.max: DEFAULT_NODATA,
+                ModelParamFields.min: DEFAULT_NODATA,
+                ModelParamFields.type: '',
+                ModelParamFields.dtype: '',
+            }
             for k, v in list(data_import.items()):
                 idx = field_names.index(k)
                 if cur_data_item[idx] == '':
@@ -87,6 +89,7 @@ class ImportParam2Mongo(object):
                         data_import[k] = float(cur_data_item[idx])
                     else:
                         data_import[k] = cur_data_item[idx]
+                data_import[ModelParamFields.impact_subbasins] = [[0]]
 
             bulk_requests.append(InsertOne(data_import))
         # execute import operators

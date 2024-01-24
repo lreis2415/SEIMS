@@ -70,8 +70,8 @@ public:
     T GetAdjustedValue(T pre_value = NODATA_VALUE, int currentSubbasinId=0);
 
     //! Adjust value with indexed impact
-    T GetAdjustedValueWithImpactIndexes(T pre_value, int curImpactIndex, vector<T>* impactSeries=&ImpactSeries);
-    T GetAdjustedValueWithSubbasin(T pre_value, int subbasinId, vector<T>* impacts=&Impacts);
+    T GetAdjustedValueWithImpactIndexes(T pre_value, int curImpactIndex, vector<T>* impactSeries);
+    T GetAdjustedValueWithSubbasin(T pre_value, int subbasinId, vector<T>* impacts);
 
     //! Adjust 1D array
     // void Adjust1DArray(int n, T* data);

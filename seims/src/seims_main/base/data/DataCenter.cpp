@@ -350,7 +350,6 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     FLTPT** data = nullptr;
     string upper_name = GetUpper(para_name);
     /// Load data from DataCenter
-    cout << upper_name << endl;
     if (StringMatch(upper_name, TAG_OUT_OL_IUH)) {
         // Overland flow IUH
         ReadIuhData(remote_filename, n_rows, data, opts);

@@ -426,7 +426,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             GetNumericFromBsonIterator(&iter, value);
         }
         if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
-            GetNumericFromBsonIterator(&iter, impact);
+            GetVectorFromBsonIter(&iter, impact);
         }
         if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
             change = GetStringFromBsonIterator(&iter);
@@ -447,12 +447,14 @@ bool DataCenterMongoDB::ReadParametersInDB() {
                 impact = cali_values.at(calibration_id_);
             }
         }
-        if (bson_iter_init_find(&iter, info, PARAM_IMPACT_SUBBASINS) && calibration_id_ >= 0) {
+        if (bson_iter_init_find(&iter, info, PARAM_IMPACT_SUBBASINS)) {
             GetVectorVectorFromBsonIter(&iter, impact_subbasins);
         }
         if (isint) {
             vector<int> impact_int;
-            std::copy_n(impact.begin(), impact.size(), impact_int.begin());
+            for (auto it = impact.begin(); it != impact.end(); ++it) {
+                impact_int.push_back(CVT_INT(*it));
+            }
             ParamInfo<int>* intp = new ParamInfo<int>(name, desc, unit, module, CVT_INT(value),
                                                       change, impact_int,impact_subbasins, CVT_INT(maximum),
                                                       CVT_INT(minimum), isint);

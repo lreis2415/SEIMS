@@ -75,7 +75,13 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         }
         structureSubbasins.clear();
     }
-
+    if (structureSubbasins.empty()) {
+        throw ModelException("ModuleFactory", "Init",
+                             "The model structure of current subbasin " + itoa(input_args->subbasin_id) +
+                             " is not defined in any structure*.config! "
+                             "Note that in SEIMS_MPI version the subbasin ids in structure*.config "
+                             "should be specific (e.g., 1-17 for all subbasins) rather than `0`");
+    }
     // deep copy structureOfSubbasins to m_structureSubbasins
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)

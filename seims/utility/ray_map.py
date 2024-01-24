@@ -9,7 +9,7 @@
 A replacement for map using Ray that automates batching to many processors/cluster. Fixes pickle issues such as
 DeltaPenalty and addEphemeralConstant when working at scale(many processes on machine or cluster of nodes)
 '''
-
+import math
 from time import sleep
 from time import time
 
@@ -67,21 +67,20 @@ class Ray_Deap_Map_Manager():
             else:
                 n_workers = self.n_workers
 
-            n_per_batch = int(len(iterable) / n_workers) + 1
+            n_per_batch = math.ceil(len(iterable) / n_workers)
             batches = [iterable[i:i + n_per_batch] for i in range(0, len(iterable), n_per_batch)]
             id_for_reorder = range(len(batches))
 
-            #
             eval_pool = ActorPool([Ray_Deap_Map.options(num_cpus=self.cpus_per_worker).remote(self.creator_setup, self.pset_creator) for _ in range(n_workers)])
 
             unordered_results = list(eval_pool.map_unordered(lambda actor, input_tuple: actor.ray_remote_eval_batch.remote(func, input_tuple),
                                                              zip(batches, id_for_reorder)))
 
             # ensure order of batches
-            ordered_batch_results = [batch for batch_id in id_for_reorder for batch in unordered_results if batch_id == batch[0][1]]
-
+            # ordered_batch_results = [batch for batch_id in id_for_reorder for batch in unordered_results if batch_id == batch[0][1]]
+            unordered_results.sort(key=lambda x: x[0][1])
             # flatten batches to list of fitnes
-            results = [item[0] for sublist in ordered_batch_results for item in sublist]
+            results = [item[0] for sublist in unordered_results for item in sublist]
 
         return results
 
