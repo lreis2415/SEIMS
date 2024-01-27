@@ -14,6 +14,8 @@ from configparser import ConfigParser
 from datetime import datetime
 
 from typing import Optional, List, AnyStr
+
+import ray
 from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, is_integer
 
 
@@ -27,7 +29,7 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     # define input arguments
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-ini', type=str, help="Full path of configuration file")
-    parser.add_argument('-p', type=int, help="num of total processors available", default=4)
+    parser.add_argument('-p', type=int, help="num of total processors available", default=None)
     parser.add_argument('-w', type=int, help="num of workers", default=4)
     parser.add_argument('-ppw', type=int, help="num of processors per worker", default=1)
     # add mutually group
@@ -35,6 +37,7 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     psa_group.add_argument('-nsga2', action='store_true', help='Run NSGA-II method')
     # parse arguments
     args = parser.parse_args()
+
     ini_file = args.ini
     psa_mtd = 'nsga2'  # Default
     if args.nsga2:

@@ -15,6 +15,7 @@ import os
 import pickle
 import sys
 from io import open
+import numpy as np
 
 from preprocess.text import ModelParamFields
 
@@ -47,25 +48,44 @@ def write_param_values_to_mongodb(spatial_db, param_names, pop_genes, impact_sub
     db = conn[spatial_db]
     collection = db['PARAMETERS']
     collection.update_many({}, {'$unset': {ModelParamFields.cali_values: '', ModelParamFields.impact_subbasins: ''}})
-    cali_values = dict()
-    for i in range(len(param_names)):
-        name = param_names[i]
-        if name not in cali_values:
-            cali_values[name] = dict()
-            cali_values[name]['values'] = list()
-            cali_values[name]['subbasins'] = list()
-        cali_values[name]['values'].append(pop_genes[:, i])
-        cali_values[name]['subbasins'].append(impact_subbasins[i])
-    for name, v in cali_values.items():
-        values = [list(x) for x in v['values']]
-        subbasins = [list(x) for x in v['subbasins']]
+    param_names = np.array(param_names)
+    impact_subbasins = np.array(impact_subbasins)
+    param_names_unique = np.unique(param_names)
+    for name in param_names_unique:
+        # find indices of unique names
+        idx = np.where(param_names == name)[0]
+        gene_values = pop_genes[:, idx]
+        gene_values = gene_values.tolist()
+        subbasins = impact_subbasins[idx]
+        subbasins = subbasins.tolist()
         collection.find_one_and_update(
             {'NAME': name},
             {'$set': {
-                ModelParamFields.cali_values: values,
+                ModelParamFields.cali_values: gene_values,
                 ModelParamFields.impact_subbasins: subbasins
             }}
         )
+
+
+
+    # for i in range(len(param_names)):
+    #     name = param_names[i]
+    #     if name not in cali_values:
+    #         cali_values[name] = dict()
+    #         cali_values[name]['values'] = list()
+    #         cali_values[name]['subbasins'] = list()
+    #     cali_values[name]['values'].append(pop_genes[:, i])
+    #     cali_values[name]['subbasins'].append(impact_subbasins[i])
+    # for name, v in cali_values.items():
+    #     values = [list(x) for x in v['values']]
+    #     subbasins = [list(x) for x in v['subbasins']]
+    #     collection.find_one_and_update(
+    #         {'NAME': name},
+    #         {'$set': {
+    #             ModelParamFields.cali_values: values,
+    #             ModelParamFields.impact_subbasins: subbasins
+    #         }}
+    #     )
 
 
 def output_population_details(pops, outdir, gen_num,

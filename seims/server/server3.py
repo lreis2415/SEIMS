@@ -6,7 +6,7 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
-
+import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -31,7 +31,7 @@ class CaliParams(BaseModel):
 def health():
     return 1
 
-@app.post("/seims/calibration")
+@app.post("/seims/calibration/local")
 def calibration(cali_params: CaliParams):
     cur_path = Path(os.path.abspath(os.path.dirname(__file__)))
     cwd = cur_path.parent
@@ -69,7 +69,52 @@ def calibration(cali_params: CaliParams):
         },
     }
     return data
-
+@app.post("/seims/calibration/slurm")
+def calibration(cali_params: CaliParams):
+    cur_path = Path(os.path.abspath(os.path.dirname(__file__)))
+    cwd = cur_path.parent
+    cali_script = 'calibration/main_nsga2.py'
+    slurm_py = cur_path / 'slurm-launch.py'
+    exp_name = f'SEIMSCaliHTTP'
+    logging.info(f'{exp_name}: {CaliParams}')
+    cmd_str = (f'python {slurm_py.as_posix()} '
+               f'--exp-name {exp_name}'
+               f'--command "python {cali_script} -ini {cali_params.ini_path}'
+               f''
+               f'-p {cali_params.total_cpus} '
+               f'-w {cali_params.workers} '
+               f'-ppw {cali_params.cpus_per_worker}')
+    logging.info(f'Running: {cmd_str}')
+    cmd = shlex.split(cmd_str)
+    process = subprocess.Popen(
+        args=cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        encoding="utf-8",
+        cwd=cwd.as_posix(),
+    )
+    out, err = process.communicate()
+    logging.info(out)
+    logging.error(err)
+    parser = ConfigParser()
+    parser.read(cali_params.ini_path)
+    cfg = CaliConfig(parser, method='nsga2')
+    logbook = Path(cfg.opt.out_dir, 'logbook.txt')
+    with open(logbook.as_posix(), 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        last_line = lines[-1]
+        max_str = last_line.split('\t')[4]
+        max_str = re.sub(r'\[|\]', '', max_str)
+        nse = float(max_str.split()[0])
+    data = {
+        "code": 200,
+        "data": {
+            'nse': nse,
+            'cali_dir': cfg.opt.out_dir,
+        },
+    }
+    return data
 @app.post("/seims/calibration/test")
 def calibration(cali_params: CaliParams):
     cali_dir = Path(r'C:/tmp/tmp')
@@ -82,3 +127,6 @@ def calibration(cali_params: CaliParams):
             'cali_dir': cali_dir,
         },
     }
+
+if __name__ == '__main__':
+    uvicorn.run(app, host="0.0.0.0", port=8415)

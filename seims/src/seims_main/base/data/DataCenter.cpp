@@ -163,6 +163,7 @@ void DataCenter::DumpCaliParametersInDB() {
         }
         fs << tmp_param->Name << ",";
         for (auto pv : tmp_param->Impacts) {
+            printf("%f\n", pv);
             fs << pv << ",";
         }
         fs << tmp_param->Change << endl;
@@ -598,7 +599,7 @@ void DataCenter::SetValue(ParamInfo<FLTPT>* param, SimulationModule* p_module) {
         param->Value = CVT_FLT(mask_raster_->GetCellWidth()); //cell size
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
-            param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue(subbasin_id_);
+            param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue(NODATA_VALUE,subbasin_id_);
         } else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
                 throw ModelException("DataCenter", "SetValue (FLTPT)",
@@ -641,7 +642,7 @@ void DataCenter::SetValue(ParamInfo<int>* param, SimulationModule* p_module) {
     }
     else {
         if (init_params_int_.find(GetUpper(param->Name)) != init_params_int_.end()) {
-            param->Value = init_params_int_[GetUpper(param->Name)]->GetAdjustedValue(subbasin_id_);
+            param->Value = init_params_int_[GetUpper(param->Name)]->GetAdjustedValue(NODATA_VALUE,subbasin_id_);
         }
         else {
             if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
@@ -901,7 +902,7 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
                 clim_station_->GetTimeSeriesData(t, data_type, &datalen, &data);
                 if (StringMatch(param->Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int i_data = 0; i_data < datalen; i_data++) {
-                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue(subbasin_id_);
+                        data[i_data] *= init_params_[VAR_K_PET[0]]->GetAdjustedValue(NODATA_VALUE, subbasin_id_);
                     }
                 }
 //                cout << "Module "<< module_ids[i] << " Set1DDataBase(param: "<< DataType_Prefix_TS <<", length:" << datalen<<")" << endl;

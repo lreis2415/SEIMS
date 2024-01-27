@@ -25,7 +25,7 @@ int SoilTemperatureFINPL::Execute() {
     CheckInputData();
     InitialOutputs();
     size_t errCount = 0;
-#pragma omp parallel for reduction(+: errCount)
+//#pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; i++) {
         FLTPT t = m_meanTemp[i];
         FLTPT t1 = m_meanTempPre1[i];

@@ -34,6 +34,7 @@ from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
 
 from utility.ray_map import ray_deap_map
+from utility.logger import configure_logging
 import logging
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
@@ -47,6 +48,7 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
+configure_logging()
 cf, method, processors, workers, processors_per_worker = get_optimization_config()
 cali_cfg = CaliConfig(cf, method=method)
 
@@ -175,7 +177,11 @@ toolbox.register('select', tools.selNSGA2)
 ############################
 # Test for Ray
 ############################
-ray.init(num_cpus=processors)
+if processors:
+    ray.init(num_cpus=processors)
+else:
+    ray.init()
+# ray.init(num_cpus=processors)
 # os.environ["RAY_DEDUP_LOGS"] = "0"
 toolbox.register('map', ray_deap_map, creator_setup=creator_setup, workers=workers, cpus_per_worker=processors_per_worker)
 logging.info(f'init Ray with total_cpus={processors}, workers={workers}, cpus_per_worker={processors_per_worker}')

@@ -9,6 +9,7 @@
 A replacement for map using Ray that automates batching to many processors/cluster. Fixes pickle issues such as
 DeltaPenalty and addEphemeralConstant when working at scale(many processes on machine or cluster of nodes)
 '''
+import logging
 import math
 from time import sleep
 from time import time
@@ -17,7 +18,7 @@ import ray
 from ray.util import ActorPool
 
 
-@ray.remote(num_cpus=1)
+@ray.remote(num_cpus=1,scheduling_strategy="SPREAD")
 class Ray_Deap_Map():
     def __init__(self, creator_setup=None, pset_creator=None):
         # issue 946? Ensure non trivial startup to prevent bad load balance across a cluster
@@ -45,6 +46,7 @@ class Ray_Deap_Map_Manager():
         # Can adjust the number of processes in ray.init or when launching cluster
         self.ncpus = int(ray.cluster_resources()['CPU'])
         self.cpus_per_worker = cpus_per_worker
+        logging.info(f"Ray_Deap_Map_Manager: ncpus={self.ncpus}, cpus_per_worker={self.cpus_per_worker}")
         if workers:
             self.n_workers = workers
         else:
@@ -70,7 +72,7 @@ class Ray_Deap_Map_Manager():
             n_per_batch = math.ceil(len(iterable) / n_workers)
             batches = [iterable[i:i + n_per_batch] for i in range(0, len(iterable), n_per_batch)]
             id_for_reorder = range(len(batches))
-
+            logging.info(f"Ray_Deap_Map_Manager: n_workers={n_workers}, n_per_batch={n_per_batch}, len(batches)={len(batches)}")
             eval_pool = ActorPool([Ray_Deap_Map.options(num_cpus=self.cpus_per_worker).remote(self.creator_setup, self.pset_creator) for _ in range(n_workers)])
 
             unordered_results = list(eval_pool.map_unordered(lambda actor, input_tuple: actor.ray_remote_eval_batch.remote(func, input_tuple),

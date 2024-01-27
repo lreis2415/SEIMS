@@ -230,7 +230,7 @@ void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out){
             } else if (sub_vv->value_type == BSON_TYPE_INT64) {
                 out.emplace_back(CVT_INT(sub_vv->value.v_int64));
             } else if (sub_vv->value_type == BSON_TYPE_DOUBLE) {
-                out.emplace_back(CVT_INT(sub_vv->value.v_double));
+                out.emplace_back(sub_vv->value.v_double);
             } else {
                 StatusMessage("Failed in get vector value in the inner loop of GetVectorFromBsonIter.");
             }

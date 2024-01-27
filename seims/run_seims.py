@@ -133,8 +133,8 @@ class ParseSEIMSConfig(object):
         # Don't raise exception, since DEFAULT session may be used.
         # if sec_name not in cf.sections():
         #     raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
-
         self.host = get_option_value(cf, sec_name, ['hostname', 'host', 'ip'])
+        logging.info(self.host)
         if not StringClass.is_valid_ip_addr(self.host):
             raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
         self.port = get_option_value(cf, sec_name, 'port', valtyp=int)
