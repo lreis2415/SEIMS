@@ -281,9 +281,9 @@ mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
     //       Upd 06/24/2022 The new API still not working in Windows.
     mongoc_cursor_t* cursor = nullptr;
 // #if MONGOC_CHECK_VERSION(1, 8, 0)
-//     cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
+     cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
 // #else // Deprecated from 1.5.0
-    cursor = mongoc_collection_find(collection_, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+//    cursor = mongoc_collection_find(collection_, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
 // #endif
     return cursor;
 }

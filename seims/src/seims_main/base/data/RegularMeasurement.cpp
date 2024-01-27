@@ -15,6 +15,8 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                        const string& sitesList, const string& siteType,
                                        const time_t startTime, const time_t endTime, const time_t interval):
     Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
+    double input_t = TimeCounting();
+    StatusMessage("RegularMeasurement() Flag01: "+itoa(TimeCounting() - input_t));
     int nSites = CVT_INT(m_siteIDList.size());
     int nRecords = CVT_INT((m_endTime - m_startTime) / m_interval + 1);
     m_siteData.reserve(nRecords);
@@ -33,6 +35,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     for (int i = 0; i < nSites; i++) {
         BSON_APPEND_INT32(site_array, ValueToString(i).c_str(), m_siteIDList[i]);
     }
+    StatusMessage("RegularMeasurement() Flag02: "+itoa(TimeCounting() - input_t));
     // StatusMessage(bson_as_json(site_array, NULL));
     vint st = CVT_VINT(startTime) * 1000;
     vint et = CVT_VINT(endTime) * 1000;
@@ -47,12 +50,15 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                   MONG_HYDRO_DATA_UTC, BCON_INT32(1),
                              "}");
 
-    // StatusMessage(bson_as_json(q, NULL));
+    StatusMessage(bson_as_json(q, NULL));
 
+    StatusMessage("RegularMeasurement() Flag02: "+itoa(TimeCounting() - input_t));
     // perform query and read measurement data
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
+    StatusMessage("RegularMeasurement() Flag03: "+itoa(TimeCounting() - input_t));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(q);
+    StatusMessage("RegularMeasurement() Flag04: "+itoa(TimeCounting() - input_t));
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
         StatusMessage(err.message);
@@ -67,6 +73,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     vector<int>::size_type index = 0;
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
+        StatusMessage("RegularMeasurement() Flag05: "+itoa(TimeCounting() - input_t));
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
             GetNumericFromBsonIterator(&iter, stationID);
@@ -75,6 +82,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                  "The Value field: " + string(MONG_HYDRO_DATA_SITEID) +
                                  " does not exist in DataValues table.");
         }
+        StatusMessage("RegularMeasurement() Flag06: "+itoa(TimeCounting() - input_t));
         if (stationID != stationIDLast) {
             iSite++;
             index = 0;
@@ -86,6 +94,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
             Initialize1DArray(nSites, tmpData, 0.f);
             m_siteData.emplace_back(tmpData);
         }
+        StatusMessage("RegularMeasurement() Flag07: "+itoa(TimeCounting() - input_t));
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
             GetNumericFromBsonIterator(&iter, value);
         } else {
@@ -93,6 +102,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                  "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
                                  " does not exist in DataValues table.");
         }
+        StatusMessage("RegularMeasurement() Flag08: "+itoa(TimeCounting() - input_t));
         m_siteData[index][iSite] = value;
         index++;
     }
@@ -110,6 +120,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                 << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
+    StatusMessage("RegularMeasurement() Flag09: "+itoa(TimeCounting() - input_t));
     bson_destroy(site_array);
     bson_destroy(q);
     mongoc_cursor_destroy(cursor);

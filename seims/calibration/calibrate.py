@@ -231,19 +231,17 @@ class Calibration(object):
         return param_names, pop, impact_subbasins, downs, ups
 
 
-# def initialize_calibrations(cf):
-#     """Initial individual of population.
-#     """
-#     cali = Calibration(cf)
-#     return cali.param_defs
+def initialize_calibrations(cf):
+    """Initial individual of population.
+    """
+    cali = Calibration(cf)
+    return cali.param_defs
 
 
 def calibration_objectives(pop):
     """Evaluate the objectives of given individual.
     pop -> (cali_obj, ind)
     """
-    print(pop[0])
-    print(pop[1])
     cali_obj = pop[0]
     ind = pop[1]
     logging.debug('Evaluate the objectives of individual %d' % ind.id)

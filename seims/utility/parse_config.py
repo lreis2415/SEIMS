@@ -15,7 +15,6 @@ from datetime import datetime
 
 from typing import Optional, List, AnyStr
 
-import ray
 from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, is_integer
 
 
@@ -30,8 +29,8 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-ini', type=str, help="Full path of configuration file")
     parser.add_argument('-p', type=int, help="num of total processors available", default=None)
-    parser.add_argument('-w', type=int, help="num of workers", default=4)
-    parser.add_argument('-ppw', type=int, help="num of processors per worker", default=1)
+    parser.add_argument('-w', type=int, help="num of workers")
+    parser.add_argument('-ppw', type=int, help="num of processors per worker")
     # add mutually group
     psa_group = parser.add_mutually_exclusive_group()
     psa_group.add_argument('-nsga2', action='store_true', help='Run NSGA-II method')
@@ -46,7 +45,10 @@ def get_optimization_config(desc='The help information is supposed not be empty.
         raise ImportError('Configuration file is not existed: %s' % ini_file)
     cf = ConfigParser()
     cf.read(ini_file)
-    return cf, psa_mtd, args.p, args.w, args.ppw
+    if args.p or args.w or args.ppw:
+        return cf, psa_mtd, args.p, args.w, args.ppw
+    else:
+        return cf, psa_mtd
 
 
 def get_option_value_exactly(cf, secname, optname, valtyp=str):

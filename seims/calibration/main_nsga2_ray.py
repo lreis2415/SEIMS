@@ -20,7 +20,7 @@ import sys
 import time
 from io import open
 from pathlib import Path
-from scoop import futures
+import ray
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -49,7 +49,7 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 configure_logging()
-cf, method = get_optimization_config()
+cf, method, processors, workers, processors_per_worker = get_optimization_config()
 cali_cfg = CaliConfig(cf, method=method)
 
 # All accepted objective function names from `postprocess::utility::calculate_statistics`
@@ -135,6 +135,34 @@ creator_setup()
 # Register NSGA-II related operations
 
 
+############################
+# Test for dask. Not working.
+############################
+# from dask_jobqueue import PBSCluster
+# cluster = PBSCluster(  # <-- scheduler started here
+#      cores=4,
+#      memory='5GB',
+#      processes=2,
+#      # local_directory='$TMPDIR',
+#      resource_spec='nodes=2:ppn=8',
+#      queue='workq',
+#      account='wyj',
+#      walltime='00:01:00',
+# )
+
+# from dask.distributed import Client
+# client = Client(processes=False)
+# # cluster.scale(jobs=4)
+# # print('cluster job script:')
+# # print(cluster.job_script())
+# print('create client:')
+# print(client)
+# def dask_map(*args, **kwargs):
+#     print('dask_map')
+#     print(client)
+#     return client.gather(client.map(*args, **kwargs))
+
+
 toolbox = base.Toolbox()
 # toolbox.register('gene_values', initialize_calibrations)
 # toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
@@ -145,6 +173,19 @@ toolbox.register('evaluate', calibration_objectives)
 toolbox.register('mate', tools.cxSimulatedBinaryBounded)
 toolbox.register('mutate', tools.mutPolynomialBounded)
 toolbox.register('select', tools.selNSGA2)
+
+############################
+# Test for Ray
+############################
+if processors:
+    ray.init(num_cpus=processors)
+else:
+    ray.init()
+# ray.init(num_cpus=processors)
+# os.environ["RAY_DEDUP_LOGS"] = "0"
+toolbox.register('map', ray_deap_map, creator_setup=creator_setup, workers=workers, cpus_per_worker=processors_per_worker)
+logging.info(f'init Ray with total_cpus={processors}, workers={workers}, cpus_per_worker={processors_per_worker}')
+
 
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
@@ -220,13 +261,13 @@ def main(cfg):
         try:  # parallel on multi-processors or clusters using SCOOP
             ###### Working code of scoop
             # from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
+            # invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
 
             ###### Test for dask
             # invalid_pops = list(dask_map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
 
             ###### Test for ray
-            # invalid_pops = list(toolbox.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
+            invalid_pops = list(toolbox.map(toolbox.evaluate, list(zip([cali_obj] * popnum, invalid_pops))))
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:

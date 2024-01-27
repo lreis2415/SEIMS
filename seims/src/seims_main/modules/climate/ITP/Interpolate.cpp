@@ -35,7 +35,7 @@ int Interpolate::Execute() {
         Initialize1DArray(m_nCells, m_itpOutput, 0.);
     }
     size_t err_count = 0;
-//#pragma omp parallel for reduction(+: err_count)
+#pragma omp parallel for reduction(+: err_count)
     for (int i = 0; i < m_nCells; i++) {
         FLTPT value = 0.;
         for (int j = 0; j < m_nStations; j++) {

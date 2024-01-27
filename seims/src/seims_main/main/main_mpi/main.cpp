@@ -24,6 +24,7 @@ int main(int argc, const char** argv) {
     int conn2mongo = 2;
     mongoc_uri_t* uri = nullptr;
     mongoc_client_pool_t *mongoc_pool = nullptr;
+    cout<<"111"<<endl;
     if (conn2mongo == 1) {
         /// Method 1: test mongo host and port; create mongo client in each process. NOT RECOMMENDED!
         MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
@@ -35,6 +36,7 @@ int main(int argc, const char** argv) {
         mongoc_init();
         uri = mongoc_uri_new_for_host_port(input_args->host.c_str(), input_args->port);
         mongoc_pool = mongoc_client_pool_new(uri);
+        mongoc_client_pool_max_size(mongoc_pool, 10000);
         mongoc_client_pool_set_error_api(mongoc_pool, MONGOC_ERROR_API_VERSION_2);
     }
     /// Initialize MPI environment
@@ -53,6 +55,7 @@ int main(int argc, const char** argv) {
         MPI_Comm_size(MCW, &size);
         MPI_Comm_rank(MCW, &rank);
         MPI_Get_processor_name(hostname, &namelen);
+        cout << "222" << endl;
 
         /// Initialize easylogging++
         START_EASYLOGGINGPP(argc, argv);
