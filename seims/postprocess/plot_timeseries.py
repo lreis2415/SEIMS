@@ -21,7 +21,6 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import matplotlib as mpl
-
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     mpl.use('Agg')
 import matplotlib.dates as mdates

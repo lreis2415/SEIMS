@@ -163,7 +163,6 @@ void DataCenter::DumpCaliParametersInDB() {
         }
         fs << tmp_param->Name << ",";
         for (auto pv : tmp_param->Impacts) {
-            printf("%f\n", pv);
             fs << pv << ",";
         }
         fs << tmp_param->Change << endl;

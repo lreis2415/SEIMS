@@ -51,6 +51,7 @@ public:
 
     //! is storm model
     bool isStormMode() const { return m_isStormModel; }
+    bool ifUseFileDB() const { return m_useFileDB; }
 
 private:
     //! Read start and end date, simulation mode and time interval
@@ -69,5 +70,9 @@ private:
     string m_mode;
     //! is storm model?
     bool m_isStormModel;
+    //! if use csv file to get climate data values, rather than from MongoDB.
+    //! if true, typically should be used in/after calibration.
+    //! The csv file is generated from main_nsga2.py.
+    bool m_useFileDB;
 };
 #endif /* SEIMS_SETTING_INPUT_H */

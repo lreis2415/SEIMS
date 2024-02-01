@@ -12,6 +12,7 @@ import os
 import argparse
 from configparser import ConfigParser
 from datetime import datetime
+from pathlib import Path
 
 from typing import Optional, List, AnyStr
 
@@ -146,6 +147,7 @@ class ParseNSGA2Config(object):
             dir_template = 'NSGA2_Gen_%d_Pop_%d'
         self.dirname = dir_template % (self.ngens, self.npop)
         self.out_dir = wp + os.path.sep + self.dirname
+
         UtilClass.mkdir(self.out_dir)  # Do not remove if already existed
 
         self.hypervlog = self.out_dir + os.path.sep + 'hypervolume.txt'

@@ -49,15 +49,17 @@ def write_param_values_to_mongodb(spatial_db, param_names, pop_genes, impact_sub
     collection = db['PARAMETERS']
     collection.update_many({}, {'$unset': {ModelParamFields.cali_values: '', ModelParamFields.impact_subbasins: ''}})
     param_names = np.array(param_names)
-    impact_subbasins = np.array(impact_subbasins)
+    # impact_subbasins = np.array(impact_subbasins)
     param_names_unique = np.unique(param_names)
     for name in param_names_unique:
         # find indices of unique names
         idx = np.where(param_names == name)[0]
         gene_values = pop_genes[:, idx]
         gene_values = gene_values.tolist()
-        subbasins = impact_subbasins[idx]
-        subbasins = subbasins.tolist()
+        subbasins = []
+        for i in idx:
+            subbasins.append(impact_subbasins[i])
+        # subbasins = impact_subbasins[idx]
         collection.find_one_and_update(
             {'NAME': name},
             {'$set': {

@@ -14,10 +14,11 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os
 import sys
 from datetime import timedelta
-import logging
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -193,7 +194,7 @@ class ImportObservedData(object):
         results = MongoUtil.run_bulk_write(hydro_clim_db[DBTableNames.observes],
                                            bulk_requests)
         logging.info('Inserted %d observed data!' % (results.inserted_count
-                                              if results is not None else 0))
+                                                     if results is not None else 0))
 
         # 3. Add measurement data with unit converted
         # loop variables list
@@ -256,6 +257,10 @@ class ImportObservedData(object):
                          DataValueFields.type: dic[DataValueFields.type],
                          DataValueFields.utc: dic[DataValueFields.utc]}
             hydro_clim_db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+        # db.MEASUREMENT.createIndex({STATIONID:1,UTCDATETIME:1,TYPE:1})
+        hydro_clim_db[DBTableNames.observes].create_index([(DataValueFields.id, 1),
+                                                           (DataValueFields.utc, 1),
+                                                           (DataValueFields.type, 1),])
 
     @staticmethod
     def workflow(cfg):

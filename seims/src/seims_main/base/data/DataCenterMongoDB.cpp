@@ -112,7 +112,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     }
 
     /// 3. Read climate site information from Climate database
-    clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel());
+    clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel(), model_path_);
     ReadClimateSiteList();
 
     /// 4. Read initial parameters
@@ -342,16 +342,13 @@ int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
 
 void DataCenterMongoDB::ReadClimateSiteList() {
     double input_t = TimeCounting();
-    CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag01] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, Tag_SubbasinId, subbasin_id_); // subbasin id
     BSON_APPEND_UTF8(query, Tag_Mode, input_->getModelMode().c_str()); // mode
-    LOG(DEBUG) << "ReadClimateSiteList: " << bson_as_json(query, NULL);
     std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_,
                                                                         DB_TAB_SITELIST)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
-    CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag02] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
-
+    
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
@@ -361,30 +358,26 @@ void DataCenterMongoDB::ReadClimateSiteList() {
             throw ModelException("DataCenterMongoDB", "ReadClimateSiteList",
                                  "The DB field does not exist in SiteList table.");
         }
-        CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag03] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
         string site_list;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_M)) {
             site_list = GetStringFromBsonIterator(&iter);
             for (int i = 0; i < METEO_VARS_NUM; ++i) {
                 clim_station_->ReadSitesData(clim_dbname_, site_list, METEO_VARS[i],
-                                             input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                             input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
             }
         }
-        CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag04] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
-
+        
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P)) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_Precipitation,
-                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
         }
-        CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag05] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
 
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_PET)) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_PotentialEvapotranspiration,
-                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
+                                         input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
         }
-        CLOG(INFO, LOG_TIMESPAN) << "[ReadClimateSiteList()][Flag06] " << std::fixed << setprecision(3) << TimeCounting() - input_t;
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);

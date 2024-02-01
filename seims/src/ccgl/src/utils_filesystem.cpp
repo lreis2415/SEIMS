@@ -105,7 +105,7 @@ int FindFiles(const char* lp_path, const char* expression, vector<string>& vec_f
             // cout << filename<<endl;
             string ext = GetSuffix(filename);
             // cout << ext << "\t" << expression << endl;
-            string strexpression = string(expression);  
+            string strexpression = string(expression);
             if (utils_string::StringMatch(ext.c_str(), expression) || strexpression.find(ext) != string::npos
                 || utils_string::StringMatch(expression, ".*")
                 || utils_string::StringMatch(expression, "*.*")) {

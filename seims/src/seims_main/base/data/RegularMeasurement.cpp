@@ -3,6 +3,8 @@
 #include <sstream>
 #include <memory>
 
+#include "easylogging++.h"
+#include "Logging.h"
 #include "text.h"
 #include "utils_time.h"
 #include "utils_array.h"
@@ -16,7 +18,6 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                        const time_t startTime, const time_t endTime, const time_t interval):
     Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
     double input_t = TimeCounting();
-    StatusMessage("RegularMeasurement() Flag01: "+itoa(TimeCounting() - input_t));
     int nSites = CVT_INT(m_siteIDList.size());
     int nRecords = CVT_INT((m_endTime - m_startTime) / m_interval + 1);
     m_siteData.reserve(nRecords);
@@ -30,39 +31,47 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     //   "$orderby" : { "STATIONID" : 1,
     //                  "UTCDATETIME" : 1 }
     // }
-    bson_t* q;
+    //bson_t* q;
     bson_t* site_array = bson_new();
     for (int i = 0; i < nSites; i++) {
         BSON_APPEND_INT32(site_array, ValueToString(i).c_str(), m_siteIDList[i]);
     }
-    StatusMessage("RegularMeasurement() Flag02: "+itoa(TimeCounting() - input_t));
     // StatusMessage(bson_as_json(site_array, NULL));
     vint st = CVT_VINT(startTime) * 1000;
     vint et = CVT_VINT(endTime) * 1000;
 
-    q = BCON_NEW("$query", "{", MONG_HYDRO_DATA_SITEID, "{", "$in", BCON_ARRAY(site_array), "}",
-                                MONG_HYDRO_SITE_TYPE, BCON_UTF8(siteType.c_str()),
-                                MONG_HYDRO_DATA_UTC, "{", "$gte", BCON_DATE_TIME(st),
-                                                          "$lte", BCON_DATE_TIME(et),
-                                                     "}",
-                           "}",
-                 "$orderby", "{", MONG_HYDRO_DATA_SITEID, BCON_INT32(1),
-                                  MONG_HYDRO_DATA_UTC, BCON_INT32(1),
-                             "}");
+//    q = BCON_NEW("$query", "{", MONG_HYDRO_DATA_SITEID, "{", "$in", BCON_ARRAY(site_array), "}",
+//                                MONG_HYDRO_SITE_TYPE, BCON_UTF8(siteType.c_str()),
+//                                MONG_HYDRO_DATA_UTC, "{", "$gte", BCON_DATE_TIME(st),
+//                                                          "$lte", BCON_DATE_TIME(et),
+//                                                     "}",
+//                           "}",
+//                 "$orderby", "{", MONG_HYDRO_DATA_SITEID, BCON_INT32(1),
+//                                  MONG_HYDRO_DATA_UTC, BCON_INT32(1),
+//                             "}");
 
-    StatusMessage(bson_as_json(q, NULL));
+    // http://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html
+    bson_t* filter = BCON_NEW(MONG_HYDRO_DATA_SITEID, "{", "$in", BCON_ARRAY(site_array), "}",
+                              MONG_HYDRO_SITE_TYPE, BCON_UTF8(siteType.c_str()),
+                              MONG_HYDRO_DATA_UTC, "{", "$gte", BCON_DATE_TIME(st), "$lte", BCON_DATE_TIME(et), "}");
+    bson_t* opts = BCON_NEW("sort", "{", MONG_HYDRO_DATA_SITEID, BCON_INT32(1),
+                                         MONG_HYDRO_DATA_UTC, BCON_INT32(1),
+                                    "}");
 
-    StatusMessage("RegularMeasurement() Flag02: "+itoa(TimeCounting() - input_t));
+
     // perform query and read measurement data
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
-    StatusMessage("RegularMeasurement() Flag03: "+itoa(TimeCounting() - input_t));
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(q);
-    StatusMessage("RegularMeasurement() Flag04: "+itoa(TimeCounting() - input_t));
+    mongoc_cursor_t* cursor = nullptr;
+    CLOG(TRACE, LOG_INIT) << "Query Regular measurement data: filter: " << bson_as_json(filter, NULL);
+    CLOG(TRACE, LOG_INIT) << "Query Regular measurement data: opts: " << bson_as_json(opts, NULL);
+    cursor = collection->ExecuteQuery(filter, opts);
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
         StatusMessage(err.message);
-        bson_destroy(q);
+        //bson_destroy(q);
+        bson_destroy(filter);
+        bson_destroy(opts);
         mongoc_cursor_destroy(cursor);
         throw ModelException("RegularMeasurement", "Constructor", "Query error! ");
     }
@@ -73,7 +82,6 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     vector<int>::size_type index = 0;
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
-        StatusMessage("RegularMeasurement() Flag05: "+itoa(TimeCounting() - input_t));
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
             GetNumericFromBsonIterator(&iter, stationID);
@@ -82,7 +90,6 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                  "The Value field: " + string(MONG_HYDRO_DATA_SITEID) +
                                  " does not exist in DataValues table.");
         }
-        StatusMessage("RegularMeasurement() Flag06: "+itoa(TimeCounting() - input_t));
         if (stationID != stationIDLast) {
             iSite++;
             index = 0;
@@ -94,7 +101,6 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
             Initialize1DArray(nSites, tmpData, 0.f);
             m_siteData.emplace_back(tmpData);
         }
-        StatusMessage("RegularMeasurement() Flag07: "+itoa(TimeCounting() - input_t));
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
             GetNumericFromBsonIterator(&iter, value);
         } else {
@@ -102,28 +108,56 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
                                  "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
                                  " does not exist in DataValues table.");
         }
-        StatusMessage("RegularMeasurement() Flag08: "+itoa(TimeCounting() - input_t));
         m_siteData[index][iSite] = value;
         index++;
     }
     if (CVT_INT(index) < nRecords) {
-        std::ostringstream oss;
-        oss << "There are no adequate data of " << siteType << " for sites:[" << sitesList << "] in database:" <<
+        CLOG(TRACE, LOG_INIT) << "There are no adequate data of " << siteType << " for sites:[" << sitesList << "] in database:" <<
                 hydroDBName << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime) <<
                 ". You may want to check the database or the input simulation period!";
-        throw ModelException("RegularMeasurement", "Constructor", oss.str());
+        throw ModelException("RegularMeasurement", "Constructor", "No adequate data found!");
     }
     if (iSite + 1 != nSites) {
-        std::ostringstream oss;
-        oss << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
+        CLOG(TRACE, LOG_INIT) << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
                 " for sites:[" << sitesList << "] in database:" << hydroDBName
                 << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
-        throw ModelException("RegularMeasurement", "Constructor", oss.str());
+        throw ModelException("RegularMeasurement", "Constructor", "Site count error!");
     }
-    StatusMessage("RegularMeasurement() Flag09: "+itoa(TimeCounting() - input_t));
     bson_destroy(site_array);
-    bson_destroy(q);
+    bson_destroy(filter);
+    bson_destroy(opts);
     mongoc_cursor_destroy(cursor);
+}
+RegularMeasurement::RegularMeasurement(string& dataValueDirectory, const string& sitesList, const string& siteType,
+    time_t startTime, time_t endTime, time_t interval) :
+    Measurement(nullptr, "", sitesList, siteType, startTime, endTime), m_interval(interval)
+{
+    double input_t = TimeCounting();
+    int nSites = CVT_INT(m_siteIDList.size());
+
+    string dataValueFile = dataValueDirectory + SEP + "DataValues" + SEP + siteType + ".csv";
+    if (!FileExists(dataValueFile))
+    {
+        throw ModelException("RegularMeasurement", "Constructor",
+            "The data file" + dataValueFile + " does not exist!");
+    }
+    vector<vector<FLTPT>> data;
+    Read2DArrayFromCsvFile(dataValueFile.c_str(), data);
+    
+
+    for (int i = 0; i < data.size(); i++) {
+        if (data[i].size() != nSites){
+            std::stringstream ss;
+            ss << "The number of sites (" << data[i].size() << ") is not equal to the input sites (" << nSites << ")!";
+            throw ModelException("RegularMeasurement", "Constructor", ss.str());
+        }
+        FLTPT* tmpData = new FLTPT[data[i].size()];
+        for(int j =0;j< data[i].size();j++){
+            tmpData[j] = data[i][j];
+        }
+        m_siteData.emplace_back(tmpData);
+    }
+
 }
 
 RegularMeasurement::~RegularMeasurement() {

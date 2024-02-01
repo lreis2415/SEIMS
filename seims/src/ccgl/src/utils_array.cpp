@@ -54,6 +54,7 @@ void Read2DArrayFromTxtFile(const char* filename, int& rows, T**& data) {
     ifs.close();
 }
 
+
 template <typename T>
 void Read2DArrayFromString(const char* s, int& rows, T**& data) {
     std::istringstream ifs(s);

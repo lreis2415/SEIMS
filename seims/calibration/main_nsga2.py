@@ -33,22 +33,18 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
 
-from utility.ray_map import ray_deap_map
-from utility.logger import configure_logging
 import logging
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
-
+from calibration import QuerySitelist
 from calibration.calibrate import Calibration, calibration_objectives
 from calibration.calibrate import TimeseriesData, ObsSimData
 from calibration.userdef import write_param_values_to_mongodb, output_population_details
-
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
-configure_logging()
 cf, method = get_optimization_config()
 cali_cfg = CaliConfig(cf, method=method)
 
@@ -87,16 +83,16 @@ else:
 
 # Check object variables
 if not multiobj:
-    print('Multiobjective MUST not be Empty!')
+    logging.info('Multiobjective MUST not be Empty!')
     exit(1)
 for k, v in list(multiobj.items()):
     for item in v:
         if len(item) < 3:
-            print('Each item of objective MUST have three elements, '
+            logging.info('Each item of objective MUST have three elements, '
                   'i.e., object name, weight, worse value for Hypervolum calculation.')
             exit(1)
         if item[0] not in accepted_objnames:
-            print('Object name % is unsupported! '
+            logging.info('Object name % is unsupported! '
                   'Please input one of %s!' % (item[0], ','.join(accepted_objnames)))
             exit(1)
 # Get parameters from `multiobj`
@@ -170,6 +166,12 @@ def main(cfg):
     # read observation data from MongoDB
     cali_obj = Calibration(cfg)
 
+    QuerySitelist.copy_to_data_values(
+        cfg.model.model_dir,
+        cfg.model.simu_stime,
+        cfg.model.simu_etime,
+    )
+
     # Read observation data just once
     model_cfg_dict = cali_obj.model.ConfigDict
     model_obj = MainSEIMS(args_dict=model_cfg_dict)
@@ -230,20 +232,26 @@ def main(cfg):
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
+            if not tmpind:
+                continue
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
+            valid = True
             for k, v in list(multiobj.items()):
                 tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
+                if None in tmpvalues or -9999 in tmpvalues:
+                    valid = False
                 tmpfitnessv += tmpvalues[:]
                 labels += tmplabel[:]
-            tmpind.fitness.values = tuple(tmpfitnessv)
+            if valid:
+                tmpind.fitness.values = tuple(tmpfitnessv)
 
         # Filter for a valid solution
         if filter_ind:
             invalid_pops = [tmpind for tmpind in invalid_pops
                             if check_validation(tmpind.fitness.values)]
             if len(invalid_pops) < 2:
-                print('The initial population should be greater or equal than 2. '
+                logging.error('The initial population should be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
                 exit(2)
         return invalid_pops, labels  # Currently, `invalid_pops` contains evaluated individuals
@@ -273,7 +281,6 @@ def main(cfg):
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
-    logging.info(output_str)
     logging.info(output_str)
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
@@ -349,19 +356,15 @@ def main(cfg):
         pop = toolbox.select(pop, pop_select_num)
 
         output_population_details(pop, cfg.opt.simdata_dir, gen, plot_cfg=cali_obj.cfg.plot_cfg)
-        print(pop)
-        print(ref_pt)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
         logging.info(hyper_str)
-        logging.info(hyper_str)
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
-        logging.info(logbook.stream)
 
         # Count the newly generated near Pareto fronts
         new_count = 0
@@ -401,8 +404,7 @@ def main(cfg):
                     output_str += ind.vali.output_efficiency(kkk, vvv)
             output_str += str(ind)
             output_str += '\n'
-        logging.info(output_str)
-        gen_fp = Path(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
+        gen_fp = os.path.join(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
         with open(gen_fp, 'w') as gen_f:
             gen_f.write(output_str)
 

@@ -16,7 +16,8 @@
 #include <cstdarg> // variable arguments
 #include <iostream>
 #include <vector>
-
+#include <sstream>
+#include <fstream>
 #include "basic.h"
 
 using std::vector;
@@ -186,6 +187,22 @@ void Read1DArrayFromTxtFile(const char* filename, int& rows, T*& data);
  */
 template <typename T>
 void Read2DArrayFromTxtFile(const char* filename, int& rows, T**& data);
+
+template <typename T>
+void Read2DArrayFromCsvFile(const char* filename, std::vector<std::vector<T>>& data) {
+    std::ifstream ifs(filename);
+    std::string line;
+    while (getline(ifs, line)) {
+        std::vector<T> row;
+        std::stringstream ss(line);
+        std::string value;
+        while (getline(ss, value, ',')) {
+            row.push_back(static_cast<T>(std::stod(value)));
+        }
+        data.push_back(row);
+    }
+    ifs.close();
+}
 
 /*!
  * \brief Read 2D array from string

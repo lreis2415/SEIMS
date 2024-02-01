@@ -11,10 +11,14 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os
 import sys
 from datetime import timedelta
-import logging
+from pathlib import Path
+
+import pandas as pd
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -26,15 +30,16 @@ from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType
 from preprocess.config import PreprocessConfig
-from decimal import Decimal
-#import pandas as pd  # I recommend not using these 'heavy' packages if you don't have to.
+
+
+# import pandas as pd  # I recommend not using these 'heavy' packages if you don't have to.
 
 
 class ImportPrecipitation(object):
     """Import precipitation data, daily or storm."""
 
     @staticmethod
-    def regular_data_from_txt(climdb, data_file):
+    def regular_data_from_txt(climdb, data_file, model_dir):
         """Regular precipitation data from text file."""
         # delete existed precipitation data
         climdb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
@@ -42,7 +47,7 @@ class ImportPrecipitation(object):
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
-
+        filedb_data_list = list()
         bulk_requests = list()
         for fld in clim_flds:
             if not StringClass.string_in_list(fld,
@@ -77,15 +82,47 @@ class ImportPrecipitation(object):
                 cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
                 bulk_requests.append(InsertOne(cur_dic))
 
+                filedb_data_list.append([
+                    cur_dic[DataValueFields.utc],
+                    cur_dic[DataValueFields.id],
+                    cur_dic[DataValueFields.type],
+                    cur_dic[DataValueFields.value],
+                ])
+
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
                                            bulk_requests)
-        logging.info('Inserted %d initial parameters!' % (results.inserted_count
-                                                   if results is not None else 0))
         # Create index
         climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
                                                        (DataValueFields.type, ASCENDING),
                                                        (DataValueFields.utc, ASCENDING)])
+        logging.info('Inserted %d initial parameters!' % (results.inserted_count
+                                                          if results is not None else 0))
 
+        data_df = pd.DataFrame(filedb_data_list,
+                               columns=[DataValueFields.utc, DataValueFields.id, DataValueFields.type, DataValueFields.value])
+        # sort by (utc_time, id)
+        data_df.sort_values(by=[DataValueFields.utc, DataValueFields.id], inplace=True)
+        """
+        time, station_id, type, value
+        2017-01-01 00:00:00, 1, T, 10
+        2017-01-01 00:00:00, 2, T, 10
+        ->
+        df: type1
+        time, value of station1, value of station 2, ...
+
+        df: type2
+        time, value of station1, value of station 2, ...
+        """
+        # Pivot the DataFrame to wide format for each measurement type
+        df_dict = {}
+        for measurement_type in data_df[DataValueFields.type].unique():
+            df_dict[measurement_type] = data_df[data_df[DataValueFields.type] == measurement_type].pivot(
+                index=DataValueFields.utc, columns=DataValueFields.id, values=DataValueFields.value
+            )
+        for measurement_type, df in df_dict.items():
+            out_path = Path(model_dir, 'DataValuesAll', f'{measurement_type}.csv')
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            df.to_csv(out_path)
 
     @staticmethod
     def storm_data_from_txt(climdb, data_file):
@@ -158,13 +195,16 @@ class ImportPrecipitation(object):
             for j, clim_data_v in enumerate(clim_data_item):
                 if StringClass.string_in_list(clim_flds[j], station_id):
                     # split value interval
-                    new_precipitation.append(ImportPrecipitation.split_value_ranges(float(clim_data_items[i][j]), float(clim_data_items[i + 1][j]), n_interval,i == (len(clim_data_items) -2)))
+                    new_precipitation.append(
+                        ImportPrecipitation.split_value_ranges(float(clim_data_items[i][j]), float(clim_data_items[i + 1][j]), n_interval,
+                                                               i == (len(clim_data_items) - 2)))
                 else:
                     # split datetime interval
-                    new_datetime = ImportPrecipitation.split_time_ranges(clim_data_v, clim_data_items[i + 1][0], new_interval,i == (len(clim_data_items) -2))
+                    new_datetime = ImportPrecipitation.split_time_ranges(clim_data_v, clim_data_items[i + 1][0], new_interval,
+                                                                         i == (len(clim_data_items) - 2))
             # traverse interpolated datetimes
             for k, dt in enumerate(new_datetime):
-                utc_time = HydroClimateUtilClass.get_utcdatetime(dt,tsysin, tzonein)
+                utc_time = HydroClimateUtilClass.get_utcdatetime(dt, tsysin, tzonein)
                 dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_time
@@ -261,13 +301,16 @@ class ImportPrecipitation(object):
             for j, clim_data_v in enumerate(clim_data_item):
                 if StringClass.string_in_list(clim_flds[j], station_id):
                     # split value interval
-                    new_precipitation.append(ImportPrecipitation.split_value_ranges(float(clim_data_items[i][j]), float(clim_data_items[i + 1][j]), n_interval,i == (len(clim_data_items) -2)))
+                    new_precipitation.append(
+                        ImportPrecipitation.split_value_ranges(float(clim_data_items[i][j]), float(clim_data_items[i + 1][j]), n_interval,
+                                                               i == (len(clim_data_items) - 2)))
                 else:
                     # split datetime interval
-                    new_datetime = ImportPrecipitation.split_time_ranges(clim_data_v, clim_data_items[i + 1][0], new_interval,i == (len(clim_data_items) -2))
+                    new_datetime = ImportPrecipitation.split_time_ranges(clim_data_v, clim_data_items[i + 1][0], new_interval,
+                                                                         i == (len(clim_data_items) - 2))
             # traverse interpolated datetimes
             for k, dt in enumerate(new_datetime):
-                utc_time = HydroClimateUtilClass.get_utcdatetime(dt,tsysin, tzonein)
+                utc_time = HydroClimateUtilClass.get_utcdatetime(dt, tsysin, tzonein)
                 dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_time
@@ -299,13 +342,13 @@ class ImportPrecipitation(object):
         dv = (to_value - from_value) / n
         for i in range(n):
             # values_range.append(Decimal(from_value + dv * i).quantize(Decimal("0.0000")))
-            values_range.append(round(from_value + dv * i,4))
+            values_range.append(round(from_value + dv * i, 4))
         if contain_last:
             values_range.append(round(to_value, 4))
         return values_range
 
     @staticmethod
-    def split_time_ranges(from_time, to_time, frequency,contain_last):
+    def split_time_ranges(from_time, to_time, frequency, contain_last):
         from_time, to_time = pd.to_datetime(from_time), pd.to_datetime(to_time)
         time_range = list(pd.date_range(from_time, to_time, freq='%sS' % frequency))
         if to_time in time_range and not contain_last:
@@ -319,7 +362,7 @@ class ImportPrecipitation(object):
         dv = (to_value - from_value) / n
         for i in range(n):
             # values_range.append(Decimal(from_value + dv * i).quantize(Decimal("0.0000")))
-            values_range.append(round(from_value + dv * i,4))
+            values_range.append(round(from_value + dv * i, 4))
         if contain_last:
             values_range.append(round(to_value, 4))
         return values_range
@@ -340,7 +383,7 @@ class ImportPrecipitation(object):
         # Please add an argument in the preprocess.ini to decide
         # to import regular, or storm, or both
         # Neither of two import functions should be commented.
-        ImportPrecipitation.regular_data_from_txt(cfg.climatedb, cfg.prec_data)
+        ImportPrecipitation.regular_data_from_txt(cfg.climatedb, cfg.prec_data, cfg.model_dir)
         # ImportPrecipitation.storm_data_from_txt(cfg.climatedb, cfg.prec_data)
 
 

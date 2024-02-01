@@ -2,13 +2,13 @@
 #include "text.h"
 
 
-ChannelRoutingDump::ChannelRoutingDump():  
+ChannelRoutingDump::ChannelRoutingDump():
     m_isInitialized(false),
     m_nReaches(-1),
     m_inputSubbasinId(-1),
     m_outletID(-1),
     m_reachDownStream(nullptr),
-    m_Q_SBOF(nullptr), 
+    m_Q_SBOF(nullptr),
     m_Q_outlet(nullptr){
         SetModuleName(M_CHR_DUMP[0]);
 }
@@ -20,7 +20,7 @@ ChannelRoutingDump::~ChannelRoutingDump() {
 void ChannelRoutingDump::InitialOutputs() {
 
     Initialize1DArray(m_nReaches + 1, m_Q_outlet, 0.);
-    
+
 }
 
 bool ChannelRoutingDump::CheckInputData(void) {
@@ -44,7 +44,7 @@ void ChannelRoutingDump::SetValueByIndex(const char* key, const int index, const
     if (m_inputSubbasinId == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nReaches) return; // index should belong 1 ~ m_nreach
     if (nullptr == m_Q_outlet) InitialOutputs();
-    
+
     string sk(key);
     if (StringMatch(sk, VAR_QRECH[0])) m_Q_outlet[index] = value;
     else {
@@ -111,7 +111,7 @@ int ChannelRoutingDump::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-//#pragma omp parallel for
+////#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
             if (m_inputSubbasinId == 0 || m_inputSubbasinId == reachIndex) {

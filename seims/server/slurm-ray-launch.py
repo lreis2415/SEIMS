@@ -1,8 +1,8 @@
-# slurm-launch.py
+# slurm-ray-launch.py
 # from: https://docs.ray.io/en/latest/cluster/vms/user-guides/community/slurm-launch.html#slurm-launch
 
 # Usage:
-# python slurm-launch.py --exp-name test \
+# python slurm-ray-launch.py --exp-name test \
 #     --command "rllib train --run PPO --env CartPole-v0"
 
 import argparse
@@ -11,7 +11,7 @@ import sys
 import time
 from pathlib import Path
 
-template_file = Path(__file__).parent / "slurm-template.sh"
+template_file = Path(__file__).parent / "slurm-ray-template.sh"
 JOB_NAME = "${JOB_NAME}"
 NUM_NODES = "${NUM_NODES}"
 NUM_CPUS_PER_NODE = "${NUM_CPUS_PER_NODE}"

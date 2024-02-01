@@ -33,6 +33,7 @@ import bisect
 import logging
 import math
 import os
+import platform
 import sys
 import time
 from collections import OrderedDict
@@ -109,6 +110,7 @@ class ParseSEIMSConfig(object):
         self.hostfile = ''  # type: AnyStr
         self.nprocess = 1  # type: int
         self.npernode = 1  # type: int
+        self.partition = 'work' #type: AnyStr
         self.flag_npernode = ''  # type: AnyStr
         self.nthread = 2  # type: int
         self.fdirmtd = 0  # type: int
@@ -134,7 +136,6 @@ class ParseSEIMSConfig(object):
         # if sec_name not in cf.sections():
         #     raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
         self.host = get_option_value(cf, sec_name, ['hostname', 'host', 'ip'])
-        logging.info(self.host)
         if not StringClass.is_valid_ip_addr(self.host):
             raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
         self.port = get_option_value(cf, sec_name, 'port', valtyp=int)
@@ -161,8 +162,12 @@ class ParseSEIMSConfig(object):
         self.mpi_bin = get_option_value(cf, sec_name, 'mpi_bin')
         self.hosts_opt = get_option_value(cf, sec_name, ['hosts_opt', 'hostopt'])
         self.hostfile = get_option_value(cf, sec_name, 'hostfile')
+        if self.hostfile == 'local':
+            self.hostfile = platform.node()
+
         self.nprocess = get_option_value(cf, sec_name, ['nprocess', 'processnum'], valtyp=int)
         self.npernode = get_option_value(cf, sec_name, 'npernode', valtyp=int)
+        self.partition = get_option_value(cf, sec_name, 'partition')
         if self.version.lower() == 'omp':
             self.nprocess = 1
             self.npernode = 1
@@ -207,7 +212,7 @@ class ParseSEIMSConfig(object):
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
                                 'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
-                                'nthread': self.nthread,
+                                'nthread': self.nthread, 'partition':self.partition,
                                 'fdirmtd': self.fdirmtd, 'lyrmtd': self.lyrmtd,
                                 'scenario_id': self.scenario_id,
                                 'calibration_id': self.calibration_id,
@@ -237,6 +242,7 @@ class MainSEIMS(object):
                  nprocess=1,  # type: int # Process number of MPI
                  npernode=1,  # type: int # Process number per computing node
                  nnodes=1,  # type: int # Nodes required to execute
+                 partition='work',  # type:AnyStr # Partition name for slurm
                  flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
                  fdirmtd=0,  # type: int # Flow direction, can be 0 (d8), 1 (dinf), or 2 (mfdmd)
@@ -280,7 +286,7 @@ class MainSEIMS(object):
 
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.npernode = args_dict['npernode'] if 'npernode' in args_dict else npernode
-
+        self.partition = args_dict['partition'] if 'partition' in args_dict else partition
         self.nnodes = args_dict['nnodes'] if 'nnodes' in args_dict else nnodes
         self.flag_npernode = args_dict['flag_npernode'] if 'flag_npernode' in args_dict \
             else flag_npernode
@@ -360,14 +366,16 @@ class MainSEIMS(object):
                 self.cmd += ['-N', str(self.nnodes)]
                 if self.npernode >= 1:
                     self.cmd += ['--ntasks-per-node=%d' % self.npernode]
-                self.cmd += ['--cpu_bind=cores --cpus-per-task=%d' % self.nthread]
+                if self.partition:
+                    self.cmd += ['-p', self.partition]
+                self.cmd += ['--cpu_bind=cores', '--cpus-per-task=%d' % self.nthread]
                 self.cmd += ['--exclusive']
             else:
                 self.cmd += [self.mpi_bin]
-                if self.hostfile and os.path.exists(self.hostfile):
-                    self.cmd += [self.hosts_opt, self.hostfile]
-                    if self.npernode > 1 and self.flag_npernode != '':
-                        self.cmd += [self.flag_npernode, str(self.npernode)]
+                if self.hosts_opt and self.hostfile:
+                    self.cmd += ["%s=%s"%(self.hosts_opt, self.hostfile)]
+                if self.npernode > 1 and self.flag_npernode != '':
+                    self.cmd += [self.flag_npernode, str(self.npernode)]
 
             self.cmd += ['-n', str(self.nprocess)]
         self.cmd += [self.seims_exec,

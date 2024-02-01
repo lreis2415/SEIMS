@@ -126,7 +126,7 @@ public:
     ~MongoCollection();
 
     /*! Execute query */
-    mongoc_cursor_t* ExecuteQuery(const bson_t* b);
+    mongoc_cursor_t* ExecuteQuery(const bson_t* b, const bson_t* opts = nullptr);
 
     /*! Query the records number */
     vint QueryRecordsCount();
@@ -340,10 +340,8 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t* iter);
  * \sa GetDatetimeFromBsonIterator()
  */
 time_t GetDatetimeFromBson(bson_t* bmeta, const char* key);
-
 } /* namespace: db_mongoc */
 } /* namespace: ccgl */
-
 
 #endif /* USE_MONGODB */
 #endif /* CCGL_DB_MONGOC_H */

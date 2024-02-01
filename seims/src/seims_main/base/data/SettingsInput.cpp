@@ -7,10 +7,13 @@ using namespace utils_time;
 
 SettingsInput::SettingsInput(vector<string>& stringvector)
     : m_startDate(0), m_endDate(0), m_dtHs(3600), m_dtCh(86400),
-      m_isStormModel(false) {
+      m_isStormModel(false), m_useFileDB(false) {
     Settings::SetSettingTagStrings(stringvector);
     if (StringMatch(GetValue(Tag_Mode), Tag_Mode_Storm)) {
         m_isStormModel = true;
+    }
+    if (StringMatch(GetValue(Tag_Use_File_DB), "1")) {
+        m_useFileDB = true;
     }
     if (!readSimulationPeriodDate()) {
         throw ModelException("SettingInput", "Constructor",

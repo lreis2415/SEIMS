@@ -160,7 +160,7 @@ int ChannelRoutingMuskingum::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_routeLayers (map) is equal to the maximum stream order
-//#pragma omp parallel for
+////#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
 
@@ -176,7 +176,7 @@ int ChannelRoutingMuskingum::Execute() {
             if (nullptr != m_Q_SBQG) {
                 m_Q_out[reachIndex] += m_Q_SBQG[reachIndex];
             }
-            
+
             m_Q_out[reachIndex] = NonNeg(m_Q_out[reachIndex]);
 #ifdef PRINT_DEBUG
             printf("\n[ChannelRoutingMuskingum] Reach%d m_Q_out(%f): m_Q_SBOF(%f),m_Q_SBIF(%f), m_Q_SBQG(%f) ",
@@ -220,7 +220,7 @@ void ChannelRoutingMuskingum::ChannelFlow(const int i){
     m_Q_outLast[i] = m_Q_out[i];
     m_Q_out[i] = 0;
     m_Q_in[i] = 0;
-    
+
     FLTPT dt = Min(K, m_dt_day);
 
     for (auto upReachID = m_reachUpStream.at(i).begin(); upReachID != m_reachUpStream.at(i).end(); ++upReachID) {

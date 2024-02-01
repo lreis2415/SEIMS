@@ -273,11 +273,15 @@ def main(cfg):
         for tmpind in invalid_pops:
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
+            valid = True
             for k, v in list(multiobj.items()):
                 tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
+                if None in tmpvalues or -9999 in tmpvalues:
+                    valid = False
                 tmpfitnessv += tmpvalues[:]
                 labels += tmplabel[:]
-            tmpind.fitness.values = tuple(tmpfitnessv)
+            if valid:
+                tmpind.fitness.values = tuple(tmpfitnessv)
 
         # Filter for a valid solution
         if filter_ind:
@@ -314,7 +318,6 @@ def main(cfg):
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
-    logging.info(output_str)
     logging.info(output_str)
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
