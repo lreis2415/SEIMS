@@ -10,8 +10,7 @@
 #   pip install --timeout 1000 "https://github.com/DEAP/deap/archive/master.zip"
 #   pip install --timeout 1000 "https://github.com/lreis2415/PyGeoC/archive/master.zip"
 #
-#
-# Latest updated: 05/21/2023
+# Latest updated: 02/01/2024
 
 name: pyseims
 channels:

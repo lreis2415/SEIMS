@@ -14,8 +14,9 @@ SALib<1.3;python_version<'3'
 # scoop, latest
 https://github.com/soravux/scoop/archive/master.zip
 
-# DEAP, latest
-https://github.com/DEAP/deap/archive/master.zip
+# original: DEAP, latest
+# modified to <1.4 since `ray` does not seem to be compatible with deap 1.4
+deap<1.4
 
 # PyGeoC, latest
 https://github.com/lreis2415/PyGeoC/archive/master.zip
