@@ -83,7 +83,7 @@ class SpatialDelineation(object):
                                              workingdir=cfg.dirs.taudem,
                                              mpi_bin=cfg.mpi_bin,
                                              bin_dir=cfg.seims_bin,
-                                             avoid_redo=True)
+                                             avoid_redo=cfg.avoid_redo)
         # Convert D8 encoding rule to ArcGIS
         D8Util.convert_code(cfg.taudems.d8flow, cfg.taudems.d8flow_m)
         # D-inf flow direction

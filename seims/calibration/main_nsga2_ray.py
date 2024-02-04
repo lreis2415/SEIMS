@@ -22,6 +22,8 @@ from io import open
 from pathlib import Path
 import ray
 
+from calibration import QuerySitelist
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -211,6 +213,12 @@ def main(cfg):
     # read observation data from MongoDB
     cali_obj = Calibration(cfg)
 
+    QuerySitelist.copy_to_data_values(
+        cfg.model.model_dir,
+        cfg.model.simu_stime,
+        cfg.model.simu_etime,
+    )
+
     # Read observation data just once
     model_cfg_dict = cali_obj.model.ConfigDict
     model_obj = MainSEIMS(args_dict=model_cfg_dict)
@@ -313,7 +321,6 @@ def main(cfg):
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
-    logging.info(logbook.stream)
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
@@ -401,11 +408,9 @@ def main(cfg):
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
         logging.info(hyper_str)
-        logging.info(hyper_str)
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
-        logging.info(logbook.stream)
 
         # Count the newly generated near Pareto fronts
         new_count = 0
@@ -445,7 +450,6 @@ def main(cfg):
                     output_str += ind.vali.output_efficiency(kkk, vvv)
             output_str += str(ind)
             output_str += '\n'
-        logging.info(output_str)
         gen_fp = Path(cfg.opt.out_dir, 'gen%s_perf.txt' % gen)
         with open(gen_fp, 'w') as gen_f:
             gen_f.write(output_str)

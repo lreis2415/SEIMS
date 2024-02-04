@@ -13,8 +13,8 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import logging
-import sys
 import os
+import sys
 from os.path import join as pjoin
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -27,11 +27,12 @@ from pymongo.mongo_client import MongoClient
 from pymongo.database import Database
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
-from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils, DBTableNames, ModelCfgFields
+from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
 from preprocess.text import TauDEMbasedNames, VectorNameUtils, \
     SpatialNamesUtils, ModelParamDataUtils
-from preprocess.db_mongodb import ConnectMongoDB, MongoUtil
+from preprocess.db_mongodb import ConnectMongoDB
 from utility.parse_config import get_option_value
+
 
 class PreprocessConfig(object):
     """Parse SEIMS project configuration."""
@@ -119,7 +120,6 @@ class PreprocessConfig(object):
         if not FileClass.is_dir_exists(self.prepscript_dir):
             raise IOError('PREPROC_SCRIPT_DIR (%s) specified in PATH section does not exist!' % self.prepscript_dir)
 
-
         if not FileClass.is_dir_exists(self.seims_bin):
             raise IOError('CPP_PROGRAM_DIR (%s) specified in PATH section does not exist!' % self.seims_bin)
 
@@ -164,7 +164,7 @@ class PreprocessConfig(object):
 
         if not self.observe_dir or not FileClass.is_dir_exists(self.observe_dir):
             logging.info('The MEASUREMENT_DATA_DIR is not specified or does not exist. '
-                  'Try the default folder name "observed".')
+                         'Try the default folder name "observed".')
             self.observe_dir = self.base_dir + os.path.sep + 'observed'
             if not FileClass.is_dir_exists(self.observe_dir):
                 self.observe_dir = None
@@ -294,7 +294,7 @@ class PreprocessConfig(object):
                         raise ValueError('Warning: [SPATIAL] `HRU_properties` field may be incorrectly written.\n'
                                          'Correct example: HRU_properties = LANDUSE, SOILTYPE_CONCEPTUAL')
             self._check_conceptual_setting()
-            if self.is_lumped: # TODO: lump may use a single raster cell to represent the whole basin, using hru_subbasin_id. --wyj
+            if self.is_lumped:  # TODO: lump may use a single raster cell to represent the whole basin, using hru_subbasin_id. --wyj
                 self.conceptual_mask_file = self.spatials.hru_subbasin_id
             elif self.has_conceptual_subbasin:
                 self.conceptual_mask_file = self.spatials.hru_subbasin_id
@@ -329,6 +329,11 @@ class PreprocessConfig(object):
                                                         'imperviouspercinurbancell', float, 0.)
             self.default_landuse = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultlanduse', int)
             self.default_soil = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'defaultsoil', int)
+            avoid_redo = get_option_value(cf, 'OPTIONAL_PARAMETERS', 'avoid_redo', int, 1)
+            if avoid_redo == 1:
+                self.avoid_redo = True
+            if avoid_redo == 0:
+                self.avoid_redo = False
 
     def _check_conceptual_setting(self):
         if not self.has_conceptual_subbasin and self.is_lumped:

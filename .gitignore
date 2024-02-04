@@ -72,6 +72,7 @@ html
 # add nogit directory which contains personal test code
 seims/nogit
 seims/nogit/*
+*.log
 
 # temp folders when running demo data
 data/*/workspace*
