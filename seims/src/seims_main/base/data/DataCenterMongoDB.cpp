@@ -100,6 +100,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         LOG(ERROR) << "The main model is not existed: " << model_name_;
         return false;
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()1: " << TimeCounting() - input_t;
     main_database_ = new MongoDatabase(mongo_client_->GetDatabase(model_name_));
     /// 2. Check the existence of FILE_IN, FILE_OUT, PARAMETERS, REACHES, SITELIST, SPATIAL, etc
     vector<string> existed_main_db_tabs;
@@ -111,15 +112,19 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         }
     }
 
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()2: " << TimeCounting() - input_t;
     /// 3. Read climate site information from Climate database
     clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel(), model_path_);
     ReadClimateSiteList();
 
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()3: " << TimeCounting() - input_t;
     /// 4. Read initial parameters
     if (!ReadParametersInDB()) {
         return false;
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()4: " << TimeCounting() - input_t;
     DumpCaliParametersInDB();
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()5: " << TimeCounting() - input_t;
 
     /// 5. Read Mask raster data
     std::ostringstream oss;
@@ -133,6 +138,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         opts.insert(make_pair(HEADER_RS_PARAM_ABSTRACTION_TYPE, PARAM_ABSTRACTION_TYPE_CONEPTUAL));
 #endif
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()6: " << TimeCounting() - input_t;
     mask_raster_ = IntRaster::Init(spatial_gridfs_, mask_filename.c_str(),
         false,nullptr,true,NODATA_VALUE,opts);
     assert(nullptr != mask_raster_);
@@ -150,6 +156,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         opts.insert(make_pair(HEADER_INC_NODATA, "FALSE"));
 #endif
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()7: " << TimeCounting() - input_t;
     /// 6. Constructor Subbasin data. Subbasin and slope data are required!
     oss.str("");
     oss << subbasin_id_ << "_" << VAR_SLOPE[0];
@@ -159,6 +166,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     LoadAdjustRasterData(VAR_CELL_AREA[0], GetUpper(oss.str()),false,&opts);
     subbasins_ = clsSubbasins::Init(rs_int_map_, rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()8: " << TimeCounting() - input_t;
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     if(n_subbasins_==1) {
@@ -167,6 +175,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
         reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
         reaches_->Update(init_params_, mask_raster_);
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()9: " << TimeCounting() - input_t;
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
         bson_t* query = bson_new();
@@ -180,6 +189,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
             }
         }
     }
+    LOG(INFO) << "DataCenterMongoDB::CheckModelPreparedData()10: " << TimeCounting() - input_t;
     return true;
 }
 

@@ -355,7 +355,10 @@ class SoilPropertyPhysical(SoilPropertyBase):
                 silt = self.SOL_SILT[i]
                 clay = self.SOL_CLAY[i]
                 om = self.SOL_OM[i]
-                tmp_usle_k.append(SoilUtilClass.usle_k_epic(sand, silt, clay, om))
+                try:
+                    tmp_usle_k.append(SoilUtilClass.usle_k_epic(sand, silt, clay, om))
+                except ZeroDivisionError:
+                    raise ZeroDivisionError(f'float division by zero in soil `{self.SEQN}` layer {i}: silt / (clay + silt) -> {silt}/({clay}+{silt})')
             if not self.USLE_K:
                 self.USLE_K = tmp_usle_k[:]
             elif DEFAULT_NODATA in self.USLE_K:

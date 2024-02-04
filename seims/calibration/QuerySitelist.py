@@ -28,10 +28,10 @@ def copy_to_data_values(
     for root, dirs, files in os.walk(original_dir):
         for forcing_file in files:
             forcing_file = Path(root) / forcing_file
-            if not forcing_file.name.startswith('cali') or not forcing_file.name.endswith('.csv'):
+            if not forcing_file.name.endswith('.csv'):
                 continue
             # df = pd.read_csv(forcing_file)
-            df = pd.read_csv(forcing_file, header=None)
+            df = pd.read_csv(forcing_file)
             # columns: date_utc, value1, value2
             # parse utc date
             df[DataValueFields.utc] = pd.to_datetime(df[DataValueFields.utc])
