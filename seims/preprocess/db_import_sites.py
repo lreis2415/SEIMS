@@ -65,7 +65,7 @@ class ImportHydroClimateSites(object):
         sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
         if not site_data_items or len(site_data_items) <= 1:
-            logging.error('db_import_sites.sites_table: No data loaded from %s' % site_file)
+            logging.error('db_import_sites.sites_table: No data loaded from %s. Please Check file.' % site_file)
             return None
         site_flds = site_data_items[0]
         for i in range(1, len(site_data_items)):

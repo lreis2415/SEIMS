@@ -137,34 +137,6 @@ creator_setup()
 # Register NSGA-II related operations
 
 
-############################
-# Test for dask. Not working.
-############################
-# from dask_jobqueue import PBSCluster
-# cluster = PBSCluster(  # <-- scheduler started here
-#      cores=4,
-#      memory='5GB',
-#      processes=2,
-#      # local_directory='$TMPDIR',
-#      resource_spec='nodes=2:ppn=8',
-#      queue='workq',
-#      account='wyj',
-#      walltime='00:01:00',
-# )
-
-# from dask.distributed import Client
-# client = Client(processes=False)
-# # cluster.scale(jobs=4)
-# # print('cluster job script:')
-# # print(cluster.job_script())
-# print('create client:')
-# print(client)
-# def dask_map(*args, **kwargs):
-#     print('dask_map')
-#     print(client)
-#     return client.gather(client.map(*args, **kwargs))
-
-
 toolbox = base.Toolbox()
 # toolbox.register('gene_values', initialize_calibrations)
 # toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
@@ -400,8 +372,6 @@ def main(cfg):
         pop = toolbox.select(pop, pop_select_num)
 
         output_population_details(pop, cfg.opt.simdata_dir, gen, plot_cfg=cali_obj.cfg.plot_cfg)
-        print(pop)
-        print(ref_pt)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,

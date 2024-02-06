@@ -38,6 +38,9 @@ def read_data_items_from_txt(txt_file):
     Returns:
         2D data array
     """
+    if not FileClass.is_file_exists(txt_file):
+        logging.error('File %s does not exist!' % txt_file)
+        return []
     data_items = list()
     with open(txt_file, 'r', encoding='utf-8', errors='ignore') as f:
         for line in f:

@@ -303,7 +303,6 @@ def calibration_objectives(pop):
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
-    logging.debug(ind)
     return ind
 
 

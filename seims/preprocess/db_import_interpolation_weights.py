@@ -157,9 +157,12 @@ class ImportWeightData(object):
 
         weight_m_data = spatial_gfs.get(weight_m['_id'])
         total_len = num_cells * num_sites
-        # print(total_len)
         fmt = '%df' % (total_len,)
-        weight_m_data = unpack(fmt, weight_m_data.read())
+        try:
+            weight_m_data = unpack(fmt, weight_m_data.read())
+        except Exception as e:
+            logging.error('Got unpack error with fmt=%s' % fmt)
+            raise e
 
         # calculate PHU0
         phu0_data = np.zeros(num_cells)
@@ -341,10 +344,10 @@ class ImportWeightData(object):
                 id_list = list()
                 loc_list = list()
                 for site in cursor:
-                    if site[StationFields.id] in site_list:
-                        id_list.append(site[StationFields.id])
-                        loc_list.append([site[StationFields.x], site[StationFields.y]])
-
+                    id_list.append(site[StationFields.id])
+                    loc_list.append([site[StationFields.x], site[StationFields.y]])
+                if len(id_list)!=len(site_list):
+                    logging.warning(f'len(id_list)={len(id_list)} != len(site_list)={len(site_list)}. This may cause error in later process!')
                 # loc_list [[x1,y1],[x2,y2],...[xn,yn]]
                 # construct kdtree for nearest neighbor search
                 from scipy.spatial import cKDTree
