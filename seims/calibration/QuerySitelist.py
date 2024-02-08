@@ -46,4 +46,4 @@ def copy_to_data_values(
             #     out_path.unlink()
             if os.path.exists(out_path):
                 os.remove(out_path)
-            df.to_csv(out_path, index=False, header=False)
+            df.to_csv(out_path, index=False)

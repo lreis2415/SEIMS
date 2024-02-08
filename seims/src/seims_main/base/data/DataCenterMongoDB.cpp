@@ -358,7 +358,7 @@ void DataCenterMongoDB::ReadClimateSiteList() {
     std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_,
                                                                         DB_TAB_SITELIST)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
-    
+
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
@@ -376,7 +376,7 @@ void DataCenterMongoDB::ReadClimateSiteList() {
                                              input_->getStartTime(), input_->getEndTime(), input_->isStormMode(), input_->ifUseFileDB());
             }
         }
-        
+
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P)) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_Precipitation,

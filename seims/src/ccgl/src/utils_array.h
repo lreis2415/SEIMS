@@ -188,21 +188,17 @@ void Read1DArrayFromTxtFile(const char* filename, int& rows, T*& data);
 template <typename T>
 void Read2DArrayFromTxtFile(const char* filename, int& rows, T**& data);
 
+
+/*!
+ * \brief Read csv.
+ *
+ * \param[in] filename
+ * \param[in] header Only the columns in the header will be read and stored in data.
+ *                      The order of the data is the same as the header.
+ * \param[out] data
+ */
 template <typename T>
-void Read2DArrayFromCsvFile(const char* filename, std::vector<std::vector<T>>& data) {
-    std::ifstream ifs(filename);
-    std::string line;
-    while (getline(ifs, line)) {
-        std::vector<T> row;
-        std::stringstream ss(line);
-        std::string value;
-        while (getline(ss, value, ',')) {
-            row.push_back(static_cast<T>(std::stod(value)));
-        }
-        data.push_back(row);
-    }
-    ifs.close();
-}
+bool Read2DArrayFromCsvFile(const char* filename, const vector<string>* header, std::vector<std::vector<T>>& data);
 
 /*!
  * \brief Read 2D array from string
@@ -539,6 +535,44 @@ void RemoveValueInVector(const T val, vector<T>& vec) {
             ++iter;
         }
     }
+}
+
+template <typename T>
+bool Read2DArrayFromCsvFile(const char* filename, const vector<string>* header, std::vector<std::vector<T>>& data) {
+    std::ifstream ifs(filename);
+    std::string line;
+    if (!ifs.is_open()) {
+        std::cerr << "Error: Open file " << filename << " failed!" << std::endl;
+        return false;
+    }
+    vector<int> col_idx;
+    if (header != nullptr) {
+        int i = 0;
+        std::getline(ifs, line);
+        std::stringstream ss(line);
+        std::string value;
+        while (getline(ss, value, ',')) {
+            if (ValueInVector(value, *header)) {
+                col_idx.push_back(i);
+            }
+            i++;
+        }
+    }
+    while (std::getline(ifs, line)) {
+        int i = 0;
+        std::vector<T> row;
+        std::stringstream ss(line);
+        std::string value;
+        while (getline(ss, value, ',')) {
+            if (ValueInVector(i, col_idx)) {
+                row.push_back(static_cast<T>(std::stod(value)));
+            }
+            i++;
+        }
+        data.push_back(row);
+    }
+    ifs.close();
+    return true;
 }
 
 } /* utils_array */

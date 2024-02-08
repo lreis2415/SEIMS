@@ -128,6 +128,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     bson_destroy(opts);
     mongoc_cursor_destroy(cursor);
 }
+
 RegularMeasurement::RegularMeasurement(string& dataValueDirectory, const string& sitesList, const string& siteType,
     time_t startTime, time_t endTime, time_t interval) :
     Measurement(nullptr, "", sitesList, siteType, startTime, endTime), m_interval(interval)
@@ -141,9 +142,18 @@ RegularMeasurement::RegularMeasurement(string& dataValueDirectory, const string&
         throw ModelException("RegularMeasurement", "Constructor",
             "The data file" + dataValueFile + " does not exist!");
     }
+
+    // convert vector<int> m_siteIDList to vector of string
+    vector<string> siteIDListStr;
+    for (int i = 0; i < m_siteIDList.size(); i++) {
+        siteIDListStr.push_back(ValueToString(m_siteIDList[i]));
+    }
     vector<vector<FLTPT>> data;
-    Read2DArrayFromCsvFile(dataValueFile.c_str(), data);
-    
+    bool success = Read2DArrayFromCsvFile(dataValueFile.c_str(), &siteIDListStr, data);
+    if (!success) {
+        throw ModelException("RegularMeasurement", "Constructor (from file)",
+            "Failed to read data from file: " + dataValueFile);
+    }
 
     for (int i = 0; i < data.size(); i++) {
         if (data[i].size() != nSites){
