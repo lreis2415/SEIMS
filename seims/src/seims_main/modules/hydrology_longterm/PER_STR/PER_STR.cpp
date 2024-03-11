@@ -61,8 +61,9 @@ int PER_STR::Execute() {
             if (excessWater > 1.e-5) {
                 FLTPT maxPerc = maxSoilWater - fcSoilWater;
                 if (maxPerc < 0.) maxPerc = 0.1;
-                FLTPT tt = 3600. * maxPerc / m_ks[i][j];                  // secs
-                m_soilPerco[i][j] = excessWater * (1. - CalExp(-m_dt / tt)); // secs
+                // FLTPT tt = 3600. * maxPerc / m_ks[i][j];                  // secs
+                // m_soilPerco[i][j] = excessWater * (1. - CalExp((-m_dt / tt)); // secs
+                m_soilPerco[i][j] = excessWater * (1. - CalExp((-m_dt*m_ks[i][j])/(3600. * maxPerc))); // secs
 
                 if (m_soilPerco[i][j] > maxPerc) {
                     m_soilPerco[i][j] = maxPerc;

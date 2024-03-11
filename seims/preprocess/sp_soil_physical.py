@@ -221,6 +221,10 @@ class SoilPropertyPhysical(SoilPropertyBase):
                 if self.SOL_AWC[i] == DEFAULT_NODATA:
                     self.SOL_AWC[i] = self.SOL_FC[i] - self.SOL_WP[i]
                     self.SOL_AWC_AMOUNT[i] = self.SOL_AWC[i] * self.SOILTHICK[i]
+        else:
+            for i in range(self.SOILLAYERS):
+                self.SOL_AWC_AMOUNT.append(self.SOL_AWC[i] * self.SOILTHICK[i])
+
 
         if self.POREINDEX and len(self.POREINDEX) != self.SOILLAYERS:
             raise IndexError("Pore disconnectedness index must have a size "
@@ -320,9 +324,10 @@ class SoilPropertyPhysical(SoilPropertyBase):
             self.SOL_UL.append((self.SOL_POROSITY[i] - self.SOL_WP[i]) * self.SOILTHICK[i])
             self.SOL_SUMUL += self.SOL_UL[i]
             self.SOL_SUMAWC += self.SOL_AWC_AMOUNT[i]
-            self.SOL_HK.append((self.SOL_UL[i] - self.SOL_AWC_AMOUNT[i]) / self.SOL_K[i])
-            if self.SOL_HK[i] < 1.:
-                self.SOL_HK[i] = 1.
+            # SOL_HK is not used in any module. -- wyj 2024.3.4
+            # self.SOL_HK.append((self.SOL_UL[i] - self.SOL_AWC_AMOUNT[i]) / self.SOL_K[i])
+            # if self.SOL_HK[i] < 1.:
+            #     self.SOL_HK[i] = 1.
             self.SOL_WPMM.append(self.SOL_WP[i] * self.SOILTHICK[i])
             self.SOL_SUMWP += self.SOL_WPMM[i]
             self.CRDEP.append(self.SOL_CRK * 0.916 * math.exp(-0.0012 * self.SOL_Z[i])
