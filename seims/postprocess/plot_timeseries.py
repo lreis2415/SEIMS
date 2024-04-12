@@ -339,4 +339,5 @@ class TimeSeriesPlots(object):
             if image_file_suffix is not None:
                 out_file_name = '%s-%s' % (out_file_name, image_file_suffix)
             save_png_eps(plt, self.ws, out_file_name, self.plot_cfg)
+
         return plt
