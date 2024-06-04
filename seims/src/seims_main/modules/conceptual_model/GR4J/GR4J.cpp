@@ -68,10 +68,12 @@ void GR4J::InitialOutputs() {
             m_pcp[i] = m_NEPR_input[i];
         }
     }
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         for (int j = 0; j < N_SOIL_LAYERS; ++j) {
             m_soilCapacity[i][j] = m_soilPorosity[i][j] * m_soilThickness[i][j];
+            m_soilWaterStorage[i][j] = 0;
         }
     }
 
@@ -90,6 +92,7 @@ GR4J::~GR4J() {
     Release1DArray(m_soilCapacity);
     Release1DArray(m_infil);
     Release1DArray(m_netEvapCapacity);
+    Release1DArray(m_soilProfileWater);
     Release2DArray(m_soilWaterStorage);
     Release1DArray(m_infil);
     Release1DArray(m_convEntering1);
@@ -134,7 +137,10 @@ void GR4J::Set1DData(const char* key, int n, FLTPT* data) {
 void GR4J::Set2DData(const char* key, int nrows, int ncols, FLTPT** data) {
     string sk(key);
     CheckInputSize2D(key, nrows, ncols, m_nCells, N_SOIL_LAYERS);
-    if (StringMatch(sk, VAR_SOILTHICK[0])) { m_soilThickness = data; }
+    if (StringMatch(sk, VAR_SOILTHICK[0]))
+    {
+        m_soilThickness = data;
+    }
     else if (StringMatch(sk, VAR_POROST[0])) { m_soilPorosity = data; }
     else if (StringMatch(sk, VAR_GR4J_X2[0])) { m_GR4J_X2 = data; }
     else if (StringMatch(sk, VAR_GR4J_X3[0])) { m_GR4J_X3 = data; }
@@ -155,6 +161,16 @@ bool GR4J::CheckInputData(void) {
     CHECK_POINTER(GetModuleName(), m_pcp);
     CHECK_POINTER(GetModuleName(), m_soilThickness);
     CHECK_POINTER(GetModuleName(), m_soilPorosity);
+    for (int i = 0; i < m_nCells; ++i)
+    {
+        for (int j = 0; j < N_SOIL_LAYERS; ++j)
+        {
+            if (m_soilThickness[i][j] <= 0 || m_soilPorosity[i][j] <= 0) {
+                throw ModelException(GetModuleName(), "InitialOutputs",
+                    "Invalid input! m_soilPorosity or m_soilThickness is 0.");
+            }
+        }
+    }
     CHECK_POSITIVE(GetModuleName(), m_GR4J_X4);
     return true;
 }
@@ -246,7 +262,7 @@ void GR4J::Infiltration() {
 }
 
 void GR4J::SoilEvaporation() {
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if(m_netEvapCapacity[i]<=0) {
             continue;
@@ -256,6 +272,10 @@ void GR4J::SoilEvaporation() {
         FLTPT sat = stor / maxStor;
         FLTPT tmp = tanh(m_netEvapCapacity[i] / maxStor);
         m_soilET[i] = stor * (2.0 - sat) * tmp / (1.0 + (1.0 - sat) * tmp);
+        if(isnan(m_soilET[i]))
+        {
+            cout << "error" << endl;
+        }
         m_soilWaterStorage[i][SOIL_PRODUCT_LAYER] -= m_soilET[i];
     }
 #ifdef PRINT_DEBUG
@@ -523,8 +543,13 @@ int GR4J::Execute() {
     Flush(SOIL_TEMP_LAYER, m_pcpExcess);
     Baseflow(SOIL_ROUTING_LAYER);
     for (int i = 0; i < m_nCells; ++i) {
+        m_soilProfileWater[i] = 0;
         for (int j = 0; j < N_SOIL_LAYERS - 1; ++j) {
-            m_soilProfileWater[i] += m_soilWaterStorage[i][j];
+            m_soilProfileWater[i] += NonNeg(m_soilWaterStorage[i][j]);
+            if(isnan(m_soilWaterStorage[i][j]))
+            {
+                cout << "[" << i << "," << j << "] " << m_soilWaterStorage[i][j] << endl;
+            }
         }
     }
     return 0;

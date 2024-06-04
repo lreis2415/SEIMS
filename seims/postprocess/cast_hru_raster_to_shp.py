@@ -35,6 +35,9 @@ def fill_hru_shp(
     # find each position P of simulation result R(P) in hru_id HID(P)
     # then set HRU(HID(P)) = R(P)
     hru_copy = hru.copy()
+    # add a new column to store the value, float32
+    hru_copy['value'] = np.nan
+    hru_copy['value'] = hru_copy['value'].astype(np.float32)
     nonempty_hru_ids = []
     with rasterio.open(simulation_result_file_path) as src:
         r = src.read(1)
@@ -44,6 +47,8 @@ def fill_hru_shp(
             hid = hru_id[i, j]
             nonempty_hru_ids.append(hid)
             hru_id_val = hid
+            val = r[i, j]
+            print(f'writing value {val} to HRU {hru_id_val}')
             hru_copy.loc[hru_id_val, 'value'] = r[i, j]
     # drop empty HRUs
     hru_copy = hru_copy.loc[nonempty_hru_ids]

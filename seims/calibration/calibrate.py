@@ -163,7 +163,6 @@ class Calibration(object):
                 self.param_bounds_lows.append(low)
                 self.param_bounds_highs.append(high)
                 self.impact_subbasins.append(subbasin_ids)
-
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
         conn = MongoDBObj.client  # type: MongoClient
