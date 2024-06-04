@@ -458,7 +458,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                     string outpath = data_center_map.begin()->second->GetOutputScenePath();
                     if (!outpath.empty()) {
                         // Output as gtiff file will not contain ScenarioID and CalibrationID information
-                        save = subbsn_lyr->OutputToFile(outpath + SEP + item->Corename + "." + GTiffExtension,
+                        save = subbsn_lyr->OutputToFile(outpath + SEP + item->Corename + "_phy" + "." + GTiffExtension,
                                                         false);
                         if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To GTiff!"; }
                     }
@@ -466,7 +466,66 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
             }
         }
 
+        map<string, string> hru_opts;
+        UpdateStringMap(hru_opts, HEADER_INC_NODATA, "TRUE");
+        UpdateStringMap(hru_opts, HEADER_RS_PARAM_ABSTRACTION_TYPE, "CONCEPTUAL");
+        IntRaster* hru_layer = IntRaster::Init(spatial_gfs_in, "0_SUBBASIN",
+            true, nullptr, true,
+            NODATA_VALUE, hru_opts);
+        if (hru_layer==nullptr) {
+            CLOG(TRACE, LOG_OUTPUT) << "\t\tFAILED!";
+        }else{
+            hru_layer->BuildSubSet();
+            map<int, SubsetPositions*>& subset = hru_layer->GetSubset();
+
+            SettingsOutput* outputs = data_center_map.begin()->second->GetSettingOutput();
+            for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
+                for (auto item_it = (*it)->m_PrintItems.begin(); item_it != (*it)->m_PrintItems.end(); ++item_it) {
+                    PrintInfoItem* item = *item_it;
+                    if (item->m_nLayers < 1) { continue; }
+                    // Only need to handle raster data
+                    // Previous implementation in `seims/src/combine_raster/CombineRaster.cpp`
+                    // Change to new API of CCGL by LJ, 2022-07-06
+                    // bool CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+                    //                                const int n_subbasins, const string& folder /* = "" */,
+                    //                                int scenario_id /* = 0 */, int calibration_id /* = -1 */)
+
+                    // Concatenate real filename
+                    string real_name = item->Corename + "_";
+                    string sce_str = itoa(input_args->scenario_id);
+                    string cali_str = itoa(input_args->calibration_id);
+                    if (input_args->scenario_id >= 0) { real_name += sce_str; }
+                    real_name += "_";
+                    if (input_args->calibration_id >= 0) { real_name += cali_str; }
+                    CLOG(TRACE, LOG_OUTPUT) << "\tCombining raster: " << item->Corename << " -> " << real_name << "...";
+                    bool read_data_flag = true;
+                    map<string, string> opts;
+                    UpdateStringMap(opts, "SCENARIO_ID", sce_str);
+                    UpdateStringMap(opts, "CALIBRATION_ID", cali_str);
+                    UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
+                    for (auto it_sub = subset.begin(); it_sub != subset.end(); ++it_sub) {
+                        string cfname = itoa(it_sub->first) + "_" + real_name;
+                        it_sub->second->usable = it_sub->second->ReadFromMongoDB(spatial_gfs_out, cfname, opts);
+                    }
+
+                    string out_fname = "0_" + real_name;
+                    spatial_gfs_out->RemoveFile(out_fname, nullptr, valid_opts);
+                    bool save = hru_layer->OutputToMongoDB(spatial_gfs_out, out_fname,
+                        valid_opts, false, false);
+                    if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To MongoDB!"; }
+                    string outpath = data_center_map.begin()->second->GetOutputScenePath();
+                    if (!outpath.empty()) {
+                        // Output as gtiff file will not contain ScenarioID and CalibrationID information
+                        save = hru_layer->OutputToFile(outpath + SEP + item->Corename + "_con" + "." + GTiffExtension,
+                            false);
+                        if (save) { CLOG(TRACE, LOG_OUTPUT) << "\t\tSUCCEED To GTiff!"; }
+                    }
+                }
+            }
+        }
+
         delete subbsn_lyr;
+        delete hru_layer;
     }
     /*** End of Combine raster outputs. ***/
 

@@ -24,12 +24,12 @@ void GR4J::printSoilWater() {
 }
 
 GR4J::GR4J() :
-    N_SOIL_LAYERS(4),SOIL_PRODUCT_LAYER(1),SOIL_ROUTING_LAYER(2),SOIL_TEMP_LAYER(3),SOIL_GW_LAYER(4),
+    N_SOIL_LAYERS(4),SOIL_PRODUCT_LAYER(0),SOIL_ROUTING_LAYER(1),SOIL_TEMP_LAYER(2),SOIL_GW_LAYER(3),
     m_nCells(-1), m_timeStep(-1), m_isInitialized(false),
     m_subbasins(nullptr), m_cellsMappingToSubbasinId(nullptr),
     //infiltration
     m_pcp(nullptr),m_NEPR_input(nullptr), m_soilThickness(nullptr), m_soilPorosity(nullptr), m_soilCapacity(nullptr),
-    m_infil(nullptr), m_soilWaterStorage(nullptr), m_pcpExcess(nullptr),m_netEvapCapacity(nullptr),
+    m_infil(nullptr), m_soilProfileWater(nullptr), m_soilWaterStorage(nullptr), m_pcpExcess(nullptr),m_netEvapCapacity(nullptr),
     //soil evaporation
     m_pet(nullptr), m_soilET(nullptr),
     //percolation
@@ -55,6 +55,7 @@ void GR4J::InitialOutputs() {
     Initialize2DArray(m_nCells, N_SOIL_LAYERS, m_soilCapacity, 0.);
     Initialize1DArray(m_nCells, m_infil, 0.);
     Initialize1DArray(m_nCells, m_netEvapCapacity, 0.);
+    Initialize1DArray(m_nCells, m_soilProfileWater, 0.);
     Initialize2DArray(m_nCells, N_SOIL_LAYERS, m_soilWaterStorage, 0.);
     Initialize1DArray(m_nCells, m_infil, 0.);
     Initialize1DArray(m_nCells, m_convEntering1, 0.);
@@ -521,5 +522,10 @@ int GR4J::Execute() {
     PercolationExch2(SOIL_TEMP_LAYER, SOIL_GW_LAYER);
     Flush(SOIL_TEMP_LAYER, m_pcpExcess);
     Baseflow(SOIL_ROUTING_LAYER);
+    for (int i = 0; i < m_nCells; ++i) {
+        for (int j = 0; j < N_SOIL_LAYERS - 1; ++j) {
+            m_soilProfileWater[i] += m_soilWaterStorage[i][j];
+        }
+    }
     return 0;
 }
