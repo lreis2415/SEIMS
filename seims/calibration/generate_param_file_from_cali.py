@@ -30,9 +30,22 @@ def main(
                 best_cali_q_nse = cali_q_nse
                 gene = parts[-1]
 
+    # clear the param-1.cali files
+    # TODO
+
     # gene: Individual('d', [-0.21427568069926856, ...])
     # extract gene values as list
     gene_values = gene[17:-2].split(', ')
+    for i,subs in enumerate(cali_obj.impact_subbasins):
+        for sub in subs:
+            param_file_name = f'param-{sub}.cali'
+            param_file_path = perf_file_path.parent / param_file_name
+            if param_file_path.exists():
+                with open(param_file_path, 'w') as f:
+                    f.write(f'{sub}\n')
+            with open(param_file_name, 'a') as f:
+                f.write(f'{cali_obj.param_names[i]},{gene_values[i]}\n')
+
 
 
 if __name__ == '__main__':
