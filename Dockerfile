@@ -30,5 +30,3 @@ RUN conda env create -f ./seims/pyseims_env.yml
 
 # Make RUN commands use the new environment:
 SHELL ["conda", "run", "--no-capture-output", "-n", "pyseims", "/bin/bash", "-c"]
-
-RUN python ./seims/pyseims_check.py
