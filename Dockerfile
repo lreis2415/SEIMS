@@ -26,7 +26,7 @@ COPY cmake cmake
 COPY seims seims
 
 # Refers to https://pythonspeed.com/articles/activate-conda-dockerfile/
-RUN conda env create -f ./seims/environment.yml
+RUN conda env create -f ./seims/pyseims_env.yml
 
 # Make RUN commands use the new environment:
 SHELL ["conda", "run", "--no-capture-output", "-n", "pyseims", "/bin/bash", "-c"]
