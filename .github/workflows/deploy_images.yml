@@ -87,7 +87,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           push: true
-          # platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ env.REGISTRY_ACR }}/${{ env.NAMESPACE_ACR }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-latest
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-latest
