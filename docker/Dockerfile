@@ -16,7 +16,7 @@ COPY cmake cmake
 COPY seims seims
 
 RUN apt-get update -q && \
-    apt-get install -q -y --no-install-recommends \
+    apt-get install -q -y --no-install-recommends cmake make g++ \
     gdal-bin openmpi-bin libgdal-dev libopenmpi-dev \
     libmongoc-1.0-0 libmongoc-dev \
     && apt-get clean \
