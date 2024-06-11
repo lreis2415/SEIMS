@@ -48,7 +48,7 @@ SHELL ["conda", "run", "--no-capture-output", "-n", "pyseims", "/bin/bash", "-c"
 
 RUN apt-get update -q && \
     apt-get install -q -y --no-install-recommends \
-    gdal-bin openmpi-bin tini libmongoc-1.0-0 \
+    gdal-bin openmpi-bin libgomp1 tini libmongoc-1.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
