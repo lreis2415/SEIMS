@@ -1,16 +1,15 @@
 ##
 # crazyzlj/taudem_ext:alpine-openmpi-gdal
 #
-# Usage: 
+# Usage:
 #   > cd TauDEM_ext
 #   > docker build -t <tag> -f docker/alpine-openmpi-gdal-py3/Dockerfile .
 #
-# Copyright 2022 Liang-Jun Zhu <zlj@lreis.ac.cn>
+# Copyright 2022-2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
 #
 
-# Use GDAL image with the tag of alpine-small-latest as the build and test container
-#ARG GDAL_VERSION=latest
-FROM osgeo/gdal:alpine-normal-latest as builder
+# Use GDAL image tagged alpine-small-latest as the build and test container
+FROM ghcr.io/osgeo/gdal:alpine-normal-latest as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
@@ -39,17 +38,17 @@ RUN cd /taudem_ext \
     && cd ..
 
 # # Build final image
-FROM osgeo/gdal:alpine-normal-latest as runner
+FROM ghcr.io/osgeo/gdal:alpine-normal-latest as runner
 
 # Replace alpine repository source cdn; Add OpenMPI related tools/libraries for running TauDEM
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
     && apk update && apk upgrade \
-    && apk add --no-cache openmpi tini openssh
+    && apk add --no-cache openmpi libgomp tini openssh
 
 # Order layers starting with less frequently varying ones
 ARG INSTALL_DIR=/taudem_ext/dist
-COPY --from=builder ${INSTALL_DIR}/bin/ /usr/bin/
+COPY --from=builder ${INSTALL_DIR}/bin/ /usr/local/bin/
 
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
