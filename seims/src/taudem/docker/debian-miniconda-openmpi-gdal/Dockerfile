@@ -10,7 +10,7 @@
 
 # Use continuumio/miniconda3 as the build and test container, which is based on debian:12.5-slim
 # https://github.com/ContinuumIO/docker-images/blob/main/miniconda3/debian/Dockerfile
-FROM --platform=$BUILDPLATFORM continuumio/miniconda3 as builder
+FROM continuumio/miniconda3 as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
