@@ -9,7 +9,7 @@
 #
 
 # Use GDAL image tagged alpine-small-latest as the build and test container
-FROM --platform=$BUILDPLATFORM ghcr.io/osgeo/gdal:alpine-normal-latest as builder
+FROM ghcr.io/osgeo/gdal:alpine-normal-latest as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
