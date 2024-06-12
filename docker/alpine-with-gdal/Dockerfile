@@ -12,7 +12,7 @@
 # Copyright 2022-2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
 
 # Use GDAL image tagged alpine-small-latest as the build and test container
-FROM ghcr.io/osgeo/gdal:alpine-small-latest as builder
+FROM  --platform=$BUILDPLATFORM ghcr.io/osgeo/gdal:alpine-small-latest as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
