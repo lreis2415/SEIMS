@@ -13,7 +13,7 @@
 
 # Use alpine as the build container
 ARG ALPINE_VERSION=3.15
-FROM alpine:${ALPINE_VERSION} as builder
+FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
