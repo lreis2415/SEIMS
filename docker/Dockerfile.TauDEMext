@@ -3,9 +3,10 @@
 # Copyright 2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
 #
 
-# Use continuumio/miniconda3 as the build and test container, which is based on debian:12.5-slim
+# Use the latest master branch of TauDEM_ext image based on continuumio/miniconda3 as the build and test container, which is based on debian:12.5-slim
 # https://github.com/ContinuumIO/docker-images/blob/main/miniconda3/debian/Dockerfile
-FROM continuumio/miniconda3 as builder
+# https://github.com/lreis2415/TauDEM_ext/pkgs/container/taudem_ext
+FROM ghrc.io/lreis2415/taudem_ext:master-debian-miniconda as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
@@ -26,13 +27,13 @@ ARG INSTALL_DIR=/seims/dist
 RUN cd /seims \
     && mkdir build \
     && cd build \
-    && cmake .. -DCMAKE_BUILD_TYPE=Release -DINSTALL_PREFIX=${INSTALL_DIR} \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release -DINSTALL_PREFIX=${INSTALL_DIR} -DBUILD_TAUDEMEXT=0 \
     && make -j 8 \
     && make install -j 8 \
     && cd ..
 
 ## Build final image
-FROM continuumio/miniconda3 as runner
+FROM ghrc.io/lreis2415/taudem_ext:master-debian-miniconda as runner
 
 # Copy source directory
 WORKDIR /seims
