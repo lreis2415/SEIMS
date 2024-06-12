@@ -10,7 +10,7 @@
 
 # Use continuumio/miniconda3 as the build and test container, which is based on debian:12.5-slim
 # https://github.com/ContinuumIO/docker-images/blob/main/miniconda3/debian/Dockerfile
-FROM continuumio/miniconda3 as builder
+FROM --platform=$BUILDPLATFORM continuumio/miniconda3 as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
@@ -34,8 +34,8 @@ RUN cd /taudem_ext \
     && mkdir build \
     && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-    && make -j 2 \
-    && make install \
+    && make -j8 \
+    && make install -j8 \
     && cd ..
 
 # # Build final image

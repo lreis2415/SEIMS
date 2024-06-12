@@ -79,6 +79,7 @@ jobs:
           file: ./docker/alpine-openmpi-gdal/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          provenance: false
           tags: |
             ${{ env.REGISTRY_ACR }}/${{ env.NAMESPACE_ACR }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-alpine
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-alpine
@@ -91,6 +92,7 @@ jobs:
           file: ./docker/alpine-openmpi-gdal-py3/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          provenance: false
           tags: |
             ${{ env.REGISTRY_ACR }}/${{ env.NAMESPACE_ACR }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-alpine-py3
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-alpine-py3
@@ -103,6 +105,7 @@ jobs:
           file: ./docker/debian-miniconda-openmpi-gdal/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          provenance: false
           tags: |
             ${{ env.REGISTRY_ACR }}/${{ env.NAMESPACE_ACR }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-debian-miniconda
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-debian-miniconda

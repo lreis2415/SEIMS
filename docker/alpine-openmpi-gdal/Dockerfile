@@ -9,14 +9,14 @@
 #
 
 # Use GDAL image tagged alpine-small-latest as the build and test container
-FROM ghcr.io/osgeo/gdal:alpine-small-latest as builder
+FROM --platform=$BUILDPLATFORM ghcr.io/osgeo/gdal:alpine-small-latest as builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
 
 # Replace alpine repository source cdn and setup build environment
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk update && apk upgrade \
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+RUN apk update && apk upgrade \
     && apk add --no-cache cmake make g++ openmpi-dev
 
 # Copy source directory
@@ -33,8 +33,8 @@ RUN cd /taudem_ext \
     && mkdir build \
     && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-    && make -j 2 \
-    && make install \
+    && make -j8 \
+    && make install -j8 \
     && cd ..
 
 # # Build final image
@@ -42,8 +42,8 @@ FROM ghcr.io/osgeo/gdal:alpine-small-latest as runner
 
 # Replace alpine repository source cdn; Add OpenMPI related tools/libraries for running TauDEM
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk update && apk upgrade \
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+RUN apk update && apk upgrade \
     && apk add --no-cache openmpi libgomp tini openssh
 
 # Order layers starting with less frequently varying ones
