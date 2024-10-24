@@ -32,7 +32,7 @@ jobs:
 
     steps:
     - name: Checkout SEIMS
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install GDAL and mongo-c-driver
       run: sudo apt-get update && sudo apt-get install -qq gdal-bin libgdal-dev libmongoc-1.0-0 libmongoc-dev
@@ -43,7 +43,7 @@ jobs:
         mpi: mpich
 
     - name: Checkout SEIMS
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -69,7 +69,7 @@ jobs:
           doxyfile-path: 'doc/Doxyfile.zh-cn.in'
 
     - name: Deploy Docs
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit_message: ${{ github.event.head_commit.message }}
@@ -78,7 +78,7 @@ jobs:
           publish_dir: ./@CMAKE_CURRENT_BINARY_DIR@/html
 
     - name: Cache conda
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         # Increase this value to reset cache if etc/example-environment.yml has not changed
         CACHE_NUMBER: 0
@@ -86,7 +86,7 @@ jobs:
         path: ~/conda_pkgs_dir
         key:
           ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('seims/pyseims_env.yml') }}
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: pyseims
         environment-file: seims/pyseims_env.yml
