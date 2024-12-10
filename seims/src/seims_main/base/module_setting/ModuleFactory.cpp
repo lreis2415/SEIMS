@@ -35,7 +35,7 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
     // nothing to do
 }
 
-ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args,
+ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args, const bool storm_mode /* = false */,
                                    const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     string model_cfgpath = input_args->model_path;
     if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
@@ -57,6 +57,12 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     vector<string> moduleIDs; // Unique module IDs (name)
     map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
     if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
+    if (storm_mode) {
+        for (map<string, SEIMSModuleSetting*>::iterator it = moduleSettings.begin(); it != moduleSettings.end(); ++it) {
+            it->second->activateStormMode(); // activate STORM mode here, validate in the LoadParseLibrary function
+        }
+    }
+
     /// Load module libraries and parse metadata
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
@@ -261,6 +267,26 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
         // parse the metadata
         TiXmlDocument doc;
         doc.Parse(current_metadata);
+        CLOG(TRACE, LOG_INIT) << "---Loading library: " << id;
+        // Check the simulation mode supported by the module
+        TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str()); // "metadata"
+        TiXmlElement* eleParams = eleMetadata->FirstChildElement(TagInformation.c_str()); // "information"
+        if (nullptr == eleParams) {
+            CLOG(TRACE, LOG_INIT) << "-----Failed to read module information!";
+            continue;
+        }
+        TiXmlElement* elItm = eleParams->FirstChildElement(TagInfoTimeScale.c_str()); // "timescale"
+        // previous module may not include this tag, for now, just pass this compatibility testing
+        if (nullptr != elItm && nullptr != elItm->GetText()) {
+            intervalTypes tt = matchIntervalType(string(elItm->GetText()));
+            // TI_Unlimit <-> STORM and LONGTERM; TI_Daily <-> LONTERM;  TI_Storm <-> STORM
+            if (!((moduleSettings[id]->isStormMode() && (tt == TI_Unlimit || tt == TI_Storm)) // STORM <-> TI_Unlimit, TI_Storm
+                ||(!moduleSettings[id]->isStormMode() && (tt == TI_Unlimit || tt == TI_Daily)))) { // NOT STORM <-> TI_Unlimit, TI_Daily
+                CLOG(TRACE, LOG_INIT) << "-----Simulation mode unmatched with file.in!";
+                continue;
+            }
+        }
+
         ReadParameterSetting(id, doc, moduleSettings[id], moduleParams, moduleParamsInt);
         ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs, moduleInputsInt);
         ReadIOSetting(id, doc, moduleSettings[id], TagOutputs, TagOutputVariable, moduleOutputs, moduleOutputsInt);
@@ -341,10 +367,12 @@ string ModuleFactory::GetComparableName(string& paraName) {
     return compareName;
 }
 
-void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const int nthread /* = 1 */) {
+void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const bool storm_mode,
+                                     const int nthread /* = 1 */) {
     for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); ++it) {
         SimulationModule* pModule = GetInstance(*it);
         pModule->SetTheadNumber(nthread);
+        if (storm_mode) pModule->SetSimulationMode();
         modules.emplace_back(pModule);
     }
 }
@@ -460,33 +488,6 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     CLOG(TRACE, LOG_INIT) << "Read DLL: " << dllID;
 }
 
-dimensionTypes ModuleFactory::MatchType(const string& strType) {
-    dimensionTypes typ = DT_Unknown;
-    if (StringMatch(strType, Type_Single)) typ = DT_Single;
-    if (StringMatch(strType, Type_SingleInt)) typ = DT_SingleInt;
-    if (StringMatch(strType, Type_Array1D)) typ = DT_Array1D;
-    if (StringMatch(strType, Type_Array1DInt)) typ = DT_Array1DInt;
-    if (StringMatch(strType, Type_Array2D)) typ = DT_Array2D;
-    if (StringMatch(strType, Type_Array2DInt)) typ = DT_Array2DInt;
-    if (StringMatch(strType, Type_Array1DDateValue)) typ = DT_Array1DDateValue;
-    if (StringMatch(strType, Type_Raster1D)) typ = DT_Raster1D;
-    if (StringMatch(strType, Type_Raster1DInt)) typ = DT_Raster1DInt;
-    if (StringMatch(strType, Type_Raster2D)) typ = DT_Raster2D;
-    if (StringMatch(strType, Type_Raster2DInt)) typ = DT_Raster2DInt;
-    if (StringMatch(strType, Type_Scenario)) typ = DT_Scenario;
-    if (StringMatch(strType, Type_Reach)) typ = DT_Reach;
-    if (StringMatch(strType, Type_Subbasin)) typ = DT_Subbasin;
-    return typ;
-}
-
-transferTypes ModuleFactory::MatchTransferType(const string& tfType) {
-    transferTypes typ = TF_None;
-    if (StringMatch(tfType, TFType_Whole)) typ = TF_None;
-    if (StringMatch(tfType, TFType_Single)) typ = TF_SingleValue;
-    if (StringMatch(tfType, TFType_Array1D)) typ = TF_OneArray1D;
-    return typ;
-}
-
 void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
                                          SEIMSModuleSetting* setting,
                                          map<string, vector<ParamInfo<FLTPT>*> >& moduleParams,
@@ -514,31 +515,49 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
                                  "Some parameters have no name in metadata!");
         }
         string name = GetUpper(string(elItm->GetText()));
+
         string desc;
         elItm = eleParam->FirstChildElement(TagVariableDescription.c_str()); // "description"
         if (elItm != nullptr && elItm->GetText() != nullptr) {
             desc = elItm->GetText();
         }
+
         string unit;
         elItm = eleParam->FirstChildElement(TagVariableUnits.c_str()); // "units"
         if (elItm != nullptr && elItm->GetText() != nullptr) {
             unit = elItm->GetText();
         }
+
         elItm = eleParam->FirstChildElement(TagVariableSource.c_str()); // "source"
         if (nullptr == elItm || nullptr == elItm->GetText()) {
             throw ModelException("ModuleFactory", "ReadParameterSetting",
                                  "parameter " + name + " does not have source!");
         }
         string src = elItm->GetText();
+
         dimensionTypes dim = DT_Unknown;
         elItm = eleParam->FirstChildElement(TagVariableDimension.c_str()); // "dimension"
         if (elItm != nullptr && elItm->GetText() != nullptr) {
-            dim = MatchType(string(elItm->GetText()));
+            dim = matchDimensionType(string(elItm->GetText()));
         }
         if (dim == DT_Unknown) {
             throw ModelException("ModuleFactory", "ReadParameterSetting",
                                  "parameter " + name + " does not have dimension!");
         }
+
+        intervalTypes itype = TI_Unlimit; // By default, the parameter is for both STORM and LONGTERM modes
+        elItm = eleParam->FirstChildElement(TagVariableTimescale.c_str()); // "timescale"
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            itype = matchIntervalType(string(elItm->GetText()));
+            if ((itype == TI_Storm && !setting->isStormMode())
+                || (itype == TI_Daily && setting->isStormMode())) {
+                // This parameter will be ignored for current simulation mode
+                elItm = nullptr; // cleanup
+                eleParam = eleParam->NextSiblingElement(); // get the next parameter if it exists
+                continue;
+            }
+        }
+
         // handle parameter name
         string basicname = name;
         string datatype = setting->dataTypeString();
@@ -548,14 +567,13 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
 
         //special process for interpolation modules
         if (StringMatch(name, Tag_Weight[0])) {
-            if (setting->dataTypeString().length() == 0) {
+            if (datatype.empty()) {
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
-                                     "The parameter " + name +
-                                     " should have corresponding data type in module " + moduleID);
+                                     "The parameter " + name + " should have corresponding data type in " + moduleID);
             }
-            if (StringMatch(setting->dataTypeString(), DataType_MeanTemperature) ||
-                StringMatch(setting->dataTypeString(), DataType_MinimumTemperature) ||
-                StringMatch(setting->dataTypeString(), DataType_MaximumTemperature)) {
+            if (StringMatch(datatype, DataType_MeanTemperature) ||
+                StringMatch(datatype, DataType_MinimumTemperature) ||
+                StringMatch(datatype, DataType_MaximumTemperature)) {
                 //The weight coefficient file is same for TMEAN, TMIN and TMAX,
                 //  so just need to read one file named "Weight_M"
                 name += "_M";
@@ -563,18 +581,18 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
                 // Combine weight and data type. e.g. Weight + PET = Weight_PET,
                 //  this combined string must be the same with the parameter column
                 //  in the climate table of parameter database.
-                name += "_" + setting->dataTypeString();
+                name += "_" + datatype;
             }
         }
 
         //special process for interpolation modules
         if (StringMatch(name, Tag_StationElevation)) {
-            if (setting->dataTypeString().length() == 0) {
+            if (datatype.empty()) {
                 throw ModelException("ModuleFactory", "readParameterSetting",
                                      "The parameter " + name +
                                      " should have corresponding data type in module " + moduleID);
             }
-            if (StringMatch(setting->dataTypeString(), DataType_Precipitation)) {
+            if (StringMatch(datatype, DataType_Precipitation)) {
                 basicname += "_P";
                 name += "_P";
             } else {
@@ -585,14 +603,13 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc,
         if (StringMatch(name, Tag_VerticalInterpolation[0])) {
             value = setting->needDoVerticalInterpolation() ? 1 : 0; // Do vertical interpolation?
         }
-        string climtype = setting->dataTypeString();
         if (dim == DT_SingleInt || dim == DT_Array1DInt || dim == DT_Raster1DInt
             || dim == DT_Array2DInt || dim == DT_Raster2DInt) {
             vecParaInt.emplace_back(new ParamInfo<int>(name, basicname, desc, unit, src,
-                                                       moduleID, dim, climtype, value));
+                                                       moduleID, dim, datatype, value));
         } else {
             vecPara.emplace_back(new ParamInfo<FLTPT>(name, basicname, desc, unit, src,
-                                                      moduleID, dim, climtype, value));
+                                                      moduleID, dim, datatype, value));
         }
         elItm = nullptr; // cleanup
         eleParam = eleParam->NextSiblingElement(); // get the next parameter if it exists
@@ -663,13 +680,27 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
             throw ModelException("SEIMSModule", "ReadIOSetting",
                                  "Variable " + name + " does not have dimension!");
         }
-        dimensionTypes dim = MatchType(string(elItm->GetText()));
+        dimensionTypes dim = matchDimensionType(string(elItm->GetText()));
         // get the input variable transfer type
         transferTypes tftype = TF_None;
         elItm = eleVar->FirstChildElement(TagVariableTransfer.c_str());
         if (elItm != nullptr && elItm->GetText() != nullptr) {
-            tftype = MatchTransferType(string(elItm->GetText()));
+            tftype = matchTransferType(string(elItm->GetText()));
         }
+
+        intervalTypes itype = TI_Unlimit; // By default, the input/output/inoutput is for both STORM and LONGTERM modes
+        elItm = eleVar->FirstChildElement(TagVariableTimescale.c_str()); // "timescale"
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            itype = matchIntervalType(string(elItm->GetText()));
+            if ((itype == TI_Storm && !setting->isStormMode())
+                || (itype == TI_Daily && setting->isStormMode())) {
+                // This parameter will be ignored for current simulation mode
+                elItm = nullptr; // cleanup
+                eleVar = eleVar->NextSiblingElement(); // get the next parameter if it exists
+                continue;
+            }
+        }
+
         string climtype = setting->dataTypeString();
         if (dim == DT_SingleInt || dim == DT_Array1DInt || dim == DT_Raster1DInt
             || dim == DT_Array2DInt || dim == DT_Raster2DInt) {
@@ -696,7 +727,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
         DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
         DataType_RelativeAirMoisture
-    };// �����������ͣ�����P���¶�T��
+    };
     for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
@@ -737,7 +768,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
                     // For time series data reading modules, e.g.:
                     //   0 | TimeSeries | | TSD_RD
                     // will be updated as:
-                    //   0 | TimeSeries_P | | TSD_RD, etc. ����ģ����ƴ�������������ͣ����硰P��
+                    //   0 | TimeSeries_P | | TSD_RD, etc.
                     tokensTemp[1] += "_" + T_variables[j];  // PROCESS NAME
                 }
                 settings[sz + j] = tokensTemp;
@@ -777,7 +808,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.emplace_back(module);// ģ��id = .cfg�ļ��е�MODULE ID + "d"  + "_" + ��������"P", eg."TSD_RDd_P" ��"TSD_RDd_TMEAN"
+                moduleIDs.emplace_back(module);
             }
         }
     } catch (...) {

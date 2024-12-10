@@ -63,12 +63,10 @@ private:
     FLTPT* m_maxIntcpStoCap;
     //! Minimum storage capacity, mm
     FLTPT* m_minIntcpStoCap;
-#ifdef STORM_MODE
-    //! hillslope time step, seconds
+    //! hillslope time step, seconds. For STORM_MODE
     int m_hilldt;
-    //! slope for rainfall correction, height/width, i.e. tan(slope)
+    //! slope for rainfall correction, height/width, i.e. tan(slope). For STORM_MODE
     FLTPT* m_slope;
-#endif
 
     /* Input variables from other module's output */
 
@@ -77,10 +75,8 @@ private:
      * For LONGTERM_MODE model, the unit is mm
      */
     FLTPT* m_pcp;
-#ifndef STORM_MODE
-    //! PET, mm
+    //! PET, mm. For LONGTERM_MODE
     FLTPT* m_pet;
-#endif
 
     /* Results */
 
@@ -88,10 +84,8 @@ private:
     FLTPT* m_canSto;
     //! Interception loss, mm
     FLTPT* m_intcpLoss;
-#ifndef STORM_MODE
-    //! Evaporation loss from intercepted rainfall, mm
+    //! Evaporation loss from intercepted rainfall, mm. For LONGTERM_MODE
     FLTPT* m_IntcpET;
-#endif
     //! Net precipitation (after slope correction, of course), mm
     FLTPT* m_netPcp;
 

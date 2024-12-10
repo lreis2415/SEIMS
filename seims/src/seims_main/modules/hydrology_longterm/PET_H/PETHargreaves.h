@@ -22,6 +22,7 @@
  * \ingroup Hydrology
  * \brief Calculate potential evapotranspiration using Hargreaves method
  */
+
 /*!
  * \class PETHargreaves
  * \ingroup PET_H

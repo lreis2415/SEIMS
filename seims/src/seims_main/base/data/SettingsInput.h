@@ -13,6 +13,7 @@
 
 #include "Settings.h"
 #include "Scenario.h"
+#include "invoke.h"
 
 using namespace bmps;
 
@@ -25,6 +26,8 @@ class SettingsInput: public Settings {
 public:
     //! Constructor
     explicit SettingsInput(vector<string>& stringvector);
+
+    static SettingsInput* Init(const InputArgs* input_args);
 
     static SettingsInput* Init(vector<string>& stringvector);
 
@@ -50,7 +53,7 @@ public:
     string& getModelMode() { return m_mode; }
 
     //! is storm model
-    bool isStormMode() const { return m_isStormModel; }
+    bool isStormMode() const { return m_stormMode; }
 
 private:
     //! Read start and end date, simulation mode and time interval
@@ -68,6 +71,6 @@ private:
     //! Simulation mode, can be DAILY or HOURLY
     string m_mode;
     //! is storm model?
-    bool m_isStormModel;
+    bool m_stormMode;
 };
 #endif /* SEIMS_SETTING_INPUT_H */

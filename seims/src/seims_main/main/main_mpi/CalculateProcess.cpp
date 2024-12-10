@@ -70,10 +70,15 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
-
+    /// Read file.in that includes simulation mode, interval, and period. 
+    SettingsInput* simu_settings_input = SettingsInput::Init(input_args);
+    if (nullptr == simu_settings_input) {
+        throw ModelException("SettingsInput", "Constructor", "Failed in parsing file.in!");
+    }
     /// Create default module factory using config.fig for each process
     input_args->subbasin_id = 0; // in case of wrong arguments by users
-    ModuleFactory* default_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
+    ModuleFactory* default_module_factory = ModuleFactory::Init(module_path, input_args,
+                                                                simu_settings_input->isStormMode(), rank, size);
     if (nullptr == default_module_factory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
@@ -100,7 +105,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(*it_id) + "." + File_Config;
         if (FileExists(file_cfg)) {
             input_args->subbasin_id = *it_id;
-            tmp_module_factory = ModuleFactory::Init(module_path, input_args, rank, size);
+            tmp_module_factory = ModuleFactory::Init(module_path, input_args, simu_settings_input->isStormMode(), rank, size);
             if (nullptr == tmp_module_factory) {
                 LOG(WARNING) << "Constructing ModuleFactory failed using " << file_cfg
                 << "! Use default module factory instead!";
@@ -118,7 +123,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         }
         /// Create data center according to subbasin number
         DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
-                                                               tmp_module_factory, *it_id);
+                                                               simu_settings_input, tmp_module_factory, *it_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model = new ModelMain(data_center, tmp_module_factory);
 #ifdef HAS_VARIADIC_TEMPLATES

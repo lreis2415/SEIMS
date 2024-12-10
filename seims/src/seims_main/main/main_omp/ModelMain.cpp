@@ -40,7 +40,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         m_tfValueNames.emplace_back(param_name);
     }
     /// Create module list
-    m_factory->CreateModuleList(m_simulationModules, m_dataCenter->GetThreadNumber());
+    m_factory->CreateModuleList(m_simulationModules, m_input->isStormMode(), m_dataCenter->GetThreadNumber());
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
     m_readFileTime = m_dataCenter->LoadParametersForModules(m_simulationModules);
     int n = CVT_INT(m_simulationModules.size());

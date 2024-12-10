@@ -78,7 +78,7 @@ int PETPriestleyTaylor::Execute() {
         }
 
         /// calculate the max solar radiation
-        FLTPT srMax; /// maximum solar radiation of current day
+        FLTPT srMax = 0.; /// maximum solar radiation of current day
         MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], srMax);
 
         /// calculate net long-wave radiation

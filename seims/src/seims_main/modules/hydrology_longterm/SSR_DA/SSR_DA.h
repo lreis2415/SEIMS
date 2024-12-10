@@ -124,7 +124,7 @@ private:
     /*!
      * \brief Flow fractions of flow in cells to the current cell
      *
-     * It has the same data structure as m_flowInIndex.
+     * It has the same data structure as m_flowInIdx.
      */
     FLTPT **m_flowInFrac;
 

@@ -35,7 +35,8 @@ bool SSR_DA::FlowInSoil(const int id) {
         flowWidth -= m_chWidth[id];
     }
     // initialization for current cell of current timestep
-    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
+    m_soilWtrStoPrfl[id] = 0.; // update soil storage on profile
+    for (int j = 0; j < m_nSoilLyrs[id]; j++) {
         m_subSurfRf[id][j] = 0.;
         m_subSurfRfVol[id][j] = 0.;
     }
@@ -46,19 +47,17 @@ bool SSR_DA::FlowInSoil(const int id) {
     /* Update: In my view, if the flowWidth is less than 0, the subsurface flow
     * from the upstream cells should be added to stream cell directly, which will be summarized
     * for channel flow routing. By lj, 2018-4-12 */
-
-    // number of flow-in cells
-    int nUpstream = CVT_INT(m_flowInIdx[id][0]);
-    m_soilWtrStoPrfl[id] = 0.; // update soil storage on profile
-    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
+    
+    for (int j = 0; j < m_nSoilLyrs[id]; j++) {
         FLTPT smOld = m_soilWtrSto[id][j]; // Just for potential error message print
         // Sum subsurface flow in from upstream cells
         FLTPT qUp = 0.;    // mm
         FLTPT qUpVol = 0.; // m^3
-        for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
-            int flowInID = CVT_INT(m_flowInIdx[id][upIndex]);
+        for (int upIndex = 1; upIndex <= m_flowInIdx[id][0]; upIndex++) { // number of flow-in cells
+            int flowInID = m_flowInIdx[id][upIndex];
             // IMPORTANT!!! If the upstream cell is from another subbasin, CONTINUE to next upstream cell. By lj.
-            if (CVT_INT(m_subbsnID[flowInID]) != CVT_INT(m_subbsnID[id])) { continue; }
+            //              This situation was handled in grid_layering. Just check for unexpected error here.
+            if (m_subbsnID[flowInID] != m_subbsnID[id]) { continue; }
             // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
             if (m_subSurfRf[flowInID][j] < 0.) { continue; }
             qUp += m_subSurfRf[flowInID][j] * GetFlowInFraction(id, upIndex);
@@ -122,12 +121,15 @@ bool SSR_DA::FlowInSoil(const int id) {
             m_subSurfRf[id][j] = soilWater - fcSoilWater;
         }
         m_subSurfRf[id][j] = Max(0., m_subSurfRf[id][j]);
-
+        //Adjust the moisture content in the current layer, and the layer immediately below it
+        if (m_soilWtrSto[id][j] > m_subSurfRf[id][j]) {
+            m_soilWtrSto[id][j] -= m_subSurfRf[id][j];
+        } else {
+            m_soilWtrSto[id][j] = UTIL_ZERO;
+            m_subSurfRf[id][j] = Max(0., m_soilWtrSto[id][j] - UTIL_ZERO);
+        }
         m_subSurfRfVol[id][j] = m_subSurfRf[id][j] * 0.001 * m_CellWth * flowWidth; // m^3
         m_subSurfRfVol[id][j] = Max(UTIL_ZERO, m_subSurfRfVol[id][j]);
-        //Adjust the moisture content in the current layer, and the layer immediately below it
-        m_soilWtrSto[id][j] -= m_subSurfRf[id][j];
-        m_soilWtrSto[id][j] = Max(UTIL_ZERO, m_soilWtrSto[id][j]);
         m_soilWtrStoPrfl[id] += m_soilWtrSto[id][j];
 
         if (isinf(m_soilWtrSto[id][j]) ||isnan(m_soilWtrSto[id][j]) || m_soilWtrSto[id][j] < 0.) {
@@ -147,7 +149,7 @@ int SSR_DA::Execute() {
     for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
+        int ncells = m_rteLyrs[ilyr][0];
         // DO NOT THROW EXCEPTION IN OMP FOR LOOP, i.e., FlowInSoil(id) function.
         int errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
@@ -171,24 +173,22 @@ int SSR_DA::Execute() {
     /// using openmp for reduction an array should be paid much more attention.
     /// here is a solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
     /// #pragma omp parallel for reduction(+:myArray[:6]) is supported with OpenMP 4.5.
-    /// However, MSVC 2010-2015 are using OpenMP 2.0.
+    /// However, MSVC currently supports OpenMP 2.0.
     /// Added by lj, 2017-8-23
 #pragma omp parallel
     {
-        FLTPT* tmp_qiSubbsn = new(nothrow) FLTPT[m_nSubbsns + 1];
-        for (int i = 0; i <= m_nSubbsns; i++) {
-            tmp_qiSubbsn[i] = 0.;
-        }
+        FLTPT* tmp_qiSubbsn = nullptr;
+        Initialize1DArray(m_nSubbsns + 1, tmp_qiSubbsn, 0.);
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             if (m_rchID[i] <= 0) continue;
             FLTPT qiAllLayers = 0.;
-            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+            for (int j = 0; j < m_nSoilLyrs[i]; j++) {
                 if (m_subSurfRfVol[i][j] > UTIL_ZERO) {
                     qiAllLayers += m_subSurfRfVol[i][j] / m_dt; /// m^3/s
                 }
             }
-            tmp_qiSubbsn[CVT_INT(m_rchID[i])] += qiAllLayers;
+            tmp_qiSubbsn[m_rchID[i]] += qiAllLayers;
         }
 #pragma omp critical
         {
@@ -196,8 +196,7 @@ int SSR_DA::Execute() {
                 m_ifluQ2Rch[i] += tmp_qiSubbsn[i];
             }
         }
-        delete[] tmp_qiSubbsn;
-        tmp_qiSubbsn = nullptr;
+        Release1DArray(tmp_qiSubbsn);
     } /* END of #pragma omp parallel */
 
     for (int i = 1; i <= m_nSubbsns; i++) {

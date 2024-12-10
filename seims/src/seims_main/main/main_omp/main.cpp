@@ -42,14 +42,19 @@ int main(const int argc, const char** argv) {
         }
         MongoGridFs* spatial_gfs_in = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_SPATIAL));
         MongoGridFs* spatial_gfs_out = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
+        /// Read file.in that includes simulation mode, interval, and period. 
+        SettingsInput* simu_settings_input = SettingsInput::Init(input_args);
+        if (nullptr == simu_settings_input) {
+            throw ModelException("SettingsInput", "Constructor", "Failed in parsing file.in!");
+        }
         /// Create module factory
-        ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
+        ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, simu_settings_input->isStormMode());
         if (nullptr == module_factory) {
             throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
         }
         /// Create data center according to subbasin number, 0 means the whole basin which is default for omp version.
         DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, spatial_gfs_in, spatial_gfs_out,
-                                                               module_factory, input_args->subbasin_id);
+                                                               simu_settings_input, module_factory, input_args->subbasin_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model_main = new ModelMain(data_center, module_factory);
         CLOG(INFO, LOG_TIMESPAN) << "[IO  ][Input] " << std::fixed << setprecision(3) << TimeCounting() - input_t;

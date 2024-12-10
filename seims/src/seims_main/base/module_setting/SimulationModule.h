@@ -59,6 +59,10 @@ public:
         SetOpenMPThread(thread_num);
     }
 
+    virtual void SetSimulationMode() {
+        m_stormMode = true;
+    }
+
     //! Set climate data type, P, M, PET etc.
     virtual void SetClimateDataType(int data_type) {
     }
@@ -239,30 +243,15 @@ public:
     //! set whether intermediate parameters need to recalculated
     void SetReCalIntermediates(const bool recal) { m_reCalIntermediates = recal; }
 
-	// set 1D Array which contains position data of raster
-	virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
-		throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
-			"Set function of parameter " + string(key) + " is not implemented.");
-	}
-
-	//virtual void SetRasterRows( int rows) {
-	//	throw ModelException("SimulationModule", "SetRasterRows",
-	//		"Set function of parameter rows is not implemented.");
-	//}
-
-	//virtual void SetRasterCols( int cols) {
-	//	throw ModelException("SimulationModule", "SetRasterCols",
-	//		"Set function of parameter cols is not implemented.");
-	//}
-
-	// set 1D Array which stores reach depth data in each cell of raster
-	//virtual void SetReachDepthData(FloatRaster* ch_depth) {
-	//	throw ModelException("SimulationModule", "SetReachDepthData",
-	//		"Set SetReachDepthData function is not implemented.");
-	//}
-
+    // set 1D Array which contains position data of raster
+    virtual void SetRasterPositionDataPointer(const char* key, int** positions) {
+        throw ModelException("SimulationModule", "SetRasterPositionDataPointer",
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
 
 protected:
+    /// is this module be invoked in STORM MODE?
+    bool m_stormMode;
     /// date time
     time_t m_date;
     /// index of current year of simulation, e.g., the simulation period from 2010 to 2015,  m_yearIdx is 2 when simulate 2012.
