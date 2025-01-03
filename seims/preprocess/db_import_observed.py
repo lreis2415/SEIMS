@@ -157,6 +157,7 @@ class ImportObservedData(object):
             # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
+            timestep = HydroClimateUtilClass.get_timestep_from_data_file(measDataFile)
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == list() or len(obs_data_items) == 1:
@@ -187,6 +188,7 @@ class ImportObservedData(object):
                 dic[DataValueFields.local_time] = utc_t - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_t
+                dic[DataValueFields.timestep] = timestep
 
                 bulk_requests.append(InsertOne(dic))
 
@@ -215,6 +217,7 @@ class ImportObservedData(object):
                 dic[DataValueFields.local_time] = item[DataValueFields.local_time]
                 dic[DataValueFields.time_zone] = item[DataValueFields.time_zone]
                 dic[DataValueFields.utc] = item[DataValueFields.utc]
+                dic[DataValueFields.timestep] = item[DataValueFields.timestep]
 
                 if cur_unit == 'mg/L' or cur_unit == 'g/L':
                     # update the Type name

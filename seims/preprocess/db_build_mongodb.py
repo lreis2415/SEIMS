@@ -44,6 +44,7 @@ class ImportMongodbClass(object):
     def climate_data(cfg):  # type: (PreprocessConfig) -> None
         """Climate data."""
         ImportHydroClimateSites.workflow(cfg)
+
         ImportMeteoData.workflow(cfg)
         ImportPrecipitation.workflow(cfg)
 

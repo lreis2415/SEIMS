@@ -195,11 +195,11 @@ class PreprocessConfig(object):
             self.prec_data = pjoin(self.clim_dir,
                                    get_option_value(cf, 'CLIMATE', 'precdatafile', required=True))
             self.Meteo_sites = pjoin(self.clim_dir,
-                                     get_option_value(cf, 'CLIMATE',
-                                                      'meteositefile', required=True))
+                                        get_option_value(cf, 'CLIMATE',
+                                                        'meteositefile', required=True))
             self.Meteo_data = pjoin(self.clim_dir,
-                                    get_option_value(cf, 'CLIMATE',
-                                                     'meteodatafile', required=True))
+                                        get_option_value(cf, 'CLIMATE',
+                                                        'meteodatafile', required=True))
             self.thiessen_field = get_option_value(cf, 'CLIMATE', 'thiessenidfield', str, 'ID')
         else:
             raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')

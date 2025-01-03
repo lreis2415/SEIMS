@@ -258,6 +258,7 @@ class ImportWeightData(object):
             del type_list[2]
             del site_lists[2]
 
+
         # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
         #     type_list = [DataType.p]
         #     site_lists = [p_list]
@@ -320,6 +321,7 @@ class ImportWeightData(object):
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
                                                          cfg.dirs.geodata2db)
+
             ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id)
 
 

@@ -236,7 +236,7 @@ class ImportHydroClimateSites(object):
         site_m_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.Meteo_sites, DataType.m)
         site_p_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.prec_sites, DataType.p)
         # print(site_m_loc, site_p_loc)
-        return site_m_loc, site_p_loc
+        #return site_m_loc, site_p_loc
 
 
 def main():

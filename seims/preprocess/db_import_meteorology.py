@@ -78,6 +78,7 @@ class ImportMeteoData(object):
     def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
         """Import climate data table"""
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
+        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_txt_file)
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
         # PHUCalDic is used for Calculating potential heat units (PHU)
@@ -131,6 +132,7 @@ class ImportMeteoData(object):
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
             dic[DataValueFields.y] = utc_time.year
+            dic[DataValueFields.timestep] = timestep
 
             # Do if some of these data are not provided
             if DataType.mean_tmp not in list(dic.keys()):
@@ -154,6 +156,7 @@ class ImportMeteoData(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.type] = fld
+                    cur_dic[DataValueFields.timestep] = timestep
 
                     bulk_requests.append(InsertOne(cur_dic))
                     count += 1

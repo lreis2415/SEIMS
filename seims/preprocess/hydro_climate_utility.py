@@ -113,6 +113,28 @@ class HydroClimateUtilClass(object):
         return time_sys, time_zone
 
     @staticmethod
+    def get_timestep_from_data_file(in_file):
+        """Get the timestep from the second line of the data file. The basic format is:
+                   e.g. #TIMESTEP 86400
+                """
+        timestep = 0
+        with open(in_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        line = lines[1]
+        print(line)
+        str_line = line.strip()
+        if str_line[0] == '#':
+            if str_line.lower().find('timestep') >= 0:
+                line_list = StringClass.split_string(str_line, [' ', ','])
+                if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
+                    timestep = int(line_list[1])
+        return timestep
+
+
+
+
+
+    @staticmethod
     def get_utcdatetime(value, tsys, tzone=None):
         dt = StringClass.get_datetime(value)
         if not StringClass.string_match(tsys, 'UTCTIME'):

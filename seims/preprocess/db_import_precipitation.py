@@ -39,6 +39,8 @@ class ImportPrecipitation(object):
         # delete existed precipitation data
         climdb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
+        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_file)
+
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
@@ -66,6 +68,7 @@ class ImportPrecipitation(object):
             dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
+            dic[DataValueFields.timestep] = timestep
 
             for j, cur_id in enumerate(station_id):
                 cur_dic = dict()
@@ -75,6 +78,7 @@ class ImportPrecipitation(object):
                 cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                 cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                 cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
+                cur_dic[DataValueFields.timestep] = timestep
                 bulk_requests.append(InsertOne(cur_dic))
 
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
@@ -126,6 +130,7 @@ class ImportPrecipitation(object):
         # delete existed precipitation data
         climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
+        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_file)
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
@@ -168,6 +173,7 @@ class ImportPrecipitation(object):
                 dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_time
+                dic[DataValueFields.timestep] = timestep
 
                 for j, cur_id in enumerate(station_id):
                     cur_dic = dict()
@@ -177,6 +183,7 @@ class ImportPrecipitation(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
+                    cur_dic[DataValueFields.timestep] = dic[DataValueFields.timestep]
                     bulk.insert(cur_dic)
                     dics.append(cur_dic)
                     count += 1
@@ -229,6 +236,7 @@ class ImportPrecipitation(object):
         # delete existed precipitation data
         climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
+        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_file)
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
@@ -271,6 +279,7 @@ class ImportPrecipitation(object):
                 dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_time
+                dic[DataValueFields.timestep] = timestep
 
                 for j, cur_id in enumerate(station_id):
                     cur_dic = dict()
@@ -280,6 +289,7 @@ class ImportPrecipitation(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
+                    cur_dic[DataValueFields.timestep] = dic[DataValueFields.timestep]
                     bulk.insert(cur_dic)
                     dics.append(cur_dic)
                     count += 1

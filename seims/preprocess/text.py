@@ -169,6 +169,7 @@ class ModelCfgFields(object):
     etime = 'ENDTIME'
     interval = 'INTERVAL'
     interval_unit = 'INTERVAL_UNIT'
+    interval_unit = 'INTERVAL_UNIT'
     subbsn = 'SUBBASIN'
     filename = 'FILENAME'
     use = 'USE'
@@ -199,6 +200,7 @@ class DataValueFields(object):
     time_zone = 'UTCOFFSET'
     utc = 'UTCDATETIME'
     value = 'VALUE'
+    timestep = 'TIMESTEP'
 
 
 class VariableDesc(object):
