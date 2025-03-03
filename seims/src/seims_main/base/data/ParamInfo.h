@@ -49,7 +49,7 @@ public:
 
     //! Construct for module Input, Output, and InOutput
     ParamInfo(string& name, string& basicname, string& desc, string& unit, string& source, string& mid,
-              dimensionTypes dim, transferTypes tftype, string& climtype,
+              dimensionTypes dim, transferTypes tftype, intervalTypes titype, string& climtype,
               bool isconst, bool isoutput);
 
     //! Copy constructor
@@ -115,6 +115,8 @@ public:
     dimensionTypes Dimension;
     //! Data transfer type
     transferTypes Transfer;
+    //! Data interval type
+    intervalTypes Interval;
     //! Value
     T Value;
     //! Change type
@@ -151,7 +153,7 @@ public:
 template <typename T>
 ParamInfo<T>::ParamInfo() :
     Name(""), BasicName(""), Description(""), Units(""), Source(""), ModuleID(""), 
-    Dimension(DT_Unknown), Transfer(TF_None),
+    Dimension(DT_Unknown), Transfer(TF_None), Interval(TI_Unlimit),
     Value(0), Change(""), Impact(0), Maximum(0), Minimum(0), IsInteger(false),
     DependPara(nullptr), ClimateType(""),
     IsConstant(false), IsOutput(false), OutputToOthers(false),
@@ -162,7 +164,7 @@ template <typename T>
 ParamInfo<T>::ParamInfo(string& name, string& desc, string& unit, string& mid, T value, string& change,
                         T impact, T maximum, T minimum, bool isint):
     Name(name), BasicName(""), Description(desc), Units(unit), Source(""), ModuleID(mid),
-    Dimension(DT_Unknown), Transfer(TF_None),
+    Dimension(DT_Unknown), Transfer(TF_None), Interval(TI_Unlimit),
     Value(value), Change(change), Impact(impact), Maximum(maximum), Minimum(minimum), IsInteger(isint),
     DependPara(nullptr), ClimateType(""),
     IsConstant(false), IsOutput(false), OutputToOthers(false),
@@ -174,7 +176,7 @@ template <typename T>
 ParamInfo<T>::ParamInfo(string& name, string& basicname, string& desc, string& unit, string& source, string& mid,
                         dimensionTypes dim, string& climtype, T value /* = 0 */):
     Name(name), BasicName(basicname), Description(desc), Units(unit), Source(source), ModuleID(mid), 
-    Dimension(dim), Transfer(TF_None),
+    Dimension(dim), Transfer(TF_None), Interval(TI_Unlimit),
     Value(value), Change(""), Impact(0), Maximum(0), Minimum(0), IsInteger(false),
     DependPara(nullptr), ClimateType(climtype),
     IsConstant(false), IsOutput(false), OutputToOthers(false),
@@ -184,10 +186,10 @@ ParamInfo<T>::ParamInfo(string& name, string& basicname, string& desc, string& u
 
 template <typename T>
 ParamInfo<T>::ParamInfo(string& name, string& basicname, string& desc, string& unit, string& source, string& mid,
-                        dimensionTypes dim, transferTypes tftype, string& climtype,
+                        dimensionTypes dim, transferTypes tftype, intervalTypes titype, string& climtype,
                         bool isconst, bool isoutput) :
     Name(name), BasicName(basicname), Description(desc), Units(unit), Source(source), ModuleID(mid),
-    Dimension(dim), Transfer(tftype),
+    Dimension(dim), Transfer(tftype),Interval(titype),
     Value(0), Change(""), Impact(0), Maximum(0), Minimum(0), IsInteger(false),
     DependPara(nullptr), ClimateType(climtype),
     IsConstant(isconst), IsOutput(isoutput), OutputToOthers(false),
@@ -205,6 +207,7 @@ ParamInfo<T>::ParamInfo(const ParamInfo<T>& another) {
     ModuleID = another.ModuleID;
     Dimension = another.Dimension;
     Transfer = another.Transfer;
+    Interval = another.Interval;
     Value = another.Value;
     Change = another.Change;
     Impact = another.Impact;

@@ -58,6 +58,8 @@ public:
                   map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                   vector<ParamInfo<FLTPT> *>& tfValueInputs,
                   vector<ParamInfo<int>*>& tfValueInputsInt,
+                  vector<ParamInfo<FLTPT>*>& tiValueInputs,
+                  vector<ParamInfo<int>*>& tiValueInputsInt,
                   int mpi_rank = 0, int mpi_size = -1);
     /*!
      * \brief Initialization for exception-safe constructor
@@ -150,7 +152,8 @@ public:
      * \param moduleOutputs 
      * \param moduleOutputsInt 
      * \param moduleInOutputs 
-     * \param tfValueInputs 
+     * \param tfValueInputs
+     * \param tiValueInputs
      * \return True if succeed, else throw exception and return false.
      */
     static bool LoadParseLibrary(const string& module_path, vector<string>& moduleIDs,
@@ -167,7 +170,9 @@ public:
                                  map<string, vector<ParamInfo<FLTPT>*> >& moduleInOutputs,
                                  map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                                  vector<ParamInfo<FLTPT>*>& tfValueInputs,
-                                 vector<ParamInfo<int>*>& tfValueInputsInt);
+                                 vector<ParamInfo<int>*>& tfValueInputsInt,
+                                 vector<ParamInfo<FLTPT>*>& tiValueInputs,
+                                 vector<ParamInfo<int>*>& tiValueInputsInt);
 
     //! Load function pointers from .DLL or .so
     static void ReadDLL(const string& module_path, const string& id, const string& dllID,
@@ -241,5 +246,10 @@ private:
     vector<ParamInfo<FLTPT> *> m_tfValueInputs;
     //! transferred single integer value across subbasins
     vector<ParamInfo<int>*> m_tfValueInputsInt;
+    //!
+    vector<ParamInfo<FLTPT>*> m_tiValueInputs;
+    //! 
+    vector<ParamInfo<int>*> m_tifValueInputsInt;
+
 };
 #endif /* SEIMS_MODULE_FACTORY_H */

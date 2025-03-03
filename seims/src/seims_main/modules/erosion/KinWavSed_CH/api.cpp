@@ -46,7 +46,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], Source_Module, DT_Array2D);
     //mdi.AddInput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], Source_Module,DT_Array2D);
     // from which module? By LJ
-    mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module", DT_Array2D);
+    //mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module", DT_Array2D);
+    mdi.AddInput(VAR_QCH[0], UNIT_FLOW_CMS, VAR_QCH[1], Source_Module, DT_Array2D);  //revised by wuhui, 2020.4.22
     /// set the output variables
 
     //mdi.AddOutput(VAR_SED_OUTLET, UNIT_KGM3, DESC_SED_OUTLET, DT_Single);

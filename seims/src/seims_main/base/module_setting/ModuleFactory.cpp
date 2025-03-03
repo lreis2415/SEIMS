@@ -23,6 +23,8 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                              vector<ParamInfo<FLTPT> *>& tfValueInputs,
                              vector<ParamInfo<int>*>& tfValueInputsInt,
+                             vector<ParamInfo<FLTPT>*>& tiValueInputs,
+                             vector<ParamInfo<int>*>& tiValueInputsInt,
                              const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) :
     m_mpi_rank(mpi_rank), m_mpi_size(mpi_size),
     m_dbName(std::move(model_name)), m_moduleIDs(moduleIDs),
@@ -31,7 +33,8 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
     m_moduleInputs(moduleInputs), m_moduleInputsInt(moduleInputsInt),
     m_moduleOutputs(moduleOutputs), m_moduleOutputsInt(moduleOutputsInt),
     m_moduleInOutputs(moduleInOutputs), m_moduleInOutputsInt(moduleInOutputsInt),
-    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt) {
+    m_tfValueInputs(tfValueInputs), m_tfValueInputsInt(tfValueInputsInt),
+    m_tiValueInputs(tiValueInputs), m_tifValueInputsInt(tiValueInputsInt) {
     // nothing to do
 }
 
@@ -63,7 +66,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         }
     }
 
-    /// Load module libraries and parse metadata
+    /// 0
     vector<DLLINSTANCE> dllHandles; // dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
     map<string, MetadataFunction> metadataFuncs; // Metadata map of modules
@@ -79,11 +82,13 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
     map<string, vector<ParamInfo<int>*> > moduleInOutputsInt; // Integer InOutput of current module
     vector<ParamInfo<FLTPT>*> tfValueInputs; // transferred single value across subbasins
     vector<ParamInfo<int>*> tfValueInputsInt; // transferred single value across subbasins
+    vector<ParamInfo<FLTPT>*> tiValueInputs;
+    vector<ParamInfo<int>*> tiValueInputsInt;
     try {
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs, metadataFuncs,
                          moduleParams, moduleParamsInt, moduleInputs, moduleInputsInt,
                          moduleOutputs,moduleOutputsInt, moduleInOutputs, moduleInOutputsInt,
-                         tfValueInputs, tfValueInputsInt);
+                         tfValueInputs, tfValueInputsInt, tiValueInputs, tiValueInputsInt);
     } catch (ModelException& e) {
         LOG(ERROR) << e.ToString();
         return nullptr;
@@ -100,7 +105,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
                              instanceFuncs, metadataFuncs,
                              moduleParams, moduleParamsInt, moduleInputs, moduleInputsInt,
                              moduleOutputs, moduleOutputsInt, moduleInOutputs, moduleInOutputsInt,
-                             tfValueInputs, tfValueInputsInt,
+                             tfValueInputs, tfValueInputsInt,tiValueInputs,tiValueInputsInt,
                              mpi_rank, mpi_size);
 }
 
@@ -208,6 +213,14 @@ ModuleFactory::~ModuleFactory() {
     }
     m_tfValueInputs.clear();
 
+    CLOG(TRACE, LOG_RELEASE) << "---release module  interval value inputs ...";
+    for (auto it = m_tiValueInputs.begin(); it != m_tiValueInputs.end(); ++it) {
+        if (*it != nullptr) {
+            *it = nullptr;
+        }
+    }
+    m_tiValueInputs.clear();
+
     CLOG(TRACE, LOG_RELEASE) << "---release dynamic library handles ...";
     for (vector<DLLINSTANCE>::iterator dllit = m_dllHandles.begin(); dllit != m_dllHandles.end(); ) {
 #ifdef WIN32
@@ -234,7 +247,9 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
                                      map<string, vector<ParamInfo<FLTPT>*> >& moduleInOutputs,
                                      map<string, vector<ParamInfo<int>*> >& moduleInOutputsInt,
                                      vector<ParamInfo<FLTPT>*>& tfValueInputs,
-                                     vector<ParamInfo<int>*>& tfValueInputsInt) {
+                                     vector<ParamInfo<int>*>& tfValueInputsInt,
+                                     vector<ParamInfo<FLTPT>*>& tiValueInputs,
+                                     vector<ParamInfo<int>*>& tiValueInputsInt) {
     size_t n = moduleIDs.size();
     // read all the .dll or .so and create objects
     for (size_t i = 0; i < n; i++) {
@@ -705,11 +720,11 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
         if (dim == DT_SingleInt || dim == DT_Array1DInt || dim == DT_Raster1DInt
             || dim == DT_Array2DInt || dim == DT_Raster2DInt) {
             vecParaInt.emplace_back(new ParamInfo<int>(name, basicname, desc, unit, source,
-                                                       moduleID, dim, tftype, climtype,
+                                                       moduleID, dim, tftype, itype, climtype,
                                                        is_const, is_output));
         } else {
             vecPara.emplace_back(new ParamInfo<FLTPT>(name, basicname, desc, unit, source,
-                                                      moduleID, dim, tftype, climtype,
+                                                      moduleID, dim, tftype, itype, climtype,
                                                       is_const, is_output));
         }
 

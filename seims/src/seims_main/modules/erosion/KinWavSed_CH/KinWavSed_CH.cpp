@@ -126,7 +126,7 @@ void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data
         m_flowInIndex = data;
     } else if (StringMatch(sk, VAR_HCH[0])) {
         m_ChannelWH = data;
-    } else if (StringMatch(sk, VAR_QRECH[0])) {
+    } else if (StringMatch(sk, VAR_QCH[0])) {
         m_ChQkin = data;
     } else {
         throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
