@@ -146,13 +146,13 @@ void InputStation::ReadSitesInfo(const string& siteType, const string& hydroDBNa
 void InputStation::ReadSitesData(const string& hydroDBName, const string& sitesList, const string& siteType,
                                  const time_t startDate, const time_t endDate, const bool stormMode /* = false */) {
     string siteTypeU = GetUpper(siteType);
-    if (stormMode) {
+    /*if (stormMode) {
         m_measurement[siteType] = new NotRegularMeasurement(m_conn, hydroDBName, sitesList, siteTypeU,
                                                             startDate, endDate);
-    } else {
+    } else {*/
         m_measurement[siteType] = new RegularMeasurement(m_conn, hydroDBName, sitesList, siteTypeU,
                                                          startDate, endDate, m_dtHs);
-    }
+    /*}*/
     if (StringMatch(siteType, DataType_Precipitation)) {
         ReadSitesInfo(DataType_Precipitation, hydroDBName, sitesList);
     } else if (m_elevation.find(DataType_Meteorology) == m_elevation.end()) {
