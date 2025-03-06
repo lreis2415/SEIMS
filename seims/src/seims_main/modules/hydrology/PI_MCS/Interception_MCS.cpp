@@ -26,6 +26,7 @@ void clsPI_MCS::Set1DData(const char* key, int nrows, FLTPT* data) {
     else if (!m_stormMode && StringMatch(s, VAR_PET[0])) m_pet = data;
     else if (StringMatch(s, VAR_INTERC_MAX[0])) m_maxIntcpStoCap = data;
     else if (StringMatch(s, VAR_INTERC_MIN[0])) m_minIntcpStoCap = data;
+    else if (m_stormMode && StringMatch(s, VAR_SLOPE[0])) m_slope = data;
     else {
         throw ModelException(M_PI_MCS[0], "Set1DData",
                              "Parameter " + s + " does not required.");
