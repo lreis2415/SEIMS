@@ -78,6 +78,17 @@ int Percolation_DARCY::Execute() {
 
 }
 
+void Percolation_DARCY::Set2DData(const char* key, int nrows, int ncols, float** data)
+{
+    string s(key);
+    if (StringMatch(s, VAR_CONDUCT[0])) {
+        m_Conductivity = data;
+    }
+    else {
+    throw ModelException(M_PERCO_DARCY[0], "Get2DData", "Result " + s + " does not exist.");
+    }
+}
+
 void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
     string s(key);
     if (StringMatch(s, VAR_PERCO[0])) {
