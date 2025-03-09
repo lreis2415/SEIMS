@@ -84,6 +84,22 @@ void Percolation_DARCY::Set2DData(const char* key, int nrows, int ncols, float**
     if (StringMatch(s, VAR_CONDUCT[0])) {
         m_Conductivity = data;
     }
+    else if (StringMatch(s, VAR_POROST[0]))
+    {
+        m_Porosity = data;
+    }
+    else if (StringMatch(s, VAR_POREIDX[0]))
+    {
+        m_Poreindex = data;
+    }
+    else if (StringMatch(s, VAR_FIELDCAP[0]))
+    {
+        m_FieldCapacity = data;
+    }
+    else if (StringMatch(s, VAR_SOILDEPTH[0]))
+    {
+        m_rootDepth = data;
+    }
     else {
     throw ModelException(M_PERCO_DARCY[0], "Get2DData", "Result " + s + " does not exist.");
     }
