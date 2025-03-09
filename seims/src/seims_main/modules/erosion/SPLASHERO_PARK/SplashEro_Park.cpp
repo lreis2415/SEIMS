@@ -53,11 +53,23 @@ void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
     }
 }
 
-void SplashEro_Park::SetValue(const char *key, float data) {
+void SplashEro_Park::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
     else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_OMEGA[0])) { m_Omega = data; }
+    else {
+        throw ModelException(M_SplashEro_Park[0], "SetValue", "Parameter " + s +
+            " does not exist in current module. Please contact the module developer.");
+    }
+}
+
+void SplashEro_Park::SetValue(const char* key, int data) {
+    string s(key);
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
+    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_OMEGA[0])) { m_Omega = data; }
     else {
         throw ModelException(M_SplashEro_Park[0], "SetValue", "Parameter " + s +

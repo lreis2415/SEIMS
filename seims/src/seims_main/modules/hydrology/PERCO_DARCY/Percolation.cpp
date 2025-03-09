@@ -109,7 +109,7 @@ void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
 
 // }
 
-void Percolation_DARCY::SetValue(const char *key, float data) {
+void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
         this->m_timestep = int(data);
@@ -117,6 +117,24 @@ void Percolation_DARCY::SetValue(const char *key, float data) {
         m_CellWidth = data;
         //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
+        throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
+            " does not exist in current module. Please contact the module developer.");
+    }
+}
+
+void Percolation_DARCY::SetValue(const char* key, int data) {
+    string s(key);
+    if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) {
+        this->m_timestep = int(data);
+    }
+    else if (StringMatch(s, Tag_CellWidth[0])) {
+        m_CellWidth = data;
+        //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
+    }
+    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) {
+        m_nCells = data;
+    }
+    else {
         throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }

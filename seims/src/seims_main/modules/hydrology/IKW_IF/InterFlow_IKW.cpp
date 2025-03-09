@@ -206,7 +206,7 @@ bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void InterFlow_IKW::SetValue(const char *key, float data) {
+void InterFlow_IKW::SetValue(const char *key, FLTPT data) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = data;
@@ -219,6 +219,27 @@ void InterFlow_IKW::SetValue(const char *key, float data) {
     } else {
         throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
                              + " does not exist.");
+    }
+
+}
+
+void InterFlow_IKW::SetValue(const char* key, int data) {
+    string sk(key);
+    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+        m_dt = data;
+    }
+    else if (StringMatch(sk, Tag_CellWidth[0])) {
+        m_CellWidth = data;
+    }
+    else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
+        m_nCells = (int)data;
+    }
+    else if (StringMatch(sk, VAR_KI[0])) {
+        m_landuseFactor = data;
+    }
+    else {
+        throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
+            + " does not exist.");
     }
 
 }
@@ -270,18 +291,20 @@ void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     //check the input data
 
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
+    /*if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_nLayers = nrows;
         m_routingLayers = data;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
 		CheckInputSize(key, nrows);
 		m_flowInIndex = data;
 	}
-	else if (StringMatch(sk, VAR_SOILDEPTH[0])) {
+	else*/
+
+    if (StringMatch(sk, VAR_SOILDEPTH[0])) {
 		CheckInputSize(key, nrows);
 		m_maxSoilLyrs = ncols;
 		m_rootDepth = data;
@@ -312,6 +335,24 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
 		m_ks = data;
 	}
 	else {
+        throw ModelException(M_IKW_IF[0], "Set2DData", "Parameter " + sk
+            + " does not exist. Please contact the module developer.");
+    }
+}
+
+void InterFlow_IKW::Set2DData(const char* key, int nrows, int ncols, int** data) {
+    //check the input data
+
+    string sk(key);
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
+        m_nLayers = nrows;
+        m_routingLayers = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+        CheckInputSize(key, nrows);
+        m_flowInIndex = data;
+    }
+    else {
         throw ModelException(M_IKW_IF[0], "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }

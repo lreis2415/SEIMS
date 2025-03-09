@@ -31,11 +31,15 @@ public:
 
     void SetReaches(clsReaches *reaches) OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
-    
+    void SetValue(const char *key, const FLTPT value) OVERRIDE;
+
+    void SetValue(const char* key, const int value) OVERRIDE;
+   
     void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
     void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+
+    void Set2DData(const char* key, int nrows, int ncols, int** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -49,6 +53,8 @@ public:
 
 private:
     void ChannelFlow(int iReach, int iCell, int id);
+
+    
 
     int m_nCells;  ///< Valid cells number
     float m_CellWidth; ///< cell width of the grid (m)
@@ -77,9 +83,9 @@ private:
      *
      *	The first element in each sub-array is the number of flow in cells of the current cell
      */
-    float **m_flowInIndex;
+    int **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIdx;
+    int **m_flowOutIdx;
 
     /// Water depth in the downslope boundary of channel cells(output)
     float **m_hCh;

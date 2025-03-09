@@ -32,13 +32,17 @@ public:
 
     virtual int Execute(void);
 
-    virtual void SetValue(const char *key, float data);
+    virtual void SetValue(const char *key, FLTPT data);
+
+    virtual void SetValue(const char* key, int data);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
+
+    virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -91,7 +95,7 @@ private:
     *
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
-    float **m_flowInIndex;
+    int **m_flowInIndex;
 
     /**
     *	@brief Routing layers according to the flow direction
@@ -99,7 +103,7 @@ private:
     *	There are not flow relationships within each layer.
     *	The first element in each layer is the number of cells in the layer
     */
-    float **m_routingLayers;
+    int **m_routingLayers;
     int m_nLayers;
 
     /// depression storage

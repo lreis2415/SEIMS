@@ -27,7 +27,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
-    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    //mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_Single);
+    mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_TimeStep[1], File_Input, DT_SingleInt);
     mdi.AddParameter(Tag_CellWidth[0], UNIT_LEN_M, Tag_CellWidth[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_GW_KG[0], UNIT_NON_DIM, VAR_GW_KG[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_Base_ex[0], UNIT_NON_DIM, VAR_Base_ex[1], Source_ParameterDB, DT_Single);

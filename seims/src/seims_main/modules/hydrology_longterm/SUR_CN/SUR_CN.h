@@ -60,6 +60,8 @@ public:
 
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
+    virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
+
     virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);

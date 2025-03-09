@@ -34,7 +34,9 @@ public:
 
     void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char *key, FLTPT value) OVERRIDE;
+
+    void SetValue(const char* key, int value) OVERRIDE;
 
     void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 

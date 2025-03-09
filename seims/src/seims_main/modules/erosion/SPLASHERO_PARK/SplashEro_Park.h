@@ -2,7 +2,7 @@
  * \brief Park Equation for splash erosion, and Foster Equation for overland flow soil detachment
  *           use the USLE_C, USLE_K in the calculation of splash erosion.
  *           PARK S, MITCHELL J, BUBENZER G,. Rainfall characteristics and their relation to splash erosion[J].
- *                 Trans. ASAE, 1983, 26(3): 795¨C804.
+ *                 Trans. ASAE, 1983, 26(3): 795â€“804.
  * \author Hui Wu
  * \date Feb. 2012
  * \revised Liang-Jun Zhu
@@ -38,11 +38,15 @@ public:
 
     virtual int Execute(void);
 
-    virtual void SetValue(const char *key, float value);
+    virtual void SetValue(const char *key, FLTPT value);
+
+    virtual void SetValue(const char* key, int data);
+
 
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
+
 
     /**
     *	@brief check the input data. Make sure all the input data is available.

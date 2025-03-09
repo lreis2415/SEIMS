@@ -255,9 +255,9 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
 }
 
 
-void StormGreenAmpt::SetValue(const char *key, const float value) {
+void StormGreenAmpt::SetValue(const char *key, const int value) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
     } else {
         throw ModelException(M_SUR_SGA[0], "SetValue",

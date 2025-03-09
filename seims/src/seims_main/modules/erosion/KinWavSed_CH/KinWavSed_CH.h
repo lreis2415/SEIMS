@@ -34,7 +34,9 @@ public:
     //! Execute
     virtual int Execute();
 
-    virtual void SetValue(const char *key, float value);
+    virtual void SetValue(const char *key, FLTPT value);
+
+    virtual void SetValue(const char* key, int data);
 
     //virtual void GetValue(const char *key, float *value);
 
@@ -42,7 +44,9 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
+
+    virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
@@ -77,9 +81,9 @@ private:
     *
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
-    float **m_flowInIndex;
+    int **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIdx;
+    int **m_flowOutIdx;
     /// channel width (zero for non-channel cells)
     float *m_chWidth;
     /// stream order
@@ -141,8 +145,8 @@ private:
     float **m_ChV;
 
     //output
-    //// id of the outlet
-    //int m_idOutlet;
+    // id of the outlet
+    int m_idOutlet;
     /// channel flow detachment [kg]
     float **m_CHDETFlow;
     /// sediment deposition[kg]

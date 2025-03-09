@@ -57,7 +57,9 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual void SetValue(const char *key, float value);
+    virtual void SetValue(const char *key, FLTPT value);
+
+    virtual void SetValue(const char* key, int value);
 
     virtual int Execute(void);
 

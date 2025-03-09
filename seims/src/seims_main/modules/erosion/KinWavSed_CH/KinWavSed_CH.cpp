@@ -49,11 +49,24 @@ KinWavSed_CH::~KinWavSed_CH() {
     Release1DArray(m_chanVol);
 }
 
-void KinWavSed_CH::SetValue(const char *key, float data) {
+void KinWavSed_CH::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
     else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
+    else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
+    //else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
+    else {
+        throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s + " does not exist in current module.\n");
+    }
+}
+
+void KinWavSed_CH::SetValue(const char* key, int data) {
+    string s(key);
+    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
+    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
+    else if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
     //else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
@@ -86,7 +99,7 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
     else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
     else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
-    else if (StringMatch(s, Tag_FLOWOUT_INDEX[0])) { m_flowOutIdx = data; }
+    /*else if (StringMatch(s, Tag_FLOWOUT_INDEX[0])) { m_flowOutIdx = data; }*/
     else if (StringMatch(s, VAR_SED_TO_CH[0])) { m_SedToChannel = data; }
 
     else {
@@ -120,17 +133,38 @@ void KinWavSed_CH::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+    /*if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
-    } else if (StringMatch(sk, VAR_HCH[0])) {
+    } else */if (StringMatch(sk, VAR_HCH[0])) {
         m_ChannelWH = data;
     } else if (StringMatch(sk, VAR_QCH[0])) {
         m_ChQkin = data;
     } else {
         throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
                              + " does not exist.");
+    }
+
+}
+
+void KinWavSed_CH::Set2DData(const char* key, int nrows, int ncols, int** data) {
+    string sk(key);
+    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+        m_flowInIndex = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_flowOutIdx[i][0] == 1 && m_flowOutIdx[i][1] < 0) {
+                m_idOutlet = i;
+                break;
+            }
+        }
+    }
+    else {
+        throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
+            + " does not exist.");
     }
 
 }

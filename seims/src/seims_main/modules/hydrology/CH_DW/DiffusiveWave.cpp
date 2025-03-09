@@ -275,7 +275,7 @@ int DiffusiveWave::Execute() {
     return 0;
 }
 
-void DiffusiveWave::SetValue(const char *key, const float value) {
+void DiffusiveWave::SetValue(const char *key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
@@ -286,6 +286,22 @@ void DiffusiveWave::SetValue(const char *key, const float value) {
     } else {
         throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
                              + " does not exist. Please contact the module developer.");
+    }
+}
+void DiffusiveWave::SetValue(const char* key, const int value) {
+    string sk(key);
+    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+        m_dt = value;
+    }
+    else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
+        m_nCells = CVT_INT(value);
+    }
+    else if (StringMatch(sk, Tag_CellWidth[0])) {
+        m_CellWidth = value;
+    }
+    else {
+        throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
+            + " does not exist. Please contact the module developer.");
     }
 }
 
@@ -310,15 +326,17 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
         m_chWidth = data;
     } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index
-        m_flowOutIdx = data;
-        for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIdx[i] < 0) {
-                m_idOutlet = i;
-                break;
-            }
-        }
-    } else {
+    }
+    //else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index
+    //    m_flowOutIdx = data;
+    //    for (int i = 0; i < m_nCells; i++) {
+    //        if (m_flowOutIdx[i] < 0) {
+    //            m_idOutlet = i;
+    //            break;
+    //        }
+    //    }
+    //}
+    else {
         throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
                              + " does not exist.");
     }
@@ -375,10 +393,30 @@ void DiffusiveWave::Get2DData(const char *key, int *nrows, int *ncols, float ***
 
 void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+    /*if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
         throw ModelException(M_CH_DW[0], "Set2DData",
                              "Parameter " + sk + " does not exist.");
+    }*/
+}
+
+void DiffusiveWave::Set2DData(const char* key, int nrows, int ncols, int** data) {
+    string sk(key);
+    if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+        m_flowInIndex = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_flowOutIdx[i][0] == 1 && m_flowOutIdx[i][1] < 0) {
+                m_idOutlet = i;
+                break;
+            }
+        }
+    }
+    else {
+        throw ModelException(M_CH_DW[0], "Set2DData",
+            "Parameter " + sk + " does not exist.");
     }
 }

@@ -1,4 +1,5 @@
 #include "ImplicitKinematicWave.h"
+#include "ImplicitKinematicWave.h"
 #include "text.h"
 
 // using namespace std;  // Avoid this statement! by lj.
@@ -330,7 +331,7 @@ bool ImplicitKinematicWave_OL::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void ImplicitKinematicWave_OL::SetValue(const char *key, float data) {
+void ImplicitKinematicWave_OL::SetValue(const char *key, FLTPT data) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dtStorm = data;
@@ -341,6 +342,24 @@ void ImplicitKinematicWave_OL::SetValue(const char *key, float data) {
     } else {
         throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk
                              + " does not exist.");
+    }
+
+}
+
+void ImplicitKinematicWave_OL::SetValue(const char* key, int data) {
+    string sk(key);
+    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+        m_dtStorm = data;
+    }
+    else if (StringMatch(sk, Tag_CellWidth[0])) {
+        m_CellWidth = data;
+    }
+    else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
+        m_nCells = int(data);
+    }
+    else {
+        throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk
+            + " does not exist.");
     }
 
 }
@@ -357,14 +376,6 @@ void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, float *data) {
         m_direction = data;
     } else if (StringMatch(sk, VAR_SURU[0])) {
         m_sr = data;
-    } else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
-        m_flowOutIdx = data;
-        for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIdx[i] < 0) {
-                m_idOutlet = i;
-                break;
-            }
-        }
     } else if (StringMatch(sk, VAR_INFILCAPSURPLUS[0])) {
         m_infilCapacitySurplus = data;
     } else if (StringMatch(sk, VAR_INFIL[0])) {
@@ -414,11 +425,13 @@ void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) 
     }
 }
 
-void ImplicitKinematicWave_OL::Set2DData(const char *key, int nrows, int ncols, float **data) {
+
+
+void ImplicitKinematicWave_OL::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
+    /*if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
         m_routingLayers = data;
         m_nLayers = nrows;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
@@ -426,5 +439,31 @@ void ImplicitKinematicWave_OL::Set2DData(const char *key, int nrows, int ncols, 
     } else {
         throw ModelException(M_IKW_OL[0], "Set2DData", "Parameter " + sk
                              + " does not exist.");
+    }*/
+}
+
+void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, int** data) {
+    //check the input data
+    //m_nLayers = nrows;
+    string sk(key);
+    if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
+        m_routingLayers = data;
+        m_nLayers = nrows;
+    }
+    else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+        m_flowInIndex = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
+        m_flowOutIdx = data;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_flowOutIdx[i][0] == 1 && m_flowOutIdx[i][1] < 0) {
+                m_idOutlet = i;
+                break;
+            }
+        }
+    }//
+    else {
+        throw ModelException(M_IKW_OL[0], "Set2DData", "Parameter " + sk
+            + " does not exist.");
     }
 }
