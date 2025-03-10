@@ -208,13 +208,10 @@ bool InterFlow_IKW::CheckInputSize(const char *key, int n) {
 
 void InterFlow_IKW::SetValue(const char *key, FLTPT data) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
-        m_dt = data;
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+    if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(sk, Tag_CellSize[0])) {
-        m_nCells = (int) data;
-    } else if (StringMatch(sk, VAR_KI[0])) {
+    }
+    else if (StringMatch(sk, VAR_KI[0])) {
         m_landuseFactor = data;
     } else {
         throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
@@ -225,17 +222,11 @@ void InterFlow_IKW::SetValue(const char *key, FLTPT data) {
 
 void InterFlow_IKW::SetValue(const char* key, int data) {
     string sk(key);
-    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = data;
     }
-    else if (StringMatch(sk, Tag_CellWidth[0])) {
-        m_CellWidth = data;
-    }
-    else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
+    else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = (int)data;
-    }
-    else if (StringMatch(sk, VAR_KI[0])) {
-        m_landuseFactor = data;
     }
     else {
         throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk

@@ -375,9 +375,7 @@ void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
 
 void ImplicitKinematicWave_CH::SetValue(const char *key, FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
-        m_dt = value;
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+    if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
     } else {
         throw ModelException(M_IKW_CH[0], "SetValue",
@@ -388,11 +386,8 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, FLTPT value) {
 
 void ImplicitKinematicWave_CH::SetValue(const char* key, int value) {
     string sk(key);
-    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
-    }
-    else if (StringMatch(sk, Tag_CellWidth[0])) {
-        m_CellWidth = value;
     }
     else {
         throw ModelException(M_IKW_CH[0], "SetValue",

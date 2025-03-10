@@ -84,15 +84,15 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
-    /*if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
-        m_routingLayers = data;
-        m_nLayers = nrows;
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
-        m_flowInIndex = data;
-    } else {
-        throw ModelException(M_KINWAVSED_OL[0], "Set2DData", "Parameter " + sk
-                             + " does not exist.");
-    }*/
+    //if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
+    //    m_routingLayers = data;
+    //    m_nLayers = nrows;
+    //} else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
+    //    m_flowInIndex = data;
+    //} else {
+    //    throw ModelException(M_KINWAVSED_OL[0], "Set2DData", "Parameter " + sk
+    //                         + " does not exist.");
+    //}
 }
 
 void KinWavSed_OL::Set2DData(const char* key, int nrows, int ncols, int** data) {
@@ -115,8 +115,6 @@ void KinWavSed_OL::Set2DData(const char* key, int nrows, int ncols, int** data) 
 void KinWavSed_OL::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) { m_CellWidth = data; }
-    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_OL_SED_ECO1[0])) { m_eco1 = data; }
     else if (StringMatch(s, VAR_OL_SED_ECO2[0])) { m_eco2 = data; }
     else if (StringMatch(s, VAR_OL_SED_CCOE[0])) { m_Ccoe = data; }
@@ -128,12 +126,8 @@ void KinWavSed_OL::SetValue(const char *key, FLTPT data) {
 
 void KinWavSed_OL::SetValue(const char* key, int data) {
     string s(key);
-    if (m_stormMode && StringMatch(s, Tag_CellWidth[0])) { m_CellWidth = data; }
-    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
-    else if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO1[0])) { m_eco1 = data; }
-    else if (StringMatch(s, VAR_OL_SED_ECO2[0])) { m_eco2 = data; }
-    else if (StringMatch(s, VAR_OL_SED_CCOE[0])) { m_Ccoe = data; }
+    if (StringMatch(s, Tag_CellSize[0])) { m_nCells = data; }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else {
         throw ModelException(M_KINWAVSED_OL[0], "SetValue", "Parameter " + s +
             " does not exist in current module.");

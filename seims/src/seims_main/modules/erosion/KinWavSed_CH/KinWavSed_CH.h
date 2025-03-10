@@ -145,8 +145,8 @@ private:
     float **m_ChV;
 
     //output
-    // id of the outlet
-    int m_idOutlet;
+    //// id of the outlet
+    //int m_idOutlet;
     /// channel flow detachment [kg]
     float **m_CHDETFlow;
     /// sediment deposition[kg]

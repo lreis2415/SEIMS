@@ -38,7 +38,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_USLE_K[0], UNIT_NON_DIM, VAR_USLE_K[1], Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array1DInt);
+    mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array2DInt);
     //mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2DInt);
     // add reach information

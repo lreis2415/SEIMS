@@ -277,11 +277,7 @@ int DiffusiveWave::Execute() {
 
 void DiffusiveWave::SetValue(const char *key, const FLTPT value) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
-        m_dt = value;
-    } else if (StringMatch(sk, Tag_CellSize[0])) {
-        m_nCells = CVT_INT(value);
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+    if(StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
     } else {
         throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
@@ -290,14 +286,11 @@ void DiffusiveWave::SetValue(const char *key, const FLTPT value) {
 }
 void DiffusiveWave::SetValue(const char* key, const int value) {
     string sk(key);
-    if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
+    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
     }
-    else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
+    else if (StringMatch(sk, Tag_CellSize[0])) {
         m_nCells = CVT_INT(value);
-    }
-    else if (StringMatch(sk, Tag_CellWidth[0])) {
-        m_CellWidth = value;
     }
     else {
         throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk

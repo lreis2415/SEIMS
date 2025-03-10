@@ -333,13 +333,9 @@ bool ImplicitKinematicWave_OL::CheckInputSize(const char *key, int n) {
 
 void ImplicitKinematicWave_OL::SetValue(const char *key, FLTPT data) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
-        m_dtStorm = data;
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+    if  (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(sk, Tag_CellSize[0])) {
-        m_nCells = int(data);
-    } else {
+    }else {
         throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk
                              + " does not exist.");
     }
@@ -351,11 +347,8 @@ void ImplicitKinematicWave_OL::SetValue(const char* key, int data) {
     if (m_stormMode && StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dtStorm = data;
     }
-    else if (StringMatch(sk, Tag_CellWidth[0])) {
-        m_CellWidth = data;
-    }
     else if (m_stormMode && StringMatch(sk, Tag_CellSize[0])) {
-        m_nCells = int(data);
+        m_nCells = data;
     }
     else {
         throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk

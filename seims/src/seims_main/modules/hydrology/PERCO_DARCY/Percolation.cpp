@@ -138,9 +138,7 @@ void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
 
 void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
     string s(key);
-    if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
-        this->m_timestep = int(data);
-    } else if (StringMatch(s, Tag_CellWidth[0])) {
+    if (StringMatch(s, Tag_CellWidth[0])) {
         m_CellWidth = data;
         //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
@@ -151,14 +149,10 @@ void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
 
 void Percolation_DARCY::SetValue(const char* key, int data) {
     string s(key);
-    if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) {
+    if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
         this->m_timestep = int(data);
     }
-    else if (StringMatch(s, Tag_CellWidth[0])) {
-        m_CellWidth = data;
-        //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
-    }
-    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) {
+    else if (StringMatch(s, Tag_CellSize[0])) {
         m_nCells = data;
     }
     else {

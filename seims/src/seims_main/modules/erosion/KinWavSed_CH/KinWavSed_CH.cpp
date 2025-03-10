@@ -52,8 +52,6 @@ KinWavSed_CH::~KinWavSed_CH() {
 void KinWavSed_CH::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
     //else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
@@ -64,11 +62,8 @@ void KinWavSed_CH::SetValue(const char *key, FLTPT data) {
 
 void KinWavSed_CH::SetValue(const char* key, int data) {
     string s(key);
-    if (StringMatch(s, Tag_CellWidth[0])) { m_CellWith = data; }
-    else if (m_stormMode && StringMatch(s, Tag_CellSize[0])) { m_nCells = int(data); }
-    else if (m_stormMode && StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
-    else if (StringMatch(s, VAR_CH_TCCO[0])) { m_ChTcCo = data; }
-    else if (StringMatch(s, VAR_CH_DETCO[0])) { m_ChDetCo = data; }
+    if (StringMatch(s, Tag_CellSize[0])) { m_nCells = data; }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) { m_TimeStep = data; }
     //else if (StringMatch(s, Tag_LayeringMethod[0])) { m_layeringMethod = (LayeringMethod) int(data); }
     else {
         throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s + " does not exist in current module.\n");
@@ -155,12 +150,6 @@ void KinWavSed_CH::Set2DData(const char* key, int nrows, int ncols, int** data) 
     }
     else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
         m_flowOutIdx = data;
-        for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIdx[i][0] == 1 && m_flowOutIdx[i][1] < 0) {
-                m_idOutlet = i;
-                break;
-            }
-        }
     }
     else {
         throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
