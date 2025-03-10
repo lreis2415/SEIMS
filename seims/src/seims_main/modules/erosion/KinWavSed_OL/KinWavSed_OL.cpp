@@ -65,7 +65,6 @@ void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
     if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
     else if (StringMatch(s, VAR_MANNING[0])) { m_ManningN = data; }
     else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
-    else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
     else if (StringMatch(s, VAR_USLE_C[0])) { m_USLE_C = data; }
     else if (StringMatch(s, VAR_CHWIDTH[0])) {
         m_chWidth = data;
@@ -84,6 +83,7 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
+    if (StringMatch(sk, VAR_USLE_K[0])) { m_USLE_K = data; }
     //if (StringMatch(sk, Tag_ROUTING_LAYERS[0])) {
     //    m_routingLayers = data;
     //    m_nLayers = nrows;
@@ -325,7 +325,7 @@ void KinWavSed_OL::GetTransportCapacity(int id) {
         60.f;   // m2/s -> m2/min                                 // m_Qkin[id]*60;   // convert to m3/min
     float s = Max(0.001f, m_Slope[id]);
     S0 = sin(atan(s));
-    K = m_USLE_K[id];
+    K = m_USLE_K[id][0];// Check if it is 0
     float threadhold = 0.046f;
     if (q <= 0.f) {
         m_Ctrans[id] = 0.f;
@@ -441,7 +441,7 @@ void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the 
     waterden = 1000;
     g = 9.8f;
     shearStr = waterden * g * waterdepth * S0;
-    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * Power(shearStr, 1.5f);
+    Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i][0] * Power(shearStr, 1.5f);
     /*q = m_Q[i];
     Df = m_Ccoe * m_USLE_C[i] * m_USLE_K[i] * q * S0;*/
     // convert kg/(m2*min) to kg/cell

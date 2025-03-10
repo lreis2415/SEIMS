@@ -169,7 +169,7 @@ void ORYZA::Set1DData(const char* key, int n, float* data) {
     else if (StringMatch(sk, DataType_MaximumTemperature)) m_tMax = data;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_SR = data;
         //// soil properties and water related
-    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
+
     else if (StringMatch(sk, VAR_SOL_ZMX[0])) m_soilZMX = data;
     else if (StringMatch(sk, VAR_SOL_ALB[0])) m_soilALB = data;
     else if (StringMatch(sk, VAR_SOL_SW[0])) m_soilWtrStoPrfl = data;
@@ -186,6 +186,15 @@ void ORYZA::Set1DData(const char* key, int n, float* data) {
     else if (StringMatch(sk, VAR_CELL_LAT[0])) m_celllat = data;
     else if (StringMatch(sk, VAR_LAIDAY[0])) m_lai = data;
     else if (StringMatch(sk, VAR_ANCRF[0])) m_ancrf = data;
+    else
+        throw ModelException(M_PG_ORYZA[0], "Set1DData", "Parameter " + sk + " does not exist.");
+}
+
+void ORYZA::Set1DData(const char* key, int n, int* data) {
+    string sk(key);
+    CheckInputSize(M_PG_ORYZA[0], key, n, m_nCells);
+
+    if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else
         throw ModelException(M_PG_ORYZA[0], "Set1DData", "Parameter " + sk + " does not exist.");
 }

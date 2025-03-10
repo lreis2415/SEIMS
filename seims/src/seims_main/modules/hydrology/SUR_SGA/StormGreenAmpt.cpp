@@ -266,7 +266,7 @@ void StormGreenAmpt::SetValue(const char *key, const int value) {
 
 }
 
-void StormGreenAmpt::Set1DData(const char *key, const int n, float *data) {
+void StormGreenAmpt::Set1DData(const char *key, const int n, FLTPT *data) {
     CheckInputSize(M_SUR_SGA[0], key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN[0])) {
@@ -282,6 +282,18 @@ void StormGreenAmpt::Set1DData(const char *key, const int n, float *data) {
     } else {
         throw ModelException(M_SUR_SGA[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
+    }
+}
+
+void StormGreenAmpt::Set1DData(const char* key, const int n, int* data) {
+    CheckInputSize(M_SUR_SGA[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
+    }
+    else {
+        throw ModelException(M_SUR_SGA[0], "Set1DData",
+            "Parameter " + sk + " does not exist.");
     }
 }
 

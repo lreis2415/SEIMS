@@ -93,7 +93,7 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
     else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
     else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
-    else if (StringMatch(s, VAR_USLE_K[0])) { m_USLE_K = data; }
+
     /*else if (StringMatch(s, Tag_FLOWOUT_INDEX[0])) { m_flowOutIdx = data; }*/
     else if (StringMatch(s, VAR_SED_TO_CH[0])) { m_SedToChannel = data; }
 
@@ -136,7 +136,11 @@ void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, FLTPT **data
         m_ChannelWH = data;
     } else if (StringMatch(sk, VAR_QCH[0])) {
         m_ChQkin = data;
-    } else {
+    }
+    else if (StringMatch(sk, VAR_USLE_K[0])) {
+        m_USLE_K = data;
+    }
+    else {
         throw ModelException(M_KINWAVSED_CH[0], "Set2DData", "Parameter " + sk
                              + " does not exist.");
     }
@@ -485,7 +489,7 @@ void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is 
     //m_detCH[id] = m_ChannelWH[iReach][iCell];
     shearStr = waterden * g * chwdeepth * S0;
     // kg/(m2*min)
-    Df = m_ChDetCo * m_USLE_K[id] * Power(shearStr, 1.5f);
+    Df = m_ChDetCo * m_USLE_K[id][0] * Power(shearStr, 1.5f);
     ///  kg/(m2*min), convert to kg
     float DX, CHareas;
     DX = m_CellWith / cos(atan(s));
@@ -525,7 +529,7 @@ float KinWavSed_CH::GetTransportCapacity(int iReach, int iCell, int id) {
     q = m_ChQkin[iReach][iCell] * 60;   // convert to m3/min
     float s = Max(0.01f, m_Slope[id]);
     S0 = sin(atan(s));
-    K = m_USLE_K[id];
+    K = m_USLE_K[id][0]; //check if it is 0
     chVol = m_ChVol[iReach][iCell];
     if (chVol > 0) {
         TranCap = m_ChTcCo * K * S0 * Power(q, 2.0f) * (m_TimeStep / 60) / chVol;   // kg/min, convert to kg/m3

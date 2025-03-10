@@ -43,13 +43,28 @@ void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
         m_Q = data;
     } else if (StringMatch(s, VAR_NEPR[0])) {
         m_Rain = data;
-    } else if (StringMatch(s, VAR_USLE_K[0])) {
+    } /*else if (StringMatch(s, VAR_USLE_K[0])) {
         m_USLE_K = data;
-    } else if (StringMatch(s, VAR_USLE_C[0])) {
+    }*/ else if (StringMatch(s, VAR_USLE_C[0])) {
         m_USLE_C = data;
     } else {
         throw ModelException(M_SplashEro_Park[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
+    }
+}
+
+void SplashEro_Park::Set2DData(const char* key, const int n_rows, const int n_cols, FLTPT** data)
+{
+    string s(key);
+
+    CheckInputSize(key, n_rows);
+
+    if (StringMatch(s, VAR_USLE_K[0])) {
+        m_USLE_K = data;
+    }
+    else {
+        throw ModelException(M_SplashEro_Park[0], "Set2DData", "Parameter " + s
+            + " does not exist.");
     }
 }
 
@@ -193,7 +208,7 @@ int SplashEro_Park::Execute() {
             Fw = 1.f;
         }
         // kg/(m2*min)
-        Dr = m_Omega * Fw * m_USLE_C[i] * m_USLE_K[i] * Power(RainInten, 2.f) * (2.96f * Power(S0, 0.79f) + 0.56f);
+        Dr = m_Omega * Fw * m_USLE_C[i] * m_USLE_K[i][0] * Power(RainInten, 2.f) * (2.96f * Power(S0, 0.79f) + 0.56f);//Check if it is 0
         // convert kg/(m2*min) to kg/cell
         float cellareas = (m_CellWith / cos(atan(s))) * m_CellWith;
         m_DETSplash[i] = Dr * (m_TimeStep / 60.f) * cellareas;

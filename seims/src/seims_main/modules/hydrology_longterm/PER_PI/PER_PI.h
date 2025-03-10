@@ -30,6 +30,8 @@ public:
 
     void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
+    void Set1DData(const char* key, int nRows, int* data) OVERRIDE;
+
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
@@ -44,7 +46,7 @@ private:
     /// maximum number of soil layers
     int m_maxSoilLyrs;
     /// soil layers
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     ///// soil depth
     //float **m_soilDepth;
     /// soil thickness

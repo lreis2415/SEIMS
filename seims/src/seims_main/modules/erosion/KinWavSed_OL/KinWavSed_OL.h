@@ -172,7 +172,7 @@ private:
     /// crop management factor
     float *m_USLE_C;
     /// soil erodibility factor
-    float *m_USLE_K;
+    float **m_USLE_K;
 
     //input from modules
     /// Runoff mm

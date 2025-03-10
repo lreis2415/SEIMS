@@ -120,9 +120,19 @@ void PER_PI::Set1DData(const char* key, const int nrows, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SOTE[0])) m_soilTemp = data;
     else if (StringMatch(sk, VAR_INFIL[0])) m_infil = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
+
     else if (StringMatch(sk, VAR_SOL_SW[0])) m_soilWtrStoPrfl = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG[0])) m_impndTrig = data;
+    else {
+        throw ModelException(M_PER_PI[0], "Set1DData", "Parameter " + sk + " does not exist.");
+    }
+}
+
+void PER_PI::Set1DData(const char* key, const int nrows, int* data) {
+    CheckInputSize(M_PER_PI[0], key, nrows, m_nCells);
+    string sk(key);
+
+    if (StringMatch(sk, VAR_SOILLAYERS[0])) m_nSoilLyrs = data;
     else {
         throw ModelException(M_PER_PI[0], "Set1DData", "Parameter " + sk + " does not exist.");
     }

@@ -45,6 +45,8 @@ public:
 
     virtual void Set1DData(const char *key, int n, float *data);
 
+    virtual void Set2DData(const char* key, int n_rows, int n_cols, FLTPT** data);
+
     virtual void Get1DData(const char *key, int *n, float **data);
 
 
@@ -93,7 +95,7 @@ private:
     /// crop management factor
     float *m_USLE_C;
     /// soil erodibility factor
-    float *m_USLE_K;
+    float **m_USLE_K;
 
     //input from modules
     /// the depth of the surface water layer (mm), after kinematic wave model

@@ -34,7 +34,9 @@ public:
 
     void SetValue(const char* key, int value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
 
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
@@ -76,7 +78,7 @@ private:
     float m_tSnow;          ///< snow fall temperature
     float m_t0;             ///< snow melt threshold temperature
     int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
-    float* m_nSoilLyrs;     ///< soil layers
+    int* m_nSoilLyrs;     ///< soil layers
     float** m_soilDepth;    ///< root depth
     float** m_soilPor;      ///< soil porosity
     float** m_soilClay;     ///< percent of clay content

@@ -31,6 +31,8 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
@@ -59,7 +61,7 @@ private:
 
     /**  soil properties  **/
     /// soil layers,used to compute the water stress
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     /// maximum soil layers
     int m_maxSoilLyrs;
     /// maximum root depth

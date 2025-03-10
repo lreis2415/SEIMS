@@ -115,7 +115,7 @@ private:
     /// slope of map, to calculate slope gradient.
     float *m_Slope;
     /// USLE K
-    float *m_USLE_K;
+    float **m_USLE_K;
     /*/// hydraulic radius (m)
     float* m_R;*/
     /// id of source cells of reaches
