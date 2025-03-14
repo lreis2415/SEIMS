@@ -100,6 +100,10 @@ void Percolation_DARCY::Set2DData(const char* key, int nrows, int ncols, float**
     {
         m_rootDepth = data;
     }
+    else if (StringMatch(s, VAR_SOL_ST[0]))
+    {
+        m_Moisture = data;
+    }
     else {
     throw ModelException(M_PERCO_DARCY[0], "Get2DData", "Result " + s + " does not exist.");
     }

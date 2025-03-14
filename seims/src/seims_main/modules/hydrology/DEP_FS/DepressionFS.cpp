@@ -28,19 +28,19 @@ bool DepressionFS::CheckInputData() {
         throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: depression storage capacity has not been set.");
     }
-#ifndef STORM_MODE
-    if (m_pet == NULL) {
+
+    if (!m_stormMode && m_pet == NULL) {
         throw ModelException(M_DEP_FS[0], "CheckInputData", "The parameter: PET has not been set.");
     }
-    if (m_ei == NULL) {
+    if (!m_stormMode && m_ei == NULL) {
         throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: evaporation from the interception storage has not been set.");
     }
-    if (m_ed == NULL) {
+    if (!m_stormMode && m_ed == NULL) {
         throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: DEET from the interception storage has not been set.");
     }
-#endif /* not STORM_MODE */
+
     return true;
 }
 
@@ -72,34 +72,38 @@ int DepressionFS::Execute() {
     for (int i = 0; i < m_nCells; ++i) {
 
         // sr is temporarily used to stored the water depth including the depression storage
-		// m_sr�ǵر�ˮ��ݵ�����֮ǰ��m_sr�������ݵ�ˮ�
+		
         float hWater = m_sr[i];
-		// ��� �ر�ˮ�� <= �ݵ����
-		// �ݵ�����֮ǰ
+		
         if (hWater <= m_depCap[i]) {
-			// �ݵ�ˮ�� = �ر�ˮ��
+			
             m_sd[i] = hWater;
-			// �ر�ˮ�� = 0
+			
             m_sr[i] = 0.f;
         } else {
-			// �ݵ�����֮��
-			// �ݵ�ˮ�� = �ݵ����
+			
             m_sd[i] = m_depCap[i];
-			// �ر�ˮ�� = �ر�ˮ�� - �ݵ���ȣ���ʱ�ĵر�ˮ��ָ�ݵ��ϱ������ϵ�ˮ��
+			
             m_sr[i] = hWater - m_depCap[i];
         }
-        // ʣ��洢���� = �ݵ���� - �ݵ�ˮ��
+        
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
-        if (m_sd[i] > 0) {
-            //This section is taken from DEP_LINSLEY
-            if (m_pet[i] - m_ei[i] < m_sd[i]) {
-                m_ed[i] = m_pet[i] - m_ei[i];
-            } else {
-                m_ed[i] = m_sd[i];
+        if (!m_stormMode)
+        {
+            if (m_sd[i] > 0) {
+                //This section is taken from DEP_LINSLEY
+                if (m_pet[i] - m_ei[i] < m_sd[i]) {
+                    m_ed[i] = m_pet[i] - m_ei[i];
+                }
+                else {
+                    m_ed[i] = m_sd[i];
+                }
             }
-        } else {
-            m_ed[i] = 0.f;
+            else {
+                m_ed[i] = 0.f;
+            }
         }
+        
     }
     return 0;
 }
@@ -147,7 +151,7 @@ void DepressionFS::Set1DData(const char* key, int n, float* data) {
 			}
 		}
     }
-	else if (StringMatch(sk, VAR_PET[0])) {
+	else if (!m_stormMode && StringMatch(sk, VAR_PET[0])) {
 	       m_pet = data;
     } else if (StringMatch(sk, VAR_INLO[0])) {
         m_ei = data;

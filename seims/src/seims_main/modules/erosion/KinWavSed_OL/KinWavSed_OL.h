@@ -35,7 +35,9 @@ public:
 
     void SetValue(const char* key, int data);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
+
+    virtual void Set1DData(const char* key, int n, int* data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -196,7 +198,7 @@ private:
     /// Manning's roughness [-]
     float *m_ManningN;
     /// streamlink
-    float *m_streamLink;
+    int *m_streamLink;
 
     //temporal variables
     /// Soil transport capacity of overland flow (kg) at each time step

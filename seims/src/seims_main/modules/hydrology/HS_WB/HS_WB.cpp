@@ -74,7 +74,7 @@ void HS_WB::SetValue(const char *key, float value) {
     }
 }
 
-void HS_WB::Set1DData(const char *key, int nRows, float *data) {
+void HS_WB::Set1DData(const char *key, int nRows, FLTPT *data) {
     string s(key);
 
     this->CheckInputSize(key, nRows);
@@ -82,7 +82,7 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
     if (StringMatch(s, VAR_QOVERLAND[0])) { this->m_qs = data; }
     else if (StringMatch(s, VAR_QSOIL[0])) { this->m_qi = data; }
     else if (StringMatch(s, VAR_SUBBSN[0])) { this->m_subbasin = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK[0])) { this->m_streamLink = data;}
+
     else if (StringMatch(s, VAR_SOILDEPTH[0])) { this->m_rootdepth = data;}
     else if (StringMatch(s, VAR_POROST[0])) { this->m_porosity = data; }
     else if (StringMatch(s, VAR_FIELDCAP[0])) { this->m_fieldCapacity = data; }
@@ -90,6 +90,18 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
     else {
         throw ModelException(M_HS_WB[0], "Set1DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
+    }
+}
+
+void HS_WB::Set1DData(const char* key, int nRows, int* data) {
+    string s(key);
+
+    this->CheckInputSize(key, nRows);
+
+    if (StringMatch(s, VAR_STREAM_LINK[0])) { this->m_streamLink = data; }
+    else {
+    throw ModelException(M_HS_WB[0], "Set1DData", "Parameter " + s +
+        " does not exist in current module. Please contact the module developer.");
     }
 }
 

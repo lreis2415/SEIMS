@@ -235,7 +235,7 @@ void InterFlow_IKW::SetValue(const char* key, int data) {
 
 }
 
-void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
+void InterFlow_IKW::Set1DData(const char *key, int n, FLTPT *data) {
     //check the input data
     CheckInputSize(key, n);
     string s(key);
@@ -259,12 +259,25 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
         m_chWidth = data;
     } else if (StringMatch(s, VAR_SURU[0])) {
         m_sr = data;
-    } else if (StringMatch(s, VAR_STREAM_LINK[0])) {
-        m_streamLink = data;
-    } else {
+    } 
+    else {
         throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s
                              + " does not exist.");
     }
+}
+
+void InterFlow_IKW::Set1DData(const char* key, int n, int* data) {
+    //check the input data
+    CheckInputSize(key, n);
+    string s(key);
+    if (StringMatch(s, VAR_STREAM_LINK[0])) {
+        m_streamLink = data;
+    }
+    else {
+        throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s
+            + " does not exist.");
+    }
+
 }
 
 void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {

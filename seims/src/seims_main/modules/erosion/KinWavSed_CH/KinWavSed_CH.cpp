@@ -92,7 +92,6 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
 
     if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
     else if (StringMatch(s, VAR_CHWIDTH[0])) { m_chWidth = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
 
     /*else if (StringMatch(s, Tag_FLOWOUT_INDEX[0])) { m_flowOutIdx = data; }*/
     else if (StringMatch(s, VAR_SED_TO_CH[0])) { m_SedToChannel = data; }
@@ -100,6 +99,20 @@ void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     else {
         throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s +
                              " does not exist.");
+    }
+}
+
+void KinWavSed_CH::Set1DData(const char* key, int nRows, int* data) {
+    string s(key);
+
+    CheckInputSize(key, nRows);
+
+    if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
+
+    
+    else {
+        throw ModelException(M_KINWAVSED_CH[0], "SetValue", "Parameter " + s +
+            " does not exist.");
     }
 }
 
@@ -178,7 +191,7 @@ void KinWavSed_CH::SetReaches(clsReaches *reaches) {
 
 void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     /*string sk(key);
-    *nRows = m_chNumber;
+    *nRows = m_chNumber + 1;
     if (StringMatch(sk, "SEDCONC"))
         *data = m_ChQ;
     else if (StringMatch(sk, "SEDINFLOW"))
@@ -252,11 +265,11 @@ bool KinWavSed_CH::CheckInputData() {
         throw ModelException(M_KINWAVSED_CH[0], "CheckInputData", "The flow out index can not be NULL.");
         return false;
     }
-    if (nullptr == m_streamOrder) {
-        throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
-                             "The stream order of reach parameter can not be NULL.");
-        return false;
-    }
+    //if (nullptr == m_streamOrder) {
+    //    throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
+    //                         "The stream order of reach parameter can not be NULL.");
+    //    return false;
+    //}
     if (nullptr == m_reachDownStream) {
         throw ModelException(M_KINWAVSED_CH[0], "CheckInputData",
                              "The downstream of reach in reach parameter can not be NULL.");
@@ -313,8 +326,8 @@ void KinWavSed_CH::initial() {
 
         if (nullptr == m_CHSed_kg) {
             // find source cells the reaches
-            m_sourceCellIds = new int[m_chNumber];
-            for (int i = 0; i < m_chNumber; ++i) {
+            m_sourceCellIds = new int[m_chNumber + 1];
+            for (int i = 1; i <= m_chNumber; ++i) {
                 m_sourceCellIds[i] = -1;
             }
             for (int i = 0; i < m_nCells; i++) {
@@ -337,37 +350,44 @@ void KinWavSed_CH::initial() {
                 }
 
                 if (isSource) {
-                    int reachIndex = m_idToIndex[reachId];
-                    m_sourceCellIds[reachIndex] = i;
-                }
-            }
-            // get the cells in reaches according to flow direction
-            for (int iCh = 0; iCh < m_chNumber; iCh++) {
-                int iCell = m_sourceCellIds[iCh];
-                int reachId = (int) m_streamLink[iCell];
-                while ((int) m_streamLink[iCell] == reachId) {
-                    m_reachs[iCh].push_back(iCell);
-                    iCell = (int) m_flowOutIdx[iCell];
+                    /*int reachIndex = m_idToIndex[reachId];*/
+                    m_sourceCellIds[reachId] = i;
                 }
             }
 
-            if (m_reachLayers.empty()) {
-                for (int i = 0; i < m_chNumber; i++) {
+            // get the cells in reaches according to flow direction
+            for (int iCh = 1; iCh <= m_chNumber; iCh++) {
+                int iCell = m_sourceCellIds[iCh];
+                int reachId = (int)m_streamLink[iCell];
+
+                while ((int)m_streamLink[iCell] == reachId) {
+                    m_reachs[iCh].push_back(iCell);
+                    if (m_flowOutIdx[iCell][1] < 0)
+                    {
+                        break;
+                    }
+
+                    iCell = (int)m_flowOutIdx[iCell][1];
+                }
+            }
+
+            /*if (m_reachLayers.empty()) {
+                for (int i = 1; i <= m_chNumber; i++) {
                     int order = (int) m_streamOrder[i];
                     m_reachLayers[order].push_back(i);
                 }
-            }
+            }*/
 
-            m_CHDETFlow = new float *[m_chNumber];
-            m_CHSedDep = new float *[m_chNumber];
-            m_CHSedConc = new float *[m_chNumber];
-            m_Qsn = new float *[m_chNumber];
+            m_CHDETFlow = new float *[m_chNumber + 1];
+            m_CHSedDep = new float *[m_chNumber + 1];
+            m_CHSedConc = new float *[m_chNumber + 1];
+            m_Qsn = new float *[m_chNumber + 1];
             //m_Qlastt = new float[m_chNumber];
-            m_CHSed_kg = new float *[m_chNumber];
+            m_CHSed_kg = new float *[m_chNumber + 1];
             //m_SedSubbasin = new float[m_chNumber];
-            m_ChVol = new float *[m_chNumber];
-            m_ChV = new float *[m_chNumber];
-            for (int i = 0; i < m_chNumber; ++i) {
+            m_ChVol = new float *[m_chNumber + 1];
+            m_ChV = new float *[m_chNumber + 1];
+            for (int i = 1; i <= m_chNumber; ++i) {
                 //m_SedSubbasin[i] = 0.0f;
                 int n = CVT_INT(m_reachs[i].size());
                 m_CHDETFlow[i] = new float[n];

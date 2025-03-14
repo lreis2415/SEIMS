@@ -42,6 +42,8 @@ public:
 
     virtual void Set1DData(const char *key, int n, float *data);
 
+    virtual void Set1DData(const char* key, int n, int* data);
+
     virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
@@ -123,7 +125,7 @@ private:
     /// channel number
     int m_chNumber;
     /// stream link
-    float *m_streamLink;
+    int *m_streamLink;
     /// map from subbasin id to index of the array
     map<int, int> m_idToIndex;
     /// Manning N

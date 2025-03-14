@@ -139,10 +139,10 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
 
     if (m_hCh == nullptr) {
         // find source cells the reaches
-        m_sourceCellIds = new int[m_chNumber];
+        m_sourceCellIds = new int[m_chNumber + 1];
         //m_qsInput = new float[m_chNumber+1];
 
-        for (int i = 0; i < m_chNumber; ++i) {
+        for (int i = 1; i <= m_chNumber; ++i) {
             m_sourceCellIds[i] = -1;
             //m_qsInput[i] = 0.f;
         }
@@ -176,22 +176,28 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
         //    cout << m_sourceCellIds[i] << endl;
 
         // get the cells in reaches according to flow direction
-        for (int iCh = 0; iCh < m_chNumber; iCh++) {
+        for (int iCh = 1; iCh <= m_chNumber; iCh++) {
             int iCell = m_sourceCellIds[iCh];
-            int reachId = (int) m_streamLink[iCell];
-            while ((int) m_streamLink[iCell] == reachId) {
+            int reachId = (int)m_streamLink[iCell];
+
+            while ((int)m_streamLink[iCell] == reachId) {
                 m_reachs[iCh].push_back(iCell);
-                iCell = (int) m_flowOutIdx[iCell];
+                if (m_flowOutIdx[iCell][1] < 0)
+                {
+                    break;
+                }
+
+                iCell = (int)m_flowOutIdx[iCell][1];
             }
         }
 
-        m_hCh = new float *[m_chNumber];
-        m_qCh = new float *[m_chNumber];
+        m_hCh = new float *[m_chNumber + 1];
+        m_qCh = new float *[m_chNumber + 1];
 
-        //m_flowLen = new float *[m_chNumber];
+        //m_flowLen = new float *[m_chNumber + 1];
 
-        m_qSubbasin = new float[m_chNumber];
-        for (int i = 0; i < m_chNumber; ++i) {
+        m_qSubbasin = new float[m_chNumber + 1];
+        for (int i = 1; i <= m_chNumber; ++i) {
             int n = CVT_INT(m_reachs[i].size());
             m_hCh[i] = new float[n];
             m_qCh[i] = new float[n];
@@ -217,9 +223,9 @@ void ImplicitKinematicWave_CH::initialOutputs2() {
         return;
     }
 
-    m_flowLen = new float *[m_chNumber];
+    m_flowLen = new float *[m_chNumber + 1];
 
-    for (int i = 0; i < m_chNumber; ++i) {
+    for (int i = 1; i <= m_chNumber; ++i) {
         int n = m_reachs[i].size();
         m_flowLen[i] = new float[n];
 
@@ -429,7 +435,7 @@ void ImplicitKinematicWave_CH::Set1DData(const char *key, int n, float *data) {
 
 void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
-    *n = m_chNumber;
+    *n = m_chNumber + 1;
     // TODO. Check.
     if (StringMatch(sk, VAR_QRECH[0])) {
         *data = m_qSubbasin;
@@ -450,7 +456,7 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nrows, int *ncols
         InitialOutputs();
     }
     string sk(key);
-    *nrows = m_chNumber;
+    *nrows = m_chNumber + 1;
     //if (StringMatch(sk, VAR_QRECH)) {  //TODO QRECH is DT_array1D? LJ
         //*data = m_qCh;
     //}

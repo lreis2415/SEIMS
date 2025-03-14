@@ -1,6 +1,6 @@
 #include "DiffusiveWave.h"
-
 #include "text.h"
+using namespace std;
 
 DiffusiveWave::DiffusiveWave() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
@@ -80,10 +80,11 @@ void DiffusiveWave:: InitialOutputs() {
 
     if (m_hCh == nullptr) {
         // find source cells the reaches
-        m_sourceCellIds = new int[m_chNumber];
-        for (int i = 0; i < m_chNumber; ++i) {
+        m_sourceCellIds = new int[m_chNumber + 1];
+        for (int i = 1; i <= m_chNumber; ++i) {
             m_sourceCellIds[i] = -1;
         }
+        /*int reachIndex = 0;*/
         for (int i = 0; i < m_nCells; i++) {
             if (FloatEqual(m_streamLink[i], NODATA_VALUE)) {
                 continue;
@@ -102,33 +103,45 @@ void DiffusiveWave:: InitialOutputs() {
             if ((int) m_flowInIndex[i][0] == 0) {
                 isSource = true;
             }
+            
+            //if (isSource) {
+            //    if (m_idToIndex.find(reachId) == m_idToIndex.end())
+            //    {
+            //        m_idToIndex.insert(pair<int, int>(reachId, reachIndex));
+            //    }
+            //    /*int reachIndex = m_idToIndex[reachId];*/
+                m_sourceCellIds[reachId] = i;
 
-            if (isSource) {
-                int reachIndex = m_idToIndex[reachId];
-                m_sourceCellIds[reachIndex] = i;
-            }
+            //    reachIndex++;           
+            //}
         }
 
-        //for(int i = 0; i < m_chNumber; i++)
-        //	cout << m_sourceCellIds[i] << endl;
+        /*for(int i = 1; i <= m_chNumber; i++)
+        	cout << m_sourceCellIds[i] << endl;*/
 
         // get the cells in reaches according to flow direction
-        for (int iCh = 0; iCh < m_chNumber; iCh++) {
+        for (int iCh = 1; iCh <= m_chNumber; iCh++) {
             int iCell = m_sourceCellIds[iCh];
             int reachId = (int) m_streamLink[iCell];
-            while ((int) m_streamLink[iCell] == reachId) {
+
+            while ((int)m_streamLink[iCell] == reachId ) {
                 m_reachs[iCh].push_back(iCell);
-                iCell = (int) m_flowOutIdx[iCell];
+                if(m_flowOutIdx[iCell][1] <0 )
+                {
+                    break;
+                }
+                
+                iCell = (int)m_flowOutIdx[iCell][1];
             }
         }
 
-        m_hCh = new float *[m_chNumber];
-        m_qCh = new float *[m_chNumber];
+        m_hCh = new float *[m_chNumber + 1];
+        m_qCh = new float *[m_chNumber + 1];
 
-        m_flowLen = new float *[m_chNumber];
+        m_flowLen = new float *[m_chNumber + 1];
 
-        m_qSubbasin = new float[m_chNumber];
-        for (int i = 0; i < m_chNumber; ++i) {
+        m_qSubbasin = new float[m_chNumber + 1];
+        for (int i = 1; i <= m_chNumber; ++i) {
             int n = m_reachs[i].size();
             m_hCh[i] = new float[n];
             m_qCh[i] = new float[n];
@@ -298,7 +311,7 @@ void DiffusiveWave::SetValue(const char* key, const int value) {
     }
 }
 
-void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
+void DiffusiveWave::Set1DData(const char *key, int n, FLTPT *data) {
     string sk(key);
     //check the input data
     CheckInputSize(M_CH_DW[0], key, n, m_nCells);
@@ -317,8 +330,6 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
         m_qs = data;
     } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
-    } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
-        m_streamLink = data;
     }
     //else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index
     //    m_flowOutIdx = data;
@@ -332,6 +343,21 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
     else {
         throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
                              + " does not exist.");
+    }
+}
+
+void DiffusiveWave::Set1DData(const char* key, int n, int* data) {
+    string sk(key);
+    //check the input data
+    CheckInputSize(M_CH_DW[0], key, n, m_nCells);
+
+    if (StringMatch(sk, VAR_STREAM_LINK[0])) {
+        m_streamLink = data;
+    }
+
+    else {
+        throw ModelException(M_CH_DW[0], "Set1DData", "Parameter " + sk
+            + " does not exist.");
     }
 }
 
@@ -352,7 +378,7 @@ void DiffusiveWave::SetReaches(clsReaches *reaches) {
 void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     //*n = m_nCells;
-    *n = m_chNumber;
+    *n = m_chNumber + 1;
     if (StringMatch(sk, VAR_QSUBBASIN[0])) {
         *data = m_qSubbasin;
     }
@@ -372,7 +398,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
 
 void DiffusiveWave::Get2DData(const char *key, int *nrows, int *ncols, float ***data) {
     string sk(key);
-    *nrows = m_chNumber;
+    *nrows = m_chNumber + 1;
     if (StringMatch(sk, VAR_QCH[0])) {
         *data = m_qCh;
     } else if (StringMatch(sk, VAR_HCH[0])) {

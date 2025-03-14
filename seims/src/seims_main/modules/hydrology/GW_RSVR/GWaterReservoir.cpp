@@ -142,8 +142,6 @@ void GWaterReservoir::SetValue(const char *key, FLTPT value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
-    } else if (StringMatch(sk, Tag_SubbasinId)) {
-        m_subbasinID = int(value);
     } else if (StringMatch(sk, VAR_GW_KG[0])) {
         m_recessionCoefficient = value;
     } else if (StringMatch(sk, VAR_Base_ex[0])) {
@@ -161,6 +159,9 @@ void GWaterReservoir::SetValue(const char* key, int value) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
+    }
+    else if (StringMatch(sk, Tag_SubbasinId)) {
+        m_subbasinID = value;
     }
     else {
         throw ModelException(M_GW_RSVR[0], "SetValue", "Parameter " + sk + " does not exist in SetValue method.");

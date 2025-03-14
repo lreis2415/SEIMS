@@ -357,7 +357,7 @@ void ImplicitKinematicWave_OL::SetValue(const char* key, int data) {
 
 }
 
-void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, float *data) {
+void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, FLTPT *data) {
     //check the input data
     CheckInputSize(key, n);
     string sk(key);
@@ -377,11 +377,23 @@ void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, float *data) {
         m_accumuDepth = data;
     } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
-    } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
-        m_streamLink = data;
-    } else {
+    }else {
         throw ModelException(M_IKW_OL[0], "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
+    }
+
+}
+
+void ImplicitKinematicWave_OL::Set1DData(const char* key, int n, int* data) {
+    //check the input data
+    CheckInputSize(key, n);
+    string sk(key);
+    if (StringMatch(sk, VAR_STREAM_LINK[0])) {
+     m_streamLink = data;
+    }
+    else {
+    throw ModelException(M_IKW_OL[0], "Set1DData", "Parameter " + sk
+        + " does not exist. Please contact the module developer.");
     }
 
 }

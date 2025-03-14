@@ -57,14 +57,13 @@ void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
 
 }
 
-void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
+void KinWavSed_OL::Set1DData(const char *key, int nRows, FLTPT *data) {
     string s(key);
 
     CheckInputSize(key, nRows);
 
     if (StringMatch(s, VAR_SLOPE[0])) { m_Slope = data; }
     else if (StringMatch(s, VAR_MANNING[0])) { m_ManningN = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
     else if (StringMatch(s, VAR_USLE_C[0])) { m_USLE_C = data; }
     else if (StringMatch(s, VAR_CHWIDTH[0])) {
         m_chWidth = data;
@@ -76,6 +75,19 @@ void KinWavSed_OL::Set1DData(const char *key, int nRows, float *data) {
     else {
         throw ModelException(M_KINWAVSED_OL[0], "Set1DData", "Parameter " + s +
                              " does not exist.");
+    }
+}
+
+void KinWavSed_OL::Set1DData(const char* key, int nRows, int* data) {
+    string s(key);
+
+    CheckInputSize(key, nRows);
+
+    if (StringMatch(s, VAR_STREAM_LINK[0])) { m_streamLink = data; }
+    
+    else {
+        throw ModelException(M_KINWAVSED_OL[0], "Set1DData", "Parameter " + s +
+            " does not exist.");
     }
 }
 

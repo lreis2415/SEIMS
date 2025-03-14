@@ -35,7 +35,9 @@ public:
 
     void SetValue(const char* key, const int value) OVERRIDE;
    
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char *key, int n, FLTPT *data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
 
     void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
@@ -62,7 +64,7 @@ private:
     float *m_s0; ///< slope (percent)
     float *m_chWidth; ///< channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells) 
     float *m_elevation; ///< elevation
-    float *m_streamLink; ///< stream link
+    int *m_streamLink; ///< stream link
     /**
     *	@brief flow direction by the rule of TauDEM
     *   4  3  2

@@ -38,7 +38,9 @@ public:
 
     virtual void GetValue(const char *key, float *data);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
+
+    virtual void Set1DData(const char* key, int n, int* data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -129,7 +131,7 @@ private:
     /// flow width of each cell
     float *m_flowWidth;
     /// stream link
-    float *m_streamLink;
+    int *m_streamLink;
     /// flow length of each cell
     float *m_flowLen;
     /// alpha in manning equation

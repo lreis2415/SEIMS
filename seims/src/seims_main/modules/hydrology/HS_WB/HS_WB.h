@@ -31,7 +31,7 @@ private:
     /// inputs
     float m_dtHs;
     float m_dtCh;
-    float *m_streamLink;
+    int *m_streamLink;
     float *m_qs;
     float *m_qi;
     int m_nReaches;
@@ -83,7 +83,9 @@ public:
 
     virtual void SetValue(const char *key, float data);
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    virtual void Set1DData(const char *key, int nRows, FLTPT *data);
+
+    virtual void Set1DData(const char* key, int nRows, int* data);
 
     //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
