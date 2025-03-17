@@ -1,6 +1,7 @@
 #include "DiffusiveWave.h"
 #include "text.h"
-using namespace std;
+#include <queue>
+//using namespace std;
 
 DiffusiveWave::DiffusiveWave() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
@@ -121,18 +122,44 @@ void DiffusiveWave:: InitialOutputs() {
 
         // get the cells in reaches according to flow direction
         for (int iCh = 1; iCh <= m_chNumber; iCh++) {
+            std::queue<int> q;
             int iCell = m_sourceCellIds[iCh];
-            int reachId = (int) m_streamLink[iCell];
 
-            while ((int)m_streamLink[iCell] == reachId ) {
+            if (iCell < 0) continue; // invalid source cell
+
+            int reachId = (int) m_streamLink[iCell]; //get current reachID
+            q.push(iCell); // push source cell
+
+            while (!q.empty())
+            {
+                int curCell = q.front();
+                q.pop(); // dequeue the first cell
+
+                if ((int)m_streamLink[iCell] != reachId) {
+                    continue; //skip the cell not belong to this reach
+                }
+                m_reachs[iCh].push_back(curCell); // add the cell to the reach list
+                int num_outflows = m_flowOutIdx[curCell][0];
+                for (int k = 1; k <= num_outflows; ++k)
+                {
+                    int nextCell = m_flowOutIdx[curCell][k]; //get downstream cell
+                    if (nextCell >= 0)
+                    {
+                        q.push(nextCell);
+                    }
+                }
+            }
+
+            /*while ((int)m_streamLink[iCell] == reachId ) {
                 m_reachs[iCh].push_back(iCell);
+
                 if(m_flowOutIdx[iCell][1] <0 )
                 {
                     break;
                 }
-                
+               
                 iCell = (int)m_flowOutIdx[iCell][1];
-            }
+            }*/
         }
 
         m_hCh = new float *[m_chNumber + 1];
@@ -428,7 +455,7 @@ void DiffusiveWave::Set2DData(const char* key, int nrows, int ncols, int** data)
     else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
         m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
-            if (m_flowOutIdx[i][0] == 1 && m_flowOutIdx[i][1] < 0) {
+            if (m_flowOutIdx[i][0] == 0 && m_flowOutIdx[i][1] < 0) {
                 m_idOutlet = i;
                 break;
             }

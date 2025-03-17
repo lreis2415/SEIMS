@@ -1,5 +1,6 @@
 #include "KinWavSed_CH.h"
 #include "text.h"
+#include <queue>
 
 //using namespace std;  // Avoid this statement! by lj.
 
@@ -357,6 +358,47 @@ void KinWavSed_CH::initial() {
 
             // get the cells in reaches according to flow direction
             for (int iCh = 1; iCh <= m_chNumber; iCh++) {
+                std::queue<int> q;
+                int iCell = m_sourceCellIds[iCh];
+
+                if (iCell < 0) continue; // invalid source cell
+
+                int reachId = (int)m_streamLink[iCell]; //get current reachID
+                q.push(iCell); // push source cell
+
+                while (!q.empty())
+                {
+                    int curCell = q.front();
+                    q.pop(); // dequeue the first cell
+
+                    if ((int)m_streamLink[iCell] != reachId) {
+                        continue; //skip the cell not belong to this reach
+                    }
+                    m_reachs[iCh].push_back(curCell); // add the cell to the reach list
+                    int num_outflows = m_flowOutIdx[curCell][0];
+                    for (int k = 1; k <= num_outflows; ++k)
+                    {
+                        int nextCell = m_flowOutIdx[curCell][k]; //get downstream cell
+                        if (nextCell >= 0)
+                        {
+                            q.push(nextCell);
+                        }
+                    }
+                }
+
+                /*while ((int)m_streamLink[iCell] == reachId ) {
+                    m_reachs[iCh].push_back(iCell);
+
+                    if(m_flowOutIdx[iCell][1] <0 )
+                    {
+                        break;
+                    }
+
+                    iCell = (int)m_flowOutIdx[iCell][1];
+                }*/
+            }
+
+            /*for (int iCh = 1; iCh <= m_chNumber; iCh++) {
                 int iCell = m_sourceCellIds[iCh];
                 int reachId = (int)m_streamLink[iCell];
 
@@ -369,7 +411,7 @@ void KinWavSed_CH::initial() {
 
                     iCell = (int)m_flowOutIdx[iCell][1];
                 }
-            }
+            }*/
 
             /*if (m_reachLayers.empty()) {
                 for (int i = 1; i <= m_chNumber; i++) {
