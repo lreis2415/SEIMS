@@ -143,6 +143,7 @@ private:
 
     /// id of source cells of reaches
     int *m_sourceCellIds;
+
 };
 
 #endif /* SEIMS_MODULE_CH_DW_H */

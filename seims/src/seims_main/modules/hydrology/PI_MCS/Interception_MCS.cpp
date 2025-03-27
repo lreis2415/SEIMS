@@ -105,6 +105,11 @@ int clsPI_MCS::Execute() {
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+        //if (i == 2)
+        //{
+        //    std::cout << m_pcp[i] << endl;
+
+        //}
         if (m_pcp[i] > 0.) {
             if (m_stormMode) {
                 /// correction for slope gradient, water spreads out over larger area

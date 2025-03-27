@@ -1,6 +1,6 @@
-# ALL INITIAL MODEL PARAMETERS.
-# Table title (columns are split by COMMA and each element should not contain COMMA!)
-# Last updated: 2022-08-23
+# ALL INITIAL MODEL PARAMETERS.,,,,,,,,,,
+# Table title (columns are split by COMMA and each element should not contain COMMA!),,,,,,,,,,
+# Last updated: 2022-08-23,,,,,,,,,,
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN,DTYPE
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0,FLT
 Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0,FLT

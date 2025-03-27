@@ -87,6 +87,9 @@ Subsurface runoff,SSRU,Subsurface runoff,mm,SUM,1970/1/1 0:00,1970/1/1 0:00,-999
 Subsurface runoff,SSRUVOL,Subsurface runoff volume,m3,SUM,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,SSRUVOL.tif,0
 Subsurface runoff,SBIF,Subsurface runoff discharge to streams from each subbasin,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,OUTLET,SBIF.txt,0
 Discharge,QRECH,Discharge at reach outlet of each time step,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
+Discharge,QSUBBASIN,Discharge at reach outlet of each time step,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
+Discharge,QSOIL,discharge added to channel flow from interflow,m3/s,SUM,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
+Discharge,QOVERLAND,Water discharge in the downslope boundary of cells,m3/s,SUM,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
 Sediment,SEDRECH,Sediment concentration,kg,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,SED.txt,0
 Sediment,SEDRECHConc,Sediment concentration,mg/L,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,SEDConc.txt,0
 Groundwater,REVAP,revaporization from groundwater,mm,MAX,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,REVAP.tif,0

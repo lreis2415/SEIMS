@@ -10,9 +10,9 @@
 5 | Overland flow | IKW overland | IKW_OL
 6 | percolation | Darcy method | PERCO_DARCY
 7 | interflow | ikw method | IKW_IF
-8 | groundwater | resevoir method | GW_RSVR
+#8 | groundwater | resevoir method | GW_RSVR
 #9 | ChannelRouting | MSK method | IKW_CH
 9 | ChannelRouting | Diffusive wave | CH_DW
-10 | Soil Detachment | PARK_FOSTER | SPLASHERO_PARK
-11 | Overland Erosion | KinWavSed_OL | KINWAVSED_OL
-12 | Channel Erosion | KinWavSed_CH | KINWAVSED_CH
+### 10 | Soil Detachment | PARK_FOSTER | SPLASHERO_PARK
+### 11 | Overland Erosion | KinWavSed_OL | KINWAVSED_OL
+### 12 | Channel Erosion | KinWavSed_CH | KINWAVSED_CH

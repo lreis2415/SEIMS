@@ -79,7 +79,28 @@ void DiffusiveWave:: InitialOutputs() {
         throw ModelException(M_CH_DW[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
-    if (m_hCh == nullptr) {
+    /*if (m_stormMode)
+    {
+        struct tm* date_info = new tm();
+        LocalTime(m_date, date_info);
+        int hour = date_info->tm_hour;
+        int min = date_info->tm_min;
+
+        if (hour == 8 && min == 0)
+        {
+            m_qCh = nullptr;
+            m_hCh = nullptr;
+            m_qSubbasin = nullptr;
+            m_flowLen = nullptr;
+            m_qUpReach = 0.f;
+            m_qs = 0;
+            m_qi = 0;
+        }
+    }*/
+
+
+    if (m_qCh == nullptr) {
+
         // find source cells the reaches
         m_sourceCellIds = new int[m_chNumber + 1];
         for (int i = 1; i <= m_chNumber; ++i) {
@@ -87,6 +108,7 @@ void DiffusiveWave:: InitialOutputs() {
         }
         /*int reachIndex = 0;*/
         for (int i = 0; i < m_nCells; i++) {
+            //std::cout << "the total number of Cells is  " << m_nCells << endl;
             if (FloatEqual(m_streamLink[i], NODATA_VALUE)) {
                 continue;
             }
@@ -117,8 +139,8 @@ void DiffusiveWave:: InitialOutputs() {
             //}
         }
 
-        /*for(int i = 1; i <= m_chNumber; i++)
-        	cout << m_sourceCellIds[i] << endl;*/
+        //for(int i = 1; i <= m_chNumber; i++)
+        //	cout << m_sourceCellIds[i] << endl;
 
         // get the cells in reaches according to flow direction
         for (int iCh = 1; iCh <= m_chNumber; iCh++) {
@@ -204,6 +226,7 @@ void DiffusiveWave:: InitialOutputs() {
 
 //! Channel flow
 void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
+   
 
     float qUp = 0.f;
     float hUp = 0.f;
@@ -215,10 +238,15 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     // inflow from upstream channel
     if (iCell == 0) { // inflow of this cell is the last cell of the upstream reach
         for (size_t i = 0; i < m_reachUpStream[iReach].size(); ++i) {
+
+            
+
             int upReachId = m_reachUpStream[iReach][i];
             if (upReachId >= 0) {
                 int upCellsNum = m_reachs[upReachId].size();
                 int upCellId = m_reachs[upReachId][upCellsNum - 1];
+
+
                 qUp += m_qCh[upReachId][upCellsNum - 1];
 
                 float hWater = m_elevation[upCellId] + m_hCh[upReachId][upCellsNum - 1];
@@ -290,6 +318,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
         m_hCh[iReach][iCell] = c * CalPow(qNew, 0.6f) / m_chWidth[iReach];
         //float hh = (qUp + qLat*dx - qNew)*m_dt/(m_chWidth[iReach]*dx) + m_hCh[iReach][iCell];
     }
+    
 }
 
 //! Main execute function
@@ -301,16 +330,21 @@ int DiffusiveWave::Execute() {
         //   So parallelization can be done here.
         int nReaches = it->second.size();
         // the size of m_reachLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < nReaches; ++i) {
-            int reachIndex = it->second[i]; // index in the array
+            int reachIndex = it->second[i]; // index in the array           
             vector<int> &vecCells = m_reachs[reachIndex];
             int n = vecCells.size();
+            
+            //std::cout << "the verCell of reachid  " << reachIndex << " is " << n << endl;
+
             for (int iCell = 0; iCell < n; iCell++) {
                 ChannelFlow(reachIndex, iCell, vecCells[iCell]);
             }
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
+            //std::cout <<"the Q of reachId   "<< reachIndex << " is " << m_qSubbasin[reachIndex] << endl;
         }
+        //std::cout << "outlet_Q " << m_qSubbasin[4] << endl;
     }
     return 0;
 }
@@ -456,7 +490,13 @@ void DiffusiveWave::Set2DData(const char* key, int nrows, int ncols, int** data)
         m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
             if (m_flowOutIdx[i][0] == 0 && m_flowOutIdx[i][1] < 0) {
+                
                 m_idOutlet = i;
+                if (m_idOutlet < 0)
+                {
+                    throw ModelException(M_CH_DW[0], "Set2DData",
+                        "m_idOutlet does not exist.");
+                }
                 break;
             }
         }

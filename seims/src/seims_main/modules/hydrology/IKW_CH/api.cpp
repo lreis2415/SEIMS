@@ -46,7 +46,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], Source_Module, DT_Array1D);
 
     // output
-    mdi.AddOutput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], DT_Array1D);
+    //mdi.AddOutput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], DT_Array1D);
+    mdi.AddInput(VAR_QCH[0], UNIT_FLOW_CMS, VAR_QCH[1], Source_Module, DT_Array2D);
     mdi.AddOutput(VAR_QTOTAL[0], UNIT_FLOW_CMS, VAR_QTOTAL[1], DT_Single);
     mdi.AddOutput(VAR_QSUBBASIN[0], UNIT_FLOW_CMS, VAR_QSUBBASIN[1], DT_Array1D);
     mdi.AddOutput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], DT_Array2D);

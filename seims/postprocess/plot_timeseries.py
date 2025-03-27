@@ -201,7 +201,8 @@ class TimeSeriesPlots(object):
                           marker='+', markersize=2, linewidth=0.8)
             plt.xlabel(xaxis_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # format the ticks date axis
-            date_fmt = mdates.DateFormatter('%m-%d-%y')
+            # date_fmt = mdates.DateFormatter('%m-%d-%y')
+            date_fmt = mdates.DateFormatter('%H:%M')
             # autodates = mdates.AutoDateLocator()
             # days = mdates.DayLocator(bymonthday=range(1, 32), interval=4)
             # months = mdates.MonthLocator()
@@ -234,11 +235,12 @@ class TimeSeriesPlots(object):
             pcp_date = [v[0] for v in self.pcp_date_value]
             preci = [v[1] for v in self.pcp_date_value]
             p3 = ax2.bar(pcp_date, preci, label=pcp_str, color='blue', linewidth=0,
-                         align='center')
-            ax2.set_ylim(float(max(preci)) * 1.8, float(min(preci)) * 0.8)
+                         align='center',width=0.01)
+            ax2.set_ylim(float(max(preci)) * 2.1, float(min(preci)) * 0.3)
             # draw a dash line to separate calibration and validation period
             delta_dt = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) // 9
             delta_dt2 = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) // 35
+
             # by default, separate time line is the end of calibration period
             sep_time = self.etime
             time_pos = [sep_time - delta_dt]

@@ -462,7 +462,13 @@ void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, 
         m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
             if (m_flowOutIdx[i][0] == 0 && m_flowOutIdx[i][1] < 0) {
+
                 m_idOutlet = i;
+                if (m_idOutlet < 0)
+                {
+                    throw ModelException(M_CH_DW[0], "Set2DData",
+                        "m_idOutlet does not exist.");
+                }
                 break;
             }
         }
