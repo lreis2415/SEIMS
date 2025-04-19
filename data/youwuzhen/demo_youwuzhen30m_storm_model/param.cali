@@ -1,2 +1,16 @@
-# Moist_in,0.01
-Conductivity,2
+#Conductivity,1.2
+ch_width,0.8
+#Depression,0.8
+Ki,10
+Poreindex,1.2
+#Sand,0.1
+
+# slight change
+#Fieldcap,0.2 
+#Poreindex,0.8
+
+#change the shape
+#Depre_in,0.1
+#Slope,-1
+#MANNING,2
+#Porosity,0.2

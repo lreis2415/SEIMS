@@ -7,7 +7,7 @@ InterFlow_IKW::InterFlow_IKW() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chWidth(nullptr),
     m_s0(nullptr), m_rootDepth(nullptr), m_ks(nullptr), m_landuseFactor(1.f),
     m_soilWtrSto(nullptr), m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
-    m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),
+    m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),m_nSoilLyrs(nullptr),
     m_q(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr) {
 }
 
@@ -78,7 +78,10 @@ bool InterFlow_IKW::CheckInputData(void) {
     if (m_sr == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The parameter D_SURU is not set.");
     }
-
+    if (m_nSoilLyrs == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil layers can not be nullptr.");
+    }
+    CHECK_POINTER(M_IKW_IF[0], m_nSoilLyrs);
     return true;
 }
 
@@ -120,11 +123,13 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
             m_q[id] = qUp;
             m_h[id] = 0.f;
         }
-        //return;
+        //The river course fills the entire cell, and the soil width is 0.
+        //Return directly to prevent m_q on the river channel from being set as nodata
+        return true;
     }
 
    	// adjust soil moisture
-	for (int j = 0; j < (int)m_nSoilLyrs; j++) {
+	for (int j = 0; j < m_nSoilLyrs[id]; j++) {
 		//float s0 = m_s0[id];
 		float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
 		m_soilWtrSto[id][j] += qUp * m_dt / soilVolumn;
@@ -161,6 +166,9 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 		// adjust soil moisture
 		m_soilWtrSto[id][j] -= interFlow / soilVolumn;
 	}
+    //std::cout << "id = " << id << ", flowWidth = " << flowWidth
+    //    << ", m_streamLink[id] = " << m_streamLink[id]
+    //    << ", qUp = " << qUp << ", m_q[id] = " << m_q[id] << std::endl;
 	return true;
 }
 
@@ -174,10 +182,13 @@ int InterFlow_IKW::Execute() {
         int nCells = (int) m_routingLayers[iLayer][0];
         //SetOpenMPThread(2);
 		int errCount = 0; //similar to SSR_DA, such that FlowInSoil(id) isn't called in omp loop
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];
-            if (!FlowInSoil(id)) errCount++;
+            if (!FlowInSoil(id))
+            {
+                errCount++;
+            }
         }
         if (errCount > 0) {
             throw ModelException(M_IKW_IF[0], "Execute:FlowInSoil",
@@ -241,6 +252,7 @@ void InterFlow_IKW::Set1DData(const char *key, int n, FLTPT *data) {
     string s(key);
     if (StringMatch(s, VAR_SLOPE[0])) {
         m_s0 = data;
+
     // } else if (StringMatch(s, VAR_SOILDEPTH[0])) {
     //     m_soilDepth = data;
     // } else if (StringMatch(s, VAR_FIELDCAP[0])) {
@@ -272,6 +284,9 @@ void InterFlow_IKW::Set1DData(const char* key, int n, int* data) {
     string s(key);
     if (StringMatch(s, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
+    }
+    else if (StringMatch(s, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
     }
     else {
         throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s

@@ -144,6 +144,10 @@ private:
     /// id of source cells of reaches
     int *m_sourceCellIds;
 
+    float* m_qsCh;
+    float* m_qiCh;
+    float* m_qgCh;
+
 };
 
 #endif /* SEIMS_MODULE_CH_DW_H */

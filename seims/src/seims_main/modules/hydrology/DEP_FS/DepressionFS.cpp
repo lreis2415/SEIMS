@@ -55,7 +55,7 @@ void DepressionFS::InitialOutputs() {
         m_ed = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            m_sd[i] = m_depCo * m_depCap[i];// �ݵ���ˮ��� = �ݵس�ʼ��ˮϵ�� * �ݵ����
+            m_sd[i] = m_depCo * m_depCap[i];//
             m_sr[i] = 0.0f;
         }
     }

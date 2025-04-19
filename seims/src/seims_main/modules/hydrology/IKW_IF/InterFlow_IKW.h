@@ -118,7 +118,7 @@ private:
     /// return flow
     float *m_hReturnFlow;
     /// number of soil layers of each cell
-	float m_nSoilLyrs;
+	int *m_nSoilLyrs;
 	int m_maxSoilLyrs;
 };
 #endif /* SEIMS_IKW_IF_H */

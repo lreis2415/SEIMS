@@ -7,7 +7,7 @@ DiffusiveWave::DiffusiveWave() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
     m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_reachN(nullptr),
     m_chWidth(nullptr),
-    m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_qSubbasin(nullptr),
+    m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_qSubbasin(nullptr),m_qsCh(nullptr),m_qiCh(nullptr),
     m_elevation(nullptr),
     m_flowLen(nullptr), m_qi(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
     m_streamLink(nullptr),
@@ -26,6 +26,10 @@ DiffusiveWave::~DiffusiveWave() {
     Release2DArray(m_flowLen);
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_qSubbasin);
+
+    //estimate qs and qi of the outlet
+    Release1DArray(m_qiCh);
+    Release1DArray(m_qsCh);
 }
 
 //! Check input data
@@ -190,6 +194,12 @@ void DiffusiveWave:: InitialOutputs() {
         m_flowLen = new float *[m_chNumber + 1];
 
         m_qSubbasin = new float[m_chNumber + 1];
+
+        //estimate qs and qi of the outlet
+        m_qiCh = new float[m_chNumber + 1];
+        m_qsCh = new float[m_chNumber + 1];
+
+
         for (int i = 1; i <= m_chNumber; ++i) {
             int n = m_reachs[i].size();
             m_hCh[i] = new float[n];
@@ -198,6 +208,10 @@ void DiffusiveWave:: InitialOutputs() {
             m_flowLen[i] = new float[n];
 
             m_qSubbasin[i] = 0.f;
+
+            //estimate qs and qi of the outlet
+            m_qiCh[i] = 0.f;
+            m_qsCh[i] = 0.f;
 
             int id;
             float s0, dx;
@@ -325,27 +339,58 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 int DiffusiveWave::Execute() {
     CheckInputData();
     InitialOutputs();
+    float total_qs = 0.0;
+    float total_qi = 0.0;
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are no flow relationships within each routing layer.
         //   So parallelization can be done here.
         int nReaches = it->second.size();
         // the size of m_reachLayers (map) is equal to the maximum stream order
 //#pragma omp parallel for
+       
         for (int i = 0; i < nReaches; ++i) {
             int reachIndex = it->second[i]; // index in the array           
             vector<int> &vecCells = m_reachs[reachIndex];
             int n = vecCells.size();
             
             //std::cout << "the verCell of reachid  " << reachIndex << " is " << n << endl;
-
+            
             for (int iCell = 0; iCell < n; iCell++) {
+                int id = vecCells[iCell];
+                //estimate qs and qi of the outlet
+                if (m_qs != nullptr) {
+                    total_qs += m_qs[id] / m_flowLen[reachIndex][iCell];
+                }
+                if (m_qi != nullptr) {
+                    total_qi += m_qi[id] / m_flowLen[reachIndex][iCell];
+                }
+
                 ChannelFlow(reachIndex, iCell, vecCells[iCell]);
             }
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
-            //std::cout <<"the Q of reachId   "<< reachIndex << " is " << m_qSubbasin[reachIndex] << endl;
+            //estimate qs and qi of the outlet
+            
+            m_qsCh[reachIndex] = 0;
+            m_qiCh[reachIndex] = 0;
+
         }
-        //std::cout << "outlet_Q " << m_qSubbasin[4] << endl;
+        
     }
+    //test estimate qs and qi of the outlet
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it)
+    {
+        int nReaches = it->second.size();
+        for (int i = 0; i < nReaches; ++i)
+        {
+            int reachIndex = it->second[i];
+            m_qsCh[reachIndex] = total_qs;
+            m_qiCh[reachIndex] = total_qi;
+        }
+    }
+    m_qsCh[0] = total_qs;
+    m_qiCh[0] = total_qi;
+    //
+
     return 0;
 }
 
@@ -440,9 +485,21 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     //*n = m_nCells;
     *n = m_chNumber + 1;
+    int iOutlet = m_reachLayers.rbegin()->second[0];
     if (StringMatch(sk, VAR_QSUBBASIN[0])) {
         *data = m_qSubbasin;
     }
+    
+     else if (StringMatch(sk, VAR_QS[0])) {
+        *data = m_qsCh;
+        }
+     else if (StringMatch(sk, VAR_QI[0])) {
+        *data = m_qiCh;
+        }
+     /*else if (StringMatch(sk, VAR_QG[0])) {
+        m_qgCh[0] = m_qg[iOutlet];
+        *data = m_qg;
+    }*/
         /*else if (StringMatch(sk, "CHWATH"))
         {
         *data = m_chwath;

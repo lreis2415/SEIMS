@@ -47,6 +47,10 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_QSUBBASIN[0], UNIT_FLOW_CMS, VAR_QSUBBASIN[1], DT_Array1D);
     mdi.AddOutput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], DT_Array2D);
 
+    //mdi.AddOutput(VAR_QS[0], UNIT_FLOW_CMS, VAR_QS[1], DT_Array1D);//different from that of other modules,estimated result
+    //mdi.AddOutput(VAR_QI[0], UNIT_FLOW_CMS, VAR_QI[1], DT_Array1D); //different from that of other modules,estimated result
+    //mdi.AddOutput(VAR_QG[0], UNIT_FLOW_CMS, VAR_QG[1], DT_Array1D);
+
     string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
