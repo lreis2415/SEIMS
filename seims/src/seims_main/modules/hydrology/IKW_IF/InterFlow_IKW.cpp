@@ -118,10 +118,16 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
     float flowWidth = m_CellWidth;
     // there is no land in this cell
     if (m_streamLink[id] > 0) {
+        m_q[id] = qUp;
         flowWidth -= m_chWidth[id];
         if (flowWidth <= 0) {
-            m_q[id] = qUp;
+            
             m_h[id] = 0.f;
+            if (qUp > 0)
+            {
+                std::cout << "River Cell [" << id << "] gets qUp = " << qUp << std::endl;
+            }
+
         }
         //The river course fills the entire cell, and the soil width is 0.
         //Return directly to prevent m_q on the river channel from being set as nodata
