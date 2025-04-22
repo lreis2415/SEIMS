@@ -309,9 +309,8 @@ void SUR_CN::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_MOIST_IN[0])) { m_initSoilMoisture = data; }
     else if (StringMatch(sk, VAR_ROOTDEPTH[0])) { m_rootDepth = data; }
     else if (StringMatch(sk, VAR_NEPR[0])) { m_P_NET = data; }
-    else if (StringMatch(sk, VAR_DPST[0])) {
-        m_SD = data; //depression storage
-    } else if (StringMatch(sk, VAR_TMEAN[0])) { m_tMean = data; }
+    else if (StringMatch(sk, VAR_DPST[0])) { m_SD = data; } //depression storage
+    else if (StringMatch(sk, VAR_TMEAN[0])) { m_tMean = data; }
     else if (StringMatch(sk, VAR_SNME[0])) { m_SM = data; }
     else if (StringMatch(sk, VAR_SNAC[0])) { m_SA = data; }
     else if (StringMatch(sk, VAR_SOTE[0])) { m_TS = data; }
@@ -321,7 +320,7 @@ void SUR_CN::Set1DData(const char *key, int n, float *data) {
     }
 }
 
-void SUR_CN::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void SUR_CN::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     string sk(key);
     CheckInputSize(key, nrows);
     m_nSoilLayers = ncols;
@@ -335,7 +334,7 @@ void SUR_CN::Set2DData(const char *key, int nrows, int ncols, float **data) {
     }
 }
 
-void SUR_CN::Get1DData(const char *key, int *n, float **data) {
+void SUR_CN::Get1DData(const char *key, int *n, FLTPT **data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_INFIL[0])) { *data = m_INFIL; }
@@ -348,7 +347,7 @@ void SUR_CN::Get1DData(const char *key, int *n, float **data) {
     *n = m_nCells;
 }
 
-void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data) {
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;
@@ -359,8 +358,8 @@ void SUR_CN::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     }
 }
 
-float SUR_CN::Calculate_CN(float sm, int cell) {
-    float sw, s, CNday, xx;
+FLTPT SUR_CN::Calculate_CN(FLTPT sm, int cell) {
+    FLTPT sw, s, CNday, xx;
 
     s = 0.;
     sw = sm * m_rootDepth[cell];
@@ -380,17 +379,17 @@ float SUR_CN::Calculate_CN(float sm, int cell) {
 }
 
 void SUR_CN::initalW1W2() {
-    m_w1 = new float[m_nCells];
-    m_w2 = new float[m_nCells];
-    m_sMax = new float[m_nCells];
+    m_w1 = new FLTPT[m_nCells];
+    m_w2 = new FLTPT[m_nCells];
+    m_sMax = new FLTPT[m_nCells];
     if (m_upSoilDepth == NULL) {
-        m_upSoilDepth = new float[m_nSoilLayers];
+        m_upSoilDepth = new FLTPT[m_nSoilLayers];
     }
 
     for (int i = 0; i < m_nCells; i++) {
-        float fieldcap = 0.f;
-        float wsat = 0.f;
-        //float aboveDepth = 0.f;
+        FLTPT fieldcap = 0.f;
+        FLTPT wsat = 0.f;
+        //FLTPT aboveDepth = 0.f;
         ///// add by LJ.
         int curSoilLayers = -1, j;
         m_upSoilDepth[0] = m_soilDepth[i][0];
@@ -411,10 +410,10 @@ void SUR_CN::initalW1W2() {
         /* fieldcap += m_fieldCap[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);
          wsat += m_porosity[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);*/
 
-        float cnn = m_cn2[i];
-        //float fieldcap = m_fieldCap[i] * m_rootDepth[i];
-        //float wsat = m_porosity[i] * m_rootDepth[i];
-        float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
+        FLTPT cnn = m_cn2[i];
+        //FLTPT fieldcap = m_fieldCap[i] * m_rootDepth[i];
+        //FLTPT wsat = m_porosity[i] * m_rootDepth[i];
+        FLTPT c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;
         c2 = 100.0f - cnn;
         c1 = cnn - 20.f * c2 / (c2 + CalExp(2.533f - 0.0636f * c2));    //CN1  2:1.1.4
         c1 = Max(c1, 0.4f * cnn);
@@ -442,10 +441,10 @@ void SUR_CN::initalW1W2() {
 
 /// TODO: These code should be coupled to SUR_CN module. By LJ.
 /// curno.f in SWAT
-//float smxOld;
+//FLTPT smxOld;
 //if(m_CN1[i] > UTIL_ZERO)
 //	smxOld = 254. * (100. / m_CN1[i] - 1.);
-//float c2 = 0.f, c3 = 0.f;
+//FLTPT c2 = 0.f, c3 = 0.f;
 //m_CN3[i] = 0.f;
 //m_CN1[i] = 0.f;
 ///// calculate moisture condition I and III curve numbers
@@ -458,14 +457,14 @@ void SUR_CN::initalW1W2() {
 //m_reCoefSoilMois[i] = 254. * (100. / m_CN1[i] - 1.);
 
 //// calculate retention parameter value for CN3
-//float s3 = 254. * (100. / m_CN3[i] - 1.);
+//FLTPT s3 = 254. * (100. / m_CN3[i] - 1.);
 
 //// calculate fraction difference in retention parameters
-//float rto3 = 0.f, rtos = 0.f;
+//FLTPT rto3 = 0.f, rtos = 0.f;
 //rto3 = 1. - s3 / m_reCoefSoilMois[i];
 //rtos = 1. - 2.54 / m_reCoefSoilMois[i];
 ///// calculate shape parameters
-//float *w1, *w2;
+//FLTPT *w1, *w2;
 //getScurveShapeParameter(rto3, rtos, m_soilSumFC[i], m_soilSumUl[i], w1, w2);
 //if(m_yearIdx < 0) /// in SWAT, curyr is from 1 to nbyr. in SEIMS, m_yearIdx is start from 0
 //	m_reCoefCN[i] = 0.9 * m_reCoefSoilMois[i];
