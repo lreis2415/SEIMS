@@ -100,7 +100,7 @@ int clsPI_SVSC::Execute() {
     InitialOutputs();
 
     int julian = JulianDay(m_date);
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < this->m_nCells; i++) {
         if (m_P[i] > 0.f) {
 #ifdef STORM_MODE

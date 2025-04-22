@@ -125,7 +125,7 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
             m_h[id] = 0.f;
             if (qUp > 0)
             {
-                std::cout << "River Cell [" << id << "] gets qUp = " << qUp << std::endl;
+                //std::cout << "River Cell [" << id << "] gets qUp = " << qUp << std::endl;
             }
 
         }

@@ -7,7 +7,7 @@ DiffusiveWave::DiffusiveWave() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
     m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_reachN(nullptr),
     m_chWidth(nullptr),
-    m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_qSubbasin(nullptr),m_qsCh(nullptr),m_qiCh(nullptr),
+    m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_netPcp(nullptr), m_qSubbasin(nullptr),m_qsCh(nullptr),m_qiCh(nullptr),
     m_elevation(nullptr),
     m_flowLen(nullptr), m_qi(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
     m_streamLink(nullptr),
@@ -68,6 +68,9 @@ bool DiffusiveWave::CheckInputData(void) {
     }
 
     if (m_prec == nullptr) {
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
+    }
+    if (m_netPcp == nullptr) {
         throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
     }
     if (m_elevation == nullptr) {
@@ -278,7 +281,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     float h = m_hCh[iReach][iCell];
     float dx = m_flowLen[iReach][iCell];
 
-    float qLat = m_prec[id] / 1000.f * m_chWidth[id];
+    float qLat = m_netPcp[id] / 1000.f/m_dt * m_chWidth[id];
     if (m_qs != nullptr) {
         qLat += m_qs[id] / dx;
     }
@@ -367,6 +370,8 @@ int DiffusiveWave::Execute() {
 
                 ChannelFlow(reachIndex, iCell, vecCells[iCell]);
             }
+
+
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
             //estimate qs and qi of the outlet
             
@@ -374,7 +379,15 @@ int DiffusiveWave::Execute() {
             m_qiCh[reachIndex] = 0;
 
         }
-        
+        float total_prec = 0.0f;
+        float ave_prec = 0.0f;
+        for (int i = 0; i < m_nCells; ++i) {
+            total_prec += m_prec[i];
+        }
+        ave_prec = total_prec / m_nCells;
+        std::cout << "average raw precipitation: "
+            << ave_prec << " mm"
+            << std::endl;
     }
     //test estimate qs and qi of the outlet
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it)
@@ -430,7 +443,11 @@ void DiffusiveWave::Set1DData(const char *key, int n, FLTPT *data) {
         m_direction = data;
     } else if (StringMatch(sk, VAR_PCP[0])) {
         m_prec = data;
-    } else if (StringMatch(sk, VAR_QSOIL[0])) {
+    }
+    else if (StringMatch(sk, VAR_NEPR[0])) {
+        m_netPcp = data;
+    }
+    else if (StringMatch(sk, VAR_QSOIL[0])) {
         m_qi = data;
     } else if (StringMatch(sk, VAR_QOVERLAND[0])) {
         m_qs = data;

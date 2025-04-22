@@ -75,6 +75,9 @@ private:
 
     /// precipitation
     float *m_prec;
+    
+    //! Net precipitation (after slope correction, of course), mm
+    FLTPT* m_netPcp;
     /// overland flow to channel (m3/s)
     float *m_qs;
     /// interflow to channel (m3/s)

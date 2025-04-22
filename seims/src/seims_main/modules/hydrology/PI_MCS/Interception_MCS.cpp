@@ -160,14 +160,14 @@ int clsPI_MCS::Execute() {
             m_canSto[i] -= m_IntcpET[i];
         }
     }
-    //float total_netPcp = 0.0;
-    //float ave_netPcp = 0.0;
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	total_netPcp += m_netPcp[i];
-    //}
-    //ave_netPcp = total_netPcp / m_nCells;
-    //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
+    float total_netPcp = 0.0;
+    float ave_netPcp = 0.0;
+    for (int i = 0; i < m_nCells; i++)
+    {
+    	total_netPcp += m_netPcp[i];
+    }
+    ave_netPcp = total_netPcp / m_nCells;
+    cout << "average net precipation: " << ave_netPcp << "mm" << endl;
     return 0;
 }
 

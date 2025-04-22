@@ -190,12 +190,12 @@ class TimeSeriesPlots(object):
             if obs_values is not None:
                 # TODO: if the observed data is continuous with datetime, plot line, otherwise, bar.
                 # bar graph
-                p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
-                            edgecolor='black',
-                            linewidth=0.5, align='center', hatch='//')
+                #p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
+                #            edgecolor='black',
+                #           linewidth=0.5, align='center', hatch='//')
                 # # line graph
-                # p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
-                #              markersize=2, linewidth=1)
+                p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
+                              markersize=2, linewidth=1)
             sim_list = [v[i + 1] for v in self.sim_data_value]
             p2, = ax.plot(sim_date, sim_list, label=sim_str, color='red',
                           marker='+', markersize=2, linewidth=0.8)

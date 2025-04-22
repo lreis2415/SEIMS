@@ -120,7 +120,7 @@ int GWaterReservoir::Execute(void) {
     }
 
     //float sum = 0.f;
-#pragma omp parallel for //reduction(+:sum)
+//#pragma omp parallel for //reduction(+:sum)
     for (int i = 1; i <= m_nReaches; i++) {
         float percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)

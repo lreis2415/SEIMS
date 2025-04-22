@@ -136,7 +136,7 @@ int StormGreenAmpt::Execute(void) {
         Initialize1DArray(m_nCells, m_capillarySuction, 0.f);
         Initialize1DArray(m_nCells, m_accumuDepth, 0.f);
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
                 m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j],
