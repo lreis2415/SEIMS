@@ -108,12 +108,12 @@ bool StormGreenAmpt::CheckInputData() {
 int StormGreenAmpt::Execute(void) {
     InitialOutputs();
 # ifdef _DEBUG
-    string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
+    //string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
     std::ostringstream infiltOss;
-    infiltOss << baseOutputPath << "infilt_" << counter << ".txt";
+    infiltOss << m_outpath << "infilt_" << counter << ".txt";
     string infiltFile = infiltOss.str();
 
-    //if (counter == 0 && _access(infiltFile.c_str(), 0) == 0) {//�ļ�����ɾ��
+    //if (counter == 0 && _access(infiltFile.c_str(), 0) == 0) {
     //	if (remove(infiltFile.c_str()) == 0) {
     //		cout << "succeed to delete infiltration  file.  " << endl;
     //	}

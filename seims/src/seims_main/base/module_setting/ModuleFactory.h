@@ -71,7 +71,8 @@ public:
     ~ModuleFactory();
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
-    void CreateModuleList(vector<SimulationModule *>& modules, bool storm_mode, int nthread = 1);
+    void CreateModuleList(vector<SimulationModule *>& modules, bool storm_mode,
+                          int nthread = 1, const string& outpath = "");
 
     //! Get value from dependency modules
     void GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules);

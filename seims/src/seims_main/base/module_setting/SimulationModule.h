@@ -51,6 +51,9 @@ public:
     //! Execute the simulation. Return 0 for success.
     virtual int Execute() { return -1; }
 
+    //! Set model output path for debugging
+    virtual void SetOutpath(const string& outpath) { m_outpath = outpath; }
+
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
     virtual void SetDate(time_t t, int year_idx);
 
@@ -250,6 +253,8 @@ public:
     }
 
 protected:
+    /// model output path for debugging, in case of specific paths for different people
+    string m_outpath;
     /// is this module be invoked in STORM MODE?
     bool m_stormMode;
     /// date time

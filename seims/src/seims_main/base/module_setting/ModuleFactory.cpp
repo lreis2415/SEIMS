@@ -383,10 +383,11 @@ string ModuleFactory::GetComparableName(string& paraName) {
 }
 
 void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const bool storm_mode,
-                                     const int nthread /* = 1 */) {
+                                     const int nthread /* = 1 */, const string& outpath /* = "" */) {
     for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); ++it) {
         SimulationModule* pModule = GetInstance(*it);
         pModule->SetTheadNumber(nthread);
+        pModule->SetOutpath(outpath);
         if (storm_mode) pModule->SetSimulationMode();
         modules.emplace_back(pModule);
     }

@@ -253,20 +253,20 @@ void CASC2D_OF::InitialOutputs() {
 int CASC2D_OF::Execute() {
     InitialOutputs();
 # ifdef _DEBUG
-    string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
-    // 坡面流量//
+    // string baseOutputPath = "G:\\program\\\seims\\\data\\log\\";
+    // surface discharge //
     std::ostringstream ovflowOss;
-    ovflowOss << baseOutputPath << "ov_flow_" << counter << ".txt";
+    ovflowOss << m_outpath << "ov_flow_" << counter << ".txt";
     string ovFlowFile = ovflowOss.str();
 
-    // 河道流量//
+    // channel discharge //
     std::ostringstream chflowOss;
-    chflowOss << baseOutputPath << "ch_flow_" << counter << ".txt";
+    chflowOss << m_outpath << "ch_flow_" << counter << ".txt";
     string chFlowFile = chflowOss.str();
 
-    // 坡面水深异常值//
+    // surface water depth outliers //
     std::ostringstream wtrDepOss;
-    wtrDepOss << baseOutputPath << "ov_wtrdep" <<  ".txt";
+    wtrDepOss << m_outpath << "ov_wtrdep" <<  ".txt";
     string wtrDepFile = wtrDepOss.str();
     if (counter == 0) {
         if (DeleteExistedFile (wtrDepFile) == 0) {
@@ -278,23 +278,23 @@ int CASC2D_OF::Execute() {
     }
     wtrDepFptr << counter << endl;
 
-    // 输出每个栅格单元的行列位置//
+    // output row and col of each cell //
     std::ostringstream positionOss;
-    positionOss << baseOutputPath << "position.txt";
+    positionOss << m_outpath << "position.txt";
     string positionFile = positionOss.str();
-    // 输出河道流量//
+    // output channel discharge //
     if ((counter >= printChFlowMinT && counter <= printChFlowMaxT) && !chFlowFptr.is_open()) {
         if (DeleteExistedFile (chFlowFile) == 0) {
             cout << "succeed to delete casc2d output file " << chFlowFile << endl;
         }
         chFlowFptr.open(chFlowFile.c_str(), std::ios::out | std::ios::app);
     }
-    //输出位置数据//
+    // output position data //
     if (counter == 0) {
         //DeleteExistedFile(positionFile);
         //position_Fptr.open(positionFile.c_str(), std::ios::out | std::ios::app);
         //printPosition();
-        // 建立位置索引及dqq数组//
+        // build position index and dqq array //
         buildPositionIndex();
     }
 
@@ -310,7 +310,7 @@ int CASC2D_OF::Execute() {
     RoutOutlet();
 
 # ifdef _DEBUG
-    // 输出坡面流量//
+    // output surface discharge //
     if ((counter >= printIOvFlowMinT && counter <= printOvFlowMaxT) && !ovFlowFptr.is_open()) {
         if (DeleteExistedFile (ovFlowFile) == 0) {
             cout << "succeed to delete casc2d output file " << ovFlowFile << endl;
@@ -335,7 +335,7 @@ int CASC2D_OF::Execute() {
     return 0;
 }
 
-// 输出行列对应的iCell信息//
+// output iCell's information //
 void CASC2D_OF::printPosition() {
     int last_row = -1;
     int last_col = -1;
