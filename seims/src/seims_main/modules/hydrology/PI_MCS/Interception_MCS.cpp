@@ -167,7 +167,9 @@ int clsPI_MCS::Execute() {
     	total_netPcp += m_netPcp[i];
     }
     ave_netPcp = total_netPcp / m_nCells;
+#ifdef _DEBUG
     cout << "average net precipation: " << ave_netPcp << "mm" << endl;
+#endif
     return 0;
 }
 
