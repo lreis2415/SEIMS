@@ -281,7 +281,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     float h = m_hCh[iReach][iCell];
     float dx = m_flowLen[iReach][iCell];
 
-    float qLat = m_netPcp[id] / 1000.f/m_dt * m_chWidth[id];
+    float qLat = m_prec[id] / 1000.f * m_chWidth[id];
     if (m_qs != nullptr) {
         qLat += m_qs[id] / dx;
     }

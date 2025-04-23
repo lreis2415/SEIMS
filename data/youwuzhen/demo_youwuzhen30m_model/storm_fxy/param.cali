@@ -7,10 +7,10 @@
 #Depression,0.82
 #ch_width,0.3
 
-#Conductivity,1.25
+Conductivity,1.25
 
-#Poreindex,1.2
-#Porosity,0.8
+Poreindex,1.2
+Porosity,0.8
 
 #Ki,5
 #Poreindex,1.2
@@ -21,7 +21,7 @@
 #Clay,0.4
 #Sand,0.6
 
-#sw_cap,1.5
+sw_cap,1.5
 
 #Depre_in,0.05
 

@@ -68,7 +68,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         Note that `.txt` format is also supported.
     """
     FileClass.check_file_exists(in_file)
-    time_sys_input, time_zone_input = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
+    time_sys_input, time_zone_input,time_step = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
     data_items = read_data_items_from_txt(in_file)
     flds = data_items[0][:]
     data_items.remove(flds)
@@ -226,10 +226,10 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
 
 def main():
     """TEST CODE"""
-    data_file = r'C:\z_data\ChangTing\observed\HE3520133140\2011\2011_flowsed_storm_not_regular.txt'
-    time_interval = 1440
-    stime = '2011-01-01 00:00:00'
-    etime = '2011-12-31 23:59:59'
+    data_file = r'E:\BaiduSyncdisk\毕设\data_prepare\2015flowsed_storm_not_regular_long.txt'
+    time_interval = 5
+    stime = '2015-04-09 2:05:00'
+    etime = '2015-04-09 18:30:00'
     elim_zero = False
     out_time_system = 'UTCTIME'
     divided_hour = 0
