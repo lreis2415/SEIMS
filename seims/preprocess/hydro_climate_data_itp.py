@@ -68,7 +68,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         Note that `.txt` format is also supported.
     """
     FileClass.check_file_exists(in_file)
-    time_sys_input, time_zone_input,time_step = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
+    time_sys_input, time_zone_input, time_step = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
     data_items = read_data_items_from_txt(in_file)
     flds = data_items[0][:]
     data_items.remove(flds)
@@ -82,7 +82,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     # available field
     available_flds = ['FLOW', 'SED', 'PCP']
 
-    def check_avaiable_field(cur_fld):
+    def check_available_field(cur_fld):
         """Check if the given field name is supported."""
         support_flag = False
         for fff in available_flds:
@@ -148,7 +148,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         if len(org_items) > 0:
             org_items.append([edt])  # Just add end time for compute convenient
             if org_items[0][0] < sdt:
-                org_items[0][0] = sdt  # set the begin datetime of current time interval
+                org_items[0][0] = sdt  # set the beginning datetime of current time interval
         # if eliminate time interval without original records
         # initial interpolated list
         itp_data[item_dtime] = [0.] * len(flds)
@@ -160,7 +160,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         # core interpolation code
         flow_idx = -1
         for v_idx, v_name in enumerate(flds):
-            if not check_avaiable_field(v_name):
+            if not check_available_field(v_name):
                 continue
             if 'SED' in v_name.upper():  # FLOW must be existed
                 for v_idx2, v_name2 in enumerate(flds):
@@ -170,7 +170,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                 if flow_idx < 0:
                     raise RuntimeError('To interpolate SED, FLOW must be provided!')
         for v_idx, v_name in enumerate(flds):
-            if not check_avaiable_field(v_name):
+            if not check_available_field(v_name):
                 continue
             itp_value = 0.
             itp_auxiliary_value = 0.
@@ -209,7 +209,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     if time_sys_output == 'LOCALTIME':
         header_str = header_str + ' ' + str(time_zone_output)
     for idx, fld in enumerate(flds):
-        if not check_avaiable_field(fld):
+        if not check_available_field(fld):
             continue
         file_name = fld + '_' + time_sys_output + '_' + str(time_interval)
         if eliminate_zero:
@@ -226,15 +226,21 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
 
 def main():
     """TEST CODE"""
-    data_file = r'E:\BaiduSyncdisk\毕设\data_prepare\2015flowsed_storm_not_regular_long.txt'
+    from pygeoc.utils import UtilClass
+    cur_path = UtilClass.current_path(lambda: 0)
+    wp = os.path.abspath(cur_path + '../../../data/youwuzhen/workspace')
+    pcp_file = '%s/2015_pcp_storm_non_regular-20250424.txt' % wp
+    flowsed_file = '%s/2015_flowsed_storm_not_regular.txt' % wp
     time_interval = 5
-    stime = '2015-04-09 2:05:00'
-    etime = '2015-04-09 18:30:00'
+    stime = '2015-01-01 00:00:00'
+    etime = '2015-12-31 23:59:59'
     elim_zero = False
     out_time_system = 'UTCTIME'
     divided_hour = 0
-    interpolate_observed_data_to_regular_interval(data_file, time_interval, stime, etime,
+    interpolate_observed_data_to_regular_interval(pcp_file, time_interval, stime, etime,
                                                   elim_zero, out_time_system, divided_hour)
+    # interpolate_observed_data_to_regular_interval(flowsed_file, time_interval, stime, etime,
+    #                                               elim_zero, out_time_system, divided_hour)
 
 
 if __name__ == "__main__":

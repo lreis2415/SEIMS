@@ -385,9 +385,9 @@ int DiffusiveWave::Execute() {
             total_prec += m_prec[i];
         }
         ave_prec = total_prec / m_nCells;
-        std::cout << "average raw precipitation: "
-            << ave_prec << " mm"
-            << std::endl;
+        // std::cout << "average raw precipitation: "
+            // << ave_prec << " mm"
+            // << std::endl;
     }
     //test estimate qs and qi of the outlet
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it)
