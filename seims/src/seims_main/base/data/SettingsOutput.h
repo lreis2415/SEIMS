@@ -13,6 +13,7 @@
 
 #include "Settings.h"
 #include "PrintInfo.h"
+#include "invoke.h"
 
 /*!
  * \ingroup data
@@ -70,6 +71,9 @@ public:
                                 vector<OrgOutItem>& outputItems,
                                 int scenarioID = 0, int calibrationID = -1,
                                 int mpi_rank = 0, int mpi_size = -1);
+
+    //! Init function from plain text file
+    static vector<OrgOutItem> ReadFileOutFile(const InputArgs* input_args);
 
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;

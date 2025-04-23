@@ -1,10 +1,14 @@
 #include "SettingsOutput.h"
 
+#include <vector>
+#include <algorithm>
+
 #include "utils_time.h"
 #include "text.h"
 #include "Logging.h"
 
 using namespace utils_time;
+using std::vector;
 
 SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
                                vector<OrgOutItem>& outputItems,
@@ -94,6 +98,63 @@ SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, 
     return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID,
                               mpi_rank, mpi_size);
 }
+
+vector<OrgOutItem> SettingsOutput::ReadFileOutFile(const InputArgs *input_args) {
+    vector<OrgOutItem> outputItems;
+    string model_cfgpath = input_args->model_path;
+    if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+    string file_out = model_cfgpath + SEP + File_Output;
+    if (!FileExists(file_out)) {
+        LOG(ERROR) << file_out << " does not exist!";
+        return outputItems;
+    }
+    vector<string> stringvector;
+
+    if (!LoadPlainTextFile(file_out, stringvector) || stringvector.empty()) {
+        LOG(ERROR) << file_out << " is not loaded!";
+        return outputItems;
+    }
+    vector<string> output_flds = SplitString(stringvector[0], ',');
+    for (auto it = stringvector.begin(); it != stringvector.end(); ++it) {
+        if (it - stringvector.begin() == 0) { continue; }
+        vector<string> output_items = SplitString(*it, ',');
+        OrgOutItem tmp_output_item;
+        for (auto fld_it = output_flds.begin(); fld_it != output_flds.end(); ++fld_it) {
+            int idx = fld_it - output_flds.begin();
+            if (StringMatch(*fld_it, Tag_MODCLS)) {
+                tmp_output_item.modCls = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_OutputID)) {
+                tmp_output_item.outputID = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_OutputDESC)) {
+                tmp_output_item.descprition = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_OutputUNIT)) {
+                tmp_output_item.unit = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_AggType)) {
+                tmp_output_item.aggType = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_StartTime)) {
+                tmp_output_item.sTimet = ConvertToTime(output_items[idx],
+                                                       "%d-%d-%d %d:%d:%d", true);
+            } else if (StringMatch(*fld_it, Tag_EndTime)) {
+                tmp_output_item.eTimet = ConvertToTime(output_items[idx],
+                                                       "%d-%d-%d %d:%d:%d", true);
+            } else if (StringMatch(*fld_it, Tag_Interval)) {
+                tmp_output_item.interval = ToInt(output_items[idx]);
+            } else if (StringMatch(*fld_it, Tag_IntervalUnit)) {
+                tmp_output_item.intervalUnit = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_FileName)) {
+                tmp_output_item.outFileName = output_items[idx];
+            } else if (StringMatch(*fld_it, Tag_OutputSubbsn)) {
+                tmp_output_item.subBsn = output_items[idx];
+            }
+        }
+        tmp_output_item.use = 1;
+        outputItems.push_back(tmp_output_item);
+    }
+    vector<OrgOutItem>(outputItems).swap(outputItems);
+
+    return outputItems;
+}
+
 
 SettingsOutput::~SettingsOutput() {
     CLOG(TRACE, LOG_RELEASE) << "Start to release SettingsOutput ...";
