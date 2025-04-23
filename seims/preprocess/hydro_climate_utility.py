@@ -66,7 +66,7 @@ class HydroClimateUtilClass(object):
     @staticmethod
     def query_climate_sites(clim_db, site_type):
         """Query climate sites information, return a dict with stationID as key."""
-        from .db_import_sites import SiteInfo
+        from preprocess.db_import_sites import SiteInfo
         sites_loc = dict()
         sites_coll = clim_db[DBTableNames.sites]
         find_results = sites_coll.find({StationFields.type: site_type})
@@ -77,7 +77,9 @@ class HydroClimateUtilClass(object):
                                                         dic[StationFields.lon],
                                                         dic[StationFields.x],
                                                         dic[StationFields.y],
-                                                        dic[StationFields.elev])
+                                                        dic[StationFields.elev],
+                                                        dic[StationFields.type],
+                                                        dic[StationFields.mode])
         return sites_loc
 
     @staticmethod
@@ -88,9 +90,11 @@ class HydroClimateUtilClass(object):
         Returns:
             time_sys: 'UTCTIME' or 'LOCALTIME'
             time_zone(int): Positive for West time zone, and negative for East.
+            time_step(seconds): Time step in seconds, e.g., 86400 means one day
         """
         time_sys = 'LOCALTIME'
         time_zone = time.timezone // 3600
+        time_step = 86400 # by default to be one day
         with open(in_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
@@ -110,25 +114,32 @@ class HydroClimateUtilClass(object):
                 if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
                     time_zone = -1 * int(line_list[1])
                 break
-        return time_sys, time_zone
-
-    @staticmethod
-    def get_timestep_from_data_file(in_file):
-        """Get the timestep from the second line of the data file. The basic format is:
-                   e.g. #TIMESTEP 86400
-                """
-        timestep = 0
-        with open(in_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        line = lines[1]
-        print(line)
-        str_line = line.strip()
-        if str_line[0] == '#':
+        for line in lines:
+            str_line = line.strip()
             if str_line.lower().find('timestep') >= 0:
                 line_list = StringClass.split_string(str_line, [' ', ','])
                 if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
-                    timestep = int(line_list[1])
-        return timestep
+                    time_step = int(line_list[1])
+                break
+        return time_sys, time_zone, time_step
+
+    # @staticmethod
+    # def get_timestep_from_data_file(in_file):
+    #     """Get the timestep from the second line of the data file. The basic format is:
+    #                e.g. #TIMESTEP 86400
+    #             """
+    #     timestep = 0
+    #     with open(in_file, 'r', encoding='utf-8') as f:
+    #         lines = f.readlines()
+    #     line = lines[1]
+    #     print(line)
+    #     str_line = line.strip()
+    #     if str_line[0] == '#':
+    #         if str_line.lower().find('timestep') >= 0:
+    #             line_list = StringClass.split_string(str_line, [' ', ','])
+    #             if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
+    #                 timestep = int(line_list[1])
+    #     return timestep
 
 
 

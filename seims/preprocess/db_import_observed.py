@@ -156,8 +156,7 @@ class ImportObservedData(object):
         for measDataFile in obs_txts_list:
             # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
-            tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
-            timestep = HydroClimateUtilClass.get_timestep_from_data_file(measDataFile)
+            tsysin, tzonein, timestep = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == list() or len(obs_data_items) == 1:

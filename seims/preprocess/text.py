@@ -227,6 +227,7 @@ class StationFields(object):
     type = 'TYPE'
     outlet = 'ISOUTLET'
     unit = 'UNIT'
+    mode = 'MODE'
 
 
 class FieldNames(object):
@@ -236,10 +237,13 @@ class FieldNames(object):
     basin = 'BASIN'
     mode = 'MODE'
     db = 'DB'
+    type = 'TYPE'
+    list = 'SITELIST'
+    # The following fields should be deprecated, by lj 04/22/2025
     # sitelist table of main database
-    site_p = 'SITELISTP'
-    site_m = 'SITELISTM'
-    site_pet = 'SITELISTPET'
+    #site_p = 'SITELISTP'
+    #site_m = 'SITELISTM'
+    #site_pet = 'SITELISTPET'
 
 
 class TauDEMbasedNames(TauDEMExtFiles):
@@ -409,9 +413,11 @@ class RasterMetadata(object):
     cellsize = 'CELLSIZE'
     subbasin = 'SUBBASIN'
     cellnum = 'CELLSNUM'
+    srs = 'SRS'
     # for weight data
     site_num = 'NUM_SITES'
-    srs = 'SRS'
+    site_type = 'SITE_TYPE'
+    site_mode = 'SITE_MODE'
 
 
 class DBTableNames(object):

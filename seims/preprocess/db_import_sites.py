@@ -31,8 +31,8 @@ class SiteInfo(object):
     """base class of HydroClimate site information."""
 
     def __init__(self, sid=0, name='', lat=DEFAULT_NODATA, lon=DEFAULT_NODATA,
-                 local_x=DEFAULT_NODATA, local_y=DEFAULT_NODATA, alti=DEFAULT_NODATA):
-        # type: (int, AnyStr, float, float, float, float, float) -> None
+                 local_x=DEFAULT_NODATA, local_y=DEFAULT_NODATA, alti=DEFAULT_NODATA, sitetype='', mode=''):
+        # type: (int, AnyStr, float, float, float, float, float, AnyStr, AnyStr) -> None
         """Initialize a SiteInfo object."""
         self.StationID = sid  # integer
         self.Name = name  # station name, string
@@ -41,6 +41,9 @@ class SiteInfo(object):
         self.LocalX = local_x  # X coordinate in projection, float
         self.LocalY = local_y  # Y coordinate in projection, float
         self.alti = alti  # altitude, as ORIGIN: unit 0.1 meter # why not using meter as unit?
+        self.type = sitetype # M or P
+        self.mode = mode # Daily or Storm
+
 
     def lon_lat(self):  # type: (...) -> (float, float)
         """Return geographic coordinates."""
@@ -60,7 +63,7 @@ class ImportHydroClimateSites(object):
 
     @staticmethod
     def sites_table(hydro_clim_db, site_file, site_type):
-        # type: (Database, AnyStr, AnyStr) -> Optional[Dict[int, SiteInfo]]
+        # type: (Database, AnyStr, AnyStr) -> Optional[Dict[AnyStr, SiteInfo]]
         """Import HydroClimate sites table"""
         sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
@@ -70,6 +73,7 @@ class ImportHydroClimateSites(object):
         site_flds = site_data_items[0]
         for i in range(1, len(site_data_items)):
             dic = dict()
+            mode_list = ['DAILY'] # By default
             for j in range(len(site_data_items[i])):
                 if StringClass.string_match(site_flds[j], StationFields.id):
                     dic[StationFields.id] = int(site_data_items[i][j])
@@ -87,19 +91,27 @@ class ImportHydroClimateSites(object):
                     dic[StationFields.elev] = float(site_data_items[i][j])
                 elif StringClass.string_match(site_flds[j], StationFields.outlet):
                     dic[StationFields.outlet] = int(site_data_items[i][j])
+                elif StringClass.string_match(site_flds[j], StationFields.mode):
+                    mode_list = StringClass.split_string(site_data_items[i][j], ['|'])
             dic[StationFields.type] = site_type
-            curfilter = {StationFields.id: dic[StationFields.id],
-                         StationFields.type: dic[StationFields.type]}
-            hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
+            for cur_mode in mode_list:
+                curfilter = {StationFields.id: dic[StationFields.id],
+                             StationFields.type: dic[StationFields.type],
+                             StationFields.mode: cur_mode}
+                dic[StationFields.mode] = cur_mode
+                hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
 
-            if dic[StationFields.id] not in list(sites_loc.keys()):
-                sites_loc[dic[StationFields.id]] = SiteInfo(dic[StationFields.id],
-                                                            dic[StationFields.name],
-                                                            dic[StationFields.lat],
-                                                            dic[StationFields.lon],
-                                                            dic[StationFields.x],
-                                                            dic[StationFields.y],
-                                                            dic[StationFields.elev])
+                uniquekey = '%d%s%s' % (dic[StationFields.id], site_type, cur_mode)
+                if uniquekey not in list(sites_loc.keys()):
+                    sites_loc[uniquekey] = SiteInfo(dic[StationFields.id],
+                                                    dic[StationFields.name],
+                                                    dic[StationFields.lat],
+                                                    dic[StationFields.lon],
+                                                    dic[StationFields.x],
+                                                    dic[StationFields.y],
+                                                    dic[StationFields.elev],
+                                                    site_type,
+                                                    cur_mode)
         hydro_clim_db[DBTableNames.sites].create_index([(StationFields.id, ASCENDING),
                                                         (StationFields.type, ASCENDING)])
         return sites_loc
@@ -163,81 +175,82 @@ class ImportHydroClimateSites(object):
         return shapely_objects, id_list
 
     @staticmethod
-    def find_sites(maindb, clim_dbname, subbsn_file, subbsn_field_id,
-                   thissen_file_list, thissen_field_id, site_type_list):
+    def find_sites(site_type, sites_info, maindb, clim_dbname, subbsn_file, subbsn_field_id,
+                   thissen_file, thissen_field_id):
         """Find meteorology and precipitation sites in study area"""
-        # xdw
-        # TODO, use an argument in preprocess.ini to handle DAILY, STORM, or BOTH
-        mode = 'DAILY'
-        # mode = 'STORM'
-        # if is_storm:  # todo: Do some compatible work to support DAILY and STORM simultaneously.
-        #     mode = 'STORM'
-        subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file,
-                                                                                 subbsn_field_id)
+        subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file, subbsn_field_id)
         n_subbasins = len(subbasin_list)
 
-        # site_dic = dict()
-        for i, subbasin in enumerate(subbasin_list):
-            cur_id = subbasin_id_list[i]
-            if n_subbasins == 1:  # the entire basin
-                cur_id = 0
-            dic = dict()
-            dic[FieldNames.subbasin_id] = cur_id
-            dic[FieldNames.db] = clim_dbname
-            dic[FieldNames.mode] = mode
-            cur_fileter = {FieldNames.subbasin_id: cur_id,
-                           FieldNames.db: clim_dbname,
-                           FieldNames.mode: mode}
+        mode_sites_dict = dict()
+        for cur_site in sites_info:
+            cmode = cur_site.mode
+            if cmode not in mode_sites_dict:
+                mode_sites_dict[cmode] = list()
+            mode_sites_dict[cmode].append(cur_site.StationID)
 
-            for meteo_id, thiessen_file in enumerate(thissen_file_list):
-                site_type = site_type_list[meteo_id]
-                thiessen_list, thiessen_id_list = ImportHydroClimateSites.ogrwkt2shapely(
-                    thiessen_file, thissen_field_id)
+        for cmode in mode_sites_dict.keys():
+            for i, subbasin in enumerate(subbasin_list):
+                cur_id = subbasin_id_list[i]
+                if n_subbasins == 1:  # the entire basin
+                    cur_id = 0
+                dic = dict()
+                dic[FieldNames.subbasin_id] = cur_id
+                dic[FieldNames.db] = clim_dbname
+                dic[FieldNames.mode] = cmode
+                cur_fileter = {FieldNames.subbasin_id: cur_id,
+                               FieldNames.db: clim_dbname,
+                               FieldNames.mode: cmode,
+                               FieldNames.type: site_type}
+                thiessen_list, thiessen_id_list = ImportHydroClimateSites.ogrwkt2shapely(thissen_file, thissen_field_id)
                 site_list = list()
                 for poly_id, thiessen in enumerate(thiessen_list):
-                    if subbasin.intersects(thiessen):
-                        site_list.append(thiessen_id_list[poly_id])
+                    cid = thiessen_id_list[poly_id]
+                    if subbasin.intersects(thiessen) and cid in mode_sites_dict[cmode]:
+                        site_list.append(cid)
                 site_list.sort()
                 slist = [str(item) for item in site_list]
                 site_list_str = ','.join(slist)
 
-                site_field = '%s%s' % (DBTableNames.main_sitelist, site_type)
-                dic[site_field] = site_list_str
-            maindb[DBTableNames.main_sitelist].find_one_and_replace(cur_fileter, dic, upsert=True)
+                dic[FieldNames.type] = site_type
+                dic[DBTableNames.main_sitelist] = site_list_str
+                maindb[DBTableNames.main_sitelist].find_one_and_replace(cur_fileter, dic, upsert=True)
 
-        maindb[DBTableNames.main_sitelist].create_index([(FieldNames.subbasin_id, ASCENDING),
-                                                         (FieldNames.mode, ASCENDING)])
+        # Put this indexing code outside this function, by lj 04/22/2025
+        # maindb[DBTableNames.main_sitelist].create_index([(FieldNames.subbasin_id, ASCENDING),
+        #                                                  (FieldNames.mode, ASCENDING)])
         # print('Meteorology sites table was generated.')
 
     @staticmethod
     def workflow(cfg):
         # type: (PreprocessConfig) -> (Optional[Dict[int, SiteInfo]], Optional[Dict[int, SiteInfo]])
         """Workflow"""
-        # 1. Find meteorology and precipitation sites in study area
-        thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]
-        type_list = [DataType.m, DataType.p]
-
-        # The entire basin, used for OpenMP version
-        ImportHydroClimateSites.find_sites(cfg.maindb, cfg.climate_db, cfg.vecs.bsn,
-                                           FieldNames.basin, thiessen_file_list,
-                                           cfg.thiessen_field, type_list)
-        # The subbasins, used for MPI&OpenMP version
-        ImportHydroClimateSites.find_sites(cfg.maindb, cfg.climate_db, cfg.vecs.subbsn,
-                                           FieldNames.subbasin_id, thiessen_file_list,
-                                           cfg.thiessen_field, type_list)
-
-        # 2. Import geographic information of each sites to Hydro-Climate database
+        # Read and import geographic information of each sites to Hydro-Climate database
         c_list = cfg.climatedb.list_collection_names()
         tables = [DBTableNames.sites, DBTableNames.var_desc]
         for tb in tables:
             if not StringClass.string_in_list(tb, c_list):
                 cfg.climatedb.create_collection(tb)
         ImportHydroClimateSites.variable_table(cfg.climatedb, cfg.hydro_climate_vars)
-        site_m_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.Meteo_sites, DataType.m)
+        site_m_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.meteo_sites, DataType.m)
         site_p_loc = ImportHydroClimateSites.sites_table(cfg.climatedb, cfg.prec_sites, DataType.p)
         # print(site_m_loc, site_p_loc)
-        #return site_m_loc, site_p_loc
 
+        # Find meteorology and precipitation sites in study area
+        thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]
+        type_list = [DataType.m, DataType.p]
+        sites_list = [site_m_loc, site_p_loc]
+
+        for idx in [0, 1]:
+            thissen_file = thiessen_file_list[idx]
+            clim_type = type_list[idx]
+            cur_sites = sites_list[idx].values()
+            # The entire basin, used for OpenMP version
+            ImportHydroClimateSites.find_sites(clim_type, cur_sites, cfg.maindb, cfg.climate_db, cfg.vecs.bsn,
+                                               FieldNames.basin, thissen_file, cfg.thiessen_field)
+            # The subbasins, used for MPI&OpenMP version
+            ImportHydroClimateSites.find_sites(clim_type, cur_sites, cfg.maindb, cfg.climate_db, cfg.vecs.subbsn,
+                                               FieldNames.subbasin_id, thissen_file, cfg.thiessen_field)
+        cfg.maindb[DBTableNames.main_sitelist].create_index([(FieldNames.subbasin_id, ASCENDING)])
 
 def main():
     """TEST CODE"""

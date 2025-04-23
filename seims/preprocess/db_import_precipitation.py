@@ -36,10 +36,10 @@ class ImportPrecipitation(object):
     @staticmethod
     def regular_data_from_txt(climdb, data_file):
         """Regular precipitation data from text file."""
+        # Put the deleting code outside this function, by lj 04/22/2025
         # delete existed precipitation data
-        climdb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
-        tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
-        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_file)
+        # climdb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
+        tsysin, tzonein, timestep = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
 
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
@@ -85,10 +85,11 @@ class ImportPrecipitation(object):
                                            bulk_requests)
         print('Inserted %d initial parameters!' % (results.inserted_count
                                                    if results is not None else 0))
+        # Put the indexing code outside this function, by lj 04/22/2025
         # Create index
-        climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
-                                                       (DataValueFields.type, ASCENDING),
-                                                       (DataValueFields.utc, ASCENDING)])
+        # climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
+        #                                                (DataValueFields.type, ASCENDING),
+        #                                                (DataValueFields.utc, ASCENDING)])
 
 
     @staticmethod
@@ -347,11 +348,17 @@ class ImportPrecipitation(object):
     def workflow(cfg):  # type: (PreprocessConfig) -> None
         """Workflow"""
         print('Import Daily Precipitation Data... ')
+        cfg.climatedb[DBTableNames.data_values].delete_many({DataValueFields.type: DataType.p})
         # Please add an argument in the preprocess.ini to decide
         # to import regular, or storm, or both
         # Neither of two import functions should be commented.
-        ImportPrecipitation.regular_data_from_txt(cfg.climatedb, cfg.prec_data)
+        for data_item in cfg.prec_data:
+            ImportPrecipitation.regular_data_from_txt(cfg.climatedb, data_item)
         # ImportPrecipitation.storm_data_from_txt(cfg.climatedb, cfg.prec_data)
+        cfg.climatedb[DBTableNames.data_values].create_index([(DataValueFields.type, ASCENDING),
+                                                              (DataValueFields.utc, ASCENDING),
+                                                              (DataValueFields.timestep, ASCENDING),
+                                                              (DataValueFields.id, ASCENDING)])
 
 
 def main():

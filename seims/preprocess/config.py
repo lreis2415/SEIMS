@@ -61,9 +61,9 @@ class PreprocessConfig(object):
         # 3. Climate inputs
         self.hydro_climate_vars = None
         self.prec_sites = None
-        self.prec_data = None
-        self.Meteo_sites = None
-        self.Meteo_data = None
+        self.prec_data = list()
+        self.meteo_sites = None
+        self.meteo_data = list()
         self.thiessen_field = 'ID'
         # 4. Spatial inputs
         self.prec_sites_thiessen = None
@@ -192,14 +192,16 @@ class PreprocessConfig(object):
                                                              required=True))
             self.prec_sites = pjoin(self.clim_dir,
                                     get_option_value(cf, 'CLIMATE', 'precsitefile', required=True))
-            self.prec_data = pjoin(self.clim_dir,
-                                   get_option_value(cf, 'CLIMATE', 'precdatafile', required=True))
-            self.Meteo_sites = pjoin(self.clim_dir,
-                                        get_option_value(cf, 'CLIMATE',
-                                                        'meteositefile', required=True))
-            self.Meteo_data = pjoin(self.clim_dir,
-                                        get_option_value(cf, 'CLIMATE',
-                                                        'meteodatafile', required=True))
+            prec_data_str = get_option_value(cf, 'CLIMATE', 'precdatafile', required=True)
+            prec_data_items = StringClass.split_string(prec_data_str, [',', ' '])
+            self.prec_data = [pjoin(self.clim_dir, s) for s in prec_data_items]
+
+            self.meteo_sites = pjoin(self.clim_dir,
+                                     get_option_value(cf, 'CLIMATE', 'meteositefile', required=True))
+            meteo_data_str = get_option_value(cf, 'CLIMATE', 'meteodatafile', required=True)
+            meteo_data_items = StringClass.split_string(meteo_data_str, [',', ' '])
+            self.meteo_data = [pjoin(self.clim_dir, s) for s in meteo_data_items]
+
             self.thiessen_field = get_option_value(cf, 'CLIMATE', 'thiessenidfield', str, 'ID')
         else:
             raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')

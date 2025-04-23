@@ -75,24 +75,28 @@ class ImportMeteoData(object):
     """Meteorological daily data import, and calculate related statistical values"""
 
     @staticmethod
-    def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
+    def daily_data_from_txt(climdb, data_txt_file, sites_info_dict, output_flds):
         """Import climate data table"""
-        tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
-        timestep = HydroClimateUtilClass.get_timestep_from_data_file(data_txt_file)
+        tsysin, tzonein, timestep = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
+
+        # If the data timestep greater than or equal to one day (86400 seconds), then calculate PHUCalDic.
         # PHUCalDic is used for Calculating potential heat units (PHU)
         # for each climate station and each year.
         # format is {StationID:{Year1:[values],Year2:[Values]...}, ...}
         # PHUCalDic = {}
         # format: {StationID1: climateStats1, ...}
+        cal_PHUCalDic = timestep >= 86400
+
         hydro_climate_stats = dict()
         required_flds = [DataType.max_tmp, DataType.min_tmp, DataType.rm, DataType.ws]
-        output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
-                       DataType.rm, DataType.pet, DataType.ws, DataType.sr]
-        # remove existed records
-        for fld in output_flds:
-            climdb[DBTableNames.data_values].delete_many({'TYPE': fld})
+        # Put deleting code outside this function, by lj 04/22/2025
+        # output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
+        #                DataType.rm, DataType.pet, DataType.ws, DataType.sr]
+        # # remove existed records
+        # for fld in output_flds:
+        #     climdb[DBTableNames.data_values].delete_many({'TYPE': fld})
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
                 raise ValueError('Meteorological Daily data MUST contain %s!' % fld)
@@ -160,29 +164,28 @@ class ImportMeteoData(object):
 
                     bulk_requests.append(InsertOne(cur_dic))
                     count += 1
-                    # if count % 500 == 0:  # execute each 500 records
-                    #     results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
-                    #                                        bulk_requests)
-                    #     print('Inserted %d initial parameters!' % (results.inserted_count
-                    #                                                if results is not None else 0))
-                    #     bulk_requests.clear()
 
-            if dic[DataValueFields.id] not in list(hydro_climate_stats.keys()):
-                hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
-            hydro_climate_stats[dic[DataValueFields.id]].add_item(dic)
-        # execute the remained records
-        # if count % 500 != 0:
+            if cal_PHUCalDic:
+                if dic[DataValueFields.id] not in list(hydro_climate_stats.keys()):
+                    hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
+                hydro_climate_stats[dic[DataValueFields.id]].add_item(dic)
+
         results = MongoUtil.run_bulk_write(climdb[DBTableNames.data_values],
                                            bulk_requests)
         print('Inserted %d data items!' % (results.inserted_count
                                            if results is not None else 0))
 
+        # Put indexing code outside this function, by lj 04/22/2025
+        # Create index
+        # climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
+        #                                                (DataValueFields.type, ASCENDING),
+        #                                                (DataValueFields.utc, ASCENDING)])
+
+        if not cal_PHUCalDic:
+            return
+
         for item, cur_climate_stats in list(hydro_climate_stats.items()):
             cur_climate_stats.annual_stats()
-        # Create index
-        climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
-                                                       (DataValueFields.type, ASCENDING),
-                                                       (DataValueFields.utc, ASCENDING)])
         # prepare dic for MongoDB
         for s_id, stats_v in list(hydro_climate_stats.items()):
             for YYYY in list(stats_v.Count.keys()):
@@ -233,8 +236,21 @@ class ImportMeteoData(object):
     def workflow(cfg):
         """Workflow"""
         print('Import Daily Meteorological Data... ')
+        output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
+                       DataType.rm, DataType.pet, DataType.ws, DataType.sr]
+        # remove existed records
+        for fld in output_flds:
+            cfg.climatedb[DBTableNames.data_values].delete_many({'TYPE': fld})
+        cfg.climatedb[DBTableNames.annual_stats].delete_many({})
+
         site_m_loc = HydroClimateUtilClass.query_climate_sites(cfg.climatedb, 'M')
-        ImportMeteoData.daily_data_from_txt(cfg.climatedb, cfg.Meteo_data, site_m_loc)
+        for data_item in cfg.meteo_data:
+            ImportMeteoData.daily_data_from_txt(cfg.climatedb, data_item, site_m_loc, output_flds)
+
+        cfg.climatedb[DBTableNames.data_values].create_index([(DataValueFields.type, ASCENDING),
+                                                              (DataValueFields.utc, ASCENDING),
+                                                              (DataValueFields.timestep, ASCENDING),
+                                                              (DataValueFields.id, ASCENDING)])
 
 
 def main():

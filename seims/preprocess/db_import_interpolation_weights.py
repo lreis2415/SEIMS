@@ -97,17 +97,19 @@ class ImportWeightData(object):
         # is MASK existed in Database?
         if not spatial_gfs.exists(mask_query):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
-        # read WEIGHT_M file from mongodb
-        weight_m_name = '%d_WEIGHT_M' % subbsn_id
         mask = maindb[DBTableNames.gridfs_spatial].files.find(mask_query)[0]
+        # read WEIGHT_M file from mongodb
+        weight_m_name = '%d_WEIGHT_M_DAILY' % subbsn_id
         weight_m = maindb[DBTableNames.gridfs_spatial].files.find({'filename': weight_m_name})[0]
         num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
-        site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
+        site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id,
+                                                              FieldNames.type: 'M',
+                                                              FieldNames.mode: 'DAILY'})
         site_list = next(site_lists)
         db_name = site_list[FieldNames.db]
-        m_list = site_list.get(FieldNames.site_m)
+        m_list = site_list.get(FieldNames.list)
         hydro_clim_db = conn[db_name]
 
         site_list = m_list.split(',')
@@ -237,78 +239,59 @@ class ImportWeightData(object):
             if abs(data[type_i] - nodata_value) > UTIL_ZERO:
                 num += 1
 
-        # read stations information from database, collection SITELIST
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num,
                    RasterMetadata.inc_nodata: 'FALSE'}
-        site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
-        site_list = next(site_lists)
-        clim_db_name = site_list[FieldNames.db]
-        p_list = site_list.get(FieldNames.site_p)
-        m_list = site_list.get(FieldNames.site_m)
-        pet_list = site_list.get(FieldNames.site_pet)
-        # print(p_list)
-        # print(m_list)
-        # connect to demo_youwuzhen30m_HydroClimate db
-        hydro_clim_db = conn[clim_db_name]
-        # if pet_list is None, delete pet from type_list and site_lists
-        type_list = [DataType.m, DataType.p, DataType.pet]
-        site_lists = [m_list, p_list, pet_list]
-        if pet_list is None:
-            del type_list[2]
-            del site_lists[2]
-
-
-        # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
-        #     type_list = [DataType.p]
-        #     site_lists = [p_list]
-        for type_i, type_name in enumerate(type_list):
-            fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
+        # read stations information from database, collection SITELIST
+        for site_lists in db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id}):
+            # print(site_lists)
+            clim_db_name = site_lists[FieldNames.db]
+            type_name = site_lists[FieldNames.type]
+            clim_mode = site_lists[FieldNames.mode]
+            hydro_clim_db = conn[clim_db_name]
+            fname = '%d_WEIGHT_%s_%s' % (subbsn_id, type_name, clim_mode)
             if spatial_gfs.exists(filename=fname):
                 x = spatial_gfs.get_version(filename=fname)
                 spatial_gfs.delete(x._id)
-            site_list = site_lists[type_i]
-            if site_list is not None:
-                site_list = site_list.split(',')
-                # print(site_list)
-                site_list = [int(item) for item in site_list]
-                metadic[RasterMetadata.site_num] = len(site_list)
-                # print(site_list)
-                q_dic = {StationFields.id: {'$in': site_list},
-                         StationFields.type: type_list[type_i]}
-                cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
-
-                # meteorology station can also be used as precipitation station
-                if hydro_clim_db[DBTableNames.sites].count_documents(q_dic) == 0 and\
-                    type_list[type_i] == DataType.p:
-                    q_dic = {StationFields.id.upper(): {'$in': site_list},
-                             StationFields.type.upper(): DataType.m}
-                    cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
-
-                # get site locations
-                id_list = list()
-                loc_list = list()
-                for site in cursor:
-                    if site[StationFields.id] in site_list:
-                        id_list.append(site[StationFields.id])
-                        loc_list.append([site[StationFields.x], site[StationFields.y]])
-                # print('loclist', locList)
-                # interpolate using the locations
-                myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                txtfile = '%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id, type_list[type_i])
-                with open(txtfile, 'w', encoding='utf-8') as f_test:
-                    for y in range(0, ysize):
-                        for x in range(0, xsize):
-                            index = int(y * xsize + x)
-                            if abs(data[index] - nodata_value) > UTIL_ZERO:
-                                x_coor = xll + x * dx
-                                y_coor = yll + (ysize - y - 1) * dx
-                                line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
-                                                                             loc_list)
-                                myfile.write(line)
-                                fmt = '%df' % (len(loc_list))
-                                f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
-                myfile.close()
+            site_list_str = site_lists[FieldNames.list]
+            if site_list_str is None or site_list_str == '':
+                continue
+            site_list = site_list_str.split(',')
+            # print(site_list)
+            site_list = [int(item) for item in site_list]
+            metadic[RasterMetadata.site_num] = len(site_list)
+            # print(site_list)
+            q_dic = {StationFields.id: {'$in': site_list},
+                     StationFields.type: type_name,
+                     StationFields.mode: clim_mode}
+            cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
+            # get site locations
+            id_list = list()
+            loc_list = list()
+            for site in cursor:
+                if site[StationFields.id] in site_list:
+                    id_list.append(site[StationFields.id])
+                    loc_list.append([site[StationFields.x], site[StationFields.y]])
+            # print('loclist', locList)
+            # interpolate using the locations
+            metadic[StationFields.type] = type_name
+            metadic[StationFields.mode] = clim_mode
+            myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
+            txtfile = '%s/weight_%d_%s_%s.txt' % (geodata2dbdir, subbsn_id, type_name, clim_mode)
+            with open(txtfile, 'w', encoding='utf-8') as f_test:
+                for y in range(0, ysize):
+                    for x in range(0, xsize):
+                        index = int(y * xsize + x)
+                        if abs(data[index] - nodata_value) > UTIL_ZERO:
+                            x_coor = xll + x * dx
+                            y_coor = yll + (ysize - y - 1) * dx
+                            line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
+                                                                         loc_list)
+                            myfile.write(line)
+                            fmt = '%df' % (len(loc_list))
+                            f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
+            myfile.close()
+            # print(txtfile)
 
     @staticmethod
     def workflow(cfg, n_subbasins):
