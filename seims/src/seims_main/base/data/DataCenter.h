@@ -268,6 +268,7 @@ public:
     /**** Accessors: Set and Get *****/
 
     string GetModelName() const { return model_name_; }
+    string GetModelCfgname() const { return model_cfgname_; }
     string GetProjectPath() const { return model_path_; }
     string GetFileInFullPath() const { return file_in_file_; }
     string GetFileOutFullPath() const { return file_out_file_; }
@@ -312,6 +313,7 @@ public:
 
 protected:
     string model_name_;                    ///< Model name, e.g., model_dianbu30m_longterm
+    string model_cfgname_;                 ///< Specific configuration name, e.g., storm_ljzhu
     const string model_path_;              ///< Model path
     string file_in_file_;                  ///< file.in full path
     string file_out_file_;                 ///< file.out full path

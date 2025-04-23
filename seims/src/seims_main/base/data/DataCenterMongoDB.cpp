@@ -35,6 +35,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
 
     if (nullptr != simu_in) {
         input_ = simu_in;
+        model_mode_ = input_->getModelMode();
     }
     else {
         if (DataCenterMongoDB::GetFileInStringVector()) {
@@ -53,16 +54,17 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     if (outlet_id_ < 0 || n_subbasins_ < 0) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
-    if (DataCenterMongoDB::GetFileOutVector()) {
-        // The start and end time of output items should be checked and updated here! -LJ. 09/28/2020
-        UpdateOutputDate(input_->getStartTime(), input_->getEndTime());
-        output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
-                                       scenario_id_, calibration_id_, mpi_rank_, mpi_size_);
-        if (nullptr == output_) {
-            throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
-        }
-    } else {
-        throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_OUT!");
+    if (!DataCenterMongoDB::GetFileOutVector()) {
+        // try to read from file.out
+        origin_out_items_ = SettingsOutput::ReadFileOutFile(input_args);
+    }
+    // The start and end time of output items should be checked and updated here! -LJ. 09/28/2020
+    UpdateOutputDate(input_->getStartTime(), input_->getEndTime());
+    output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
+                                   scenario_id_, calibration_id_, mpi_rank_, mpi_size_);
+    if (nullptr == output_) {
+        throw ModelException("DataCenterMongoDB", "Constructor",
+                             "Failed to query FILE_OUT from MongoDB or read from file.out!");
     }
     /// Check the existence of all required and optional data
     if (!DataCenterMongoDB::CheckModelPreparedData()) {
@@ -216,12 +218,15 @@ bool DataCenterMongoDB::GetFileOutVector() {
         return true;
     }
     bson_t* b = bson_new();
+    if (!model_cfgname_.empty()) {
+        b = BCON_NEW("query", "{", Tag_ModelCfgname, BCON_UTF8(model_cfgname_.c_str()), "}");
+    }
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_OUT)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
-        LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_OUT << ".";
+        LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_OUT << " for current modeling.";
         /// destroy
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
@@ -324,28 +329,33 @@ void DataCenterMongoDB::ReadClimateSiteList() {
     const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
+        string clim_type = "";
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
             clim_dbname_ = GetStringFromBsonIterator(&iter);
         } else {
             throw ModelException("DataCenterMongoDB", "ReadClimateSiteList",
                                  "The DB field does not exist in SiteList table.");
         }
+        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_SITE_TYPE)) {
+            clim_type = GetStringFromBsonIterator(&iter);
+        }
         string site_list;
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_M)) {
+        if (StringMatch(clim_type, SITELIST_TABLE_M) && \
+            (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE))) {
             site_list = GetStringFromBsonIterator(&iter);
             for (int i = 0; i < METEO_VARS_NUM; ++i) {
                 clim_station_->ReadSitesData(clim_dbname_, site_list, METEO_VARS[i],
                                              input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
             }
         }
-
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P)) {
+        if (StringMatch(clim_type, SITELIST_TABLE_P) && \
+            (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE))) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_Precipitation,
                                          input_->getStartTime(), input_->getEndTime(), input_->isStormMode());
         }
-
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_PET)) {
+        if (StringMatch(clim_type, SITELIST_TABLE_PET) && \
+            (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE))) {
             site_list = GetStringFromBsonIterator(&iter);
             clim_station_->ReadSitesData(clim_dbname_, site_list, DataType_PotentialEvapotranspiration,
                                          input_->getStartTime(), input_->getEndTime(), input_->isStormMode());

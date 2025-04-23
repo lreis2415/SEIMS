@@ -7,7 +7,8 @@
 using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
-    model_name_(input_args->model_name), model_path_(input_args->model_path),
+    model_name_(input_args->model_name), model_cfgname_(input_args->model_cfgname),
+    model_path_(input_args->model_path),
     fdir_method_(input_args->fdir_mtd), lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
     scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
     mpi_rank_(factory->m_mpi_rank), mpi_size_(factory->m_mpi_size),
@@ -462,6 +463,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo<FLTPT>* param,
         } else {
             oss << "_M";
         }
+        oss << "_" << model_mode_;
     }
     string remote_filename = oss.str();
 

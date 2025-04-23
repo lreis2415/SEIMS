@@ -19,27 +19,16 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     int nSites = CVT_INT(m_siteIDList.size());
     int nRecords = CVT_INT((m_endTime - m_startTime) / m_interval + 1);
     m_siteData.reserve(nRecords);
-
-    // Query command likes:
-    // { "$query" : { "STATIONID" : { "$in" : [58911] },
-    //                "TYPE" : "TMEAN",
-    //                "UTCDATETIME" : { "$gte" : { "$date" : 1325376000000 },
-    //                                  "$lte" : { "$date" : 1451606399000 } }
-    //               },
-    //   "$orderby" : { "STATIONID" : 1,
-    //                  "UTCDATETIME" : 1 }
-    // }
-    //bson_t* q;
     bson_t* site_array = bson_new();
     for (int i = 0; i < nSites; i++) {
         BSON_APPEND_INT32(site_array, ValueToString(i).c_str(), m_siteIDList[i]);
     }
-
     vint st = CVT_VINT(startTime) * 1000;
     vint et = CVT_VINT(endTime) * 1000;
 
 //    q = BCON_NEW("$query", "{", MONG_HYDRO_DATA_SITEID, "{", "$in", BCON_ARRAY(site_array), "}",
 //                                MONG_HYDRO_SITE_TYPE, BCON_UTF8(siteType.c_str()),
+//                                MONG_HYDRO_DATA_INTERVAL, BCON_INT32(interval),
 //                                MONG_HYDRO_DATA_UTC, "{", "$gte", BCON_DATE_TIME(st),
 //                                                          "$lte", BCON_DATE_TIME(et),
 //                                                     "}",
@@ -51,6 +40,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
     // http://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html
     bson_t* filter = BCON_NEW(MONG_HYDRO_DATA_SITEID, "{", "$in", BCON_ARRAY(site_array), "}",
                               MONG_HYDRO_SITE_TYPE, BCON_UTF8(siteType.c_str()),
+                              MONG_HYDRO_DATA_INTERVAL, BCON_INT32(interval),
                               MONG_HYDRO_DATA_UTC, "{", "$gte", BCON_DATE_TIME(st), "$lte", BCON_DATE_TIME(et), "}");
     bson_t* opts = BCON_NEW("sort", "{", MONG_HYDRO_DATA_SITEID, BCON_INT32(1),
                                          MONG_HYDRO_DATA_UTC, BCON_INT32(1),

@@ -99,6 +99,7 @@ CONST_CHARS Tag_AggType =                           "TYPE";
 CONST_CHARS Tag_OutputSubbsn =                      "SUBBASIN";
 CONST_CHARS Tag_Interval =                          "INTERVAL";
 CONST_CHARS Tag_IntervalUnit =                      "INTERVAL_UNIT";
+CONST_CHARS Tag_ModelCfgname =                      "MODEL_CFGNAME";
 
 // Available values of Tag_outputSubbsn
 CONST_CHARS Tag_AllSubbsn =                         "ALL";
@@ -253,9 +254,10 @@ CONST_CHARS REACH_COORX =                              "CH_COORX"; ///< X coordi
 CONST_CHARS REACH_COORY =                              "CH_COORY"; ///< Y coordinates (not rows!)
 
 // these four are defined in DB_TAB_SITELIST in Source_ParameterDB
-CONST_CHARS SITELIST_TABLE_M =                      "SITELISTM"; ///<
-CONST_CHARS SITELIST_TABLE_P =                      "SITELISTP"; ///<
-CONST_CHARS SITELIST_TABLE_PET =                    "SITELISTPET"; ///<
+CONST_CHARS SITELIST_TABLE =                        "SITELIST"; ///<
+CONST_CHARS SITELIST_TABLE_M =                      "M"; ///<
+CONST_CHARS SITELIST_TABLE_P =                      "P"; ///<
+CONST_CHARS SITELIST_TABLE_PET =                    "PET"; ///<
 
 // define string constants used in the code, also used in the mongoDB.SiteList table's header
 CONST_CHARS Tag_Mode =                              "MODE"; ///<
@@ -1207,6 +1209,7 @@ CONST_CHARS MONG_HYDRO_DATA_SITEID =                "STATIONID";
 CONST_CHARS MONG_HYDRO_DATA_UTC =                   "UTCDATETIME";
 CONST_CHARS MONG_HYDRO_DATA_LOCALT =                "LOCALDATETIME";
 CONST_CHARS MONG_HYDRO_DATA_VALUE =                 "VALUE";
+CONST_CHARS MONG_HYDRO_DATA_INTERVAL =              "TIMESTEP";
 CONST_CHARS MONG_SITELIST_SUBBSN =                  "SUBBASINID";
 CONST_CHARS MONG_SITELIST_DB =                      "DB";
 
