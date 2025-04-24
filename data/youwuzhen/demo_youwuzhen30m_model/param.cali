@@ -1,25 +1,24 @@
-#Interc_min,95
-#Interc_max,200
-#Pi_b,-0.1
+Interc_min,95
+Interc_max,200
+Pi_b,-0.1
 
-#MANNING,10
+MANNING,10
 
-#Depression,0.82
-#ch_width,0.3
+Depression,0.82
+ch_width,0.3
 
-#Conductivity,1.25
+Conductivity,1.25
 
-#Poreindex,1.2
-#Porosity,0.8
+Poreindex,1.2
 
-#Ki,5
-#Poreindex,1.2
-#Fieldcap,0.9
+Ki,5
+Poreindex,1.2
+Fieldcap,0.9
 
-#Slope,5
-#Porosity,1.1
-#Clay,0.4
-#Sand,0.6
+Slope,5
+Porosity,1.1
+Clay,0.4
+Sand,0.6
 
 #sw_cap,1.5
 
