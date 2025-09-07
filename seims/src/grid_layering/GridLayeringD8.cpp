@@ -1,29 +1,27 @@
 #include "GridLayering.h"
 
 #ifdef USE_MONGODB
-GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_dir) :
+GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_dir,
+                               const char* stream_file/*=nullptr*/, bool force_outlet/*=false*/) :
     GridLayering(id, gfs, out_dir) {
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR";
     mask_name_ = prefix + "_SUBBASIN";
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_D8";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_D8";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_D8";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_D8";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_D8";
+    stream_file_ = stream_file;
+    force_outlet_ = force_outlet;
+    OutputFilenames(FD_D8);
 }
 #endif
 
-GridLayeringD8::GridLayeringD8(const int id, const char* in_file, const char* mask_file, const char* out_dir) :
+GridLayeringD8::GridLayeringD8(int id, const char* out_dir, const char* in_file,
+                               const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
+                               bool force_outlet/*=false*/) :
     GridLayering(id, out_dir) {
     flowdir_name_ = in_file;
     mask_name_ = mask_file;
-    string prefix = ValueToString(subbasin_id_);
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_D8";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_D8";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_D8";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_D8";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_D8";
+    stream_file_ = stream_file;
+    force_outlet_ = force_outlet;
+    OutputFilenames(FD_D8);
 }
 
 GridLayeringD8::~GridLayeringD8() {
@@ -59,6 +57,19 @@ bool GridLayeringD8::LoadData() {
     mask_->GetRasterPositionData(&n_valid_cells_, &pos_rowcol_);
 
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
-    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) { flowdir_->ReplaceNoData(out_nodata_); }
+    if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) {
+        flowdir_->ReplaceNoData(out_nodata_);
+    }
+
+    // Create stream grid from Shapefile
+    if (stream_file_.empty()) {
+        return true;
+    }
+
+    if (nullptr == stream_matrix_) Initialize1DArray(n_valid_cells_, stream_matrix_, mask_->GetNoDataValue());
+    vector<vector<ROW_COL> > stream_rc;
+    bool flag = read_stream_vertexes(stream_file_, mask_, stream_rc, stream_matrix_);
+    if (!flag) return false;
+
     return true;
 }

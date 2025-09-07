@@ -1,29 +1,30 @@
 #include "GridLayering.h"
+#include "NormalizeFlowFractions.h"
 
 #ifdef USE_MONGODB
-GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* stream_file, const char* out_dir) :
+GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir,
+                                     const char* stream_file/*=nullptr*/,
+                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, gfs, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
-    string prefix = ValueToString(subbasin_id_);
+    // outputs
+    OutputFilenames(FD_MFDmd);
     // inputs
-    flowdir_name_ = prefix + "_FLOW_DIR_MFDMD";
-    flowfrac_corename_ = prefix + "_FLOW_FRACTION_MFDMD";
+    string prefix = ValueToString(subbasin_id_);
+    flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
+    flowfrac_corename_ = prefix + "_FLOW_FRACTION_" + fdtype_str_;
     mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
-    // outputs
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_MFDMD";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_MFDMD";
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_MFDMD";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_MFDMD";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_MFDMD";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_MFDMD";
+    force_outlet_ = force_outlet;
+    force_inbasin_ = force_inbasin;
+    decimals_ = decimals;
 }
 #endif
 
-GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const char* fraction_file,
-                                     const char* mask_file, const char* stream_file,
-                                     const char* out_dir) :
+GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
+                                     const char* fd_file, const char* fraction_file,
+                                     const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
+                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -37,20 +38,24 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* fd_file, const ch
     }
     mask_name_ = mask_file;
     stream_file_ = stream_file;
+    force_outlet_ = force_outlet;
+    force_inbasin_ = force_inbasin;
+    decimals_ = decimals;
     // outputs
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_MFDMD";
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_MFDMD";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_MFDMD";
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_MFDMD";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_MFDMD";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_MFDMD";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_MFDMD";
+    OutputFilenames(FD_MFDmd);
 }
 
 GridLayeringMFDmd::~GridLayeringMFDmd() {
     delete flow_fraction_;
     if (nullptr != flowin_fracs_) Release1DArray(flowin_fracs_);
     if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
+}
+
+void GridLayeringMFDmd::OutputFilenames(flowDirTypes ftype) {
+    GridLayering::OutputFilenames(ftype);
+    string prefix = ValueToString(subbasin_id_);
+    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
+    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
 }
 
 bool GridLayeringMFDmd::LoadData() {
@@ -103,8 +108,9 @@ bool GridLayeringMFDmd::LoadData() {
     if (stream_file_.empty())
         return true;
 
+    if (nullptr == stream_matrix_) Initialize1DArray(n_valid_cells_, stream_matrix_, mask_->GetNoDataValue());
     vector<vector<ROW_COL> > stream_rc;
-    bool flag = read_stream_vertexes_as_rowcol(stream_file_, mask_, stream_rc);
+    bool flag = read_stream_vertexes(stream_file_, mask_, stream_rc, stream_matrix_);
     if (!flag) return false;
 
     for (vector<vector<ROW_COL> >::iterator it = stream_rc.begin(); it != stream_rc.end(); ++it) {
@@ -182,14 +188,24 @@ bool GridLayeringMFDmd::OutputFlowOut() {
     flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
     int count = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        flowout_fracs_[count++] = CVT_FLT(flow_out_num_[valid_idx]); // maybe 0
-        if (flow_out_num_[valid_idx] == 0) continue;
+        int i = pos_rowcol_[valid_idx][0];                           // row
+        int j = pos_rowcol_[valid_idx][1];
+        int flowcount = flow_out_num_[valid_idx];
+        flowout_fracs_[count++] = CVT_FLT(flowcount); // maybe 0
+        if (flowcount <= 0) {
+            flowout_fracs_[count - 1] = 0.;
+            continue;
+        }
+        vector<FLTPT> fracin(flowcount, 0.);
+        vector<int> flowidxs(flowcount, -1);
         for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
             int down_cell_idx = 1 + valid_idx + 1 + iout;
-            if (valid_idx > 0) down_cell_idx += flow_out_acc_[valid_idx - 1];
+            if (valid_idx > 0) {
+                down_cell_idx += flow_out_acc_[valid_idx - 1];
+            }
             int down_cell = CVT_INT(flow_out_cells_[down_cell_idx]);
-            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - pos_rowcol_[valid_idx][0],
-                                                       pos_rowcol_[down_cell][1] - pos_rowcol_[valid_idx][1]);
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
+                                                       pos_rowcol_[down_cell][1] - j);
             float curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
             if (curfract < 0) {
                 cout << "No flow fraction found in the flow direction, "
@@ -201,7 +217,15 @@ bool GridLayeringMFDmd::OutputFlowOut() {
                 return false;
             }
             flowout_fracs_[count++] = curfract;
-            //cur_fdir_count++;
+            fracin[iout] = curfract;
+            flowidxs[iout] = fd_idx - 1;
+        }
+        vector<FLTPT> fracout;
+        normalize_flow_fraction(fracin, decimals_, fracout);
+        for (int flow_idx = flowcount - 1; flow_idx >= 0; flow_idx--) {
+            int actual_idx = flowcount - 1 - flow_idx;
+            flowout_fracs_[count - 1 - flow_idx] = fracout[actual_idx];
+            flowfrac_matrix_[valid_idx][flowidxs[actual_idx]] = fracout[actual_idx]; // write back
         }
     }
 

@@ -24,9 +24,10 @@ using namespace data_raster;
  */
 enum LayeringMethod {
     UP_DOWN, ///< layering-from-source method, default
-    DOWN_UP  ///< layering-from-outlet method
+    DOWN_UP, ///< layering-from-outlet method
+    EVEN     ///< evenly layering method
 };
-const char* const LayeringMethodString[] = {"_UP_DOWN", "_DOWN_UP"};
+const char* const LayeringMethodString[] = {"_UPDOWN", "_DOWNUP", "_EVEN"};
 
 /*!
  * \enum FlowDirMethod
