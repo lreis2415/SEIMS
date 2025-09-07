@@ -62,10 +62,10 @@ bool GridLayeringMFDmd::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(),
+        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(),
                                           true, mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_corename_.c_str(),
                                                 true, mask_, true, NODATA_VALUE, opts);
@@ -80,12 +80,12 @@ bool GridLayeringMFDmd::LoadData() {
             }
         }
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = FloatRaster::Init(flowdir_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = IntRaster::Init(mask_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
         flow_fraction_ = FloatRaster::Init(flowfrac_names_, true, mask_, true);
     }
@@ -152,11 +152,11 @@ bool GridLayeringMFDmd::OutputFlowIn() {
         for (int iin = 0; iin < flow_in_num_[valid_idx]; iin++) {
             int in_cell_idx = 1 + valid_idx + 1 + iin;
             if (valid_idx > 0) in_cell_idx += flow_in_acc_[valid_idx - 1];
-            int source_index = CVT_INT(flow_in_cells_[in_cell_idx]);
+            int source_index = flow_in_cells_[in_cell_idx];
             int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[valid_idx][0] - pos_rowcol_[source_index][0],
                                                        pos_rowcol_[valid_idx][1] - pos_rowcol_[source_index][1]);
 
-            float flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
+            FLTPT flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
             if (flowfrac < 0) continue;
             flowin_fracs_[count++] = flowfrac;
         }
@@ -188,7 +188,7 @@ bool GridLayeringMFDmd::OutputFlowOut() {
     flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
     int count = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        int i = pos_rowcol_[valid_idx][0];                           // row
+        int i = pos_rowcol_[valid_idx][0];
         int j = pos_rowcol_[valid_idx][1];
         int flowcount = flow_out_num_[valid_idx];
         flowout_fracs_[count++] = CVT_FLT(flowcount); // maybe 0
@@ -203,10 +203,10 @@ bool GridLayeringMFDmd::OutputFlowOut() {
             if (valid_idx > 0) {
                 down_cell_idx += flow_out_acc_[valid_idx - 1];
             }
-            int down_cell = CVT_INT(flow_out_cells_[down_cell_idx]);
+            int down_cell = flow_out_cells_[down_cell_idx];
             int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
                                                        pos_rowcol_[down_cell][1] - j);
-            float curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
+            FLTPT curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
             if (curfract < 0) {
                 cout << "No flow fraction found in the flow direction, "
                         "valid index: " << valid_idx << ", row: " << pos_rowcol_[valid_idx][0] <<

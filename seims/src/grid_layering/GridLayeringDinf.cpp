@@ -59,11 +59,11 @@ bool GridLayeringDinf::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(), true,
-                                          mask_, true, NODATA_VALUE, opts);
+        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(), true,
+                                   mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_name_.c_str(), true,
                                                 mask_, true, NODATA_VALUE, opts);
 #else
@@ -71,12 +71,12 @@ bool GridLayeringDinf::LoadData() {
 #endif
     } else {
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = FloatRaster::Init(flowdir_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = IntRaster::Init(mask_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
         flow_fraction_ = FloatRaster::Init(flowfrac_name_, true, mask_, true);
     }
@@ -148,7 +148,7 @@ bool GridLayeringDinf::OutputFlowIn() {
             continue;
         }
 
-        int reversed_fdir = CVT_INT(reverse_dir_[valid_idx]);
+        int reversed_fdir = reverse_dir_[valid_idx];
         if (reversed_fdir < 0) continue; // This will not happen, just in case!
 
         vector<int> reversed_fdirs = uncompress_flow_directions(reversed_fdir);
@@ -161,7 +161,7 @@ bool GridLayeringDinf::OutputFlowIn() {
                 flowdir_->IsNoData(source_row, source_col))
                 continue;
             int source_index = pos_index_[source_row * n_cols_ + source_col];
-            int source_fdir = CVT_INT(flowdir_matrix_[source_index]);
+            int source_fdir = flowdir_matrix_[source_index];
             vector<int> source_fdirs = uncompress_flow_directions(source_fdir);
             if (source_fdirs.size() == 1) {
                 flowin_fracs_[count++] = 1.f;
@@ -208,7 +208,7 @@ bool GridLayeringDinf::OutputFlowOut() {
             flowout_fracs_[count - 1] = 0.f;
             continue;
         }
-        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
+        int flow_dir = flowdir_matrix_[valid_idx];
         if (flow_dir < 0) {
             flowout_fracs_[count - 1] = 0.f;
             continue; // This will not happen, just in case!

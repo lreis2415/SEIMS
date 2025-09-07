@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     /// set default OpenMP thread number to improve compute efficiency
     SetDefaultOpenMPThread();
     /// Register GDAL drivers, REQUIRED!
-    GDALAllRegister(); // Moved to gdal_handler.h! By lj 2025-09-04
+    // GDALAllRegister(); // Moved to gdal_handler.h! By lj 2025-09-04
     /// Define input arguments
     flowDirTypes fdtype = FD_D8;
     const char* out_dir = nullptr;
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
         } else if (StringMatch(argv[i], "-force_outlet")) {
             i++;
             if (argc > i) {
-                force_outlet = CVT_INT(ToInt(argv[i])) > 0 ? 1 : 0;
+                force_outlet = ToInt(argv[i]) > 0 ? 1 : 0;
                 i++;
             } else {
                 Usage("No argument followed '-force_outlet'!");
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
         } else if (StringMatch(argv[i], "-force_inbasin")) {
             i++;
             if (argc > i) {
-                force_inbasin = CVT_INT(ToInt(argv[i])) > 0 ? 1 : 0;
+                force_inbasin = ToInt(argv[i]) > 0 ? 1 : 0;
                 i++;
             } else {
                 Usage("No argument followed '-force_inbasin'!");

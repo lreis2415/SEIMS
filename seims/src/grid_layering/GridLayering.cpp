@@ -65,8 +65,8 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
     return flow_dirs;
 }
 
-bool read_stream_vertexes(string stream_file, FloatRaster *mask,
-                          vector<vector<ROW_COL> > &stream_rc, float*& stream_matrix) {
+bool read_stream_vertexes(string stream_file, IntRaster *mask,
+                          vector<vector<ROW_COL> > &stream_rc, int*& stream_matrix) {
     GDALRasterDSHandle stream_ds(OpenVector(stream_file.c_str()));
 // #if GDAL_VERSION_MAJOR >= 2
 //     GDALDataset *stream_ds = nullptr;
@@ -1093,7 +1093,7 @@ void GridLayering::GetReverseDirMatrix() {
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
-        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
+        int flow_dir = flowdir_matrix_[valid_idx];
         if (flowdir_->IsNoData(i, j) || flow_dir <= 0) {
             // Avoid repeatedly change to nodata, since such cells can accept flow in
             if (FloatEqual(reverse_dir_[valid_idx], 0.f)) {
@@ -1101,7 +1101,7 @@ void GridLayering::GetReverseDirMatrix() {
             }
             continue;
         }
-        int stream_dst = handle_stream ? CVT_INT(stream_matrix_[valid_idx]) : -1;
+        int stream_dst = handle_stream ? stream_matrix_[valid_idx] : -1;
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
@@ -1115,7 +1115,7 @@ void GridLayering::GetReverseDirMatrix() {
                 // Boundary cells may be NoData in flowdir_, but they can accept flow in
                 reverse_dir_[src_idx] = 0;
             }
-            int stream_src = handle_stream ? CVT_INT(stream_matrix_[src_idx]) : -1;
+            int stream_src = handle_stream ? stream_matrix_[src_idx] : -1;
             if (handle_stream && stream_src > 0 && stream_dst == stream_src) {
                 continue;
             }
@@ -1155,25 +1155,25 @@ void GridLayering::OutputFilenames(flowDirTypes ftype) {
 }
 
 
-int GridLayering::BuildMultiFlowOutArray(float *&compressed_dir,
-                                         int *&connect_count, float *&p_output) {
-    p_output[0] = CVT_FLT(n_valid_cells_);
+int GridLayering::BuildMultiFlowOutArray(int *&compressed_dir,
+                                         int *&connect_count, int *&p_output) {
+    p_output[0] = n_valid_cells_;
     int counter = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
         /// count of flow out cells
-        p_output[counter++] = CVT_FLT(connect_count[valid_idx]); // maybe 0
+        p_output[counter++] = connect_count[valid_idx]; // maybe 0
         if (connect_count[valid_idx] == 0) continue;
         /// loop flow out directions
-        vector<int> flow_dirs = uncompress_flow_directions(CVT_INT(compressed_dir[valid_idx]));
+        vector<int> flow_dirs = uncompress_flow_directions(compressed_dir[valid_idx]);
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
             if (!mask_->ValidateRowCol(i + drow[fd_idx], j + dcol[fd_idx]) ||
                 mask_->IsNoData(i + drow[fd_idx], j + dcol[fd_idx])) {
                 continue;
             }
-            p_output[counter++] = CVT_FLT(pos_index_[(i + drow[fd_idx]) * n_cols_ + j + dcol[fd_idx]]);
+            p_output[counter++] = pos_index_[(i + drow[fd_idx]) * n_cols_ + j + dcol[fd_idx]];
         }
     }
     return counter;
@@ -1199,8 +1199,8 @@ void GridLayering::CountFlowOutCells() {
         int i = pos_rowcol_[index][0]; // row
         int j = pos_rowcol_[index][1]; // col
         if (flowdir_->IsNoData(i, j) || flowdir_matrix_[index] <= 0) continue;
-        int stream_src = handle_stream ? CVT_INT(stream_matrix_[index]): -1;
-        int flow_dir = CVT_INT(flowdir_matrix_[index]);
+        int stream_src = handle_stream ? stream_matrix_[index]: -1;
+        int flow_dir = flowdir_matrix_[index];
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
@@ -1214,7 +1214,7 @@ void GridLayering::CountFlowOutCells() {
                 continue;
             }
             int dst_idx = pos_index_[dst_row * n_cols_ + dst_col];
-            int stream_dst = handle_stream ? CVT_INT(stream_matrix_[dst_idx]) : -1;
+            int stream_dst = handle_stream ? stream_matrix_[dst_idx] : -1;
             if (handle_stream && stream_src > 0 && stream_dst == stream_src) {
                 continue;
             }
@@ -1242,15 +1242,15 @@ bool GridLayering::BuildFlowOutCellsArray() {
 }
 
 bool GridLayering::Output2DimensionArrayTxt(const string &name, string &header,
-                                            float *const matrix, float *matrix2/* = nullptr */) {
+                                            int* matrix, FLTPT* matrix2/* = nullptr */) {
     string outpath = string(output_dir_) + SEP + name + ".txt";
     std::ofstream ofs(outpath.c_str());
     ofs << matrix[0] << endl;
     ofs << header << endl;
     int tmp_count = 1;
     int tmp_count2 = 1;
-    for (int i = 0; i < CVT_INT(matrix[0]); i++) {
-        int count = CVT_INT(matrix[tmp_count++]);
+    for (int i = 0; i < matrix[0]; i++) {
+        int count = matrix[tmp_count++];
         ofs << i << "\t" << count << "\t";
         for (int j = 0; j < count; j++) {
             if (j == count - 1)
@@ -1275,12 +1275,27 @@ bool GridLayering::Output2DimensionArrayTxt(const string &name, string &header,
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, float *const matrix) {
+bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, FLTPT *const matrix) {
     bool flag = false;
     int max_loop = 3;
     int cur_loop = 1;
     while (cur_loop < max_loop) {
-        if (!OutputToMongodb(name.c_str(), length, reinterpret_cast<char *>(matrix))) {
+        if (!OutputToMongodb(name.c_str(), "FLOAT", length, reinterpret_cast<char *>(matrix))) {
+            cur_loop++;
+        } else {
+            cout << "Output " << name << " done!" << endl;
+            flag = true;
+            break;
+        }
+    }
+    return flag;
+}
+bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, int *const matrix) {
+    bool flag = false;
+    int max_loop = 3;
+    int cur_loop = 1;
+    while (cur_loop < max_loop) {
+        if (!OutputToMongodb(name.c_str(), "INT", length, reinterpret_cast<char *>(matrix))) {
             cur_loop++;
         } else {
             cout << "Output " << name << " done!" << endl;
@@ -1354,14 +1369,14 @@ bool GridLayering::GridLayeringFromSource() {
             valid_idx = last_layer[i_in_layer];
             lyr_cells.emplace_back(valid_idx);
             layers_updown_[valid_idx] = CVT_FLT(cur_num);
-            int dir = CVT_INT(flowdir_matrix_[valid_idx]);
+            int dir = flowdir_matrix_[valid_idx];
             if (dir <= 0) {
                 continue;
             }
             for (int out_idx = 0; out_idx < flow_out_num_[valid_idx]; out_idx++) {
                 int out_cellidx = 1 + valid_idx + 1 + out_idx;
                 if (valid_idx > 0) out_cellidx += flow_out_acc_[valid_idx - 1];
-                int dst_posidx = CVT_INT(flow_out_cells_[out_cellidx]);
+                int dst_posidx = flow_out_cells_[out_cellidx];
                 if (--flow_in_num_copy[dst_posidx] == 0) {
                     next_layer[num_next_layer++] = dst_posidx;
                 }
@@ -1428,7 +1443,7 @@ bool GridLayering::GridLayeringFromOutlet() {
             for (int in_idx = 0; in_idx < flow_in_num_[valid_idx]; in_idx++) {
                 int in_cellidx = 1 + valid_idx + 1 + in_idx;
                 if (valid_idx > 0) in_cellidx += flow_in_acc_[valid_idx - 1];
-                int src_posidx = CVT_INT(flow_in_cells_[in_cellidx]);
+                int src_posidx = flow_in_cells_[in_cellidx];
                 if (--flow_out_num_copy[src_posidx] == 0) {
                     next_layer[num_next_layer++] = src_posidx;
                 }
@@ -1670,7 +1685,7 @@ bool GridLayering::GridLayeringEvenly() {
         for (int j = 0; j < down_count; j++) {
             int jj = 1 + i + 1 + j;
             if (i > 0) jj += flow_out_acc_[i - 1];
-            Down[i][j] = CVT_INT(flow_out_cells_[jj]);
+            Down[i][j] = flow_out_cells_[jj];
         }
     }
     // Indexes of upstream cells
@@ -1682,15 +1697,15 @@ bool GridLayering::GridLayeringEvenly() {
         for (int j = 0; j < up_count; j++) {
             int jj = 1 + i + 1 + j;
             if (i > 0) jj += flow_in_acc_[i - 1];
-            Up[i][j] = CVT_INT(flow_in_cells_[jj]);
+            Up[i][j] = flow_in_cells_[jj];
         }
     }
     cout << "Valid cells count: " << n_valid_cells_ << ", layers count: " << n_layer_count_ << endl;
     // layer index (0-based) of each cell
     vector<int> L_up(n_valid_cells_), L_down(n_valid_cells_);
     for (int i = 0; i < n_valid_cells_; i++) {
-        L_up[i] = CVT_INT(layers_updown_[i]) - 1;
-        L_down[i] = CVT_INT(layers_downup_[i]) - 1;
+        L_up[i] = layers_updown_[i] - 1;
+        L_down[i] = layers_downup_[i] - 1;
     }
     // static moving windows
     vector<int> Lmin(n_valid_cells_), Lmax(n_valid_cells_);
@@ -1955,213 +1970,8 @@ bool GridLayering::GridLayeringEvenly() {
                               layers_evenly_, layer_cells_evenly_);
 }
 
-
-bool GridLayering::GridLayeringEvenly_deprecated() {
-    Initialize1DArray(n_valid_cells_, layers_evenly_, out_nodata_);
-    // layers count should be the same!
-    assert(n_layer_cells_updown_.size() == n_layer_cells_downup_.size());
-
-    // Original implementation:
-    //   However, directly use the average count of layers will move many cells to
-    //   their downstream layers, result in relative large amount in middle layers.
-    //   The STD of layer cells' count only reduce about 5% compared to DOWN_UP method.
-    // Ideal average cells' count
-    // lyr_n_ave = (n_valid_cells_ - 1) / (n_layer_count_ - 1)
-    // Instead of using ceil(), refers to https://stackoverflow.com/a/2745086/4837280
-    //
-    // int lyr_n_ave = 1 + (n_valid_cells_ - 2) / (n_layer_count_ - 1);
-    //
-    // Improved implementation according to DOWN_UP layers:
-    //                   accumulative_95% - accumulative_5%
-    //   lyr_n_ave = -----------------------------------------
-    //               lyr_num_DOWN_UP_95% - lyr_num_DOWN_UP_95%
-    //
-    int lyr_95 = -1;
-    int lyr_5 = -1;
-    int count_95 = CVT_INT(ceil(n_valid_cells_ * 0.95f));
-    int count_5 = CVT_INT(ceil(n_valid_cells_ * 0.05f));
-    int act_count_95 = 0;
-    int act_count_5 = 0;
-    int acc_count = 0;
-    for (auto it = n_layer_cells_downup_.rbegin();
-         it != n_layer_cells_downup_.rend(); ++it) {
-        acc_count += it->size();
-        if (lyr_5 < 0 && acc_count >= count_5) {
-            lyr_5 = it - n_layer_cells_downup_.rbegin() + 1;
-            act_count_5 = acc_count;
-        }
-        if (lyr_95 < 0 && acc_count >= count_95) {
-            lyr_95 = it - n_layer_cells_downup_.rbegin();
-            act_count_95 = acc_count;
-            break;
-        }
-    }
-    int lyr_n_ave = 1 + (act_count_95 - act_count_5 - 2) / (lyr_95 - lyr_5 + 1);
-    int max_loop = n_layer_count_ * 10; // this max loop should be sufficient enough
-    int cur_loop = 1;
-    bool has_changes = true;
-    // Store layer number difference between DOWN_UP and UP_DOWN order
-    //   Note that, the DOWN_UP layer number MUST >= UP_DOWN layer number!
-    int *layer_diff = nullptr;
-    Initialize1DArray(n_valid_cells_, layer_diff, out_nodata_);
-    // Take n_layer_cells_updown_ as reference to build evenly layers
-    //   So, deepcopy n_layer_cells_updown_ to n_layer_cells_evenly_
-    for (auto itcopy = n_layer_cells_updown_.begin();
-         itcopy != n_layer_cells_updown_.end(); ++itcopy) {
-        n_layer_cells_evenly_.emplace_back(vector<int>(itcopy->size()));
-        for (auto itvalue = itcopy->begin();
-             itvalue != itcopy->end(); ++itvalue) {
-            n_layer_cells_evenly_[itcopy - n_layer_cells_updown_.begin()][itvalue - itcopy->begin()] = *itvalue;
-        }
-    }
-
-    // Cells corresponding to layer diffs
-    map<int, vector<int> > lyrdiff_cells;
-    for (int il = 0; il < n_layer_count_; il++) {
-#ifdef HAS_VARIADIC_TEMPLATES
-        lyrdiff_cells.emplace(il, vector<int>());
-#else
-        lyrdiff_cells.insert(make_pair(il, vector<int>()));
-#endif
-    }
-
-    while (cur_loop <= max_loop && has_changes) {
-        has_changes = false;
-        // Update layer differences between DOWN_UP and UP_DOWN orders
-        //   Note that, layers_downup_ and layers_updown_ may be changed in following code
-#pragma omp parallel for
-        for (int i = 0; i < n_valid_cells_; i++) {
-            layer_diff[i] = CVT_INT(layers_downup_[i]) - CVT_INT(layers_updown_[i]) + 1;
-        }
-
-        for (auto it_ilyr = n_layer_cells_evenly_.begin();
-             it_ilyr != n_layer_cells_evenly_.end(); ++it_ilyr) {
-            int ilyr = it_ilyr - n_layer_cells_evenly_.begin();
-            // Clear lydiff_cells to accept new data
-            for (auto it_lyrdiff = lyrdiff_cells.begin();
-                 it_lyrdiff != lyrdiff_cells.end(); ++it_lyrdiff) {
-                it_lyrdiff->second.clear();
-            }
-            // If cells' number less or equal to average count,
-            //   all cells in the current layer will not be moved.
-            int ilyr_cell_count = CVT_INT(n_layer_cells_evenly_[ilyr].size());
-            if (ilyr_cell_count <= lyr_n_ave) {
-                continue;
-            }
-            // Else, record cells with layer difference >= 2, and reserve others
-            int reserve_count = 0;
-            int max_lyrdiff = -1;
-            for (auto it = it_ilyr->begin(); it != it_ilyr->end(); ++it) {
-                int cur_cell = CVT_INT(*it);
-                int cur_lyrdiff = layer_diff[cur_cell];
-                if (cur_lyrdiff != 1 && CVT_INT(layers_downup_[cur_cell]) != ilyr) {
-                    lyrdiff_cells[cur_lyrdiff].emplace_back(cur_cell);
-                    if (cur_lyrdiff > max_lyrdiff) max_lyrdiff = cur_lyrdiff;
-                } else {
-                    reserve_count++;
-                }
-            }
-            // If all cells are reserved, just continue to next ilyr
-            if (ilyr_cell_count == reserve_count) {
-                continue;
-            }
-            // max count allowed to be moved, MUST > 0
-            int max_change = ilyr_cell_count - lyr_n_ave;
-            if (max_change < 0) {
-                // the fixed positions have satisfied lyr_n_ave
-                max_change = 0; // this will not happen, just in case
-                continue;
-            }
-            // only move cells to downstream layers with max_lyrdiff once!
-            int maxdiff_count = CVT_INT(lyrdiff_cells[max_lyrdiff].size());
-            set<int> first_tobechanged;
-            if (max_change >= maxdiff_count) {
-                max_change = maxdiff_count;
-                for (int i = 0; i < max_change; i++) {
-                    first_tobechanged.insert(i);
-                }
-            } else {
-                // randomly selected max_change count
-                srand((unsigned int) time(nullptr)); //seed
-                while (first_tobechanged.size() < max_change) {
-                    first_tobechanged.insert(rand() % maxdiff_count);
-                }
-            }
-            queue<int> tobechanged;
-            vector<int> changed;
-            vector<int> &max_lyrdiff_cells = lyrdiff_cells[max_lyrdiff];
-            // Other cells will be moved to the next layer, and their lyrdiff be updated (minus 1)
-            for (set<int>::iterator it_change = first_tobechanged.begin();
-                 it_change != first_tobechanged.end(); ++it_change) {
-                int ichange_cell = max_lyrdiff_cells[*it_change];
-                if (find(changed.begin(), changed.end(), ichange_cell) == changed.end()) {
-                    tobechanged.push(ichange_cell);
-                    changed.emplace_back(ichange_cell);
-                }
-            }
-            while (!tobechanged.empty()) {
-                int cur_cell = tobechanged.front();
-                tobechanged.pop();
-                // get old layer number and update it if necessary
-                int cur_cell_lyr = CVT_INT(layers_updown_[cur_cell]);
-                if (layer_diff[cur_cell] <= 1 || CVT_INT(layers_downup_[cur_cell]) == cur_cell_lyr) {
-                    //lyr_cells.emplace_back(cur_cell);
-                    continue; // no need to move to downstream layer
-                }
-                cur_cell_lyr -= 1; // Note, number to index
-                layers_updown_[cur_cell] = cur_cell_lyr + 2.f; // Note, index to number and then plus 1
-                // remove current cell from old layer to downstream layer
-                vector<int> &cur_lyr_cells = n_layer_cells_evenly_[cur_cell_lyr];
-                // Erasing using iterator from 'find' or 'remove'?
-                // Refers to https://stackoverflow.com/a/24011727/4837280
-                vector<int>::iterator it_erase = find(cur_lyr_cells.begin(),
-                                                      cur_lyr_cells.end(), cur_cell);
-                if (it_erase != cur_lyr_cells.end()) {
-                    *it_erase = std::move(cur_lyr_cells.back());
-                    cur_lyr_cells.pop_back();
-                }
-                n_layer_cells_evenly_[cur_cell_lyr + 1].emplace_back(cur_cell);
-                // update lyr_diff
-                layer_diff[cur_cell] -= 1;
-                // once has one cell's layer number changed
-                has_changes = true;
-
-                // add downstream cells of current cell to the queue
-                for (int idown = 0; idown < flow_out_num_[cur_cell]; idown++) {
-                    int down_cell_idx = 1 + cur_cell + 1 + idown;
-                    if (cur_cell > 0) down_cell_idx += flow_out_acc_[cur_cell - 1];
-                    int down_cell = CVT_INT(flow_out_cells_[down_cell_idx]);
-                    if (std::find(changed.begin(), changed.end(), down_cell) != changed.end() ||
-                        layer_diff[down_cell] == 1) {
-                        continue;
-                    }
-                    tobechanged.push(down_cell);
-                    changed.emplace_back(down_cell);
-                }
-            }
-        }
-        if (!has_changes) continue;
-        cur_loop++;
-    }
-    Release1DArray(layer_diff);
-    // create output variables based on n_layer_cells_evenly_
-    Initialize1DArray(n_valid_cells_ + n_layer_count_ + 1, layer_cells_evenly_, 0.f);
-    layer_cells_evenly_[0] = CVT_FLT(n_layer_count_);
-    int valid_idx = 1;
-    for (auto it = n_layer_cells_evenly_.begin();
-         it != n_layer_cells_evenly_.end(); ++it) {
-        layer_cells_evenly_[valid_idx++] = CVT_FLT((*it).size());
-        for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
-            layer_cells_evenly_[valid_idx++] = CVT_FLT(*it2);
-            layers_evenly_[*it2] = it - n_layer_cells_evenly_.begin() + 1;
-        }
-    }
-    return OutputGridLayering(layering_evenly_name_, n_valid_cells_ + n_layer_count_ + 1,
-                              layers_evenly_, layer_cells_evenly_);
-}
-
 #ifdef USE_MONGODB
-bool GridLayering::OutputToMongodb(const char *name, const vint number, char *s) {
+bool GridLayering::OutputToMongodb(const char *name, const char* dtype, const vint number, char *s) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", subbasin_id_);
     BSON_APPEND_UTF8(&p, "TYPE", name);
@@ -2169,9 +1979,17 @@ bool GridLayering::OutputToMongodb(const char *name, const vint number, char *s)
     BSON_APPEND_UTF8(&p, "DESCRIPTION", name);
     BSON_APPEND_DOUBLE(&p, "NUMBER", CVT_DBL(number));
     BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
+    BSON_APPEND_UTF8(&p, HEADER_RS_DATATYPE, dtype);
 
     gfs_->RemoveFile(string(name));
-    vint n = number * sizeof(float);
+    vint n = -1;
+    if (StringMatch(dtype, "INT"))
+        n = number * sizeof(int);
+    else if (StringMatch(dtype, "FLOAT")) {
+        n = number * sizeof(FLTPT);
+    } else {
+        n = number * sizeof(float);
+    }
     gfs_->WriteStreamData(string(name), s, n, &p);
     bson_destroy(&p);
     if (nullptr == gfs_->GetFile(name)) {
@@ -2182,9 +2000,9 @@ bool GridLayering::OutputToMongodb(const char *name, const vint number, char *s)
 #endif
 
 bool GridLayering::OutputGridLayering(const string &name, const int datalength,
-                                      float *const layer_grid, float *const layer_cells) {
+                                      int *const layer_grid, int *const layer_cells) {
     string outpath = string(output_dir_) + "/" + name + ".tif";
-    FloatRaster(mask_, layer_grid, n_valid_cells_).OutputFileByGdal(outpath);
+    IntRaster(mask_, layer_grid, n_valid_cells_).OutputFileByGdal(outpath);
 
     string header = "LayerID\tCellCount\tCellIDs";
     bool done = Output2DimensionArrayTxt(name, header, layer_cells);

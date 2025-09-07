@@ -33,22 +33,22 @@ bool GridLayeringD8::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(),
-                                     true, mask_, true, NODATA_VALUE, opts);
+        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(),
+                                   true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
     } else {
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = FloatRaster::Init(flowdir_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = IntRaster::Init(mask_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
     }
     if (nullptr == flowdir_ || nullptr == mask_) { return false; }

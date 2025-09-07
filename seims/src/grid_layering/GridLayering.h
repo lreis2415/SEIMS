@@ -35,33 +35,22 @@ typedef double FLTPT;
 typedef float FLTPT;
 #endif
 
+// Define Raster types, the same with SEIMS
+
+#ifdef IntRaster
+#undef IntRaster
+#endif
 #ifndef IntRaster
-#define IntRaster   clsRasterData<int>
+/*! Integer-typed raster */
+#define IntRaster   ccgl::data_raster::clsRasterData<int>
+#endif
+#ifdef FloatRaster
+#undef FloatRaster
 #endif
 #ifndef FloatRaster
-#define FloatRaster clsRasterData<float>
+/*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
+#define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
 #endif
-#ifndef FltIntRaster
-#define FltIntRaster clsRasterData<float, int>
-#endif
-#ifndef IntFltRaster
-#define IntFltRaster clsRasterData<int, float>
-#endif
-//
-// #ifdef IntRaster
-// #undef IntRaster
-// #endif
-// #ifndef IntRaster
-// /*! Integer-typed raster */
-// #define IntRaster   ccgl::data_raster::clsRasterData<int>
-// #endif
-// #ifdef FloatRaster
-// #undef FloatRaster
-// #endif
-// #ifndef FloatRaster
-// /*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
-// #define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
-// #endif
 
 /*!
 * \enum flowDirTypes
@@ -94,9 +83,9 @@ int get_reversed_fdir(int fd);
 
 vector<int> uncompress_flow_directions(int compressed_fd);
 
-bool read_stream_vertexes(string stream_file, FloatRaster* mask,
+bool read_stream_vertexes(string stream_file, IntRaster* mask,
                           vector<vector<ROW_COL> >& stream_rc,
-                          float*& stream_matrix);
+                          int*& stream_matrix);
 
 void print_flow_fractions_mfdmd(FloatRaster* ffrac, int row, int col);
 
@@ -241,24 +230,22 @@ static void CollectCandidates(int s, int d, int K, int prefix_end, const vector<
                               const vector<int>& S, bool require_deficit_target, const vector<int>* pCap,
                               int capMin, int capMax, double depth_penalty_weight, double scarcity_weight,
                               vector<Candidate>& out);
-static bool PickFeasibleDeficitAndCandidates(
-    int s, const std::vector<int>& S, int K, int prefix_end,
-    const std::vector< std::vector<int> >& Buckets,
-    const std::vector<int>& L,
-    const std::vector<int>& low, const std::vector<int>& high,
-    const std::vector<int>& Lmin, const std::vector<int>& Lmax,
-    const std::vector< std::vector<int> >& Up,
-    const std::vector< std::vector<int> >& Down,
-    bool strict_deficit_target,
-    bool allow_intermediate_fallback,
-    int& d_out,
-    std::vector<Candidate>& cand_out,
-    DeficitScanMode mode,
-    // scoring aids:
-    const std::vector<int>* pCap,
-    int capMin, int capMax,
-    double depth_penalty_weight,
-    double scarcity_weight);
+static bool PickFeasibleDeficitAndCandidates(int s, const vector<int>& S, int K, int prefix_end,
+                                             const vector<vector<int> >& Buckets,
+                                             const vector<int>& L,
+                                             const vector<int>& low, const vector<int>& high,
+                                             const vector<int>& Lmin, const vector<int>& Lmax,
+                                             const vector<vector<int> >& Up,
+                                             const vector<vector<int> >& Down,
+                                             bool strict_deficit_target,
+                                             bool allow_intermediate_fallback,
+                                             int& d_out,
+                                             vector<Candidate>& cand_out,
+                                             DeficitScanMode mode,
+                                             const vector<int>* pCap,
+                                             int capMin, int capMax,
+                                             double depth_penalty_weight,
+                                             double scarcity_weight);
 static void EvaluateBatchPotentialCounts(int s, const vector<Candidate>& cand, int need,
                                          const vector<int>& Count, const vector<int>& T,
                                          long long& phi1, long long& psi1);
@@ -350,9 +337,8 @@ public:
      */
     bool GridLayeringFromOutlet();
     /*!
-     * \brief Build grid layers evenly based on Up-Down and Down-Up orders
+     * \brief Build evenly distributed grid layers evenly based on Up-Down and Down-Up orders
      */
-    bool GridLayeringEvenly_deprecated();
     bool GridLayeringEvenly();
 protected:
     /*！
@@ -362,27 +348,30 @@ protected:
     /*!
      * \brief Build multiple flow out array
      */
-    int BuildMultiFlowOutArray(float*& compressed_dir,
-                               int*& connect_count, float*& p_output);
+    int BuildMultiFlowOutArray(int*& compressed_dir, int*& connect_count, int*& p_output);
     /*!
      * \brief Output 2D array as txt file
      */
-    bool Output2DimensionArrayTxt(const string& name, string& header, float* matrix, float* matrix2 = nullptr);
+    bool Output2DimensionArrayTxt(const string& name, string& header, int* matrix, FLTPT* matrix2 = nullptr);
 #ifdef USE_MONGODB
     /*!
      * \brief Output grid layering related data to MongoDB GridFS
      */
-    bool OutputToMongodb(const char* name, vint number, char* s);
+    bool OutputToMongodb(const char* name, const char* dtype, vint number, char* s);
 
     /*!
-    * \brief Output 2D array as MongoDB-GridFS
+    * \brief Output float 2D array as MongoDB-GridFS
     */
-    bool OutputArrayAsGfs(const string& name, vint length, float* matrix);
+    bool OutputArrayAsGfs(const string& name, vint length, FLTPT* matrix);
+    /*!
+    * \brief Output integer 2D array as MongoDB-GridFS
+    */
+    bool OutputArrayAsGfs(const string& name, vint length, int* matrix);
     /*!
      * \brief Output grid layering as tiff file and MongoDB-GridFS
      */
     bool OutputGridLayering(const string& name, int datalength,
-                            float* layer_grid, float* layer_cells);
+                            int* layer_grid, int* layer_cells);
 
     MongoGridFs* gfs_; ///< MongoDB-GridFS instance
 #endif
@@ -395,19 +384,19 @@ protected:
     int subbasin_id_;        ///< Subbasin ID, 0 for entire basin
     int n_rows_;             ///< Rows
     int n_cols_;             ///< Cols
-    float out_nodata_;       ///< Nodata value in output
+    FLTPT out_nodata_;       ///< Nodata value in output
     int n_valid_cells_;      ///< Valid Cells number
     int n_layer_count_;      ///< Layer count, MUST be the same for all layering methods
     int* pos_index_;         ///< Valid cell's index
     int** pos_rowcol_;       ///< Positions of valid cells, e.g., (row, col) coordinates
-    FloatRaster* mask_;      ///< Mask raster data
-    FloatRaster* flowdir_;   ///< Flow direction raster data, e.g., `int` for D8
-    float* flowdir_matrix_;     ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
-    float* reverse_dir_;        ///< Compressed reversed direction
-    float* stream_matrix_;      ///< (Optional) Stream data with a length of n_valid_cells_
-    int* flow_in_num_;          ///< Count of flow in cells, with a length of n_valid_cells_
-    int* flow_in_acc_;          ///< Accumulative count of flow in cells
-    int flow_in_count_;         ///< All flow in times
+    IntRaster* mask_;        ///< Mask raster data
+    IntRaster* flowdir_;     ///< Flow direction raster data, must be integer datatype
+    int* flowdir_matrix_;    ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
+    int* reverse_dir_;       ///< Compressed reversed direction
+    int* stream_matrix_;     ///< (Optional) Stream data with a length of n_valid_cells_
+    int* flow_in_num_;       ///< Count of flow in cells, with a length of n_valid_cells_
+    int* flow_in_acc_;       ///< Accumulative count of flow in cells
+    int flow_in_count_;      ///< All flow in times
     /*!
      * \brief Stores flow in cells' indexes of each valid cells, which can be
      *          parsed as 2D array. Data length is flow_in_count_ + n_valid_cells_ + 1
@@ -420,23 +409,21 @@ protected:
      *                1          1                0
      *                2          1                1
      *                3          2                7,8
-     * \note The only reason to use float* rather than int* is that we use float
-     *       to keep consistent in data IO of MongoDB.
      */
-    float* flow_in_cells_;
+    int* flow_in_cells_;
     int* flow_out_num_;         ///< Count of flow out cells, with a length of n_valid_cells_
     int* flow_out_acc_;         ///< Accumulative count of flow out cells
     int flow_out_count_;        ///< All flow out times
-    float* flow_out_cells_;     ///< Indexes of each cell's flow out
+    int* flow_out_cells_;     ///< Indexes of each cell's flow out
     vector<vector<int> > n_layer_cells_updown_; ///< layer index (not number) - indexes of cells in Up-Down order
     vector<vector<int> > n_layer_cells_downup_; ///< layer index (not number) - indexes of cells in Down-Up order
     vector<vector<int> > n_layer_cells_evenly_; ///< layer index (not number) - indexes of cells in Evenly order
-    float* layers_updown_;      ///< layer numbers from source (Up-Down order) with a length of n_valid_cells_
-    float* layers_downup_;      ///< layer numbers from outlet (Down-Up order) with a length of n_valid_cells_
-    float* layers_evenly_;      ///< layer numbers based on evenly method with a length of n_valid_cells_
-    float* layer_cells_updown_; ///< cell indexes of each layer in Up-Down order with a length of n_valid_cells_ + n_layer_count_ + 1
-    float* layer_cells_downup_; ///< cell indexes of each layer in Down-Up order with a length of n_valid_cells_ + n_layer_count_ + 1
-    float* layer_cells_evenly_; ///< cell indexes of each layer in Evenly order with a length of n_valid_cells_ + n_layer_count_ + 1
+    int* layers_updown_;      ///< layer numbers from source (Up-Down order) with a length of n_valid_cells_
+    int* layers_downup_;      ///< layer numbers from outlet (Down-Up order) with a length of n_valid_cells_
+    int* layers_evenly_;      ///< layer numbers based on evenly method with a length of n_valid_cells_
+    int* layer_cells_updown_; ///< cell indexes of each layer in Up-Down order with a length of n_valid_cells_ + n_layer_count_ + 1
+    int* layer_cells_downup_; ///< cell indexes of each layer in Down-Up order with a length of n_valid_cells_ + n_layer_count_ + 1
+    int* layer_cells_evenly_; ///< cell indexes of each layer in Evenly order with a length of n_valid_cells_ + n_layer_count_ + 1
     string flowdir_name_;       ///< Flow direction file name
     string mask_name_;          ///< Mask raster file name
     string stream_file_;        ///< Stream shapefile name
@@ -469,7 +456,8 @@ class GridLayeringDinf: public GridLayering {
 public:
 #ifdef USE_MONGODB
     GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir,
-                     const char* stream_file=nullptr, bool force_outlet=false, bool force_inbasin=true, int decimals=4);
+                     const char* stream_file=nullptr, bool force_outlet=false,
+                     bool force_inbasin=true, int decimals=4);
 #endif
     GridLayeringDinf(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                      const char* mask_file=nullptr, const char* stream_file=nullptr,
@@ -488,9 +476,9 @@ private:
     int decimals_;                     ///< Round to N decimal places for flow fractions
     string flowfrac_name_;             ///< Flow fraction raster file recording the fraction of first direction
     FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
-    float* flowfrac_matrix_;           ///< Flow fraction of the first flow out direction (valid cell number)
-    float* flowin_fracs_;              ///< Flow in fractions from each cell's upstream
-    float* flowout_fracs_;             ///< Flow out fractions of each cell
+    FLTPT* flowfrac_matrix_;           ///< Flow fraction of the first flow out direction (valid cell number)
+    FLTPT* flowin_fracs_;              ///< Flow in fractions from each cell's upstream
+    FLTPT* flowout_fracs_;             ///< Flow out fractions of each cell
 
     /** Output file names **/
     string flowin_frac_name_;  ///< Flow fraction of each flow in cell
@@ -501,7 +489,8 @@ class GridLayeringMFDmd: public GridLayering {
 public:
 #ifdef USE_MONGODB
     GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_dir,
-                     const char* stream_file=nullptr, bool force_outlet=false, bool force_inbasin=true, int decimals=4);
+                     const char* stream_file=nullptr, bool force_outlet=false,
+                     bool force_inbasin=true, int decimals=4);
 #endif
     GridLayeringMFDmd(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                       const char* mask_file=nullptr, const char* stream_file=nullptr,
@@ -521,9 +510,9 @@ private:
     string flowfrac_corename_;         ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     vector<string> flowfrac_names_;    ///< Flow fraction raster files recording the fractions of each direction by ccw
     FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
-    float** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
-    float* flowin_fracs_;              ///< Flow in fraction
-    float* flowout_fracs_;             ///< Flow fractions of each cell's flow in
+    FLTPT** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
+    FLTPT* flowin_fracs_;              ///< Flow in fraction
+    FLTPT* flowout_fracs_;             ///< Flow fractions of each cell's flow in
 
     /** Output file names **/
     string flowin_frac_name_;  ///< Flow fraction of each flow in cell
