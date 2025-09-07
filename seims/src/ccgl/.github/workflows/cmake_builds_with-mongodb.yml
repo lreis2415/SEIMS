@@ -125,7 +125,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - name: Checkout CCGL
       uses: actions/checkout@v4
@@ -158,7 +158,7 @@ jobs:
     - name: Configure CMake
       shell: cmd
       run: |
-        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        cmake -G "Visual Studio 17 2022" -A x64 -B ${{github.workspace}}/build ^
         -DMONGOC_ROOT=${{ env.MONGOC_ROOT }} ^
         -DUNITTEST=1
 
@@ -174,7 +174,7 @@ jobs:
         ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
   build-mac:
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
 
     steps:
     - name: Setup xcode
@@ -183,6 +183,8 @@ jobs:
     # https://github.com/ankane/setup-mongodb
     - name: Setup MongoDB
       uses: ankane/setup-mongodb@v1
+      with:
+          mongodb-version: 7.0
 
     - name: Run MongoDB
       run: mongosh --eval "db.version()"
