@@ -119,12 +119,12 @@ int GWaterReservoir::Execute(void) {
         m_percSubbasin[subbasinIdx] += m_recharge[i];
     }
 
-    //float sum = 0.f;
+    //FLTPT sum = 0.f;
 #pragma omp parallel for //reduction(+:sum)
     for (int i = 1; i <= m_nReaches; i++) {
-        float percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
+        FLTPT percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
-        float outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
+        FLTPT outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
         // groundwater flow out of the subbasin at time t (m3/s)
         m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
         //sum = sum + m_qg[i];
@@ -137,12 +137,20 @@ int GWaterReservoir::Execute(void) {
     return 0;
 }
 
-// set value
-void GWaterReservoir::SetValue(const char *key, float value) {
+
+void GWaterReservoir::SetValue(const char* key, int value) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep[0])) {
         m_dt = value;
-    } else if (StringMatch(sk, Tag_CellWidth[0])) {
+    } else {
+        throw ModelException(M_GW_RSVR[0], "SetValue",
+                             "Integer Parameter " + sk + " does not exist in SetValue method.");
+    }
+}
+
+void GWaterReservoir::SetValue(const char *key, FLTPT value) {
+    string sk(key);
+    if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
     } else if (StringMatch(sk, Tag_SubbasinId)) {
         m_subbasinID = int(value);
@@ -155,22 +163,36 @@ void GWaterReservoir::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, VAR_GWMAX[0])) {
         m_storageMax = value;
     } else {
-        throw ModelException(M_GW_RSVR[0], "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
+        throw ModelException(M_GW_RSVR[0], "SetValue",
+                             "Parameter " + sk + " does not exist in SetValue method.");
     }
 }
 
-void GWaterReservoir::Set1DData(const char *key, int n, float *data) {
+
+void GWaterReservoir::Set1DData(const char* key, int n, int* data) {
+    //check the input data
+    if (!this->CheckInputSize(key, n)) return;
+    //set the value
+    string sk(key);
+    if (StringMatch(sk, VAR_SUBBSN[0])) {
+        this->m_subbasin = data;
+    }
+    else {
+        throw ModelException(M_GW_RSVR[0], "Set1DData",
+                             "Integer Parameter " + sk + " does not exist.");
+    }
+}
+
+void GWaterReservoir::Set1DData(const char *key, int n, FLTPT *data) {
     //check the input data
     if (!this->CheckInputSize(key, n)) return;
     //set the value
     string sk(key);
     if (StringMatch(sk, VAR_PERCO[0])) {
         m_recharge = data;
-    } else if (StringMatch(sk, VAR_SUBBSN[0])) {
-        this->m_subbasin = data;
     } else {
         throw ModelException(M_GW_RSVR[0], "Set1DData",
-                             "Parameter " + sk + " does not exist. Please contact the module developer.");
+                             "Float Parameter " + sk + " does not exist.");
     }
 }
 
@@ -179,7 +201,7 @@ void GWaterReservoir::SetReaches(clsReaches *reaches) {
     m_nReaches = reaches->GetReachNumber();
 }
 
-void GWaterReservoir::Get1DData(const char *key, int *n, float **data) {
+void GWaterReservoir::Get1DData(const char *key, int *n, FLTPT **data) {
     InitOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBQG[0])) {
@@ -188,6 +210,6 @@ void GWaterReservoir::Get1DData(const char *key, int *n, float **data) {
         *data = m_storage;
     } else {
         throw ModelException(M_GW_RSVR[0], "Get1DData",
-                             "Parameter " + sk + " does not exist. Please contact the module developer.");
+                             "Parameter " + sk + " does not exist.");
     }
 }
