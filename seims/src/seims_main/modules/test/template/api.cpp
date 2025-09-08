@@ -17,7 +17,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetDescription("Template of SEIMS module");
     mdi.SetID("ModuleTemplate");
     mdi.SetName("ModuleTemplate");
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("2.0");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
@@ -25,11 +25,14 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     /// Set parameters from database (Source_ParameterDB or Source_ParameterDB_Optional)
 
     /// Parameters with basic data types
+    mdi.AddParameter("SingleIntegerValueParam", "UNIT", "DESC", Source_ParameterDB, DT_SingleInt);
     mdi.AddParameter("SingleValueParam", "UNIT", "DESC", Source_ParameterDB, DT_Single);
-    mdi.AddParameter("OptioanlParam", "UNIT", "DESC", Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("OptionalParam", "UNIT", "DESC", Source_ParameterDB_Optional, DT_Single);
     mdi.AddParameter("1DArrayParam", "UNIT", "DESC", Source_ParameterDB, DT_Array1D);
+    mdi.AddParameter("1DIntegerRasterParam", "UNIT", "DESC", Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter("1DRasterParam", "UNIT", "DESC", Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter("2DArrayParam", "UNIT", "DESC", Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter("2DIntegerRasterParam", "UNIT", "DESC", Source_ParameterDB, DT_Raster2DInt);
     mdi.AddParameter("2DRasterParam", "UNIT", "DESC", Source_ParameterDB, DT_Raster2D);
 
     /// Parameters with complex data types
@@ -45,10 +48,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput("2DRasterInput", "UNIT", "DESC", Source_ParameterDB, DT_Raster2D);
 
     /// Set output variables of the current module
+    mdi.AddOutput("SingleIntegerOutput", "UNIT", "DESC", DT_SingleInt);
     mdi.AddOutput("SingleOutput", "UNIT", "DESC", DT_Single);
     mdi.AddOutput("1DArrayOutput", "UNIT", "DESC", DT_Array1D);
+    mdi.AddOutput("1DIntegerRasterOutput", "UNIT", "DESC", DT_Raster1DInt);
     mdi.AddOutput("1DRasterOutput", "UNIT", "DESC", DT_Raster1D);
     mdi.AddOutput("2DArrayOutput", "UNIT", "DESC", DT_Array2D);
+    mdi.AddOutput("2DIntegerRasterOutput", "UNIT", "DESC", DT_Raster2D);
     mdi.AddOutput("2DRasterOutput", "UNIT", "DESC", DT_Raster2D);
 
     /// Set In/Output variables with transferred data type

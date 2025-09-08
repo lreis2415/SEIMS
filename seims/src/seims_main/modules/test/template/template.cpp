@@ -22,16 +22,28 @@ ModuleTemplate::ModuleTemplate() :
 ModuleTemplate::~ModuleTemplate() {
 }
 
-void ModuleTemplate::SetValue(const char* key, float value) {
+void ModuleTemplate::SetValue(const char* key, int value) {
 }
 
-void ModuleTemplate::SetValueByIndex(const char* key, int index, float value) {
+void ModuleTemplate::SetValue(const char* key, FLTPT value) {
 }
 
-void ModuleTemplate::Set1DData(const char* key, int n, float* data) {
+void ModuleTemplate::SetValueByIndex(const char* key, int index, int value) {
 }
 
-void ModuleTemplate::Set2DData(const char* key, int n, int col, float** data) {
+void ModuleTemplate::SetValueByIndex(const char* key, int index, FLTPT value) {
+}
+
+void ModuleTemplate::Set1DData(const char* key, int n, int* data) {
+}
+
+void ModuleTemplate::Set1DData(const char* key, int n, FLTPT* data) {
+}
+
+void ModuleTemplate::Set2DData(const char* key, int n, int col, int** data) {
+}
+
+void ModuleTemplate::Set2DData(const char* key, int n, int col, FLTPT** data) {
 }
 
 void ModuleTemplate::SetReaches(clsReaches* rches) {
@@ -59,11 +71,20 @@ TimeStepType ModuleTemplate::GetTimeStepType() {
 }
 
 
-void ModuleTemplate::GetValue(const char* key, float* value) {
+void ModuleTemplate::GetValue(const char* key, int* value) {
 }
 
-void ModuleTemplate::Get1DData(const char* key, int* n, float** data) {
+void ModuleTemplate::GetValue(const char* key, FLTPT* value) {
 }
 
-void ModuleTemplate::Get2DData(const char* key, int* n, int* col, float*** data) {
+void ModuleTemplate::Get1DData(const char* key, int* n, int** data) {
+}
+
+void ModuleTemplate::Get1DData(const char* key, int* n, FLTPT** data) {
+}
+
+void ModuleTemplate::Get2DData(const char* key, int* n, int* col, int*** data) {
+}
+
+void ModuleTemplate::Get2DData(const char* key, int* n, int* col, FLTPT*** data) {
 }
