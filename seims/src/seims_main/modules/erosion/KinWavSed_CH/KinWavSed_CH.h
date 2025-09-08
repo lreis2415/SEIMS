@@ -48,7 +48,7 @@ public:
 
     virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data);
 
     virtual void SetReaches(clsReaches *reaches);
 
@@ -85,11 +85,11 @@ private:
     /// flow out index
     int **m_flowOutIdx;
     /// channel width (zero for non-channel cells)
-    float *m_chWidth;
+    FLTPT *m_chWidth;
     /// stream order
-    float *m_streamOrder;
+    int *m_streamOrder;
     /// stream id of downstream
-    float *m_reachDownStream;
+    FLTPT *m_reachDownStream;
     /// Index of upstream Ids (The value is -1 if there if no upstream reach)
     vector<vector<int> > m_reachUpStream;
     /**
@@ -101,21 +101,21 @@ private:
     map<int, vector<int> > m_reachs;
 
     /// cell width of grid map (m)
-    float m_CellWith;
+    FLTPT m_CellWith;
     /// number of valid cells
     int m_nCells;
     /// length of time step (s)
-    float m_TimeStep;
+    int m_TimeStep;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
     //LayeringMethod m_layeringMethod;
     ///calibration coefficient of transport capacity
-    float m_ChTcCo;
+    FLTPT m_ChTcCo;
     /// calibration coefficient of channel flow detachment
-    float m_ChDetCo;
+    FLTPT m_ChDetCo;
     /// slope of map, to calculate slope gradient.
-    float *m_Slope;
+    FLTPT*m_Slope;
     /// USLE K
-    float **m_USLE_K;
+    FLTPT**m_USLE_K;
     /*/// hydraulic radius (m)
     float* m_R;*/
     /// id of source cells of reaches
@@ -127,48 +127,48 @@ private:
     /// map from subbasin id to index of the array
     map<int, int> m_idToIndex;
     /// Manning N
-    float *m_ChManningN;
+    FLTPT *m_ChManningN;
 
     //input from modules
     /// water depth for channel cell [mm], i.e., "HCH" from channel routing module
-    float **m_ChannelWH;
+    FLTPT **m_ChannelWH;
     /// sediment flow into the channel [kg]
-    float *m_SedToChannel;
+    FLTPT *m_SedToChannel;
 
     /// channel flow of each cell, [m3/s]
-    float **m_ChQkin;
+    FLTPT **m_ChQkin;
     /*/// overland flow for last time step, [m3/s]
-    float** m_Qlastt;*/
+    FLTPT** m_Qlastt;*/
     /// water volume in cell m3
-    float **m_ChVol;
+    FLTPT **m_ChVol;
     /// flow velocity
-    float **m_ChV;
+    FLTPT **m_ChV;
 
     //output
     //// id of the outlet
     //int m_idOutlet;
     /// channel flow detachment [kg]
-    float **m_CHDETFlow;
+    FLTPT **m_CHDETFlow;
     /// sediment deposition[kg]
-    float **m_CHSedDep;
+    FLTPT **m_CHSedDep;
     /// sediment concentration in flow [kg/m^3]
-    float **m_CHSedConc;
+    FLTPT **m_CHSedConc;
 
     /// sediment content in flow [kg]
-    float **m_CHSed_kg;
+    FLTPT **m_CHSed_kg;
     /// outgoing sediment flux of the cell (kg/s), first is channel Id
-    float **m_Qsn;
+    FLTPT **m_Qsn;
     /// sediment flux at subbasin (kg/s), useless? by LJ
-    //float* m_SedSubbasin;
+    //FLTPT* m_SedSubbasin;
 
     //output for test
-    float *m_detCH;
-    float *m_depCh;
-    float *m_routQs;
-    float *m_cap;
+    FLTPT *m_detCH;
+    FLTPT *m_depCh;
+    FLTPT *m_routQs;
+    FLTPT *m_cap;
 
-    float *m_chanV;
-    float *m_chanVol;
+    FLTPT *m_chanV;
+    FLTPT *m_chanVol;
 
 private:
 
@@ -204,7 +204,7 @@ private:
     */
     void CalcuChFlowDetachment(int iReach, int iCell, int id);
 
-    float GetTransportCapacity(int iReach, int iCell, int id);
+    FLTPT GetTransportCapacity(int iReach, int iCell, int id);
 
     void GetSedimentInFlow(int iReach, int iCell, int id);
 
@@ -233,7 +233,7 @@ private:
     *	@param  sed    current mass of sediment in cell
     *	@return the newer sediment outflux, kg/s
     */
-    float simpleSedCalc(float Qj1i1, float Qj1i, float Sj1i, float dt, float vol, float sed);
+    FLTPT simpleSedCalc(FLTPT Qj1i1, FLTPT Qj1i, FLTPT Sj1i, FLTPT dt, FLTPT vol, FLTPT sed);
 
     /**
 *	@briefComplex calculation of sediment outflux from a cell based on a explicit solution of the time/space matrix,
@@ -247,7 +247,7 @@ private:
 *	@param dt      timestep
 *	@param dx      dx: length of the cell, corrected for slope (DX map in LISEM)
 */
-    float complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj1i, float Sji1, float alpha, float dt, float dx);
+    FLTPT complexSedCalc(FLTPT Qj1i1, FLTPT Qj1i, FLTPT Qji1, FLTPT Sj1i, FLTPT Sji1, FLTPT alpha, FLTPT dt, FLTPT dx);
 
     void WaterVolumeCalc(int iReach, int iCell, int id);  //m3
 
