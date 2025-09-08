@@ -44,7 +44,7 @@ public:
 
     /****** Parameters need to transferred among subbasins *******/
     int transfer_count;     ///< count of transferred values
-    float* transfer_values; ///< transferred values
+    FLTPT* transfer_values; ///< transferred values
 
     SubbasinStruct* down_stream;         ///< down stream subbasin, SubbasinStruct
     vector<SubbasinStruct *> up_streams; ///< up stream subbasins
