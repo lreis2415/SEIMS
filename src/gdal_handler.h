@@ -3,11 +3,11 @@
  * \brief Simple wrappers of GDAL API that compatible with all versions
  *
  * \remarks
- *   - 1. 2025-09-05 - lj - Initial implementation.
+ *   - 1. 2025-09-07 - lj - Initial implementation and debugged on multiple compilers.
  *
  * \note No exceptions will be thrown.
  * \author Liangjun Zhu, zlj(at)lreis.ac.cn
- * \version 0.1
+ * \version 0.2
  */
 #ifndef CCGL_DB_GDAL_H_
 #define CCGL_DB_GDAL_H_
@@ -37,9 +37,8 @@ typedef GDALDataset GDALRasterDS;
 inline GDALVectorDS* OpenVector(const char* path, int read_only=true) {
 #if GDAL_VERSION_MAJOR >= 2
     GDALAllRegister();
-    int flags = GDAL_OF_VECTOR | (read_only ? GA_ReadOnly : GA_Update);
-    return static_cast<GDALVectorDS*>(GDALOpenEx(path, flags,
-                                      nullptr, nullptr, nullptr));
+    int flags = GDAL_OF_VECTOR | (read_only ? GDAL_OF_READONLY : GDAL_OF_UPDATE);
+    return static_cast<GDALVectorDS*>(GDALOpenEx(path, flags, nullptr, nullptr, nullptr));
 #else
     OGRRegisterAll();
     return OGRSFDriverRegistrar::Open(path, read_only ? FALSE : TRUE);
@@ -66,14 +65,12 @@ inline GDALRasterDS* OpenRaster(const char* path, int read_only=true,
                                 const char* const* open_options=nullptr) {
 #if GDAL_VERSION_MAJOR >= 2
     GDALAllRegister();
-    int flags = GDAL_OF_RASTER | (read_only ? GA_ReadOnly : GA_Update);
-    return static_cast<GDALRasterDS*>(
-        GDALOpenEx(path, flags, nullptr, open_options, nullptr)
-    );
+    int flags = GDAL_OF_RASTER | (read_only ? GDAL_OF_READONLY : GDAL_OF_UPDATE);
+    return static_cast<GDALRasterDS*>(GDALOpenEx(path, flags, nullptr, open_options, nullptr));
 #else
     (void)open_options; // avoid unused warnings
     GDALAllRegister();
-    return static_cast<RasterDs*>(GDALOpen(path, read_only ? GA_ReadOnly : GA_Update));
+    return static_cast<GDALRasterDS*>(GDALOpen(path, read_only ? GA_ReadOnly : GA_Update));
 #endif
 }
 
