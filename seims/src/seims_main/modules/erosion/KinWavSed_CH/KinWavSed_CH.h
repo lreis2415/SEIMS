@@ -34,17 +34,15 @@ public:
     //! Execute
     virtual int Execute();
 
-    virtual void SetValue(const char *key, float value);
+    virtual void SetValue(const char *key, FLTPT value);
 
-    //virtual void GetValue(const char *key, float *value);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Get1DData(const char *key, int *n, FLTPT **data);
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, FLTPT ***data);
 
     virtual void SetReaches(clsReaches *reaches);
 
@@ -77,9 +75,9 @@ private:
     *
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
-    float **m_flowInIndex;
+    int **m_flowInIndex;
     /// flow out index
-    float *m_flowOutIdx;
+    int *m_flowOutIdx;
     /// channel width (zero for non-channel cells)
     float *m_chWidth;
     /// stream order
