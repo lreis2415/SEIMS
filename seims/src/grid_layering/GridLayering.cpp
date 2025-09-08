@@ -4,6 +4,7 @@
 #endif
 #include <queue>
 #include <set>
+#include <climits>
 
 using std::queue;
 using std::set;
@@ -67,7 +68,7 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
 
 bool read_stream_vertexes(string stream_file, IntRaster *mask,
                           vector<vector<ROW_COL> > &stream_rc, int*& stream_matrix) {
-    GDALRasterDSHandle stream_ds(OpenVector(stream_file.c_str()));
+    GDALVectorDSHandle stream_ds(OpenVector(stream_file.c_str()));
 // #if GDAL_VERSION_MAJOR >= 2
 //     GDALDataset *stream_ds = nullptr;
 //     stream_ds = static_cast<GDALDataset *>(GDALOpenEx(stream_file.c_str(),
@@ -264,13 +265,12 @@ int AutoDetectFixedSuffix_PrefixDynamic(const vector<vector<int> > &Buckets, con
 int AutoDetectFixedSuffix_Heuristic(int N, int K, bool fix_last, const vector<vector<int> > &Buckets,
                                     const vector<int> &Count, const vector<int> &low_dyn,
                                     const vector<int> *low_star_opt) {
-    int last_ct = Count[K];
+    int last_ct = Count[K - 1];
     int Np = N;
-    int tau = (K - 1) ? (Np / (K - 1)) : 0;
+    int tau = (K - 1) ? (Np / K) : 0;
     if (fix_last) {
-        last_ct = Count[K - 1];
         Np = N - last_ct;
-        tau = (K - 1) ? (Np / K) : 0;
+        tau = (K - 1) ? (Np / (K - 1)) : 0;
     }
 
     int R = 0;
@@ -400,14 +400,14 @@ int NeighborTightenRisk(int u, int t, int K, const vector<vector<int> > &Up, con
     for (size_t i = 0; i < Down[u].size(); i++) {
         // u's downstream cell
         int c = Down[u][i];
-        int max_up = std::numeric_limits<int>::min();
+        int max_up = INT_MIN;
         for (size_t j = 0; j < Up[c].size(); j++) {
             // c's upstream cell
             int p = Up[c][j];
             int val = (p == u ? t : L[p]);
             if (val > max_up) max_up = val;
         }
-        int new_low = (max_up == std::numeric_limits<int>::min() ? 0 : max_up + 1);
+        int new_low = (max_up == INT_MIN ? 0 : max_up + 1);
         if (new_low < Lmin[c]) new_low = Lmin[c];
         if (new_low < 0) new_low = 0;
         if (new_low > low[c]) risk++;
@@ -416,14 +416,14 @@ int NeighborTightenRisk(int u, int t, int K, const vector<vector<int> > &Up, con
     for (size_t i = 0; i < Up[u].size(); ++i) {
         // u's upstream cell
         int p = Up[u][i];
-        int min_dn = std::numeric_limits<int>::max();
+        int min_dn = INT_MAX;
         for (size_t j = 0; j < Down[p].size(); ++j) {
             // p's downstream cell
             int c = Down[p][j];
             int val = (c == u ? t : L[c]);
             if (val < min_dn) min_dn = val;
         }
-        int new_high = (min_dn == std::numeric_limits<int>::max() ? (K - 1) : min_dn - 1);
+        int new_high = (min_dn == INT_MAX ? (K - 1) : min_dn - 1);
         if (new_high > Lmax[p]) new_high = Lmax[p];
         if (new_high >= K) new_high = K - 1;
         if (new_high < high[p]) risk++;
@@ -702,8 +702,8 @@ bool PickDeficitByPotentialAuto(int s, const vector<int> &S, int K, int prefix_e
     }
     if (deficits.empty()) return false;
 
-    long long best_phi = std::numeric_limits<long long>::max();
-    long long best_psi = std::numeric_limits<long long>::max();
+    long long best_phi = LLONG_MAX;
+    long long best_psi = LLONG_MAX;
     int best_d = -1;
     vector<Candidate> best_cand;
 
@@ -837,8 +837,8 @@ bool TryEvictAndFillOnce(const vector<int> &S, int K, int prefix_end,
             int u_lim = CVT_INT(cand_u.size());
             if (u_lim > M) u_lim = M;
 
-            long long best_phi1 = std::numeric_limits<long long>::max();
-            long long best_psi1 = std::numeric_limits<long long>::max();
+            long long best_phi1 = LLONG_MAX;
+            long long best_psi1 = LLONG_MAX;
             int best_v = -1;
             int best_u = -1;
             int best_tu = -1;
@@ -1018,7 +1018,7 @@ static void DebugPrintSlice(
 #ifdef USE_MONGODB
 GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) : gfs_(gfs), use_mongo_(true),
     has_mask_(false), force_outlet_(false), fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
-    n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
+    n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr), stream_matrix_(nullptr),
     flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
@@ -1031,7 +1031,7 @@ GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) 
 GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), use_mongo_(false), has_mask_(false),
                                                                force_outlet_(false),
                                                                fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
-                                                               n_rows_(-1), n_cols_(-1), out_nodata_(-9999.f),
+                                                               n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
                                                                n_valid_cells_(-1), n_layer_count_(-1),
                                                                pos_index_(nullptr), pos_rowcol_(nullptr),
                                                                mask_(nullptr), flowdir_(nullptr),
@@ -1493,12 +1493,12 @@ void RecomputeBoundsOne(int u, int K,
                         const vector<vector<int> > &up, const vector<vector<int> > &down,
                         const vector<int> &l, const vector<int> &lmin, const vector<int> &lmax,
                         int &low_u, int &high_u) {
-    int max_up = std::numeric_limits<int>::min();
-    int min_dn = std::numeric_limits<int>::max();
+    int max_up = INT_MIN;
+    int min_dn = INT_MAX;
     for (size_t i = 0; i < up[u].size(); i++) if (l[up[u][i]] > max_up) max_up = l[up[u][i]];
     for (size_t i = 0; i < down[u].size(); i++) if (l[down[u][i]] < min_dn) min_dn = l[down[u][i]];
-    int low_calc = (max_up == std::numeric_limits<int>::min() ? 0 : max_up + 1);
-    int high_calc = (min_dn == std::numeric_limits<int>::max() ? (K - 1) : min_dn - 1);
+    int low_calc = (max_up == INT_MIN ? 0 : max_up + 1);
+    int high_calc = (min_dn == INT_MAX ? (K - 1) : min_dn - 1);
     if (low_calc < lmin[u]) low_calc = lmin[u];
     if (high_calc > lmax[u]) high_calc = lmax[u];
     if (low_calc < 0) low_calc = 0;

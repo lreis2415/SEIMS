@@ -9,10 +9,11 @@
  *                              for cross-platform compatible, both MongoDB and File mode use FloatRaster.\n
  *          lj - 18-May-2021 - Force each stream grid flow into one downstream grid.\n
  *          lj - 30-Jul-2021 - Add new layering method named _EVEN.\n
+ *          lj - 07-Sep-2025 - Improve evenly distributed layering algorithm.\n
  * \description:
  *               Output lists of both local files and MongoDB GridFS:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
- *               2. X_ROUTING_LAYERS_UP_DOWN{_FD}, X_ROUTING_LAYERS_DOWN_UP{_FD}, and X_ROUTING_LAYERS_EVEN{_FD}
+ *               2. X_ROUTING_LAYERS_UPDOWN{_FD}, X_ROUTING_LAYERS_DOWNUP{_FD}, and X_ROUTING_LAYERS_EVEN{_FD}
  *               3. X_FLOWIN_FRACTION_{FD}, X_FLOWOUT_FRACTION_{FD}. For `DINF` and `MFDMD`.
  *               Where, `X` is subbasinID (0 for the whole basin)
  *                      `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`.
@@ -384,7 +385,7 @@ protected:
     int subbasin_id_;        ///< Subbasin ID, 0 for entire basin
     int n_rows_;             ///< Rows
     int n_cols_;             ///< Cols
-    FLTPT out_nodata_;       ///< Nodata value in output
+    int out_nodata_;         ///< Nodata value in output
     int n_valid_cells_;      ///< Valid Cells number
     int n_layer_count_;      ///< Layer count, MUST be the same for all layering methods
     int* pos_index_;         ///< Valid cell's index
@@ -414,7 +415,7 @@ protected:
     int* flow_out_num_;         ///< Count of flow out cells, with a length of n_valid_cells_
     int* flow_out_acc_;         ///< Accumulative count of flow out cells
     int flow_out_count_;        ///< All flow out times
-    int* flow_out_cells_;     ///< Indexes of each cell's flow out
+    int* flow_out_cells_;       ///< Indexes of each cell's flow out
     vector<vector<int> > n_layer_cells_updown_; ///< layer index (not number) - indexes of cells in Up-Down order
     vector<vector<int> > n_layer_cells_downup_; ///< layer index (not number) - indexes of cells in Down-Up order
     vector<vector<int> > n_layer_cells_evenly_; ///< layer index (not number) - indexes of cells in Evenly order
@@ -424,9 +425,9 @@ protected:
     int* layer_cells_updown_; ///< cell indexes of each layer in Up-Down order with a length of n_valid_cells_ + n_layer_count_ + 1
     int* layer_cells_downup_; ///< cell indexes of each layer in Down-Up order with a length of n_valid_cells_ + n_layer_count_ + 1
     int* layer_cells_evenly_; ///< cell indexes of each layer in Evenly order with a length of n_valid_cells_ + n_layer_count_ + 1
-    string flowdir_name_;       ///< Flow direction file name
-    string mask_name_;          ///< Mask raster file name
-    string stream_file_;        ///< Stream shapefile name
+    string flowdir_name_;     ///< Flow direction file name
+    string mask_name_;        ///< Mask raster file name
+    string stream_file_;      ///< Stream shapefile name
 
     /** Output file names **/
     string flowin_index_name_;    ///< Flow in index
@@ -509,7 +510,7 @@ private:
     int decimals_;                     ///< Round to N decimal places for flow fractions
     string flowfrac_corename_;         ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     vector<string> flowfrac_names_;    ///< Flow fraction raster files recording the fractions of each direction by ccw
-    FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
+    FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
     FLTPT** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
     FLTPT* flowin_fracs_;              ///< Flow in fraction
     FLTPT* flowout_fracs_;             ///< Flow fractions of each cell's flow in
