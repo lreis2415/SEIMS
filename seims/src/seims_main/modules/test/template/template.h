@@ -24,13 +24,21 @@ public:
 
     ///////////// SetData series functions /////////////
 
-    void SetValue(const char* key, float value) OVERRIDE;
+    void SetValue(const char* key, int value) OVERRIDE;
 
-    void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void SetValueByIndex(const char* key, int index, int value) OVERRIDE;
 
-    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
+    void SetValueByIndex(const char* key, int index, FLTPT value) OVERRIDE;
+
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set2DData(const char* key, int n, int col, int** data) OVERRIDE;
+
+    void Set2DData(const char* key, int n, int col, FLTPT** data) OVERRIDE;
 
     void SetReaches(clsReaches* rches) OVERRIDE;
 
@@ -52,11 +60,17 @@ public:
 
     TimeStepType GetTimeStepType() OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
+    void GetValue(const char* key, int* value) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void GetValue(const char* key, FLTPT* value) OVERRIDE;
 
-    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, int** data) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* n, int* col, int*** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* n, int* col, FLTPT*** data) OVERRIDE;
 
 private:
     int m_nCells; ///< valid cells number

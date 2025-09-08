@@ -74,7 +74,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
         bool hasData = false;
         const bson_t* doc;
         vector<time_t> m_times;
-        vector<float> m_values;
+        vector<FLTPT> m_values;
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
             hasData = true;
             bson_iter_t iter;
@@ -115,7 +115,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hy
 string mutiple(string num1, int num2) {
     string res;
     int c = 0;
-    for (int i = num1.size() - 1; i >= 0; i--) {
+    for (int i = CVT_INT(num1.size()) - 1; i >= 0; i--) {
         int tmp = (num1[i] - '0') * num2 + c;
         c = tmp / 10;
         tmp = tmp % 10;

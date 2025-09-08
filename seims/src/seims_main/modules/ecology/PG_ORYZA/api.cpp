@@ -144,12 +144,12 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_AET_PLT[0], UNIT_DEPTH_MM, VAR_AET_PLT[1], DT_Raster1D);
 
     // rice
-    mdi.AddParameter(VAR_CROPSTA[0], UNIT_NON_DIM, VAR_CROPSTA[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CROPSTA[0], UNIT_NON_DIM, VAR_CROPSTA[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddInput(VAR_LAIDAY[0], UNIT_AREA_RATIO, VAR_LAIDAY[1], Source_Module, DT_Raster1D);
 
 
     // rice related, changed with days
-    mdi.AddOutput(VAR_CROPSTA[0], UNIT_NON_DIM, VAR_CROPSTA[1], DT_Raster1D);
+    mdi.AddOutput(VAR_CROPSTA[0], UNIT_NON_DIM, VAR_CROPSTA[1], DT_Raster1DInt);
     mdi.AddOutput(VAR_TS[0], UNIT_PHENOLOGY, VAR_TS[1], DT_Raster1D);
     mdi.AddOutput(VAR_WLVG[0], UNIT_CONT_KGHA, VAR_WLVG[1], DT_Raster1D);
     mdi.AddOutput(VAR_WLVD[0], UNIT_CONT_KGHA, VAR_WLVD[1], DT_Raster1D);

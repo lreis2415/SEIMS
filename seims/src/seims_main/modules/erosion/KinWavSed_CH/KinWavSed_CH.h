@@ -38,13 +38,11 @@ public:
 
     virtual void SetValue(const char* key, int data);
 
-    //virtual void GetValue(const char *key, float *value);
+    virtual void Set1DData(const char *key, int n, FLTPT *data);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Get1DData(const char *key, int *n, FLTPT **data);
 
     virtual void Set1DData(const char* key, int n, int* data);
-
-    virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
 

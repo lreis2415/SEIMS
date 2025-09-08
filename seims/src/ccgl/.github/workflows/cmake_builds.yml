@@ -116,7 +116,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - name: Checkout CCGL
       uses: actions/checkout@v4
@@ -124,7 +124,7 @@ jobs:
     - name: Configure CMake
       shell: cmd
       run: |
-        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        cmake -G "Visual Studio 17 2022" -A x64 -B ${{github.workspace}}/build ^
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
 
     - name: Build
@@ -137,7 +137,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
 
   build-mac:
-    runs-on: macos-latest
+    runs-on: macos-13-xlarge
     steps:
     - name: Setup xcode
       uses: maxim-lobanov/setup-xcode@v1

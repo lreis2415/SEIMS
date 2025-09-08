@@ -192,12 +192,12 @@ void TaskInfo::MallocTransferredValues(const int transfer_count, const int multi
                 if (downstream_[*it] < 0) continue; // No need to malloc space for outlet subbasin
                 if (subbsn_tfvalues_.find(i) == subbsn_tfvalues_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
-                    subbsn_tfvalues_.emplace(i, map<int, float *>());
+                    subbsn_tfvalues_.emplace(i, map<int, FLTPT *>());
 #else
-                    subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+                    subbsn_tfvalues_.insert(make_pair(i, map<int, FLTPT *>()));
 #endif
                 }
-                float* tfvalues = nullptr;
+                FLTPT* tfvalues = nullptr;
                 Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
 #ifdef HAS_VARIADIC_TEMPLATES
                 subbsn_tfvalues_[i].emplace(*it, tfvalues);
@@ -215,12 +215,12 @@ void TaskInfo::MallocTransferredValues(const int transfer_count, const int multi
             for (int i = 1; i <= max_lyr_all_ * multiplier; i++) {
                 if (recv_subbsn_tfvalues_.find(i) == recv_subbsn_tfvalues_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
-                    recv_subbsn_tfvalues_.emplace(i, map<int, float *>());
+                    recv_subbsn_tfvalues_.emplace(i, map<int, FLTPT *>());
 #else
-                    recv_subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+                    recv_subbsn_tfvalues_.insert(make_pair(i, map<int, FLTPT *>()));
 #endif
                 }
-                float* tfvalues = nullptr;
+                FLTPT* tfvalues = nullptr;
                 Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
 #ifdef HAS_VARIADIC_TEMPLATES
                 recv_subbsn_tfvalues_[i].emplace(*it_up, tfvalues);

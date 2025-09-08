@@ -20,9 +20,11 @@ public:
 
     virtual ~IO_TEST();
 
-    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
 
-    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
+    void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
+
+    void Set2DData(const char* key, int n, int col, FLTPT** data) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
@@ -32,25 +34,25 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* n, FLTPT** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* n, int* col, FLTPT*** data) OVERRIDE;
 
 private:
     /// valid cells number
     int m_nCells;
     /// input 1D raster data
-    float* m_raster1D;
+    FLTPT* m_raster1D;
     /// maximum number of soil layers
     int m_maxSoilLyrs;
     /// soil layers
-    float* m_nSoilLyrs;
+    int* m_nSoilLyrs;
     /// input 2D raster data
-    float** m_raster2D;
+    FLTPT** m_raster2D;
     /// output 1D raster data
-    float* m_output1Draster;
+    FLTPT* m_output1Draster;
     /// output 2D raster data
-    float** m_output2Draster;
+    FLTPT** m_output2Draster;
     /// BMPs Scenario data
     Scenario* m_scenario;
     /// Reach information

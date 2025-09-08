@@ -11,6 +11,7 @@
 #define SEIMS_MPI_TASK_INFO_H
 
 #include "basic.h"
+#include "seims.h"
 
 #include <map>
 #include <vector>
@@ -54,8 +55,8 @@ public:
     map<int, vector<int> >& GetLayerSubbasinIDs() { return lyr_subbsns_; }
     map<int, vector<int> >& GetSourceLayerSubbasinIDs() { return srclyr_subbsns_; }
     map<int, vector<int> >& GetNonSourceLayerSubbasinIDs() { return nonsrclyr_subbsns_; }
-    map<int, map<int, float *> >& GetSubbasinTransferredValues() { return subbsn_tfvalues_; }
-    map<int, map<int, float *> >& GetReceivedSubbasinTransferredValues() { return recv_subbsn_tfvalues_; }
+    map<int, map<int, FLTPT*> >& GetSubbasinTransferredValues() { return subbsn_tfvalues_; }
+    map<int, map<int, FLTPT*> >& GetReceivedSubbasinTransferredValues() { return recv_subbsn_tfvalues_; }
 public:
     int max_len;      ///< Max. subbasins number of all tasks
     int subbsn_count; ///< All subbasins number
@@ -116,11 +117,11 @@ private:
      * Key: Timestep sequence, which is equal to layer ID in numerical.
      * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
      */
-    map<int, map<int, float *> > subbsn_tfvalues_;
+    map<int, map<int, FLTPT*> > subbsn_tfvalues_;
     /*! Received transferred values of subbasins in current rank with timestep stamp
      * Key: Timestep sequence, which is equal to layer ID in numerical.
      * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
      */
-    map<int, map<int, float *> > recv_subbsn_tfvalues_;
+    map<int, map<int, FLTPT*> > recv_subbsn_tfvalues_;
 };
 #endif /* SEIMS_MPI_TASK_INFO_H */

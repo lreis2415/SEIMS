@@ -70,7 +70,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         MPI_Abort(MCW, 1);
     }
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
-    /// Read file.in that includes simulation mode, interval, and period. 
+    /// Read file.in that includes simulation mode, interval, and period.
     SettingsInput* simu_settings_input = SettingsInput::Init(input_args);
     if (nullptr == simu_settings_input) {
         throw ModelException("SettingsInput", "Constructor", "Failed in parsing file.in!");
@@ -111,9 +111,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                 << "! Use default module factory instead!";
                 tmp_module_factory = factory_map.at(0);
             } else {
-#ifdef HAS_VARIADIC_TEMPLATES 
+#ifdef HAS_VARIADIC_TEMPLATES
                 factory_map.emplace(*it_id, tmp_module_factory);
-#else 
+#else
                 factory_map.insert(make_pair(*it_id, tmp_module_factory));
 #endif
                 if (tmp_module_factory->GetTransferredInputsCount() > transfer_count) {
@@ -137,7 +137,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     /// Specific handling code, which maybe improved in the future version.
     ///   S1: SetSlopeCoefofBasin(), the algorithm is coincident with `clsSubbasins::Subbasin2Basin()`.
     int unit_count = 0;
-    float slope_sum = 0.f;
+    FLTPT slope_sum = 0.;
     for (auto it_data = data_center_map.begin(); it_data != data_center_map.end(); ++it_data) {
         map<int, Subbasin *>& subbsn_objs = it_data->second->GetSubbasinData()->GetSubbasinObjects();
         for (auto it_subbsn = subbsn_objs.begin(); it_subbsn != subbsn_objs.end(); ++it_subbsn) {
@@ -147,10 +147,10 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         }
     }
     int unit_count_all = 0;
-    float slope_sum_all = 0.f;
+    FLTPT slope_sum_all = 0.;
     MPI_Allreduce(&unit_count, &unit_count_all, 1, MPI_INT, MPI_SUM, MCW);
-    MPI_Allreduce(&slope_sum, &slope_sum_all, 1, MPI_FLOAT, MPI_SUM, MCW);
-    float slope_basin = tan(slope_sum_all / unit_count_all);
+    MPI_Allreduce(&slope_sum, &slope_sum_all, 1, MPI_FLTPT, MPI_SUM, MCW);
+    FLTPT slope_basin = tan(slope_sum_all / unit_count_all);
 
     for (auto it_data = data_center_map.begin(); it_data != data_center_map.end(); ++it_data) {
         map<int, Subbasin *>& subbsn_objs = it_data->second->GetSubbasinData()->GetSubbasinObjects();
@@ -176,7 +176,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     map<int, vector<int> >& subbsn_layers = task_info->GetLayerSubbasinIDs();
 
     /// Create buffer for passing values across subbasins
-    float* buf = nullptr;
+    FLTPT* buf = nullptr;
     int buflen = MSG_LEN + transfer_count;
     Initialize1DArray(buflen, buf, NODATA_VALUE);
 
@@ -192,11 +192,11 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
 
     task_info->MallocTransferredValues(transfer_count, multiplier);
     /// Transferred values of subbasins in current rank with timestep stamp
-    map<int, map<int, float *> >& ts_subbsn_tf_values = task_info->GetSubbasinTransferredValues();
+    map<int, map<int, FLTPT*> >& ts_subbsn_tf_values = task_info->GetSubbasinTransferredValues();
     /// Record the actual simulation loop number of each subbasin
     map<int, int> ts_subbsn_loop;
     /// Received transferred values of subbasins in current rank with timestep stamp
-    map<int, map<int, float *> >& recv_ts_subbsn_tf_values = task_info->GetReceivedSubbasinTransferredValues();
+    map<int, map<int, FLTPT*> >& recv_ts_subbsn_tf_values = task_info->GetReceivedSubbasinTransferredValues();
 
     /// Reduce for model constructing time, which also input time
     double t_model_construct = MPI_Wtime() - tstart;
@@ -268,7 +268,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                         } else {
                             // receive data from the specific rank according to work_tag
                             int work_tag = *it_upid * 10000 + cur_sim_loop_num;
-                            MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
+                            MPI_Irecv(buf, buflen, MPI_FLTPT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
 
                             for (int vi = 0; vi < transfer_count; vi++) {
@@ -302,7 +302,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
                     buf[0] = CVT_FLT(subbasin_id);      // subbasin ID
                     buf[1] = CVT_FLT(cur_sim_loop_num); // simulation loop number
                     int work_tag = subbasin_id * 10000 + cur_sim_loop_num;
-                    MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, work_tag, MCW, &request);
+                    MPI_Isend(buf, buflen, MPI_FLTPT, dest_rank, work_tag, MCW, &request);
                     MPI_Wait(&request, &status);
                     t_channel += MPI_Wtime() - t_channel_start;
                 } /* subbsn_layers[cur_ilyr] loop */
@@ -426,7 +426,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         UpdateStringMap(mask_opts, HEADER_INC_NODATA, "TRUE");
         map<string, string> valid_opts;
         UpdateStringMap(valid_opts, HEADER_INC_NODATA, "FALSE");
-        UpdateStringMap(valid_opts, HEADER_RSOUT_DATATYPE, "FLOAT");
+        UpdateStringMap(valid_opts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
         CLOG(TRACE, LOG_OUTPUT) << "\tLoad 0_SUBBASIN with NoData value as mask layer...";
         FloatRaster* subbsn_lyr = FloatRaster::Init(spatial_gfs_in, "0_SUBBASIN",
                                                     true, nullptr, true,

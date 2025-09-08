@@ -1,32 +1,31 @@
-#include <ogrsf_frmts.h>
-
 #include "GridLayering.h"
+#include "NormalizeFlowFractions.h"
 
 #ifdef USE_MONGODB
-GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs,
-                                   const char* stream_file, const char* out_dir) :
+GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* out_dir,
+                                   const char* stream_file/*=nullptr*/,
+                                   bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, gfs, out_dir),
     flow_fraction_(nullptr),
     flowfrac_matrix_(nullptr), flowin_fracs_(nullptr), flowout_fracs_(nullptr) {
-    string prefix = ValueToString(subbasin_id_);
+    // outputs
+    OutputFilenames(FD_Dinf);
     // inputs
-    flowdir_name_ = prefix + "_FLOW_DIR_DINF";
-    flowfrac_name_ = prefix + "_WEIGHT_DINF";
+    string prefix = ValueToString(subbasin_id_);
+    flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
+    flowfrac_name_ = prefix + "_WEIGHT_" + fdtype_str_;
     mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
-    // outputs
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_DINF";
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_DINF";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_DINF";
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_DINF";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_DINF";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_DINF";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_DINF";
+    force_outlet_ = force_outlet;
+    force_inbasin_ = force_inbasin;
+    decimals_ = decimals;
 }
 #endif
 
-GridLayeringDinf::GridLayeringDinf(const int id, const char* fd_file, const char* fraction_file,
-                                   const char* mask_file, const char* stream_file, const char* out_dir) :
+GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
+                                   const char* fd_file, const char* fraction_file,
+                                   const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
+                                   bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
     flowout_fracs_(nullptr) {
     string prefix = ValueToString(subbasin_id_);
@@ -35,14 +34,11 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* fd_file, const char
     flowfrac_name_ = fraction_file;
     mask_name_ = mask_file;
     stream_file_ = stream_file;
+    force_outlet_ = force_outlet;
+    force_inbasin_ = force_inbasin;
+    decimals_ = decimals;
     // outputs
-    flowin_index_name_ = prefix + "_FLOWIN_INDEX_DINF";
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_DINF";
-    flowout_index_name_ = prefix + "_FLOWOUT_INDEX_DINF";
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_DINF";
-    layering_updown_name_ = prefix + "_ROUTING_LAYERS_UP_DOWN_DINF";
-    layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWN_UP_DINF";
-    layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_DINF";
+    OutputFilenames(FD_Dinf);
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
@@ -51,15 +47,23 @@ GridLayeringDinf::~GridLayeringDinf() {
     if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
 }
 
+void GridLayeringDinf::OutputFilenames(flowDirTypes ftype) {
+    GridLayering::OutputFilenames(ftype);
+    string prefix = ValueToString(subbasin_id_);
+    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
+    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
+}
+
+
 bool GridLayeringDinf::LoadData() {
     if (use_mongo_) {
 #ifdef USE_MONGODB
         has_mask_ = true;
-        mask_ = FloatRaster::Init(gfs_, mask_name_.c_str(), true);
+        mask_ = IntRaster::Init(gfs_, mask_name_.c_str(), true);
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
-        flowdir_ = FloatRaster::Init(gfs_, flowdir_name_.c_str(), true,
-                                          mask_, true, NODATA_VALUE, opts);
+        flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(), true,
+                                   mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_name_.c_str(), true,
                                                 mask_, true, NODATA_VALUE, opts);
 #else
@@ -67,12 +71,12 @@ bool GridLayeringDinf::LoadData() {
 #endif
     } else {
         if (StringMatch(flowdir_name_, mask_name_)) {
-            flowdir_ = FloatRaster::Init(flowdir_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true);
             mask_ = flowdir_;
         } else {
             has_mask_ = true;
-            mask_ = FloatRaster::Init(mask_name_, true);
-            flowdir_ = FloatRaster::Init(flowdir_name_, true, mask_, true);
+            mask_ = IntRaster::Init(mask_name_, true);
+            flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
         flow_fraction_ = FloatRaster::Init(flowfrac_name_, true, mask_, true);
     }
@@ -94,9 +98,9 @@ bool GridLayeringDinf::LoadData() {
     // Force stream grid to flow into single downstream cell
     if (stream_file_.empty())
         return true;
-
+    if (nullptr == stream_matrix_) Initialize1DArray(n_valid_cells_, stream_matrix_, mask_->GetNoDataValue());
     vector<vector<ROW_COL> > stream_rc;
-    bool flag = read_stream_vertexes_as_rowcol(stream_file_, mask_, stream_rc);
+    bool flag = read_stream_vertexes(stream_file_, mask_, stream_rc, stream_matrix_);
     if (!flag) return false;
 
     for(vector<vector<ROW_COL> >::iterator it = stream_rc.begin(); it != stream_rc.end(); ++it) {
@@ -125,13 +129,11 @@ bool GridLayeringDinf::LoadData() {
         }
         // cout << endl;
     }
-
     return true;
 }
 
 bool GridLayeringDinf::OutputFlowIn() {
     GetReverseDirMatrix();
-    // CountFlowInCells();
     if (!BuildFlowInCellsArray()) return false;
 
     int datalength = n_valid_cells_ + flow_in_count_ + 1;
@@ -146,7 +148,7 @@ bool GridLayeringDinf::OutputFlowIn() {
             continue;
         }
 
-        int reversed_fdir = CVT_INT(reverse_dir_[valid_idx]);
+        int reversed_fdir = reverse_dir_[valid_idx];
         if (reversed_fdir < 0) continue; // This will not happen, just in case!
 
         vector<int> reversed_fdirs = uncompress_flow_directions(reversed_fdir);
@@ -159,7 +161,7 @@ bool GridLayeringDinf::OutputFlowIn() {
                 flowdir_->IsNoData(source_row, source_col))
                 continue;
             int source_index = pos_index_[source_row * n_cols_ + source_col];
-            int source_fdir = CVT_INT(flowdir_matrix_[source_index]);
+            int source_fdir = flowdir_matrix_[source_index];
             vector<int> source_fdirs = uncompress_flow_directions(source_fdir);
             if (source_fdirs.size() == 1) {
                 flowin_fracs_[count++] = 1.f;
@@ -202,26 +204,45 @@ bool GridLayeringDinf::OutputFlowOut() {
         int i = pos_rowcol_[valid_idx][0];                           // row
         int j = pos_rowcol_[valid_idx][1];                           // col
         flowout_fracs_[count++] = CVT_FLT(flow_out_num_[valid_idx]); // maybe 0
-        if (flow_out_num_[valid_idx] == 0) continue;
-
-        int flow_dir = CVT_INT(flowdir_matrix_[valid_idx]);
-        if (flow_dir < 0) continue; // This will not happen, just in case!
-
+        if (flow_out_num_[valid_idx] <= 0) {
+            flowout_fracs_[count - 1] = 0.f;
+            continue;
+        }
+        int flow_dir = flowdir_matrix_[valid_idx];
+        if (flow_dir < 0) {
+            flowout_fracs_[count - 1] = 0.f;
+            continue; // This will not happen, just in case!
+        }
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
-        if (flow_dirs.empty()) continue;
-
+        if (flow_dirs.empty()) {
+            flowout_fracs_[count - 1] = 0.f;
+            continue;
+        }
         int fd_idx = find_flow_direction_index_ccw(flow_dirs[0]);
         if (mask_->ValidateRowCol(i + drow[fd_idx], j + dcol[fd_idx]) &&
             !mask_->IsNoData(i + drow[fd_idx], j + dcol[fd_idx])) {
             flowout_fracs_[count++] = flowfrac_matrix_[valid_idx];
+        } else { // This will not happen, just in case!
+            flowout_fracs_[count - 1] = 0.f;
+            continue;
         }
         if (flow_dirs.size() == 1) {
+            flowout_fracs_[count - 1] = 1.f; // Make sure the only flow direction has all flow fraction
+            flowfrac_matrix_[valid_idx] = 1.f;
             continue;
         }
         fd_idx = find_flow_direction_index_ccw(flow_dirs[1]);
         if (mask_->ValidateRowCol(i + drow[fd_idx], j + dcol[fd_idx]) &&
             !mask_->IsNoData(i + drow[fd_idx], j + dcol[fd_idx])) {
-            flowout_fracs_[count++] = 1.f - flowfrac_matrix_[valid_idx];
+            // Make sure the sum of the two flow fractions EXACTLY equals to 1!
+            vector<FLTPT> fracin(2);
+            fracin[0] = flowfrac_matrix_[valid_idx];
+            fracin[1] = 1. - flowfrac_matrix_[valid_idx];
+            vector<FLTPT> fracout;
+            normalize_flow_fraction(fracin, decimals_, fracout);
+            flowout_fracs_[count - 1] = fracout[0];
+            flowout_fracs_[count++] = fracout[1];
+            flowfrac_matrix_[valid_idx] = fracout[0]; // write back
         }
     }
 

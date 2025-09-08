@@ -24,9 +24,10 @@ using namespace data_raster;
  */
 enum LayeringMethod {
     UP_DOWN, ///< layering-from-source method, default
-    DOWN_UP  ///< layering-from-outlet method
+    DOWN_UP, ///< layering-from-outlet method
+    EVEN     ///< evenly layering method
 };
-const char* const LayeringMethodString[] = {"_UP_DOWN", "_DOWN_UP"};
+const char* const LayeringMethodString[] = {"_UPDOWN", "_DOWNUP", "_EVEN"};
 
 /*!
  * \enum FlowDirMethod
@@ -98,8 +99,14 @@ const int CCWDeltaCol[9] = { 0, 1, 1, 0, -1, -1, -1, 0, 1 }; ///< Delta Col (X-a
 
 #ifdef USE_FLOAT64
 typedef double FLTPT;
+#define MPI_FLTPT MPI_DOUBLE
+#define GDAL_FLTPT GDT_Float64
+#define FLTPT_NAME "FLOAT"
 #else
 typedef float FLTPT;
+#define MPI_FLTPT MPI_FLOAT
+#define GDAL_FLTPT GDT_Float32
+#define FLTPT_NAME "DOUBLE"
 #endif
 
 ///
@@ -132,19 +139,13 @@ const FLTPT MIN_SLOPE = 1e-4;  ///< minimum slope (tan value)
 /*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
 #define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
 #endif
-//#ifdef FltIntRaster
-//#undef FltIntRaster
-//#endif
-//#ifndef FltIntRaster
-///*! Float-typed raster with int-typed mask */
-//#define FltIntRaster ccgl::data_raster::clsRasterData<FLTPT, int>
-//#endif
-//#ifdef IntFltRaster
-//#undef IntFltRaster
-//#endif
-//#ifndef IntFltRaster
-///*! Int-typed raster with Flt-typed mask */
-//#define IntFltRaster ccgl::data_raster::clsRasterData<int, FLTPT>
-//#endif
+#ifdef FltIntRaster
+#undef FltIntRaster
+#endif
+#ifndef FltIntRaster
+/*! Float-typed raster with int-typed mask */
+#define FltIntRaster ccgl::data_raster::clsRasterData<FLTPT, int>
+#endif
+
 
 #endif /* SEIMS_HEADER */
