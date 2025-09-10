@@ -176,17 +176,17 @@ int SubbasinIUHCalculator::calCell(const int id) {
         //        delete pTemp;
 
     }
-    vector<float>(storeddata_vector).swap(storeddata_vector);
+    vector<FLTPT>(storeddata_vector).swap(storeddata_vector);
     int valuenumber = storeddata_vector.size();
-    float* data = new float[valuenumber];
-    size_t datalength = valuenumber * sizeof(float);
+    FLTPT* data = nullptr;
+    Initialize1DArray(valuenumber, data, 0.);
     for (int i = 0; i < valuenumber; i++) {
         data[i] = storeddata_vector[i];
     }
     char* databuf = (char *)data;
+    size_t datalength = valuenumber * sizeof(FLTPT);
     gfs->WriteStreamData(remoteFilename, databuf, datalength, &p);
-    delete[] data;
-    data = NULL;
+    Release1DArray(data);
     databuf = NULL;
     //    for (int i = 0; i < nRows; ++i)
     //    {
