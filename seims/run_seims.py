@@ -766,6 +766,10 @@ class MainSEIMS(object):
                                     ModelCfgFields.interval, ModelCfgFields.interval_unit,
                                     ModelCfgFields.subbsn]
             data_items.insert(0, user_out_field_array)
+        # Clean up previous selected outputs
+        coll = maindb[DBTableNames.main_fileout]
+        upd = coll.update_many({ModelCfgFields.use: 1}, {'$set': {ModelCfgFields.use: 0}})
+        print('Unselect %d previous desired outputs!' % (upd.modified_count if upd is not None else 0))
 
         update_requests = list()
         for idx, iitem in enumerate(data_items):
