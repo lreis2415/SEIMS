@@ -82,13 +82,6 @@ CALI_*/
 PSA_*/
 SA_*/
 
-# ignore user-specific ini files of demo watershed models. I know this way is very unelegant...
-data/youwuzhen/demo_youwuzhen30m_model/daily/runmodel.ini
-data/youwuzhen/demo_youwuzhen30m_model/daily/postprocess.ini
-data/youwuzhen/demo_youwuzhen30m_model/daily/calibration.ini
-data/youwuzhen/demo_youwuzhen30m_model/daily/sensitivity_analysis.ini
-data/youwuzhen/demo_youwuzhen30m_model/daily/scenario_analysis.ini
-
 
 # ignore configuration files of demo watershed which should be created during preprocessing
 data/*/*/connected_field_units_updown*.json
