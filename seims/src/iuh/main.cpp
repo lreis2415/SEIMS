@@ -33,7 +33,9 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
         oss << i << "_LANDCOVER";
         landcoverName = oss.str();
 
-        FloatRaster* rsMask = FloatRaster::Init(gfs, subbsnName.c_str(), true);
+        STRING_MAP curopts;
+        UpdateStringMap(curopts, HEADER_INC_NODATA, "TRUE");
+        IntRaster* rsMask = IntRaster::Init(gfs, subbsnName.c_str(), true, nullptr, true, NODATA_VALUE, curopts);
         if (nullptr == rsMask) {
             cout << subbsnName << " cannot be found in MongoDB! IUH will be not calculated!\n";
             continue;
@@ -42,12 +44,9 @@ void MainMongoDB(const char* modelStr, const char* gridFSName, int nSubbasins, c
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
 
-        FloatRaster* rsTime = FloatRaster::Init(gfs, tName.c_str(), true,
-                                                          rsMask, true, NODATA_VALUE, opts);
-        FloatRaster* rsDelta = FloatRaster::Init(gfs, deltaName.c_str(), true,
-                                                           rsMask, true, NODATA_VALUE, opts);
-        FloatRaster* rsLandcover = FloatRaster::Init(gfs, landcoverName.c_str(), true,
-                                                               rsMask, true, NODATA_VALUE, opts);
+        FloatRaster* rsTime = FloatRaster::Init(gfs, tName.c_str(), true, rsMask, true, NODATA_VALUE, opts);
+        FloatRaster* rsDelta = FloatRaster::Init(gfs, deltaName.c_str(), true, rsMask, true, NODATA_VALUE, opts);
+        IntRaster* rsLandcover = IntRaster::Init(gfs, landcoverName.c_str(), true, rsMask, true, NODATA_VALUE, opts);
         if (nullptr == rsTime || nullptr == rsDelta || nullptr == rsLandcover) {
             cout << "Required input raster cannot be satisfied!\n";
             continue;

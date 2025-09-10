@@ -8,6 +8,9 @@
 *
 *    Revision: Liangjun Zhu
 *    Date: 6-May-2018
+*
+*    Revision: Update to latest CCGL and SEIMS coding style, Liangjun Zhu
+*    Date: 8-Sep-2025
 */
 #ifndef IUH_SUBBASIN_CALCULATOR_H
 #define IUH_SUBBASIN_CALCULATOR_H
@@ -19,37 +22,66 @@ using namespace ccgl;
 using namespace db_mongoc;
 using namespace data_raster;
 
+
+#ifdef USE_FLOAT64
+typedef double FLTPT;
+#define GDAL_FLTPT GDT_Float64
+#define FLTPT_NAME "DOUBLE"
+#else
+typedef float FLTPT;
+#define GDAL_FLTPT GDT_Float32
+#define FLTPT_NAME "FLOAT"
+#endif
+
+// Define Raster types, the same with SEIMS
+
+#ifdef IntRaster
+#undef IntRaster
+#endif
 #ifndef IntRaster
-#define IntRaster   clsRasterData<int>
+/*! Integer-typed raster */
+#define IntRaster   ccgl::data_raster::clsRasterData<int>
+#endif
+#ifdef FloatRaster
+#undef FloatRaster
 #endif
 #ifndef FloatRaster
-#define FloatRaster clsRasterData<float>
+/*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
+#define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
 #endif
-#ifndef FltIntRaster
-#define FltIntRaster clsRasterData<float, int>
-#endif
-#ifndef IntFltRaster
-#define IntFltRaster clsRasterData<int, float>
-#endif
+//
+//
+//#ifndef IntRaster
+//#define IntRaster   clsRasterData<int>
+//#endif
+//#ifndef FloatRaster
+//#define FloatRaster clsRasterData<FLTPT>
+//#endif
+//#ifndef FltIntRaster
+//#define FltIntRaster clsRasterData<float, int>
+//#endif
+//#ifndef IntFltRaster
+//#define IntFltRaster clsRasterData<int, float>
+//#endif
 
 
 class SubbasinIUHCalculator: Interface {
 public:
-    SubbasinIUHCalculator(int t, FloatRaster* rsMask, FloatRaster* rsLanduse,
+    SubbasinIUHCalculator(int t, IntRaster* rsMask, IntRaster* rsLanduse,
                           FloatRaster* rsTime, FloatRaster* rsDelta, MongoGridFs* grdfs);
 
 private:
     vector<vector<double> > uhCell, uh1; //IUH from cell to watershed outlet
 
-    float noDataValue;
+    FLTPT noDataValue;
     int nRows, nCols; //number of rows and columns
     int dt;           //time interval in hours
     int nCells;       //number of cells
 
-    float* mask;      //value of subwatershed/subbasin
-    float* landcover; //landcover map
-    float* t0;        //flow time
-    float* delta;     //standard deviation of flow time
+    int* mask;        //value of subwatershed/subbasin
+    int* landcover;   //landcover map
+    FLTPT* t0;        //flow time
+    FLTPT* delta;     //standard deviation of flow time
     MongoGridFs* gfs;
 
     int mt;      //maximum length of IUH

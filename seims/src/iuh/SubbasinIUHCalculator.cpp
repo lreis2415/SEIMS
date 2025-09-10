@@ -13,12 +13,9 @@ using namespace utils_math;
 #define IUHZERO 0.000000001
 #endif
 
-SubbasinIUHCalculator::SubbasinIUHCalculator(const int t, FloatRaster* rsMask,
-                                             FloatRaster* rsLanduse,
-                                             FloatRaster* rsTime,
-                                             FloatRaster* rsDelta,
-                                             MongoGridFs* grdfs)
-    : dt(t), gfs(grdfs), mt(30), maxtSub(0) {
+SubbasinIUHCalculator::SubbasinIUHCalculator(const int t, IntRaster* rsMask, IntRaster* rsLanduse,
+                                             FloatRaster* rsTime, FloatRaster* rsDelta,
+                                             MongoGridFs* grdfs): dt(t), gfs(grdfs), mt(30), maxtSub(0) {
     nRows = rsMask->GetRows();
     nCols = rsMask->GetCols();
     mask = rsMask->GetRasterDataPointer();
@@ -55,13 +52,14 @@ int SubbasinIUHCalculator::calCell(const int id) {
     BSON_APPEND_UTF8(&p, "DESCRIPTION", type);
     BSON_APPEND_INT32(&p, "NUMBER", nCells);
     BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
+    BSON_APPEND_UTF8(&p, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
 
     /// If the file is already existed in MongoDB, if existed, then delete it!
     gfs->RemoveFile(remoteFilename);
 
     //////////////////////////////////////////////////////////////////////////
-    vector<float> storeddata_vector;
-    storeddata_vector.push_back(CVT_FLT(nCells));
+    vector<FLTPT> storeddata_vector;
+    storeddata_vector.push_back(nCells);
     //    int nc = 0;                       //number of cell
     maxtSub = 0; //maximum length of uhSub
 
