@@ -2,14 +2,14 @@
 =====================
 ## SEIMS: 模块化、并行化的流域建模框架
 
-Copyright (C) 2013-2023 版权所有 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). 
+Copyright (C) 2013-2025 版权所有 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn).
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS文档
   * [英文归档版PDF](SEIMS-UserManual.pdf)
   * 在线版:
   [英文版](https://lreis2415.github.io/SEIMS/),
-  [简体中文版 (**尚未完成!**)](https://lreis2415.github.io/SEIMS/zh-cn/)
+  [简体中文版](https://lreis2415.github.io/SEIMS/zh-cn/)
 
 ## 编译状态
 

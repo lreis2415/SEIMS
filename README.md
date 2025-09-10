@@ -2,14 +2,14 @@ About {#mainpage}
 =====================
 ## SEIMS: A modular and parallelized watershed modeling framework
 
-Copyright (C) 2013-2023 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
+Copyright (C) 2013-2025 [LREIS](http://www.lreis.ac.cn), [NJNU](http://en.njnu.edu.cn), and [LZU](http://www.lzu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations
   * [Archieved PDF version in English](SEIMS-UserManual.pdf)
   * Online versions:
   [English version](https://lreis2415.github.io/SEIMS/),
-  [简体中文版 (**尚未完成!**)](https://lreis2415.github.io/SEIMS/zh-cn/)
+  [简体中文版](https://lreis2415.github.io/SEIMS/zh-cn/)
 
 ## Build Status
 
@@ -41,7 +41,7 @@ SEIMS is still being developing and any constructive feedback
 (issues or push requests) will be welcome and appreciated.
 
 ## Installation
-Users are highly recommended to take a look at the automatic workflow of installation and testing of SEIMS on Windows, Linux, and macOS through GitHub actions. The configuration yml scripts are located in `SEIMS/.github/workflows`. 
+Users are highly recommended to take a look at the automatic workflow of installation and testing of SEIMS on Windows, Linux, and macOS through GitHub actions. The configuration yml scripts are located in `SEIMS/.github/workflows`.
 The detailed instruction for installing SEIMS can be found [here](https://lreis2415.github.io/SEIMS/download_installation.html).
 
 ## Selected peer-reviewed papers
@@ -63,8 +63,8 @@ _Computers & Geosciences_ 60: 58–62.
 
 ### Scenario optimization of BMPs
 
-+ Shen, S., Qin, C.-Z., Zhu, L.-J., Zhu, A-X. **2023**. 
-[Optimizing the implementation plan of watershed best management practices with time-varying effectiveness under stepwise investment](https://doi.org/10.1029/2022WR032986). 
++ Shen, S., Qin, C.-Z., Zhu, L.-J., Zhu, A-X. **2023**.
+[Optimizing the implementation plan of watershed best management practices with time-varying effectiveness under stepwise investment](https://doi.org/10.1029/2022WR032986).
 _Water Resources Research_ 59(6), e2022WR032986.
 + Zhu, L.-J., Qin, C.-Z., and Zhu, A-X. **2021**.
 [Spatial Optimization of Watershed Best Management Practice Scenarios Based on Boundary-Adaptive Configuration Units](https://doi.org/10.1177/0309133320939002).
