@@ -64,14 +64,15 @@ public:
     /*!
      * \brief Initialization for exception-safe constructor
      */
-    static ModuleFactory* Init(const string& module_path, InputArgs* input_args, bool storm_mode = false,
+    static ModuleFactory* Init(const string& module_path, InputArgs* input_args,
+                               SimulationMode simu_mode = DAILY,
                                int mpi_rank = 0, int mpi_size = -1);
 
     //! Destructor
     ~ModuleFactory();
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
-    void CreateModuleList(vector<SimulationModule *>& modules, bool storm_mode,
+    void CreateModuleList(vector<SimulationModule *>& modules, SimulationMode simu_mode,
                           int nthread = 1, const string& outpath = "");
 
     //! Get value from dependency modules

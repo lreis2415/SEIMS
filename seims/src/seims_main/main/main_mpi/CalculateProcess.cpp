@@ -78,7 +78,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
     /// Create default module factory using config.fig for each process
     input_args->subbasin_id = 0; // in case of wrong arguments by users
     ModuleFactory* default_module_factory = ModuleFactory::Init(module_path, input_args,
-                                                                simu_settings_input->isStormMode(), rank, size);
+                                                                simu_settings_input->getModelMode(), rank, size);
     if (nullptr == default_module_factory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
@@ -105,7 +105,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(*it_id) + "." + File_Config;
         if (FileExists(file_cfg)) {
             input_args->subbasin_id = *it_id;
-            tmp_module_factory = ModuleFactory::Init(module_path, input_args, simu_settings_input->isStormMode(), rank, size);
+            tmp_module_factory = ModuleFactory::Init(module_path, input_args, simu_settings_input->getModelMode(), rank, size);
             if (nullptr == tmp_module_factory) {
                 LOG(WARNING) << "Constructing ModuleFactory failed using " << file_cfg
                 << "! Use default module factory instead!";
@@ -428,9 +428,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         UpdateStringMap(valid_opts, HEADER_INC_NODATA, "FALSE");
         UpdateStringMap(valid_opts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
         CLOG(TRACE, LOG_OUTPUT) << "\tLoad 0_SUBBASIN with NoData value as mask layer...";
-        FloatRaster* subbsn_lyr = FloatRaster::Init(spatial_gfs_in, "0_SUBBASIN",
-                                                    true, nullptr, true,
-                                                    NODATA_VALUE, mask_opts);
+        IntRaster* subbsn_lyr = IntRaster::Init(spatial_gfs_in, "0_SUBBASIN",
+                                                true, nullptr, true,
+                                                NODATA_VALUE, mask_opts);
         if (nullptr == subbsn_lyr) {
             CLOG(TRACE, LOG_OUTPUT) << "\t\tFAILED!";
         }

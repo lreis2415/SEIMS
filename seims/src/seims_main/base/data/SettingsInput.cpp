@@ -6,8 +6,23 @@
 
 using namespace utils_time;
 
+const char* SimuModeToString(SimulationMode mode) {
+    switch (mode) {
+    case DAILY: return "DAILY";
+    case STORM: return "STORM";
+    case UNDEFINED: return "UNDEFINED";
+    default: return "UNDEFINED";
+    }
+}
+
+const SimulationMode StringToSimuMode(string mode) {
+    if (StringMatch(mode, "DAILY")) return DAILY;
+    else if (StringMatch(mode, "STORM")) return STORM;
+    else return UNDEFINED;
+}
+
 SettingsInput::SettingsInput(vector<string>& stringvector)
-    : m_startDate(0), m_endDate(0), m_dtHs(3600), m_dtCh(86400),
+    : m_startDate(0), m_endDate(0), m_dtHs(3600), m_dtCh(86400), m_mode(UNDEFINED),
       m_stormMode(false) {
     Settings::SetSettingTagStrings(stringvector);
 
@@ -16,7 +31,7 @@ SettingsInput::SettingsInput(vector<string>& stringvector)
                              "The start time and end time in file.in is invalid or missing."
                              "The format would be YYYY/MM/DD/HH. Please check it.");
     }
-    m_mode = GetUpper(GetValue(Tag_Mode));
+    m_mode = StringToSimuMode(GetValue(Tag_Mode));
 
     //read interval
     vector<string> dtList = SplitString(GetValue(Tag_Interval), ',');
@@ -27,13 +42,15 @@ SettingsInput::SettingsInput(vector<string>& stringvector)
     if (dtList.size() > 1) {
         m_dtCh = strtol(dtList[1].c_str(), &strend, 10);
     }
+    // The timestep's unit is FIXED as second!
     // convert the time interval to seconds to conform to time_t struct
-    if (StringMatch(m_mode, Tag_Mode_Daily)) {
-        m_dtHs *= 86400; // 86400 secs is 1 day
-        m_dtCh *= 86400;
-        m_stormMode = false;
-    }
-    else { m_stormMode = true; }
+    //if (m_mode == DAILY) {
+    //    m_dtHs *= 86400; // 86400 secs is 1 day
+    //    m_dtCh *= 86400;
+    //    m_stormMode = false;
+    //}
+    //else { m_stormMode = true; }
+    m_stormMode = m_mode == STORM;
 }
 
 SettingsInput* SettingsInput::Init(const InputArgs* input_args) {

@@ -35,7 +35,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
 
     if (nullptr != simu_in) {
         input_ = simu_in;
-        model_mode_ = input_->getModelMode();
+        model_mode_ = SimuModeToString(input_->getModelMode());
     }
     else {
         if (DataCenterMongoDB::GetFileInStringVector()) {
@@ -320,7 +320,7 @@ void DataCenterMongoDB::ReadClimateSiteList() {
 //    BSON_APPEND_UTF8(query, Tag_Mode, input_->getModelMode().c_str()); // mode
 
     bson_t* query = BCON_NEW(Tag_SubbasinId, BCON_INT32(subbasin_id_),
-                             Tag_Mode, BCON_UTF8(input_->getModelMode().c_str()));
+                             Tag_Mode, BCON_UTF8(SimuModeToString(input_->getModelMode())));
     CLOG(TRACE, LOG_INIT) << "ReadClimateSiteList: " << bson_as_json(query, NULL);
     std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_,
                                                                         DB_TAB_SITELIST)));
@@ -542,11 +542,27 @@ void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& nu
 void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, FLTPT*& data) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
-    if (nullptr == databuf) return;
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
+    }
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, &curopts);
+    if (nullptr == databuf) {
+        data = nullptr;
+        return;
+    }
 
-    num = CVT_INT(datalength / sizeof(float));
-    float *tmpdata = reinterpret_cast<float*>(databuf); // deprecate C-style: (float *) databuf;
+    if (StringMatch(FLTPT_NAME, "FLOAT")) {
+        num = CVT_INT(datalength / sizeof(float));
+    }
+    else if (StringMatch(FLTPT_NAME, "DOUBLE")) {
+        num = CVT_INT(datalength / sizeof(double));
+    } else {
+        databuf = nullptr;
+        return;
+    }
+
+    FLTPT *tmpdata = reinterpret_cast<FLTPT*>(databuf); // deprecate C-style: (double *) databuf;
     Initialize1DArray(num, data, tmpdata);
     delete[] tmpdata;
     databuf = nullptr;
@@ -555,11 +571,15 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
 void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, int*& data) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, "INT32");
+    }
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, &curopts);
     if (nullptr == databuf) return;
 
-    num = CVT_INT(datalength / sizeof(float));
-    float* tmpdata = reinterpret_cast<float*>(databuf); // deprecate C-style: (float *) databuf;
+    num = CVT_INT(datalength / sizeof(int));
+    int* tmpdata = reinterpret_cast<int*>(databuf); // deprecate C-style: (int *) databuf;
     Initialize1DArray(num, data, tmpdata);
     delete[] tmpdata;
     databuf = nullptr;
@@ -568,12 +588,16 @@ void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num,
 void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, FLTPT**& data) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
+    }
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, &curopts);
     if (nullptr == databuf) {
         data = nullptr;
         return;
     }
-    float* float_values = reinterpret_cast<float*>(databuf); // deprecate C-style: (float *) databuf;
+    FLTPT* float_values = reinterpret_cast<FLTPT*>(databuf); // deprecate C-style: (double *) databuf;
     if (!Initialize2DArray(float_values, rows, cols, data)) {
         data = nullptr;
     }
@@ -584,28 +608,36 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
 void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols, int**& data) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, "INT32");
+    }
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, &curopts);
     if (nullptr == databuf) {
         data = nullptr;
         return;
     }
-    float* float_values = reinterpret_cast<float*>(databuf); // deprecate C-style: (float *) databuf;
-    if (!Initialize2DArray(float_values, rows, cols, data)) {
+    int* org_values = reinterpret_cast<int*>(databuf); // deprecate C-style: (float *) databuf;
+    if (!Initialize2DArray(org_values, rows, cols, data)) {
         data = nullptr;
     }
-    Release1DArray(float_values);
+    Release1DArray(org_values);
     databuf = nullptr;
 }
 
 void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, FLTPT**& data) {
     char* databuf = nullptr;
     vint datalength;
-    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
+    }
+    spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength, nullptr, &curopts);
     if (nullptr == databuf) {
         data = nullptr;
         return;
     }
-    float* float_values = reinterpret_cast<float*>(databuf); // deprecate C-style: (float *) databuf;
+    FLTPT* float_values = reinterpret_cast<FLTPT*>(databuf); // deprecate C-style: (double *) databuf;
     // Previous code, which will cause memory leak.
     // n = CVT_INT(float_values[0]);
     // data = new FLTPT*[n];

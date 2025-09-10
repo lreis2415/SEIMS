@@ -70,7 +70,7 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
         for (size_t i = 0; i < group_map[*it].size(); i++) {
             int id = group_map[*it][i];
             task->subbsn_id[group_index + i] = id;
-            task->lyr_id[group_index + i] = input_args->lyr_mtd == UP_DOWN
+            task->lyr_id[group_index + i] = input_args->lyr_mtd == UPDOWN
                                                 ? subbasin_map[id]->updown_order
                                                 : subbasin_map[id]->downup_order;
             if (subbasin_map[id]->down_stream != nullptr) {

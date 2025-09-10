@@ -87,9 +87,16 @@ bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, n_cols_);
     char* databuf = nullptr;
     vint datalength;
-    gfs->GetStreamData(wfilename, databuf, datalength);
-    if (nullptr == databuf) { return false; }
-    float* tmp_float_weight = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
+    STRING_MAP curopts;
+    if (curopts.find(HEADER_RSOUT_DATATYPE) == curopts.end()) {
+        UpdateStringMap(curopts, HEADER_RSOUT_DATATYPE, FLTPT_NAME);
+    }
+    gfs->GetStreamData(wfilename, databuf, datalength, nullptr, &curopts);
+    if (nullptr == databuf) {
+        databuf = nullptr;
+        return false;
+    }
+    FLTPT* tmp_float_weight = reinterpret_cast<FLTPT*>(databuf); // deprecate C-style: (double *) databuf
     Initialize1DArray(n_rows_ * n_cols_, itp_weight_data_, tmp_float_weight);
     delete[] tmp_float_weight;
     databuf = nullptr;

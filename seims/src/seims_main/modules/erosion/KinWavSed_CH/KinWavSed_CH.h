@@ -106,7 +106,7 @@ private:
     int m_nCells;
     /// length of time step (s)
     int m_TimeStep;
-    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    /// layering method, 0 means UPDOWN, 1 means DOWNUP, 2 means EVEN
     //LayeringMethod m_layeringMethod;
     ///calibration coefficient of transport capacity
     FLTPT m_ChTcCo;

@@ -6,7 +6,7 @@
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
     m_nCells(-1), m_chNumber(-1), m_dt(-1.0f),
-    m_CellWidth(-1.0f), //m_layeringMethod(UP_DOWN),
+    m_CellWidth(-1.0f), //m_layeringMethod(DOWNUP),
     m_sRadian(nullptr), m_direction(nullptr), m_reachDownStream(nullptr),
     m_chWidth(nullptr),
     m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr),

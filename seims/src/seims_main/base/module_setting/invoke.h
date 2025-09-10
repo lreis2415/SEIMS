@@ -33,8 +33,10 @@ public:
      * \param[in] model_path path of the configuration of the Model
      * \param[in] model_cfgname config name of specific model, the default is "", it corresponds to a subfolder
      * \param[in] thread_num thread or processor number, which must be greater or equal than 1 (default)
+     * \param[in] mode Simulation mode, 0 (DAILY, default) or 1 (STORM)
+     * \param[in] filein_mongo Loading file_in from MongoDB or not, can be 0 (default) or 1
      * \param[in] fdir_mtd can be 0, 1, and 2, which means D8 (default), Dinf, and MFDmd, respectively
-     * \param[in] lyr_mtd can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively
+     * \param[in] lyr_mtd can be 0 (UPDOWN), 1 (DOWNUP, default), and 2 (EVEN)
      * \param[in] host the address of MongoDB database, by default, MongoDB IP is 127.0.0.1 (i.e., localhost)
      * \param[in] port port number, default is 27017
      * \param[in] scenario_id the ID of BMPs Scenario which has been defined in BMPs database
@@ -47,7 +49,8 @@ public:
      * \param[in] mpi_version Optional, is running the MPI version?
      */
     InputArgs(const string& model_path, const string& model_cfgname,
-              int thread_num, FlowDirMethod fdir_mtd, LayeringMethod lyr_mtd, 
+              int thread_num, SimulationMode mode, bool filein_mongo,
+              FlowDirMethod fdir_mtd, LayeringMethod lyr_mtd,
               const string& host, uint16_t port,
               int scenario_id, int calibration_id,
               int subbasin_id, GroupMethod grp_mtd,
@@ -69,6 +72,8 @@ public:
     string output_scene;    ///< output identifier concatenated with scenario_id, calibration_id, lyr_mtd, fdir_mtd
     string output_path;     ///< full path of model outputs
     int thread_num;         ///< thread number for OpenMP
+    SimulationMode mode;    ///< Simulation mode, 0 (DAILY, default) or 1 (STORM)
+    bool filein_mongo;      ///< Loading file_in from MongoDB or not, can be 0 (default) or 1
     FlowDirMethod fdir_mtd; ///< Flow direction method for flow routing, default is 0 (D8)
     LayeringMethod lyr_mtd; ///< Layering method for sequencing computing, default is 0
     string host;            ///< Host IP address or name of MongoDB database

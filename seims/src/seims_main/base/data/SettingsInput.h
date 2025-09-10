@@ -17,6 +17,9 @@
 
 using namespace bmps;
 
+const char* SimuModeToString(SimulationMode mode);
+const SimulationMode StringToSimuMode(string mode);
+
 /*!
  * \ingroup data
  * \class SettingsInput
@@ -50,7 +53,7 @@ public:
     time_t getDtDaily() const { return 86400; }
 
     //! Get model mode
-    string& getModelMode() { return m_mode; }
+    SimulationMode& getModelMode() { return m_mode; }
 
     //! is storm model
     bool isStormMode() const { return m_stormMode; }
@@ -68,8 +71,8 @@ private:
     time_t m_dtHs;
     //! Time interval for channel scale processes
     time_t m_dtCh;
-    //! Simulation mode, can be DAILY or HOURLY
-    string m_mode;
+    //! Simulation mode, can be DAILY or STORM
+    SimulationMode m_mode;
     //! is storm model?
     bool m_stormMode;
 };

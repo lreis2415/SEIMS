@@ -38,29 +38,33 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
     // nothing to do
 }
 
-ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args, const bool storm_mode /* = false */,
+ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args,
+                                   const SimulationMode simu_mode /* = DAILY */,
                                    const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     string model_cfgpath = input_args->model_path;
     if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
     /// Check the existence of configuration files
-    /// Currently, file_in and file_out are not necessarily checked, since the FILE_IN and FILE_OUT in MongoDB are used.
-    //string file_in = model_cfgpath + SEP + File_Input;
-    //string file_out = model_cfgpath + SEP + File_Output;
     // The specific configuration file of the subbasin is prior.
     string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(input_args->subbasin_id) + "." + File_Config;
-    //string cfgNames[] = {file_in, file_out, file_cfg};
     if (!FileExists(file_cfg)) {
         file_cfg = model_cfgpath + SEP + File_Config;
         if (!FileExists(file_cfg)) {
-            LOG(ERROR) << file_cfg << " does not exist or has not the read permission!";
+            LOG(ERROR) << file_cfg << " does not exist or has no read permission!";
             return nullptr;
         }
+    }
+    vector<string> cfgNames(2);
+    cfgNames[0] = model_cfgpath + SEP + File_Input;
+    cfgNames[1] = model_cfgpath + SEP + File_Output;
+    if (!FilesExist(cfgNames)) {
+        LOG(ERROR) << "The file.in or/and file.out do not exist or have no read permission!";
+        return nullptr;
     }
     /// Read module configuration file
     vector<string> moduleIDs; // Unique module IDs (name)
     map<string, SEIMSModuleSetting *> moduleSettings; // basic module settings from cfg file
     if (!ReadConfigFile(file_cfg.c_str(), moduleIDs, moduleSettings)) return nullptr;
-    if (storm_mode) {
+    if (simu_mode == STORM) {
         for (map<string, SEIMSModuleSetting*>::iterator it = moduleSettings.begin(); it != moduleSettings.end(); ++it) {
             it->second->activateStormMode(); // activate STORM mode here, validate in the LoadParseLibrary function
         }
@@ -382,13 +386,13 @@ string ModuleFactory::GetComparableName(string& paraName) {
     return compareName;
 }
 
-void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const bool storm_mode,
+void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const SimulationMode simu_mode,
                                      const int nthread /* = 1 */, const string& outpath /* = "" */) {
     for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); ++it) {
         SimulationModule* pModule = GetInstance(*it);
         pModule->SetTheadNumber(nthread);
         pModule->SetOutpath(outpath);
-        if (storm_mode) pModule->SetSimulationMode();
+        if (simu_mode == STORM) pModule->SetSimulationMode();
         modules.emplace_back(pModule);
     }
 }

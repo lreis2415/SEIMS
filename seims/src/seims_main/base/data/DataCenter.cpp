@@ -357,9 +357,8 @@ void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& re
     } else if (StringMatch(upper_name, Tag_Weight[0])) {
         ReadItpWeightData(remote_filename, n_rows, n_cols, data);
     } else {
-        // Including: ROUTING_LAYERS,
-        //            FLOWIN_INDEX, FLOWIN_FRACTION,
-        //            FLOWOUT_INDEX, FLOWOUT_FRACTION
+        // Including: FLOWIN_FRACTION,
+        //            FLOWOUT_FRACTION
         Read2DArrayData(remote_filename, n_rows, n_cols, data);
     }
     if (nullptr != data) {

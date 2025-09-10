@@ -92,9 +92,9 @@ public:
      * \param[in] conn MongoClient instance
      * \param[in] db_name Database name
      * \param[in] collection_name Reach collection name
-     * \param[in] mtd layering method, the default is UP_DOWN, \sa LayeringMethod
+     * \param[in] mtd layering method, the default is DOWNUP, \sa LayeringMethod
      */
-    clsReaches(MongoClient* conn, const string& db_name, const string& collection_name, LayeringMethod mtd = UP_DOWN);
+    clsReaches(MongoClient* conn, const string& db_name, const string& collection_name, LayeringMethod mtd = DOWNUP);
 
     /// Destructor
     ~clsReaches();

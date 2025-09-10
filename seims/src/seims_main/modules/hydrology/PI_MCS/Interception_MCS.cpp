@@ -168,7 +168,8 @@ int clsPI_MCS::Execute() {
     }
     ave_netPcp = total_netPcp / m_nCells;
 #ifdef _DEBUG
-    cout << "average net precipation: " << ave_netPcp << "mm" << endl;
+    // DO NOT try to print all cell's information, only print specific cell ID's info. -LJ
+    //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
 #endif
     return 0;
 }

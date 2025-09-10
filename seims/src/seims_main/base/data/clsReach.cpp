@@ -341,7 +341,7 @@ void clsReach::DerivedParameters() {
 }
 
 clsReaches::clsReaches(MongoClient* conn, const string& db_name,
-                       const string& collection_name, const LayeringMethod mtd /* = UP_DOWN */) {
+                       const string& collection_name, const LayeringMethod mtd /* = DOWNUP */) {
 //    bson_t* b = bson_new();
 //    bson_t* child1 = bson_new();
 //    bson_t* child2 = bson_new();
@@ -391,7 +391,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     // Build layers of reaches according to layering method
     reach_layers_.clear();
     for (int i = 1; i <= reach_num_; i++) {
-        int order = mtd == UP_DOWN
+        int order = mtd == UPDOWN
                         ? CVT_INT(reaches_obj_.at(i)->Get(REACH_UPDOWN_ORDER))
                         : CVT_INT(reaches_obj_.at(i)->Get(REACH_DOWNUP_ORDER));
         if (reach_layers_.find(order) == reach_layers_.end()) {

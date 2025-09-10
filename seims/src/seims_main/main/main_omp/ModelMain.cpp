@@ -41,7 +41,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     }
     /// Create module list
     m_factory->CreateModuleList(m_simulationModules,
-                                m_input->isStormMode(),
+                                m_input->getModelMode(),
                                 m_dataCenter->GetThreadNumber(),
                                 m_outputPath);
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.

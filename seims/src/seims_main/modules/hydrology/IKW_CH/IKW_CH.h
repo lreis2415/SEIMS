@@ -76,7 +76,7 @@ private:
     int m_nCells;
     /// cell width of the grid (m)
     float m_CellWidth;
-    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    /// layering method, 0 means UPDOWN, 1 means DOWNUP, 2 means EVEN
     //LayeringMethod m_layeringMethod;
     /// time step (second)
     float m_dt;

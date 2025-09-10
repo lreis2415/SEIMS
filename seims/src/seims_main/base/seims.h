@@ -17,14 +17,26 @@ using namespace ccgl;
 using namespace data_raster;
 
 /*!
+ * \enum SimulationMode
+ * \ingroup util
+ * \brief Executing simulation in DAILY (default) or STORM mode.
+ */
+enum SimulationMode {
+    DAILY = 0,  ///< daily mode, ofter using timestep greater than 86400 seconds
+    STORM = 1,  ///< storm mode, ofter using timestep of several minutes
+    UNDEFINED = -1
+};
+const char* const SimulationModeString[] = {"UNDEFINED", "DAILY", "STORM"};
+
+/*!
  * \enum LayeringMethod
  * \ingroup util
  * \brief Grid layering method for routing and parallel computing.
  *        Reference: Liu et al., 2014, EM&S, 51, 221-227. https://doi.org/10.1016/j.envsoft.2013.10.005
  */
 enum LayeringMethod {
-    UP_DOWN, ///< layering-from-source method, default
-    DOWN_UP, ///< layering-from-outlet method
+    UPDOWN,  ///< layering-from-source method
+    DOWNUP,  ///< layering-from-outlet method, default
     EVEN     ///< evenly layering method
 };
 const char* const LayeringMethodString[] = {"_UPDOWN", "_DOWNUP", "_EVEN"};
@@ -101,12 +113,12 @@ const int CCWDeltaCol[9] = { 0, 1, 1, 0, -1, -1, -1, 0, 1 }; ///< Delta Col (X-a
 typedef double FLTPT;
 #define MPI_FLTPT MPI_DOUBLE
 #define GDAL_FLTPT GDT_Float64
-#define FLTPT_NAME "FLOAT"
+#define FLTPT_NAME "DOUBLE"
 #else
 typedef float FLTPT;
 #define MPI_FLTPT MPI_FLOAT
 #define GDAL_FLTPT GDT_Float32
-#define FLTPT_NAME "DOUBLE"
+#define FLTPT_NAME "FLOAT"
 #endif
 
 ///

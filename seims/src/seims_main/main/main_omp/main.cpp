@@ -9,7 +9,7 @@
 #include "basic.h"
 
 #include "seims.h"
-#include <text.h>
+#include "text.h"
 #include "invoke.h"
 #include "ModelMain.h"
 #include "Logging.h"
@@ -42,13 +42,37 @@ int main(const int argc, const char** argv) {
         }
         MongoGridFs* spatial_gfs_in = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_SPATIAL));
         MongoGridFs* spatial_gfs_out = new MongoGridFs(mongo_client->GetGridFs(input_args->model_name, DB_TAB_OUT_SPATIAL));
-        /// Read file.in that includes simulation mode, interval, and period. 
-        SettingsInput* simu_settings_input = SettingsInput::Init(input_args);
-        if (nullptr == simu_settings_input) {
-            throw ModelException("SettingsInput", "Constructor", "Failed in parsing file.in!");
+        /// Load SettingsInput from file.in. This is the default behavior, that is convenient for running single model.
+        ///  But when running enormous models, e.g., for parameter sensitivity analysis, load from FILE_IN table
+        ///  in MongoDB is more convenient. In this case, the argument '-filein_mongo' should be explicitly set to 1!
+        ///
+        /// Since ModuleFactory needs to know which simulation mode (DAILY or STORM) we want to initialize, if we set
+        ///  '-filein_mongo 1', we MUST also set the mode explicitly: '-mode 1' or '-mode 0'.
+        /// 
+        SettingsInput* simu_settings_input = nullptr;
+        SimulationMode mode = input_args->mode;
+        if (!input_args->filein_mongo) {
+            simu_settings_input = SettingsInput::Init(input_args);
+            if (nullptr == simu_settings_input) {
+                throw ModelException("SettingsInput", "Constructor", "Failed in parsing file.in!");
+            }
+            SimulationMode mode_fromfilein = simu_settings_input->isStormMode() ? STORM : DAILY;
+            if (mode == UNDEFINED) { // User didn't input the argument -load_filein_frommongo
+                mode = mode_fromfilein;
+            } else {
+                if (mode_fromfilein != mode) {
+                    CLOG(TRACE, LOG_INIT) << "The simulation mode in file.in is not the same "
+                        "with your input command!" << endl;
+                }
+            }
+        } else {
+            if (mode == UNDEFINED) {
+                throw ModelException("SettingsInput", "Constructor", "You set -load_filein_frommongo 1, "
+                                     "and you MUST also set the mode explicitly: '-mode 1' or '-mode 0'!");
+            }
         }
         /// Create module factory
-        ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, simu_settings_input->isStormMode());
+        ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args, mode);
         if (nullptr == module_factory) {
             throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
         }
