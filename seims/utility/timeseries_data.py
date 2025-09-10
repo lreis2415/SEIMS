@@ -117,6 +117,9 @@ def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnySt
         obsl = values['Obs'][sidx:eidx]
         siml = values['Sim'][sidx:eidx]
 
+        if len(obsl) == 0 or len(siml) == 0:
+            continue
+
         nse_value = MathClass.nashcoef(obsl, siml)
         r2_value = MathClass.rsquare(obsl, siml)
         rmse_value = MathClass.rmse(obsl, siml)
