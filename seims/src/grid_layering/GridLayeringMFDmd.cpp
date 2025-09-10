@@ -66,9 +66,9 @@ bool GridLayeringMFDmd::LoadData() {
         STRING_MAP opts;
         UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
         flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(),
-                                          true, mask_, true, NODATA_VALUE, opts);
+                                   true, mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_corename_.c_str(),
-                                                true, mask_, true, NODATA_VALUE, opts);
+                                           true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
@@ -171,8 +171,8 @@ bool GridLayeringMFDmd::OutputFlowIn() {
     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_, flow_in_count_ + n_valid_cells_ + 1, flow_in_cells_) &&
-                OutputArrayAsGfs(flowin_frac_name_, flow_in_count_ + n_valid_cells_ + 1, flowin_fracs_);
+        done = done && OutputArrayAsGfs(flowin_index_name_, count, flow_in_cells_) &&
+                OutputArrayAsGfs(flowin_frac_name_, count, flowin_fracs_);
 #endif
     }
     return done;
@@ -238,8 +238,8 @@ bool GridLayeringMFDmd::OutputFlowOut() {
     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1, flow_out_cells_) &&
-                OutputArrayAsGfs(flowout_frac_name_, flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_);
+        done = OutputArrayAsGfs(flowout_index_name_, count, flow_out_cells_) &&
+                OutputArrayAsGfs(flowout_frac_name_, count, flowout_fracs_);
 #endif
     }
     return done;

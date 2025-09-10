@@ -1275,12 +1275,12 @@ bool GridLayering::Output2DimensionArrayTxt(const string &name, string &header,
 }
 
 #ifdef USE_MONGODB
-bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, FLTPT *const matrix) {
+bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, FLTPT * const matrix) {
     bool flag = false;
     int max_loop = 3;
     int cur_loop = 1;
     while (cur_loop < max_loop) {
-        if (!OutputToMongodb(name.c_str(), "FLOAT", length, reinterpret_cast<char *>(matrix))) {
+        if (!OutputToMongodb(name.c_str(), FLTPT_NAME, length, reinterpret_cast<char*>(matrix))) {
             cur_loop++;
         } else {
             cout << "Output " << name << " done!" << endl;
@@ -1295,7 +1295,7 @@ bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, int *
     int max_loop = 3;
     int cur_loop = 1;
     while (cur_loop < max_loop) {
-        if (!OutputToMongodb(name.c_str(), "INT", length, reinterpret_cast<char *>(matrix))) {
+        if (!OutputToMongodb(name.c_str(), "INT32", length, reinterpret_cast<char *>(matrix))) {
             cur_loop++;
         } else {
             cout << "Output " << name << " done!" << endl;
@@ -1977,18 +1977,21 @@ bool GridLayering::OutputToMongodb(const char *name, const char* dtype, const vi
     BSON_APPEND_UTF8(&p, "TYPE", name);
     BSON_APPEND_UTF8(&p, "ID", name);
     BSON_APPEND_UTF8(&p, "DESCRIPTION", name);
-    BSON_APPEND_DOUBLE(&p, "NUMBER", CVT_DBL(number));
+    BSON_APPEND_INT32(&p, HEADER_RS_CELLSNUM, number);
     BSON_APPEND_UTF8(&p, HEADER_INC_NODATA, "FALSE");
     BSON_APPEND_UTF8(&p, HEADER_RS_DATATYPE, dtype);
+    BSON_APPEND_UTF8(&p, HEADER_RSOUT_DATATYPE, dtype);
 
     gfs_->RemoveFile(string(name));
     vint n = -1;
-    if (StringMatch(dtype, "INT"))
+    if (StringMatch(dtype, "INT32") || StringMatch(dtype, "INT")) {
         n = number * sizeof(int);
-    else if (StringMatch(dtype, "FLOAT")) {
-        n = number * sizeof(FLTPT);
-    } else {
+    } else if (StringMatch(dtype, "FLOAT") || StringMatch(dtype, "FLOAT32")) {
         n = number * sizeof(float);
+    } else if (StringMatch(dtype, "DOUBLE") || StringMatch(dtype, "FLOAT32")) {
+        n = number * sizeof(double);
+    } else {
+        return false;
     }
     gfs_->WriteStreamData(string(name), s, n, &p);
     bson_destroy(&p);

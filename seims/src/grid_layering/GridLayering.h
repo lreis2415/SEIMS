@@ -32,8 +32,14 @@ using namespace data_raster;
 
 #ifdef USE_FLOAT64
 typedef double FLTPT;
+#define MPI_FLTPT MPI_DOUBLE
+#define GDAL_FLTPT GDT_Float64
+#define FLTPT_NAME "DOUBLE"
 #else
 typedef float FLTPT;
+#define MPI_FLTPT MPI_FLOAT
+#define GDAL_FLTPT GDT_Float32
+#define FLTPT_NAME "FLOAT"
 #endif
 
 // Define Raster types, the same with SEIMS
