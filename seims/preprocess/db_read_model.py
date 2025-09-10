@@ -36,6 +36,7 @@ class ReadModelData(object):
             dbname: Main spatial database name
         """
         self.maindb = conn[dbname]
+        print(self.maindb.list_collection_names())
         self.filein_tab = self.maindb[DBTableNames.main_filein]
         self.fileout_tab = self.maindb[DBTableNames.main_fileout]
         self._climdb_name = self.HydroClimateDBName
@@ -57,6 +58,9 @@ class ReadModelData(object):
     def HydroClimateDBName(self):
         # type: (...) -> AnyStr
         climtbl = self.maindb[DBTableNames.main_sitelist]
+        print(climtbl)
+        if climtbl is []:
+            raise RuntimeError('%s Collection is not existed!' % DBTableNames.main_sitelist)
         allitems = climtbl.find()
         found_flag = False
         for item in allitems:
@@ -65,8 +69,8 @@ class ReadModelData(object):
                 found_flag = True
                 break
         if not found_flag:
-            raise RuntimeError('%s Collection is not existed or empty!' %
-                               DBTableNames.main_sitelist)
+            raise RuntimeError('%s Collection is not empty or %s field is not existed!' %
+                               (DBTableNames.main_sitelist, FieldNames.db))
         return self._climdb_name
 
     @property
@@ -169,8 +173,8 @@ class ReadModelData(object):
                     self._output_items.setdefault(corename, StringClass.split_string(types, '-'))
         return self._output_ids, self._output_items
 
-    def Precipitation(self, subbsn_id, start_time, end_time):
-        # type: (int, datetime, datetime) -> List[List[Union[datetime, float]]]
+    def Precipitation(self, subbsn_id, start_time, end_time, timestep):
+        # type: (int, datetime, datetime, int) -> List[List[Union[datetime, float]]]
         """
         The precipitation is read according to the subbasin ID.
             Especially when plot a specific subbasin (such as ID 3).
@@ -182,9 +186,10 @@ class ReadModelData(object):
         pcp_date_value = list()
         sitelist_tab = self.maindb[DBTableNames.main_sitelist]
         findsites = sitelist_tab.find_one({FieldNames.subbasin_id: subbsn_id,
-                                           FieldNames.mode: self.Mode})
+                                           FieldNames.mode: self.Mode,
+                                           FieldNames.type: DataType.p})
         if findsites is not None:
-            site_liststr = findsites[FieldNames.site_p]
+            site_liststr = findsites[FieldNames.list]
         else:
             raise RuntimeError('Cannot find precipitation site for subbasin %d.' % subbsn_id)
         site_list = StringClass.extract_numeric_values_from_string(site_liststr)
@@ -197,6 +202,7 @@ class ReadModelData(object):
         for pdata in self.climatedb[DBTableNames.data_values].find(
             {DataValueFields.utc: {"$gte": start_time, '$lte': end_time},
              DataValueFields.type: DataType.p,
+             DataValueFields.timestep: timestep,
              DataValueFields.id: {"$in": site_list}}).sort([(DataValueFields.utc, 1)]):
             curt = pdata[DataValueFields.utc]
             curv = pdata[DataValueFields.value]
@@ -214,8 +220,8 @@ class ReadModelData(object):
                                                           end_time.strftime('%c')))
         return pcp_date_value
 
-    def Observation(self, subbsn_id, vars, start_time, end_time):
-        # type: (int, List[AnyStr], datetime, datetime) -> (List[AnyStr], Dict[datetime, List[float]])
+    def Observation(self, subbsn_id, vars, start_time, end_time, timestep):
+        # type: (int, List[AnyStr], datetime, datetime, int) -> (List[AnyStr], Dict[datetime, List[float]])
         """Read observation data of given variables.
 
         Changelog:
@@ -261,6 +267,7 @@ class ReadModelData(object):
             site_id = site_items.get(StationFields.id)
             for obs in obsTbl.find({DataValueFields.utc: {"$gte": start_time, '$lte': end_time},
                                     DataValueFields.type: get_observed_name(param_name),
+                                    DataValueFields.timestep: timestep,
                                     DataValueFields.id: site_id}).sort([(DataValueFields.utc, 1)]):
 
                 if param_name not in vars_existed:
@@ -340,7 +347,7 @@ def main():
 
     host = '127.0.0.1'
     port = 27017
-    dbname = 'youwuzhen10m_longterm_model'
+    dbname = 'demo_youwuzhen30m_model'
     stime = datetime.datetime(2013, 1, 1, 0, 0)
     etime = datetime.datetime(2013, 12, 31, 0, 0)
 
@@ -348,7 +355,7 @@ def main():
 
     rd = ReadModelData(client, dbname)
     print(rd.HydroClimateDBName)
-    print(rd.Precipitation(4, stime, etime))
+    print(rd.Precipitation(4, stime, etime, 86400))
     print(rd.Observation(4, ['Q'], stime, etime))
 
 

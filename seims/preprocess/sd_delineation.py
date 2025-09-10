@@ -14,13 +14,8 @@ from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-import osgeo
 from numpy import where, fromfunction
-from osgeo.gdal import GDT_Int32, GDT_Float32
-from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
-from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
-from osgeo.osr import SpatialReference as osr_SpatialReference
-from osgeo.osr import OAMS_TRADITIONAL_GIS_ORDER
+from osgeo import gdal, osr, ogr
 
 from pygeoc.TauDEM import TauDEM, TauDEM_Ext, TauDEMWorkflow
 from pygeoc.postTauDEM import D8Util, DinfUtil, StreamnetUtil
@@ -33,6 +28,39 @@ from preprocess.sd_connected_field import connected_field_partition_wu2018
 from preprocess.sd_hillslope import DelineateHillslope
 from preprocess.text import FieldNames
 from preprocess.config import PreprocessConfig
+
+
+def _gdal_major():
+    try:
+        return int(gdal.VersionInfo("--major"))
+    except Exception:
+        return 2  # safe default
+
+
+def _clone_with_traditional_axis(srs):
+    """Clone SRS and set lon/lat axis order on GDAL 3+ (no-op on GDAL 2)."""
+    if _gdal_major() >= 3 and hasattr(osr, "OAMS_TRADITIONAL_GIS_ORDER"):
+        s = srs.Clone()
+        s.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        return s
+    return srs
+
+
+def make_coord_transform(src_srs, dst_srs):
+    """Build an osr.CoordinateTransformation compatible with GDAL 2/3."""
+    src = _clone_with_traditional_axis(src_srs)
+    dst = _clone_with_traditional_axis(dst_srs)
+    return osr.CoordinateTransformation(src, dst)
+
+
+def transform_point_xy(x, y, ct):
+    """Transform a single XY using an osr.CoordinateTransformation."""
+    pt = ogr.CreateGeometryFromWkt("POINT ({} {})".format(x, y))
+    # Assign source SRS if you plan to use TransformTo; not required for Transform(ct)
+    # pt.AssignSpatialReference(ct.GetSourceCS())
+    pt.Transform(ct)
+    return pt.GetX(), pt.GetY()
+
 
 
 class SpatialDelineation(object):
@@ -110,7 +138,8 @@ class SpatialDelineation(object):
                                       mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
         # Distance to stream using Surface method in Average length based on D-inf flow direction
         TauDEM.dinfdistdown(cfg.np, cfg.taudems.dinf, cfg.taudems.filldem, cfg.taudems.dinf_slp,
-                            cfg.taudems.stream_raster, 'Average', cfg.distdown_method, False,
+                            cfg.taudems.stream_raster, 'Average', cfg.distdown_method,
+                            False,
                             cfg.taudems.dinf, cfg.taudems.dist2stream_dinf,
                             workingdir=cfg.dirs.taudem, log_file=cfg.logs.delineation,
                             mpiexedir=cfg.mpi_bin, exedir=cfg.seims_bin)
@@ -122,7 +151,8 @@ class SpatialDelineation(object):
         # Get mask raster and shapefile (i.e., basin.shp) from subbasin raster
         UtilClass.mkdir(cfg.dirs.geodata2db)
         RasterUtilClass.get_mask_from_raster(cfg.taudems.subbsn_m, cfg.spatials.mask)
-        VectorUtilClass.raster2shp(cfg.spatials.mask, cfg.vecs.bsn, 'basin', FieldNames.basin)
+        VectorUtilClass.raster2shp(cfg.spatials.mask, cfg.vecs.bsn, 'basin',
+                                   FieldNames.basin)
         # Convert current coordinate to WGS84 and convert shapefile to GeoJson.
         # todo: convert to geojson may failed in Windows for some reason caused by compiled GDAL.
         #       since the geojson is not used for further purpose, comment it!
@@ -172,24 +202,15 @@ class SpatialDelineation(object):
         ds = RasterUtilClass.read_raster(dem_file)
         src_srs = ds.srs
         if not src_srs.ExportToProj4():
-            raise ValueError('The source raster %s has not coordinate, '
+            raise ValueError('The source raster %s does not have coordinate system, '
                              'which is required!' % dem_file)
-        dst_srs = osr_SpatialReference()
+        dst_srs = osr.SpatialReference()
         dst_srs.ImportFromEPSG(4326)  # WGS84
-        if osgeo.__version__ >= '3.0.0':
-            dst_srs.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER)
 
-        # dst_wkt = dst_srs.ExportToWkt()
-        transform = osr_CoordinateTransformation(src_srs, dst_srs)
+        ct = make_coord_transform(src_srs, dst_srs)
 
-        point_ll = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMin, ds.yMin))
-        point_ur = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMax, ds.yMax))
-
-        point_ll.Transform(transform)
-        point_ur.Transform(transform)
-
-        lower_lat = point_ll.GetY()
-        up_lat = point_ur.GetY()
+        lower_lon, lower_lat = transform_point_xy(ds.xMin, ds.yMin, ct)
+        up_lon, up_lat = transform_point_xy(ds.xMax, ds.yMax, ct)
 
         rows = ds.nRows
         cols = ds.nCols
@@ -203,7 +224,7 @@ class SpatialDelineation(object):
         data_lat = where(ds.validZone, data_lat, ds.data)
         RasterUtilClass.write_gtiff_file(cfg.spatials.cell_lat, rows, cols, data_lat,
                                          ds.geotrans, ds.srs,
-                                         ds.noDataValue, GDT_Float32)
+                                         ds.noDataValue, gdal.GDT_Float32)
 
     @staticmethod
     def delineate_spatial_units(cfg):  # type: (PreprocessConfig) -> None
@@ -238,7 +259,7 @@ def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
-    SpatialDelineation.workflow(seims_cfg)
+    SpatialDelineation.calculate_terrain_related_params(seims_cfg)
 
 
 if __name__ == "__main__":

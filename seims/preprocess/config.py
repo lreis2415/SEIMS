@@ -58,6 +58,7 @@ class PreprocessConfig(object):
         self.climate_db = ''
         self.scenario_db = ''
         self.spatial_db = ''
+        self.floattype = 'FLOAT'  # Be careful, should be consistent with C++ compile setting
         # 3. Climate inputs
         self.hydro_climate_vars = None
         self.prec_sites = None
@@ -174,6 +175,7 @@ class PreprocessConfig(object):
             self.climate_db = get_option_value(cf, 'MONGODB', 'climatedbname', required=True)
             self.scenario_db = get_option_value(cf, 'MONGODB',
                                                 ['bmpscenariodbname', 'scenariodbname'])
+            self.floattype = get_option_value(cf, 'MONGODB', 'floatdatatype')
         else:
             raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
         # build a global connection to mongodb database

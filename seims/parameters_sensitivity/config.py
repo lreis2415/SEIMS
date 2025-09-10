@@ -149,10 +149,13 @@ class PSAConfig(object):
         self.param_range_def = 'morris_param_rng.def'  # Default
         if cf.has_option('PSA_Settings', 'paramrngdef'):
             self.param_range_def = cf.get('PSA_Settings', 'paramrngdef')
-        self.param_range_def = self.model.model_dir + os.path.sep + self.param_range_def
-        if not FileClass.is_file_exists(self.param_range_def):
+        temp_path = self.model.model_dir + os.path.sep + self.param_range_def
+        if self.model.cfg_name != '':
+            temp_path = '%s/%s/%s' % (self.model.model_dir, self.model.cfg_name,
+                                      self.param_range_def)
+        if not FileClass.is_file_exists(temp_path):
             raise IOError('Ranges of parameters MUST be provided!')
-
+        self.param_range_def = temp_path
         if not (cf.has_option('PSA_Settings', 'psa_time_start') and
                 cf.has_option('PSA_Settings', 'psa_time_end')):
             raise ValueError("Start and end time of PSA MUST be specified in [PSA_Settings].")
@@ -170,13 +173,16 @@ class PSAConfig(object):
         # 3. Parameters settings for specific sensitivity analysis methods
         self.morris = None
         self.fast = None
+        wp = self.model.model_dir
+        if self.model.cfg_name != '':
+            wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
         if self.method == 'fast':
             self.fast = FASTConfig(cf)
-            self.psa_outpath = '%s/PSA_FAST_N%dM%d' % (self.model.model_dir,
+            self.psa_outpath = '%s/PSA_FAST_N%dM%d' % (wp,
                                                        self.fast.N, self.fast.M)
         elif self.method == 'morris':
             self.morris = MorrisConfig(cf)
-            self.psa_outpath = '%s/PSA_Morris_N%dL%d' % (self.model.model_dir,
+            self.psa_outpath = '%s/PSA_Morris_N%dL%d' % (wp,
                                                          self.morris.N,
                                                          self.morris.num_levels)
         # 4. (Optional) Plot settings for matplotlib

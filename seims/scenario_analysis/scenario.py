@@ -254,6 +254,8 @@ class Scenario(object):
         self.model.scenario_id = self.ID
         self.modelout_dir = self.model.output_dir
 
+        self.model.filein_mongo = 1
+
         self.model.SetMongoClient()
         self.model.run()
         self.model.UnsetMongoClient()

@@ -17,8 +17,8 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from math import sqrt, pow
-from struct import pack, unpack
 import copy
+from struct import unpack
 
 from gridfs import GridFS
 from numpy import zeros as np_zeros
@@ -26,6 +26,7 @@ from numpy import zeros as np_zeros
 from preprocess.db_mongodb import MongoQuery
 from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
+from preprocess.utils import dump_values, load_values, StringToPackDType
 from utility import UTIL_ZERO
 
 
@@ -40,7 +41,7 @@ class ImportWeightData(object):
         return sqrt(dx * dx + dy * dy)
 
     @staticmethod
-    def idw(x, y, loc_list):
+    def idw(x, y, loc_list, fltfmt='f'):
         """IDW method for weight
         This function is not used currently"""
         ex = 2
@@ -54,19 +55,20 @@ class ImportWeightData(object):
         weight_list = []
         for coef in coef_list:
             weight_list.append(coef / sum_dist)
-        fmt = '%df' % (len(weight_list))
-        s = pack(fmt, *weight_list)
-        return s
+        # fmt = '%df' % (len(weight_list))
+        # s = pack(fmt, *weight_list)
+        return dump_values(weight_list, fltfmt)
 
     @staticmethod
-    def thiessen(x, y, loc_list):
+    def thiessen(x, y, loc_list, fltfmt='f'):
         """Thiessen polygon method for weights"""
         i_min = 0
         coef_list = list()
         if len(loc_list) <= 1:
             coef_list.append(1)
-            fmt = '%df' % 1
-            return pack(fmt, *coef_list), i_min
+            # fmt = '%df' % 1
+            # return pack(fmt, *coef_list), i_min
+            return dump_values(coef_list, fltfmt), i_min
 
         dis_min = ImportWeightData.cal_dis(x, y, loc_list[0][0], loc_list[0][1])
 
@@ -79,18 +81,19 @@ class ImportWeightData(object):
                 i_min = i
                 dis_min = dis
         coef_list[i_min] = 1
-        fmt = '%df' % (len(coef_list))
-
-        s = pack(fmt, *coef_list)
-        return s, i_min
+        # fmt = '%df' % (len(coef_list))
+        # s = pack(fmt, *coef_list)
+        # return s, i_min
+        return dump_values(coef_list, fltfmt)
 
     @staticmethod
-    def generate_weight_dependent_parameters(conn, maindb, subbsn_id):
+    def generate_weight_dependent_parameters(conn, maindb, subbsn_id, fltpt='FLOAT'):
         """Generate some parameters dependent on weight data and only should be calculated once.
             Such as PHU0 (annual average total potential heat units)
                 TMEAN0 (annual average temperature)
         """
         spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
+        fltfmt = StringToPackDType(fltpt)
         # read mask file from mongodb
         mask_name = '%d_SUBBASIN' % subbsn_id
         mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
@@ -138,8 +141,11 @@ class ImportWeightData(object):
         weight_m_data = spatial_gfs.get(weight_m['_id'])
         total_len = num_cells * num_sites
         # print(total_len)
-        fmt = '%df' % (total_len,)
-        weight_m_data = unpack(fmt, weight_m_data.read())
+        # fmt = '%df' % (total_len,)
+        # weight_m_data = unpack(fmt, weight_m_data.read())
+        weight_m_data = load_values(weight_m_data.read(), total_len, fltfmt)
+        if weight_m_data is None:
+            return False
 
         # calculate PHU0
         phu0_data = np_zeros(num_cells)
@@ -154,8 +160,11 @@ class ImportWeightData(object):
         nodata_value = mask['metadata'][RasterMetadata.nodata]
         maskgfs_data = spatial_gfs.get(mask['_id'])
         total_len = xsize * ysize  # INCLUDE_NODATA: TRUE
-        fmt = '%df' % (total_len,)
-        mask_data = unpack(fmt, maskgfs_data.read())
+        # fmt = '%df' % (total_len,)
+        # mask_data = unpack(fmt, maskgfs_data.read())
+        mask_data = load_values(maskgfs_data.read(), total_len, dtype='i')
+        if mask_data is None:
+            return False
         fname = '%d_%s' % (subbsn_id, DataType.phu0)
         fname2 = '%d_%s' % (subbsn_id, DataType.mean_tmp0)
         if spatial_gfs.exists(filename=fname):
@@ -170,6 +179,7 @@ class ImportWeightData(object):
         meta_dic['DESCRIPTION'] = DataType.phu0
         meta_dic['INCLUDE_NODATA'] = 'FALSE'
         meta_dic['CELLSNUM'] = num_cells
+        meta_dic['DATATYPE_OUT'] = fltpt
 
         meta_dic2 = copy.deepcopy(mask['metadata'])
         meta_dic2['TYPE'] = DataType.mean_tmp0
@@ -177,6 +187,7 @@ class ImportWeightData(object):
         meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
         meta_dic2['INCLUDE_NODATA'] = 'FALSE'
         meta_dic2['CELLSNUM'] = num_cells
+        meta_dic2['DATATYPE_OUT'] = fltpt
 
         myfile = spatial_gfs.new_file(filename=fname, metadata=meta_dic)
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
@@ -194,16 +205,18 @@ class ImportWeightData(object):
                     # cur_row.append(nodata_value)
                     # cur_row2.append(nodata_value)
                     continue
-        fmt = '%df' % vaild_count
-        myfile.write(pack(fmt, *cur_row))
-        myfile2.write(pack(fmt, *cur_row2))
+        # fmt = '%df' % vaild_count
+        # myfile.write(pack(fmt, *cur_row))
+        # myfile2.write(pack(fmt, *cur_row2))
+        myfile.write(dump_values(cur_row, fltfmt))
+        myfile2.write(dump_values(cur_row2, fltfmt))
         myfile.close()
         myfile2.close()
         print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
         return True
 
     @staticmethod
-    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir):
+    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir, fltpt='FLOAT'):
         """Generate and import weight information using Thiessen polygon method.
 
         Args:
@@ -213,6 +226,7 @@ class ImportWeightData(object):
             geodata2dbdir: directory to store weight data as txt file
         """
         spatial_gfs = GridFS(db_model, DBTableNames.gridfs_spatial)
+        fltfmt = StringToPackDType(fltpt)
         # read mask file from mongodb
         mask_name = '%d_SUBBASIN' % subbsn_id
         mask_query = {'filename': mask_name, 'metadata.%s' % RasterMetadata.inc_nodata: 'TRUE'}
@@ -225,13 +239,18 @@ class ImportWeightData(object):
         dx = mask['metadata'][RasterMetadata.cellsize]
         xll = mask['metadata'][RasterMetadata.xll]
         yll = mask['metadata'][RasterMetadata.yll]
+        if 'DATATYPE_OUT' in mask['metadata']:
+            dtype = mask['metadata']['DATATYPE_OUT']
+            if dtype != 'INT32':
+                print('The %d_SUBBASIN stored in MongoDB has wrong datatype!' % subbsn_id)
+                return
 
         gfsdata = spatial_gfs.get(mask['_id'])
 
         total_len = xsize * ysize
-        fmt = '%df' % (total_len,)
-        data = unpack(fmt, gfsdata.read())
-        # print(data[0], len(data), type(data))
+        data = load_values(gfsdata.read(), total_len, dtype='i')
+        if data is None:
+            return
 
         # count number of valid cells
         num = 0
@@ -243,7 +262,8 @@ class ImportWeightData(object):
                    RasterMetadata.cellnum: num,
                    RasterMetadata.inc_nodata: 'FALSE'}
         # read stations information from database, collection SITELIST
-        for site_lists in db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id}):
+        for site_lists in db_model[DBTableNames.main_sitelist].find(
+            {FieldNames.subbasin_id: subbsn_id}):
             # print(site_lists)
             clim_db_name = site_lists[FieldNames.db]
             type_name = site_lists[FieldNames.type]
@@ -276,6 +296,7 @@ class ImportWeightData(object):
             # interpolate using the locations
             metadic[StationFields.type] = type_name
             metadic[StationFields.mode] = clim_mode
+            metadic["DATATYPE_OUT"] = fltpt
             myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
             txtfile = '%s/weight_%d_%s_%s.txt' % (geodata2dbdir, subbsn_id, type_name, clim_mode)
             with open(txtfile, 'w', encoding='utf-8') as f_test:
@@ -286,10 +307,10 @@ class ImportWeightData(object):
                             x_coor = xll + x * dx
                             y_coor = yll + (ysize - y - 1) * dx
                             line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
-                                                                         loc_list)
+                                                                         loc_list, fltfmt)
                             myfile.write(line)
-                            fmt = '%df' % (len(loc_list))
-                            f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
+                            vals = load_values(line, len(loc_list), fltfmt)
+                            f_test.write('%d %d (%s)\n' % (x, y, ','.join('%f' % v for v in vals)))
             myfile.close()
             # print(txtfile)
 
@@ -299,13 +320,13 @@ class ImportWeightData(object):
         subbasin_start_id = 0  # default is for OpenMP version
         if n_subbasins > 0:
             subbasin_start_id = 1
-            n_subbasins = MongoQuery.get_init_parameter_value(cfg.maindb, SubbsnStatsName.subbsn_num)
 
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.climate_itp_weight_thiessen(cfg.conn, cfg.maindb, subbsn_id,
-                                                         cfg.dirs.geodata2db)
+                                                         cfg.dirs.geodata2db, cfg.floattype)
 
-            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id)
+            ImportWeightData.generate_weight_dependent_parameters(cfg.conn, cfg.maindb, subbsn_id,
+                                                                  cfg.floattype)
 
 
 def main():
@@ -315,7 +336,6 @@ def main():
     seims_cfg = parse_ini_configuration()
 
     ImportWeightData.workflow(seims_cfg, 0)
-
 
 
 if __name__ == "__main__":

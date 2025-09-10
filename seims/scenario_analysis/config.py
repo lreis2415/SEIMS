@@ -141,8 +141,12 @@ class SAConfig(object):
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config, None]
+        wp = self.model.model_dir
+        if self.model.cfg_name != '':
+            wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
+
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+            self.opt = ParseNSGA2Config(cf, wp,
                                         'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
                                                             self.bmps_cfg_method))
         # Using the existed population derived from previous scenario optimization

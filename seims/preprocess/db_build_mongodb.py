@@ -53,6 +53,7 @@ class ImportMongodbClass(object):
         """Mask and decompose spatial raster data to MongoDB
         """
         mask_raster_cfg = list()
+        fltpt = cfg.floattype
         # format: <in>, <out>[, <defaultValue>, <updatedNodata>, <outDataType>]
         # from SpatialDelineation.original_delineation()
         mask_raster_cfg.append([cfg.spatials.subbsn, SpatialNamesUtils._SUBBASINOUT,
@@ -64,34 +65,34 @@ class ImportMongodbClass(object):
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # stream link
 
         mask_raster_cfg.append([cfg.spatials.filldem, SpatialNamesUtils._FILLEDDEMM,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # filled dem
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # filled dem
         mask_raster_cfg.append([cfg.spatials.slope, SpatialNamesUtils._SLOPEM,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # slope
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # slope
         mask_raster_cfg.append([cfg.spatials.d8flow, SpatialNamesUtils._FLOWDIROUT,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # flow direction D8
         mask_raster_cfg.append([cfg.spatials.d8acc, SpatialNamesUtils._ACCM,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # d8-acc
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # d8-acc
 
         mask_raster_cfg.append([cfg.taudems.dinf_d8dir, SpatialNamesUtils._DIRCODEDINFM,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # dinf compound dir
         mask_raster_cfg.append([cfg.taudems.dinf_weight, SpatialNamesUtils._WEIGHTDINFM,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # flow weight, dinf
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # flow weight, dinf
 
         mask_raster_cfg.append([cfg.taudems.mfdmd_dir, SpatialNamesUtils._DIRCODEMFDMD,
                                 DEFAULT_NODATA, DEFAULT_NODATA, 'INT32'])  # mfdmd compound dir
         mask_raster_cfg.append([[FileClass.add_postfix(cfg.taudems.mfdmd_frac, '%d' % i)
                                 for i in range(1, 9, 1)], SpatialNamesUtils._FLOWFRACTIONMFDMD,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # flow fraction, mfdmd
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # flow fraction, mfdmd
 
         mask_raster_cfg.append([cfg.taudems.dist2stream_d8, SpatialNamesUtils._DIST2STREAMD8M,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dist down V, d8
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # dist down V, d8
         mask_raster_cfg.append([cfg.taudems.dist2stream_dinf, SpatialNamesUtils._DIST2STREAMDINFM,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dist down V, dinf
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # dist down V, dinf
 
 
         # from SpatialDelineation.calculate_terrain_related_params()
         mask_raster_cfg.append([cfg.spatials.cell_lat, SpatialNamesUtils._CELLLAT,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # latitude
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # latitude
 
         # from SpatialDelineation.delineate_spatial_units()
         mask_raster_cfg.append([cfg.spatials.hillslope, SpatialNamesUtils._HILLSLOPEOUT,
@@ -102,25 +103,25 @@ class ImportMongodbClass(object):
 
         # from TerrainUtilClass.parameters_extraction()
         mask_raster_cfg.append([cfg.spatials.chwidth, SpatialNamesUtils._CHWIDTH,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # channel width
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # channel width
         mask_raster_cfg.append([cfg.spatials.chdepth, SpatialNamesUtils._CHDEPTH,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # channel depth
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # channel depth
         mask_raster_cfg.append([cfg.spatials.init_somo, SpatialNamesUtils._INITSOILMOIST,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # initial soil mstr
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # initial soil mstr
         mask_raster_cfg.append([cfg.spatials.depression, SpatialNamesUtils._DEPRESSIONFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # depression
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # depression
         mask_raster_cfg.append([cfg.spatials.radius, SpatialNamesUtils._RADIUSFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # radius
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # radius
         mask_raster_cfg.append([cfg.spatials.velocity, SpatialNamesUtils._VELOCITYFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # velocity
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # velocity
         mask_raster_cfg.append([cfg.spatials.t0_s, SpatialNamesUtils._T0_SFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # flow time to river
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # flow time to river
         mask_raster_cfg.append([cfg.spatials.delta_s, SpatialNamesUtils._DELTA_SFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # std of flow time
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # std of flow time
         mask_raster_cfg.append([cfg.spatials.dayl_min, SpatialNamesUtils._DAYLMIN,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # minimum daylength
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # minimum daylength
         mask_raster_cfg.append([cfg.spatials.dorm_hr, SpatialNamesUtils._DORMHR,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dormancy threshold
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # dormancy threshold
 
         # from SoilUtilClass.
         mask_raster_cfg.append([cfg.spatials.soil_type, SpatialNamesUtils._SOILTYPEMFILE,
@@ -129,9 +130,9 @@ class ImportMongodbClass(object):
         mask_raster_cfg.append([cfg.spatials.landuse, SpatialNamesUtils._LANDUSEMFILE,
                                 cfg.default_landuse, DEFAULT_NODATA, 'INT32'])  # landuse type
         mask_raster_cfg.append([cfg.spatials.cn2, SpatialNamesUtils._CN2FILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # minimum daylength
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # minimum daylength
         mask_raster_cfg.append([cfg.spatials.runoff_coef, SpatialNamesUtils._RUNOFF_COEFFILE,
-                                DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])  # dormancy threshold
+                                DEFAULT_NODATA, DEFAULT_NODATA, fltpt])  # dormancy threshold
 
         # Additional raster file
         for k, v in cfg.additional_rs.items():
@@ -142,7 +143,7 @@ class ImportMongodbClass(object):
                     print('WARNING: The additional file %s MUST be located in '
                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
-            mask_raster_cfg.append([v, k.upper(), DEFAULT_NODATA, DEFAULT_NODATA, 'DOUBLE'])
+            mask_raster_cfg.append([v, k.upper(), DEFAULT_NODATA, DEFAULT_NODATA, fltpt])
 
         mongoargs = [cfg.hostname, cfg.port, cfg.spatial_db, 'SPATIAL']
         mask_rasterio(cfg.seims_bin, mask_raster_cfg, mongoargs=mongoargs,
@@ -166,13 +167,19 @@ class ImportMongodbClass(object):
         UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def grid_layering(cfg, n_subbasins):  # type: (PreprocessConfig, int) -> None
+    def grid_layering(cfg, n_subbasins, force_outlet=False, force_inbasin=True, decimals=4):
+        # type: (PreprocessConfig, int, bool, bool, int) -> None
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.mkdir(layering_dir)
         for alg in ['d8', 'dinf', 'mfdmd']:
-            str_cmd = '"%s/grid_layering" -alg %s -stream %s -outdir %s -mongo %s %d %s %s %d' %\
+            str_cmd = ('"%s/grid_layering" -alg %s -stream %s -outdir %s '
+                       '-force_outlet %d -force_inbasin %d -decimals %d '
+                       '-mongo %s %d %s %s %d') %\
                       (cfg.seims_bin, alg, cfg.vecs.reach, layering_dir,
+                       1 if force_outlet else 0,
+                       1 if force_inbasin else 0,
+                       decimals,
                        cfg.hostname, cfg.port,
                        cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
             UtilClass.run_command(str_cmd)
@@ -234,7 +241,13 @@ def main():
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
-    ImportMongodbClass.workflow(seims_cfg)
+    # ImportMongodbClass.workflow(seims_cfg)
+    n_subbasins = MongoQuery.get_init_parameter_value(seims_cfg.maindb, SubbsnStatsName.subbsn_num)
+    print('Number of subbasins: %d' % n_subbasins)
+    # ImportWeightData.workflow(seims_cfg, 0)
+    # ImportWeightData.workflow(seims_cfg, n_subbasins)
+    ImportMongodbClass.grid_layering(seims_cfg, 0)
+    ImportMongodbClass.grid_layering(seims_cfg, n_subbasins)
 
 
 if __name__ == "__main__":

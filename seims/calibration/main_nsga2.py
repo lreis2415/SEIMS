@@ -177,8 +177,8 @@ def main(cfg):
     param_values = numpy.array(param_values)
 
     # Write calibrated values to MongoDB
-    # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
-    write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name, cali_obj.ParamDefs, param_values)
+    write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
+                                  cali_obj.ParamDefs, param_values)
     # get the low and up bound of calibrated parameters
     bounds = numpy.array(cali_obj.ParamDefs['bounds'])
     low = bounds[:, 0]

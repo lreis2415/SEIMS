@@ -57,6 +57,7 @@ class TimeSeriesPlots(object):
             raise ValueError('The output directory %s is not existed!' % self.ws)
         self.plot_vars = cfg.plot_vars
         self.plot_cfg = cfg.plot_cfg  # type: PlotConfig
+        self.timestep = cfg.model_cfg.timestep
         # UTCTIME, calibration period
         self.stime = cfg.cali_stime
         self.etime = cfg.cali_etime
@@ -105,7 +106,9 @@ class TimeSeriesPlots(object):
             end = self.etime if self.etime > self.vali_etime else self.vali_etime
         self.outletid = self.readData.OutletID
         # read precipitation
-        self.pcp_date_value = self.readData.Precipitation(self.subbsnID, start, end)
+        self.pcp_date_value = self.readData.Precipitation(self.subbsnID, start, end, self.timestep)
+        if len(self.pcp_date_value) == 0:
+            raise RuntimeError('No available precipitation data, please check it!')
         # read simulated data and update the available variables
         self.plot_vars, self.sim_data_dict = read_simulation_from_txt(self.ws, self.plot_vars,
                                                                       self.outletid,
@@ -118,7 +121,7 @@ class TimeSeriesPlots(object):
             raise RuntimeError('No available simulate data, please check the start and end time!')
         # read observation data from MongoDB
         self.obs_vars, self.obs_data_dict = self.readData.Observation(self.subbsnID, self.plot_vars,
-                                                                      start, end)
+                                                                      start, end, self.timestep)
 
         # Calibration period
         self.sim_obs_dict = match_simulation_observation(self.plot_vars, self.sim_data_dict,
@@ -134,7 +137,13 @@ class TimeSeriesPlots(object):
                                                                   self.obs_data_dict,
                                                                   start_time=self.vali_stime,
                                                                   end_time=self.vali_etime)
-            calculate_statistics(self.vali_sim_obs_dict)
+            empty_data = True
+            for param, datadict in list(self.vali_sim_obs_dict.items()):
+                if len(datadict['Obs']) > 0 and len(datadict['Obs']) == len(datadict['Sim']):
+                    empty_data = False
+                    break
+            if not empty_data:
+                calculate_statistics(self.vali_sim_obs_dict)
 
     def generate_plots(self):
         """Generate hydrographs of discharge, sediment, nutrient (amount or concentrate), etc."""
@@ -183,26 +192,33 @@ class TimeSeriesPlots(object):
             if self.sim_obs_dict and param in self.sim_obs_dict:
                 obs_dates = self.sim_obs_dict[param][DataValueFields.utc]
                 obs_values = self.sim_obs_dict[param]['Obs']
-            # append validation data
+            # append validation data, be careful, the validation period might before the calibration
             if self.vali_sim_obs_dict and param in self.vali_sim_obs_dict:
-                obs_dates += self.vali_sim_obs_dict[param][DataValueFields.utc]
-                obs_values += self.vali_sim_obs_dict[param]['Obs']
+                if self.vali_stime >= self.etime:
+                    obs_dates += self.vali_sim_obs_dict[param][DataValueFields.utc]
+                    obs_values += self.vali_sim_obs_dict[param]['Obs']
+                else:
+                    obs_dates = self.vali_sim_obs_dict[param][DataValueFields.utc] + obs_dates
+                    obs_values = self.vali_sim_obs_dict[param]['Obs'] + obs_values
             if obs_values is not None:
-                # TODO: if the observed data is continuous with datetime, plot line, otherwise, bar.
-                # bar graph
-                #p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
-                #            edgecolor='black',
-                #           linewidth=0.5, align='center', hatch='//')
-                # # line graph
-                p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
-                              markersize=2, linewidth=1)
+                item_count = int((obs_dates[-1] - obs_dates[0]).total_seconds() / self.timestep)
+                if item_count != len(obs_dates) - 1:
+                    # bar graph
+                    p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
+                               edgecolor='black',
+                              linewidth=0.5, align='center', hatch='//')
+                else:
+                    # line graph
+                    p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black',
+                                  marker='+', markersize=2, linewidth=1)
             sim_list = [v[i + 1] for v in self.sim_data_value]
             p2, = ax.plot(sim_date, sim_list, label=sim_str, color='red',
                           marker='+', markersize=2, linewidth=0.8)
             plt.xlabel(xaxis_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # format the ticks date axis
-            # date_fmt = mdates.DateFormatter('%m-%d-%y')
-            date_fmt = mdates.DateFormatter('%H:%M')
+            date_fmt = mdates.DateFormatter('%m-%d-%y')  # for daily, or coarser timestep
+            if self.timestep < 86400:
+                date_fmt = mdates.DateFormatter('%H:%M')
             # autodates = mdates.AutoDateLocator()
             # days = mdates.DayLocator(bymonthday=range(1, 32), interval=4)
             # months = mdates.MonthLocator()

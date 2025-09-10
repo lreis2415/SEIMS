@@ -99,10 +99,18 @@ class Sensitivity(object):
         db = conn[self.model.db_name]
         stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
+        mode_str = 'DAILY'
+        if self.model.simu_mode == 1:
+            mode_str = 'STORM'
+        timestep = self.model.timestep
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'MODE'},
+                                                         {'$set': {'VALUE': mode_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'INTERVAL'},
+                                                         {'$set': {'VALUE': timestep}})
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -166,7 +174,7 @@ class Sensitivity(object):
         if groups == names:
             groups = None
         elif len(set(groups)) == 1:
-            raise ValueError('Only one group defined, results will not bemeaningful')
+            raise ValueError('Only one group defined, results will not be meaningful')
 
         # setting dists to none if all are uniform
         # because non-uniform scaling is not needed
@@ -285,7 +293,8 @@ class Sensitivity(object):
                 output_models = list()
                 model_cmd_list = list()
                 for ii_model_cfg in model_cfg_dict_list:
-                    output_models.append(create_run_model(ii_model_cfg, do_execute=False))
+                    output_models.append(create_run_model(ii_model_cfg, do_execute=False,
+                                                          filein_mongo=True))
                 for ii_model in output_models:
                     model_cmd_list.append(ii_model.CommandString)
 
@@ -317,7 +326,8 @@ class Sensitivity(object):
                 output_models = list()
                 model_cmd_list = list()
                 for ii_model_cfg in model_cfg_dict_list:
-                    output_models.append(create_run_model(ii_model_cfg, do_execute=False))
+                    output_models.append(create_run_model(ii_model_cfg, do_execute=False,
+                                                          filein_mongo=True))
                 for ii_model in output_models:
                     model_cmd_list.append(ii_model.CommandString)
                 # Run model sequentially

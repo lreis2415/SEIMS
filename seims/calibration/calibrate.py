@@ -165,10 +165,18 @@ class Calibration(object):
         db = conn[self.cfg.model.db_name]
         stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
         etime_str = self.cfg.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
+        mode_str = 'DAILY'
+        if self.model.simu_mode == 1:
+            mode_str = 'STORM'
+        timestep = self.model.timestep
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
                                                          {'$set': {'VALUE': etime_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'MODE'},
+                                                         {'$set': {'VALUE': mode_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'INTERVAL'},
+                                                         {'$set': {'VALUE': timestep}})
 
     def initialize(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
@@ -202,6 +210,7 @@ def calibration_objectives(cali_obj, ind):
     model_args = cali_obj.model.ConfigDict
     model_args.setdefault('calibration_id', -1)
     model_args['calibration_id'] = ind.id
+    model_args['filein_mongo'] = 1
     model_obj = MainSEIMS(args_dict=model_args)
 
     # Set observation data to model_obj, no need to query database

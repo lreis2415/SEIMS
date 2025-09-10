@@ -39,12 +39,15 @@ class ModelCfgUtils(object):
     _FILE_CFG = 'config.fig'
     _FILE_CALI = 'param.cali'
 
-    def __init__(self, model_dir):
+    def __init__(self, model_dir, config_name=''):
         """assign model config file paths"""
-        self.filein = model_dir + SEP + ModelCfgUtils._FILE_IN
-        self.fileout = model_dir + SEP + ModelCfgUtils._FILE_OUT
-        self.filecfg = model_dir + SEP + ModelCfgUtils._FILE_CFG
-        self.filecali = model_dir + SEP + ModelCfgUtils._FILE_CALI
+        prefix = model_dir
+        if config_name != '':
+            prefix += SEP + config_name
+        self.filein = prefix + SEP + ModelCfgUtils._FILE_IN
+        self.fileout = prefix + SEP + ModelCfgUtils._FILE_OUT
+        self.filecfg = prefix + SEP + ModelCfgUtils._FILE_CFG
+        self.filecali = prefix + SEP + ModelCfgUtils._FILE_CALI
 
 
 class DirNameUtils(object):

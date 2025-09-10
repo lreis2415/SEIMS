@@ -36,9 +36,13 @@ class CaliConfig(object):
         self.param_range_def = 'cali_param_rng.def'
         if cf.has_option('CALI_Settings', 'paramrngdef'):
             self.param_range_def = cf.get('CALI_Settings', 'paramrngdef')
-        self.param_range_def = self.model.model_dir + os.path.sep + self.param_range_def
-        if not FileClass.is_file_exists(self.param_range_def):
-            raise IOError('Ranges of parameters MUST be provided!')
+        temp_path = self.model.model_dir + os.path.sep + self.param_range_def
+        if self.model.cfg_name != '':
+            temp_path = '%s/%s/%s' % (self.model.model_dir, self.model.cfg_name,
+                                      self.param_range_def)
+        if not FileClass.is_file_exists(temp_path):
+            raise IOError('Ranges of parameters for calibration MUST be provided!')
+        self.param_range_def = temp_path
 
         # UTCTIME of calibration and validation (optional) periods
         if not (cf.has_option('CALI_Settings', 'cali_time_start') and
@@ -57,8 +61,11 @@ class CaliConfig(object):
         # 3. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None
+        wp = self.model.model_dir
+        if self.model.cfg_name != '':
+            wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
+            self.opt = ParseNSGA2Config(cf, wp, 'CALI_NSGA2_Gen_%d_Pop_%d')
 
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
