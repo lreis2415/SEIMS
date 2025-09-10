@@ -26,6 +26,7 @@ Configure and run SEIMS model.
     - 2020-08-11 - lj - Separate actually execution from run() and add CommandString property.
     - 2020-09-22 - lj - Add workload (slurm, mpi, etc.) mode. Functions improved.
     - 2023-05-22 - lj - Add cfg_name and fdir_mtd arguments.
+    - 2025-09-10 - lj - Add ImportModelIOConfiguration and ImportCalibratedParameters.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -47,14 +48,17 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 # import global_mongoclient as MongoDBObj
-
+from pymongo import UpdateOne
 from pygeoc.utils import UtilClass, FileClass, StringClass, \
     sysstr, is_string, get_config_parser
 
-from preprocess.text import DBTableNames
-from preprocess.db_mongodb import MongoClient, ConnectMongoDB
+from preprocess.text import DBTableNames, ModelCfgUtils, ModelCfgFields, ModelParamFields
+from preprocess.db_mongodb import MongoClient, ConnectMongoDB, MongoUtil
 from preprocess.db_read_model import ReadModelData
-from utility import read_simulation_from_txt, get_option_value, parse_datetime_from_ini
+
+from preprocess.db_import_model_parameters import read_output_item
+from utility import (read_simulation_from_txt, get_option_value,
+                     parse_datetime_from_ini, read_data_items_from_txt)
 from utility import match_simulation_observation, calculate_statistics
 
 
@@ -66,6 +70,9 @@ class ParseSEIMSConfig(object):
         port (int): MongoDB port number
         bin_dir (str): Executable dir of SEIMS. Spaces and unicode characters are not allowed
         model_dir (str): Model dir which contains essential data and configs for running a model
+        cfg_name (str): Model config name
+        simu_mode (int): Simulation mode, 0 (DAILY), 1 (STORM)
+        timestep (int): Timestep
         db_name (str): Name of main database stored in MongoDB, default is dirname of `model_dir`
         version (str): Version of SEIMS main program, can be `MPI` or `OMP` (default)
         mpi_bin (str): Path of MPI executable file, e.g., /usr/bin/mpirun
@@ -79,7 +86,7 @@ class ParseSEIMSConfig(object):
         fdirmtd (int): Flow direction method for flow routing, default is 0 (D8),
                         can also be 1 (DINF) and 2 (MFDMD)
         lyrmtd (int): Method of creating routing layers of simulation units,
-                        can be 0 (UP_DOWN) and 1 (DOWN_UP)
+                        can be 0 (UPDOWN), 1 (DOWNUP), and 2 (EVEN)
         scenario_id (int): Scenario ID
         calibration_id (int): Calibration ID
         subbasin_id (int): Subbasin ID, 0 for the entire basin, 1-N for subbasin,
@@ -101,6 +108,8 @@ class ParseSEIMSConfig(object):
         self.bin_dir = ''  # type: AnyStr
         self.model_dir = ''  # type: AnyStr
         self.cfg_name = ''  # type: AnyStr
+        self.simu_mode = 0  # type: int
+        self.timestep = 86400  # type: int
         self.db_name = ''  # type: AnyStr
         self.version = 'OMP'  # type: AnyStr
         self.mpi_bin = ''  # type: AnyStr
@@ -153,6 +162,10 @@ class ParseSEIMSConfig(object):
         if self.cfg_name and not FileClass.is_dir_exists(self.model_dir + os.sep + self.cfg_name):
             print('WARNING: the specified cfg_name: %s is not existed!' % self.cfg_name)
             self.cfg_name = ''
+        self.simu_mode = get_option_value(cf, sec_name, 'simu_mode',
+                                          valtyp=int, defvalue=0)
+        self.timestep = get_option_value(cf, sec_name, 'timestep',
+                                         valtyp=int, defvalue=86400)
 
         self.version = get_option_value(cf, sec_name, 'version')
         if not self.version or self.version not in ['MPI', 'mpi']:
@@ -197,7 +210,9 @@ class ParseSEIMSConfig(object):
         if not self.config_dict:
             self.config_dict = {'host': self.host, 'port': self.port,
                                 'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
-                                'cfg_name': self.cfg_name, 'db_name': self.db_name,
+                                'cfg_name': self.cfg_name, 'simu_mode': self.simu_mode,
+                                'timestep': self.timestep,
+                                'db_name': self.db_name,
                                 'version': self.version, 'mpi_bin': self.mpi_bin,
                                 'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
                                 'nprocess': self.nprocess, 'npernode': self.npernode,
@@ -224,6 +239,8 @@ class MainSEIMS(object):
                  bin_dir='',  # type: AnyStr # The directory of SEIMS binary
                  model_dir='',  # type: AnyStr # The directory of SEIMS model
                  cfg_name='',  # type: AnyStr # The specific model config name
+                 simu_mode=-1,  # type: int # Simulation mode, 0 (DAILY) or 1 (STORM)
+                 timestep=86400,  # type: int # Timestep
                  db_name='',  # type: AnyStr  # Main spatial dbname which can diff from dirname
                  version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
                  mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
@@ -235,7 +252,7 @@ class MainSEIMS(object):
                  flag_npernode='',  # type: AnyStr # Flag to specify npernode
                  nthread=2,  # type: int # Thread number of OpenMP
                  fdirmtd=0,  # type: int # Flow direction, can be 0 (d8), 1 (dinf), or 2 (mfdmd)
-                 lyrmtd=1,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
+                 lyrmtd=1,  # type: int # Layering method, can be 0 (UPDOWN), 1 (DOWNUP), or 2 (EVEN)
                  scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
                  calibration_id=-1,  # type: int # Calibration ID used for model auto-calibration
                  subbasin_id=0,  # type: int # Subbasin ID
@@ -267,6 +284,13 @@ class MainSEIMS(object):
 
         self.model_dir = os.path.abspath(model_dir)
         self.cfg_name = args_dict['cfg_name'] if 'cfg_name' in args_dict else cfg_name
+        self.simu_mode = args_dict['simu_mode'] if 'simu_mode' in args_dict else simu_mode
+
+        self.filein_mongo = 0
+        if 'filein_mongo' in args_dict and args_dict['filein_mongo'] == 1:
+            self.filein_mongo = 1
+
+        self.timestep = args_dict['timestep'] if 'timestep' in args_dict else timestep
         self.db_name = args_dict['db_name'] if 'db_name' in args_dict else db_name
 
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
@@ -301,6 +325,8 @@ class MainSEIMS(object):
             self.out_etime = StringClass.get_datetime(self.out_etime)
 
         self.workload = args_dict['workload'] if 'workload' in args_dict else workload  # type: AnyStr
+
+        self.modelcfgs = ModelCfgUtils(self.model_dir, self.cfg_name)
 
         # Concatenate output directory name, which is also the name of runtime log
         # The format of OUTPUT directory is: OUTPUT_<FDIR>_<LYR>-<ScenarioID>-<CalibrationID>
@@ -370,13 +396,17 @@ class MainSEIMS(object):
                      '-fdir', str(self.fdirmtd),
                      '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port]
         if self.cfg_name:
-            self.cmd += ['-cfg']
+            self.cmd += ['-cfg', self.cfg_name]
         if self.scenario_id >= 0:
             self.cmd += ['-sce', str(self.scenario_id)]
         if self.calibration_id >= 0:
             self.cmd += ['-cali', str(self.calibration_id)]
         if self.subbasin_id >= 0:
             self.cmd += ['-id', str(self.subbasin_id)]
+        if self.filein_mongo == 1:
+            self.cmd += ['-filein_mongo', str(1)]
+        if self.simu_mode >= 0:
+            self.cmd += ['-mode', str(self.simu_mode)]
         # self.cmd += ['-ll Debug'] # todo, should be set in ini file
         return self.cmd
 
@@ -391,7 +421,9 @@ class MainSEIMS(object):
         """
         if self.mongoclient is None:
             self.mongoclient = ConnectMongoDB(ip=self.host, port=self.port).get_conn()
-            # self.mongoclient = MongoDBObj.client  # type: MongoClient
+            # print("Client address/nodes:", getattr(self.mongoclient, "address", None),
+            #       getattr(self.mongoclient, "nodes", None))
+            # print("All DBs:", self.mongoclient.list_database_names())
 
     def UnsetMongoClient(self):
         """Should be invoked together with `SetMongoClient`
@@ -463,7 +495,8 @@ class MainSEIMS(object):
         self.SetMongoClient()
         read_model = ReadModelData(self.mongoclient, self.db_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
-                                                               self.start_time, self.end_time)
+                                                               self.start_time, self.end_time,
+                                                               self.timestep)
         self.UnsetMongoClient()
         return self.obs_vars, self.obs_value
 
@@ -690,6 +723,102 @@ class MainSEIMS(object):
                                                               {'$set': {'STARTTIME': cur_stime_str,
                                                                         'ENDTIME': cur_etime_str}})
 
+    def ImportModelIOConfiguration(self):
+        """
+        Import Input and Output Configuration of SEIMS, i.e., file.in, file.out, and param.cali
+        Args:
+            cfg: SEIMS config object
+        """
+        self.SetMongoClient()
+        maindb = self.mongoclient[self.db_name]
+        file_in_path = self.modelcfgs.filein
+        # initialize if collection not existed
+        c_list = maindb.list_collection_names()
+        if not StringClass.string_in_list(DBTableNames.main_filein, c_list):
+            maindb.create_collection(DBTableNames.main_filein)
+        else:
+            maindb.drop_collection(DBTableNames.main_filein)
+        file_in_items = read_data_items_from_txt(file_in_path)
+
+        for item in file_in_items:
+            file_in_dict = dict()
+            values = StringClass.split_string(item[0].strip(), ['|'])
+            if len(values) != 2:
+                raise ValueError('One item should only have one Tag and one value string,'
+                                 ' split by "|"')
+            file_in_dict[ModelCfgFields.tag] = values[0]
+            file_in_dict[ModelCfgFields.value] = values[1]
+            maindb[DBTableNames.main_filein].insert_one(file_in_dict)
+
+        # begin to import the desired outputs
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(self.modelcfgs.fileout)
+        # print(field_names)
+        user_out_field_array = data_items[0]
+        if ModelCfgFields.output_id not in user_out_field_array:
+            if len(data_items[0]) != 7:  # For the compatibility of old code!
+                raise RuntimeError('If header information is not provided,'
+                                   'items in file.out must have 7 columns, i.e., OUTPUTID,'
+                                   'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
+                                   'Otherwise, the OUTPUTID MUST existed in the header!')
+            user_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
+                                    ModelCfgFields.stime, ModelCfgFields.etime,
+                                    ModelCfgFields.interval, ModelCfgFields.interval_unit,
+                                    ModelCfgFields.subbsn]
+            data_items.insert(0, user_out_field_array)
+
+        update_requests = list()
+        for idx, iitem in enumerate(data_items):
+            if idx == 0:
+                continue
+            data_import = read_output_item(user_out_field_array, iitem)
+            data_import[ModelCfgFields.use] = 1
+            cur_filter = dict()
+            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
+            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+        # execute import operators
+        results = MongoUtil.run_bulk_write(maindb[DBTableNames.main_fileout], update_requests)
+        print('Updated %d desired outputs!' % (results.modified_count
+              if results is not None else 0))
+        self.UnsetMongoClient()
+
+    def ImportCalibratedParameters(self):
+        """Read and update calibrated parameters."""
+        self.SetMongoClient()
+        maindb = self.mongoclient[self.db_name]
+        # initialize bulk operator
+        coll = maindb[DBTableNames.main_parameter]
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(self.modelcfgs.filecali)
+        # print(field_names)
+        # Clean up the existing calibration settings
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
+                         {'$set': {ModelParamFields.impact: -9999.}})
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
+                         {'$set': {ModelParamFields.impact: 1.}})
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
+                         {'$set': {ModelParamFields.impact: 0.}})
+        update_requests = list()
+        for i, cur_data_item in enumerate(data_items):
+            data_import = dict()
+            cur_filter = dict()
+            if len(cur_data_item) < 2:
+                raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
+            data_import[ModelParamFields.name] = cur_data_item[0]
+            data_import[ModelParamFields.impact] = float(cur_data_item[1])
+            cur_filter[ModelParamFields.name] = cur_data_item[0]
+            if len(cur_data_item) >= 3:
+                if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
+                                        ModelParamFields.change_rc, ModelParamFields.change_nc]:
+                    data_import[ModelParamFields.change] = cur_data_item[2]
+
+            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+        # execute update operators
+        results = MongoUtil.run_bulk_write(coll, update_requests)
+        print('Updated %d calibration parameters!' % (results.modified_count
+              if results is not None else 0))
+        self.UnsetMongoClient()
+
     def run(self, do_execute=True):
         """Run SEIMS model
 
@@ -719,7 +848,7 @@ class MainSEIMS(object):
             self.ParseTimespan()
         except CalledProcessError or IOError or Exception as err:
             # 1. SEIMS-based model running failed
-            # 2. The OUTPUT directory was not been created successfully by SEIMS-based model
+            # 2. The OUTPUT directory was not created successfully by SEIMS-based model
             # 3. Other unpredictable errors
             print('Run SEIMS model failed! %s' % str(err))
             self.run_success = False
@@ -759,7 +888,7 @@ class MainSEIMS(object):
         if self.version.upper() == 'MPI':
             self.output_name += '_MPI'
         fdirs = ['_D8', '_DINF', '_MFDMD']
-        lyrs = ['_UP_DOWN', '_DOWN_UP']
+        lyrs = ['_UPDOWN', '_DOWNUP', '_EVEN']
         self.output_name += fdirs[self.fdirmtd]
         self.output_name += lyrs[self.lyrmtd]
         self.output_name += '-'
@@ -776,7 +905,7 @@ class MainSEIMS(object):
 
 
 def create_run_model(modelcfg_dict, scenario_id=-1, calibration_id=-1, subbasin_id=-1,
-                     do_execute=True):
+                     filein_mongo=False, do_execute=True):
     """Create, Run, and return SEIMS-based watershed model object.
 
     Args:
@@ -785,6 +914,7 @@ def create_run_model(modelcfg_dict, scenario_id=-1, calibration_id=-1, subbasin_
         calibration_id: Calibration ID which can override the calibration_id in modelcfg_dict
         subbasin_id: Subbasin ID (0 for the whole watershed, 9999 for the field version) which
                      can override the subbasin_id in modelcfg_dict
+        filein_mongo: Loading file_in from MongoDB or not, can be 0 (default) or 1
         do_execute: Execute model or not.
     Returns:
         The instance of SEIMS-based watershed model.
@@ -795,6 +925,8 @@ def create_run_model(modelcfg_dict, scenario_id=-1, calibration_id=-1, subbasin_
         modelcfg_dict['calibration_id'] = calibration_id
     if subbasin_id >= 0:
         modelcfg_dict['subbasin_id'] = subbasin_id
+    if filein_mongo:
+        modelcfg_dict['filein_mongo'] = 1
     model_obj = MainSEIMS(args_dict=modelcfg_dict)
 
     model_obj.SetMongoClient()

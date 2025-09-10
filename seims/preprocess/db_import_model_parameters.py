@@ -16,19 +16,50 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from struct import pack
-
 from gridfs import GridFS
 from numpy import unique
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
-from pymongo import ASCENDING, InsertOne, UpdateOne
+from pymongo import ASCENDING, InsertOne
 
 from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
+from preprocess.utils import dump_values, StringToPackDType
 from preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
+
+
+def read_output_item(output_fields, item):
+    file_out_dict = dict()
+    for i, v in enumerate(output_fields):
+        if StringClass.string_match(ModelCfgFields.mod_cls, v):
+            file_out_dict[ModelCfgFields.mod_cls] = item[i]
+        elif StringClass.string_match(ModelCfgFields.output_id, v):
+            file_out_dict[ModelCfgFields.output_id] = item[i]
+        elif StringClass.string_match(ModelCfgFields.desc, v):
+            file_out_dict[ModelCfgFields.desc] = item[i]
+        elif StringClass.string_match(ModelCfgFields.unit, v):
+            file_out_dict[ModelCfgFields.unit] = item[i]
+        elif StringClass.string_match(ModelCfgFields.type, v):
+            file_out_dict[ModelCfgFields.type] = item[i]
+        elif StringClass.string_match(ModelCfgFields.stime, v):
+            file_out_dict[ModelCfgFields.stime] = item[i]
+        elif StringClass.string_match(ModelCfgFields.etime, v):
+            file_out_dict[ModelCfgFields.etime] = item[i]
+        elif StringClass.string_match(ModelCfgFields.interval, v):
+            file_out_dict[ModelCfgFields.interval] = item[i]
+        elif StringClass.string_match(ModelCfgFields.interval_unit, v):
+            file_out_dict[ModelCfgFields.interval_unit] = item[i]
+        elif StringClass.string_match(ModelCfgFields.filename, v):
+            file_out_dict[ModelCfgFields.filename] = item[i]
+        elif StringClass.string_match(ModelCfgFields.use, v):
+            file_out_dict[ModelCfgFields.use] = item[i]
+        elif StringClass.string_match(ModelCfgFields.subbsn, v):
+            file_out_dict[ModelCfgFields.subbsn] = item[i]
+    if not list(file_out_dict.keys()):
+        raise ValueError('There are not any valid output item stored in file.out!')
+    return file_out_dict
 
 
 class ImportParam2Mongo(object):
@@ -78,7 +109,7 @@ class ImportParam2Mongo(object):
                     elif StringClass.string_match(k, ModelParamFields.change_nc):
                         data_import[k] = 0
                     elif StringClass.string_match(k, ModelParamFields.change_vc):
-                        data_import[k] = DEFAULT_NODATA  # Be careful to check NODATA when use!
+                        data_import[k] = DEFAULT_NODATA  # Be careful to check NODATA when used!
                 else:
                     if MathClass.isnumerical(cur_data_item[idx]):
                         data_import[k] = float(cur_data_item[idx])
@@ -89,45 +120,10 @@ class ImportParam2Mongo(object):
         # execute import operators
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_parameter], bulk_requests)
         print('Inserted %d initial parameters!' % (results.inserted_count
-              if results is not None else 0))
+                                                   if results is not None else 0))
         # initialize index by parameter's type and name by ascending order.
         cfg.maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
-                                                             (ModelParamFields.name, ASCENDING)])
-
-    @staticmethod
-    def calibrated_params_from_txt(cfg):
-        """Read and update calibrated parameters."""
-        # initialize bulk operator
-        coll = cfg.maindb[DBTableNames.main_parameter]
-        # read initial parameters from txt file
-        data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
-        # print(field_names)
-        # Clean up the existing calibration settings
-        coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
-                         {'$set': {ModelParamFields.impact: -9999.}})
-        coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
-                         {'$set': {ModelParamFields.impact: 1.}})
-        coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
-                         {'$set': {ModelParamFields.impact: 0.}})
-        update_requests = list()
-        for i, cur_data_item in enumerate(data_items):
-            data_import = dict()
-            cur_filter = dict()
-            if len(cur_data_item) < 2:
-                raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
-            data_import[ModelParamFields.name] = cur_data_item[0]
-            data_import[ModelParamFields.impact] = float(cur_data_item[1])
-            cur_filter[ModelParamFields.name] = cur_data_item[0]
-            if len(cur_data_item) >= 3:
-                if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
-                                        ModelParamFields.change_rc, ModelParamFields.change_nc]:
-                    data_import[ModelParamFields.change] = cur_data_item[2]
-
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
-        # execute update operators
-        results = MongoUtil.run_bulk_write(coll, update_requests)
-        print('Updated %d calibration parameters!' % (results.modified_count
-              if results is not None else 0))
+                                                              (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
     def subbasin_statistics(cfg):
@@ -214,69 +210,23 @@ class ImportParam2Mongo(object):
         cfg.maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
 
     @staticmethod
-    def model_io_configuration(cfg):
+    def model_initial_outputs(cfg):
         """
-        Import Input and Output Configuration of SEIMS, i.e., file.in and file.out
+        Import initial output items of SEIMS
         Args:
             cfg: SEIMS config object
         """
-        file_in_path = cfg.modelcfgs.filein
         file_out_path = cfg.paramcfgs.init_outputs_file
-        # initialize if collection not existed
+        # initialize if collection FILE_OUT not existed
         c_list = cfg.maindb.list_collection_names()
-        conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
-        for item in conf_tabs:
-            if not StringClass.string_in_list(item, c_list):
-                cfg.maindb.create_collection(item)
-            else:
-                cfg.maindb.drop_collection(item)
-        file_in_items = read_data_items_from_txt(file_in_path)
-
-        for item in file_in_items:
-            file_in_dict = dict()
-            values = StringClass.split_string(item[0].strip(), ['|'])
-            if len(values) != 2:
-                raise ValueError('One item should only have one Tag and one value string,'
-                                 ' split by "|"')
-            file_in_dict[ModelCfgFields.tag] = values[0]
-            file_in_dict[ModelCfgFields.value] = values[1]
-            cfg.maindb[DBTableNames.main_filein].insert_one(file_in_dict)
-
+        if not StringClass.string_in_list(DBTableNames.main_fileout, c_list):
+            cfg.maindb.create_collection(DBTableNames.main_fileout)
+        else:
+            cfg.maindb.drop_collection(DBTableNames.main_fileout)
         # begin to import initial outputs settings
         file_out_items = read_data_items_from_txt(file_out_path)
         out_field_array = file_out_items[0]
         # print(out_data_array)
-
-        def read_output_item(output_fields, item):
-            file_out_dict = dict()
-            for i, v in enumerate(output_fields):
-                if StringClass.string_match(ModelCfgFields.mod_cls, v):
-                    file_out_dict[ModelCfgFields.mod_cls] = item[i]
-                elif StringClass.string_match(ModelCfgFields.output_id, v):
-                    file_out_dict[ModelCfgFields.output_id] = item[i]
-                elif StringClass.string_match(ModelCfgFields.desc, v):
-                    file_out_dict[ModelCfgFields.desc] = item[i]
-                elif StringClass.string_match(ModelCfgFields.unit, v):
-                    file_out_dict[ModelCfgFields.unit] = item[i]
-                elif StringClass.string_match(ModelCfgFields.type, v):
-                    file_out_dict[ModelCfgFields.type] = item[i]
-                elif StringClass.string_match(ModelCfgFields.stime, v):
-                    file_out_dict[ModelCfgFields.stime] = item[i]
-                elif StringClass.string_match(ModelCfgFields.etime, v):
-                    file_out_dict[ModelCfgFields.etime] = item[i]
-                elif StringClass.string_match(ModelCfgFields.interval, v):
-                    file_out_dict[ModelCfgFields.interval] = item[i]
-                elif StringClass.string_match(ModelCfgFields.interval_unit, v):
-                    file_out_dict[ModelCfgFields.interval_unit] = item[i]
-                elif StringClass.string_match(ModelCfgFields.filename, v):
-                    file_out_dict[ModelCfgFields.filename] = item[i]
-                elif StringClass.string_match(ModelCfgFields.use, v):
-                    file_out_dict[ModelCfgFields.use] = item[i]
-                elif StringClass.string_match(ModelCfgFields.subbsn, v):
-                    file_out_dict[ModelCfgFields.subbsn] = item[i]
-            if not list(file_out_dict.keys()):
-                raise ValueError('There are not any valid output item stored in file.out!')
-            return file_out_dict
 
         insert_requests = list()
         for idx, iitem in enumerate(file_out_items):
@@ -286,38 +236,7 @@ class ImportParam2Mongo(object):
             insert_requests.append(InsertOne(iitem_dict))
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], insert_requests)
         print('Inserted %d initial outputs settings!' % (results.inserted_count
-              if results is not None else 0))
-
-        # begin to import the desired outputs
-        # read initial parameters from txt file
-        data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
-        # print(field_names)
-        user_out_field_array = data_items[0]
-        if ModelCfgFields.output_id not in user_out_field_array:
-            if len(data_items[0]) != 7:  # For the compatibility of old code!
-                raise RuntimeError('If header information is not provided,'
-                                   'items in file.out must have 7 columns, i.e., OUTPUTID,'
-                                   'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
-                                   'Otherwise, the OUTPUTID MUST existed in the header!')
-            user_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
-                                    ModelCfgFields.stime, ModelCfgFields.etime,
-                                    ModelCfgFields.interval, ModelCfgFields.interval_unit,
-                                    ModelCfgFields.subbsn]
-            data_items.insert(0, user_out_field_array)
-
-        update_requests = list()
-        for idx, iitem in enumerate(data_items):
-            if idx == 0:
-                continue
-            data_import = read_output_item(user_out_field_array, iitem)
-            data_import[ModelCfgFields.use] = 1
-            cur_filter = dict()
-            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
-        # execute import operators
-        results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], update_requests)
-        print('Updated %d desired outputs!' % (results.modified_count
-              if results is not None else 0))
+                                                         if results is not None else 0))
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg):
@@ -326,6 +245,7 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
             maindb: workflow model database
         """
+        fltfmt = StringToPackDType(cfg.floattype)  # 'f' or 'd'
         for tablename, txt_file in list(cfg.paramcfgs.lookup_tabs_dict.items()):
             # import each lookup table as a collection and GridFS file.
             c_list = cfg.maindb.list_collection_names()
@@ -378,24 +298,21 @@ class ImportParam2Mongo(object):
                         item_values[i].insert(0, n_col)
 
                 metadic = {ModelParamDataUtils.item_count: n_row,
-                           ModelParamDataUtils.field_count: n_col}
+                           ModelParamDataUtils.field_count: n_col,
+                           'DATATYPE_OUT': cfg.floattype}
                 cur_lookup_gridfs = spatial.new_file(filename=tablename.upper(), metadata=metadic)
                 header = [n_row]
-                fmt = '%df' % 1
-                s = pack(fmt, *header)
-                cur_lookup_gridfs.write(s)
-                fmt = '%df' % (n_col + 1)
+                cur_lookup_gridfs.write(dump_values(header, fltfmt))
                 for i in range(n_row):
-                    s = pack(fmt, *item_values[i])
-                    cur_lookup_gridfs.write(s)
+                    cur_lookup_gridfs.write(dump_values(item_values[i], fltfmt))
                 cur_lookup_gridfs.close()
 
     @staticmethod
     def workflow(cfg):
         """Workflow"""
         ImportParam2Mongo.initial_params_from_txt(cfg)
-        ImportParam2Mongo.calibrated_params_from_txt(cfg)
-        ImportParam2Mongo.model_io_configuration(cfg)
+        # ImportParam2Mongo.calibrated_params_from_txt(cfg)
+        ImportParam2Mongo.model_initial_outputs(cfg)
         ImportParam2Mongo.subbasin_statistics(cfg)
         ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg)
 
