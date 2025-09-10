@@ -50,10 +50,10 @@ def main():
     model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
     org_file_name = 'sensitivity_analysis.ini'
     org_cfg_file = '%s/%s' % (model_paths.cfg_dir, org_file_name)
-    psa_cfg_file = '%s/%s' % (model_paths.model_dir, org_file_name)
+    psa_cfg_file = '%s/%s' % (model_paths.workspace, org_file_name)
     if config_name != '':
         org_cfg_file = '%s/%s/%s' % (model_paths.cfg_dir, config_name, org_file_name)
-        psa_cfg_file = '%s/%s/%s' % (model_paths.model_dir, config_name, org_file_name)
+        psa_cfg_file = '%s/%s/%s' % (model_paths.workspace, config_name, org_file_name)
         psa_cfg = write_single_sensitivity_config_file(model_paths, org_cfg_file,
                                                        psa_cfg_file)
     else:

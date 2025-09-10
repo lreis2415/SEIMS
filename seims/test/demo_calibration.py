@@ -49,10 +49,10 @@ def main():
     model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
     org_file_name = 'calibration.ini'
     org_cfg_file = '%s/%s' % (model_paths.cfg_dir, org_file_name)
-    cali_cfg_file = '%s/%s' % (model_paths.model_dir, org_file_name)
+    cali_cfg_file = '%s/%s' % (model_paths.workspace, org_file_name)
     if config_name != '':
         org_cfg_file = '%s/%s/%s' % (model_paths.cfg_dir, config_name, org_file_name)
-        cali_cfg_file = '%s/%s/%s' % (model_paths.model_dir, config_name, org_file_name)
+        cali_cfg_file = '%s/%s/%s' % (model_paths.workspace, config_name, org_file_name)
         cali_cfg = write_single_calibration_config_file(model_paths, org_cfg_file,
                                                         cali_cfg_file)
     else:

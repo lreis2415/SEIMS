@@ -141,11 +141,11 @@ def write_preprocess_config_file(mpaths, org_file_name):
 
 def write_runmodel_config_file(mpaths, org_file_name, config_name=[]):
     org_cfg_file = '%s/%s' % (mpaths.cfg_dir, org_file_name)
-    runmodel_cfg_file = '%s/%s' % (mpaths.model_dir, org_file_name)
+    runmodel_cfg_file = '%s/%s' % (mpaths.workspace, org_file_name)
     if len(config_name) > 0:
         for cname in config_name:
             org_cfg_file = '%s/%s/%s' % (mpaths.cfg_dir, cname, org_file_name)
-            runmodel_cfg_file = '%s/%s/%s' % (mpaths.model_dir, cname, org_file_name)
+            runmodel_cfg_file = '%s/%s/%s' % (mpaths.workspace, cname, org_file_name)
             write_single_runmodel_config_file(mpaths, org_cfg_file, runmodel_cfg_file)
     else:
         write_single_runmodel_config_file(mpaths, org_cfg_file, runmodel_cfg_file)
@@ -176,11 +176,11 @@ def write_single_runmodel_config_file(mpaths, org_cfg_file, runmodel_cfg_file):
 
 def write_postprocess_config_file(mpaths, org_file_name, config_name=[], sceid=0, caliid=-1):
     org_cfg_file = '%s/%s' % (mpaths.cfg_dir, org_file_name)
-    post_cfg_file = '%s/%s' % (mpaths.model_dir, org_file_name)
+    post_cfg_file = '%s/%s' % (mpaths.workspace, org_file_name)
     if len(config_name) > 0:
         for cname in config_name:
             org_cfg_file = '%s/%s/%s' % (mpaths.cfg_dir, cname, org_file_name)
-            post_cfg_file = '%s/%s/%s' % (mpaths.model_dir, cname, org_file_name)
+            post_cfg_file = '%s/%s/%s' % (mpaths.workspace, cname, org_file_name)
             write_single_postprocess_config_file(mpaths, org_cfg_file, post_cfg_file, sceid, caliid)
     else:
         write_single_postprocess_config_file(mpaths, org_cfg_file, post_cfg_file, sceid, caliid)
@@ -214,11 +214,11 @@ def write_single_postprocess_config_file(mpaths, org_cfg_file, post_cfg_file,
 
 def write_sensitivity_config_file(mpaths, org_file_name, config_name=[]):
     org_cfg_file = '%s/%s' % (mpaths.cfg_dir, org_file_name)
-    psa_cfg_file = '%s/%s' % (mpaths.model_dir, org_file_name)
+    psa_cfg_file = '%s/%s' % (mpaths.workspace, org_file_name)
     if len(config_name) > 0:
         for cname in config_name:
             org_cfg_file = '%s/%s/%s' % (mpaths.cfg_dir, cname, org_file_name)
-            psa_cfg_file = '%s/%s/%s' % (mpaths.model_dir, cname, org_file_name)
+            psa_cfg_file = '%s/%s/%s' % (mpaths.workspace, cname, org_file_name)
             write_single_sensitivity_config_file(mpaths, org_cfg_file, psa_cfg_file)
     else:
         write_single_sensitivity_config_file(mpaths, org_cfg_file, psa_cfg_file)
@@ -249,11 +249,11 @@ def write_single_sensitivity_config_file(mpaths, org_cfg_file, psa_cfg_file):
 
 def write_calibration_config_file(mpaths, org_file_name, config_name=[]):
     org_cfg_file = '%s/%s' % (mpaths.cfg_dir, org_file_name)
-    cali_cfg_file = '%s/%s' % (mpaths.model_dir, org_file_name)
+    cali_cfg_file = '%s/%s' % (mpaths.workspace, org_file_name)
     if len(config_name) > 0:
         for cname in config_name:
             org_cfg_file = '%s/%s/%s' % (mpaths.cfg_dir, cname, org_file_name)
-            cali_cfg_file = '%s/%s/%s' % (mpaths.model_dir, cname, org_file_name)
+            cali_cfg_file = '%s/%s/%s' % (mpaths.workspace, cname, org_file_name)
             write_single_calibration_config_file(mpaths, org_cfg_file, cali_cfg_file)
     else:
         write_single_calibration_config_file(mpaths, org_cfg_file, cali_cfg_file)
@@ -284,11 +284,11 @@ def write_single_calibration_config_file(mpaths, org_cfg_file, cali_cfg_file):
 
 def write_scenario_analysis_config_file(mpaths, org_file_name, config_name=[]):
     org_cfg_file = '%s/%s' % (mpaths.cfg_dir, org_file_name)
-    sa_cfg_file = '%s/%s' % (mpaths.model_dir, org_file_name)
+    sa_cfg_file = '%s/%s' % (mpaths.workspace, org_file_name)
     if len(config_name) > 0:
         for cname in config_name:
             org_cfg_file = '%s/%s/%s' % (mpaths.cfg_dir, cname, org_file_name)
-            sa_cfg_file = '%s/%s/%s' % (mpaths.model_dir, cname, org_file_name)
+            sa_cfg_file = '%s/%s/%s' % (mpaths.workspace, cname, org_file_name)
             write_single_scenario_analysis_config_file(mpaths, org_cfg_file, sa_cfg_file)
     else:
         write_single_scenario_analysis_config_file(mpaths, org_cfg_file, sa_cfg_file)
