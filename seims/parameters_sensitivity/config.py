@@ -170,6 +170,13 @@ class PSAConfig(object):
         if self.psa_stime >= self.psa_etime:
             raise ValueError("Wrong time settings in [PSA_Settings]!")
 
+        # task name
+        self.task_name = 'PSA'
+        if cf.has_option('PSA_Settings', 'task_name'):
+            self.task_name = cf.get('PSA_Settings', 'task_name')
+        # The relations between PSA's task_name and SEIMS model's task_name will be handled
+        #   in Sensitivity(), not here, which only focus on reading configuration info!
+
         # 3. Parameters settings for specific sensitivity analysis methods
         self.morris = None
         self.fast = None
@@ -178,13 +185,13 @@ class PSAConfig(object):
             wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
         if self.method == 'fast':
             self.fast = FASTConfig(cf)
-            self.psa_outpath = '%s/PSA_FAST_N%dM%d' % (wp,
-                                                       self.fast.N, self.fast.M)
+            self.psa_outpath = '%s/%s_FAST_N%dM%d' % (wp, self.task_name,
+                                                      self.fast.N, self.fast.M)
         elif self.method == 'morris':
             self.morris = MorrisConfig(cf)
-            self.psa_outpath = '%s/PSA_Morris_N%dL%d' % (wp,
-                                                         self.morris.N,
-                                                         self.morris.num_levels)
+            self.psa_outpath = '%s/%s_Morris_N%dL%d' % (wp, self.task_name,
+                                                        self.morris.N,
+                                                        self.morris.num_levels)
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)
 

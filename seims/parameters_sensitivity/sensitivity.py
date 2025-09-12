@@ -34,6 +34,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
         mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
+from pymongo import UpdateOne
 from typing import List
 from pygeoc.utils import FileClass, UtilClass
 # Morris screening method
@@ -53,6 +54,7 @@ from preprocess.text import DBTableNames
 from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
+from preprocess.text import DBTableNames, ModelCfgUtils, ModelCfgFields, ModelParamFields
 from run_seims import ParseSEIMSConfig, create_run_model
 
 
@@ -74,6 +76,22 @@ class Sensitivity(object):
         self.objnames = list()  # Objective names, e.g., NSE-Q, RMSE-Q, PBIAS-SED
         self.psa_si = dict()
 
+        if self.cfg.task_name == '':  # this should not be happened, just in case
+            self.cfg.task_name = 'PSA'  # be consistent with that in PSAConfig
+        # initialize SEIMS model
+        self.mainmodel = MainSEIMS(args_dict=self.model.ConfigDict)
+        # The self.mainmodel MUST be already configured in MongoDB,
+        #   otherwise, the following copy function will throw exception.
+        # First, we copy exactly the self.mainmodel as another 'submodel' using the PSA's task name,
+        #   including FILE_IN, FILE_OUTPUT_SPEC, and PARAMETERS_SPEC.
+        self.mainmodel.CopyForNewTask(self.cfg.task_name)
+        # then, override self.model's task name
+        self.model.task_name = self.cfg.task_name
+        self.mainmodel.task_name = self.cfg.task_name
+        # then, reset simulation time period according to configurations already read in mainmodel
+        # self.mainmodel.ResetSimulationPeriod() # will be done in self.reset_simulation_timerange()
+
+
     def run(self):
         """PSA workflow."""
         self.reset_simulation_timerange()
@@ -93,24 +111,27 @@ class Sensitivity(object):
             print('Plot failed, please run this function independently.')
 
     def reset_simulation_timerange(self):
-        """Update simulation time range in MongoDB [FILE_IN]."""
-        # conn = MongoDBObj.client  # type: MongoClient
-        conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
-        db = conn[self.model.db_name]
-        stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
-        mode_str = 'DAILY'
-        if self.model.simu_mode == 1:
-            mode_str = 'STORM'
-        timestep = self.model.timestep
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
-                                                         {'$set': {'VALUE': stime_str}})
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
-                                                         {'$set': {'VALUE': etime_str}})
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'MODE'},
-                                                         {'$set': {'VALUE': mode_str}})
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'INTERVAL'},
-                                                         {'$set': {'VALUE': timestep}})
+        """Update simulation time range in MongoDB [FILE_IN].
+        """
+        self.mainmodel.ResetSimulationPeriod()
+
+        # Remove the following old code in next revision. - by LJ.
+        # conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
+        # db = conn[self.model.db_name]
+        # stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        # etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
+        # mode_str = 'DAILY'
+        # if self.model.simu_mode == 1:
+        #     mode_str = 'STORM'
+        # timestep = self.model.timestep
+        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+        #                                                  {'$set': {'VALUE': stime_str}})
+        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+        #                                                  {'$set': {'VALUE': etime_str}})
+        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'MODE'},
+        #                                                  {'$set': {'VALUE': mode_str}})
+        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'INTERVAL'},
+        #                                                  {'$set': {'VALUE': timestep}})
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -142,9 +163,10 @@ class Sensitivity(object):
         # read param_range_def file and output to json file
         # conn = MongoDBObj.client  # type: MongoClient
         conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
-        db = conn[self.model.db_name]
-        collection = db['PARAMETERS']
-
+        collection = conn[self.model.db_name][DBTableNames.main_parameter]
+        init_param_ids = list()
+        for d in collection.find({}, {ModelParamFields.name: 1}):
+            init_param_ids.append(d.get(ModelParamFields.name))
         names = list()
         bounds = list()
         groups = list()
@@ -155,8 +177,9 @@ class Sensitivity(object):
             if len(item) < 3:
                 continue
             # find parameter name, print warning message if not existed
-            if collection.count_documents({'NAME': item[0]}) <= 0:
-                print('WARNING: parameter %s is not existed!' % item[0])
+            if item[0] not in init_param_ids:
+                print('WARNING: Calibrated parameter %s defined in %s '
+                      'is not supported!' % (item[0], self.cfg.param_range_def))
                 continue
             num_vars += 1
             names.append(item[0])
@@ -213,22 +236,71 @@ class Sensitivity(object):
                       self.param_values, delimiter=str(' '), fmt=str('%.4f'))
 
     def write_param_values_to_mongodb(self):
-        """Update Parameters collection in MongoDB.
-        Notes:
-            The field value of 'CALI_VALUES' of all parameters will be deleted first.
+        """Write calibrate parameters into PARAMETERS_SPEC collection in MongoDB.
+        Please be aware that for specific SUB_MODEL and TASK, there may exist three
+        types of parameter's item:
+        1. parameter with IMPACT
+        2. parameter with CALI_VALUES
+        3. parameter with both IMPACT and CALI_VALUES
+
+        The principle of SEIMS main program when reading calibrated parameters is:
+        if calibration_id >= 0, then use CALI_VALUES[calibration_id], ignore IMPACT;
+        if calibration_id < 0 and IMPACT exists, then use the IMPACT value.
         """
         if not self.param_defs:
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        # conn = MongoDBObj.client  # type: MongoClient
         conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
-        db = conn[self.model.db_name]
-        collection = db['PARAMETERS']
-        collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
+        coll = conn[self.model.db_name][DBTableNames.main_param_spec]
+        flt = {ModelCfgFields.configname: self.mainmodel.cfg_name,
+               ModelCfgFields.taskname: self.mainmodel.task_name}
+        # Tidy-up: 1) delete existing parameters only with 'CALI_VALUES' (i.e., without IMPACT)
+        r1 = coll.delete_many({**flt, ModelParamFields.cali_values: {'$exists': True},
+                               ModelParamFields.impact: {'$exists': False}})
+        # Tidy-up: 2) unset values in CALI_VALUES if the parameter has both IMPACT and CALI_VALUES
+        r2 = coll.update_many({**flt, ModelParamFields.impact: {'$exists': True},
+                               ModelParamFields.cali_values: {'$exists': True}},
+                              {"$unset": {ModelParamFields.cali_values: ''}})
+        print('Deleted specific parameters in PARAMETER_SPEC: %d, '
+              'unset CALI_VALUES: %d' % (r1.deleted_count, r2.modified_count))
+        # Write
+        ops = list()
         for idx, pname in enumerate(self.param_defs['names']):
-            v2str = ','.join(str(v) for v in self.param_values[:, idx])
-            collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
+            v2str = ",".join(str(v) for v in self.param_values[:, idx])
+            ops.append(UpdateOne({**flt, ModelParamFields.name: pname},
+                                 {"$set": {ModelParamFields.cali_values: v2str}},
+                                 upsert=True))
+        if ops:
+            coll.bulk_write(ops, ordered=False)
+
+        # for idx, pname in enumerate(self.param_defs['names']):
+        #     v2str = ','.join(str(v) for v in self.param_values[:, idx])
+        #     # Write: 1) if pname already exists, and has IMPACT and CALI_VALUES
+        #     f_both = {**flt, ModelParamFields.name: pname,
+        #               ModelParamFields.impact: {'$exists': True},
+        #               ModelParamFields.cali_values: {'$exists': True}}
+        #     upd = coll.update_one(f_both, {'$set': {ModelParamFields.cali_values: v2str}})
+        #     if upd.matched_count:
+        #         continue
+        #     # Write: 2) if pname already exists, and has only IMPACT
+        #     f_one1 = {**flt, ModelParamFields.name: pname,
+        #               ModelParamFields.impact: {'$exists': True},
+        #               ModelParamFields.cali_values: {'$exists': False}}
+        #     upd = coll.update_one(f_one1, {'$set': {ModelParamFields.cali_values: v2str}})
+        #     # Write: 3) if pname already exists, and has only CALI_VALUES
+        #     f_one2 = {**flt, ModelParamFields.name: pname,
+        #               ModelParamFields.impact: {'$exists': False},
+        #               ModelParamFields.cali_values: {'$exists': True}}
+        #     upd = coll.update_one(f_one2, {'$set': {ModelParamFields.cali_values: v2str}})
+        #     # Write: 4) if pname is a blank item, or pname does not exist
+        #     f_none = {**flt, ModelParamFields.name: pname,
+        #               ModelParamFields.impact: {'$exists': False},
+        #               ModelParamFields.cali_values: {'$exists': False}}
+        #     upd2 = coll.update_one(f_none, {'$set': {ModelParamFields.cali_values: v2str}})
+        #     if upd2.matched_count == 0:
+        #         coll.insert_one({**flt, ModelParamFields.name: pname,
+        #                          ModelParamFields.cali_values: v2str})
 
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.
@@ -345,7 +417,7 @@ class Sensitivity(object):
                                              model_cfg_dict_list))  # type: List[MainSEIMS]
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
             # Read observation data from MongoDB only once
-            if len(output_models) < 1:  # Although this is not gonna happen, just for insurance.
+            if len(output_models) < 1:  # Although this is not gonna to happen, just for insurance.
                 continue
 
             output_models[0].SetMongoClient()
