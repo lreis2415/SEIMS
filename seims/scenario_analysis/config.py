@@ -77,6 +77,12 @@ class SAConfig(object):
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
 
+        self.task_name = 'SA'
+        if cf.has_option('Scenario_Common', 'task_name'):
+            self.task_name = cf.get('Scenario_Common', 'task_name')
+        # The relations between SA's task_name and SEIMS model's task_name will be handled
+        #   in Scenario(), not here, which only focus on reading configuration info!
+
         # 3. Application specific setting section [BMPs]
         # Selected BMPs, the key is BMPID, and value is the BMP information dict
         self.bmps_info = dict()  # type: Dict[int, Dict[AnyStr, Union[int, float, AnyStr, List[Union[int, float, AnyStr]]]]]
@@ -144,11 +150,13 @@ class SAConfig(object):
         wp = self.model.model_dir
         if self.model.cfg_name != '':
             wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
+        if self.task_name:
+            dirstr = self.task_name + '_NSGA2_%s_%s' % (self.bmps_cfg_unit, self.bmps_cfg_method)
+        else:
+            dirstr = 'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit, self.bmps_cfg_method)
 
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, wp,
-                                        'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
-                                                            self.bmps_cfg_method))
+            self.opt = ParseNSGA2Config(cf, wp, dirstr)
         # Using the existed population derived from previous scenario optimization
         self.initial_byinput = cf.getboolean(self.opt_mtd.upper(), 'inputpopulation') if \
             cf.has_option(self.opt_mtd.upper(), 'inputpopulation') else False

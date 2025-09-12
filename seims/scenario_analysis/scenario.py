@@ -69,6 +69,7 @@ class Scenario(object):
     def __init__(self, cfg):
         # type: (SAConfig) -> None
         """Initialize."""
+        self.cfg = cfg
         self.ID = -1
         self.eval_timerange = 1.  # unit: year
         self.economy = 0.
@@ -97,12 +98,26 @@ class Scenario(object):
         self.modelcfg = cfg.model
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
+        # The self.mainmodel MUST be already configured in MongoDB,
+        #   otherwise, the following copy function will throw exception.
+        # First, we copy exactly the self.mainmodel as another 'submodel' using Cali's task name,
+        #   including FILE_IN, FILE_OUTPUT_SPEC, and PARAMETERS_SPEC.
+        # Be CAUTION!
+        #   The code structure of scenario analysis is quite complicated, the Scenario() may be
+        #     invoked several times. So they will repeatedly initialize and update the SEIMS model.
+        #     For now, I decided to check if the model's task_name is the same with SA's task name.
+        if (self.model.task_name != self.cfg.task_name):
+            self.model.CopyForNewTask(self.cfg.task_name)
+            # then, override self.model's task name
+            self.cfg.model.task_name = self.cfg.task_name
+            self.model.task_name = self.cfg.task_name
+            # Reset the simulation period
+            self.model.ResetSimulationPeriod()
 
         self.model.ReadMongoDBData()
 
         self.model.SetMongoClient()
         self.scenario_db = self.model.ScenarioDBName
-        self.model.ResetSimulationPeriod()  # Reset the simulation period
         # Reset the starttime and endtime of the desired outputs according to evaluation period
         if ModelCfgFields.output_id in self.eval_info:
             self.model.ResetOutputsPeriod(self.eval_info[ModelCfgFields.output_id],
@@ -224,7 +239,7 @@ class Scenario(object):
 
         This function should be overridden in inherited class.
         Returns:
-            True if succeed, otherwise False.
+            True if succeeded, otherwise False.
         """
         pass
 
