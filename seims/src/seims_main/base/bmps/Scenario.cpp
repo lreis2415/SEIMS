@@ -199,7 +199,10 @@ void Scenario::loadBMPs() {
                 m_bmpFactories.insert(make_pair(uniqueBMPID,
                                                 new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
                                                                           BMPType, BMPPriority, dist,
-                                                                          collectionName, location)));
+                                                                          collectionName, location,
+                                                                          effectivenessChangeable,
+                                                                          changeFrequency,
+                                                                          changeTimes)));
             }
 #endif
         }
