@@ -48,20 +48,25 @@ public:
      */
     bool GetFileInStringVector() OVERRIDE;
     /*!
-     * \brief Get file.out configuration
+     * \brief Get FILE_OUT configuration (which is seims/preprocess/database/AvailableOutputs.csv)
      */
-    bool GetFileOutVector() OVERRIDE;
+    bool GetInitialFileOutMap() OVERRIDE;
+    /*!
+    * \brief Get FILE_OUT_SPEC configuration (which is file.out in model's folder)
+    */
+    bool GetSelectedFileOutVector() OVERRIDE;
     /*!
      * \brief Read climate site data from HydroClimate database
      */
     void ReadClimateSiteList() OVERRIDE;
     /*!
-     * \brief Read initial and calibrated parameters
-     *
-     * Changlog:
-     *   - 1. 2017-12-23 - lj - Read parameters (Impact value) according to calibration ID.
+     * \brief Read initial parameters from PARAMETERS table, distinguish integer and float
      */
     bool ReadParametersInDB() OVERRIDE;
+    /*!
+     * \brief Read calibrate parameters from PARAMETERS_SPEC table, distinguish integer and float
+     */
+    bool ReadCalibrateParametersInDB() OVERRIDE;
     /*!
      * \brief Get subbasin number and outlet ID
      */

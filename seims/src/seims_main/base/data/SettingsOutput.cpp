@@ -99,10 +99,13 @@ SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, 
                               mpi_rank, mpi_size);
 }
 
-vector<OrgOutItem> SettingsOutput::ReadFileOutFile(const InputArgs *input_args) {
+vector<OrgOutItem> SettingsOutput::ReadFileOutFile(const InputArgs *input_args,
+                                                   map<string, OrgOutItem>& org_items) {
     vector<OrgOutItem> outputItems;
     string model_cfgpath = input_args->model_path;
-    if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+    if (!input_args->model_cfgname.empty() && !StringMatch(input_args->model_cfgname, "_BASE_")) {
+        model_cfgpath += SEP + input_args->model_cfgname;
+    }
     string file_out = model_cfgpath + SEP + File_Output;
     if (!FileExists(file_out)) {
         LOG(ERROR) << file_out << " does not exist!";
@@ -115,16 +118,34 @@ vector<OrgOutItem> SettingsOutput::ReadFileOutFile(const InputArgs *input_args) 
         return outputItems;
     }
     vector<string> output_flds = SplitString(stringvector[0], ',');
+    // find index of Tag_OutputID
+    int id_idx = -1;
+    auto it = std::find(output_flds.begin(), output_flds.end(), Tag_OutputID);
+    if (it != output_flds.end()) {
+        id_idx = std::distance(output_flds.begin(), it);
+    } else {
+        LOG(ERROR) << Tag_OutputID << " CANNOT be found in file.out!";
+        return outputItems;
+    }
+    if (stringvector.size() < 2) {
+        LOG(ERROR) << "file.out only have one title line!";
+        return outputItems;
+    }
     for (auto it = stringvector.begin(); it != stringvector.end(); ++it) {
         if (it - stringvector.begin() == 0) { continue; }
         vector<string> output_items = SplitString(*it, ',');
-        OrgOutItem tmp_output_item;
+        string cid = output_items[id_idx];
+        if (org_items.find(cid) == org_items.end()) {
+            LOG(WARNING) << cid << " in file.out is not supported! We will ignore it!";
+            continue;
+        }
+        OrgOutItem tmp_output_item = org_items.at(cid);
         for (auto fld_it = output_flds.begin(); fld_it != output_flds.end(); ++fld_it) {
             int idx = fld_it - output_flds.begin();
             if (StringMatch(*fld_it, Tag_MODCLS)) {
                 tmp_output_item.modCls = output_items[idx];
             } else if (StringMatch(*fld_it, Tag_OutputID)) {
-                tmp_output_item.outputID = output_items[idx];
+                tmp_output_item.outputID = GetUpper(output_items[idx]);
             } else if (StringMatch(*fld_it, Tag_OutputDESC)) {
                 tmp_output_item.descprition = output_items[idx];
             } else if (StringMatch(*fld_it, Tag_OutputUNIT)) {

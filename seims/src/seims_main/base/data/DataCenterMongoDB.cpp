@@ -32,7 +32,28 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     spatial_gridfs_(spatial_gfs_in), spatial_gfs_out_(spatial_gfs_out) {
     //spatial_gridfs_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_SPATIAL));
     //spatial_gfs_out_ = new MongoGridFs(mongo_client_->GetGridFs(model_name_, DB_TAB_OUT_SPATIAL));
-
+    /// Check and get the main model database
+    vector<string> existed_dbnames;
+    mongo_client_->GetDatabaseNames(existed_dbnames);
+    if (!ValueInVector(string(model_name_), existed_dbnames)) {
+        LOG(ERROR) << "The main model database does not existed: " << model_name_;
+        throw ModelException("DataCenterMongoDB", "Constructor",
+                             "The main model database does not existed!");
+    }
+    main_database_ = new MongoDatabase(mongo_client_->GetDatabase(model_name_));
+    /// Check the existence of FILE_IN, FILE_OUT, PARAMETERS, REACHES, SITELIST, SPATIAL, etc
+    vector<string> existed_main_db_tabs;
+    main_database_->GetCollectionNames(existed_main_db_tabs);
+    for (int i = 0; i < MAIN_DB_TABS_REQ_NUM; ++i) {
+        if (!ValueInVector(string(MAIN_DB_TABS_REQ[i]), existed_main_db_tabs)) {
+            LOG(ERROR) << "Table " << MAIN_DB_TABS_REQ[i] << " must be existed in " << model_name_;
+            throw ModelException("DataCenterMongoDB", "Constructor",
+                                 "Table " + string(MAIN_DB_TABS_REQ[i]) + " does not existed!");
+        }
+    }
+    if (scenario_id_ >= 0 && ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs)) {
+        use_scenario_ = true; // we can first believe the scenario will be used.
+    }
     if (nullptr != simu_in) {
         input_ = simu_in;
         model_mode_ = SimuModeToString(input_->getModelMode());
@@ -44,8 +65,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                 throw ModelException("DataCenterMongoDB", "Constructor",
                                      "Failed to initialize input settings of simulation!");
             }
-        }
-        else {
+        } else {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
         }
     }
@@ -54,17 +74,20 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     if (outlet_id_ < 0 || n_subbasins_ < 0) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
-    if (!DataCenterMongoDB::GetFileOutVector()) {
-        // try to read from file.out
-        origin_out_items_ = SettingsOutput::ReadFileOutFile(input_args);
+    if (!DataCenterMongoDB::GetInitialFileOutMap()) {
+        throw ModelException("DataCenterMongoDB", "Constructor", "Read initial output items failed!");
+    }
+    if (!DataCenterMongoDB::GetSelectedFileOutVector()) { // Query FILE_OUT_SPEC first
+        // then try to read from file.out directly
+        selected_out_items_ = SettingsOutput::ReadFileOutFile(input_args, origin_out_items_);
     }
     // The start and end time of output items should be checked and updated here! -LJ. 09/28/2020
     UpdateOutputDate(input_->getStartTime(), input_->getEndTime());
-    output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
+    output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, selected_out_items_,
                                    scenario_id_, calibration_id_, mpi_rank_, mpi_size_);
     if (nullptr == output_) {
         throw ModelException("DataCenterMongoDB", "Constructor",
-                             "Failed to query FILE_OUT from MongoDB or read from file.out!");
+                             "Failed to query FILE_OUT_SPEC from MongoDB or read from file.out!");
     }
     /// Check the existence of all required and optional data
     if (!DataCenterMongoDB::CheckModelPreparedData()) {
@@ -89,34 +112,20 @@ DataCenterMongoDB::~DataCenterMongoDB() {
 }
 
 bool DataCenterMongoDB::CheckModelPreparedData() {
-    /// 1. Check and get the main model database
-    vector<string> existed_dbnames;
-    mongo_client_->GetDatabaseNames(existed_dbnames);
-    if (!ValueInVector(string(model_name_), existed_dbnames)) {
-        LOG(ERROR) << "The main model is not existed: " << model_name_;
-        return false;
-    }
-    main_database_ = new MongoDatabase(mongo_client_->GetDatabase(model_name_));
-    /// 2. Check the existence of FILE_IN, FILE_OUT, PARAMETERS, REACHES, SITELIST, SPATIAL, etc
-    vector<string> existed_main_db_tabs;
-    main_database_->GetCollectionNames(existed_main_db_tabs);
-    for (int i = 0; i < MAIN_DB_TABS_REQ_NUM; ++i) {
-        if (!ValueInVector(string(MAIN_DB_TABS_REQ[i]), existed_main_db_tabs)) {
-            LOG(ERROR) << "Table " << MAIN_DB_TABS_REQ[i] << " must be existed in " << model_name_;
-            return false;
-        }
-    }
-    /// 3. Read climate site information from Climate database
+    /// Read climate site information from Climate database
     clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel());
     ReadClimateSiteList();
 
-    /// 4. Read initial parameters
+    /// Read initial parameters
     if (!ReadParametersInDB()) {
+        return false;
+    }
+    if (!ReadCalibrateParametersInDB()) {
         return false;
     }
     DumpCaliParametersInDB();
 
-    /// 5. Read Mask raster data
+    /// Read Mask raster data
     std::ostringstream oss;
     oss << subbasin_id_ << "_" << VAR_SUBBSN[0]; // Tag_Mask[0];
     string mask_filename = GetUpper(oss.str());
@@ -128,7 +137,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     rs_int_map_.insert(make_pair(mask_filename, mask_raster_));
 #endif
 
-    /// 6. Constructor Subbasin data. Subbasin and slope data are required!
+    /// Constructor Subbasin data. Subbasin and slope data are required!
     oss.str("");
     oss << subbasin_id_ << "_" << VAR_SLOPE[0];
     LoadAdjustRasterData(VAR_SLOPE[0], GetUpper(oss.str()));
@@ -136,20 +145,21 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     subbasins_ = clsSubbasins::Init(rs_int_map_, rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
 
-    /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
+    /// Read Reaches data, all reaches will be read for both MPI and OMP version
     reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
     reaches_->Update(init_params_, mask_raster_);
-    /// 8. Check if Scenario will be applied, Get scenario database if necessary
-    if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
+    /// Check if Scenario will be applied, Get scenario database if necessary
+    if (scenario_id_ >= 0 && use_scenario_) {
         bson_t* query = bson_new();
         scenario_dbname_ = QueryDatabaseName(query, DB_TAB_SCENARIO);
         if (!scenario_dbname_.empty()) {
-            use_scenario_ = true;
             scenario_ = new Scenario(mongo_client_, scenario_dbname_, subbasin_id_, scenario_id_,
                                      input_->getStartTime(), input_->getEndTime());
             if (SetRasterForScenario()) {
                 scenario_->setRasterForEachBMP();
             }
+        } else {
+            use_scenario_ = false;
         }
     }
     return true;
@@ -176,7 +186,9 @@ string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) 
 
 bool DataCenterMongoDB::GetFileInStringVector() {
     if (file_in_strs_.empty()) {
-        bson_t* b = bson_new();
+        // todo: Move "SUB_MODEL" and "TASK" to text.h
+        bson_t* b = BCON_NEW("SUB_MODEL", BCON_UTF8(model_cfgname_.c_str()),
+                             "TASK", BCON_UTF8(task_name_.c_str()));
         std::unique_ptr<MongoCollection>
                 collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_IN)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
@@ -187,20 +199,22 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         }
         bson_iter_t it;
         const bson_t* bson_table;
+        file_in_strs_.resize(4); // currently, only four TAG-Value are supported!
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
-            vector<string> tokens(2);
-            if (bson_iter_init_find(&it, bson_table, Tag_ConfTag)) {
-                tokens[0] = GetStringFromBsonIterator(&it);
+            // Move "MODE", "INTERVAL", "STARTTIME", and "ENDTIME" to text.h
+            if (bson_iter_init_find(&it, bson_table, "MODE")) {
+                model_mode_ = GetStringFromBsonIterator(&it);
+                file_in_strs_[0] = "MODE|" + model_mode_; // keep the interface consistent
             }
-            if (bson_iter_init_find(&it, bson_table, Tag_ConfValue)) {
-                tokens[1] = GetStringFromBsonIterator(&it);
+            if (bson_iter_init_find(&it, bson_table, "INTERVAL")) {
+                file_in_strs_[1] = "INTERVAL|" + GetStringFromBsonIterator(&it);
             }
-            if (StringMatch(tokens[0], Tag_Mode)) {
-                model_mode_ = tokens[1];
+            if (bson_iter_init_find(&it, bson_table, "STARTTIME")) {
+                file_in_strs_[2] = "STARTTIME|" + GetStringFromBsonIterator(&it);
             }
-            size_t sz = file_in_strs_.size();                // get the current number of rows
-            file_in_strs_.resize(sz + 1);                    // resize with one more row
-            file_in_strs_[sz] = tokens[0] + "|" + tokens[1]; // keep the interface consistent
+            if (bson_iter_init_find(&it, bson_table, "ENDTIME")) {
+                file_in_strs_[3] = "ENDTIME|" + GetStringFromBsonIterator(&it);
+            }
         }
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
@@ -213,21 +227,18 @@ bool DataCenterMongoDB::GetFileInStringVector() {
     return true;
 }
 
-bool DataCenterMongoDB::GetFileOutVector() {
+bool DataCenterMongoDB::GetInitialFileOutMap() {
     if (!origin_out_items_.empty()) {
         return true;
     }
+    // read all available output items from FILE_OUT
     bson_t* b = bson_new();
-    if (!model_cfgname_.empty()) {
-        b = BCON_NEW("query", "{", Tag_ModelCfgname, BCON_UTF8(model_cfgname_.c_str()), "}");
-    }
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_OUT)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
     bson_error_t err;
     if (mongoc_cursor_error(cursor, &err)) {
         LOG(ERROR) << "Nothing found in the collection: " << DB_TAB_FILE_OUT << " for current modeling.";
-        /// destroy
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);
         return false;
@@ -243,7 +254,7 @@ bool DataCenterMongoDB::GetFileOutVector() {
             tmp_output_item.modCls = GetStringFromBsonIterator(&itertor);
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_OutputID)) {
-            tmp_output_item.outputID = GetStringFromBsonIterator(&itertor);
+            tmp_output_item.outputID = GetUpper(GetStringFromBsonIterator(&itertor));
         }
         if (bson_iter_init_find(&itertor, bson_table, Tag_OutputDESC)) {
             tmp_output_item.descprition = GetStringFromBsonIterator(&itertor);
@@ -275,16 +286,87 @@ bool DataCenterMongoDB::GetFileOutVector() {
         if (bson_iter_init_find(&itertor, bson_table, Tag_IntervalUnit)) {
             tmp_output_item.intervalUnit = GetStringFromBsonIterator(&itertor);
         }
-        if (tmp_output_item.use > 0) {
-            origin_out_items_.emplace_back(tmp_output_item);
-        }
+#ifdef HAS_VARIADIC_TEMPLATES
+        origin_out_items_.emplace(tmp_output_item.outputID, tmp_output_item);
+#else
+        origin_out_items_.insert(make_pair(tmp_output_item.outputID, tmp_output_item));
+#endif
     }
-    vector<OrgOutItem>(origin_out_items_).swap(origin_out_items_);
-    // m_OriginOutItems.shrink_to_fit();
     /// destroy
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
     return !origin_out_items_.empty();
+}
+
+bool DataCenterMongoDB::GetSelectedFileOutVector() {
+    if (!selected_out_items_.empty()) {
+        return true;
+    }
+    if (origin_out_items_.empty()) {
+        if (!GetInitialFileOutMap()) return false;
+    }
+    // read selected output items from FILE_OUT_SPEC
+    bson_t* b = BCON_NEW("SUB_MODEL", BCON_UTF8(model_cfgname_.c_str()),
+                         "TASK", BCON_UTF8(task_name_.c_str()));
+    std::unique_ptr<MongoCollection>
+        collection(new MongoCollection(mongo_client_->GetCollection(model_name_, "FILE_OUT_SPEC")));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(ERROR) << "Nothing found in the collection: " << "FILE_OUT_SPEC" << " for current modeling.";
+        bson_destroy(b);
+        mongoc_cursor_destroy(cursor);
+        return false;
+    }
+    bson_iter_t itertor;
+    const bson_t* bson_table;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
+        string cur_outid = "";
+        if (bson_iter_init_find(&itertor, bson_table, Tag_OutputID)) {
+            cur_outid = GetUpper(GetStringFromBsonIterator(&itertor));
+        }
+        if (cur_outid.empty()) {
+            continue;
+        }
+        if (origin_out_items_.find(cur_outid) == origin_out_items_.end()) {
+            LOG(WARNING) << "The specified output is not supported: " << cur_outid;
+            continue;
+        }
+        OrgOutItem& tmp_item = origin_out_items_.at(cur_outid);
+        tmp_item.outputID = cur_outid;
+        tmp_item.use = 1;
+        if (bson_iter_init_find(&itertor, bson_table, Tag_FileName)) {
+            tmp_item.outFileName = GetStringFromBsonIterator(&itertor);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_AggType)) {
+            tmp_item.aggType = GetStringFromBsonIterator(&itertor);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_OutputUNIT)) {
+            tmp_item.unit = GetStringFromBsonIterator(&itertor);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_OutputSubbsn)) {
+            tmp_item.subBsn = GetStringFromBsonIterator(&itertor);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_StartTime)) {
+            /// TODO: Currently we only accept "%d-%d-%d %d:%d:%d" for UTC TIME! -LJ. 09/28/2020
+            tmp_item.sTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                "%d-%d-%d %d:%d:%d", true);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_EndTime)) {
+            tmp_item.eTimet = ConvertToTime(GetStringFromBsonIterator(&itertor),
+                "%d-%d-%d %d:%d:%d", true);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_Interval)) {
+            GetNumericFromBsonIterator(&itertor, tmp_item.interval);
+        }
+        if (bson_iter_init_find(&itertor, bson_table, Tag_IntervalUnit)) {
+            tmp_item.intervalUnit = GetStringFromBsonIterator(&itertor);
+        }
+        selected_out_items_.emplace_back(tmp_item);
+    }
+    vector<OrgOutItem>(selected_out_items_).swap(selected_out_items_);
+    // selected_out_items_.shrink_to_fit();
+    return !selected_out_items_.empty();
 }
 
 int DataCenterMongoDB::ReadIntParameterInDB(const char* param_name) {
@@ -366,11 +448,14 @@ void DataCenterMongoDB::ReadClimateSiteList() {
 }
 
 bool DataCenterMongoDB::ReadParametersInDB() {
+    if (!init_params_.empty()) {
+        return true;
+    }
+    // query all available parameters from PARAMETERS
     bson_t* filter = bson_new();
     std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
-
     bson_error_t err;
     const bson_t* info;
     if (mongoc_cursor_error(cursor, &err)) {
@@ -383,15 +468,15 @@ bool DataCenterMongoDB::ReadParametersInDB() {
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
         //ParamInfo<FLTPT>* p = new ParamInfo<FLTPT>();
         bson_iter_t iter;
-        string name;
-        string desc;
-        string unit;
-        string module;
-        FLTPT value;
-        string change;
-        FLTPT impact = 0.;
-        FLTPT maximum = 0.;
-        FLTPT minimum = 0.;
+        string name = "";
+        string desc = "";
+        string unit = "";
+        string module = "";
+        FLTPT value = MISSINGFLOAT;
+        string change = "";
+        FLTPT impact = MISSINGFLOAT;
+        FLTPT maximum = MISSINGFLOAT;
+        FLTPT minimum = MISSINGFLOAT;
         bool isint = false;
         if (bson_iter_init_find(&iter, info, PARAM_FLD_NAME)) {
             name = GetUpper(GetStringFromBsonIterator(&iter));
@@ -421,16 +506,14 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             GetNumericFromBsonIterator(&iter, minimum);
         }
         if (bson_iter_init_find(&iter, info, PARAM_FLD_DTYPE)) {
-            isint = StringMatch(GetStringFromBsonIterator(&iter), "INT");
+            isint = StringMatch(GetStringFromBsonIterator(&iter), "INT") ||
+                StringMatch(GetStringFromBsonIterator(&iter), "INT32");
         }
-        if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && calibration_id_ >= 0) {
-            // Overwrite p->Impact according to calibration ID
-            string cali_values_str = GetStringFromBsonIterator(&iter);
-            vector<FLTPT> cali_values;
-            SplitStringForValues(cali_values_str, ',', cali_values);
-            if (calibration_id_ < CVT_INT(cali_values.size())) {
-                impact = cali_values[calibration_id_];
-            }
+        // Check if the item is illegal, name and change MUST not be empty,
+        //   value and impact MUST not be MISSINGFLOAT
+        if (name.empty() || change.empty() || FloatEqual(impact, MISSINGFLOAT) ||
+            FloatEqual(value, MISSINGFLOAT)) {
+            continue;
         }
         if (isint) {
             ParamInfo<int>* intp = new ParamInfo<int>(name, desc, unit, module, CVT_INT(value),
@@ -441,8 +524,8 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 #else
             if (!init_params_int_.insert(make_pair(name, intp)).second) {
 #endif
-                LOG(ERROR) << "Load parameter: " << name << " failed!";
-                return false;
+                LOG(WARNING) << "Load parameter: " << name << " failed! We will ignore it!";
+                continue;
             }
         }
         else {
@@ -453,8 +536,8 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 #else
             if (!init_params_.insert(make_pair(name, p)).second) {
 #endif
-                LOG(ERROR) << "Load parameter: " << name << " failed!";
-                return false;
+                LOG(WARNING) << "Load parameter: " << name << " failed! We will ignore it!";
+                continue;
             }
             /// Special handling code for soil water capcity parameters
             /// e.g., SOL_AWC, SOL_UL, WILTINGPOINT. By ljzhu, 2018-1-11
@@ -473,6 +556,100 @@ bool DataCenterMongoDB::ReadParametersInDB() {
     }
     bson_destroy(filter);
     mongoc_cursor_destroy(cursor);
+    return true;
+}
+
+bool DataCenterMongoDB::ReadCalibrateParametersInDB() {
+    if (init_params_.empty() && init_params_int_.empty()) {
+        if (!ReadParametersInDB()) return false;
+    }
+    // read calibrated parameters from PARAMETERS_SPEC
+    bson_t* b = BCON_NEW("SUB_MODEL", BCON_UTF8(model_cfgname_.c_str()),
+                         "TASK", BCON_UTF8(task_name_.c_str()));
+    std::unique_ptr<MongoCollection>
+        collection(new MongoCollection(mongo_client_->GetCollection(model_name_, "PARAMETERS_SPEC")));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    bson_error_t err;
+    if (mongoc_cursor_error(cursor, &err)) {
+        LOG(INFO) << "No calibration parameters found in the collection: " << "PARAMETERS_SPEC";
+        bson_destroy(b);
+        mongoc_cursor_destroy(cursor);
+        return true;
+    }
+    bson_iter_t itertor;
+    const bson_t* info;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
+        string cur_paramname = "";
+        if (bson_iter_init_find(&itertor, info, PARAM_FLD_NAME)) {
+            cur_paramname = GetUpper(GetStringFromBsonIterator(&itertor));
+        }
+        if (cur_paramname.empty()) {
+            continue;
+        }
+        // find cur_paramname in init_params_ and init_params_int_
+        bool isint = false;
+        if (init_params_int_.find(cur_paramname) != init_params_int_.end()) {
+            isint = true;
+        } else if (init_params_.find(cur_paramname) == init_params_.end()) {
+            LOG(WARNING) << "The specified parameter " << cur_paramname << " is not supported!";
+            continue;
+        }
+        bson_iter_t iter;
+        FLTPT cur_impact = 0.;
+        bool use_cali_values = false;
+        // if item has CALI_VALUES, then use it
+        if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && calibration_id_ >= 0) {
+            // Overwrite impact according to calibration ID
+            string cali_values_str = GetStringFromBsonIterator(&iter);
+            vector<FLTPT> cali_values;
+            SplitStringForValues(cali_values_str, ',', cali_values);
+            if (calibration_id_ < CVT_INT(cali_values.size())) {
+                cur_impact = cali_values[calibration_id_];
+                use_cali_values = true;
+            }
+        }
+        if (isint) {
+            ParamInfo<int>* intp = init_params_int_.at(cur_paramname);
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_VALUE)) {
+                GetNumericFromBsonIterator(&iter, intp->Value);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
+                intp->Change = GetStringFromBsonIterator(&iter);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
+                GetNumericFromBsonIterator(&iter, intp->Impact);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_MAX)) {
+                GetNumericFromBsonIterator(&iter, intp->Maximum);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
+                GetNumericFromBsonIterator(&iter, intp->Minimum);
+            }
+            if (use_cali_values) {
+                intp->Impact = CVT_INT(cur_impact);
+            }
+        } else {
+            ParamInfo<FLTPT>* p = init_params_.at(cur_paramname);
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_VALUE)) {
+                GetNumericFromBsonIterator(&iter, p->Value);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
+                p->Change = GetStringFromBsonIterator(&iter);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
+                GetNumericFromBsonIterator(&iter, p->Impact);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_MAX)) {
+                GetNumericFromBsonIterator(&iter, p->Maximum);
+            }
+            if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
+                GetNumericFromBsonIterator(&iter, p->Minimum);
+            }
+            if (use_cali_values) {
+                p->Impact = cur_impact;
+            }
+        }
+    }
     return true;
 }
 

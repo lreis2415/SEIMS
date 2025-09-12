@@ -73,7 +73,8 @@ public:
                                 int mpi_rank = 0, int mpi_size = -1);
 
     //! Init function from plain text file
-    static vector<OrgOutItem> ReadFileOutFile(const InputArgs* input_args);
+    static vector<OrgOutItem> ReadFileOutFile(const InputArgs* input_args,
+                                              map<string, OrgOutItem>& org_items);
 
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;

@@ -17,13 +17,14 @@ void Usage(const string& appname, const string& error_msg) {
             " -thread <threadsNum> -mode <mode> -filein_mongo <filein_mongo>"
             " -lyr <layeringMethod> -fdir <flowDirMethod>"
             " -host <IP> -port <port>"
+            " -task <taskname>"
             " -sce <scenarioID> -cali <calibrationID>"
             " -id <subbasinID>" // For MPI version or testing execution of a single subbasin
             // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"
             " -ll <logLevel>"
             "]\n";
     cout << "\t<modelPath> is the path of the SEIMS-based watershed model.\n";
-    cout << "\t<configName> is the config name of specific model.\n";
+    cout << "\t<configName> is the config name of specific model. By default, it is _BASE_.\n";
     cout << "\t<threadsNum> is the number of thread used by OpenMP, which must be greater or equal than 1 (default).\n";
     cout << "\t<mode> can be 0 (DAILY, default) or 1 (STORM).\n";
     cout << "\t<filein_mongo> can be 0 (default) or 1, to indicate loading file_in from MongoDB or not.\n";
@@ -31,6 +32,8 @@ void Usage(const string& appname, const string& error_msg) {
     cout << "\t<flowDirMethod> can be 0, 1, and 2, which means D8 (default), Dinf, and MFDmd, respectively.\n";
     cout << "\t<IP> is the address of MongoDB database, and <port> is its port number.\n";
     cout << "\t\tBy default, MongoDB IP is 127.0.0.1 (i.e., localhost), and the port is 27017.\n";
+    cout << "\t<taskname> is task name to separate different tasks under the same model directory.\n";
+    cout << "\t\tBy default, taskname is SingleRun.\n";
     cout << "\t<scenarioID> is the ID of BMPs Scenario which has been defined in BMPs database.\n";
     cout << "\t\tBy default, the Scenario ID is -1, which means no scenarios will be simulated.\n";
     cout << "\t<calibrationID> is the ID of Calibration which has been defined in PARAMETERS table.\n";
@@ -46,8 +49,9 @@ void Usage(const string& appname, const string& error_msg) {
 }
 
 InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/* = false*/) {
-    string model_path;
+    string model_path = "";
     string model_cfgname = "";
+    string task_name = "";
     int num_thread = 1;
     SimulationMode mode = UNDEFINED;
     bool filein_mongo = false;
@@ -88,6 +92,16 @@ InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/*
                 model_cfgname = argv[i];
                 i++;
             } else {
+                Usage(argv[0]);
+                return nullptr;
+            }
+        } else if (StringMatch(argv[i], "-task")) {
+            i++;
+            if (argc > i) {
+                task_name = argv[i];
+                i++;
+            }
+            else {
                 Usage(argv[0]);
                 return nullptr;
             }
@@ -223,7 +237,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/*
         }
     }
     /// Check the validation of input arguments
-    if (!PathExists(model_path)) {
+    if (model_path.empty() || !PathExists(model_path)) {
         Usage(argv[0], "Model folder " + model_path + " is not existed!");
         return nullptr;
     }
@@ -233,6 +247,12 @@ InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/*
             Usage(argv[0], "Specific model folder " + model_path2 + " is not existed!");
             return nullptr;
         }
+    } else {
+        // Use default base sub-model's name, not corresponds to a real folder, just for tag. 
+        model_cfgname = "_BASE_";
+    }
+    if (task_name.empty()) {
+        task_name = "SingleRun";
     }
     if (num_thread < 1) {
         Usage(argv[0], "Thread number must greater or equal than 1.");
@@ -243,7 +263,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/*
         return nullptr;
     }
 
-    return new InputArgs(model_path, model_cfgname, num_thread,
+    return new InputArgs(model_path, model_cfgname, task_name, num_thread,
                          mode, filein_mongo, flowdir_method, 
                          layering_method, mongodb_ip, port,
                          scenario_id, calibration_id,
@@ -252,7 +272,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv, bool mpi_version/*
                          log_level, mpi_version);
 }
 
-InputArgs::InputArgs(const string& model_path, const string& model_cfgname,
+InputArgs::InputArgs(const string& model_path, const string& model_cfgname, const string& task_name,
                      const int thread_num, SimulationMode mode, bool filein_mongo,
                      const FlowDirMethod fdir_mtd, const LayeringMethod lyr_mtd,
                      const string& host, const uint16_t port,
@@ -260,7 +280,7 @@ InputArgs::InputArgs(const string& model_path, const string& model_cfgname,
                      const int subbasin_id, const GroupMethod grp_mtd,
                      const ScheduleMethod skd_mtd, const int time_slices,
                      const string& log_level, bool mpi_version/* = false*/)
-    : model_path(model_path), model_cfgname(model_cfgname), output_scene(DB_TAB_OUT_SPATIAL),
+    : model_path(model_path), model_cfgname(model_cfgname), task_name(task_name), output_scene(DB_TAB_OUT_SPATIAL),
       thread_num(thread_num), mode(mode), filein_mongo(filein_mongo), fdir_mtd(fdir_mtd), lyr_mtd(lyr_mtd),
       host(host), port(port), scenario_id(scenario_id), calibration_id(calibration_id),
       subbasin_id(subbasin_id), grp_mtd(grp_mtd), skd_mtd(skd_mtd), time_slices(time_slices),
@@ -274,6 +294,10 @@ InputArgs::InputArgs(const string& model_path, const string& model_cfgname,
     output_scene += FlowDirMethodString[fdir_mtd];
     output_scene += LayeringMethodString[lyr_mtd];
     output_scene += "-";
+    if (!StringMatch(task_name, "SingleRun") && !task_name.empty()) {
+        output_scene += task_name;
+        output_scene += "-";
+    }
     if (scenario_id >= 0) {
         // -1 means no BMPs scenario will be simulated
         output_scene += ValueToString(scenario_id);
@@ -283,10 +307,10 @@ InputArgs::InputArgs(const string& model_path, const string& model_cfgname,
         // -1 means no calibration setting will be used.
         output_scene += ValueToString(calibration_id);
     }
-    if (!model_cfgname.empty()) {
-        output_path = model_path + SEP + model_cfgname + SEP + output_scene + SEP;
-    } else {
+    if (StringMatch(model_cfgname, "_BASE_") || model_cfgname.empty()) {
         output_path = model_path + SEP + output_scene + SEP;
+    } else {
+        output_path = model_path + SEP + model_cfgname + SEP + output_scene + SEP;
     }
     if (!DirectoryExists(output_path)) MakeDirectory(output_path);
     // Do not clean output directory here, delete output files when generate new ones

@@ -101,7 +101,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size,
         /// Create specific module factory according to subbasin number, if possible
         ModuleFactory* tmp_module_factory = factory_map.at(0);
         string model_cfgpath = input_args->model_path;
-        if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+        if (!input_args->model_cfgname.empty() && !StringMatch(input_args->model_cfgname, "_BASE_")) {
+            model_cfgpath += SEP + input_args->model_cfgname;
+        }
         string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(*it_id) + "." + File_Config;
         if (FileExists(file_cfg)) {
             input_args->subbasin_id = *it_id;

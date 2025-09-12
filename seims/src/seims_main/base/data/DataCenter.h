@@ -58,10 +58,13 @@ public:
      */
     virtual void ReadClimateSiteList() = 0;
     /*!
-     * \brief Read initial and calibrated parameters
-     * \todo Should initial parameters in DB separate integer or floating point number?
+     * \brief Read initial parameters from PARAMETERS table, distinguish integer and float
      */
     virtual bool ReadParametersInDB() = 0;
+    /*!
+     * \brief Read calibrate parameters from PARAMETERS_SPEC table, distinguish integer and float
+     */
+    virtual bool ReadCalibrateParametersInDB() = 0;
     /*!
     * \brief Get subbasin number and outlet ID
     */
@@ -303,9 +306,13 @@ public:
     */
     virtual bool GetFileInStringVector();
     /*!
-    * \brief Get file.out configuration
+    * \brief Get FILE_OUT configuration (which is seims/preprocess/database/AvailableOutputs.csv)
     */
-    virtual bool GetFileOutVector() = 0;
+    virtual bool GetInitialFileOutMap() = 0;
+    /*!
+    * \brief Get FILE_OUT_SPEC configuration (which is file.out in model's folder)
+    */
+    virtual bool GetSelectedFileOutVector() = 0;
     /*!
      * \brief Check date of output settings
      */
@@ -314,6 +321,7 @@ public:
 protected:
     string model_name_;                    ///< Model name, e.g., model_dianbu30m_longterm
     string model_cfgname_;                 ///< Specific configuration name, e.g., storm_ljzhu
+    string task_name_;                     ///< Specific task name, e.g., cali2025
     const string model_path_;              ///< Model path
     string file_in_file_;                  ///< file.in full path
     string file_out_file_;                 ///< file.out full path
@@ -328,8 +336,9 @@ protected:
     const int thread_num_;                 ///< Thread number for OpenMP
     bool use_scenario_;                    ///< Model Scenario
     string output_path_;                   ///< Output path (with / in the end) according to m_outputScene
-    vector<string> file_in_strs_;          ///< file.in configuration
-    vector<OrgOutItem> origin_out_items_;  ///< file.out configuration
+    vector<string> file_in_strs_;          ///< Model input configuration, stored in FILE_IN
+    map<string, OrgOutItem> origin_out_items_;  ///< All available model output items, stored in FILE_OUT
+    vector<OrgOutItem> selected_out_items_;///< Selected model output items, stored in FILE_OUT_SPEC
     string model_mode_;                    ///< Storm or Longterm model
     int n_subbasins_;                      ///< Number of subbasins
     int outlet_id_;                        ///< Outlet subbasin ID

@@ -55,7 +55,9 @@ SettingsInput::SettingsInput(vector<string>& stringvector)
 
 SettingsInput* SettingsInput::Init(const InputArgs* input_args) {
     string model_cfgpath = input_args->model_path;
-    if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+    if (!input_args->model_cfgname.empty() && !StringMatch(input_args->model_cfgname, "_BASE_")) {
+        model_cfgpath += SEP + input_args->model_cfgname;
+    }
     string file_in = model_cfgpath + SEP + File_Input;
     if (!FileExists(file_in)) {
         LOG(ERROR) << file_in << " does not exist!";

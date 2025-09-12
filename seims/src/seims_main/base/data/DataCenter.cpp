@@ -8,6 +8,7 @@ using namespace utils_time;
 
 DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int subbasin_id /* = 0 */) :
     model_name_(input_args->model_name), model_cfgname_(input_args->model_cfgname),
+    task_name_(input_args->task_name),
     model_path_(input_args->model_path),
     fdir_method_(input_args->fdir_mtd), lyr_method_(input_args->lyr_mtd), subbasin_id_(subbasin_id),
     scenario_id_(input_args->scenario_id), calibration_id_(input_args->calibration_id),
@@ -144,7 +145,7 @@ void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& col
 }
 
 void DataCenter::DumpCaliParametersInDB() {
-    if (init_params_.empty()) return;
+    if (init_params_.empty() || init_params_int_.empty()) return;
     if (subbasin_id_ > 1) return; // only dump at omp version(subbasin ID is 0) or subbasin 1 of mpi version
     string file_name = output_path_ + SEP + "param.cali";
     std::ofstream fs;
@@ -156,6 +157,17 @@ void DataCenter::DumpCaliParametersInDB() {
     for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr == it->second) continue;
         ParamInfo<FLTPT>* tmp_param = it->second;
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+            StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
+            continue;
+        }
+        fs << tmp_param->Name << "," << tmp_param->Impact << "," << tmp_param->Change << endl;
+    }
+    for (auto it = init_params_int_.begin(); it != init_params_int_.end(); ++it) {
+        if (nullptr == it->second) continue;
+        ParamInfo<int>* tmp_param = it->second;
         if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.)) ||
             (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.)) ||
             (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
@@ -810,7 +822,7 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
 }
 
 void DataCenter::UpdateOutputDate(time_t start_time, time_t end_time) {
-    for (auto it = origin_out_items_.begin(); it < origin_out_items_.end(); ++it) {
+    for (auto it = selected_out_items_.begin(); it < selected_out_items_.end(); ++it) {
         if ((*it).sTimet < start_time || (*it).sTimet >= end_time) {
             CLOG(TRACE, LOG_INIT) << "The start time of output " << (*it).outFileName
             << " will be changed to " << ConvertToString2(start_time);

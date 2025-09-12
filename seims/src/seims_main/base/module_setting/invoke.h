@@ -31,7 +31,8 @@ public:
     /*!
      * \brief Constructor by detailed parameters
      * \param[in] model_path path of the configuration of the Model
-     * \param[in] model_cfgname config name of specific model, the default is "", it corresponds to a subfolder
+     * \param[in] model_cfgname config name of specific submodel (i.e., a subfolder), the default is "_BASE_" (but not a subfolder, just a tag)
+     * \param[in] task_name function as a tag, the default is "SingleRun"
      * \param[in] thread_num thread or processor number, which must be greater or equal than 1 (default)
      * \param[in] mode Simulation mode, 0 (DAILY, default) or 1 (STORM)
      * \param[in] filein_mongo Loading file_in from MongoDB or not, can be 0 (default) or 1
@@ -48,7 +49,7 @@ public:
      * \param[in] log_level logging level, the default is Info
      * \param[in] mpi_version Optional, is running the MPI version?
      */
-    InputArgs(const string& model_path, const string& model_cfgname,
+    InputArgs(const string& model_path, const string& model_cfgname, const string& task_name,
               int thread_num, SimulationMode mode, bool filein_mongo,
               FlowDirMethod fdir_mtd, LayeringMethod lyr_mtd,
               const string& host, uint16_t port,
@@ -67,8 +68,9 @@ public:
 
 public:
     string model_path;      ///< full path of model folder which contains all inputs and outputs of all models
-    string model_cfgname;   ///< config name of specific model, the default is "", it corresponds to a subfolder
     string model_name;      ///< model_name
+    string model_cfgname;   ///< config name of specific submodel (i.e., a subfolder), the default is "_BASE_" (but not a subfolder, just a tag)
+    string task_name;       ///< function as a tag, the default is "SingleRun"
     string output_scene;    ///< output identifier concatenated with scenario_id, calibration_id, lyr_mtd, fdir_mtd
     string output_path;     ///< full path of model outputs
     int thread_num;         ///< thread number for OpenMP

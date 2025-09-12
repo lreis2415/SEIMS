@@ -42,7 +42,9 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
                                    const SimulationMode simu_mode /* = DAILY */,
                                    const int mpi_rank /* = 0 */, const int mpi_size /* = -1 */) {
     string model_cfgpath = input_args->model_path;
-    if (!input_args->model_cfgname.empty()) { model_cfgpath += SEP + input_args->model_cfgname; }
+    if (!input_args->model_cfgname.empty() && !StringMatch(input_args->model_cfgname, "_BASE_")) {
+        model_cfgpath += SEP + input_args->model_cfgname;
+    }
     /// Check the existence of configuration files
     // The specific configuration file of the subbasin is prior.
     string file_cfg = model_cfgpath + SEP + "subbsn." + ValueToString(input_args->subbasin_id) + "." + File_Config;
