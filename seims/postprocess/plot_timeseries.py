@@ -68,7 +68,8 @@ class TimeSeriesPlots(object):
 
         # Read model data from MongoDB, the time period of simulation is read from FILE_IN.
         mongoclient = ConnectMongoDB(self.model.host, self.model.port).get_conn()
-        self.readData = ReadModelData(mongoclient, self.model.db_name)
+        self.readData = ReadModelData(mongoclient, self.model.db_name,
+                                      self.model.cfg_name, self.model.task_name)
         self.mode = self.readData.Mode
         self.interval = self.readData.Interval
         # check start and end time of calibration

@@ -6,30 +6,12 @@
     - 16-12-07  - lj - rewrite for version 2.0
     - 17-06-23  - lj - reorganize as basic class other than Global variables
     - 18-02-08  - lj - compatible with Python3.
+    - 25-09-10  - lj - redesign base and model-specific settings of file.in, file.out, parameters
 """
 from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
 from pygeoc.TauDEM import TauDEMExtFiles
-
-
-# This is intended to be deprecated, since one database is desirable
-#   for both storm and daily models. By lj. 2018-8-23
-# class ModelNameUtils(object):
-#     """Simulation Model related tags"""
-#     Model = 'model'
-#     # Cluster = 'cluster'
-#     Mode = 'MODE'
-#     Storm = 'STORM'
-#     Daily = 'DAILY'
-#     StormClimateDBSuffix = 'storm'
-#
-#     @staticmethod
-#     def standardize_climate_dbname(climatedbname):
-#         """standardize climate database name"""
-#         if climatedbname is not None:
-#             climatedbname = climatedbname + '_' + ModelNameUtils.StormClimateDBSuffix
-#         return climatedbname
 
 
 class ModelCfgUtils(object):
@@ -42,7 +24,7 @@ class ModelCfgUtils(object):
     def __init__(self, model_dir, config_name=''):
         """assign model config file paths"""
         prefix = model_dir
-        if config_name != '':
+        if config_name != '' and config_name != ModelCfgFields.configname_default:
             prefix += SEP + config_name
         self.filein = prefix + SEP + ModelCfgUtils._FILE_IN
         self.fileout = prefix + SEP + ModelCfgUtils._FILE_OUT
@@ -59,7 +41,6 @@ class DirNameUtils(object):
     _LayerInfo = 'layering_info'
     _Metis = 'metis_output'
     _Import2DB = 'imported_monogodb'
-    # _Lookup = 'lookup_tables'  # No longer needed, deleted in next revision.
 
     def __init__(self, pre_dir):
         """prepare output directories"""
@@ -70,7 +51,6 @@ class DirNameUtils(object):
         self.layerinfo = pre_dir + SEP + DirNameUtils._LayerInfo
         self.metis = pre_dir + SEP + DirNameUtils._Metis
         self.import2db = pre_dir + SEP + DirNameUtils._Import2DB
-        # self.lookup = pre_dir + SEP + DirNameUtils._Lookup
 
 
 class ModelParamDataUtils(object):
@@ -155,23 +135,32 @@ class ModelParamFields(object):
     change_rc = 'RC'
     change_ac = 'AC'
     change_nc = 'NC'
+    # for Calibration
+    cali_values = 'CALI_VALUES'
 
 
 class ModelCfgFields(object):
     """Model configuration fields.
         field in Model Configuration Collections, FILE_IN and FILE_OUT
     """
+    # field to indicate the configName of the model, aka sub-model's name
+    configname = 'SUB_MODEL'
+    configname_default = '_BASE_'
+    taskname = 'TASK'
+    taskname_default = 'SingleRun'
+    # model's input settings
     tag = 'TAG'
     value = 'VALUE'
+    mode = 'MODE'
+    interval = 'INTERVAL'
+    stime = 'STARTTIME'
+    etime = 'ENDTIME'
+    # model output item's settings, interval, stime, and etime are the same with model's input
     mod_cls = 'MODULE_CLASS'
     output_id = 'OUTPUTID'
     desc = 'DESCRIPTION'
     unit = 'UNIT'
     type = 'TYPE'
-    stime = 'STARTTIME'
-    etime = 'ENDTIME'
-    interval = 'INTERVAL'
-    interval_unit = 'INTERVAL_UNIT'
     interval_unit = 'INTERVAL_UNIT'
     subbsn = 'SUBBASIN'
     filename = 'FILENAME'
@@ -429,9 +418,11 @@ class DBTableNames(object):
     gridfs_spatial = 'SPATIAL'
     gridfs_output = 'OUTPUT'
     main_sitelist = 'SITELIST'
-    main_parameter = 'PARAMETERS'
-    main_filein = 'FILE_IN'
-    main_fileout = 'FILE_OUT'
+    main_parameter = 'PARAMETERS'  # base table for model parameters
+    main_param_spec = 'PARAMETERS_SPEC'  # model-specific settings of calibrated parameters
+    main_filein = 'FILE_IN'  # base model-specific table for model input information
+    main_fileout = 'FILE_OUT'  # base table for model output variables
+    main_fileout_spec = 'FILE_OUT_SPEC'  # model-specific settings of selected output variables
     main_scenario = 'BMPDATABASE'
     # hydro-climate database
     data_values = 'DATA_VALUES'

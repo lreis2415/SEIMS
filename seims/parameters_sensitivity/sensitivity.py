@@ -48,6 +48,7 @@ from SALib.analyze.fast import analyze as fast_alz
 from utility import read_data_items_from_txt
 from utility import save_png_eps
 from utility import SpecialJsonEncoder
+from utility import write_cali_param_values_to_mongodb
 # import global_mongoclient as MongoDBObj
 from run_seims import MainSEIMS
 from preprocess.text import DBTableNames
@@ -114,24 +115,6 @@ class Sensitivity(object):
         """Update simulation time range in MongoDB [FILE_IN].
         """
         self.mainmodel.ResetSimulationPeriod()
-
-        # Remove the following old code in next revision. - by LJ.
-        # conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
-        # db = conn[self.model.db_name]
-        # stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
-        # etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
-        # mode_str = 'DAILY'
-        # if self.model.simu_mode == 1:
-        #     mode_str = 'STORM'
-        # timestep = self.model.timestep
-        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
-        #                                                  {'$set': {'VALUE': stime_str}})
-        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
-        #                                                  {'$set': {'VALUE': etime_str}})
-        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'MODE'},
-        #                                                  {'$set': {'VALUE': mode_str}})
-        # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'INTERVAL'},
-        #                                                  {'$set': {'VALUE': timestep}})
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -253,54 +236,10 @@ class Sensitivity(object):
             self.generate_samples()
         conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
         coll = conn[self.model.db_name][DBTableNames.main_param_spec]
-        flt = {ModelCfgFields.configname: self.mainmodel.cfg_name,
-               ModelCfgFields.taskname: self.mainmodel.task_name}
-        # Tidy-up: 1) delete existing parameters only with 'CALI_VALUES' (i.e., without IMPACT)
-        r1 = coll.delete_many({**flt, ModelParamFields.cali_values: {'$exists': True},
-                               ModelParamFields.impact: {'$exists': False}})
-        # Tidy-up: 2) unset values in CALI_VALUES if the parameter has both IMPACT and CALI_VALUES
-        r2 = coll.update_many({**flt, ModelParamFields.impact: {'$exists': True},
-                               ModelParamFields.cali_values: {'$exists': True}},
-                              {"$unset": {ModelParamFields.cali_values: ''}})
-        print('Deleted specific parameters in PARAMETER_SPEC: %d, '
-              'unset CALI_VALUES: %d' % (r1.deleted_count, r2.modified_count))
-        # Write
-        ops = list()
-        for idx, pname in enumerate(self.param_defs['names']):
-            v2str = ",".join(str(v) for v in self.param_values[:, idx])
-            ops.append(UpdateOne({**flt, ModelParamFields.name: pname},
-                                 {"$set": {ModelParamFields.cali_values: v2str}},
-                                 upsert=True))
-        if ops:
-            coll.bulk_write(ops, ordered=False)
 
-        # for idx, pname in enumerate(self.param_defs['names']):
-        #     v2str = ','.join(str(v) for v in self.param_values[:, idx])
-        #     # Write: 1) if pname already exists, and has IMPACT and CALI_VALUES
-        #     f_both = {**flt, ModelParamFields.name: pname,
-        #               ModelParamFields.impact: {'$exists': True},
-        #               ModelParamFields.cali_values: {'$exists': True}}
-        #     upd = coll.update_one(f_both, {'$set': {ModelParamFields.cali_values: v2str}})
-        #     if upd.matched_count:
-        #         continue
-        #     # Write: 2) if pname already exists, and has only IMPACT
-        #     f_one1 = {**flt, ModelParamFields.name: pname,
-        #               ModelParamFields.impact: {'$exists': True},
-        #               ModelParamFields.cali_values: {'$exists': False}}
-        #     upd = coll.update_one(f_one1, {'$set': {ModelParamFields.cali_values: v2str}})
-        #     # Write: 3) if pname already exists, and has only CALI_VALUES
-        #     f_one2 = {**flt, ModelParamFields.name: pname,
-        #               ModelParamFields.impact: {'$exists': False},
-        #               ModelParamFields.cali_values: {'$exists': True}}
-        #     upd = coll.update_one(f_one2, {'$set': {ModelParamFields.cali_values: v2str}})
-        #     # Write: 4) if pname is a blank item, or pname does not exist
-        #     f_none = {**flt, ModelParamFields.name: pname,
-        #               ModelParamFields.impact: {'$exists': False},
-        #               ModelParamFields.cali_values: {'$exists': False}}
-        #     upd2 = coll.update_one(f_none, {'$set': {ModelParamFields.cali_values: v2str}})
-        #     if upd2.matched_count == 0:
-        #         coll.insert_one({**flt, ModelParamFields.name: pname,
-        #                          ModelParamFields.cali_values: v2str})
+        write_cali_param_values_to_mongodb(coll, self.param_defs, self.param_values,
+                                           self.mainmodel.cfg_name,
+                                           self.mainmodel.task_name)
 
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.

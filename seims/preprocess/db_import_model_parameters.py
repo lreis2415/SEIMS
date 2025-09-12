@@ -36,7 +36,7 @@ def read_output_item(output_fields, item):
         if StringClass.string_match(ModelCfgFields.mod_cls, v):
             file_out_dict[ModelCfgFields.mod_cls] = item[i]
         elif StringClass.string_match(ModelCfgFields.output_id, v):
-            file_out_dict[ModelCfgFields.output_id] = item[i]
+            file_out_dict[ModelCfgFields.output_id] = item[i].upper()
         elif StringClass.string_match(ModelCfgFields.desc, v):
             file_out_dict[ModelCfgFields.desc] = item[i]
         elif StringClass.string_match(ModelCfgFields.unit, v):

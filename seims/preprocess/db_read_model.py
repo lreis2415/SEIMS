@@ -6,6 +6,7 @@
     - 18-01-02  - lj - separated from plot_timeseries.
     - 18-02-09  - lj - compatible with Python3.
     - 20-07-20  - lj - take MongoClient object as argument of ReadModelData class.
+    - 25-09-11  - lj - Add configname and taskname of specific model
 """
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems
@@ -27,24 +28,29 @@ from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStat
 
 
 class ReadModelData(object):
-    def __init__(self, conn, dbname):
-        # type: (MongoClient, AnyStr) -> None
+    def __init__(self, conn, dbname, cfgname, taskname):
+        # type: (MongoClient, AnyStr, AnyStr, AnyStr) -> None
         """Initialization.
 
         Args:
             conn: `MongoClient` instance that can be created by ConnectMongoDB(host, port)
             dbname: Main spatial database name
+            cfgname: Config name of specific model, aka submodel
+            taskname: Task name of specific submodel
         """
         self.maindb = conn[dbname]
         print(self.maindb.list_collection_names())
         self.filein_tab = self.maindb[DBTableNames.main_filein]
         self.fileout_tab = self.maindb[DBTableNames.main_fileout]
+        self.fileout_spec_tab = self.maindb[DBTableNames.main_fileout_spec]
         self._climdb_name = self.HydroClimateDBName
         self.climatedb = conn[self._climdb_name]
         self._scenariodb_name = self.ScenarioDBName
         self.scenariodb = conn[self._scenariodb_name]
         self._mode = ''
         self._interval = -1
+        self.cfg_name = cfgname if cfgname != '' else ModelCfgFields.configname_default
+        self.task_name = taskname if taskname != '' else ModelCfgFields.taskname_default
         # UTCTIME
         self._stime = None
         self._etime = None
@@ -95,8 +101,9 @@ class ReadModelData(object):
         """Get simulation mode."""
         if self._mode != '':
             return self._mode.upper()
-        mode_dict = self.filein_tab.find_one({ModelCfgFields.tag: FieldNames.mode})
-        self._mode = mode_dict[ModelCfgFields.value]
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
+        fileindoc = self.filein_tab.find_one(flt)
+        self._mode = fileindoc[ModelCfgFields.mode]
         if is_string(self._mode):
             self._mode = str(self._mode)
         return self._mode.upper()
@@ -106,8 +113,9 @@ class ReadModelData(object):
         # type: (...) -> int
         if self._interval > 0:
             return self._interval
-        findinterval = self.filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.interval})
-        self._interval = int(findinterval[ModelCfgFields.value])
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
+        fileindoc = self.filein_tab.find_one(flt)
+        self._interval = int(fileindoc[ModelCfgFields.interval])
         return self._interval
 
     @property
@@ -133,10 +141,13 @@ class ReadModelData(object):
         # type: (...) -> (datetime, datetime)
         if self._stime is not None and self._etime is not None:
             return self._stime, self._etime
-        st = self.filein_tab.find_one({ModelCfgFields.tag:
-                                           ModelCfgFields.stime})[ModelCfgFields.value]
-        et = self.filein_tab.find_one({ModelCfgFields.tag:
-                                           ModelCfgFields.etime})[ModelCfgFields.value]
+
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
+        fileindoc = self.filein_tab.find_one(flt)
+        if not fileindoc:
+            return None, None
+        st = fileindoc[ModelCfgFields.stime]
+        et = fileindoc[ModelCfgFields.etime]
         st = StringClass.get_datetime(st)
         et = StringClass.get_datetime(et)
         if self._stime is None or st > self._stime:
@@ -159,18 +170,43 @@ class ReadModelData(object):
         """
         if self._output_ids and self._output_items:
             return self._output_ids, self._output_items
-        cursor = self.fileout_tab.find({'$or': [{ModelCfgFields.use: '1'},
-                                                {ModelCfgFields.use: 1}]})
-        if cursor is not None:
-            for item in cursor:
-                self._output_ids.append(item[ModelCfgFields.output_id])
+        # read all available output items from FILE_OUT, we only need OUTPUTID, FILENAME, and TYPE
+        init_out_items = self.fileout_tab.find({}, {ModelCfgFields.output_id: 1,
+                                                    ModelCfgFields.filename: 1,
+                                                    ModelCfgFields.type: 1})
+        if init_out_items is None:
+            print('FILE_OUT seems empty!')
+            return None, None
+        init_out_items_new = dict()
+        for item in init_out_items:
+            if ModelCfgFields.output_id not in item:  # just in case, theoretically won't happen
+                print('Warning: No OUTPUTID exist in ', item)
+            init_out_items_new[item[ModelCfgFields.output_id]] = item
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
+        cursor = self.fileout_spec_tab.find(flt)
+        # cursor = self.fileout_tab.find({'$or': [{ModelCfgFields.use: '1'},
+        #                                         {ModelCfgFields.use: 1}]})
+        if cursor is None:
+            return None, None
+        for item in cursor:
+            if ModelCfgFields.output_id not in item:  # just in case, theoretically won't happen
+                print('Warning: No OUTPUTID exist in ', item)
+            curid = item[ModelCfgFields.output_id]
+            self._output_ids.append(curid)
+            if ModelCfgFields.filename in item:
                 name = item[ModelCfgFields.filename]
-                corename = StringClass.split_string(name, '.')[0]
+            else:
+                name = init_out_items_new[curid][ModelCfgFields.filename]
+            if ModelCfgFields.type in item:
                 types = item[ModelCfgFields.type]
-                if StringClass.string_match(types, 'NONE'):
-                    self._output_items.setdefault(corename, None)
-                else:
-                    self._output_items.setdefault(corename, StringClass.split_string(types, '-'))
+            else:
+                types = init_out_items_new[curid][ModelCfgFields.type]
+
+            corename = StringClass.split_string(name, '.')[0]
+            if StringClass.string_match(types, 'NONE'):
+                self._output_items.setdefault(corename, None)
+            else:
+                self._output_items.setdefault(corename, StringClass.split_string(types, '-'))
         return self._output_ids, self._output_items
 
     def Precipitation(self, subbsn_id, start_time, end_time, timestep):
@@ -225,7 +261,7 @@ class ReadModelData(object):
         """Read observation data of given variables.
 
         Changelog:
-          - 1. 2018-8-29 Use None when the observation of one variables is absent.
+          - 1. 2018-8-29 Use None when the observation of one variable is absent.
 
         Returns:
             1. Observed variable names, [var1, var2, ...]
@@ -353,10 +389,12 @@ def main():
 
     client = ConnectMongoDB(host, port).get_conn()
 
-    rd = ReadModelData(client, dbname)
+    rd = ReadModelData(client, dbname, 'daily',
+                       ModelCfgFields.taskname_default)
+    print(rd.OutputItems())
     print(rd.HydroClimateDBName)
     print(rd.Precipitation(4, stime, etime, 86400))
-    print(rd.Observation(4, ['Q'], stime, etime))
+    print(rd.Observation(4, ['Q'], stime, etime, 86400))
 
 
 if __name__ == "__main__":
