@@ -27,6 +27,7 @@ Configure and run SEIMS model.
     - 2020-09-22 - lj - Add workload (slurm, mpi, etc.) mode. Functions improved.
     - 2023-05-22 - lj - Add cfg_name and fdir_mtd arguments.
     - 2025-09-10 - lj - Add ImportModelIOConfiguration and ImportCalibratedParameters.
+    - 2025-09-11 - lj - Add task_name.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -48,7 +49,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 # import global_mongoclient as MongoDBObj
-from pymongo import UpdateOne
+from pymongo import UpdateOne, ReplaceOne, InsertOne
 from pygeoc.utils import UtilClass, FileClass, StringClass, \
     sysstr, is_string, get_config_parser
 
@@ -71,6 +72,7 @@ class ParseSEIMSConfig(object):
         bin_dir (str): Executable dir of SEIMS. Spaces and unicode characters are not allowed
         model_dir (str): Model dir which contains essential data and configs for running a model
         cfg_name (str): Model config name
+        task_name (str): Specific task name of the model or submodel, default is "SingleRun"
         simu_mode (int): Simulation mode, 0 (DAILY), 1 (STORM)
         timestep (int): Timestep
         db_name (str): Name of main database stored in MongoDB, default is dirname of `model_dir`
@@ -108,6 +110,7 @@ class ParseSEIMSConfig(object):
         self.bin_dir = ''  # type: AnyStr
         self.model_dir = ''  # type: AnyStr
         self.cfg_name = ''  # type: AnyStr
+        self.task_name = ''  # type: AnyStr
         self.simu_mode = 0  # type: int
         self.timestep = 86400  # type: int
         self.db_name = ''  # type: AnyStr
@@ -162,6 +165,12 @@ class ParseSEIMSConfig(object):
         if self.cfg_name and not FileClass.is_dir_exists(self.model_dir + os.sep + self.cfg_name):
             print('WARNING: the specified cfg_name: %s is not existed!' % self.cfg_name)
             self.cfg_name = ''
+        if self.cfg_name == '':
+            self.cfg_name = ModelCfgFields.configname_default
+        self.task_name = get_option_value(cf, sec_name, 'task_name')
+        if self.task_name == '':
+            self.task_name = ModelCfgFields.taskname_default
+
         self.simu_mode = get_option_value(cf, sec_name, 'simu_mode',
                                           valtyp=int, defvalue=0)
         self.timestep = get_option_value(cf, sec_name, 'timestep',
@@ -207,25 +216,26 @@ class ParseSEIMSConfig(object):
 
     @property
     def ConfigDict(self):  # type: () -> Dict[AnyStr, Optional[AnyStr, datetime, int, float]]
-        if not self.config_dict:
-            self.config_dict = {'host': self.host, 'port': self.port,
-                                'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
-                                'cfg_name': self.cfg_name, 'simu_mode': self.simu_mode,
-                                'timestep': self.timestep,
-                                'db_name': self.db_name,
-                                'version': self.version, 'mpi_bin': self.mpi_bin,
-                                'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
-                                'nprocess': self.nprocess, 'npernode': self.npernode,
-                                'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
-                                'nthread': self.nthread,
-                                'fdirmtd': self.fdirmtd, 'lyrmtd': self.lyrmtd,
-                                'scenario_id': self.scenario_id,
-                                'calibration_id': self.calibration_id,
-                                'subbasin_id': self.subbasin_id,
-                                'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
-                                'out_stime': self.out_stime, 'out_etime': self.out_etime,
-                                'workload': self.workload
-                                }
+        self.config_dict = {'host': self.host, 'port': self.port,
+                            'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
+                            'cfg_name': self.cfg_name,
+                            'task_name': self.task_name,
+                            'simu_mode': self.simu_mode,
+                            'timestep': self.timestep,
+                            'db_name': self.db_name,
+                            'version': self.version, 'mpi_bin': self.mpi_bin,
+                            'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile,
+                            'nprocess': self.nprocess, 'npernode': self.npernode,
+                            'nnodes': self.nnodes, 'flag_npernode': self.flag_npernode,
+                            'nthread': self.nthread,
+                            'fdirmtd': self.fdirmtd, 'lyrmtd': self.lyrmtd,
+                            'scenario_id': self.scenario_id,
+                            'calibration_id': self.calibration_id,
+                            'subbasin_id': self.subbasin_id,
+                            'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
+                            'out_stime': self.out_stime, 'out_etime': self.out_etime,
+                            'workload': self.workload
+                            }
         print(self.config_dict)
         return self.config_dict
 
@@ -239,6 +249,7 @@ class MainSEIMS(object):
                  bin_dir='',  # type: AnyStr # The directory of SEIMS binary
                  model_dir='',  # type: AnyStr # The directory of SEIMS model
                  cfg_name='',  # type: AnyStr # The specific model config name
+                 task_name='',  # type: AnyStr # The specific task name
                  simu_mode=-1,  # type: int # Simulation mode, 0 (DAILY) or 1 (STORM)
                  timestep=86400,  # type: int # Timestep
                  db_name='',  # type: AnyStr  # Main spatial dbname which can diff from dirname
@@ -284,6 +295,7 @@ class MainSEIMS(object):
 
         self.model_dir = os.path.abspath(model_dir)
         self.cfg_name = args_dict['cfg_name'] if 'cfg_name' in args_dict else cfg_name
+        self.task_name = args_dict['task_name'] if 'task_name' in args_dict else task_name
         self.simu_mode = args_dict['simu_mode'] if 'simu_mode' in args_dict else simu_mode
 
         self.filein_mongo = 0
@@ -395,8 +407,10 @@ class MainSEIMS(object):
                      '-wp', self.model_dir, '-thread', str(self.nthread),
                      '-fdir', str(self.fdirmtd),
                      '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port]
-        if self.cfg_name:
+        if self.cfg_name and self.cfg_name != ModelCfgFields.configname_default:
             self.cmd += ['-cfg', self.cfg_name]
+        if self.task_name and self.task_name != ModelCfgFields.taskname_default:
+            self.cmd += ['-task', self.task_name]
         if self.scenario_id >= 0:
             self.cmd += ['-sce', str(self.scenario_id)]
         if self.calibration_id >= 0:
@@ -441,7 +455,9 @@ class MainSEIMS(object):
             return
 
         self.SetMongoClient()
-        read_model = ReadModelData(self.mongoclient, self.db_name)
+        read_model = ReadModelData(self.mongoclient, self.db_name,
+                                   self.cfg_name,
+                                   self.task_name)
 
         self.outlet_id = read_model.OutletID
         self.subbasin_count = read_model.SubbasinCount
@@ -493,7 +509,9 @@ class MainSEIMS(object):
         """
         self.ReadMongoDBData()
         self.SetMongoClient()
-        read_model = ReadModelData(self.mongoclient, self.db_name)
+        read_model = ReadModelData(self.mongoclient, self.db_name,
+                                   self.cfg_name,
+                                   self.task_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
                                                                self.start_time, self.end_time,
                                                                self.timestep)
@@ -677,15 +695,21 @@ class MainSEIMS(object):
             model.UnsetMongoClient()
         """
         self.SetMongoClient()
-        read_model = ReadModelData(self.mongoclient, self.db_name)
+        cur_cfg = self.cfg_name if self.cfg_name else ModelCfgFields.configname_default
+        cur_task = self.task_name if self.task_name else ModelCfgFields.taskname_default
+        read_model = ReadModelData(self.mongoclient, self.db_name, cur_cfg, cur_task)
         if self.simu_stime and self.simu_etime:
             stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
             etime_str = self.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
             db = read_model.maindb
-            db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
-                                                             {'$set': {'VALUE': stime_str}})
-            db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
-                                                             {'$set': {'VALUE': etime_str}})
+            flt = {ModelCfgFields.configname: cur_cfg,
+                   ModelCfgFields.taskname: cur_task}
+            set_dict = {ModelCfgFields.stime: stime_str, ModelCfgFields.etime: etime_str}
+            db[DBTableNames.main_filein].find_one_and_update(flt, {'$set': set_dict})
+            # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+            #                                                  {'$set': {'VALUE': stime_str}})
+            # db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+            #                                                  {'$set': {'VALUE': etime_str}})
         self.UnsetMongoClient()
         self.start_time, self.end_time = read_model.SimulationPeriod
 
@@ -708,7 +732,8 @@ class MainSEIMS(object):
         if not isinstance(etime, list):
             etime = [etime]
         self.SetMongoClient()
-        read_model = ReadModelData(self.mongoclient, self.db_name)
+        read_model = ReadModelData(self.mongoclient, self.db_name, self.cfg_name, self.task_name)
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
         for idx, outputid in enumerate(output_ids):
             cur_stime = stime[0]
             if idx < len(stime):
@@ -718,10 +743,10 @@ class MainSEIMS(object):
                 cur_etime = etime[idx]
             cur_stime_str = cur_stime.strftime('%Y-%m-%d %H:%M:%S')
             cur_etime_str = cur_etime.strftime('%Y-%m-%d %H:%M:%S')
-            db = read_model.maindb
-            db[DBTableNames.main_fileout].find_one_and_update({'OUTPUTID': outputid},
-                                                              {'$set': {'STARTTIME': cur_stime_str,
-                                                                        'ENDTIME': cur_etime_str}})
+            col = read_model.maindb[DBTableNames.main_fileout_spec]
+            col.find_one_and_update({**flt, ModelCfgFields.output_id: outputid},
+                                    {'$set': {ModelCfgFields.stime: cur_stime_str,
+                                              ModelCfgFields.etime: cur_etime_str}})
 
     def ImportModelIOConfiguration(self):
         """
@@ -732,95 +757,179 @@ class MainSEIMS(object):
         self.SetMongoClient()
         maindb = self.mongoclient[self.db_name]
         file_in_path = self.modelcfgs.filein
-        # initialize if collection not existed
-        c_list = maindb.list_collection_names()
-        if not StringClass.string_in_list(DBTableNames.main_filein, c_list):
-            maindb.create_collection(DBTableNames.main_filein)
-        else:
-            maindb.drop_collection(DBTableNames.main_filein)
-        file_in_items = read_data_items_from_txt(file_in_path)
+        # initialize if collection not existed automatically
+        model_in_coll = maindb[DBTableNames.main_filein]
+        # build index and make the configname unique
+        model_in_coll.create_index([(ModelCfgFields.configname, 1),
+                                    (ModelCfgFields.taskname, 1)], unique=True)
 
+        file_in_items = read_data_items_from_txt(file_in_path)
+        model_in_field_array = [ModelCfgFields.mode, ModelCfgFields.interval,
+                                ModelCfgFields.stime, ModelCfgFields.etime]
+        model_in_dict = dict()
         for item in file_in_items:
-            file_in_dict = dict()
             values = StringClass.split_string(item[0].strip(), ['|'])
             if len(values) != 2:
                 raise ValueError('One item should only have one Tag and one value string,'
                                  ' split by "|"')
-            file_in_dict[ModelCfgFields.tag] = values[0]
-            file_in_dict[ModelCfgFields.value] = values[1]
-            maindb[DBTableNames.main_filein].insert_one(file_in_dict)
+            if values[0].upper() not in model_in_field_array:
+                raise ValueError('The Tag %s is not supported!' % values[0])
+            model_in_dict[values[0].upper()] = values[1]
+        cur_cfg = ModelCfgFields.configname_default
+        if self.cfg_name != '':
+            cur_cfg = self.cfg_name
+        model_in_dict[ModelCfgFields.configname] = cur_cfg
+        cur_task = ModelCfgFields.taskname_default
+        if self.task_name != '':
+            cur_task = self.task_name
+        model_in_dict[ModelCfgFields.taskname] = cur_task
+        ops = [ReplaceOne({ModelCfgFields.configname: cur_cfg,
+                           ModelCfgFields.taskname: cur_task}, model_in_dict, upsert=True)]
+        MongoUtil.run_bulk_write(model_in_coll, ops)
 
         # begin to import the desired outputs
-        # read initial parameters from txt file
+        # read output settings from txt file (file.out)
         data_items = read_data_items_from_txt(self.modelcfgs.fileout)
         # print(field_names)
-        user_out_field_array = data_items[0]
-        if ModelCfgFields.output_id not in user_out_field_array:
+        model_out_field_array = data_items[0]
+        if ModelCfgFields.output_id not in model_out_field_array:
             if len(data_items[0]) != 7:  # For the compatibility of old code!
                 raise RuntimeError('If header information is not provided,'
                                    'items in file.out must have 7 columns, i.e., OUTPUTID,'
                                    'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
                                    'Otherwise, the OUTPUTID MUST existed in the header!')
-            user_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
-                                    ModelCfgFields.stime, ModelCfgFields.etime,
-                                    ModelCfgFields.interval, ModelCfgFields.interval_unit,
-                                    ModelCfgFields.subbsn]
-            data_items.insert(0, user_out_field_array)
-        # Clean up previous selected outputs
-        coll = maindb[DBTableNames.main_fileout]
-        upd = coll.update_many({ModelCfgFields.use: 1}, {'$set': {ModelCfgFields.use: 0}})
-        print('Unselect %d previous desired outputs!' % (upd.modified_count if upd is not None else 0))
+            model_out_field_array = [ModelCfgFields.output_id, ModelCfgFields.type,
+                                     ModelCfgFields.stime, ModelCfgFields.etime,
+                                     ModelCfgFields.interval, ModelCfgFields.interval_unit,
+                                     ModelCfgFields.subbsn]
+            data_items.insert(0, model_out_field_array)
 
-        update_requests = list()
+        # Clean up previous selected outputs
+        model_out_spec_coll = maindb[DBTableNames.main_fileout_spec]
+        model_out_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg})
+        model_out_spec_coll.create_index([(ModelCfgFields.configname, 1),
+                                          (ModelCfgFields.taskname, 1),
+                                          (ModelCfgFields.output_id, 1)], unique=True)
+        # read all available output id
+        model_out_coll = maindb[DBTableNames.main_fileout]
+        model_out_id_default = list()
+        for d in model_out_coll.find({}, {ModelCfgFields.output_id: 1}):
+            model_out_id_default.append(d.get(ModelCfgFields.output_id))
+        # read file.out and import to FILE_OUT_SPEC
+        insert_requests = list()
         for idx, iitem in enumerate(data_items):
             if idx == 0:
                 continue
-            data_import = read_output_item(user_out_field_array, iitem)
+            data_import = read_output_item(model_out_field_array, iitem)
             data_import[ModelCfgFields.use] = 1
-            cur_filter = dict()
-            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+            if data_import[ModelCfgFields.output_id] not in model_out_id_default:
+                print('Warning: %s is not supported in the default output list! '
+                      'Please check!' % data_import[ModelCfgFields.output_id])
+                continue
+            data_import[ModelCfgFields.configname] = cur_cfg
+            data_import[ModelCfgFields.taskname] = ModelCfgFields.taskname_default
+            insert_requests.append(InsertOne(data_import))
         # execute import operators
-        results = MongoUtil.run_bulk_write(maindb[DBTableNames.main_fileout], update_requests)
-        print('Updated %d desired outputs!' % (results.modified_count
-              if results is not None else 0))
+        results = MongoUtil.run_bulk_write(model_out_spec_coll, insert_requests)
+        print('Insert %d desired outputs for the model %s!' % (results.inserted_count
+              if results is not None else 0, cur_cfg))
         self.UnsetMongoClient()
 
     def ImportCalibratedParameters(self):
         """Read and update calibrated parameters."""
         self.SetMongoClient()
         maindb = self.mongoclient[self.db_name]
-        # initialize bulk operator
         coll = maindb[DBTableNames.main_parameter]
-        # read initial parameters from txt file
-        data_items = read_data_items_from_txt(self.modelcfgs.filecali)
-        # print(field_names)
-        # Clean up the existing calibration settings
+        # Clean up the existing calibration settings, the initial PARAMETERS should not be modified!
         coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
                          {'$set': {ModelParamFields.impact: -9999.}})
         coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
                          {'$set': {ModelParamFields.impact: 1.}})
         coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
                          {'$set': {ModelParamFields.impact: 0.}})
-        update_requests = list()
+
+        cur_cfg = ModelCfgFields.configname_default
+        if self.cfg_name != '':
+            cur_cfg = self.cfg_name
+        cur_task = ModelCfgFields.taskname_default
+        if self.task_name != '':
+            cur_task = self.task_name
+        # find all available parameter ids
+        param_name_default = list()
+        for d in coll.find({}, {ModelParamFields.name: 1}):
+            param_name_default.append(d.get(ModelCfgFields.output_id))
+        # Clean up previous selected calibrated parameters in PARAMETERS_SPEC
+        param_spec_coll = maindb[DBTableNames.main_param_spec]
+        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
+                                     ModelCfgFields.taskname: cur_task})
+        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
+                                      (ModelCfgFields.taskname, 1),
+                                      (ModelParamFields.name, 1)], unique=True)
+        # read calibrated parameters from txt file
+        data_items = read_data_items_from_txt(self.modelcfgs.filecali)
+        insert_requests = list()
         for i, cur_data_item in enumerate(data_items):
             data_import = dict()
-            cur_filter = dict()
             if len(cur_data_item) < 2:
-                raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
-            data_import[ModelParamFields.name] = cur_data_item[0]
+                raise RuntimeError('param.cali MUST contain at least two columns: '
+                                   'NAME and IMPACT!')
+            data_import[ModelParamFields.name] = cur_data_item[0].upper()
             data_import[ModelParamFields.impact] = float(cur_data_item[1])
-            cur_filter[ModelParamFields.name] = cur_data_item[0]
             if len(cur_data_item) >= 3:
-                if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
-                                        ModelParamFields.change_rc, ModelParamFields.change_nc]:
-                    data_import[ModelParamFields.change] = cur_data_item[2]
-
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+                if cur_data_item[2].upper() in [ModelParamFields.change_vc,
+                                                ModelParamFields.change_ac,
+                                                ModelParamFields.change_rc,
+                                                ModelParamFields.change_nc]:
+                    data_import[ModelParamFields.change] = cur_data_item[2].upper()
+            data_import[ModelCfgFields.configname] = cur_cfg
+            data_import[ModelCfgFields.taskname] = cur_task
+            insert_requests.append(InsertOne(data_import))
         # execute update operators
-        results = MongoUtil.run_bulk_write(coll, update_requests)
-        print('Updated %d calibration parameters!' % (results.modified_count
-              if results is not None else 0))
+        results = MongoUtil.run_bulk_write(param_spec_coll, insert_requests)
+        print('Inserted %d calibration parameters for the model %s!' % (results.inserted_count
+              if results is not None else 0, cur_cfg))
+        self.UnsetMongoClient()
+
+    def CopyForNewTask(self, newtask_name):
+        """Copy model settings for a new task name.
+        """
+        self.SetMongoClient()
+        maindb = self.mongoclient[self.db_name]
+        flt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: self.task_name}
+        newflt = {ModelCfgFields.configname: self.cfg_name, ModelCfgFields.taskname: newtask_name}
+        # FILE_IN
+        filein_coll = maindb[DBTableNames.main_filein]
+        filein_coll.delete_many(newflt)
+        docs = [{**d, ModelCfgFields.taskname: newtask_name}
+                for d in filein_coll.find(flt, {"_id": 0})]
+        if docs:
+            filein_coll.insert_many(docs)
+        else:
+            print('Copy FILE_IN item to a new task failed! '
+                  'The task (%s) for config model (%s) does not have record!' %
+                  (self.task_name, self.cfg_name))
+        # FILE_OUT_SPEC
+        fileoutspec_coll = maindb[DBTableNames.main_fileout_spec]
+        fileoutspec_coll.delete_many(newflt)
+        docs = [{**d, ModelCfgFields.taskname: newtask_name}
+                for d in fileoutspec_coll.find(flt, {"_id": 0})]
+        if docs:
+            fileoutspec_coll.insert_many(docs)
+        else:
+            print('Copy FILE_OUT_SPEC item to a new task failed! '
+                  'The task (%s) for config model (%s) does not have record!' %
+                  (self.task_name, self.cfg_name))
+        # PARAMETERS_SPEC
+        paramspec_coll = maindb[DBTableNames.main_param_spec]
+        paramspec_coll.delete_many(newflt)
+        docs = [{**d, ModelCfgFields.taskname: newtask_name}
+                for d in paramspec_coll.find(flt, {"_id": 0})]
+        if docs:
+            paramspec_coll.insert_many(docs)
+        else:
+            print('Copy PARAMETERS_SPEC item to a new task failed! '
+                  'The task (%s) for config model (%s) does not have record!' %
+                  (self.task_name, self.cfg_name))
         self.UnsetMongoClient()
 
     def run(self, do_execute=True):
@@ -872,7 +981,7 @@ class MainSEIMS(object):
         """
         rmtree(self.output_dir, ignore_errors=True)
         self.SetMongoClient()
-        read_model = ReadModelData(self.mongoclient, self.db_name)
+        read_model = ReadModelData(self.mongoclient, self.db_name, self.cfg_name, self.task_name)
         if scenario_id is None:
             scenario_id = self.scenario_id
         if calibration_id is None:
@@ -896,12 +1005,15 @@ class MainSEIMS(object):
         self.output_name += fdirs[self.fdirmtd]
         self.output_name += lyrs[self.lyrmtd]
         self.output_name += '-'
+        if self.task_name and self.task_name != ModelCfgFields.taskname_default:
+            self.output_name += self.task_name
+            self.output_name += '-'
         if self.scenario_id >= 0:
             self.output_name += '%d' % self.scenario_id
         self.output_name += '-'
         if self.calibration_id >= 0:
             self.output_name += '%d' % self.calibration_id
-        if self.cfg_name:
+        if self.cfg_name and self.cfg_name != ModelCfgFields.configname_default:
             self.output_dir = '%s/%s/%s' % (self.model_dir, self.cfg_name, self.output_name)
         else:
             self.output_dir = '%s/%s' % (self.model_dir, self.output_name)
