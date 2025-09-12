@@ -38,17 +38,6 @@ from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 
 
-def write_param_values_to_mongodb(host, port, spatial_db, param_defs, param_values):
-    # update Parameters collection in MongoDB
-    # conn = MongoDBObj.client  # type: MongoClient
-    conn = ConnectMongoDB(host, port).get_conn()
-    db = conn[spatial_db]
-    collection = db['PARAMETERS']
-    collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
-    for idx, pname in enumerate(param_defs['names']):
-        v2str = ','.join(str(v) for v in param_values[:, idx])
-        collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
-
 
 def output_population_details(pops, outdir, gen_num,
                               plot_cfg=None  # type: Optional[PlotConfig]

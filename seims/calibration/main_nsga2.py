@@ -33,6 +33,9 @@ from copy import deepcopy
 from pygeoc.utils import UtilClass
 
 from utility.scoop_func import scoop_log
+from utility import write_cali_param_values_to_mongodb
+from preprocess.text import DBTableNames, ModelCfgUtils, ModelCfgFields, ModelParamFields
+from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
@@ -40,7 +43,7 @@ from run_seims import MainSEIMS
 
 from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
 from calibration.calibrate import TimeseriesData, ObsSimData
-from calibration.userdef import write_param_values_to_mongodb, output_population_details
+from calibration.userdef import output_population_details
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -157,12 +160,13 @@ def main(cfg):
     cali_obj = Calibration(cfg)
 
     # Read observation data just once
-    model_cfg_dict = cali_obj.model.ConfigDict
-    model_obj = MainSEIMS(args_dict=model_cfg_dict)
+    # model_cfg_dict = cali_obj.model.ConfigDict
+    # model_obj = MainSEIMS(args_dict=model_cfg_dict)
+    model_obj = cali_obj.mainmodel
 
-    model_obj.SetMongoClient()
+    # model_obj.SetMongoClient()
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
-    model_obj.UnsetMongoClient()
+    # model_obj.UnsetMongoClient()
 
     # Initialize population
     param_values = cali_obj.initialize(cfg.opt.npop)
@@ -177,8 +181,11 @@ def main(cfg):
     param_values = numpy.array(param_values)
 
     # Write calibrated values to MongoDB
-    write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
-                                  cali_obj.ParamDefs, param_values)
+    conn = ConnectMongoDB(cali_obj.cfg.model.host, cali_obj.cfg.model.port).get_conn()
+    coll = conn[cali_obj.model.db_name][DBTableNames.main_param_spec]
+    write_cali_param_values_to_mongodb(coll, cali_obj.ParamDefs, param_values,
+                                       model_obj.cfg_name, model_obj.task_name)
+
     # get the low and up bound of calibrated parameters
     bounds = numpy.array(cali_obj.ParamDefs['bounds'])
     low = bounds[:, 0]
@@ -292,8 +299,10 @@ def main(cfg):
             ind.id = idx
             param_values.append(ind[:])
         param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
-                                      cali_obj.ParamDefs, param_values)
+
+        write_cali_param_values_to_mongodb(coll, cali_obj.ParamDefs, param_values,
+                                           model_obj.cfg_name, model_obj.task_name)
+
         # Count the model runs, and execute models
         invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)

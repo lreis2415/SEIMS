@@ -57,6 +57,11 @@ class CaliConfig(object):
         if self.cali_stime >= self.cali_etime or (self.calc_validation and
                                                   self.vali_stime >= self.vali_etime):
             raise ValueError("Wrong time settings in [CALI_Settings]!")
+        self.task_name = 'CALI'
+        if cf.has_option('CALI_Settings', 'task_name'):
+            self.task_name = cf.get('CALI_Settings', 'task_name')
+        # The relations between CALI's task_name and SEIMS model's task_name will be handled
+        #   in Calibration(), not here, which only focus on reading configuration info!
 
         # 3. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
@@ -64,8 +69,12 @@ class CaliConfig(object):
         wp = self.model.model_dir
         if self.model.cfg_name != '':
             wp = '%s/%s' % (self.model.model_dir, self.model.cfg_name)
+        if self.task_name:
+            dirstr = self.task_name + '_NSGA2_Gen_%d_Pop_%d'
+        else:
+            dirstr = 'CALI_NSGA2_Gen_%d_Pop_%d'
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, wp, 'CALI_NSGA2_Gen_%d_Pop_%d')
+            self.opt = ParseNSGA2Config(cf, wp, dirstr)
 
         # 4. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)

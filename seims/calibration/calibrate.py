@@ -30,7 +30,7 @@ from preprocess.text import DBTableNames
 from run_seims import MainSEIMS
 from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
-
+from run_seims import ParseSEIMSConfig, create_run_model
 
 class TimeseriesData(object):
     """Time series data, for observation and simulation data."""
@@ -103,13 +103,26 @@ class Calibration(object):
     def __init__(self, cali_cfg, id=-1):
         # type: (CaliConfig, Optional[int]) -> None
         """Initialize."""
-        self.cfg = cali_cfg
-        self.model = cali_cfg.model
+        self.cfg = cali_cfg  # type: CaliConfig
+        self.model = cali_cfg.model  # type: ParseSEIMSConfig
         self.ID = id
         self.param_defs = dict()
-        # run seims related
+        if self.cfg.task_name == '':  # this should not be happened, just in case
+            self.cfg.task_name = 'CALI'  # be consistent with that in CaliConfig
+
+        # initialize SEIMS model
         self.modelrun = False
-        self.reset_simulation_timerange()
+        self.mainmodel = MainSEIMS(args_dict=self.model.ConfigDict)
+        # The self.mainmodel MUST be already configured in MongoDB,
+        #   otherwise, the following copy function will throw exception.
+        # First, we copy exactly the self.mainmodel as another 'submodel' using Cali's task name,
+        #   including FILE_IN, FILE_OUTPUT_SPEC, and PARAMETERS_SPEC.
+        self.mainmodel.CopyForNewTask(self.cfg.task_name)
+        # then, override self.model's task name
+        self.model.task_name = self.cfg.task_name
+        self.mainmodel.task_name = self.cfg.task_name
+        # then, reset simulation time period according to configurations already read in mainmodel
+        self.mainmodel.ResetSimulationPeriod()
 
     @property
     def ParamDefs(self):
@@ -160,7 +173,7 @@ class Calibration(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        # conn = MongoDBObj.client  # type: MongoClient
+
         conn = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port).get_conn()
         db = conn[self.cfg.model.db_name]
         stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
