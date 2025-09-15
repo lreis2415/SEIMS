@@ -10,13 +10,16 @@
  *          lj - 18-May-2021 - Force each stream grid flow into one downstream grid.\n
  *          lj - 30-Jul-2021 - Add new layering method named _EVEN.\n
  *          lj - 07-Sep-2025 - Improve evenly distributed layering algorithm.\n
+ *          lj - 15-Sep-2025 - Separate layering outputs: ROUTING_LAYERS_HILLSLOPE and _CHANNEL
  * \description:
  *               Output lists of both local files and MongoDB GridFS:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
- *               2. X_ROUTING_LAYERS_UPDOWN{_FD}, X_ROUTING_LAYERS_DOWNUP{_FD}, and X_ROUTING_LAYERS_EVEN{_FD}
- *               3. X_FLOWIN_FRACTION_{FD}, X_FLOWOUT_FRACTION_{FD}. For `DINF` and `MFDMD`.
+ *               2. X_ROUTING_LAYERS_{LyrMtd}{_CellType}_{FD}
+ *               3. X_FLOWIN_FRACTION_{FD}, X_FLOWOUT_FRACTION_{FD}. For `DINF`, `MFDMD`, and any user-specific name.
  *               Where, `X` is subbasinID (0 for the whole basin)
- *                      `FD` is the flow direction algorithm, include `D8`, `DINF`, and `MFDMD`.
+ *                      `FD` is the flow direction algorithm, including `D8`, `DINF`, `MFDMD`, and user-specific name.
+ *                      `LyrMtd` is the grid layering method, including `UPDOWN`, `DOWNUP`, and `EVEN`.
+ *                      `CellType` is the type of grid cells, including `HILLSLOPE`, `CHANNEL`, and none (means all).
  *
  */
 
@@ -64,9 +67,10 @@ typedef float FLTPT;
 * \brief Algorithm of flow direction
 */
 enum flowDirTypes {
-    FD_D8 = 0,   /**< Default, D8 single flow direction */
-    FD_Dinf = 1, /**< Dinf (Tarboton, 1997) */
-    FD_MFDmd = 2 /**< MFD-md (Qin et al., 2007) */
+    FD_D8 = 0,    /**< Default, D8 single flow direction */
+    FD_Dinf = 1,  /**< Dinf (Tarboton, 1997) */
+    FD_MFDmd = 2, /**< MFD-md (Qin et al., 2007) */
+    FD_USER = 3   /**< Any flow direction algorithm name */
 };
 
 // flow direction coding system in ArcGIS
@@ -299,6 +303,10 @@ public:
      */
     bool Execute();
     /*!
+     * \brief Create stream grid from Shapefile
+     */
+    bool LoadStreamData();
+    /*!
      * \brief Load flow data
      */
     virtual bool LoadData() = 0;
@@ -385,6 +393,8 @@ protected:
     bool use_mongo_;         ///< Use MongoDB or file
     bool has_mask_;          ///< User-specific mask raster file
     bool force_outlet_;      ///< Force stream cells as outlets to reduce hillslope routing layers
+    bool force_inbasin_;     ///< Force all cells flow inside the watershed
+    int decimals_;           ///< Round to N decimal places for flow fractions
     flowDirTypes fdtype_;    ///< Flow direction model
     string fdtype_str_;      ///< Flow direction model's name
     const char* output_dir_; ///< Output directory
@@ -398,12 +408,14 @@ protected:
     int** pos_rowcol_;       ///< Positions of valid cells, e.g., (row, col) coordinates
     IntRaster* mask_;        ///< Mask raster data
     IntRaster* flowdir_;     ///< Flow direction raster data, must be integer datatype
+    FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
     int* flowdir_matrix_;    ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
     int* reverse_dir_;       ///< Compressed reversed direction
+    FLTPT** flowfrac_matrix_;///< Flow fraction of the first flow out direction (valid cell number)
     int* stream_matrix_;     ///< (Optional) Stream data with a length of n_valid_cells_
     int* flow_in_num_;       ///< Count of flow in cells, with a length of n_valid_cells_
     int* flow_in_acc_;       ///< Accumulative count of flow in cells
-    int flow_in_count_;      ///< All flow in times
+    int flow_in_count_;      ///< All flow in count
     /*!
      * \brief Stores flow in cells' indexes of each valid cells, which can be
      *          parsed as 2D array. Data length is flow_in_count_ + n_valid_cells_ + 1
@@ -418,10 +430,12 @@ protected:
      *                3          2                7,8
      */
     int* flow_in_cells_;
+    FLTPT* flowin_fracs_;       ///< Flow in fractions from each cell's upstream
     int* flow_out_num_;         ///< Count of flow out cells, with a length of n_valid_cells_
     int* flow_out_acc_;         ///< Accumulative count of flow out cells
     int flow_out_count_;        ///< All flow out times
     int* flow_out_cells_;       ///< Indexes of each cell's flow out
+    FLTPT* flowout_fracs_;      ///< Flow out fractions of each cell
     vector<vector<int> > n_layer_cells_updown_; ///< layer index (not number) - indexes of cells in Up-Down order
     vector<vector<int> > n_layer_cells_downup_; ///< layer index (not number) - indexes of cells in Down-Up order
     vector<vector<int> > n_layer_cells_evenly_; ///< layer index (not number) - indexes of cells in Evenly order
@@ -432,12 +446,17 @@ protected:
     int* layer_cells_downup_; ///< cell indexes of each layer in Down-Up order with a length of n_valid_cells_ + n_layer_count_ + 1
     int* layer_cells_evenly_; ///< cell indexes of each layer in Evenly order with a length of n_valid_cells_ + n_layer_count_ + 1
     string flowdir_name_;     ///< Flow direction file name
+    string flowfrac_name_;    ///< Flow fraction raster file recording the fraction of first direction
+    vector<string> flowfrac_names_; ///< Flow fraction raster files recording the fractions of each direction by ccw
+    string flowfrac_corename_;      ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     string mask_name_;        ///< Mask raster file name
     string stream_file_;      ///< Stream shapefile name
 
     /** Output file names **/
     string flowin_index_name_;    ///< Flow in index
+    string flowin_frac_name_;     ///< Flow fraction of each flow in cell
     string flowout_index_name_;   ///< Flow out index
+    string flowout_frac_name_;    ///< Flow fraction of each flow out cell
     string layering_updown_name_; ///< Routing layers from sources
     string layering_downup_name_; ///< Routing layers from outlet
     string layering_evenly_name_; ///< Routing layers evenly
@@ -472,24 +491,11 @@ public:
 
     ~GridLayeringDinf();
 
-    void OutputFilenames(flowDirTypes ftype) OVERRIDE;
+    //void OutputFilenames(flowDirTypes ftype) OVERRIDE;
 
     bool LoadData() OVERRIDE;
-    bool OutputFlowIn() OVERRIDE;
-    bool OutputFlowOut() OVERRIDE;
-
-private:
-    bool force_inbasin_;               ///< Force all cells flow inside the watershed
-    int decimals_;                     ///< Round to N decimal places for flow fractions
-    string flowfrac_name_;             ///< Flow fraction raster file recording the fraction of first direction
-    FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
-    FLTPT* flowfrac_matrix_;           ///< Flow fraction of the first flow out direction (valid cell number)
-    FLTPT* flowin_fracs_;              ///< Flow in fractions from each cell's upstream
-    FLTPT* flowout_fracs_;             ///< Flow out fractions of each cell
-
-    /** Output file names **/
-    string flowin_frac_name_;  ///< Flow fraction of each flow in cell
-    string flowout_frac_name_; ///< Flow fraction of each flow out cell
+    // bool OutputFlowIn() OVERRIDE;
+    // bool OutputFlowOut() OVERRIDE;
 };
 
 class GridLayeringMFDmd: public GridLayering {
@@ -505,24 +511,20 @@ public:
 
     ~GridLayeringMFDmd();
 
-    void OutputFilenames(flowDirTypes ftype) OVERRIDE;
+    //void OutputFilenames(flowDirTypes ftype) OVERRIDE;
 
     bool LoadData() OVERRIDE;
-    bool OutputFlowIn() OVERRIDE;
-    bool OutputFlowOut() OVERRIDE;
 
-private:
-    bool force_inbasin_;               ///< Force all cells flow inside the watershed
-    int decimals_;                     ///< Round to N decimal places for flow fractions
-    string flowfrac_corename_;         ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
-    vector<string> flowfrac_names_;    ///< Flow fraction raster files recording the fractions of each direction by ccw
-    FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
-    FLTPT** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
-    FLTPT* flowin_fracs_;              ///< Flow in fraction
-    FLTPT* flowout_fracs_;             ///< Flow fractions of each cell's flow in
+    //bool OutputFlowIn() OVERRIDE;
+    //bool OutputFlowOut() OVERRIDE;
 
-    /** Output file names **/
-    string flowin_frac_name_;  ///< Flow fraction of each flow in cell
-    string flowout_frac_name_; ///< Flow fraction of each flow out cell
+// private:
+//     bool force_inbasin_;               ///< Force all cells flow inside the watershed
+//     int decimals_;                     ///< Round to N decimal places for flow fractions
+//
+//     FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
+//     FLTPT** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
+//     FLTPT* flowin_fracs_;              ///< Flow in fraction
+//     FLTPT* flowout_fracs_;             ///< Flow fractions of each cell's flow in
 };
 #endif /* GRID_LAYERING_H */

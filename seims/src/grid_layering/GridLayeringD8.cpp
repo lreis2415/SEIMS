@@ -60,16 +60,16 @@ bool GridLayeringD8::LoadData() {
     if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) {
         flowdir_->ReplaceNoData(out_nodata_);
     }
-
-    // Create stream grid from Shapefile
-    if (stream_file_.empty()) {
-        return true;
+    // Create flow fraction matrix, for compatible with multiple flow directions
+    Initialize2DArray(n_valid_cells_, 8, flowfrac_matrix_, out_nodata_);
+    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+        int flow_dir = flowdir_matrix_[valid_idx];
+        if (flow_dir < 0) {
+            continue; // This will not happen, just in case!
+        }
+        int fd_idx = find_flow_direction_index_ccw(flow_dir);
+        flowfrac_matrix_[valid_idx][fd_idx - 1] = 1.;
     }
 
-    if (nullptr == stream_matrix_) Initialize1DArray(n_valid_cells_, stream_matrix_, mask_->GetNoDataValue());
-    vector<vector<ROW_COL> > stream_rc;
-    bool flag = read_stream_vertexes(stream_file_, mask_, stream_rc, stream_matrix_);
-    if (!flag) return false;
-
-    return true;
+    return LoadStreamData();
 }

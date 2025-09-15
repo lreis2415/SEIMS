@@ -6,6 +6,8 @@
 #include <set>
 #include <climits>
 
+#include "NormalizeFlowFractions.h"
+
 using std::queue;
 using std::set;
 
@@ -1017,39 +1019,35 @@ static void DebugPrintSlice(
 
 #ifdef USE_MONGODB
 GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) : gfs_(gfs), use_mongo_(true),
-    has_mask_(false), force_outlet_(false), fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
+    has_mask_(false), force_outlet_(false), force_inbasin_(true), decimals_(4),
+    fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
-    mask_(nullptr), flowdir_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr), stream_matrix_(nullptr),
-    flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr),
-    flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr),
+    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
+    flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
+    flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
+    flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
     layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
     layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
 #endif
 
-GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), use_mongo_(false), has_mask_(false),
-                                                               force_outlet_(false),
-                                                               fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
-                                                               n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
-                                                               n_valid_cells_(-1), n_layer_count_(-1),
-                                                               pos_index_(nullptr), pos_rowcol_(nullptr),
-                                                               mask_(nullptr), flowdir_(nullptr),
-                                                               flowdir_matrix_(nullptr), reverse_dir_(nullptr),
-                                                               stream_matrix_(nullptr),
-                                                               flow_in_num_(nullptr), flow_in_acc_(nullptr),
-                                                               flow_in_count_(0), flow_in_cells_(nullptr),
-                                                               flow_out_num_(nullptr), flow_out_acc_(nullptr),
-                                                               flow_out_count_(0), flow_out_cells_(nullptr),
-                                                               layers_updown_(nullptr), layers_downup_(nullptr),
-                                                               layers_evenly_(nullptr),
-                                                               layer_cells_updown_(nullptr),
-                                                               layer_cells_downup_(nullptr),
-                                                               layer_cells_evenly_(nullptr) {
+GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), use_mongo_(false),
+    has_mask_(false), force_outlet_(false), force_inbasin_(true), decimals_(4),
+    fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
+    n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
+    n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
+    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
+    flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
+    flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
+    flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
+    layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
+    layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
 
 GridLayering::~GridLayering() {
     delete flowdir_; // flowdir_matrix_ will be released too.
+    if (nullptr != flow_fraction_) delete flow_fraction_; // flowfrac_matrix_ will be released too.
     if (has_mask_) delete mask_;
     if (nullptr != pos_index_) Release1DArray(pos_index_);
     if (nullptr != reverse_dir_) Release1DArray(reverse_dir_);
@@ -1057,9 +1055,11 @@ GridLayering::~GridLayering() {
     if (nullptr != flow_in_num_) Release1DArray(flow_in_num_);
     if (nullptr != flow_in_acc_) Release1DArray(flow_in_acc_);
     if (nullptr != flow_in_cells_) Release1DArray(flow_in_cells_);
+    if (nullptr != flowin_fracs_) Release1DArray(flowin_fracs_);
     if (nullptr != flow_out_num_) Release1DArray(flow_out_num_);
     if (nullptr != flow_out_acc_) Release1DArray(flow_out_acc_);
     if (nullptr != flow_out_cells_) Release1DArray(flow_out_cells_);
+    if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
     if (nullptr != layers_updown_) Release1DArray(layers_updown_);
     if (nullptr != layers_downup_) Release1DArray(layers_downup_);
     if (nullptr != layers_evenly_) Release1DArray(layers_evenly_);
@@ -1067,6 +1067,18 @@ GridLayering::~GridLayering() {
     if (nullptr != layer_cells_downup_) Release1DArray(layer_cells_downup_);
     if (nullptr != layer_cells_evenly_) Release1DArray(layer_cells_evenly_);
 }
+
+bool GridLayering::LoadStreamData() {
+    if (stream_file_.empty()) {
+        return true;
+    }
+    if (nullptr == stream_matrix_ && n_valid_cells_ > 0) {
+        Initialize1DArray(n_valid_cells_, stream_matrix_, mask_->GetNoDataValue());
+    } else return false;
+    vector<vector<ROW_COL> > stream_rc;
+    return read_stream_vertexes(stream_file_, mask_, stream_rc, stream_matrix_);
+}
+
 
 bool GridLayering::Execute() {
     if (!LoadData()) return false;
@@ -1148,7 +1160,9 @@ void GridLayering::OutputFilenames(flowDirTypes ftype) {
             break;
     }
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_" + fdtype_str_;
+    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_" + fdtype_str_;
+    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
     layering_updown_name_ = prefix + "_ROUTING_LAYERS_UPDOWN_" + fdtype_str_;
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWNUP_" + fdtype_str_;
     layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_" + fdtype_str_;
@@ -1306,17 +1320,73 @@ bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, int *
     return flag;
 }
 #endif
+//
+// bool GridLayering::OutputFlowIn() {
+//     GetReverseDirMatrix();
+//     if (!BuildFlowInCellsArray()) return false;
+//     string header = "ID\tUpstreamCount\tUpstreamID";
+//     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_);
+//     if (use_mongo_) {
+// #ifdef USE_MONGODB
+//         done = done && OutputArrayAsGfs(flowin_index_name_,
+//                                         n_valid_cells_ + flow_in_count_ + 1,
+//                                         flow_in_cells_);
+// #endif
+//     }
+//     return done;
+// }
+//
+//
+// bool GridLayering::OutputFlowOut() {
+//     CountFlowOutCells();
+//     if (!BuildFlowOutCellsArray()) return false;
+//     string header = "ID\tDownstreamCount\tDownstreamID";
+//     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_);
+//     if (use_mongo_) {
+// #ifdef USE_MONGODB
+//         done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1,
+//                                 flow_out_cells_);
+// #endif
+//     }
+//     return done;
+// }
+
 
 bool GridLayering::OutputFlowIn() {
     GetReverseDirMatrix();
     if (!BuildFlowInCellsArray()) return false;
-    string header = "ID\tUpstreamCount\tUpstreamID";
-    bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_);
+
+    int datalength = n_valid_cells_ + flow_in_count_ + 1;
+    if (nullptr == flowin_fracs_) Initialize1DArray(datalength, flowin_fracs_, 0.f);
+    flowin_fracs_[0] = CVT_FLT(n_valid_cells_);
+    int count = 1;
+    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+        flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
+        if (flow_in_num_[valid_idx] == 0) continue;
+        for (int iin = 0; iin < flow_in_num_[valid_idx]; iin++) {
+            int in_cell_idx = 1 + valid_idx + 1 + iin;
+            if (valid_idx > 0) in_cell_idx += flow_in_acc_[valid_idx - 1];
+            int source_index = flow_in_cells_[in_cell_idx];
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[valid_idx][0] - pos_rowcol_[source_index][0],
+                                                       pos_rowcol_[valid_idx][1] - pos_rowcol_[source_index][1]);
+
+            FLTPT flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
+            if (flowfrac < 0) continue;
+            flowin_fracs_[count++] = flowfrac;
+        }
+    }
+
+    if (count != datalength) {
+        cout << "Build flow in fraction array failed!" << endl;
+        return false;
+    }
+
+    string header = "ID\tUpstreamCount\tUpstreamID\tFlowInFraction";
+    bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_,
-                                        n_valid_cells_ + flow_in_count_ + 1,
-                                        flow_in_cells_);
+        done = done && OutputArrayAsGfs(flowin_index_name_, count, flow_in_cells_) &&
+                OutputArrayAsGfs(flowin_frac_name_, count, flowin_fracs_);
 #endif
     }
     return done;
@@ -1326,16 +1396,70 @@ bool GridLayering::OutputFlowIn() {
 bool GridLayering::OutputFlowOut() {
     CountFlowOutCells();
     if (!BuildFlowOutCellsArray()) return false;
-    string header = "ID\tDownstreamCount\tDownstreamID";
-    bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_);
+
+    if (nullptr == flowout_fracs_) {
+        Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+    }
+    flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
+    int count = 1;
+    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+        int i = pos_rowcol_[valid_idx][0];
+        int j = pos_rowcol_[valid_idx][1];
+        int flowcount = flow_out_num_[valid_idx];
+        flowout_fracs_[count++] = CVT_FLT(flowcount); // maybe 0
+        if (flowcount <= 0) {
+            flowout_fracs_[count - 1] = 0.;
+            continue;
+        }
+        vector<FLTPT> fracin(flowcount, 0.);
+        vector<int> flowidxs(flowcount, -1);
+        for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
+            int down_cell_idx = 1 + valid_idx + 1 + iout;
+            if (valid_idx > 0) {
+                down_cell_idx += flow_out_acc_[valid_idx - 1];
+            }
+            int down_cell = flow_out_cells_[down_cell_idx];
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
+                                                       pos_rowcol_[down_cell][1] - j);
+            FLTPT curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
+            if (curfract < 0) {
+                cout << "No flow fraction found in the flow direction, "
+                        "valid index: " << valid_idx << ", row: " << pos_rowcol_[valid_idx][0] <<
+                        ", col: " << pos_rowcol_[valid_idx][1] <<
+                        ", flow out count: " << flow_out_num_[valid_idx] <<
+                        ", compressed direction: " << flowdir_matrix_[valid_idx] <<
+                        ", component direction: " << fdccw[fd_idx] << "\n";
+                return false;
+            }
+            flowout_fracs_[count++] = curfract;
+            fracin[iout] = curfract;
+            flowidxs[iout] = fd_idx - 1;
+        }
+        vector<FLTPT> fracout;
+        normalize_flow_fraction(fracin, decimals_, fracout);
+        for (int flow_idx = flowcount - 1; flow_idx >= 0; flow_idx--) {
+            int actual_idx = flowcount - 1 - flow_idx;
+            flowout_fracs_[count - 1 - flow_idx] = fracout[actual_idx];
+            flowfrac_matrix_[valid_idx][flowidxs[actual_idx]] = fracout[actual_idx]; // write back
+        }
+    }
+
+    if (count != flow_out_count_ + n_valid_cells_ + 1) {
+        cout << "Build flow out fraction array failed!" << endl;
+        return false;
+    }
+
+    string header = "ID\tDownstreamCount\tDownstreamID\tFlowOutFraction";
+    bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
-        done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1,
-                                flow_out_cells_);
+        done = OutputArrayAsGfs(flowout_index_name_, count, flow_out_cells_) &&
+                OutputArrayAsGfs(flowout_frac_name_, count, flowout_fracs_);
 #endif
     }
     return done;
 }
+
 
 bool GridLayering::GridLayeringFromSource() {
     Initialize1DArray(n_valid_cells_, layers_updown_, out_nodata_);
@@ -1368,7 +1492,7 @@ bool GridLayering::GridLayeringFromSource() {
         for (int i_in_layer = 0; i_in_layer < num_last_layer; i_in_layer++) {
             valid_idx = last_layer[i_in_layer];
             lyr_cells.emplace_back(valid_idx);
-            layers_updown_[valid_idx] = CVT_FLT(cur_num);
+            layers_updown_[valid_idx] = cur_num;
             int dir = flowdir_matrix_[valid_idx];
             if (dir <= 0) {
                 continue;

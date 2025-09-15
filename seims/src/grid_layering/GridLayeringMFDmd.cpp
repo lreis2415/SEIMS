@@ -1,12 +1,10 @@
 #include "GridLayering.h"
-#include "NormalizeFlowFractions.h"
 
 #ifdef USE_MONGODB
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir,
                                      const char* stream_file/*=nullptr*/,
                                      bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
-    GridLayering(id, gfs, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
-    flowout_fracs_(nullptr) {
+    GridLayering(id, gfs, out_dir) {
     // outputs
     OutputFilenames(FD_MFDmd);
     // inputs
@@ -25,8 +23,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
                                      const char* fd_file, const char* fraction_file,
                                      const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
                                      bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
-    GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
-    flowout_fracs_(nullptr) {
+    GridLayering(id, out_dir) {
     string prefix = ValueToString(subbasin_id_);
     // inputs
     flowdir_name_ = fd_file;
@@ -46,17 +43,15 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
 }
 
 GridLayeringMFDmd::~GridLayeringMFDmd() {
-    delete flow_fraction_;
-    if (nullptr != flowin_fracs_) Release1DArray(flowin_fracs_);
-    if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
+    // Anything to do here.
 }
 
-void GridLayeringMFDmd::OutputFilenames(flowDirTypes ftype) {
-    GridLayering::OutputFilenames(ftype);
-    string prefix = ValueToString(subbasin_id_);
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
-}
+// void GridLayeringMFDmd::OutputFilenames(flowDirTypes ftype) {
+//     GridLayering::OutputFilenames(ftype);
+//     string prefix = ValueToString(subbasin_id_);
+//     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
+//     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
+// }
 
 bool GridLayeringMFDmd::LoadData() {
     if (use_mongo_) {
@@ -103,7 +98,8 @@ bool GridLayeringMFDmd::LoadData() {
                 "MFD-md flow direction and flow fraction raster data!" << endl;
         return false;
     }
-
+    return LoadStreamData();
+    /*
     // Force stream grid to flow into a single downstream cell
     if (stream_file_.empty())
         return true;
@@ -134,113 +130,113 @@ bool GridLayeringMFDmd::LoadData() {
             }
         }
     }
-
+*/
     return true;
 }
-
-bool GridLayeringMFDmd::OutputFlowIn() {
-    GetReverseDirMatrix();
-    if (!BuildFlowInCellsArray()) return false;
-
-    int datalength = n_valid_cells_ + flow_in_count_ + 1;
-    if (nullptr == flowin_fracs_) Initialize1DArray(datalength, flowin_fracs_, 0.f);
-    flowin_fracs_[0] = CVT_FLT(n_valid_cells_);
-    int count = 1;
-    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
-        if (flow_in_num_[valid_idx] == 0) continue;
-        for (int iin = 0; iin < flow_in_num_[valid_idx]; iin++) {
-            int in_cell_idx = 1 + valid_idx + 1 + iin;
-            if (valid_idx > 0) in_cell_idx += flow_in_acc_[valid_idx - 1];
-            int source_index = flow_in_cells_[in_cell_idx];
-            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[valid_idx][0] - pos_rowcol_[source_index][0],
-                                                       pos_rowcol_[valid_idx][1] - pos_rowcol_[source_index][1]);
-
-            FLTPT flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
-            if (flowfrac < 0) continue;
-            flowin_fracs_[count++] = flowfrac;
-        }
-    }
-
-    if (count != datalength) {
-        cout << "Build flow in fraction array failed!" << endl;
-        return false;
-    }
-
-    string header = "ID\tUpstreamCount\tUpstreamID\tFlowInFraction";
-    bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
-    if (use_mongo_) {
-#ifdef USE_MONGODB
-        done = done && OutputArrayAsGfs(flowin_index_name_, count, flow_in_cells_) &&
-                OutputArrayAsGfs(flowin_frac_name_, count, flowin_fracs_);
-#endif
-    }
-    return done;
-}
-
-bool GridLayeringMFDmd::OutputFlowOut() {
-    CountFlowOutCells();
-    if (!BuildFlowOutCellsArray()) return false;
-
-    if (nullptr == flowout_fracs_) {
-        Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
-    }
-    flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
-    int count = 1;
-    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
-        int i = pos_rowcol_[valid_idx][0];
-        int j = pos_rowcol_[valid_idx][1];
-        int flowcount = flow_out_num_[valid_idx];
-        flowout_fracs_[count++] = CVT_FLT(flowcount); // maybe 0
-        if (flowcount <= 0) {
-            flowout_fracs_[count - 1] = 0.;
-            continue;
-        }
-        vector<FLTPT> fracin(flowcount, 0.);
-        vector<int> flowidxs(flowcount, -1);
-        for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
-            int down_cell_idx = 1 + valid_idx + 1 + iout;
-            if (valid_idx > 0) {
-                down_cell_idx += flow_out_acc_[valid_idx - 1];
-            }
-            int down_cell = flow_out_cells_[down_cell_idx];
-            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
-                                                       pos_rowcol_[down_cell][1] - j);
-            FLTPT curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
-            if (curfract < 0) {
-                cout << "No flow fraction found in the flow direction, "
-                        "valid index: " << valid_idx << ", row: " << pos_rowcol_[valid_idx][0] <<
-                        ", col: " << pos_rowcol_[valid_idx][1] <<
-                        ", flow out count: " << flow_out_num_[valid_idx] <<
-                        ", compressed direction: " << flowdir_matrix_[valid_idx] <<
-                        ", component direction: " << fdccw[fd_idx] << "\n";
-                return false;
-            }
-            flowout_fracs_[count++] = curfract;
-            fracin[iout] = curfract;
-            flowidxs[iout] = fd_idx - 1;
-        }
-        vector<FLTPT> fracout;
-        normalize_flow_fraction(fracin, decimals_, fracout);
-        for (int flow_idx = flowcount - 1; flow_idx >= 0; flow_idx--) {
-            int actual_idx = flowcount - 1 - flow_idx;
-            flowout_fracs_[count - 1 - flow_idx] = fracout[actual_idx];
-            flowfrac_matrix_[valid_idx][flowidxs[actual_idx]] = fracout[actual_idx]; // write back
-        }
-    }
-
-    if (count != flow_out_count_ + n_valid_cells_ + 1) {
-        cout << "Build flow out fraction array failed!" << endl;
-        return false;
-    }
-
-    string header = "ID\tDownstreamCount\tDownstreamID\tFlowOutFraction";
-    bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
-    if (use_mongo_) {
-#ifdef USE_MONGODB
-        done = OutputArrayAsGfs(flowout_index_name_, count, flow_out_cells_) &&
-                OutputArrayAsGfs(flowout_frac_name_, count, flowout_fracs_);
-#endif
-    }
-    return done;
-}
+//
+// bool GridLayeringMFDmd::OutputFlowIn() {
+//     GetReverseDirMatrix();
+//     if (!BuildFlowInCellsArray()) return false;
+//
+//     int datalength = n_valid_cells_ + flow_in_count_ + 1;
+//     if (nullptr == flowin_fracs_) Initialize1DArray(datalength, flowin_fracs_, 0.f);
+//     flowin_fracs_[0] = CVT_FLT(n_valid_cells_);
+//     int count = 1;
+//     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+//         flowin_fracs_[count++] = CVT_FLT(flow_in_num_[valid_idx]);
+//         if (flow_in_num_[valid_idx] == 0) continue;
+//         for (int iin = 0; iin < flow_in_num_[valid_idx]; iin++) {
+//             int in_cell_idx = 1 + valid_idx + 1 + iin;
+//             if (valid_idx > 0) in_cell_idx += flow_in_acc_[valid_idx - 1];
+//             int source_index = flow_in_cells_[in_cell_idx];
+//             int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[valid_idx][0] - pos_rowcol_[source_index][0],
+//                                                        pos_rowcol_[valid_idx][1] - pos_rowcol_[source_index][1]);
+//
+//             FLTPT flowfrac = flowfrac_matrix_[source_index][fd_idx - 1];
+//             if (flowfrac < 0) continue;
+//             flowin_fracs_[count++] = flowfrac;
+//         }
+//     }
+//
+//     if (count != datalength) {
+//         cout << "Build flow in fraction array failed!" << endl;
+//         return false;
+//     }
+//
+//     string header = "ID\tUpstreamCount\tUpstreamID\tFlowInFraction";
+//     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_, flowin_fracs_);
+//     if (use_mongo_) {
+// #ifdef USE_MONGODB
+//         done = done && OutputArrayAsGfs(flowin_index_name_, count, flow_in_cells_) &&
+//                 OutputArrayAsGfs(flowin_frac_name_, count, flowin_fracs_);
+// #endif
+//     }
+//     return done;
+// }
+//
+// bool GridLayeringMFDmd::OutputFlowOut() {
+//     CountFlowOutCells();
+//     if (!BuildFlowOutCellsArray()) return false;
+//
+//     if (nullptr == flowout_fracs_) {
+//         Initialize1DArray(flow_out_count_ + n_valid_cells_ + 1, flowout_fracs_, 0.f);
+//     }
+//     flowout_fracs_[0] = CVT_FLT(n_valid_cells_);
+//     int count = 1;
+//     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+//         int i = pos_rowcol_[valid_idx][0];
+//         int j = pos_rowcol_[valid_idx][1];
+//         int flowcount = flow_out_num_[valid_idx];
+//         flowout_fracs_[count++] = CVT_FLT(flowcount); // maybe 0
+//         if (flowcount <= 0) {
+//             flowout_fracs_[count - 1] = 0.;
+//             continue;
+//         }
+//         vector<FLTPT> fracin(flowcount, 0.);
+//         vector<int> flowidxs(flowcount, -1);
+//         for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
+//             int down_cell_idx = 1 + valid_idx + 1 + iout;
+//             if (valid_idx > 0) {
+//                 down_cell_idx += flow_out_acc_[valid_idx - 1];
+//             }
+//             int down_cell = flow_out_cells_[down_cell_idx];
+//             int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
+//                                                        pos_rowcol_[down_cell][1] - j);
+//             FLTPT curfract = flowfrac_matrix_[valid_idx][fd_idx - 1];
+//             if (curfract < 0) {
+//                 cout << "No flow fraction found in the flow direction, "
+//                         "valid index: " << valid_idx << ", row: " << pos_rowcol_[valid_idx][0] <<
+//                         ", col: " << pos_rowcol_[valid_idx][1] <<
+//                         ", flow out count: " << flow_out_num_[valid_idx] <<
+//                         ", compressed direction: " << flowdir_matrix_[valid_idx] <<
+//                         ", component direction: " << fdccw[fd_idx] << "\n";
+//                 return false;
+//             }
+//             flowout_fracs_[count++] = curfract;
+//             fracin[iout] = curfract;
+//             flowidxs[iout] = fd_idx - 1;
+//         }
+//         vector<FLTPT> fracout;
+//         normalize_flow_fraction(fracin, decimals_, fracout);
+//         for (int flow_idx = flowcount - 1; flow_idx >= 0; flow_idx--) {
+//             int actual_idx = flowcount - 1 - flow_idx;
+//             flowout_fracs_[count - 1 - flow_idx] = fracout[actual_idx];
+//             flowfrac_matrix_[valid_idx][flowidxs[actual_idx]] = fracout[actual_idx]; // write back
+//         }
+//     }
+//
+//     if (count != flow_out_count_ + n_valid_cells_ + 1) {
+//         cout << "Build flow out fraction array failed!" << endl;
+//         return false;
+//     }
+//
+//     string header = "ID\tDownstreamCount\tDownstreamID\tFlowOutFraction";
+//     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_, flowout_fracs_);
+//     if (use_mongo_) {
+// #ifdef USE_MONGODB
+//         done = OutputArrayAsGfs(flowout_index_name_, count, flow_out_cells_) &&
+//                 OutputArrayAsGfs(flowout_frac_name_, count, flowout_fracs_);
+// #endif
+//     }
+//     return done;
+// }

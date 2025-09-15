@@ -5,9 +5,7 @@
 GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* out_dir,
                                    const char* stream_file/*=nullptr*/,
                                    bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
-    GridLayering(id, gfs, out_dir),
-    flow_fraction_(nullptr),
-    flowfrac_matrix_(nullptr), flowin_fracs_(nullptr), flowout_fracs_(nullptr) {
+    GridLayering(id, gfs, out_dir) {
     // outputs
     OutputFilenames(FD_Dinf);
     // inputs
@@ -26,8 +24,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
                                    const char* fd_file, const char* fraction_file,
                                    const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
                                    bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
-    GridLayering(id, out_dir), flow_fraction_(nullptr), flowfrac_matrix_(nullptr), flowin_fracs_(nullptr),
-    flowout_fracs_(nullptr) {
+    GridLayering(id, out_dir) {
     string prefix = ValueToString(subbasin_id_);
     // inputs
     flowdir_name_ = fd_file;
@@ -42,17 +39,15 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
-    delete flow_fraction_;
-    if (nullptr != flowin_fracs_) Release1DArray(flowin_fracs_);
-    if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
+    // Nothing to do here!
 }
 
-void GridLayeringDinf::OutputFilenames(flowDirTypes ftype) {
-    GridLayering::OutputFilenames(ftype);
-    string prefix = ValueToString(subbasin_id_);
-    flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
-    flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
-}
+// void GridLayeringDinf::OutputFilenames(flowDirTypes ftype) {
+//     GridLayering::OutputFilenames(ftype);
+//     string prefix = ValueToString(subbasin_id_);
+//     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
+//     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
+// }
 
 
 bool GridLayeringDinf::LoadData() {
@@ -88,13 +83,43 @@ bool GridLayeringDinf::LoadData() {
 
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
     if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) flowdir_->ReplaceNoData(out_nodata_);
-    flowfrac_matrix_ = flow_fraction_->GetRasterDataPointer();
+    FLTPT* flowfrac_matrix_org = flow_fraction_->GetRasterDataPointer();
     if (flowdir_->GetValidNumber() != flow_fraction_->GetValidNumber()) {
         cout << "The valid cell number must be the same between "
                 "Dinf flow direction and flow fraction raster data!" << endl;
         return false;
     }
-
+    // Preprocessing flow fraction matrix to 2D array
+    Initialize2DArray(n_valid_cells_, 8, flowfrac_matrix_, out_nodata_);
+    for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
+        int flow_dir = flowdir_matrix_[valid_idx];
+        if (flow_dir < 0) {
+            continue; // This will not happen, just in case!
+        }
+        vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
+        if (flow_dirs.empty()) {
+            continue; // This will not happen, just in case!
+        }
+        if (CVT_INT(flow_dirs.size()) == 1) { // Only one downslope cell
+            int fd_idx = find_flow_direction_index_ccw(flow_dirs[0]);
+            flowfrac_matrix_[valid_idx][fd_idx - 1] = 1.;
+            flowfrac_matrix_org[valid_idx] = 1.; // currently, no further used
+            continue;
+        }
+        int fd_idx = find_flow_direction_index_ccw(flow_dirs[0]);
+        int fd_idx2 = find_flow_direction_index_ccw(flow_dirs[1]);
+        // We don't need to consider the downslope cell is a valid cell or nodata here!
+        vector<FLTPT> fracin(2);
+        fracin[0] = flowfrac_matrix_org[valid_idx];
+        fracin[1] = 1. - flowfrac_matrix_org[valid_idx];
+        vector<FLTPT> fracout;
+        normalize_flow_fraction(fracin, decimals_, fracout);
+        flowfrac_matrix_[valid_idx][fd_idx - 1] = fracout[0];
+        flowfrac_matrix_[valid_idx][fd_idx2 - 1] = fracout[1];
+        flowfrac_matrix_org[valid_idx] = fracout[0]; // write back, although, currently, no further used
+    }
+    return LoadStreamData();
+    /*
     // Force stream grid to flow into single downstream cell
     if (stream_file_.empty())
         return true;
@@ -129,9 +154,10 @@ bool GridLayeringDinf::LoadData() {
         }
         // cout << endl;
     }
+    */
     return true;
 }
-
+/*
 bool GridLayeringDinf::OutputFlowIn() {
     GetReverseDirMatrix();
     if (!BuildFlowInCellsArray()) return false;
@@ -261,3 +287,4 @@ bool GridLayeringDinf::OutputFlowOut() {
     }
     return done;
 }
+*/
