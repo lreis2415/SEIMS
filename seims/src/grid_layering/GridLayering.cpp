@@ -1143,22 +1143,8 @@ void GridLayering::GetReverseDirMatrix() {
     }
 }
 
-void GridLayering::OutputFilenames(flowDirTypes ftype) {
+void GridLayering::OutputFilenames() {
     string prefix = ValueToString(subbasin_id_);
-    switch (ftype) {
-        case (FD_D8):
-            fdtype_str_ = "D8";
-            break;
-        case (FD_Dinf):
-            fdtype_str_ = "DINF";
-            break;
-        case (FD_MFDmd):
-            fdtype_str_ = "MFDMD";
-            break;
-        default:
-            fdtype_str_ = "";
-            break;
-    }
     flowin_index_name_ = prefix + "_FLOWIN_INDEX_" + fdtype_str_;
     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_" + fdtype_str_;

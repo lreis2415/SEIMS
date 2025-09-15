@@ -359,7 +359,7 @@ protected:
     /*！
      * \brief Create output filenames
      */
-    virtual void OutputFilenames(flowDirTypes ftype);
+    virtual void OutputFilenames();
     /*!
      * \brief Build multiple flow out array
      */
@@ -503,11 +503,11 @@ public:
 #ifdef USE_MONGODB
     GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_dir,
                      const char* stream_file=nullptr, bool force_outlet=false,
-                     bool force_inbasin=true, int decimals=4);
+                     bool force_inbasin=true, int decimals=4, string fdir_name="");
 #endif
     GridLayeringMFDmd(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                       const char* mask_file=nullptr, const char* stream_file=nullptr,
-                      bool force_outlet=false, bool force_inbasin=true, int decimals=4);
+                      bool force_outlet=false, bool force_inbasin=true, int decimals=4, string fdir_name="");
 
     ~GridLayeringMFDmd();
 

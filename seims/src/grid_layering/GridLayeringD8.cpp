@@ -4,12 +4,13 @@
 GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_dir,
                                const char* stream_file/*=nullptr*/, bool force_outlet/*=false*/) :
     GridLayering(id, gfs, out_dir) {
+    fdtype_str_ = "D8";
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR";
     mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
     force_outlet_ = force_outlet;
-    OutputFilenames(FD_D8);
+    OutputFilenames();
 }
 #endif
 
@@ -17,11 +18,12 @@ GridLayeringD8::GridLayeringD8(int id, const char* out_dir, const char* in_file,
                                const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
                                bool force_outlet/*=false*/) :
     GridLayering(id, out_dir) {
+    fdtype_str_ = "D8";
     flowdir_name_ = in_file;
     mask_name_ = mask_file;
     stream_file_ = stream_file;
     force_outlet_ = force_outlet;
-    OutputFilenames(FD_D8);
+    OutputFilenames();
 }
 
 GridLayeringD8::~GridLayeringD8() {

@@ -53,7 +53,7 @@ flowDirTypes MatchFlowDirAlg(const char* algstr) {
     if (StringMatch(algstr, "d8")) return FD_D8;
     if (StringMatch(algstr, "dinf")) return FD_Dinf;
     if (StringMatch(algstr, "mfdmd")) return FD_MFDmd;
-    return FD_D8;
+    return FD_USER;
 }
 
 int main(int argc, char** argv) {
@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
     /// Register GDAL drivers, REQUIRED!
     // GDALAllRegister(); // Moved to gdal_handler.h! By lj 2025-09-04
     /// Define input arguments
+    string fdstr = "d8";
     flowDirTypes fdtype = FD_D8;
     const char* out_dir = nullptr;
     bool force_outlet = false; // Force stream cells as outlets to reduce hillslope routing layers
@@ -92,6 +93,7 @@ int main(int argc, char** argv) {
         if (StringMatch(argv[i], "-alg")) {
             i++;
             if (argc > i) {
+                fdstr = GetUpper(argv[i]);
                 fdtype = MatchFlowDirAlg(argv[i]);
                 i++;
             } else {
@@ -203,11 +205,12 @@ int main(int argc, char** argv) {
             if (mask_file.empty()) mask_file = cfdir_file;
             GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(n_subbasins, out_dir, cfdir_file.c_str(),
                                                                    ffrac_file.c_str(),
-                                                                   mask_file.c_str(), stream_file.c_str(),
+                                                                   mask_file.c_str(),
+                                                                   stream_file.c_str(),
                                                                    force_outlet, force_inbasin, decimals);
             grid_lyr_dinf->Execute();
             delete grid_lyr_dinf;
-        } else if (fdtype == FD_MFDmd) {
+        } else if (fdtype == FD_MFDmd || fdtype == FD_USER) {
             vector<string> in_files = SplitString(core_names, ',');
             if (in_files.size() != 2) Usage("Two input files are required for MFD-md model!");
             string cfdir_file = input_dir + SEP + in_files[0];
@@ -218,7 +221,8 @@ int main(int argc, char** argv) {
                                                                       ffrac_file.c_str(),
                                                                       mask_file.c_str(),
                                                                       stream_file.c_str(),
-                                                                      force_outlet, force_inbasin, decimals);
+                                                                      force_outlet, force_inbasin, decimals,
+                                                                      fdstr);
             grid_lyr_mfdmd->Execute();
             delete grid_lyr_mfdmd;
         } else Usage("Unsupported flow direction algorithm!");
@@ -242,10 +246,11 @@ int main(int argc, char** argv) {
                                                                        force_outlet, force_inbasin, decimals);
                 grid_lyr_dinf->Execute();
                 delete grid_lyr_dinf;
-            } else if (fdtype == FD_MFDmd) {
+            } else if (fdtype == FD_MFDmd || fdtype == FD_USER) {
                 GridLayeringMFDmd* grid_lyr_mfdmd = new GridLayeringMFDmd(idx, gfs, out_dir,
                                                                           stream_file.c_str(),
-                                                                          force_outlet, force_inbasin, decimals);
+                                                                          force_outlet, force_inbasin, decimals,
+                                                                          fdstr);
                 grid_lyr_mfdmd->Execute();
                 delete grid_lyr_mfdmd;
             } else Usage("Unsupported flow direction algorithm!");

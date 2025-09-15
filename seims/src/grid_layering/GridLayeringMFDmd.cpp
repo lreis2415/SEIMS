@@ -3,10 +3,13 @@
 #ifdef USE_MONGODB
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir,
                                      const char* stream_file/*=nullptr*/,
-                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
+                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/,
+                                     string fdir_name/*=""*/) :
     GridLayering(id, gfs, out_dir) {
+    fdtype_str_ = "MFDMD";
+    if (fdir_name != "") { fdtype_str_ = fdir_name; }
     // outputs
-    OutputFilenames(FD_MFDmd);
+    OutputFilenames();
     // inputs
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
@@ -22,8 +25,11 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
                                      const char* fd_file, const char* fraction_file,
                                      const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
-                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
+                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/,
+                                     string fdir_name/*=""*/) :
     GridLayering(id, out_dir) {
+    fdtype_str_ = "MFDMD";
+    if (fdir_name != "") { fdtype_str_ = fdir_name; }
     string prefix = ValueToString(subbasin_id_);
     // inputs
     flowdir_name_ = fd_file;
@@ -39,19 +45,12 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
     force_inbasin_ = force_inbasin;
     decimals_ = decimals;
     // outputs
-    OutputFilenames(FD_MFDmd);
+    OutputFilenames();
 }
 
 GridLayeringMFDmd::~GridLayeringMFDmd() {
     // Anything to do here.
 }
-
-// void GridLayeringMFDmd::OutputFilenames(flowDirTypes ftype) {
-//     GridLayering::OutputFilenames(ftype);
-//     string prefix = ValueToString(subbasin_id_);
-//     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
-//     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
-// }
 
 bool GridLayeringMFDmd::LoadData() {
     if (use_mongo_) {

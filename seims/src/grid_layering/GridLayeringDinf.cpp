@@ -6,8 +6,9 @@ GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* o
                                    const char* stream_file/*=nullptr*/,
                                    bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, gfs, out_dir) {
+    fdtype_str_ = "DINF";
     // outputs
-    OutputFilenames(FD_Dinf);
+    OutputFilenames();
     // inputs
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
@@ -25,6 +26,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
                                    const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
                                    bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/) :
     GridLayering(id, out_dir) {
+    fdtype_str_ = "DINF";
     string prefix = ValueToString(subbasin_id_);
     // inputs
     flowdir_name_ = fd_file;
@@ -35,19 +37,12 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
     force_inbasin_ = force_inbasin;
     decimals_ = decimals;
     // outputs
-    OutputFilenames(FD_Dinf);
+    OutputFilenames();
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
     // Nothing to do here!
 }
-
-// void GridLayeringDinf::OutputFilenames(flowDirTypes ftype) {
-//     GridLayering::OutputFilenames(ftype);
-//     string prefix = ValueToString(subbasin_id_);
-//     flowin_frac_name_ = prefix + "_FLOWIN_FRACTION_" + fdtype_str_;
-//     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
-// }
 
 
 bool GridLayeringDinf::LoadData() {
