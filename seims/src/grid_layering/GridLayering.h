@@ -491,11 +491,7 @@ public:
 
     ~GridLayeringDinf();
 
-    //void OutputFilenames(flowDirTypes ftype) OVERRIDE;
-
     bool LoadData() OVERRIDE;
-    // bool OutputFlowIn() OVERRIDE;
-    // bool OutputFlowOut() OVERRIDE;
 };
 
 class GridLayeringMFDmd: public GridLayering {
@@ -511,20 +507,6 @@ public:
 
     ~GridLayeringMFDmd();
 
-    //void OutputFilenames(flowDirTypes ftype) OVERRIDE;
-
     bool LoadData() OVERRIDE;
-
-    //bool OutputFlowIn() OVERRIDE;
-    //bool OutputFlowOut() OVERRIDE;
-
-// private:
-//     bool force_inbasin_;               ///< Force all cells flow inside the watershed
-//     int decimals_;                     ///< Round to N decimal places for flow fractions
-//
-//     FloatRaster* flow_fraction_;       ///< Flow fraction of the first flow out direction
-//     FLTPT** flowfrac_matrix_;          ///< Flow fraction of the first flow out direction (valid cell number)
-//     FLTPT* flowin_fracs_;              ///< Flow in fraction
-//     FLTPT* flowout_fracs_;             ///< Flow fractions of each cell's flow in
 };
 #endif /* GRID_LAYERING_H */

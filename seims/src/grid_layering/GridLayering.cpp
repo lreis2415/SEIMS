@@ -71,17 +71,6 @@ vector<int> uncompress_flow_directions(const int compressed_fd) {
 bool read_stream_vertexes(string stream_file, IntRaster *mask,
                           vector<vector<ROW_COL> > &stream_rc, int*& stream_matrix) {
     GDALVectorDSHandle stream_ds(OpenVector(stream_file.c_str()));
-// #if GDAL_VERSION_MAJOR >= 2
-//     GDALDataset *stream_ds = nullptr;
-//     stream_ds = static_cast<GDALDataset *>(GDALOpenEx(stream_file.c_str(),
-//                                                       GA_ReadOnly | GDAL_OF_VECTOR,
-//                                                       nullptr,
-//                                                       nullptr,
-//                                                       nullptr));
-// #else
-//     OGRRegisterAll();
-//     OGRDataSource* stream_ds = OGRSFDriverRegistrar::Open(stream_file.c_str(), FALSE);
-// #endif
     if (nullptr == stream_ds) {
         cout << "Read stream shapefile failed!" << endl;
         return false;
@@ -91,14 +80,13 @@ bool read_stream_vertexes(string stream_file, IntRaster *mask,
         cout << "The stream shapefile MUST be LINE!" << endl;
         return false;
     }
-    // find Field index of 查找字段索引
+    // find Field index of "LINKNO"
+    // todo, we should make this field name as an input argument. By LJ, 2025-09-15
     int fld_idx = stream_lyr->GetLayerDefn()->GetFieldIndex("LINKNO");
     if (fld_idx < 0) {
         cout << "'LINKNO' cannot be found in fields!" << endl;
         return false;
     }
-    // const OGRFieldDefn* fd = stream_lyr->GetLayerDefn()->GetFieldDefn(fld_idx);
-
     if (nullptr == stream_matrix) Initialize1DArray(mask->GetValidNumber(), stream_matrix,
                                                     mask->GetNoDataValue());
     vint ft_count = stream_lyr->GetFeatureCount();
@@ -135,11 +123,7 @@ bool read_stream_vertexes(string stream_file, IntRaster *mask,
         OGRFeature::DestroyFeature(ft);
     }
     if (stream_rc.empty()) { return false; }
-// #if GDAL_VERSION_MAJOR >= 2
-//     GDALClose(stream_ds);
-// #else
-//     OGRDataSource::DestroyDataSource(stream_ds);
-// #endif
+
     return true;
 }
 
@@ -151,10 +135,8 @@ void print_flow_fractions_mfdmd(FloatRaster *ffrac, int row, int col) {
 
 struct SurpCmp {
     const vector<int> *S;
-
     SurpCmp(const vector<int> &S_): S(&S_) {
     }
-
     bool operator()(int a, int b) const {
         if ((*S)[a] != (*S)[b]) return (*S)[a] > (*S)[b];
         return a < b;
@@ -512,24 +494,22 @@ void CollectCandidates(int s, int d, int K, int prefix_end, const vector<vector<
 }
 
 
-bool PickFeasibleDeficitAndCandidates(
-    int s, const vector<int> &S, int K, int prefix_end,
-    const vector<vector<int> > &Buckets,
-    const vector<int> &L,
-    const vector<int> &low, const vector<int> &high,
-    const vector<int> &Lmin, const vector<int> &Lmax,
-    const vector<vector<int> > &Up,
-    const vector<vector<int> > &Down,
-    bool strict_deficit_target,
-    bool allow_intermediate_fallback,
-    int &d_out,
-    vector<Candidate> &cand_out,
-    DeficitScanMode mode,
-    // scoring aids:
-    const vector<int> *pCap,
-    int capMin, int capMax,
-    double depth_penalty_weight,
-    double scarcity_weight) {
+bool PickFeasibleDeficitAndCandidates(int s, const vector<int>& S, int K, int prefix_end,
+                                      const vector<vector<int> >& Buckets,
+                                      const vector<int>& L,
+                                      const vector<int>& low, const vector<int>& high,
+                                      const vector<int>& Lmin, const vector<int>& Lmax,
+                                      const vector<vector<int> >& Up,
+                                      const vector<vector<int> >& Down,
+                                      bool strict_deficit_target,
+                                      bool allow_intermediate_fallback,
+                                      int& d_out,
+                                      vector<Candidate>& cand_out,
+                                      DeficitScanMode mode,
+                                      const vector<int>* pCap,
+                                      int capMin, int capMax,
+                                      double depth_penalty_weight,
+                                      double scarcity_weight) {
     vector<int> deficits;
     for (int l = 0; l < K; ++l) if (S[l] < 0) deficits.push_back(l);
     if (deficits.empty()) return false;
@@ -1020,7 +1000,7 @@ static void DebugPrintSlice(
 #ifdef USE_MONGODB
 GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) : gfs_(gfs), use_mongo_(true),
     has_mask_(false), force_outlet_(false), force_inbasin_(true), decimals_(4),
-    fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
+    fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
@@ -1034,7 +1014,7 @@ GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) 
 
 GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), use_mongo_(false),
     has_mask_(false), force_outlet_(false), force_inbasin_(true), decimals_(4),
-    fdtype_(FD_D8), fdtype_str_(""), output_dir_(out_dir), subbasin_id_(id),
+    fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
     mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
@@ -1047,7 +1027,7 @@ GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), us
 
 GridLayering::~GridLayering() {
     delete flowdir_; // flowdir_matrix_ will be released too.
-    if (nullptr != flow_fraction_) delete flow_fraction_; // flowfrac_matrix_ will be released too.
+    delete flow_fraction_; // flowfrac_matrix_ will be released too.
     if (has_mask_) delete mask_;
     if (nullptr != pos_index_) Release1DArray(pos_index_);
     if (nullptr != reverse_dir_) Release1DArray(reverse_dir_);
@@ -1131,7 +1111,7 @@ void GridLayering::GetReverseDirMatrix() {
             if (handle_stream && stream_src > 0 && stream_dst == stream_src) {
                 continue;
             }
-            reverse_dir_[src_idx] += CVT_FLT(get_reversed_fdir(fdccw[fd_idx]));
+            reverse_dir_[src_idx] += get_reversed_fdir(fdccw[fd_idx]);
             flow_in_num_[src_idx]++;
         }
     }
@@ -1194,7 +1174,7 @@ void GridLayering::CountFlowOutCells() {
     if (nullptr == flow_out_num_) Initialize1DArray(n_valid_cells_, flow_out_num_, 0);
     if (nullptr == flow_out_acc_) Initialize1DArray(n_valid_cells_, flow_out_acc_, 0);
     bool handle_stream = force_outlet_ && nullptr != stream_matrix_;
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int index = 0; index < n_valid_cells_; index++) {
         int i = pos_rowcol_[index][0]; // row
         int j = pos_rowcol_[index][1]; // col
@@ -1306,36 +1286,6 @@ bool GridLayering::OutputArrayAsGfs(const string &name, const vint length, int *
     return flag;
 }
 #endif
-//
-// bool GridLayering::OutputFlowIn() {
-//     GetReverseDirMatrix();
-//     if (!BuildFlowInCellsArray()) return false;
-//     string header = "ID\tUpstreamCount\tUpstreamID";
-//     bool done = Output2DimensionArrayTxt(flowin_index_name_, header, flow_in_cells_);
-//     if (use_mongo_) {
-// #ifdef USE_MONGODB
-//         done = done && OutputArrayAsGfs(flowin_index_name_,
-//                                         n_valid_cells_ + flow_in_count_ + 1,
-//                                         flow_in_cells_);
-// #endif
-//     }
-//     return done;
-// }
-//
-//
-// bool GridLayering::OutputFlowOut() {
-//     CountFlowOutCells();
-//     if (!BuildFlowOutCellsArray()) return false;
-//     string header = "ID\tDownstreamCount\tDownstreamID";
-//     bool done = Output2DimensionArrayTxt(flowout_index_name_, header, flow_out_cells_);
-//     if (use_mongo_) {
-// #ifdef USE_MONGODB
-//         done = OutputArrayAsGfs(flowout_index_name_, flow_out_count_ + n_valid_cells_ + 1,
-//                                 flow_out_cells_);
-// #endif
-//     }
-//     return done;
-// }
 
 
 bool GridLayering::OutputFlowIn() {
