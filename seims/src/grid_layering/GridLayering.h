@@ -10,7 +10,7 @@
  *          lj - 18-May-2021 - Force each stream grid flow into one downstream grid.\n
  *          lj - 30-Jul-2021 - Add new layering method named _EVEN.\n
  *          lj - 07-Sep-2025 - Improve evenly distributed layering algorithm.\n
- *          lj - 15-Sep-2025 - Separate layering outputs: ROUTING_LAYERS_HILLSLOPE and _CHANNEL
+ *          lj - 16-Sep-2025 - Separate layering outputs: ROUTING_LAYERS_HILLSLOPE and _CHANNEL
  * \description:
  *               Output lists of both local files and MongoDB GridFS:
  *               1. X_FLOWOUT_INDEX_{FD}, X_FLOWIN_INDEX_{FD}
@@ -60,6 +60,11 @@ typedef float FLTPT;
 #ifndef FloatRaster
 /*! Float-typed raster with int-typed mask, specific for legacy SEIMS code */
 #define FloatRaster ccgl::data_raster::clsRasterData<FLTPT, int>
+#endif
+
+#ifdef CVT_FLT
+#undef CVT_FLT
+#define CVT_FLT(param)   static_cast<FLTPT>((param))
 #endif
 
 /*!
@@ -303,9 +308,9 @@ public:
      */
     bool Execute();
     /*!
-     * \brief Create stream grid from Shapefile
+     * \brief Create stream grid from Shapefile, and force stream cell only flow into downstream cell
      */
-    bool LoadStreamData();
+    bool LoadChannelData();
     /*!
      * \brief Load flow data
      */
@@ -322,7 +327,7 @@ public:
      *            which is stored as 1000101, 1000101 & 1 is True, and so as to 100, 1000000.
      *            So the upstream cells are (i, j+1), (i-1, j), (i+1, j), the number is 3.
      */
-    void GetReverseDirMatrix();
+    void GetReverseDirMatrix(int mode=0);
     /*!
      * \brief Construct flow in indexes of each cell
      */
@@ -330,31 +335,31 @@ public:
     /*!
      * \brief Output flow in cells index data, both txt file and GridFS.
      */
-    virtual bool OutputFlowIn();
+    virtual bool OutputFlowIn(int mode=0);
     /*!
      * \brief Count each cell's downstream number by bitwise AND operator
      */
-    void CountFlowOutCells();
+    void CountFlowOutCells(int mode=0);
     /*!
-     * \brief Construct flow out indexes of each cells
+     * \brief Construct flow out indexes of each cell
      */
     bool BuildFlowOutCellsArray();
     /*!
      * \brief Output flow out data, both txt file and GridFS.
      */
-    virtual bool OutputFlowOut();
+    virtual bool OutputFlowOut(int mode=0);
     /*!
      * \brief Build grid layers in Up-Down order from source
      */
-    bool GridLayeringFromSource();
+    bool GridLayeringFromSource(int mode=0);
     /*!
      * \brief Build grid layers in Down-Up order from outlet
      */
-    bool GridLayeringFromOutlet();
+    bool GridLayeringFromOutlet(int mode=0);
     /*!
      * \brief Build evenly distributed grid layers evenly based on Up-Down and Down-Up orders
      */
-    bool GridLayeringEvenly();
+    bool GridLayeringEvenly(int mode=0);
 protected:
     /*！
      * \brief Create output filenames
@@ -383,17 +388,15 @@ protected:
     */
     bool OutputArrayAsGfs(const string& name, vint length, int* matrix);
     /*!
-     * \brief Output grid layering as tiff file and MongoDB-GridFS
+     * \brief Output grid layering as tiff file and text file
      */
-    bool OutputGridLayering(const string& name, int datalength,
+    bool OutputGridLayering(const string& name,
                             int* layer_grid, int* layer_cells);
 
     MongoGridFs* gfs_; ///< MongoDB-GridFS instance
 #endif
     bool use_mongo_;         ///< Use MongoDB or file
     bool has_mask_;          ///< User-specific mask raster file
-    bool force_outlet_;      ///< Force stream cells as outlets to reduce hillslope routing layers
-    bool force_inbasin_;     ///< Force all cells flow inside the watershed
     int decimals_;           ///< Round to N decimal places for flow fractions
     flowDirTypes fdtype_;    ///< Flow direction model
     string fdtype_str_;      ///< Flow direction model's name
@@ -457,20 +460,29 @@ protected:
     string flowin_frac_name_;     ///< Flow fraction of each flow in cell
     string flowout_index_name_;   ///< Flow out index
     string flowout_frac_name_;    ///< Flow fraction of each flow out cell
-    string layering_updown_name_; ///< Routing layers from sources
-    string layering_downup_name_; ///< Routing layers from outlet
-    string layering_evenly_name_; ///< Routing layers evenly
+    string flowin_index_hs_name_; ///< Flow in index, with all channels set as Outlets
+    string flowin_frac_hs_name_;  ///< Flow fraction of each flow in cell, with all channels set as Outlets
+    string flowout_index_hs_name_;///< Flow out index, with all channels set as Outlets
+    string flowout_frac_hs_name_; ///< Flow fraction of each flow out cell, with all channels set as Outlets
+    string layering_updown_name_; ///< Routing layers from sources, including all cells in the watershed
+    string layering_downup_name_; ///< Routing layers from outlets, including all cells in the watershed
+    string layering_evenly_name_; ///< Routing layers evenly, including all cells in the watershed
+    string layering_updown_hs_;   ///< Routing layers from sources, including all cells and all channels set as Outlets
+    string layering_downup_hs_;   ///< Routing layers from outlets, including all cells and all channels set as Outlets
+    string layering_evenly_hs_;   ///< Routing layers evenly, including all cells and all channels set as Outlets
+    string layering_updown_ch_;   ///< Routing layers from sources, including only channel cells
+    string layering_downup_ch_;   ///< Routing layers from outlets, including only channel cells
+    string layering_evenly_ch_;   ///< Routing layers evenly, including only channel cells
 };
 
 class GridLayeringD8: public GridLayering {
 public:
 #ifdef USE_MONGODB
     GridLayeringD8(int id, MongoGridFs* gfs, const char* out_dir,
-                   const char* stream_file=nullptr, bool force_outlet=false);
+                   const char* stream_file=nullptr);
 #endif
     GridLayeringD8(int id, const char* out_dir, const char* in_file,
-                   const char* mask_file=nullptr, const char* stream_file=nullptr,
-                   bool force_outlet=false);
+                   const char* mask_file=nullptr, const char* stream_file=nullptr);
 
     ~GridLayeringD8();
 
@@ -482,12 +494,12 @@ class GridLayeringDinf: public GridLayering {
 public:
 #ifdef USE_MONGODB
     GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir,
-                     const char* stream_file=nullptr, bool force_outlet=false,
-                     bool force_inbasin=true, int decimals=4);
+                     const char* stream_file=nullptr,
+                     int decimals=4);
 #endif
     GridLayeringDinf(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                      const char* mask_file=nullptr, const char* stream_file=nullptr,
-                     bool force_outlet=false, bool force_inbasin=true, int decimals=4);
+                     int decimals=4);
 
     ~GridLayeringDinf();
 
@@ -498,12 +510,12 @@ class GridLayeringMFDmd: public GridLayering {
 public:
 #ifdef USE_MONGODB
     GridLayeringMFDmd(int id, MongoGridFs* gfs, const char* out_dir,
-                     const char* stream_file=nullptr, bool force_outlet=false,
-                     bool force_inbasin=true, int decimals=4, string fdir_name="");
+                     const char* stream_file=nullptr,
+                     int decimals=4, string fdir_name="");
 #endif
     GridLayeringMFDmd(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                       const char* mask_file=nullptr, const char* stream_file=nullptr,
-                      bool force_outlet=false, bool force_inbasin=true, int decimals=4, string fdir_name="");
+                      int decimals=4, string fdir_name="");
 
     ~GridLayeringMFDmd();
 

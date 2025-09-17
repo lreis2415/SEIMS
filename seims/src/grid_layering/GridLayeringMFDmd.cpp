@@ -3,7 +3,7 @@
 #ifdef USE_MONGODB
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char* out_dir,
                                      const char* stream_file/*=nullptr*/,
-                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/,
+                                     int decimals/*=4*/,
                                      string fdir_name/*=""*/) :
     GridLayering(id, gfs, out_dir) {
     fdtype_str_ = "MFDMD";
@@ -16,8 +16,6 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     flowfrac_corename_ = prefix + "_FLOW_FRACTION_" + fdtype_str_;
     mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
-    force_outlet_ = force_outlet;
-    force_inbasin_ = force_inbasin;
     decimals_ = decimals;
 }
 #endif
@@ -25,7 +23,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
                                      const char* fd_file, const char* fraction_file,
                                      const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
-                                     bool force_outlet/*=false*/, bool force_inbasin/*=true*/, int decimals/*=4*/,
+                                     int decimals/*=4*/,
                                      string fdir_name/*=""*/) :
     GridLayering(id, out_dir) {
     fdtype_str_ = "MFDMD";
@@ -41,8 +39,6 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
     }
     mask_name_ = mask_file;
     stream_file_ = stream_file;
-    force_outlet_ = force_outlet;
-    force_inbasin_ = force_inbasin;
     decimals_ = decimals;
     // outputs
     OutputFilenames();
@@ -97,5 +93,8 @@ bool GridLayeringMFDmd::LoadData() {
                 "MFD-md flow direction and flow fraction raster data!" << endl;
         return false;
     }
-    return LoadStreamData();
+    // Calculate pos_index_, full size length (rows * cols) and two columns
+    CalPositionIndex();
+    // Force stream cell only flow into downstream cell
+    return LoadChannelData();
 }

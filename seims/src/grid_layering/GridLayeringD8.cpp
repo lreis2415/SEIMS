@@ -2,27 +2,24 @@
 
 #ifdef USE_MONGODB
 GridLayeringD8::GridLayeringD8(const int id, MongoGridFs* gfs, const char* out_dir,
-                               const char* stream_file/*=nullptr*/, bool force_outlet/*=false*/) :
+                               const char* stream_file/*=nullptr*/) :
     GridLayering(id, gfs, out_dir) {
     fdtype_str_ = "D8";
     string prefix = ValueToString(subbasin_id_);
     flowdir_name_ = prefix + "_FLOW_DIR";
     mask_name_ = prefix + "_SUBBASIN";
     stream_file_ = stream_file;
-    force_outlet_ = force_outlet;
     OutputFilenames();
 }
 #endif
 
 GridLayeringD8::GridLayeringD8(int id, const char* out_dir, const char* in_file,
-                               const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
-                               bool force_outlet/*=false*/) :
+                               const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/) :
     GridLayering(id, out_dir) {
     fdtype_str_ = "D8";
     flowdir_name_ = in_file;
     mask_name_ = mask_file;
     stream_file_ = stream_file;
-    force_outlet_ = force_outlet;
     OutputFilenames();
 }
 
@@ -72,6 +69,8 @@ bool GridLayeringD8::LoadData() {
         int fd_idx = find_flow_direction_index_ccw(flow_dir);
         flowfrac_matrix_[valid_idx][fd_idx - 1] = 1.;
     }
-
-    return LoadStreamData();
+    // Calculate pos_index_, full size length (rows * cols) and two columns
+    CalPositionIndex();
+    // Force stream cell only flow into downstream cell
+    return LoadChannelData();
 }
