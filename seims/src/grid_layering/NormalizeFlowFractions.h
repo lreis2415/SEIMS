@@ -17,6 +17,8 @@
 #include <cmath>
 #include <cstddef> // size_t
 
+#include "ccgl.h"
+
 // - Negative inputs are clamped to 0.
 // - If all inputs are non-positive, split evenly (1/n).
 // - Order is preserved; sorting is only used to decide where to add/subtract 1 unit.
@@ -54,23 +56,23 @@ int normalize_flow_fraction(const std::vector<T>& in_w,
     // 2) Quantize to 'decimals' using largest remainder method
     if (decimals < 0) decimals = 0;
     if (decimals > 9) decimals = 9;           // keep 10^d in 64-bit range
-    long long scale = 1;
+    vint64_t scale = 1;
     for (int k = 0; k < decimals; ++k) scale *= 10;
 
-    std::vector<long long> base(n, 0);
+    std::vector<vint64_t> base(n, 0);
     std::vector<double> rem(n, 0.);
-    long long sum_base = 0;
+    vint64_t sum_base = 0;
     for (size_t i = 0; i < n; ++i) {
         double raw = norm[i] * static_cast<double>(scale);
         if (raw < 0.) raw = 0.;
-        double flo = std::floor(raw + 1e-12L); // guard against 0.999999…
-        base[i] = static_cast<long long>(flo);
+        double flo = std::floor(raw + 1e-12L); // guard against 0.999999...
+        base[i] = static_cast<vint64_t>(flo);
         rem[i]  = raw - flo;
         sum_base += base[i];
     }
 
-    const long long target = scale;            // printed sum target
-    long long diff = target - sum_base;        // >0 add units, <0 remove units
+    const vint64_t target = scale;            // printed sum target
+    vint64_t diff = target - sum_base;        // >0 add units, <0 remove units
 
     // Indices for stable tie-breaking; final order is preserved
     std::vector<size_t> idx(n);
@@ -98,12 +100,12 @@ int normalize_flow_fraction(const std::vector<T>& in_w,
     if (diff > 0) {
         std::sort(idx.begin(), idx.end(), CmpDesc(&rem));     // larger remainders get +1 first
         const size_t m = n;
-        for (long long t = 0; t < diff; ++t)
+        for (vint64_t t = 0; t < diff; ++t)
             base[idx[(size_t)(t % m)]] += 1;
     } else if (diff < 0) {
         std::sort(idx.begin(), idx.end(), CmpAsc(&rem));      // smaller remainders lose 1 first
         const size_t m = n;
-        long long need = -diff;
+        vint64_t need = -diff;
         size_t p = 0;
         while (need > 0 && m > 0) {
             size_t j = idx[p % m];
