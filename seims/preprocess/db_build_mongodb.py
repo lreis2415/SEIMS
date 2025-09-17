@@ -167,18 +167,16 @@ class ImportMongodbClass(object):
         UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def grid_layering(cfg, n_subbasins, force_outlet=False, force_inbasin=True, decimals=4):
-        # type: (PreprocessConfig, int, bool, bool, int) -> None
+    def grid_layering(cfg, n_subbasins, decimals=4):
+        # type: (PreprocessConfig, int, int) -> None
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.mkdir(layering_dir)
         for alg in ['d8', 'dinf', 'mfdmd']:
             str_cmd = ('"%s/grid_layering" -alg %s -stream %s -outdir %s '
-                       '-force_outlet %d -force_inbasin %d -decimals %d '
+                       '-decimals %d '
                        '-mongo %s %d %s %s %d') %\
                       (cfg.seims_bin, alg, cfg.vecs.reach, layering_dir,
-                       1 if force_outlet else 0,
-                       1 if force_inbasin else 0,
                        decimals,
                        cfg.hostname, cfg.port,
                        cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)

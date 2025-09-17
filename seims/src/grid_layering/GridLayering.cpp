@@ -1948,6 +1948,7 @@ bool GridLayering::GridLayeringEvenly(int mode/*=0*/) {
     vector<vector<int> > Buckets(K);
     vector<int> Count(K, 0);
     for (int u = 0; u < N; u++) {
+        if (L[u] == out_nodata_) continue;
         Buckets[L[u]].push_back(u);
         Count[L[u]]++;
     }
