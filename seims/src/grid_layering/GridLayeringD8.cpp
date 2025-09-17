@@ -24,7 +24,7 @@ GridLayeringD8::GridLayeringD8(int id, const char* out_dir, const char* in_file,
 }
 
 GridLayeringD8::~GridLayeringD8() {
-    // Nothing to do.
+    if (nullptr != flowfrac_matrix_) Release2DArray(flowfrac_matrix_);
 }
 
 

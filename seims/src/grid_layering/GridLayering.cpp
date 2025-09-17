@@ -1028,7 +1028,7 @@ GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), us
 
 GridLayering::~GridLayering() {
     delete flowdir_; // flowdir_matrix_ will be released too.
-    delete flow_fraction_; // flowfrac_matrix_ will be released too.
+    delete flow_fraction_; // flowfrac_matrix_ will be released too for mfd only.
     if (has_mask_) delete mask_;
     if (nullptr != pos_index_) Release1DArray(pos_index_);
     if (nullptr != reverse_dir_) Release1DArray(reverse_dir_);

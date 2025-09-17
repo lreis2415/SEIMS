@@ -37,7 +37,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
-    // Nothing to do here!
+    if (nullptr != flowfrac_matrix_) Release2DArray(flowfrac_matrix_);
 }
 
 
@@ -51,7 +51,7 @@ bool GridLayeringDinf::LoadData() {
         flowdir_ = IntRaster::Init(gfs_, flowdir_name_.c_str(), true,
                                    mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_name_.c_str(), true,
-                                                mask_, true, NODATA_VALUE, opts);
+                                           mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
