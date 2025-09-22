@@ -47,20 +47,21 @@ email:  dtarb@usu.edu
 #include <math.h>
 #include "Node.h"
 
+#include "dinf.h"
+#include "d8.h" // for using resolveflats()
+
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 using std::max;
 
 //double fact[9];
-double **fact;
+//double **fact; // never used.
 
-//int setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slope, tdpartition *area, int useflowfile);
-long setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slope, int useflowfile);
-long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que, bool &first);
+/* Avoid duplicate implementation in d8.cpp and dinf.cpp. by lj 09/22/2025
 //Checks if cells cross
 int dontCross(int k, int i, int j, tdpartition *flowDir) {
     long n1, n2, c1, c2, ans = 0;
     long in1, jn1, in2, jn2;
-    short tempShort;
+    // short tempShort; // not used here
     float tempFloat;
     switch (k) {
         case 2: n1 = 1;
@@ -118,6 +119,7 @@ int dontCross(int k, int i, int j, tdpartition *flowDir) {
     }
     return (ans);
 }
+*/
 
 //Set positive flowdirections of elevDEM
 
@@ -237,7 +239,7 @@ int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int us
         bool first = true;  //  Variable to be used in iteration to know whether first or subsequent iteration
         if (totalNumFlat > 0) {
             lastNumFlat = totalNumFlat;
-            totalNumFlat = resolveflats(elevDEM, flowDir, &que, first);
+            totalNumFlat = resolveflats(elevDEM, flowDir, &que, 1, first);
             //Repeatedly call resolve flats until there is no change
             while (totalNumFlat > 0 && totalNumFlat < lastNumFlat) {
                 if (rank == 0) {
@@ -245,7 +247,7 @@ int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int us
                     fflush(stderr);
                 }
                 lastNumFlat = totalNumFlat;
-                totalNumFlat = resolveflats(elevDEM, flowDir, &que, first);
+                totalNumFlat = resolveflats(elevDEM, flowDir, &que, 1, first);
             }
         }
 
@@ -599,6 +601,7 @@ long setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slop
     return numFlat;
 }
 
+/* No need to duplicate the implementation of resolveflats in d8.cpp and dinf.cpp. by lj 09/22/2025
 //Resolve flat cells according to Garbrecht and Martz
 long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que, bool &first) {
     elevDEM->share();
@@ -858,3 +861,4 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
     delete s;
     return totalStillFlat;
 }
+*/

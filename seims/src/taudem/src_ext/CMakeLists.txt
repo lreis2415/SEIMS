@@ -1,5 +1,5 @@
 set(shape_srcs ${TAUDEM_SRC}/ReadOutlets.cpp)
-set(common_srcs ${TAUDEM_SRC}/commonLib.cpp ${TAUDEM_SRC}/tiffIO.cpp)
+set(common_srcs ${TAUDEM_SRC}/commonLib.cpp ${TAUDEM_SRC}/createpart.cpp ${TAUDEM_SRC}/tiffIO.cpp)
 # Adds include directories in such a way that directories from the TauDEM source tree go first.
 geo_include_directories(${TAUDEM_SRC})
 
@@ -13,7 +13,7 @@ set(D8DISTUP D8DistUpToRidge.cpp D8DistUpToRidgemn.cpp ${common_srcs})
 set(DINFDISTUPRDG DinfDistUpToRidge.cpp DinfDistUpToRidgemn.cpp ${common_srcs})
 set(CALCULATOR SimpleCalculator.cpp SimpleCalculatormn.cpp ${common_srcs})
 set(RPISKIDMORE RPISkidmore.cpp RPISkidmoremn.cpp ${common_srcs})
-set(FLOWMFDMD MultiFlowDirMaxDown.cpp MultiFlowDirMaxDownmn.cpp ${common_srcs})
+set(FLOWMFDMD MultiFlowDirMaxDown.cpp MultiFlowDirMaxDownmn.cpp ${TAUDEM_SRC}/d8.cpp ${TAUDEM_SRC}/dinf.cpp ${common_srcs})
 
 add_executable(curvature ${CURVATURE})
 add_executable(logop ${LOGOP})
