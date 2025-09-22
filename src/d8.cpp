@@ -1,15 +1,15 @@
 /*  TauDEM D8FlowDir function to compute flow direction based on d8 flow model.
-     
+
   David G Tarboton, Dan Watson, Jeremy Neff
-  Utah State University     
+  Utah State University
   May 23, 2010
-  
+
 */
 
 /*  Copyright (C) 2010  David Tarboton, Utah State University
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License 
+modify it under the terms of the GNU General Public License
 version 2, 1991 as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
@@ -17,23 +17,23 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-A copy of the full GNU General Public License is included in file 
+A copy of the full GNU General Public License is included in file
 gpl.html. This is also available at:
 http://www.gnu.org/copyleft/gpl.html
 or from:
-The Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+The Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
-If you wish to use or incorporate this program (or parts of it) into 
-other software that does not meet the GNU General Public License 
+If you wish to use or incorporate this program (or parts of it) into
+other software that does not meet the GNU General Public License
 conditions contact the author to request permission.
-David G. Tarboton  
-Utah State University 
-8200 Old Main Hill 
-Logan, UT 84322-8200 
-USA 
-http://www.engineering.usu.edu/dtarb/ 
-email:  dtarb@usu.edu 
+David G. Tarboton
+Utah State University
+8200 Old Main Hill
+Logan, UT 84322-8200
+USA
+http://www.engineering.usu.edu/dtarb/
+email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
@@ -67,7 +67,7 @@ int dontCross(int k, int i, int j, tdpartition *flowDir, int alg/*=0*/) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if (alg == 0 || alg == 2 &&
+            if ((alg == 0 || alg == 2) &&
                 ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
                     (flowDir->getData(in2, jn2, tempShort)) == c2)) {
                 doit = true;
@@ -89,7 +89,7 @@ int dontCross(int k, int i, int j, tdpartition *flowDir, int alg/*=0*/) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if (alg == 0 || alg == 2 &&
+            if ((alg == 0 || alg == 2) &&
                 ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
                     (flowDir->getData(in2, jn2, tempShort)) == c2)) {
                 doit = true;
@@ -111,7 +111,7 @@ int dontCross(int k, int i, int j, tdpartition *flowDir, int alg/*=0*/) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if (alg == 0 || alg == 2 &&
+            if ((alg == 0 || alg == 2) &&
                 ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
                     (flowDir->getData(in2, jn2, tempShort)) == c2)) {
                 doit = true;
@@ -133,7 +133,7 @@ int dontCross(int k, int i, int j, tdpartition *flowDir, int alg/*=0*/) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if (alg == 0 || alg == 2 &&
+            if ((alg == 0 || alg == 2) &&
                 ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
                     (flowDir->getData(in2, jn2, tempShort)) == c2)) {
                 doit = true;
@@ -474,10 +474,10 @@ long setPosDir(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *area, in
 void setFlow2(int i, int j, tdpartition *flowDir, tdpartition *elevDEM, tdpartition *elev2, tdpartition *dn) {
 /*  This function sets directions based upon secondary elevations for
   assignment of flow directions across flats according to Garbrecht and Martz
-  scheme.  There are two possibilities: 
+  scheme.  There are two possibilities:
 	A.  The neighbor is outside the flat set
 	B.  The neighbor is in the flat set.
-	In the case of A the input elevations are used and if a draining neighbor is found it is selected.  
+	In the case of A the input elevations are used and if a draining neighbor is found it is selected.
 	Case B requires slope to be positive.  Remaining flats are removed by iterating this process*/
 
     float slope, smax, ed;
@@ -551,7 +551,7 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
             for (i = 0; i < nx; i++) {
                 if (flowDir->isNodata(i, j)) continue; // refers to resolveflats in Dinf, by lj. 09/22/2025
                 bool addit = false; // compatible with d8 (alg=0) and dinf (alg=1), by lj. 09/22/2025
-                if (alg == 0 || alg == 2 && flowDir->getData(i, j, tempShort) == 0) addit = true;
+                if ((alg == 0 || alg == 2) && flowDir->getData(i, j, tempShort) == 0) addit = true;
                 if (alg == 1 && flowDir->getData(i, j, tempFloat) < 0.0) addit = true;
                 if (addit) {
                     temp.x = i;
