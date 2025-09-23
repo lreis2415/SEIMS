@@ -1790,7 +1790,6 @@ void TopoOrder_Kahn(int N, const vector<vector<int> > &Up, const vector<vector<i
             if (--indeg[v] == 0) q.push(v);
         }
     }
-    // if (topo.size()!=N) -> graph has cycle; assume DAG after preprocessing.
 }
 
 void InitMedianProjection_Strict(int N, int K, const vector<int> &Lmin, const vector<int> &Lmax,
@@ -1993,7 +1992,7 @@ bool GridLayering::GridLayeringEvenly(int mode/*=0*/) {
     // topological order
     vector<int> topo;
     TopoOrder_Kahn(N, Up, Down, topo);
-    int n_valid_cells_new = CVT_INT(topo.size());
+    //int n_valid_cells_new = CVT_INT(topo.size());
     // initialize n_layer_cells_evenly_ (i.e., Buckets)
     vector<int> L;
     InitFromDownUpFeasible(N, K, topo, L_down, Lmin, Lmax, Up, Down, L);
@@ -2003,6 +2002,10 @@ bool GridLayering::GridLayeringEvenly(int mode/*=0*/) {
         if (L[u] == out_nodata_) continue;
         Buckets[L[u]].push_back(u);
         Count[L[u]]++;
+    }
+    int n_valid_cells_new = 0;
+    for (vector<vector<int> >::iterator it = Buckets.begin(); it != Buckets.end(); ++it) {
+        n_valid_cells_new += it->size();
     }
     // Deprecated initialization methods.
     // Option 1: use n_layer_cells_downup_ to initialize n_layer_cells_evenly_ (i.e., Buckets)
@@ -2249,6 +2252,9 @@ bool GridLayering::GridLayeringEvenly(int mode/*=0*/) {
         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
             layer_cells_evenly_[valid_idx++] = CVT_INT(*it2);
             layers_evenly_[*it2] = it - n_layer_cells_evenly_.begin() + 1;
+        }
+        if (valid_idx > datalength) {
+            cout << "length exceed, please check!" << endl;
         }
     }
     string outname = layering_evenly_name_;
