@@ -14,6 +14,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* o
     flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
     flowfrac_name_ = prefix + "_WEIGHT_" + fdtype_str_;
     mask_name_ = prefix + "_SUBBASIN";
+    dem_file_ = prefix + "_DEM";
     stream_file_ = stream_file;
     decimals_ = decimals;
 }
@@ -22,6 +23,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* o
 GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
                                    const char* fd_file, const char* fraction_file,
                                    const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
+                                   const char* dem_file/*=nullptr*/,
                                    int decimals/*=4*/) :
     GridLayering(id, out_dir) {
     fdtype_str_ = "DINF";
@@ -31,6 +33,7 @@ GridLayeringDinf::GridLayeringDinf(const int id, const char* out_dir,
     flowfrac_name_ = fraction_file;
     mask_name_ = mask_file;
     stream_file_ = stream_file;
+    dem_file_ = dem_file;
     decimals_ = decimals;
     // outputs
     OutputFilenames();
@@ -52,6 +55,8 @@ bool GridLayeringDinf::LoadData() {
                                    mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_name_.c_str(), true,
                                            mask_, true, NODATA_VALUE, opts);
+        dem_ = FloatRaster::Init(gfs_, dem_file_.c_str(),
+                                 true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
@@ -65,6 +70,9 @@ bool GridLayeringDinf::LoadData() {
             flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
         flow_fraction_ = FloatRaster::Init(flowfrac_name_, true, mask_, true);
+        if (!dem_file_.empty()) {
+            dem_ = FloatRaster::Init(dem_file_, true, mask_, true);
+        }
     }
     if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
 

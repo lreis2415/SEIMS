@@ -326,6 +326,8 @@ public:
      *            e.g. cell (i, j) has a compressed reversed direction value of 69,
      *            which is stored as 1000101, 1000101 & 1 is True, and so as to 100, 1000000.
      *            So the upstream cells are (i, j+1), (i-1, j), (i+1, j), the number is 3.
+     *
+     * \input mode, can be 0 (all cells), 1 (hillslope cells, all channel cells are outlets), and 2 (only channel cells)
      */
     void GetReverseDirMatrix(int mode=0);
     /*!
@@ -412,6 +414,7 @@ protected:
     IntRaster* mask_;        ///< Mask raster data
     IntRaster* flowdir_;     ///< Flow direction raster data, must be integer datatype
     FloatRaster* flow_fraction_;  ///< Flow fraction of the first flow out direction
+    FloatRaster* dem_;       ///< (Optional) Filled DEM raster data, help to make sure each cell flows out within mask
     int* flowdir_matrix_;    ///< Valid flow direction data, e.g., D8, compressed Dinf and MFD-md
     int* reverse_dir_;       ///< Compressed reversed direction
     FLTPT** flowfrac_matrix_;///< Flow fraction of the first flow out direction (valid cell number)
@@ -454,6 +457,7 @@ protected:
     string flowfrac_corename_;      ///< Core name of flow fraction raster files (multiple layer raster) in MongoDB
     string mask_name_;        ///< Mask raster file name
     string stream_file_;      ///< Stream shapefile name
+    string dem_file_;         ///< Filled DEM raster file name
 
     /** Output file names **/
     string flowin_index_name_;    ///< Flow in index
@@ -499,6 +503,7 @@ public:
 #endif
     GridLayeringDinf(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                      const char* mask_file=nullptr, const char* stream_file=nullptr,
+                     const char* dem_file=nullptr,
                      int decimals=4);
 
     ~GridLayeringDinf();
@@ -515,6 +520,7 @@ public:
 #endif
     GridLayeringMFDmd(int id, const char* out_dir, const char* fd_file, const char* fraction_file,
                       const char* mask_file=nullptr, const char* stream_file=nullptr,
+                      const char* dem_file=nullptr,
                       int decimals=4, string fdir_name="");
 
     ~GridLayeringMFDmd();

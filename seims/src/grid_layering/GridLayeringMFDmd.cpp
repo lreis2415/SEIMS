@@ -15,6 +15,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
     flowdir_name_ = prefix + "_FLOW_DIR_" + fdtype_str_;
     flowfrac_corename_ = prefix + "_FLOW_FRACTION_" + fdtype_str_;
     mask_name_ = prefix + "_SUBBASIN";
+    dem_file_ = prefix + "_DEM";
     stream_file_ = stream_file;
     decimals_ = decimals;
 }
@@ -23,6 +24,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, MongoGridFs* gfs, const char*
 GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
                                      const char* fd_file, const char* fraction_file,
                                      const char* mask_file/*=nullptr*/, const char* stream_file/*=nullptr*/,
+                                     const char* dem_file/*=nullptr*/,
                                      int decimals/*=4*/,
                                      string fdir_name/*=""*/) :
     GridLayering(id, out_dir) {
@@ -39,6 +41,7 @@ GridLayeringMFDmd::GridLayeringMFDmd(const int id, const char* out_dir,
     }
     mask_name_ = mask_file;
     stream_file_ = stream_file;
+    dem_file_ = dem_file;
     decimals_ = decimals;
     // outputs
     OutputFilenames();
@@ -59,6 +62,8 @@ bool GridLayeringMFDmd::LoadData() {
                                    true, mask_, true, NODATA_VALUE, opts);
         flow_fraction_ = FloatRaster::Init(gfs_, flowfrac_corename_.c_str(),
                                            true, mask_, true, NODATA_VALUE, opts);
+        dem_ = FloatRaster::Init(gfs_, dem_file_.c_str(),
+                                 true, mask_, true, NODATA_VALUE, opts);
 #else
         return false;
 #endif
@@ -78,6 +83,9 @@ bool GridLayeringMFDmd::LoadData() {
             flowdir_ = IntRaster::Init(flowdir_name_, true, mask_, true);
         }
         flow_fraction_ = FloatRaster::Init(flowfrac_names_, true, mask_, true);
+        if (!dem_file_.empty()) {
+            dem_ = FloatRaster::Init(dem_file_, true, mask_, true);
+        }
     }
     if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
 

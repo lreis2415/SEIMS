@@ -1004,7 +1004,8 @@ GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) 
     fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
-    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
+    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), dem_(nullptr),
+    flowdir_matrix_(nullptr), reverse_dir_(nullptr),
     flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
     flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
     flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
@@ -1018,7 +1019,8 @@ GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), us
     fdtype_(FD_D8), output_dir_(out_dir), subbasin_id_(id),
     n_rows_(-1), n_cols_(-1), out_nodata_(-9999),
     n_valid_cells_(-1), n_layer_count_(-1), pos_index_(nullptr), pos_rowcol_(nullptr),
-    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), flowdir_matrix_(nullptr), reverse_dir_(nullptr),
+    mask_(nullptr), flowdir_(nullptr), flow_fraction_(nullptr), dem_(nullptr),
+    flowdir_matrix_(nullptr), reverse_dir_(nullptr),
     flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
     flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
     flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
@@ -1029,6 +1031,7 @@ GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), us
 GridLayering::~GridLayering() {
     delete flowdir_; // flowdir_matrix_ will be released too.
     delete flow_fraction_; // flowfrac_matrix_ will be released too for mfd only.
+    delete dem_;
     if (has_mask_) delete mask_;
     if (nullptr != pos_index_) Release1DArray(pos_index_);
     if (nullptr != reverse_dir_) Release1DArray(reverse_dir_);
@@ -1263,6 +1266,7 @@ void GridLayering::CountFlowOutCells(int mode/*=0*/) {
 
         int flow_dir = flowdir_matrix_[index];
         vector<int> flow_dirs = uncompress_flow_directions(flow_dir);
+        int org_down_num = flow_dirs.size();
         for (vector<int>::iterator it = flow_dirs.begin(); it != flow_dirs.end(); ++it) {
             int fd_idx = find_flow_direction_index_ccw(*it);
             int dst_row = i + drow[fd_idx];
@@ -1280,6 +1284,40 @@ void GridLayering::CountFlowOutCells(int mode/*=0*/) {
                 continue;
             }
             flow_out_num_[index]++;
+        }
+        // Some flow direction data may cause errors after checking if all downslope cells are within mask
+        // For example:
+        //            (5,23)
+        //            (6,23) (6,24)
+        //            (7,23) (7,24) (7,25)
+        //   Dinf: (6,24) has two downslope: (5,23) and (6,23), and both are outside the mask (subbasin)
+        //   In fact, (7,25)'s elevation almost equals to (5,23), which is inside the mask.
+        //   Due to the characteristics of Dinf algorithm, the (7,25) cannot be the downslope of (6,24)
+        //   In such case, we should manually make the downslope of (6,25) -> (7,25) using elevation data
+        //
+        if (org_down_num >= 2 && flow_out_num_[index] == 0 && !(mode == 1 && stream_src > 0)) {
+            FLTPT dem_diff = 0.;
+            int max_flowidx = -1;
+            FLTPT dem_dst;
+            FLTPT dem_src = dem_->GetValue(i, j);
+            for (int ii = 1; ii <= 8; ii++) {
+                int dst_row = i + drow[ii];
+                int dst_col = j + dcol[ii];
+                if (!mask_->ValidateRowCol(dst_row, dst_col) || mask_->IsNoData(dst_row, dst_col)) {
+                    continue;
+                }
+                dem_dst = dem_->GetValue(dst_row, dst_col);
+                if (dem_src - dem_dst >= dem_diff) {
+                    dem_diff = dem_src - dem_dst;
+                    max_flowidx = ii;
+                }
+            }
+            if (max_flowidx > 0) {
+                flow_out_num_[index] = 1;
+                flowdir_matrix_[index] = fdccw[max_flowidx];
+            } else {
+                cout << "The cell " << index << " cannot flow inside the mask, please check!" << endl;
+            }
         }
     }
     flow_out_acc_[0] = flow_out_num_[0] < 0 ? 0 : flow_out_num_[0];
@@ -1444,7 +1482,21 @@ bool GridLayering::OutputFlowOut(int mode/*=0*/) {
             flowout_fracs_[count - 1] = 0.;
             continue;
         }
-
+        if (flowcount == 1) {
+            int down_cell_idx = 1 + valid_idx + 1;
+            if (valid_idx > 0) {
+                down_cell_idx += flow_out_acc_[valid_idx - 1];
+            }
+            int down_cell = flow_out_cells_[down_cell_idx];
+            int fd_idx = find_flow_direction_index_ccw(pos_rowcol_[down_cell][0] - i,
+                                                       pos_rowcol_[down_cell][1] - j);
+            for (int ii = 0; ii < 8; ii++) {
+                flowfrac_matrix_[valid_idx][ii] = -1.;
+            }
+            flowfrac_matrix_[valid_idx][fd_idx - 1] = 1.;
+            flowout_fracs_[count++] = 1.;
+            continue;
+        }
         vector<FLTPT> fracin(flowcount, 0.);
         vector<int> flowidxs(flowcount, -1);
         for (int iout = 0; iout < flow_out_num_[valid_idx]; iout++) {
