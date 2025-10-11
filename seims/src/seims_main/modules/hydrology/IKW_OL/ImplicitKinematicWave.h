@@ -68,7 +68,7 @@ private:
     float m_dtStorm;
 
     /// slope (percent)
-    float *m_s0;
+    float **m_s0;
     /// manning's roughness
     float *m_n;
     /// channel width (zero for non-channel cells)
@@ -90,8 +90,13 @@ private:
     */
     int **m_flowInIndex;
 
+    int** m_flowInFrac;
+
     /// flow out index
     int **m_flowOutIdx;
+
+    /// flow out fraction
+    int** m_flowOutFrac;
 
     /**
     *	@brief Routing layers according to the flow direction
@@ -105,7 +110,7 @@ private:
     /// water height available for runoff (surface runoff)
     float *m_sr;
     /// discharge to the downslope cell
-    float *m_q;
+    float **m_q;
     /// flow velocity
     float *m_vel;
 
@@ -133,10 +138,12 @@ private:
     /// stream link
     int *m_streamLink;
     /// flow length of each cell
-    float *m_flowLen;
+    float **m_flowLen;
     /// alpha in manning equation
     float *m_alpha;
     /// slope (radian)
-    float *m_sRadian;
+    float **m_sRadian;
+    /// elevation of cells
+    FLTPT* m_dem;
 };
 #endif /* SEIMS_IKW_OL_H */

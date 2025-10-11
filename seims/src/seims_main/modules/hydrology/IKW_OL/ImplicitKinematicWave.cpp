@@ -5,15 +5,15 @@
 // using namespace std;  // Avoid this statement! by lj.
 
 ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellWidth(-1.0f),
-                                                           m_s0(NULL), m_n(NULL), m_flowInIndex(NULL),
-                                                           m_flowOutIdx(NULL), m_direction(NULL),
+                                                           m_s0(NULL), m_n(NULL), m_flowInIndex(NULL), m_flowInFrac(NULL),
+                                                           m_flowOutIdx(NULL),m_flowOutFrac(NULL), m_direction(NULL),
                                                            m_routingLayers(NULL), m_nLayers(-1),
                                                            m_q(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
                                                            m_alpha(NULL), m_streamLink(NULL),
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
-                                                           m_infil(NULL), m_dtStorm(-1.0f) {
+                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL) {
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
@@ -56,8 +56,14 @@ bool ImplicitKinematicWave_OL::CheckInputData(void) {
     if (m_flowInIndex == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow in index has not been set.");
     }
+    if (m_flowInFrac == NULL) {
+        throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow in fraction has not been set.");
+    }
     if (m_flowOutIdx == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow out index has not been set.");
+    }
+    if (m_flowOutFrac == NULL) {
+        throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow out fraction has not been set.");
     }
     if (m_direction == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: flow direction has not been set.");
@@ -83,16 +89,22 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
 
     if (m_q == NULL) {
         CheckInputData();
-        m_q = new float[m_nCells];
-        m_sRadian = new float[m_nCells];
+        m_q = new float*[m_nCells];
+        m_sRadian = new float*[m_nCells];
         m_vel = new float[m_nCells];
         m_flowWidth = new float[m_nCells];
-        m_flowLen = new float[m_nCells];
+        m_flowLen = new float*[m_nCells];
         m_alpha = new float[m_nCells];
         m_reInfil = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            m_q[i] = 0.0f;
+            int numOutflows = (int)m_flowOutIdx[i][0];
+
+            m_q[i] = new float[numOutflows + 1];
+            m_sRadian[i] = new float[numOutflows + 1];
+            m_flowLen[i] = new float[numOutflows + 1];
+
+            //m_q[i] = 0.0f;
             m_reInfil[i] = 0.f;
 
             // flow width
@@ -106,19 +118,55 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
                 m_flowWidth[i] -= m_chWidth[i];
             }
 
-            float s0 = m_s0[i];
-            if (FloatEqual(s0, 0.0f)) {
-                s0 = MINI_SLOPE;
+            //calculate slope from DEM
+            
+            for (int j = 1; j <= numOutflows; ++j) {
+                int nextCell = (int)m_flowOutIdx[i][j];
+                float s0 = 0.0f;
+
+                if (m_dem[i] <= m_dem[nextCell]) {
+                    s0 = MIN_SLOPE;
+                }
+
+                float deltaZ = m_dem[i] - m_dem[nextCell];
+
+                float horizontalDist = m_CellWidth;
+                int dir = (int)m_flowOutIdx[i][j];
+                if (DiagonalCCW[dir] == 1) {
+                    horizontalDist = m_CellWidth * SQ2;
+                }
+
+                if (horizontalDist > 0) {
+                    s0 = deltaZ / horizontalDist;
+                }
+
+                if (FloatEqual(s0, 0.0f)) {
+                    s0 = MIN_SLOPE;
+                }
+
+                m_s0[i][j] = s0;
+                m_sRadian[i][j] = atan(s0);
+
+
             }
-            m_sRadian[i] = atan(s0);
+
+
+            //float s0 = m_s0[i];
+            //if (FloatEqual(s0, 0.0f)) {
+            //    s0 = MINI_SLOPE;
+            //}
+            //m_sRadian[i] = atan(s0);
 
             // flow length needs to be corrected by slope angle
-            float dx = m_CellWidth / cos(m_sRadian[i]);
-            //if ((int) m_diagonal[dir] == 1) {
-            if (DiagonalCCW[dir] == 1) {
-                dx = SQ2 * dx;
+            for (int j = 1; j <= numOutflows; ++j) {
+                float dx = m_CellWidth / cos(m_sRadian[i][j]);
+                //if ((int) m_diagonal[dir] == 1) {
+                if (DiagonalCCW[dir] == 1) {
+                    dx = SQ2 * dx;
+                }
+                m_flowLen[i][j] = dx;
             }
-            m_flowLen[i] = dx;
+            
         }
     }
 }
@@ -193,7 +241,7 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
 
 void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     const float beta = 0.6f;
-    float beta1 = 1 / beta;
+    float beta1 = 1.0f / beta;
 
     float h = m_sr[id] / 1000.f;
 
@@ -247,7 +295,8 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     }
 
     float qIn = m_q[id];
-    m_q[id] = GetNewQ(qUp, qIn, surplus, m_alpha[id], m_dtStorm, flowLen);
+    m_q[id][0] = GetNewQ(qUp, qIn, surplus, m_alpha[id], m_dtStorm, flowLen);
+
 
     float hNew = (m_alpha[id] * CalPow(m_q[id], 0.6f)) / flowWidth; // unit m
     //float hTest = h + (qUp - m_q[id])*m_dtStorm/(flowWidth*flowLen);
@@ -361,9 +410,9 @@ void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, FLTPT *data) {
     //check the input data
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_SLOPE[0])) {
+/*    if (StringMatch(sk, VAR_SLOPE[0])) {
         m_s0 = data;
-    } else if (StringMatch(sk, VAR_MANNING[0])) {
+    } else */if (StringMatch(sk, VAR_MANNING[0])) {
         m_n = data;
     } else if (StringMatch(sk, VAR_FLOWDIR[0])) {
         m_direction = data;
@@ -377,7 +426,10 @@ void ImplicitKinematicWave_OL::Set1DData(const char *key, int n, FLTPT *data) {
         m_accumuDepth = data;
     } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
-    }else {
+    } else if (StringMatch(sk, VAR_DEM[0])) {
+        m_dem = data;
+    }
+    else {
         throw ModelException(M_IKW_OL[0], "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
@@ -457,6 +509,12 @@ void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, 
     }
     else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWIN_FRACTION[0)) {
+        m_flowInFrac = data;
+    }
+    else if (StringMatch(sk, Tag_FLOWOUT_FRACTION[0])) {
+        m_flowOutFrac = data;
     }
     else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) {
         m_flowOutIdx = data;
