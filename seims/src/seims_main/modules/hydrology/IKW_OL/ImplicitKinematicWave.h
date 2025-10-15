@@ -44,6 +44,8 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
+    virtual void Get2DData(const char* key, int* nrows, int* ncols, float*** data);
+
     virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
 
     virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
@@ -111,8 +113,10 @@ private:
     float *m_sr;
     /// discharge to the downslope cell
     float **m_q;
+    // sum m_q
+    float* m_q_total;
     /// flow velocity
-    float *m_vel;
+    float **m_vel;
 
     /// id of outlet
     int m_idOutlet;
@@ -140,7 +144,9 @@ private:
     /// flow length of each cell
     float **m_flowLen;
     /// alpha in manning equation
-    float *m_alpha;
+    float **m_alpha;
+    // average alpha
+    float* m_alpha_avg;
     /// slope (radian)
     float **m_sRadian;
     /// elevation of cells

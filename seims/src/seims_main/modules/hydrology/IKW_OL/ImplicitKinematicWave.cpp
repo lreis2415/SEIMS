@@ -8,8 +8,8 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_s0(NULL), m_n(NULL), m_flowInIndex(NULL), m_flowInFrac(NULL),
                                                            m_flowOutIdx(NULL),m_flowOutFrac(NULL), m_direction(NULL),
                                                            m_routingLayers(NULL), m_nLayers(-1),
-                                                           m_q(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
-                                                           m_alpha(NULL), m_streamLink(NULL),
+                                                           m_q(NULL),m_q_total(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
+                                                           m_alpha(NULL), m_alpha_avg(NULL), m_streamLink(NULL),
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
@@ -18,9 +18,11 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
     if (m_q != NULL) Release1DArray(m_q);
+    if (m_q_total != NULL) Release1DArray(m_q_total);
     if (m_flowWidth != NULL) Release1DArray(m_flowWidth);
     if (m_flowLen != NULL) Release1DArray(m_flowLen);
     if (m_alpha != NULL) Release1DArray(m_alpha);
+    if (m_alpha_avg != NULL) Release1DArray(m_alpha_avg);
     if (m_sRadian != NULL) Release1DArray(m_sRadian);
     if (m_vel != NULL) Release1DArray(m_vel);
     if (m_reInfil != NULL) Release1DArray(m_reInfil);
@@ -90,11 +92,13 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
     if (m_q == NULL) {
         CheckInputData();
         m_q = new float*[m_nCells];
+        m_q_total = new float[m_nCells];
         m_sRadian = new float*[m_nCells];
-        m_vel = new float[m_nCells];
+        m_vel = new float*[m_nCells];
         m_flowWidth = new float[m_nCells];
         m_flowLen = new float*[m_nCells];
-        m_alpha = new float[m_nCells];
+        m_alpha = new float*[m_nCells];
+        m_alpha_avg = new float[m_nCells];
         m_reInfil = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
@@ -103,6 +107,8 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
             m_q[i] = new float[numOutflows + 1];
             m_sRadian[i] = new float[numOutflows + 1];
             m_flowLen[i] = new float[numOutflows + 1];
+            m_alpha[i] = new float[numOutflows + 1];
+            m_vel[i] = new float[numOutflows + 1];
 
             //m_q[i] = 0.0f;
             m_reInfil[i] = 0.f;
@@ -251,40 +257,69 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         r = h * m_flowWidth[id] / Perim;
     }
 
-    float sSin = CalSqrt(sin(m_sRadian[id]));
-    m_alpha[id] = CalPow(m_n[id] / sSin * CalPow(Perim, _2div3), beta);
+    int numOutflows = (int)m_flowOutIdx[id][0];
+    // calculate  weighted average alpha and flow length for the cell
+    float alpha_avg = 0.f;
+    float flowLen_avg = 0.f;
 
-    if (m_alpha[id] > 0) {
-        m_q[id] = CalPow((m_flowWidth[id] * h) / m_alpha[id], beta1);
-    } else {
-        m_q[id] = 0;
+    for (int j = 1; j <= numOutflows; ++j) {
+        float sSin = CalSqrt(sin(m_sRadian[id][j]));
+        m_alpha[id][j] = (sSin > 0) ? CalPow(m_n[id] / sSin * CalPow(Perim, _2div3), beta):0.f;
+
+        alpha_avg += m_alpha[id][j] * m_flowOutFrac[id][j];
+        flowLen_avg += m_flowLen[id][j] * m_flowOutFrac[id][j];
     }
 
-    m_vel[id] = CalPow(r, _2div3) * sSin / m_n[id];
+
+    m_alpha_avg[id] = alpha_avg;
+
+
+    //calculate total potential outflow qIn based on Manning's equation using average alpha
+    float qIn_total = 0.f;
+    if (m_alpha_avg[id] > 0) {
+        qIn_total = CalPow((m_flowWidth[id] * h) / m_alpha_avg[id], beta1);
+    } else {
+        qIn_total = 0;
+    }
+
+    //m_vel[id] = CalPow(r, _2div3) * sSin / m_n[id];
 
     float flowWidth = m_flowWidth[id]; //(little question: why not use m_flowWidth[[id]? by Gao)
-    float flowLen = m_flowLen[id];
+    //float flowLen = m_flowLen[id];
 
     //sum the upstream overland flow
     float qUp = 0.0f;
-    for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
-        int flowInID = (int) m_flowInIndex[id][k];
+    for (int k = 1; k <= m_flowInIndex[id][0]; ++k) {
+        int flowInID =  m_flowInIndex[id][k];
         if (m_streamLink[flowInID] <= 0) { // if the upstream cell is not a channel cell
-            qUp += m_q[flowInID];
+            int numDownstreamofUpstream = m_flowOutIdx[flowInID][0];
+            if (numDownstreamofUpstream >= 1) {
+                for (int j = 1; j <= numDownstreamofUpstream; ++j) {
+                    if ((int)m_flowOutIdx[flowInID][j] == id) {
+                        qUp += m_q[flowInID][j];
+                    }
+                }
+            }
         }
     }
 
     // if the channel width is greater than the cell width
     if (m_streamLink[id] >= 0 && flowWidth <= 0) {
-        m_q[id] = qUp;
+        for (int j = 1; j <= numOutflows; ++j) {
+            m_q[id][j] = 0.f;
+        }
+        m_q[id][0] = qUp;
         m_sr[id] = 0.f;
         return;
     }
 
     // check whether overland flow routing is needed
-    if (qUp < MIN_FLUX && m_q[id] < MIN_FLUX) {
+    if (qUp < MIN_FLUX && qIn_total < MIN_FLUX) {
         m_sr[id] = 0.f;
-        m_q[id] = 0.f;
+        m_q_total[id] = 0.f;
+        for (int j = 1; j <= numOutflows; ++j) {
+            m_q[id][j] = 0.f;
+        }
         return;
     }
 
@@ -294,15 +329,19 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         surplus = -m_infilCapacitySurplus[id] / 1000.f * flowWidth / m_dtStorm;
     }
 
-    float qIn = m_q[id];
-    m_q[id][0] = GetNewQ(qUp, qIn, surplus, m_alpha[id], m_dtStorm, flowLen);
 
+    float qNewTotal = GetNewQ(qUp, qIn_total, surplus, m_alpha_avg[id], m_dtStorm, flowLen_avg);
 
-    float hNew = (m_alpha[id] * CalPow(m_q[id], 0.6f)) / flowWidth; // unit m
+    for (int j = 1; j <= numOutflows; ++j) {
+        m_q[id][j] = qNewTotal * m_flowOutFrac[id][j];
+    }
+    m_q_total[id] = qNewTotal; //Store the total outflow for the next time step's `qUp` calculation.
+
+    float hNew = (m_alpha_avg[id] > 0) ? (m_alpha_avg[id] * CalPow(m_q[id], 0.6f)) / flowWidth : 0.f; // unit m
     //float hTest = h + (qUp - m_q[id])*m_dtStorm/(flowWidth*flowLen);
-    m_sr[id] = hNew * 1000;
+    m_sr[id] = hNew * 1000.f;
 
-    float reInfil = (qUp - m_q[id]) * m_dtStorm / (flowWidth * flowLen) + h - hNew;
+    float reInfil = (qUp - qNewTotal) * m_dtStorm / (flowWidth * flowLen_avg) + h - hNew;
     reInfil *= 1000.f;
 
     //if (abs(reInfil) < 0.001f)
@@ -329,14 +368,28 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     m_reInfil[id] = reInfil;
 
     // compute to channel flow
+    float rNew = 0;
+    float PerimNew =2.f * h + m_flowWidth[id];
+    if (PerimNew > 0) {
+        rNew = hNew * m_flowWidth[id] / PerimNew;
+    }
+    float rNew_pow2div3 = CalPow(rNew, _2div3);
+    float vel_avg = 0.f;
+
+    for (int j = 1; j <= numOutflows; ++j) {
+        float sSin = CalSqrt(sin(m_sRadian[id][j]));
+        m_vel[id][j] = rNew_pow2div3 * sSin / m_n[id];
+        vel_avg += m_vel[id][j] * m_flowOutFrac[id][j];
+    }
+
     if (m_streamLink[id] > 0) {
-        float fractiontochannel = Min(m_dtStorm * m_vel[id] / (0.5f * flowWidth), 1.0f);
-        float Volume = m_sr[id] / 1000.f * m_flowWidth[id] * flowLen;
+        float fractiontochannel = Min(m_dtStorm * vel_avg / (0.5f * flowWidth), 1.0f);
+        float Volume = m_sr[id] / 1000.f * m_flowWidth[id] * flowLen_avg;
 
         //if (id == m_idOutlet)// in catchment outlet cell, throw everything in channel
         fractiontochannel = 1.0f;
 
-        m_q[id] += fractiontochannel * Volume / m_dtStorm; // water diverted to the channel
+        m_q[id] += fractiontochannel * Volume / m_dtStorm; // water diverted to the channel 流入河道的变量是什么
         m_sr[id] *= (1.f - fractiontochannel);
 
     }
@@ -466,20 +519,36 @@ void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) 
 
     string sk(key);
     *n = m_nCells;
-    if (StringMatch(sk, VAR_QOVERLAND[0])) {
+    /*if (StringMatch(sk, VAR_QOVERLAND[0])) {
         *data = m_q;
-    } else if (StringMatch(sk, VAR_Reinfiltration[0])) {
+    } else */if (StringMatch(sk, VAR_Reinfiltration[0])) {
         *data = m_reInfil;
     } else if (StringMatch(sk, VAR_FLOWWIDTH[0])) {
         *data = m_flowWidth;
-    } else if (StringMatch(sk, VAR_RadianSlope[0])) {
+    }/* else if (StringMatch(sk, VAR_RadianSlope[0])) {
         *data = m_sRadian;
-    } else if (StringMatch(sk, "ChWidth")) {   //FlowLen   TODO WHY TO DO SO?
+    } */else if (StringMatch(sk, "ChWidth")) {   //FlowLen   TODO WHY TO DO SO?
         *data = m_chWidth;                 //add by Wu Hui
     } else {
         throw ModelException(M_IKW_OL[0], "Get1DData", "Output " + sk
                              + " does not exist.");
     }
+}
+
+void ImplicitKinematicWave_OL::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
+    string sk(key);
+    *nrows = m_nCells; //uncertain!!!
+    if (StringMatch(sk, VAR_QOVERLAND[0])) {
+        *data = m_q;
+    }
+    else if (StringMatch(sk, VAR_RadianSlope[0])) {
+        *data = m_sRadian;
+    }
+    else {
+        throw ModelException(M_IKW_OL[0], "Get2DData",
+            "Output " + sk + " does not exist.");
+    }
+
 }
 
 
@@ -510,7 +579,7 @@ void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, 
     else if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     }
-    else if (StringMatch(sk, Tag_FLOWIN_FRACTION[0)) {
+    else if (StringMatch(sk, Tag_FLOWIN_FRACTION[0])) {
         m_flowInFrac = data;
     }
     else if (StringMatch(sk, Tag_FLOWOUT_FRACTION[0])) {
