@@ -635,6 +635,12 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
                            SimulationModule* p_module, const bool is_optional /* = false */) {
     FLTPT* data = nullptr;
     /// If the data has not been loaded
+    string real_filename = remote_filename;
+    if (StringMatch(para_name, VAR_FLOWDIR[0])) {
+        /// Get FLOWIN/FLOWOUT_FRACTION's real file name according to flow direction algorithm except D8
+        if (fdir_method_ == D8) { return; }
+        real_filename.append(FlowDirMethodString[fdir_method_]);
+    }
     if (array1d_map_.find(remote_filename) == array1d_map_.end()) {
         LoadAdjust1DArrayData(para_name, remote_filename, is_optional);
     }
@@ -677,7 +683,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     string real_filename = remote_filename;
     if (StringMatch(para_name, Tag_FLOWIN_FRACTION[0]) || StringMatch(para_name, Tag_FLOWOUT_FRACTION[0])) {
         /// Get FLOWIN/FLOWOUT_FRACTION's real file name according to flow direction algorithm except D8
-        if (fdir_method_ == D8) { return; }
+        //if (fdir_method_ == D8) { return; }
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }
     if (array2d_map_.find(real_filename) == array2d_map_.end()) {
@@ -709,7 +715,7 @@ void DataCenter::Set2DDataInt(const string& para_name, const string& remote_file
         real_filename.append(LayeringMethodString[lyr_method_]);
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }
-    else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0])) {
+    else if (StringMatch(para_name, Tag_FLOWIN_INDEX[0]) || StringMatch(para_name, Tag_FLOWOUT_INDEX[0]) || StringMatch(para_name, VAR_FLOWOUT_DIRADJ[0])) {
         /// Get FLOWIN/FLOWOUT_INDEX's real file name according to flow direction algorithm
         real_filename.append(FlowDirMethodString[fdir_method_]);
     }

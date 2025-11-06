@@ -2,9 +2,9 @@
 #include "text.h"
 #include "Logging.h"
 
-const int MAIN_DB_TABS_REQ_NUM = 6;
+const int MAIN_DB_TABS_REQ_NUM = 5;
 const char* MAIN_DB_TABS_REQ[] = {
-    DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
+    DB_TAB_FILE_OUT, DB_TAB_SITELIST,
     DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL
 };
 
