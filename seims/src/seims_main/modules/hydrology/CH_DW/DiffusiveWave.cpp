@@ -283,7 +283,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
     float qLat = m_prec[id] / 1000.f / m_dt * m_chWidth[id];
     if (m_qs != nullptr) {
-        qLat += m_qs[id] / dx;
+        qLat += m_qs[id][0] / dx;
     }
     if (m_qi != nullptr) {
         qLat += m_qi[id] / dx;
@@ -362,7 +362,7 @@ int DiffusiveWave::Execute() {
                 int id = vecCells[iCell];
                 //estimate qs and qi of the outlet
                 if (m_qs != nullptr) {
-                    total_qs += m_qs[id] / m_flowLen[reachIndex][iCell];
+                    total_qs += m_qs[id][0] / m_flowLen[reachIndex][iCell];
                 }
                 if (m_qi != nullptr) {
                     total_qi += m_qi[id] / m_flowLen[reachIndex][iCell];
@@ -449,9 +449,7 @@ void DiffusiveWave::Set1DData(const char *key, int n, FLTPT *data) {
     }
     else if (StringMatch(sk, VAR_QSOIL[0])) {
         m_qi = data;
-    } else if (StringMatch(sk, VAR_QOVERLAND[0])) {
-        m_qs = data;
-    } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
+    }  else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
     }
     //else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index
@@ -547,6 +545,9 @@ void DiffusiveWave::Get2DData(const char *key, int *nrows, int *ncols, float ***
 
 void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
+    if (StringMatch(sk, VAR_QOVERLAND[0])) {
+    m_qs = data;
+    }
     /*if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
         m_flowInIndex = data;
     } else {
