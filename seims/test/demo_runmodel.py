@@ -27,7 +27,7 @@ from test.demo_config import (ModelPaths, DEMO_MODELS, get_watershed_name_info,
 
 
 def main():
-    wtsd_name, model_name, config_name = get_watershed_name_info()
+    wtsd_name, model_name, config_name, bin_dir = get_watershed_name_info()
     if wtsd_name not in list(DEMO_MODELS.keys()):
         print('%s is not one of the available demo watershed: %s' %
               (wtsd_name, ','.join(list(DEMO_MODELS.keys()))))
@@ -47,7 +47,7 @@ def main():
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
 
-    model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
+    model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name, bin_dir)
     org_file_name = 'runmodel.ini'
     org_cfg_file = '%s/%s' % (model_paths.cfg_dir, org_file_name)
     run_cfg_file = '%s/%s' % (model_paths.workspace, org_file_name)

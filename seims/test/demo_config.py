@@ -38,7 +38,8 @@ DEMO_MODELS = {'youwuzhen':  # data folder name
                         {'preprocessini': 'preprocess.ini',  # preprocess ini, for all sub-models
                          'confignames': [  # each model can have multiple configName, aka sub-model!
                              'daily',
-                             'storm']
+                             'storm'],
+                         'bin_dir': None
                          }
                     }
                }
@@ -59,18 +60,20 @@ def get_watershed_name_info(desc='Specify watershed name, modelname, and confign
     parser.add_argument('-model', type=str, help='Model name of demo watershed')
     parser.add_argument('-config', type=str,
                         help='Config model name of demo watershed')
+    parser.add_argument('-bin_dir', type=str, help='executable path')
     # parse arguments
     args = parser.parse_args()
     datadirname = args.name
     modelname = args.model
     configname = args.config
+    bindir = args.bin_dir
     if datadirname is None:
         datadirname = 'youwuzhen'  # default
     if modelname is None:
         modelname = 'demo_youwuzhen30m_model'
     if configname is None:
         configname = 'daily'
-    return datadirname, modelname, configname
+    return datadirname, modelname, configname, bindir
 
 
 class ModelPaths(object):
@@ -82,9 +85,11 @@ class ModelPaths(object):
         model_dir_name: e.g., demo_youwuzhen30m_model
     """
 
-    def __init__(self, bpath, data_dir_name, model_dir_name):
+    def __init__(self, bpath, data_dir_name, model_dir_name, bin_dir=None):
         self.mpi_bin = None
-        self.bin_dir = r'E:\code\compile\SEIMS_msvc2019\bin'
+        self.bin_dir = bin_dir
+        if bin_dir is None:
+            self.bin_dir = bpath + os.path.sep + 'build' + os.path.sep + 'bin'
         self.prescript_dir = bpath + os.path.sep + 'seims' + os.path.sep + 'preprocess'
         self.base_dir = bpath + os.path.sep + 'data' + os.path.sep + data_dir_name
         self.model_dir = self.base_dir + os.path.sep + model_dir_name
@@ -324,7 +329,8 @@ def main():
     # More demo data could be added in the future.
     for wtsd_name, model_dict in list(DEMO_MODELS.items()):
         for model_name, model_dict in list(model_dict.items()):
-            model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name)
+            bin_dir = model_dict.get('bin_dir', None)
+            model_paths = ModelPaths(SEIMS_path, wtsd_name, model_name, bin_dir=bin_dir)
             if 'preprocessini' not in list(model_dict.keys()):
                 print('The key preprocessini MUST be specified for each model!')
                 continue
