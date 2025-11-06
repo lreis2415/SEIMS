@@ -79,12 +79,8 @@ private:
     /**
     *	@brief flow direction by the rule of ArcGIS
     *
-    *	The value of direction is as following:
-        4  3  2
-        5     1
-        6  7  8
     */
-    float *m_direction;
+    int **m_direction;
     /**
     *	@brief 2d array of flow in cells
     *
@@ -92,13 +88,13 @@ private:
     */
     int **m_flowInIndex;
 
-    int** m_flowInFrac;
+    FLTPT** m_flowInFrac;
 
     /// flow out index
     int **m_flowOutIdx;
 
     /// flow out fraction
-    int** m_flowOutFrac;
+    FLTPT** m_flowOutFrac;
 
     /**
     *	@brief Routing layers according to the flow direction
@@ -113,8 +109,7 @@ private:
     float *m_sr;
     /// discharge to the downslope cell
     float **m_q;
-    // sum m_q
-    float* m_q_total;
+
     /// flow velocity
     float **m_vel;
 
@@ -138,15 +133,14 @@ private:
     // the following are intermediate variables
 
     /// flow width of each cell
-    float *m_flowWidth;
+    float **m_flowWidth;
     /// stream link
     int *m_streamLink;
     /// flow length of each cell
     float **m_flowLen;
     /// alpha in manning equation
     float **m_alpha;
-    // average alpha
-    float* m_alpha_avg;
+
     /// slope (radian)
     float **m_sRadian;
     /// elevation of cells
