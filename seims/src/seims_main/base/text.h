@@ -142,13 +142,27 @@ CONST_CHARS_LIST Tag_CellWidth[] = {"CELLWIDTH", "width of the cell"}; ///< m_ce
 
 CONST_CHARS_LIST Tag_LayeringMethod[] = {"LayeringMethod", "Routing layering method"}; ///<
 CONST_CHARS_LIST Tag_FlowDirectionMethod[] = { "FlowDirMethod", "Flow direction algorithm" }; ///<
+
 CONST_CHARS_LIST Tag_FLOWIN_INDEX[] = { "FLOWIN_INDEX", "Indexes of flow in units" }; ///< m_flowInIdx
 CONST_CHARS_LIST Tag_FLOWOUT_INDEX[] = { "FLOWOUT_INDEX", "Indexes of flow out units" }; ///< m_flowOutIdx
 CONST_CHARS_LIST Tag_FLOWIN_FRACTION[] = { "FLOWIN_FRACTION", "Flow in fractions from upstream units" }; ///< m_flowInFrac
 CONST_CHARS_LIST Tag_FLOWOUT_FRACTION[] = { "FLOWOUT_FRACTION", "Flow out fractions to downstream units" }; ///< m_flowOutFrac
+
+CONST_CHARS_LIST Tag_FLOWIN_INDEX_HILLSLOPE[] = { "FLOWIN_INDEX_HILLSLOPE", "Indexes of flow in units" }; ///<
+CONST_CHARS_LIST Tag_FLOWOUT_INDEX_HILLSLOPE[] = { "FLOWOUT_INDEX_HILLSLOPE", "Indexes of flow out units" }; ///<
+CONST_CHARS_LIST Tag_FLOWIN_FRACTION_HILLSLOPE[] = { "FLOWIN_FRACTION_HILLSLOPE", "Flow in fractions from upstream units" }; ///<
+CONST_CHARS_LIST Tag_FLOWOUT_FRACTION_HILLSLOPE[] = { "FLOWOUT_FRACTION_HILLSLOPE", "Flow out fractions to downstream units" }; ///<
+
 CONST_CHARS_LIST Tag_ROUTING_LAYERS[] = {"ROUTING_LAYERS", "Routing layers according to flow directions, "
                                          "there are no flow relationships within each layer, and the first element in each layer "
                                          "is the number of compute units in current layer"}; ///< m_rteLyrs
+CONST_CHARS_LIST Tag_ROUTING_LAYERS_HILLSLOPE[] = { "ROUTING_LAYERS_HILLSLOPE", "Routing layers according to flow directions, "
+                                         "there are no flow relationships within each layer, and the first element in each layer "
+                                         "is the number of compute units in current layer" }; ///< 
+CONST_CHARS_LIST Tag_ROUTING_LAYERS_CHANNEL[] = { "ROUTING_LAYERS_CHANNEL", "Routing layers according to flow directions, "
+                                         "there are no flow relationships within each layer, and the first element in each layer "
+                                         "is the number of compute units in current layer" }; ///< 
+
 
 // Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 CONST_CHARS_LIST VAR_REACH_PARAM[] = {"ReachParam", "Reach parameters such as stream order, "
@@ -571,7 +585,13 @@ CONST_CHARS_LIST VAR_EXT_COEF[] = {"EXT_COEF", "light extinction coefficient"}; 
 CONST_CHARS_LIST VAR_FERTILIZER_LOOKUP[] = {"FertilizerLookup", "Fertilizer lookup table"}; /// m_fertLookup
 CONST_CHARS_LIST VAR_FIELDCAP[] = {"FieldCap", "Soil field capacity"};
 CONST_CHARS_LIST VAR_FLAT[] = {"flat", "lateral flow in soil layer"};
-CONST_CHARS_LIST VAR_FLOWDIR[] = {"FLOW_DIR", "Flow direction by the rule of TauDEM"};
+CONST_CHARS_LIST VAR_FLOWDIR[] = {"FLOW_DIR", "Flow direction by the rule of ArcGIS"};
+
+CONST_CHARS_LIST VAR_FLOWIN_DIRADJ[] = { "FLOWIN_DIRADJ", "Flowin direction by the rule of ArcGIS, adjusted by grid_layering" }; ///<
+CONST_CHARS_LIST VAR_FLOWOUT_DIRADJ[] = { "FLOWOUT_DIRADJ", "Flowout direction by the rule of ArcGIS, adjusted by grid_layering" }; ///<
+CONST_CHARS_LIST VAR_FLOWIN_DIRADJ_HILLSLOPE[] = { "FLOWIN_DIRADJ_HILLSLOPE", "Flowin direction in hillslope by the rule of ArcGIS, adjusted by grid_layering" }; ///<
+CONST_CHARS_LIST VAR_FLOWOUT_DIRADJ_HILLSLOPE[] = { "FLOWOUT_DIRADJ_HILLSLOPE", "Flowout direction in hillslope by the rule of ArcGIS, adjusted by grid_layering" }; ///<
+
 CONST_CHARS_LIST VAR_FLOWWIDTH[] = {"FlowWidth", "Flow width of overland plane"};
 CONST_CHARS_LIST VAR_FR_PHU_ACC[] = {"frPHUacc", "fraction of plant heat units (PHU) accumulated"}; /// m_phuAccum
 CONST_CHARS_LIST VAR_FR_PLANT_N[] = {"frPlantN", "fraction of plant biomass that is nitrogen, pltfr_n in SWAT"}; /// m_frPltN

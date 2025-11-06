@@ -370,7 +370,7 @@ protected:
     /*!
      * \brief Build multiple flow out array
      */
-    int BuildMultiFlowOutArray(int*& compressed_dir, int*& connect_count, int*& p_output);
+    int BuildMultiFlowOutArray(int*& compressed_dir, int*& connect_count, int*& p_output, int*& p_output2);
     /*!
      * \brief Output 2D array as txt file
      */
@@ -442,6 +442,9 @@ protected:
     int flow_out_count_;        ///< All flow out times
     int* flow_out_cells_;       ///< Indexes of each cell's flow out
     FLTPT* flowout_fracs_;      ///< Flow out fractions of each cell
+    int* flow_out_diradj_;      ///< Adjusted flow out directions of each cell
+    int* flow_in_diradj_;       ///< Adjusted flow in directions of each cell
+
     vector<vector<int> > n_layer_cells_updown_; ///< layer index (not number) - indexes of cells in Up-Down order
     vector<vector<int> > n_layer_cells_downup_; ///< layer index (not number) - indexes of cells in Down-Up order
     vector<vector<int> > n_layer_cells_evenly_; ///< layer index (not number) - indexes of cells in Evenly order
@@ -462,12 +465,19 @@ protected:
     /** Output file names **/
     string flowin_index_name_;    ///< Flow in index
     string flowin_frac_name_;     ///< Flow fraction of each flow in cell
-    string flowout_index_name_;   ///< Flow out index
-    string flowout_frac_name_;    ///< Flow fraction of each flow out cell
     string flowin_index_hs_name_; ///< Flow in index, with all channels set as Outlets
     string flowin_frac_hs_name_;  ///< Flow fraction of each flow in cell, with all channels set as Outlets
+
+    string flowout_index_name_;   ///< Flow out index
+    string flowout_frac_name_;    ///< Flow fraction of each flow out cell
     string flowout_index_hs_name_;///< Flow out index, with all channels set as Outlets
     string flowout_frac_hs_name_; ///< Flow fraction of each flow out cell, with all channels set as Outlets
+
+    string flowout_diradj_name_;      ///< Adjusted flow direction
+    string flowout_diradj_hs_name_;
+    string flowin_diradj_name_;      ///< Adjusted flow direction
+    string flowin_diradj_hs_name_;
+
     string layering_updown_name_; ///< Routing layers from sources, including all cells in the watershed
     string layering_downup_name_; ///< Routing layers from outlets, including all cells in the watershed
     string layering_evenly_name_; ///< Routing layers evenly, including all cells in the watershed

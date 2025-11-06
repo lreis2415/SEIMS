@@ -1009,6 +1009,7 @@ GridLayering::GridLayering(const int id, MongoGridFs *gfs, const char *out_dir) 
     flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
     flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
     flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
+    flow_out_diradj_(nullptr), flow_in_diradj_(nullptr),
     layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
     layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
@@ -1024,6 +1025,7 @@ GridLayering::GridLayering(const int id, const char *out_dir): gfs_(nullptr), us
     flowfrac_matrix_(nullptr), stream_matrix_(nullptr),
     flow_in_num_(nullptr), flow_in_acc_(nullptr), flow_in_count_(0), flow_in_cells_(nullptr), flowin_fracs_(nullptr),
     flow_out_num_(nullptr), flow_out_acc_(nullptr), flow_out_count_(0), flow_out_cells_(nullptr), flowout_fracs_(nullptr),
+    flow_out_diradj_(nullptr), flow_in_diradj_(nullptr),
     layers_updown_(nullptr), layers_downup_(nullptr), layers_evenly_(nullptr),
     layer_cells_updown_(nullptr), layer_cells_downup_(nullptr), layer_cells_evenly_(nullptr) {
 }
@@ -1043,6 +1045,8 @@ GridLayering::~GridLayering() {
     if (nullptr != flow_out_num_) Release1DArray(flow_out_num_);
     if (nullptr != flow_out_acc_) Release1DArray(flow_out_acc_);
     if (nullptr != flow_out_cells_) Release1DArray(flow_out_cells_);
+    if (nullptr != flow_out_diradj_) Release1DArray(flow_out_diradj_);
+    if (nullptr != flow_in_diradj_) Release1DArray(flow_in_diradj_);
     if (nullptr != flowout_fracs_) Release1DArray(flowout_fracs_);
     if (nullptr != layers_updown_) Release1DArray(layers_updown_);
     if (nullptr != layers_downup_) Release1DArray(layers_downup_);
@@ -1190,6 +1194,11 @@ void GridLayering::OutputFilenames() {
     flowout_index_name_ = prefix + "_FLOWOUT_INDEX_" + fdtype_str_;
     flowout_frac_name_ = prefix + "_FLOWOUT_FRACTION_" + fdtype_str_;
 
+    flowin_diradj_name_ = prefix + "_FLOWIN_DIRADJ_" + fdtype_str_;
+    flowout_diradj_name_ = prefix + "_FLOWOUT_DIRADJ_" + fdtype_str_;
+    flowin_diradj_hs_name_ = prefix + "_FLOWIN_DIRADJ_HILLSLOPE_" + fdtype_str_;
+    flowout_diradj_hs_name_ = prefix + "_FLOWOUT_DIRADJ_HILLSLOPE_" + fdtype_str_;
+
     flowin_index_hs_name_ = prefix + "_FLOWIN_INDEX_HILLSLOPE_" + fdtype_str_;
     flowin_frac_hs_name_ = prefix + "_FLOWIN_FRACTION_HILLSLOPE_" + fdtype_str_;
     flowout_index_hs_name_ = prefix + "_FLOWOUT_INDEX_HILLSLOPE_" + fdtype_str_;
@@ -1199,27 +1208,30 @@ void GridLayering::OutputFilenames() {
     layering_downup_name_ = prefix + "_ROUTING_LAYERS_DOWNUP_" + fdtype_str_;
     layering_evenly_name_ = prefix + "_ROUTING_LAYERS_EVEN_" + fdtype_str_;
 
-    layering_updown_hs_ = prefix + "_ROUTING_LAYERS_UPDOWN_HILLSLOPE_" + fdtype_str_;
-    layering_downup_hs_ = prefix + "_ROUTING_LAYERS_DOWNUP_HILLSLOPE_" + fdtype_str_;
-    layering_evenly_hs_ = prefix + "_ROUTING_LAYERS_EVEN_HILLSLOPE_" + fdtype_str_;
+    layering_updown_hs_ = prefix + "_ROUTING_LAYERS_HILLSLOPE_UPDOWN_" + fdtype_str_;
+    layering_downup_hs_ = prefix + "_ROUTING_LAYERS_HILLSLOPE_DOWNUP_" + fdtype_str_;
+    layering_evenly_hs_ = prefix + "_ROUTING_LAYERS_HILLSLOPE_EVEN_" + fdtype_str_;
 
-    layering_updown_ch_ = prefix + "_ROUTING_LAYERS_UPDOWN_CHANNEL_" + fdtype_str_;
-    layering_downup_ch_ = prefix + "_ROUTING_LAYERS_DOWNUP_CHANNEL_" + fdtype_str_;
-    layering_evenly_ch_ = prefix + "_ROUTING_LAYERS_EVEN_CHANNEL_" + fdtype_str_;
+    layering_updown_ch_ = prefix + "_ROUTING_LAYERS_CHANNEL_UPDOWN_" + fdtype_str_;
+    layering_downup_ch_ = prefix + "_ROUTING_LAYERS_CHANNEL_DOWNUP_" + fdtype_str_;
+    layering_evenly_ch_ = prefix + "_ROUTING_LAYERS_CHANNEL_EVEN_" + fdtype_str_;
 }
 
 
 int GridLayering::BuildMultiFlowOutArray(int *&compressed_dir,
-                                         int *&connect_count, int *&p_output) {
+                                         int *&connect_count, int *&p_output, int *&p_output2) {
     p_output[0] = n_valid_cells_;
+    p_output2[0] = n_valid_cells_;
     int counter = 1;
     for (int valid_idx = 0; valid_idx < n_valid_cells_; valid_idx++) {
         int i = pos_rowcol_[valid_idx][0]; // row
         int j = pos_rowcol_[valid_idx][1]; // col
         /// count of flow out cells
         p_output[counter++] = connect_count[valid_idx]; // maybe 0
+        p_output2[counter - 1] = connect_count[valid_idx];
         if (connect_count[valid_idx] <= 0) {
             p_output[counter - 1] = 0;
+            p_output2[counter - 1] = 0;
             continue;
         }
         /// loop flow out directions
@@ -1231,6 +1243,7 @@ int GridLayering::BuildMultiFlowOutArray(int *&compressed_dir,
                 continue;
             }
             p_output[counter++] = pos_index_[(i + drow[fd_idx]) * n_cols_ + j + dcol[fd_idx]];
+            p_output2[counter - 1] = fd_idx;
         }
     }
     return counter;
@@ -1240,7 +1253,9 @@ bool GridLayering::BuildFlowInCellsArray() {
     int n_output = flow_in_count_ + n_valid_cells_ + 1;
     if (nullptr != flow_in_cells_) Release1DArray(flow_in_cells_);
     Initialize1DArray(n_output, flow_in_cells_, 0);
-    int n_output2 = BuildMultiFlowOutArray(reverse_dir_, flow_in_num_, flow_in_cells_);
+    if (nullptr != flow_in_diradj_) Release1DArray(flow_in_diradj_);
+    Initialize1DArray(n_output, flow_in_diradj_, 0);
+    int n_output2 = BuildMultiFlowOutArray(reverse_dir_, flow_in_num_, flow_in_cells_, flow_in_diradj_);
     if (n_output2 != n_output) {
         cout << "BuildFlowInCellsArray failed!" << endl;
         return false;
@@ -1335,13 +1350,16 @@ void GridLayering::CountFlowOutCells(int mode/*=0*/) {
 bool GridLayering::BuildFlowOutCellsArray() {
     int n_output = flow_out_count_ + n_valid_cells_ + 1;
     if (nullptr != flow_out_cells_) Release1DArray(flow_out_cells_);
+    if (nullptr != flow_out_diradj_) Release1DArray(flow_out_diradj_);
     Initialize1DArray(n_output, flow_out_cells_, 0);
+    Initialize1DArray(n_output, flow_out_diradj_, 0);
     int n_output2 = BuildMultiFlowOutArray(flowdir_matrix_, flow_out_num_,
-                                           flow_out_cells_);
+                                           flow_out_cells_, flow_out_diradj_);
     if (n_output2 != n_output) {
         cout << "BuildFlowOutCellsArray failed!" << endl;
         return false;
     }
+
     return true;
 }
 
@@ -1448,16 +1466,20 @@ bool GridLayering::OutputFlowIn(int mode/*=0*/) {
     string header = "ID\tUpstreamCount\tUpstreamID\tFlowInFraction";
     string outname = flowin_index_name_;
     string outname2 = flowin_frac_name_;
+    string outname_dir = flowin_diradj_name_;
     if (mode == 1) {
         outname = flowin_index_hs_name_;
         outname2 = flowin_frac_hs_name_;
+        outname_dir = flowin_diradj_hs_name_;
     }
     if (mode == 2) return true;
-    bool done = Output2DimensionArrayTxt(outname, header, flow_in_cells_, flowin_fracs_);
+    bool done = Output2DimensionArrayTxt(outname, header, flow_in_cells_, flowin_fracs_) &&
+        Output2DimensionArrayTxt(outname_dir, header, flow_in_diradj_, flowin_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
         done = done && OutputArrayAsGfs(outname, count, flow_in_cells_) &&
-                OutputArrayAsGfs(outname2, count, flowin_fracs_);
+                OutputArrayAsGfs(outname2, count, flowin_fracs_) &&
+                OutputArrayAsGfs(outname_dir, count, flow_in_diradj_);
 #endif
     }
     return done;
@@ -1541,16 +1563,20 @@ bool GridLayering::OutputFlowOut(int mode/*=0*/) {
     string header = "ID\tDownstreamCount\tDownstreamID\tFlowOutFraction";
     string outname = flowout_index_name_;
     string outname2 = flowout_frac_name_;
+    string outname_dir = flowout_diradj_name_;
     if (mode == 1) {
         outname = flowout_index_hs_name_;
         outname2 = flowout_frac_hs_name_;
+        outname_dir = flowout_diradj_hs_name_;
     }
     if (mode == 2) return true;
-    bool done = Output2DimensionArrayTxt(outname, header, flow_out_cells_, flowout_fracs_);
+    bool done = Output2DimensionArrayTxt(outname, header, flow_out_cells_, flowout_fracs_) &&
+                Output2DimensionArrayTxt(outname_dir, header, flow_out_diradj_, flowout_fracs_);
     if (use_mongo_) {
 #ifdef USE_MONGODB
         done = OutputArrayAsGfs(outname, count, flow_out_cells_) &&
-                OutputArrayAsGfs(outname2, count, flowout_fracs_);
+               OutputArrayAsGfs(outname2, count, flowout_fracs_) &&
+               OutputArrayAsGfs(outname_dir, count, flow_out_diradj_);
 #endif
     }
     return done;
