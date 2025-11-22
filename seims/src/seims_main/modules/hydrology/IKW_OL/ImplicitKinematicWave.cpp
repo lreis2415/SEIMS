@@ -341,7 +341,6 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     }
 
     // check whether overland flow routing is needed
-    const float MIN_DEPTH = 1e-12;
     if (qUp < MIN_FLUX && h < MIN_DEPTH) {
         m_sr[id] = 0.f;
         m_q[id][0] = 0.f;
@@ -368,13 +367,18 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float qNewTotal = 0.f;
     float totalFinalVolume = 0.f;
     float totalLeftoverVolume = 0.f;
-    float totalInflowVolume = 0.f;
+    //float totalInflowVolume = 0.f;
 
 
     float cellArea = m_CellWidth * m_CellWidth;
 
 
     float initialVolume = h * cellArea;
+
+    float potentialInfilVol = 0.f;
+    if (m_infilCapacitySurplus != NULL && m_infilCapacitySurplus[id] > 0) {
+        potentialInfilVol = m_infilCapacitySurplus[id] / 1000.f * cellArea;
+    }
 
     //debug
     if (isDebugCell) {
@@ -390,25 +394,27 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             if (isDebugCell) {
                 std::cout << "  m_infilCapacitySurplus: " << m_infilCapacitySurplus[id] << std::endl;
             }
-            surplus = -m_infilCapacitySurplus[id] / 1000.f * m_flowWidth[id][j] / m_dtStorm;
+            float validCapacity = (m_infilCapacitySurplus[id] > 0.f) ? m_infilCapacitySurplus[id] : 0.f;
+            surplus = -validCapacity / 1000.f * m_flowWidth[id][j] / m_dtStorm;
         }
 
         float surplus_j = surplus * m_flowOutFrac[id][j];
 
 
         //calculate total potential outflow qIn based on Manning's equation using average alpha
-        float qIn_j = 0.f;
+        float qLast_j = 0.f;
         if (m_alpha[id][j] > 0) {
-            qIn_j = CalPow((m_flowWidth[id][j] * h) / m_alpha[id][j], beta1);
+            qLast_j = CalPow((m_flowWidth[id][j] * h) / m_alpha[id][j], beta1);
         }
         else {
-            qIn_j = 0;
+            qLast_j = 0;
         }
         float inflowVolume_j = qUp_j * m_dtStorm;
-        float surplusVolumn_j = surplus_j * m_flowLen[id][j] * m_dtStorm;
-        float allocatedVolume_j = initialVolume * m_flowOutFrac[id][j] + surplusVolumn_j + inflowVolume_j;
+        //float surplusVolume_j = surplus_j * m_flowLen[id][j] * m_dtStorm;
+        float initialVolume_j = initialVolume * m_flowOutFrac[id][j];
+        float allocatedVolume_j = initialVolume_j + inflowVolume_j;
 
-        m_q[id][j] = GetNewQ(qUp_j, qIn_j, surplus_j, m_alpha[id][j], m_dtStorm, m_flowLen[id][j]);
+        m_q[id][j] = GetNewQ(qUp_j, qLast_j, surplus_j, m_alpha[id][j], m_dtStorm, m_flowLen[id][j]);
         if (isDebugCell) {
             std::cout << "  m_q[id][j]: " << m_q[id][j] << std::endl;
         }
@@ -424,7 +430,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         //debug
         if (isDebugCell) {
             std::cout << "  Loop 2 (j=" << j << "):" << std::endl;
-            std::cout << "    qUp_j: " << qUp_j << ", qIn_j: " << qIn_j << ", surplus_j: " << surplus_j << std::endl;
+            std::cout << "    qUp_j: " << qUp_j << ", qLast_j: " << qLast_j << ", surplus_j: " << surplus_j << std::endl;
             std::cout << "    allocatedVolume_j: " << allocatedVolume_j << std::endl;
             std::cout << "    m_q[id][j] (outflow): " << m_q[id][j] << std::endl;
             std::cout << "    actualOutflowVolume_j: " << actualOutflowVolume_j << std::endl;
@@ -437,12 +443,24 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         qNewTotal += m_q[id][j];
 
         totalLeftoverVolume += leftoverVolume_j;
-        totalInflowVolume += inflowVolume_j + surplusVolumn_j;
+        //totalInflowVolume += inflowVolume_j + surplusVolume_j;
 
     }
 
     m_q[id][0] = qNewTotal;
 
+    // re-infiltraction
+    float reInfilVol = 0.f;
+    if (potentialInfilVol > 0 && totalLeftoverVolume > 0) {
+        if (totalLeftoverVolume >= potentialInfilVol) {
+            reInfilVol = potentialInfilVol;
+            totalLeftoverVolume -= potentialInfilVol;
+        }
+        else {
+            reInfilVol = totalLeftoverVolume;
+            totalLeftoverVolume = 0.f;
+        }
+    }
 
     if (totalLeftoverVolume < 0.f) totalLeftoverVolume = 0.f;
 
@@ -452,12 +470,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float totalOutflowVolume = qNewTotal * m_dtStorm;
 
 
-    float totalInfiltratedVolume = (initialVolume + totalInflowVolume) - totalOutflowVolume;
-    if (initialVolume + totalInflowVolume <= totalOutflowVolume) {
-        totalInfiltratedVolume = 0.f;
-    }
-
-    float reInfil = (cellArea > 0) ? (totalInfiltratedVolume / cellArea * 1000.f) : 0.f;
+    float reInfil = (cellArea > 0) ? (reInfilVol / cellArea * 1000.f) : 0.f;
 
     //debug
     if (isDebugCell) {
@@ -466,7 +479,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         std::cout << "  totalLeftoverVolume (m3): " << totalLeftoverVolume << std::endl;
         std::cout << "  hNew (m): " << hNew << std::endl;
         std::cout << "  New m_sr[id] (mm): " << m_sr[id] << std::endl;
-        std::cout << "  reInfil (mm): " << reInfil << std::endl;
+        std::cout << "  reInfilVol : " << reInfilVol << std::endl;
         std::cout << "----------------------------------------------" << std::endl;
     }
 
@@ -496,10 +509,17 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     if (m_infilCapacitySurplus != NULL) {
         m_infilCapacitySurplus[id] -= reInfil;
+        if (m_infilCapacitySurplus[id] < 0) m_infilCapacitySurplus[id] = 0.f;
     }
 
     m_reInfil[id] = reInfil;
 
+    //debug
+    if (isDebugCell) {
+        std::cout << "  --- DEBUG ID: " << id << " (OverlandFlow End) ---" << std::endl;
+        std::cout << "  reInfil : " << reInfil << std::endl;
+        std::cout << "----------------------------------------------" << std::endl;
+    }
 
     // compute to channel flow
     // In this modification, the hillslope routing module does not consider channel flow. (by Fan xinyi)

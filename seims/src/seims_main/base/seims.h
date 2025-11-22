@@ -134,6 +134,7 @@ const FLTPT rad2deg = 57.29577951308232; ///< 180. / PI
 const FLTPT radWt = 0.01721420632103996f; /// PI * 2 / 365;
 
 const FLTPT MIN_FLUX = 1e-12; ///< minimum flux (m3/s) in kinematic wave
+const FLTPT MIN_DEPTH = 1e-12; ///< minimum depth (m) in kinematic wave
 const int MAX_ITERS_KW = 10; ///< maximum iterate number in kinematic wave method
 const FLTPT MIN_SLOPE = 1e-4;  ///< minimum slope (tan value)
 
