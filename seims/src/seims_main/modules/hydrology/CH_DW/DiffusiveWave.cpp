@@ -6,7 +6,7 @@
 DiffusiveWave::DiffusiveWave() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
     m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_reachN(nullptr),
-    m_chWidth(nullptr),
+    m_chWidth(nullptr), m_chDepth(nullptr), m_Chs0_perc(NODATA_VALUE), m_chSlope(nullptr),
     m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_netPcp(nullptr), m_qSubbasin(nullptr),m_qsCh(nullptr),m_qiCh(nullptr),
     m_elevation(nullptr),
     m_flowLen(nullptr), m_qi(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
@@ -20,6 +20,7 @@ DiffusiveWave::~DiffusiveWave() {
     //Release1DArray(m_streamOrder);
     //Release1DArray(m_reachDownStream);
     //Release1DArray(m_reachN);
+    if (nullptr != m_reachN) Release1DArray(m_reachN);
 
     Release2DArray(m_hCh);
     Release2DArray(m_qCh);
@@ -63,6 +64,12 @@ bool DiffusiveWave::CheckInputData(void) {
     if (m_chWidth == nullptr) {
         throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: CHWIDTH has not been set.");
     }
+    if (m_chDepth == nullptr) {
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: CHDEPTH has not been set.");
+    }
+    if (m_chSlope == nullptr) {
+        throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: CHSLOPE has not been set.");
+    }
     if (m_streamLink == nullptr) {
         throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: STREAM_LINK has not been set.");
     }
@@ -76,7 +83,7 @@ bool DiffusiveWave::CheckInputData(void) {
     if (m_elevation == nullptr) {
         throw ModelException(M_CH_DW[0], "CheckInputData", "The parameter: Elevation has not been set.");
     }
-
+    CHECK_NODATA(M_MUSK_CH[0], m_Chs0_perc);
     return true;
 }
 
@@ -134,65 +141,22 @@ void DiffusiveWave:: InitialOutputs() {
                 isSource = true;
             }
             
-            //if (isSource) {
-            //    if (m_idToIndex.find(reachId) == m_idToIndex.end())
-            //    {
-            //        m_idToIndex.insert(pair<int, int>(reachId, reachIndex));
-            //    }
-            //    /*int reachIndex = m_idToIndex[reachId];*/
+            if (isSource) {
+                //if (m_idToIndex.find(reachId) == m_idToIndex.end())
+                //{
+                //    m_idToIndex.insert(pair<int, int>(reachId, reachIndex));
+                //}
+                /*int reachIndex = m_idToIndex[reachId];*/
                 m_sourceCellIds[reachId] = i;
 
-            //    reachIndex++;           
-            //}
-        }
-
-        //for(int i = 1; i <= m_chNumber; i++)
-        //	cout << m_sourceCellIds[i] << endl;
-
-        // get the cells in reaches according to flow direction
-        for (int iCh = 1; iCh <= m_chNumber; iCh++) {
-            std::queue<int> q;
-            int iCell = m_sourceCellIds[iCh];
-
-            if (iCell < 0) continue; // invalid source cell
-
-            int reachId = (int) m_streamLink[iCell]; //get current reachID
-            q.push(iCell); // push source cell
-
-            while (!q.empty())
-            {
-                int curCell = q.front();
-                q.pop(); // dequeue the first cell
-
-                if ((int)m_streamLink[iCell] != reachId) {
-                    continue; //skip the cell not belong to this reach
-                }
-                m_reachs[iCh].push_back(curCell); // add the cell to the reach list
-                int num_outflows = m_flowOutIdx[curCell][0];
-                for (int k = 1; k <= num_outflows; ++k)
-                {
-                    int nextCell = m_flowOutIdx[curCell][k]; //get downstream cell
-                    if (nextCell >= 0)
-                    {
-                        q.push(nextCell);
-                    }
-                }
+/*                reachIndex++;    */       
             }
-
-            /*while ((int)m_streamLink[iCell] == reachId ) {
-                m_reachs[iCh].push_back(iCell);
-
-                if(m_flowOutIdx[iCell][1] <0 )
-                {
-                    break;
-                }
-               
-                iCell = (int)m_flowOutIdx[iCell][1];
-            }*/
         }
+
 
         m_hCh = new float *[m_chNumber + 1];
         m_qCh = new float *[m_chNumber + 1];
+
 
         m_flowLen = new float *[m_chNumber + 1];
 
@@ -212,15 +176,27 @@ void DiffusiveWave:: InitialOutputs() {
 
             m_qSubbasin[i] = 0.f;
 
+
+
+            // initial channel depth
+            float h0 = m_chDepth[i] * m_Chs0_perc;
+
+            // calculate initial Q with manning equation
+            float chslope = (m_chSlope != nullptr) ? m_chSlope[i] : 0.001f;
+            if (chslope < 0.0001f) chslope = 0.0001f;
+            float perim = m_chWidth[i] + 2.0f * h0;
+            float area = m_chWidth[i] * h0;
+            float radius = area / perim;
+            float q0 = (1.0f / m_reachN[i]) * area * pow(radius, 2.0f / 3.0f) * sqrt(chslope);
+
             //estimate qs and qi of the outlet
             m_qiCh[i] = 0.f;
-            m_qsCh[i] = 0.f;
+            m_qsCh[i] = q0;
 
             int id;
             float s0, dx;
             for (int j = 0; j < n; ++j) {
-                m_hCh[i][j] = 0.f;
-                m_qCh[i][j] = 0.f;
+
 
                 id = m_reachs[i][j];
                 s0 = m_s0[id];
@@ -235,6 +211,9 @@ void DiffusiveWave:: InitialOutputs() {
                     dx = SQ2 * dx;
                 }
                 m_flowLen[i][j] = dx;
+
+                m_hCh[i][j] = h0;
+                m_qCh[i][j] = q0;
             }
         }
 
@@ -244,6 +223,13 @@ void DiffusiveWave:: InitialOutputs() {
 //! Channel flow
 void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
    
+    //debug
+    int TARGET_DEBUG_ID = 4197;
+    bool isDebug = (id == TARGET_DEBUG_ID) || (iReach == 4 && iCell == 0);
+    if (isDebug) {
+        std::cout << "\n========== [DEBUG] Reach:" << iReach << " | Cell:" << iCell << " | ID:" << id << " ==========" << std::endl;
+        std::cout << std::fixed << std::setprecision(4); // 设置小数位数
+    }
 
     float qUp = 0.f;
     float hUp = 0.f;
@@ -254,6 +240,9 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
     // inflow from upstream channel
     if (iCell == 0) { // inflow of this cell is the last cell of the upstream reach
+        m_qsCh[iReach] = 0.f;
+        m_qiCh[iReach] = 0.f;
+
         for (size_t i = 0; i < m_reachUpStream[iReach].size(); ++i) {
 
             
@@ -266,9 +255,18 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
                 qUp += m_qCh[upReachId][upCellsNum - 1];
 
+                m_qsCh[iReach] += m_qsCh[upReachId];
+                m_qiCh[iReach] += m_qiCh[upReachId];
+
                 float hWater = m_elevation[upCellId] + m_hCh[upReachId][upCellsNum - 1];
                 if (hWater > hUp) {
                     hUp = hWater;
+                }
+                //debug
+                if (isDebug) {
+                    std::cout << "  -> Upstream Reach Found: ID=" << upReachId
+                        << " Q_out=" << m_qCh[upReachId][upCellsNum - 1]
+                        << " H_water=" << hWater << std::endl;
                 }
             }
         }
@@ -281,27 +279,92 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     float h = m_hCh[iReach][iCell];
     float dx = m_flowLen[iReach][iCell];
 
+    float local_qs = (m_qs != nullptr) ? m_qs[id][0] : 0.f;
+    float local_qi = (m_qi != nullptr) ? m_qi[id] : 0.f;
+
+    ////debug
+    //bool isInvalid = false;
+
+    //if (local_qi < -0.0001f) {
+    //    std::cout << "[ERROR] Negative Qi Detected! (Possible NoData)" << std::endl;
+    //    isInvalid = true;
+    //}
+    //else if (std::isnan(local_qi)) {
+    //    std::cout << "[ERROR] NaN Qi Detected! (Math Error)" << std::endl;
+    //    isInvalid = true;
+    //}
+    //else if (local_qi > 1e10f) { 
+    //    std::cout << "[ERROR] Huge Qi Detected! (Possible Uninitialized Memory)" << std::endl;
+    //    isInvalid = true;
+    //}
+
+
+    //if (isInvalid) {
+    //    std::cout << "  -> Location: Reach " << iReach << ", CellIndex " << iCell << ", CellID " << id << std::endl;
+    //    std::cout << "  -> Value: " << local_qi << std::endl;
+
+    //    if (m_qi == nullptr) {
+    //        std::cout << "  -> m_qi pointer is NULL (Logic handled, but value shouldn't be random)" << std::endl;
+    //    }
+    //    else {
+    //        std::cout << "  -> Raw m_qi[" << id << "] = " << m_qi[id] << std::endl;
+    //    }
+    //}
+
+    float rain_flux = 0.f;
+
     float qLat = m_prec[id] / 1000.f / m_dt * m_chWidth[id];
+
+    rain_flux = qLat * dx;
+
+    m_qsCh[iReach] += local_qs + rain_flux;
+    m_qiCh[iReach] += local_qi;
+
     if (m_qs != nullptr) {
         qLat += m_qs[id][0] / dx;
     }
     if (m_qi != nullptr) {
         qLat += m_qi[id] / dx;
     }
+    //debug
+    if (isDebug) {
+        std::cout << "[1. Inflows]" << std::endl;
+        std::cout << "  qUp (Upstream)   = " << qUp << std::endl;
+        std::cout << "  hUp (Up-Head/Dep)= " << hUp << std::endl;
+        std::cout << "  qLat (Lateral)   = " << qLat  << std::endl;
+        std::cout << "  Current Depth h  = " << h << std::endl;
+        std::cout << "  Flow Len dx      = " << dx << std::endl;
+    }
 
     if (qLat < MIN_FLUX && qUp < MIN_FLUX) {
         m_hCh[iReach][iCell] = 0.f;
         m_qCh[iReach][iCell] = 0.f;
+        if (isDebug) std::cout << "[Result] Dry condition. Q=0, H=0" << std::endl;
         return;
     }
 
     float perim = 2.f * h + m_chWidth[iReach];
     float sf = (hUp - m_elevation[id] - h) / dx;
+
+    //debug
+    if (isDebug) {
+        std::cout << "[2. Physics]" << std::endl;
+        std::cout << "  Elevation Cur    = " << m_elevation[id] << std::endl;
+        std::cout << "  Slope (sf) Raw   = " << sf << std::endl;
+    }
+
     if (sf < MINI_SLOPE) {
         sf = MINI_SLOPE;
     }
     float c = 1.f / 3600.f * m_reachN[iReach] * CalPow(perim, _2div3) / CalSqrt(sf);
     c = CalPow(c, 0.6f);
+
+    //debug
+    if (isDebug) {
+        std::cout << "  Slope (sf) Used  = " << sf << std::endl;
+        std::cout << "  Perimeter        = " << perim << std::endl;
+        std::cout << "  Conductance (c)  = " << c << std::endl;
+    }
 
     float d = 1.f;
     int counter = 0;
@@ -311,9 +374,16 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
         qNew = qLat;
     }
 
+    //debug
+    if (isDebug) std::cout << "[3. Iteration]" << std::endl;
+
     while (abs(d) > MIN_FLUX && counter < 10) {
         d = (qNew * m_dt / dx + c * Power(qNew, 0.6f) - qUp * m_dt / dx - c * Power(qLast, 0.6f) - qLat * m_dt) /
             (m_dt / dx + c * 0.6f / Power(qNew, 0.4f));
+        //debug
+        if (isDebug) {
+            std::cout << "  Iter " << counter << ": qNew=" << qNew << ", d=" << d << std::endl;
+        }
 
         //if(d != d)
         //	int test = 1;
@@ -327,6 +397,13 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
     float qAvail = m_hCh[iReach][iCell] * m_chWidth[iReach] * dx / m_dt + qLat * dx + qUp;
 
+    //debug
+    if (isDebug) {
+        std::cout << "[4. Balance Check]" << std::endl;
+        std::cout << "  qCalculated = " << qNew << std::endl;
+        std::cout << "  qAvailable  = " << qAvail << std::endl;
+    }
+
     if (qNew > qAvail) {
         m_qCh[iReach][iCell] = qAvail;
         m_hCh[iReach][iCell] = 0.f;
@@ -335,7 +412,31 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
         m_hCh[iReach][iCell] = c * CalPow(qNew, 0.6f) / m_chWidth[iReach];
         //float hh = (qUp + qLat*dx - qNew)*m_dt/(m_chWidth[iReach]*dx) + m_hCh[iReach][iCell];
     }
-    
+    //debug
+    if (isDebug) {
+        std::cout << "[Final Output]" << std::endl;
+        std::cout << "  Q_out = " << m_qCh[iReach][iCell] << std::endl;
+        std::cout << "  H_new = " << m_hCh[iReach][iCell] << std::endl;
+        std::cout << "==========================================\n" << std::endl;
+    }
+
+    int nCells = m_reachs[iReach].size();
+    if (iCell == nCells - 1) {
+        float output_flow = m_qCh[iReach][iCell];
+
+        float total_input = m_qsCh[iReach] + m_qiCh[iReach];
+
+        float ratio = 0.f;
+        if (total_input > MIN_FLUX) {
+            ratio = output_flow / total_input;
+        }
+        else if (output_flow > MIN_FLUX) {
+            ratio = 0.f;
+        }
+        m_qsCh[iReach] *= ratio;
+        m_qiCh[iReach] *= ratio;
+    }
+
 }
 
 //! Main execute function
@@ -359,50 +460,16 @@ int DiffusiveWave::Execute() {
             //std::cout << "the verCell of reachid  " << reachIndex << " is " << n << endl;
             
             for (int iCell = 0; iCell < n; iCell++) {
-                int id = vecCells[iCell];
-                //estimate qs and qi of the outlet
-                if (m_qs != nullptr) {
-                    total_qs += m_qs[id][0] / m_flowLen[reachIndex][iCell];
-                }
-                if (m_qi != nullptr) {
-                    total_qi += m_qi[id] / m_flowLen[reachIndex][iCell];
-                }
-
                 ChannelFlow(reachIndex, iCell, vecCells[iCell]);
             }
 
 
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
-            //estimate qs and qi of the outlet
-            
-            m_qsCh[reachIndex] = 0;
-            m_qiCh[reachIndex] = 0;
+
 
         }
-        float total_prec = 0.0f;
-        float ave_prec = 0.0f;
-        for (int i = 0; i < m_nCells; ++i) {
-            total_prec += m_prec[i];
-        }
-        ave_prec = total_prec / m_nCells;
-        // std::cout << "average raw precipitation: "
-            // << ave_prec << " mm"
-            // << std::endl;
     }
-    //test estimate qs and qi of the outlet
-    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it)
-    {
-        int nReaches = it->second.size();
-        for (int i = 0; i < nReaches; ++i)
-        {
-            int reachIndex = it->second[i];
-            m_qsCh[reachIndex] = total_qs;
-            m_qiCh[reachIndex] = total_qi;
-        }
-    }
-    m_qsCh[0] = total_qs;
-    m_qiCh[0] = total_qi;
-    //
+
 
     return 0;
 }
@@ -411,7 +478,11 @@ void DiffusiveWave::SetValue(const char *key, const FLTPT value) {
     string sk(key);
     if(StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
-    } else {
+    }
+    else if (StringMatch(sk, VAR_CHS0_PERC[0])) {
+        m_Chs0_perc = value;
+    }
+    else {
         throw ModelException(M_CH_DW[0], "SetValue", "Parameter " + sk
                              + " does not exist. Please contact the module developer.");
     }
@@ -491,9 +562,27 @@ void DiffusiveWave::SetReaches(clsReaches *reaches) {
     if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
     if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
     if (nullptr == m_reachN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_reachN);
+    if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
+    if (nullptr == m_chSlope) reaches->GetReachesSingleProperty(REACH_SLOPE, &m_chSlope);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
     m_reachLayers = reaches->GetReachLayers();
+
+    m_reachs.clear();
+
+    // get the cells in each reach
+    for (int i = 1; i <= m_chNumber; ++i) {
+        clsReach* pReach = reaches->GetReachByID(i);
+        if (pReach != nullptr) {
+            int nCells = pReach->GetCellCount();     // cells_num_
+            int* cells = pReach->GetPositions();     // positions_
+
+            if (cells != nullptr && nCells > 0) {
+                vector<int> cellVec(cells, cells + nCells);
+                m_reachs[i] = cellVec;
+            }
+        }
+    }
 }
 
 void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {

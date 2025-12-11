@@ -30,6 +30,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_SLOPE[0], UNIT_PERCENT, VAR_SLOPE[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_FLOWDIR[0], UNIT_NON_DIM, VAR_FLOWDIR[1], Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHWIDTH[0], UNIT_LEN_M, VAR_CHWIDTH[1], Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_CHS0_PERC[0], UNIT_NON_DIM, VAR_CHS0_PERC[1], Source_ParameterDB, DT_Single);
     //mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array1D);
     //mdi.AddParameter(Tag_FLOWIN_INDEX[0], UNIT_NON_DIM, Tag_FLOWIN_INDEX[1], Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(Tag_FLOWOUT_INDEX[0], UNIT_NON_DIM, Tag_FLOWOUT_INDEX[1], Source_ParameterDB, DT_Array2DInt);

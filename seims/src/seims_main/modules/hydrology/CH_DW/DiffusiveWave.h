@@ -62,7 +62,11 @@ private:
     float m_CellWidth; ///< cell width of the grid (m)
     float m_dt; ///< channel routing time step (seconds)
     float *m_s0; ///< slope (percent)
-    float *m_chWidth; ///< channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells) 
+    float *m_chWidth; ///< channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells)
+    FLTPT* m_chDepth; ///< channel depth (m)
+    FLTPT* m_chSlope; ///< channel slope 
+    FLTPT m_Chs0_perc; ///< initial percentage of channel water volume
+    FLTPT* m_chWtrDepth;  ///< channel water depth (m), rchdep in SWAT
     float *m_elevation; ///< elevation
     int *m_streamLink; ///< stream link
     /**
