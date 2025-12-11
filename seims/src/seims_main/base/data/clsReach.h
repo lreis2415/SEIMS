@@ -56,6 +56,10 @@ public:
     */
     void DerivedParameters();
 
+    int GetCellCount() const { return cells_num_; }
+
+    int* GetPositions() const { return positions_; }
+
 private:
     int cells_num_; ///< cells (units) number of current reach
     vector<FLTPT> coor_x_; ///< X coordinates (not cols!)
