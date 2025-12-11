@@ -105,7 +105,7 @@ void GWaterReservoir::InitOutputs(void) {
 int GWaterReservoir::Execute(void) {
     InitOutputs();
     CheckInputData();
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i <= m_nReaches; i++) {
         m_percSubbasin[i] = 0.f;
     }
@@ -120,7 +120,7 @@ int GWaterReservoir::Execute(void) {
     }
 
     //FLTPT sum = 0.f;
-#pragma omp parallel for //reduction(+:sum)
+//#pragma omp parallel for //reduction(+:sum)
     for (int i = 1; i <= m_nReaches; i++) {
         FLTPT percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
