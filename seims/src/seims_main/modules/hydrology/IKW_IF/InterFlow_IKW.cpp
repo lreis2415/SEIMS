@@ -110,6 +110,13 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
     for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
         int flowInID = (int) m_flowInIndex[id][k];
         if (m_streamLink[id] > 0) {
+            //debug
+            if (m_q[flowInID] < 0.0f) {
+                std::cout << "[ERROR] Upstream Negative Flow Detected!"
+                    << " CurrentID: " << id
+                    << " UpstreamID: " << flowInID
+                    << " Value: " << m_q[flowInID] << std::endl;
+            }
             qUp += m_q[flowInID];
         }
     }
@@ -119,6 +126,15 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
     // there is no land in this cell
     if (m_streamLink[id] > 0) {
         m_q[id] = qUp;
+
+        //debug
+        if (m_q[id] < 0.0f) {
+            std::cout << "[ERROR] Negative River Q detected!"
+                << " ID: " << id
+                << " qUp: " << qUp
+                << " m_q: " << m_q[id] << std::endl;
+        }
+
         flowWidth -= m_chWidth[id];
         if (flowWidth <= 0) {
             
@@ -162,11 +178,31 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
 		// available water
 		float availableWater = (m_soilWtrSto[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
+        if (availableWater < 0.0f) {
+            availableWater = 0.0f;
+        }
+
 		float interFlow = m_q[id] * (int)m_dt; // m3
 		if (interFlow > availableWater) {
 			m_q[id] = availableWater / (int)m_dt;
 			interFlow = availableWater;
 		}
+
+        //debug
+        if (m_q[id] < -1e-5) {
+            std::cout << "\n[ERROR] Negative Soil Interflow Detected!" << std::endl;
+            std::cout << "  ID: " << id << " Layer: " << j << std::endl;
+            std::cout << "  m_q[id]: " << m_q[id] << std::endl;
+            std::cout << "  --- Variables ---" << std::endl;
+            std::cout << "  availableWater: " << availableWater
+                << " (Sto: " << m_soilWtrSto[id][j] << " - FC: " << m_fieldCapacity[id][j] << ")" << std::endl;
+            std::cout << "  m_landuseFactor: " << m_landuseFactor << std::endl;
+            std::cout << "  s0: " << s0 << std::endl;
+            std::cout << "  k: " << k << std::endl;
+            std::cout << "  soilVolumn: " << soilVolumn << std::endl;
+
+        }
+
 		m_h[id] = 1000 * interFlow / (m_CellWidth * m_CellWidth);
 
 		// adjust soil moisture
