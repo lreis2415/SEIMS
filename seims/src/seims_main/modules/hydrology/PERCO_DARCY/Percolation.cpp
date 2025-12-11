@@ -20,6 +20,8 @@ Percolation_DARCY::Percolation_DARCY(void) {
     m_recharge = NULL;
     m_rootDepth = NULL;
     m_CellWidth = -1.f;
+
+    m_nSoilLyrs = NULL;
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
@@ -35,9 +37,9 @@ int Percolation_DARCY::Execute() {
         m_recharge = new float[m_nCells];
     }
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < m_nCells; i++) {
-		for (int j = 0; j < m_nSoilLyrs; j++) {
+		for (int j = 0; j < m_nSoilLyrs[i]; j++) {
 			//if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
 			//{
 			//	m_recharge[i] = 0.0f;
@@ -63,7 +65,8 @@ int Percolation_DARCY::Execute() {
 				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
 				float rechargeCap =
 					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(moisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
-				float availableWater = (m_Moisture[i][j] - m_FieldCapacity[i][j]) * m_rootDepth[i][j];
+				float availableWater = (m_Moisture[i][j] - m_FieldCapacity
+                    [i][j]) * m_rootDepth[i][j];
 				if (rechargeCap >= availableWater) {
 					rechargeCap = availableWater;
 				}
@@ -140,6 +143,20 @@ void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
 
 // }
 
+void Percolation_DARCY::Set1DData(const char* key, int n, int* data) {
+    //check the input data
+    CheckInputSize(key, n);
+    string s(key);
+    if (StringMatch(s, VAR_SOILLAYERS[0])) {
+        m_nSoilLyrs = data;
+    }
+    else {
+        throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s
+            + " does not exist.");
+    }
+
+}
+
 void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) {
@@ -191,6 +208,9 @@ bool Percolation_DARCY::CheckInputData() {
     }
     if (this->m_Moisture == NULL) {
         throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The Moisture can not be NULL.");
+    }
+    if (this->m_nSoilLyrs == NULL) {
+        throw ModelException(M_PERCO_DARCY[0], "CheckInputData", "The soil layers can not be nullptr.");
     }
     //if(this->m_SoilT == NULL)			throw ModelException(M_PERCO_DARCY[0],"CheckInputData","The soil temerature can not be NULL.");
     //if(this->m_ForzenT == -99.0f)		throw ModelException(M_PERCO_DARCY[0],"CheckInputData","The threshold soil freezing temerature can not be NULL.");

@@ -33,7 +33,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_POROST[0], UNIT_STRG_M3M, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_POREIDX[0], UNIT_NON_DIM, VAR_POREIDX[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_FIELDCAP[0], UNIT_STRG_M3M, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D);
-
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster1D);
 
     mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module, DT_Raster2D);

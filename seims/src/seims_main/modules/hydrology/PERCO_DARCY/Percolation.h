@@ -42,7 +42,9 @@ private:
     float *m_recharge;
     //soil layers 
     int m_maxSoilLyrs;
-    float m_nSoilLyrs;
+
+    /// number of soil layers of each cell
+    int* m_nSoilLyrs;
 
 public:
     //! Constructor
@@ -52,6 +54,7 @@ public:
     ~Percolation_DARCY(void);
 
     //virtual void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char* key, int n, int* data);
     
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
