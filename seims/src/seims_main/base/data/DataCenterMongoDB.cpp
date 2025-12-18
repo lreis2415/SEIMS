@@ -51,6 +51,9 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                                  "Table " + string(MAIN_DB_TABS_REQ[i]) + " does not existed!");
         }
     }
+    if (!ValueInVector(string(DB_TAB_FILE_OUT_SPEC), existed_main_db_tabs)) {
+        LOG(ERROR) << "Table " << DB_TAB_FILE_OUT_SPEC << " doesn't existed in " << model_name_;
+    }
     if (scenario_id_ >= 0 && ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs)) {
         use_scenario_ = true; // we can first believe the scenario will be used.
     }
@@ -77,7 +80,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     if (!DataCenterMongoDB::GetInitialFileOutMap()) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Read initial output items failed!");
     }
-    if (!DataCenterMongoDB::GetSelectedFileOutVector()) { // Query FILE_OUT_SPEC first
+    if (!ValueInVector(string(DB_TAB_FILE_OUT_SPEC), existed_main_db_tabs) || !DataCenterMongoDB::GetSelectedFileOutVector()) { // Query FILE_OUT_SPEC first
         // then try to read from file.out directly
         selected_out_items_ = SettingsOutput::ReadFileOutFile(input_args, origin_out_items_);
     }
