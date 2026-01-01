@@ -67,6 +67,8 @@ private:
 
     /// pet
     float *m_pet;
+    /// excess precipitation calculated in the infiltration module
+    FLTPT* m_exsPcp;
     /// evaporation from the interception storage
     float *m_ei;
     /// evaporation from depression storage
@@ -80,6 +82,11 @@ private:
     float *m_storageCapSurplus;
     /// whether check inputs, TODO Is it useless? By LJ
     bool m_checkInput;
+    //! Net precipitation (after slope correction, of course), mm
+    FLTPT* m_netPcp;
+    //infiltration
+    float* m_infil;
+
 };
 #endif
 

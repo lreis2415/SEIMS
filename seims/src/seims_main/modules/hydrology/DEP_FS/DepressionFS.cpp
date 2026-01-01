@@ -3,7 +3,8 @@
 
 DepressionFS::DepressionFS() :
     m_nCells(-1), m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr), m_ei(nullptr),
-    m_ed(nullptr), m_sd(nullptr), m_sr(nullptr), m_checkInput(true) {
+    m_ed(nullptr), m_sd(nullptr), m_sr(nullptr), m_netPcp(nullptr),
+    m_infil(nullptr), m_exsPcp(nullptr), m_checkInput(true) {
 }
 
 DepressionFS::~DepressionFS() {
@@ -11,6 +12,8 @@ DepressionFS::~DepressionFS() {
     Release1DArray(m_sr);
     Release1DArray(m_storageCapSurplus);
     Release1DArray(m_ed);
+    Release1DArray(m_netPcp);
+    Release1DArray(m_exsPcp);
 }
 
 bool DepressionFS::CheckInputData() {
@@ -28,7 +31,18 @@ bool DepressionFS::CheckInputData() {
         throw ModelException(M_DEP_FS[0], "CheckInputData",
                              "The parameter: depression storage capacity has not been set.");
     }
-
+    if (m_netPcp == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
+            "The parameter: Net Precipitation has not been set.");
+    }
+    if (m_exsPcp == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
+            "The parameter: Excess Precipitation has not been set.");
+    }
+    if (m_infil == NULL) {
+        throw ModelException(M_DEP_FS[0], "CheckInputData",
+            "The parameter: infiltration has not been set.");
+    }
     if (!m_stormMode && m_pet == NULL) {
         throw ModelException(M_DEP_FS[0], "CheckInputData", "The parameter: PET has not been set.");
     }
@@ -68,29 +82,34 @@ int DepressionFS::Execute() {
         m_checkInput = false;
     }
 
+
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
 
-        // sr is temporarily used to stored the water depth including the depression storage
-		
-        float hWater = m_sr[i];
-		
-        if (hWater <= m_depCap[i]) {
-			
-            m_sd[i] = hWater;
-			
-            m_sr[i] = 0.f;
-        } else {
-			
-            m_sd[i] = m_depCap[i];
-			
-            m_sr[i] = hWater - m_depCap[i];
+        // m_depCap: depression storage capacity. Anything exceeds m_depCap becomes runoff(m_sr). --fanxy
+        if (m_depCap[i] < 0.001f) {
+            m_sr[i] = m_exsPcp[i];
+            m_sd[i] = 0.f;
         }
-        
+        else{
+            if (m_exsPcp[i] <= m_depCap[i]) {
+                m_sd[i] = m_exsPcp[i];
+                m_sr[i] = 0.f;
+            }
+            else {
+                // water filled the pit: the pit filled to capacity, and generates surface runoff.
+                m_sd[i] = m_depCap[i];
+                m_sr[i] = m_exsPcp[i] - m_depCap[i];
+            }
+        }
+        // Since the water has been distributed, clear the input variables.
+        m_exsPcp[i] = 0.f;
+
+        // calculate residual capacity of the depression
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
         if (!m_stormMode)
         {
-            if (m_sd[i] > 0) {
+            if (m_sd[i] > 0.f) {
                 //This section is taken from DEP_LINSLEY
                 if (m_pet[i] - m_ei[i] < m_sd[i]) {
                     m_ed[i] = m_pet[i] - m_ei[i];
@@ -102,8 +121,7 @@ int DepressionFS::Execute() {
             else {
                 m_ed[i] = 0.f;
             }
-        }
-        
+        }        
     }
     return 0;
 }
@@ -153,9 +171,19 @@ void DepressionFS::Set1DData(const char* key, int n, float* data) {
     }
 	else if (!m_stormMode && StringMatch(sk, VAR_PET[0])) {
 	       m_pet = data;
-    } else if (StringMatch(sk, VAR_INLO[0])) {
+    }
+    else if (StringMatch(sk, VAR_INLO[0])) {
         m_ei = data;
 	   }
+    else if (StringMatch(sk, VAR_NEPR[0])) {
+        m_netPcp = data;
+    }
+    else if (StringMatch(sk, VAR_INFIL[0])) {
+        m_infil = data;
+    }
+    else if (StringMatch(sk, VAR_EXCP[0])) {
+        m_exsPcp = data;
+    }
 	else {
         throw ModelException(M_DEP_FS[0], "Set1DData", "Parameter " + sk
                              + " does not exist in current module. Please contact the module developer.");

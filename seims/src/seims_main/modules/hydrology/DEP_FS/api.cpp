@@ -29,10 +29,13 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddInput(VAR_PET[0], UNIT_DEPTH_MM, VAR_PET[1], Source_Module, DT_Raster1D, TF_None, TI_Daily);    //PET
     mdi.AddInput(VAR_INLO[0], UNIT_DEPTH_MM, VAR_INLO[1], Source_Module, DT_Raster1D, TF_None, TI_Daily);
-    mdi.AddOutput(VAR_DEET[0], UNIT_DEPTH_MM, VAR_DEET[1], DT_Raster1D, TF_None, TI_Daily);
+    mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_INFIL[0], UNIT_DEPTH_MM, VAR_INFIL[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], Source_Module, DT_Raster1D); //Excess precipitation
 
-    mdi.AddOutput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], DT_Raster1D, TF_None, TI_Unlimit);
+    mdi.AddOutput(VAR_DEET[0], UNIT_DEPTH_MM, VAR_DEET[1], DT_Raster1D, TF_None, TI_Daily);
     mdi.AddOutput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], DT_Raster1D, TF_None, TI_Unlimit);
+    mdi.AddOutput(VAR_DPST[0], UNIT_DEPTH_MM, VAR_DPST[1], DT_Raster1D, TF_None, TI_Unlimit);
     mdi.AddOutput(VAR_STCAPSURPLUS[0], UNIT_DEPTH_MM, VAR_STCAPSURPLUS[1], DT_Raster1D, TF_None, TI_Unlimit);
 
     string res = mdi.GetXMLDocument();

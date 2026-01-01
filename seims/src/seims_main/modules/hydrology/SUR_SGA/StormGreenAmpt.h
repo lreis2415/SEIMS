@@ -105,5 +105,7 @@ private:
     float** m_soilWtrSto; ///< soil moisture
     float* m_infil; ///< infiltration
     float* m_infilCapacitySurplus; ///< surplus of infiltration capacity
+    /// the excess precipitation (mm) of the total nCells, which could be depressed or generated surface runoff
+    FLTPT* m_exsPcp;
 };
 #endif /* SEIMS_SUR_SGA_H */

@@ -44,6 +44,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_INFIL[0], UNIT_DEPTH_MM, VAR_INFIL[1], DT_Raster1D);
     mdi.AddOutput(VAR_INFILCAPSURPLUS[0], UNIT_DEPTH_MM, VAR_INFILCAPSURPLUS[1], DT_Raster1D);
     mdi.AddOutput(VAR_ACC_INFIL[0], UNIT_DEPTH_MM, VAR_ACC_INFIL[1], DT_Raster1D);
+    mdi.AddOutput(VAR_EXCP[0], UNIT_DEPTH_MM, VAR_EXCP[1], DT_Raster1D);
 
     string res = mdi.GetXMLDocument();
 
