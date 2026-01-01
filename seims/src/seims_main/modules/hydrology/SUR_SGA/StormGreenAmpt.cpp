@@ -11,7 +11,8 @@ StormGreenAmpt::StormGreenAmpt() :
     m_meanTmp(nullptr), m_netPcp(nullptr), m_deprSto(nullptr),
     m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
     m_capillarySuction(nullptr), m_accumuDepth(nullptr),
-    m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr) {
+    m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr),
+    m_exsPcp(nullptr){
 
 }
 
@@ -21,6 +22,7 @@ StormGreenAmpt::~StormGreenAmpt() {
     if (m_soilWtrSto != nullptr) Release2DArray(m_soilWtrSto);
     if (m_infil != nullptr) Release1DArray(m_infil);
     if (m_infilCapacitySurplus != nullptr) Release1DArray(m_infilCapacitySurplus);
+    if (m_exsPcp != nullptr) Release1DArray(m_exsPcp);
 }
 
 void StormGreenAmpt:: InitialOutputs() {
@@ -40,8 +42,9 @@ void StormGreenAmpt:: InitialOutputs() {
         Initialize1DArray(m_nCells, m_infil, 0.f);
         Initialize1DArray(m_nCells, m_infilCapacitySurplus, 0.f);
         Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilWtrSto, 0.f);
+        Initialize1DArray(m_nCells, m_exsPcp, 0.);
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
                 if (m_initSoilWtrStoRatio[i] < 0.f || m_initSoilWtrStoRatio[i] > 1.f ||
@@ -51,6 +54,39 @@ void StormGreenAmpt:: InitialOutputs() {
                 m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
             }
         }
+        /*std::cout << "\n[DEBUG] StormGreenAmpt Initialization Check:" << std::endl;*/
+
+        // debug
+        /*int debug_count = 0;
+        for (int i = 0; i < m_nCells && debug_count < 5; i++) {
+            if (m_initSoilWtrStoRatio[i] <= 0.f) continue;
+            debug_count++;
+            std::cout << "  Cell ID: " << i << ", InitRatio: " << m_initSoilWtrStoRatio[i] << std::endl;
+            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+                std::cout << "    Layer " << j << ": FC=" << m_soilFC[i][j]
+                    << " -> Calc Storage=" << m_soilWtrSto[i][j] << std::endl;
+            }
+        }*/
+        /*//debug
+        double total_storage = 0.0;
+        double total_fc = 0.0;
+        long valid_cells = 0;
+        for (int i = 0; i < m_nCells; i++) {
+            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+                total_storage += m_soilWtrSto[i][j];
+                total_fc += m_soilFC[i][j];
+            }
+            if (CVT_INT(m_nSoilLyrs[i]) > 0) valid_cells++;
+        }*/
+
+        /*if (total_fc > 0) {
+            std::cout << "[DEBUG] Basin Statistics:" << std::endl;
+            std::cout << "  Avg Init Storage: " << (total_storage / valid_cells) << " mm" << std::endl;
+            std::cout << "  Basin Avg Saturation: " << (total_storage / total_fc) * 100.0 << "%" << std::endl;
+        }
+        else {
+            std::cout << "[DEBUG] WARNING: Total Field Capacity is 0!" << std::endl;
+        }*/
     }
 }
 
@@ -64,7 +100,10 @@ void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
         *data = m_infilCapacitySurplus;
     } else if (StringMatch(sk, VAR_ACC_INFIL[0])) {
         *data = m_accumuDepth;
-    } else {
+    } else if (StringMatch(sk, VAR_EXCP[0])) {
+        *data = m_exsPcp; // excess precipitation
+    }
+    else {
         throw ModelException(M_SUR_SGA[0], "Get1DData",
                              "Parameter " + sk + " does not exist.");
     }
@@ -99,8 +138,8 @@ bool StormGreenAmpt::CheckInputData() {
     CHECK_POINTER(M_SUR_SGA[0], m_soilFC);
     CHECK_POINTER(M_SUR_SGA[0], m_meanTmp);
     CHECK_POINTER(M_SUR_SGA[0], m_netPcp);
-    CHECK_POINTER(M_SUR_SGA[0], m_deprSto);
-    CHECK_POINTER(M_SUR_SGA[0], m_surfRf);
+    //CHECK_POINTER(M_SUR_SGA[0], m_deprSto);
+    //CHECK_POINTER(M_SUR_SGA[0], m_surfRf);
 
     return true;
 }
@@ -138,99 +177,117 @@ int StormGreenAmpt::Execute(void) {
 
 //#pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
-            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][j],
-                                                                  m_soilClay[i][j] * 100,
-                                                                  m_soilSand[i][j] * 100);
+            if (m_nSoilLyrs[i] > 0) {
+                m_capillarySuction[i] = CalculateCapillarySuction(m_soilPor[i][0],
+                                                                  m_soilClay[i][0],
+                                                                  m_soilSand[i][0]);
             }
         }
     }
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-            float snowMelt = 0.f;
-            float snowAcc = 0.f;
-            if (m_snowMelt != nullptr) {
-                snowMelt = m_snowMelt[i];
-            }
-            if (m_snowAccu != nullptr) {
-                snowAcc = m_snowAccu[i];
-            }
+        // only calculate the first soillayer
+        int j = 0;
 
-            float hWater = m_netPcp[i];
-            //account for the effects of snow melt and soil temperature
-            if (m_meanTmp[i] <= m_tSnow) {
-                // snow, without snow melt
-                hWater = 0.0f;
-            }
-            else if (m_meanTmp[i] > m_tSnow && m_meanTmp[i] <= m_t0 && snowAcc > hWater) {
-                // rain on snow, no snow melt
-                hWater = 0.0f;
+        float snowMelt = 0.f;
+        float snowAcc = 0.f;
+        if (m_snowMelt != nullptr) {
+            snowMelt = m_snowMelt[i];
+        }
+        if (m_snowAccu != nullptr) {
+            snowAcc = m_snowAccu[i];
+        }
+
+        float hWater = m_netPcp[i];
+        //account for the effects of snow melt and soil temperature
+        if (m_meanTmp[i] <= m_tSnow) {
+            // snow, without snow melt
+            hWater = 0.0f;
+        }
+        else if (m_meanTmp[i] > m_tSnow && m_meanTmp[i] <= m_t0 && snowAcc > hWater) {
+            // rain on snow, no snow melt
+            hWater = 0.0f;
+        }
+        else {
+            //the old depression water has been added.(m_deprSto)
+            hWater = m_netPcp[i] + m_deprSto[i] + snowMelt;
+        }
+
+        //hWater += m_surfRf[i];
+
+        // effective matric potential (m)
+        float matricPotential = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_capillarySuction[i] / 1000.f;
+        // algorithm of Li, 1996, uesd in C2SC2D
+        float ks = m_ks[i][j] / 1000.f / 3600.f; // mm/h -> m/s
+        float dt = m_dt;
+        float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
+
+        float p1 = ks * dt - 2.f * infilDepth;
+        float p2 = ks * (infilDepth + matricPotential);
+        // infiltration rate (m/s)
+        float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
+
+        float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
+
+        if (hWater > 0) {
+            // for frozen soil
+            //if (m_soilTemp[i] <= m_tSoilFrozen && m_soilMoisture[i] >= m_sFrozen*m_porosity[i])
+            //{
+            //	m_pe[i] = pNet;
+            //	m_infil[i] = 0.0f;
+            //}
+            //for saturation overland flow
+            if (m_soilWtrSto[i][j] > m_soilPor[i][j]) {
+                m_infil[i] = 0.0f;
+                m_infilCapacitySurplus[i] = 0.f;
             }
             else {
-                hWater = m_netPcp[i] + m_deprSto[i] + snowMelt;
-            }
+                m_infil[i] = Min(infilRate * dt * 1000.f, infilCap); // mm
 
-            hWater += m_surfRf[i];
-
-            // effective matric potential (m)
-            float matricPotential = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_capillarySuction[i] / 1000.f;
-            // algorithm of Li, 1996, uesd in C2SC2D
-            float ks = m_ks[i][j] / 1000.f / 3600.f; // mm/h -> m/s
-            float dt = m_dt;
-            float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
-
-            float p1 = ks * dt - 2.f * infilDepth;
-            float p2 = ks * (infilDepth + matricPotential);
-            // infiltration rate (m/s)
-            float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
-
-            float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
-
-            if (hWater > 0) {
-                // for frozen soil
-                //if (m_soilTemp[i] <= m_tSoilFrozen && m_soilMoisture[i] >= m_sFrozen*m_porosity[i])
-                //{
-                //	m_pe[i] = pNet;
-                //	m_infil[i] = 0.0f;
-                //}
-                //for saturation overland flow
-                if (m_soilWtrSto[i][j] > m_soilPor[i][j]) {
-                    m_infil[i] = 0.0f;
-                    m_infilCapacitySurplus[i] = 0.f;
+                //cout << m_infil[i] << endl;
+                //check if the infiltration potential exceeds the available water
+                if (m_infil[i] > hWater) {
+                    m_infilCapacitySurplus[i] = m_infil[i] - hWater;
+                    //limit infiltration rate to available water supply
+                    m_infil[i] = hWater;
                 }
                 else {
-                    m_infil[i] = Min(infilRate * dt * 1000.f, infilCap); // mm
-
-                    //cout << m_infil[i] << endl;
-                    //check if the infiltration potential exceeds the available water
-                    if (m_infil[i] > hWater) {
-                        m_infilCapacitySurplus[i] = m_infil[i] - hWater;
-                        //limit infiltration rate to available water supply
-                        m_infil[i] = hWater;
-                    }
-                    else {
-                        m_infilCapacitySurplus[i] = 0.f;
-                    }
-
-                    //Compute the cumulative depth of infiltration
-                    m_accumuDepth[i] += m_infil[i];
-                    // sr is temporarily used to stored the water depth including the depression storage
-                    m_surfRf[i] = hWater - m_infil[i];
-
-                    if (m_soilDepth != nullptr) {
-                        m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
-                    }
+                    m_infilCapacitySurplus[i] = 0.f;
                 }
-                // xdw modify
-                m_surfRf[i] = hWater - m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
-            } else {
-                m_surfRf[i] = 0.0f;
-                m_infil[i] = 0.0f;
-                m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
+
+                //Compute the cumulative depth of infiltration
+                m_accumuDepth[i] += m_infil[i];
+
+
+                if (m_soilDepth != nullptr) {
+                    m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
+                }
             }
+            m_exsPcp[i] = hWater - m_infil[i];
+            // xdw modify
+            //m_surfRf[i] = hWater - m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
+        } else {
+            //m_surfRf[i] = 0.0f;
+            m_infil[i] = 0.0f;
+            m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
+
+            m_exsPcp[i] = 0.f;
         }
+
+        // debug
+        //int target_cell = 2988;
+        //if (i == target_cell && (hWater > 0 || m_infil[i] > 0)) {
+        //    std::cout << "\n=== Cell " << i << " Step Debug ===" << std::endl;
+        //    std::cout << "  [Inputs] NetPcp: " << m_netPcp[i] << " | DepStore: " << m_deprSto[i] << " | Prev_SurfRf: " << (m_surfRf ? m_surfRf[i] : 0) << std::endl;
+        //    std::cout << "  [State]  hWater (Total Avail): " << hWater << " mm" << std::endl;
+        //    std::cout << "  [Params] Por: " << m_soilPor[i][j] << " | InitMoist: " << m_soilWtrSto[i][j] << " | Suction: " << m_capillarySuction[i] << std::endl;
+
+        //    std::cout << "  [Calc]   MatricPot: " << matricPotential << " m | Ks: " << ks << " m/s" << std::endl;
+        //    std::cout << "  [Calc]   InfilRate: " << infilRate * 1000.0f * 3600.0f << " mm/h" << std::endl; // mm/h
+        //    std::cout << "  [Result] Infil: " << m_infil[i] << " mm | Runoff: " << m_surfRf[i] << " mm" << std::endl;
+        //    std::cout << "===============================" << std::endl;
+        //}
 # ifdef IS_DEBUG
         if ((counter >= printInfilMinT && counter <= printInfilMaxT)) {
             if (i >= output_icell_min && i <= output_icell_max && infiltFileFptr.is_open()) {
@@ -250,7 +307,13 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
                               + 0.001608f * CalPow(por, 2) * CalPow(sand, 2)
                               + 0.001602f * CalPow(por, 2) * CalPow(clay, 2) - 0.0000136f * CalPow(sand, 2) * clay -
                               0.003479f * CalPow(clay, 2) * por - 0.000799f * CalPow(sand, 2) * por);
-
+    // debug
+    /*if (cs < 0.00001f) {
+        std::cout << "\n[ERROR] Capillary Suction Underflow Detected!" << std::endl;
+        std::cout << "  -> Inputs: Por=" << por << ", Clay=" << clay << ", Sand=" << sand << std::endl;
+        std::cout << "  -> Result CS: " << cs << " (Should not be 0)" << std::endl;
+        std::cout << "  -> Hint: Check if Clay/Sand are Percent(0-100) or Fraction(0-1). Formula usually expects Percent." << std::endl;
+    }*/
     return cs;
 }
 
