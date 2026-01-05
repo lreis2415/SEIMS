@@ -36,9 +36,11 @@ int Percolation_DARCY::Execute() {
         CheckInputData();
         m_recharge = new float[m_nCells];
     }
-
+    
 //#pragma omp parallel for
 	for (int i = 0; i < m_nCells; i++) {
+        // m_recharge here is used only to store the final water volume recharging the groundwater. --Fanxy
+        m_recharge[i] = 0.f;
 		for (int j = 0; j < m_nSoilLyrs[i]; j++) {
 			//if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
 			//{
@@ -46,34 +48,50 @@ int Percolation_DARCY::Execute() {
 			//	continue;
 			//}
 
-			float moisture = m_Moisture[i][j];
+			float currentMoisture = m_Moisture[i][j];
 
-			//float temp = m_Porosity[i] - m_Residual[i];
-			//if(temp <= 0.0f)
-			//	temp = 0.001f;
+            // record total water percolating downward from the current layer (mm). --Fanxy
+            float totalPrec = 0.f;
 
-			m_recharge[i] = 0.f;
-			if (moisture > m_FieldCapacity[i][j]) {
+			if (currentMoisture > m_FieldCapacity[i][j]) {
 				// the water exceeds the porosity is added to percolation directly
-				if (moisture > m_Porosity[i][j]) {
-					m_recharge[i] += (moisture - m_Porosity[i][j]) * m_rootDepth[i][j];
-					m_Moisture[i][j] = m_Porosity[i][j];
+				if (currentMoisture > m_Porosity[i][j]) {
+                    float excess = (currentMoisture - m_Porosity[i][j]) * m_rootDepth[i][j];
+                    totalPrec += excess;
+                    // update soil moisture --Fanxy
+                    currentMoisture = m_Porosity[i][j];
 				}
 
+                // Darcy Flow Calculation
 				// recharge capacity (mm)
 				float dcIndex = 3.f + 2.f / m_Poreindex[i][j]; // pore disconnectedness index
 				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
 				float rechargeCap =
-					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(moisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
-				float availableWater = (m_Moisture[i][j] - m_FieldCapacity
+					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(currentMoisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
+				float availableWater = (currentMoisture - m_FieldCapacity
                     [i][j]) * m_rootDepth[i][j];
+
+
 				if (rechargeCap >= availableWater) {
 					rechargeCap = availableWater;
 				}
+                totalPrec += rechargeCap;
 
-				m_recharge[i] += rechargeCap;
-				m_Moisture[i][j] -= m_recharge[i] / m_rootDepth[i][j];
+                currentMoisture -= rechargeCap / m_rootDepth[i][j];
 			}
+            m_Moisture[i][j] = currentMoisture;
+            if (m_Moisture[i][j] < 0.f) m_Moisture[i][j] = 0.f;
+
+            // Inter-layer transfer --Fanxy
+            if (j < m_nSoilLyrs[i] - 1) {
+                // Not the last layer->Transfer to the next layer.
+                float next_depth = m_rootDepth[i][j + 1];
+                m_Moisture[i][j + 1] += totalPrec / next_depth;
+            }
+            else {
+                // Last layer -> Becomes groundwater recharge
+                m_recharge[i] += totalPrec;
+            }
 		}
 	}
 
