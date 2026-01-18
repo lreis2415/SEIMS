@@ -8,13 +8,15 @@ InterFlow_IKW::InterFlow_IKW() :
     m_s0(nullptr), m_rootDepth(nullptr), m_ks(nullptr), m_landuseFactor(1.f),
     m_soilWtrSto(nullptr), m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
     m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),m_nSoilLyrs(nullptr),
-    m_q(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr) {
+    m_qi(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr),
+    m_subSurfQ(nullptr){
 }
 
 InterFlow_IKW::~InterFlow_IKW(void) {
     Release1DArray(m_h);
-    Release1DArray(m_q);
+    Release1DArray(m_qi);
     Release1DArray(m_hReturnFlow);
+    Release2DArray(m_subSurfQ);
 }
 
 bool InterFlow_IKW::CheckInputData(void) {
@@ -90,91 +92,120 @@ void InterFlow_IKW:: InitialOutputs() {
         throw ModelException(M_IKW_IF[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
-    if (m_q == nullptr) {
+    if (m_qi == nullptr) {
         CheckInputData();
 
-        m_q = new float[m_nCells];
+        m_qi = new float[m_nCells];
         m_h = new float[m_nCells];
         m_hReturnFlow = new float[m_nCells];
+        m_subSurfQ = new float* [m_nCells];
         for (int i = 0; i < m_nCells; ++i) {
-            m_q[i] = 0.0f;
+            m_qi[i] = 0.0f;
             m_h[i] = 0.f;
             m_hReturnFlow[i] = 0.f;
+            m_subSurfQ[i] = new float[m_nSoilLyrs[i]];
+            for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
+                m_subSurfQ[i][j] = 0.0f;
+            }
+
         }
     }
 }
 
 bool InterFlow_IKW::FlowInSoil(const int id) {
-    //sum the upstream overland flow
-    float qUp = 0.0f;
+
+    //debug
+    const int TARGET_ID = 100;
+    bool is_debug = (id == TARGET_ID);
+
+    //Loop through all upstream cells
+    vector<float> qUp(m_nSoilLyrs[id], 0.0f);
     for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
         int flowInID = (int) m_flowInIndex[id][k];
-        if (m_streamLink[id] > 0) {
-            //debug
-            if (m_q[flowInID] < 0.0f) {
-                std::cout << "[ERROR] Upstream Negative Flow Detected!"
-                    << " CurrentID: " << id
-                    << " UpstreamID: " << flowInID
-                    << " Value: " << m_q[flowInID] << std::endl;
+
+        // Get the number of layers of the upstream cell
+        // (Assuming upstream layers >= current layers, or we take the min)
+        int commonLayers = Min(m_nSoilLyrs[id], m_nSoilLyrs[flowInID]);
+
+        for (int j = 0; j < commonLayers; ++j) {
+            // Add the outflow from the upstream cell's corresponding layer
+            float upFlow = m_subSurfQ[flowInID][j];
+
+            // Safety check for negative flow
+            if (upFlow < 0.0f) {
+                // Log error if needed, or just reset to 0
+                upFlow = 0.0f;
             }
-            qUp += m_q[flowInID];
+            qUp[j] += upFlow;
         }
+        
     }
 
 	float s0 = Max(m_s0[id], 0.01f);
     float flowWidth = m_CellWidth;
-    // there is no land in this cell
-    if (m_streamLink[id] > 0) {
-        m_q[id] = qUp;
 
-        //debug
-        if (m_q[id] < 0.0f) {
-            std::cout << "[ERROR] Negative River Q detected!"
-                << " ID: " << id
-                << " qUp: " << qUp
-                << " m_q: " << m_q[id] << std::endl;
+    // If this is a river cell, it collects water from all soil layers of upstream cells
+    if (m_streamLink[id] > 0) {
+        float total_river_q = 0.0f;
+
+        // Sum up inflow from all layers
+        for (int j = 0; j < m_nSoilLyrs[id]; ++j) {
+            total_river_q += qUp[j];
+
+            // Ensure no subsurface flow leaves the river cell to downstream soil
+            m_subSurfQ[id][j] = 0.0f;
         }
+        // Assign the total aggregated flow to the river channel variable
+        m_qi[id] = total_river_q;
 
         flowWidth -= m_chWidth[id];
         if (flowWidth <= 0) {
             
             m_h[id] = 0.f;
-            if (qUp > 0)
-            {
-                //std::cout << "River Cell [" << id << "] gets qUp = " << qUp << std::endl;
-            }
 
         }
         //The river course fills the entire cell, and the soil width is 0.
-        //Return directly to prevent m_q on the river channel from being set as nodata
+        //Return directly to prevent m_qi on the river channel from being set as nodata
         return true;
     }
+
+    m_qi[id] = 0.0f;
+    float total_qi = 0.0f; // To sum up total interflow for this cell
+    float total_h_vol = 0.0f; // To sum up total volume (for depth calculation)
 
    	// adjust soil moisture
 	for (int j = 0; j < m_nSoilLyrs[id]; j++) {
 		//float s0 = m_s0[id];
 		float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
-		m_soilWtrSto[id][j] += qUp * m_dt / soilVolumn;
+        if (soilVolumn <= 1e-6) soilVolumn = 1e-6; // Avoid division by zero
+
+        // Add upstream inflow to the current layer's soil moisture
+        // Note: qUp_layers is in m3/s, so multiply by dt to get volume
+        m_soilWtrSto[id][j] += qUp[j] * m_dt / soilVolumn;
+
 
 		// the water exceeds the porosity is added to storage (return flow)
 		if (m_soilWtrSto[id][j] > m_porosity[id][j]) {
 			m_hReturnFlow[id] = (m_soilWtrSto[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
-			m_sr[id] += m_hReturnFlow[id];
-			m_soilWtrSto[id][j] = m_porosity[id][j];
+			m_sr[id] += m_hReturnFlow[id]; // Add to surface runoff
+			m_soilWtrSto[id][j] = m_porosity[id][j]; // Cap at porosity
 		}
 
 		// if soil moisture is below the field capacity, no interflow will be generated
 		if (m_soilWtrSto[id][j] < m_fieldCapacity[id][j]) {
-			m_q[id] = 0.f;
-			m_h[id] = 0.f;
+            m_subSurfQ[id][j] = 0.0f; // No flow generated
+
+            continue; //--fanxy
 			//return;
 		}
 
 		// calculate effective hydraulic conductivity (mm/h -> m/s)
 		//float k = m_ks[id]/1000/3600 * CalPow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
 		float k = m_ks[id][j] / 1000 / 3600 * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
-		// calculate interflow (m3/s)
-		m_q[id] = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
+        
+        // calculate interflow (m3/s)
+		float layer_q = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
+
 
 		// available water
 		float availableWater = (m_soilWtrSto[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
@@ -182,36 +213,26 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
             availableWater = 0.0f;
         }
 
-		float interFlow = m_q[id] * (int)m_dt; // m3
-		if (interFlow > availableWater) {
-			m_q[id] = availableWater / (int)m_dt;
-			interFlow = availableWater;
+		float potentialFlowVol = layer_q * (int)m_dt; // m3
+		if (potentialFlowVol > availableWater) {
+            layer_q = availableWater / (int)m_dt;
+            potentialFlowVol = availableWater;
 		}
 
-        //debug
-        if (m_q[id] < -1e-5) {
-            std::cout << "\n[ERROR] Negative Soil Interflow Detected!" << std::endl;
-            std::cout << "  ID: " << id << " Layer: " << j << std::endl;
-            std::cout << "  m_q[id]: " << m_q[id] << std::endl;
-            std::cout << "  --- Variables ---" << std::endl;
-            std::cout << "  availableWater: " << availableWater
-                << " (Sto: " << m_soilWtrSto[id][j] << " - FC: " << m_fieldCapacity[id][j] << ")" << std::endl;
-            std::cout << "  m_landuseFactor: " << m_landuseFactor << std::endl;
-            std::cout << "  s0: " << s0 << std::endl;
-            std::cout << "  k: " << k << std::endl;
-            std::cout << "  soilVolumn: " << soilVolumn << std::endl;
-
-        }
-
-		m_h[id] = 1000 * interFlow / (m_CellWidth * m_CellWidth);
+        m_subSurfQ[id][j] = layer_q;
+        
 
 		// adjust soil moisture
-		m_soilWtrSto[id][j] -= interFlow / soilVolumn;
+		m_soilWtrSto[id][j] -= potentialFlowVol / soilVolumn;
+
+        total_h_vol += potentialFlowVol;
+        total_qi += m_subSurfQ[id][j];
 	}
-    //std::cout << "id = " << id << ", flowWidth = " << flowWidth
-    //    << ", m_streamLink[id] = " << m_streamLink[id]
-    //    << ", qUp = " << qUp << ", m_q[id] = " << m_q[id] << std::endl;
-	return true;
+
+    m_qi[id] = total_qi;
+    m_h[id] = 1000 * total_h_vol / (m_CellWidth * m_CellWidth);
+
+    return true;
 }
 
 int InterFlow_IKW::Execute() {
@@ -343,13 +364,17 @@ void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_QSOIL[0])) {
-        *data = m_q;
+        *data = m_qi;
     } else if (StringMatch(sk, VAR_RETURNFLOW[0])) {
         *data = m_hReturnFlow;
     } else {
         throw ModelException(M_IKW_IF[0], "Get1DData", "Output " + sk
                              + " does not exist.");
     }
+}
+
+void InterFlow_IKW::Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data)
+{
 }
 
 void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
