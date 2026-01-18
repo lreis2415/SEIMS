@@ -8,7 +8,7 @@ StormGreenAmpt::StormGreenAmpt() :
     m_soilDepth(nullptr), m_soilPor(nullptr),
     m_soilClay(nullptr), m_soilSand(nullptr), m_ks(nullptr),
     m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr),
-    m_meanTmp(nullptr), m_netPcp(nullptr), m_deprSto(nullptr),
+    m_meanTmp(nullptr), m_netPcp(nullptr), m_sd(nullptr),
     m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
     m_capillarySuction(nullptr), m_accumuDepth(nullptr),
     m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr),
@@ -54,7 +54,7 @@ void StormGreenAmpt:: InitialOutputs() {
                 m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
             }
         }
-        /*std::cout << "\n[DEBUG] StormGreenAmpt Initialization Check:" << std::endl;*/
+        std::cout << "\n[DEBUG] StormGreenAmpt Initialization Check:" << std::endl;
 
         // debug
         /*int debug_count = 0;
@@ -211,7 +211,7 @@ int StormGreenAmpt::Execute(void) {
         }
         else {
             //the old depression water has been added.(m_deprSto)
-            hWater = m_netPcp[i] + m_deprSto[i] + snowMelt;
+            hWater = m_netPcp[i] + m_sd[i] + snowMelt;
         }
 
         //hWater += m_surfRf[i];
@@ -337,7 +337,7 @@ void StormGreenAmpt::Set1DData(const char *key, const int n, FLTPT *data) {
     } else if (StringMatch(sk, VAR_NEPR[0])) {
         m_netPcp = data;
     } else if (StringMatch(sk, VAR_DPST[0])) {
-        m_deprSto = data;
+        m_sd = data;
     } else if (StringMatch(sk, VAR_SURU[0])) {
         m_surfRf = data;
     } else if (StringMatch(sk, VAR_MOIST_IN[0])) {

@@ -92,7 +92,7 @@ private:
     // Inputs from other modules
     float* m_meanTmp;  ///< mean temperature
     float* m_netPcp;   ///< net precipitation
-    float* m_deprSto;  ///< depression storage
+    float* m_sd;  ///< depression storage
     float* m_snowMelt; ///< snow melt (mm)
     float* m_snowAccu; ///< snow accumulation (mm)
     float* m_surfRf;   ///< surface water depth
