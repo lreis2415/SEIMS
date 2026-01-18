@@ -261,17 +261,44 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float beta1 = 1.0f / beta;
     float h = m_sr[id] / 1000.f;
 
-    ////debug
-    //const int DEBUG_ID = 4197; 
-    //bool isDebugCell = (id == DEBUG_ID);
-    //if (isDebugCell) {
-    //    std::cout << std::fixed << std::setprecision(8);
-    //}
+    //debug
+    const int DEBUG_ID = 2988; 
+    bool isDebugCell = (id == DEBUG_ID);
+    if (isDebugCell) {
+        std::cout << std::fixed << std::setprecision(8);
+    }
 
     int numOutflows = m_flowOutIdx[id][0];
     // calculate  weighted average alpha and flow length for the cell
 
-    ////debug
+    // debug
+    //check the sum of flowoutfrac
+    /*float sumFract = 0.0f;
+    for (int j = 1; j <= numOutflows; ++j) {
+        sumFract += m_flowOutFrac[id][j];
+    }
+    if (isDebugCell) {
+        std::cout << "--- DEBUG ID: " << id << " [Fraction Check] ---" << std::endl;
+        std::cout << "  Total Outflows: " << numOutflows << std::endl;
+        std::cout << "  Sum of Fractions: " << sumFract << std::endl;
+        for (int j = 1; j <= numOutflows; ++j) {
+            std::cout << "    -> Outflow[" << j << "] Target ID: " << m_flowOutIdx[id][j]
+                << " | Frac: " << m_flowOutFrac[id][j] << std::endl;
+        }
+        if (sumFract > 1.0001f) {
+            std::cout << "  [CRITICAL ERROR] Sum > 1.0! Water is being created!" << std::endl;
+        }
+        else if (sumFract < 0.9999f && numOutflows > 0) {
+            std::cout << "  [INFO] Sum < 1.0. Water is being lost (sink node) or intentional." << std::endl;
+        }
+        std::cout << "----------------------------------------------" << std::endl;
+    }
+    if (sumFract > 1.0001f) {
+        std::cout << "!!! MASS BALANCE ERROR at ID " << id << " !!!" << std::endl;
+        std::cout << "  Sum of Fractions = " << sumFract << " (Expect <= 1.0)" << std::endl;
+    }*/
+
+    //debug
     //if (isDebugCell) {
     //    std::cout << "--- DEBUG ID: " << id << " (OverlandFlow Start) ---" << std::endl;
     //    std::cout << "  Initial h (m): " << h << std::endl;
@@ -311,11 +338,19 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             int numDownstreamofUpstream = m_flowOutIdx[flowInID][0];
             if (numDownstreamofUpstream >= 1) {
                 for (int j = 1; j <= numDownstreamofUpstream; ++j) {
+                    int flowInID = m_flowInIndex[id][k];
+                    float incomingQ = m_q[flowInID][j];  
+                    /*if (id == 4097 && incomingQ > 0.001f) {
+                        std::cout << ">>> [DETECTIVE] Crime Scene at ID 4197 <<<" << std::endl;
+                        std::cout << "    Suspect (Upstream Cell): " << flowInID << std::endl;
+                        std::cout << "    Amount Sending: " << incomingQ << " m3/s" << std::endl;
+                        std::cout << "    Suspect's SR: " << m_sr[flowInID] << " mm" << std::endl;
+                    }*/
                     if (m_flowOutIdx[flowInID][j] == id) {
                         qUp += m_q[flowInID][j];
-                        //if (isDebugCell) {
-                        //    std::cout << flowInID <<"  m_q[flowInID][j]: " << m_q[flowInID][j] << std::endl;
-                        //}
+                        /*if (isDebugCell) {
+                            std::cout << flowInID <<"  m_q[flowInID][j]: " << m_q[flowInID][j] << std::endl;
+                        }*/
                     }
                 }
             }
@@ -427,17 +462,17 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             leftoverVolume_j = 0;
         }
 
-        ////debug
-        //if (isDebugCell) {
-        //    std::cout << "  Loop 2 (j=" << j << "):" << std::endl;
-        //    std::cout << "    qUp_j: " << qUp_j << ", qLast_j: " << qLast_j << ", surplus_j: " << surplus_j << std::endl;
-        //    std::cout << "    allocatedVolume_j: " << allocatedVolume_j << std::endl;
-        //    std::cout << "    m_q[id][j] (outflow): " << m_q[id][j] << std::endl;
-        //    std::cout << "    actualOutflowVolume_j: " << actualOutflowVolume_j << std::endl;
-        //}
-        //if (isDebugCell) {
-        //    std::cout << "    leftoverVolume_j: " << leftoverVolume_j << std::endl;
-        //}
+        //debug
+        /*if (isDebugCell) {
+            std::cout << "  Loop 2 (j=" << j << "):" << std::endl;
+            std::cout << "    qUp_j: " << qUp_j << ", qLast_j: " << qLast_j << ", surplus_j: " << surplus_j << std::endl;
+            std::cout << "    allocatedVolume_j: " << allocatedVolume_j << std::endl;
+            std::cout << "    m_q[id][j] (outflow): " << m_q[id][j] << std::endl;
+            std::cout << "    actualOutflowVolume_j: " << actualOutflowVolume_j << std::endl;
+        }
+        if (isDebugCell) {
+            std::cout << "    leftoverVolume_j: " << leftoverVolume_j << std::endl;
+        }*/
         
 
         qNewTotal += m_q[id][j];
@@ -472,16 +507,16 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     float reInfil = (cellArea > 0) ? (reInfilVol / cellArea * 1000.f) : 0.f;
 
-    ////debug
-    //if (isDebugCell) {
-    //    std::cout << "  --- DEBUG ID: " << id << " (OverlandFlow End) ---" << std::endl;
-    //    std::cout << "  qNewTotal (m3/s): " << qNewTotal << std::endl;
-    //    std::cout << "  totalLeftoverVolume (m3): " << totalLeftoverVolume << std::endl;
-    //    std::cout << "  hNew (m): " << hNew << std::endl;
-    //    std::cout << "  New m_sr[id] (mm): " << m_sr[id] << std::endl;
-    //    std::cout << "  reInfilVol : " << reInfilVol << std::endl;
-    //    std::cout << "----------------------------------------------" << std::endl;
-    //}
+    //debug
+    /*if (isDebugCell) {
+        std::cout << "  --- DEBUG ID: " << id << " (OverlandFlow End) ---" << std::endl;
+        std::cout << "  qNewTotal (m3/s): " << qNewTotal << std::endl;
+        std::cout << "  totalLeftoverVolume (m3): " << totalLeftoverVolume << std::endl;
+        std::cout << "  hNew (m): " << hNew << std::endl;
+        std::cout << "  New m_sr[id] (mm): " << m_sr[id] << std::endl;
+        std::cout << "  reInfilVol : " << reInfilVol << std::endl;
+        std::cout << "----------------------------------------------" << std::endl;
+    }*/
 
     //float hNew = (m_alpha_avg[id] > 0) ? (m_alpha_avg[id] * CalPow(m_q[id][0], 0.6f)) / m_flowWidth[id] : 0.f; // unit m
     ////float hTest = h + (qUp - m_q[id])*m_dtStorm/(flowWidth*flowLen);
@@ -544,7 +579,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
 int ImplicitKinematicWave_OL::Execute() {
     InitialOutputs();
-    /*std::cout << "    m_date " << m_date << std::endl;*/
+    std::cout << "    m_date " << m_date << std::endl;
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -739,6 +774,11 @@ void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, 
         m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
             if (m_flowOutIdx[i][0] == 0 && m_flowOutIdx[i][1] < 0) {
+
+                std::cout << "[Debug] Found Outlet at Cell Index: " << i << std::endl;
+                std::cout << "[Debug] m_flowOutIdx[" << i << "][0] = " << m_flowOutIdx[i][0] << std::endl;
+                std::cout << "[Debug] m_flowOutIdx[" << i << "][1] = " << m_flowOutIdx[i][1] << " (Expecting -1)" << std::endl;
+
 
                 m_idOutlet = i;
                 if (m_idOutlet < 0)
