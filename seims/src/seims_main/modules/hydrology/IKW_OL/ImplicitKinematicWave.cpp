@@ -8,7 +8,7 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_s0(NULL), m_n(NULL), m_flowInIndex(NULL), m_flowInFrac(NULL),
                                                            m_flowOutIdx(NULL),m_flowOutFrac(NULL), m_direction(NULL),
                                                            m_routingLayers(NULL), m_nLayers(-1),
-                                                           m_q(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
+                                                           m_qs(NULL), m_sr(NULL), m_flowWidth(NULL), m_flowLen(NULL),
                                                            m_alpha(NULL),  m_streamLink(NULL),
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
@@ -17,7 +17,7 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
-    if (m_q != NULL) Release2DArray(m_q);
+    if (m_qs != NULL) Release2DArray(m_qs);
     if (m_flowWidth != NULL) Release2DArray(m_flowWidth);
     if (m_flowLen != NULL) Release2DArray(m_flowLen);
     if (m_alpha != NULL) Release2DArray(m_alpha);
@@ -90,9 +90,9 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
         throw ModelException(M_IKW_OL[0], "InitialOutputs", "The cell number of the input can not be less than zero.");
     }
 
-    if (m_q == NULL) {
+    if (m_qs == NULL) {
         CheckInputData();
-        m_q = new float*[m_nCells];
+        m_qs = new float*[m_nCells];
         m_sRadian = new float*[m_nCells];
         m_vel = new float*[m_nCells];
         m_flowWidth = new float*[m_nCells];
@@ -105,7 +105,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
         for (int i = 0; i < m_nCells; ++i) {
             int numOutflows = m_flowOutIdx[i][0];
 
-            m_q[i] = new float[numOutflows + 1];
+            m_qs[i] = new float[numOutflows + 1];
             m_sRadian[i] = new float[numOutflows + 1];
             m_flowLen[i] = new float[numOutflows + 1];
             m_flowWidth[i] = new float[numOutflows + 1];
@@ -113,7 +113,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
             m_vel[i] = new float[numOutflows + 1];
             m_s0[i] = new float[numOutflows + 1];
 
-            //m_q[i] = 0.0f;
+            //m_qs[i] = 0.0f;
             m_reInfil[i] = 0.f;
 
             // flow width
@@ -339,7 +339,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             if (numDownstreamofUpstream >= 1) {
                 for (int j = 1; j <= numDownstreamofUpstream; ++j) {
                     int flowInID = m_flowInIndex[id][k];
-                    float incomingQ = m_q[flowInID][j];  
+                    float incomingQ = m_qs[flowInID][j];  
                     /*if (id == 4097 && incomingQ > 0.001f) {
                         std::cout << ">>> [DETECTIVE] Crime Scene at ID 4197 <<<" << std::endl;
                         std::cout << "    Suspect (Upstream Cell): " << flowInID << std::endl;
@@ -347,9 +347,9 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
                         std::cout << "    Suspect's SR: " << m_sr[flowInID] << " mm" << std::endl;
                     }*/
                     if (m_flowOutIdx[flowInID][j] == id) {
-                        qUp += m_q[flowInID][j];
+                        qUp += m_qs[flowInID][j];
                         /*if (isDebugCell) {
-                            std::cout << flowInID <<"  m_q[flowInID][j]: " << m_q[flowInID][j] << std::endl;
+                            std::cout << flowInID <<"  m_qs[flowInID][j]: " << m_qs[flowInID][j] << std::endl;
                         }*/
                     }
                 }
@@ -368,9 +368,9 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     // if the channel width is greater than the cell width
     if (m_streamLink[id] >= 0 && m_flowWidth[id] <= 0) {
         for (int j = 1; j <= numOutflows; ++j) {
-            m_q[id][j] = 0.f;
+            m_qs[id][j] = 0.f;
         }
-        m_q[id][0] = qUp;
+        m_qs[id][0] = qUp;
         m_sr[id] = 0.f;
         return;
     }
@@ -378,9 +378,9 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     // check whether overland flow routing is needed
     if (qUp < MIN_FLUX && h < MIN_DEPTH) {
         m_sr[id] = 0.f;
-        m_q[id][0] = 0.f;
+        m_qs[id][0] = 0.f;
         for (int j = 1; j <= numOutflows; ++j) {
-            m_q[id][j] = 0.f;
+            m_qs[id][j] = 0.f;
         }
         if (m_reInfil != NULL) m_reInfil[id] = 0.f;
         return;
@@ -449,15 +449,15 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         float initialVolume_j = initialVolume * m_flowOutFrac[id][j];
         float allocatedVolume_j = initialVolume_j + inflowVolume_j;
 
-        m_q[id][j] = GetNewQ(qUp_j, qLast_j, surplus_j, m_alpha[id][j], m_dtStorm, m_flowLen[id][j]);
+        m_qs[id][j] = GetNewQ(qUp_j, qLast_j, surplus_j, m_alpha[id][j], m_dtStorm, m_flowLen[id][j]);
         //if (isDebugCell) {
-        //    std::cout << "  m_q[id][j]: " << m_q[id][j] << std::endl;
+        //    std::cout << "  m_qs[id][j]: " << m_qs[id][j] << std::endl;
         //}
-        float actualOutflowVolume_j = m_q[id][j] * m_dtStorm;
+        float actualOutflowVolume_j = m_qs[id][j] * m_dtStorm;
         float leftoverVolume_j = allocatedVolume_j - actualOutflowVolume_j;
         if (actualOutflowVolume_j > allocatedVolume_j)
         {
-            m_q[id][j] = allocatedVolume_j / m_dtStorm;
+            m_qs[id][j] = allocatedVolume_j / m_dtStorm;
             actualOutflowVolume_j = allocatedVolume_j;
             leftoverVolume_j = 0;
         }
@@ -467,7 +467,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             std::cout << "  Loop 2 (j=" << j << "):" << std::endl;
             std::cout << "    qUp_j: " << qUp_j << ", qLast_j: " << qLast_j << ", surplus_j: " << surplus_j << std::endl;
             std::cout << "    allocatedVolume_j: " << allocatedVolume_j << std::endl;
-            std::cout << "    m_q[id][j] (outflow): " << m_q[id][j] << std::endl;
+            std::cout << "    m_qs[id][j] (outflow): " << m_qs[id][j] << std::endl;
             std::cout << "    actualOutflowVolume_j: " << actualOutflowVolume_j << std::endl;
         }
         if (isDebugCell) {
@@ -475,14 +475,14 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         }*/
         
 
-        qNewTotal += m_q[id][j];
+        qNewTotal += m_qs[id][j];
 
         totalLeftoverVolume += leftoverVolume_j;
         //totalInflowVolume += inflowVolume_j + surplusVolume_j;
 
     }
 
-    m_q[id][0] = qNewTotal;
+    m_qs[id][0] = qNewTotal;
 
     // re-infiltraction
     float reInfilVol = 0.f;
@@ -518,11 +518,11 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         std::cout << "----------------------------------------------" << std::endl;
     }*/
 
-    //float hNew = (m_alpha_avg[id] > 0) ? (m_alpha_avg[id] * CalPow(m_q[id][0], 0.6f)) / m_flowWidth[id] : 0.f; // unit m
-    ////float hTest = h + (qUp - m_q[id])*m_dtStorm/(flowWidth*flowLen);
+    //float hNew = (m_alpha_avg[id] > 0) ? (m_alpha_avg[id] * CalPow(m_qs[id][0], 0.6f)) / m_flowWidth[id] : 0.f; // unit m
+    ////float hTest = h + (qUp - m_qs[id])*m_dtStorm/(flowWidth*flowLen);
     //m_sr[id] = hNew * 1000.f;
 
-    //float reInfil = (qUp - m_q[id][0]) * m_dtStorm / (flowWidth * flowLen_avg) + h - hNew;
+    //float reInfil = (qUp - m_qs[id][0]) * m_dtStorm / (flowWidth * flowLen_avg) + h - hNew;
     //reInfil *= 1000.f;
 
     //if (abs(reInfil) < 0.001f)
@@ -570,7 +570,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     //    //if (id == m_idOutlet)// in catchment outlet cell, throw everything in channel
     //    fractiontochannel = 1.0f;
 
-    //    m_q[id] += fractiontochannel * Volume / m_dtStorm; // water diverted to the channel
+    //    m_qs[id] += fractiontochannel * Volume / m_dtStorm; // water diverted to the channel
     //    m_sr[id] *= (1.f - fractiontochannel);
 
     //}
@@ -579,7 +579,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
 int ImplicitKinematicWave_OL::Execute() {
     InitialOutputs();
-    std::cout << "    m_date " << m_date << std::endl;
+    //std::cout << "    m_date " << m_date << std::endl;
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -700,7 +700,7 @@ void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) 
     string sk(key);
     *n = m_nCells;
     /*if (StringMatch(sk, VAR_QOVERLAND[0])) {
-        *data = m_q;
+        *data = m_qs;
     } else */if (StringMatch(sk, VAR_Reinfiltration[0])) {
         *data = m_reInfil;
     }/* else if (StringMatch(sk, VAR_RadianSlope[0])) {
@@ -717,7 +717,7 @@ void ImplicitKinematicWave_OL::Get2DData(const char* key, int* nrows, int* ncols
     string sk(key);
     *nrows = m_nCells; //uncertain!!!
     if (StringMatch(sk, VAR_QOVERLAND[0])) {
-        *data = m_q;
+        *data = m_qs;
     }
     else if (StringMatch(sk, VAR_RadianSlope[0])) {
         *data = m_sRadian;
