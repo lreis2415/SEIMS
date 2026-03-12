@@ -4,12 +4,12 @@
 //using namespace std;
 
 DiffusiveWave::DiffusiveWave() :
-    m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
+    m_nCells(-1),  m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
     m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_reachN(nullptr),
     m_chWidth(nullptr), m_chDepth(nullptr), m_Chs0_perc(NODATA_VALUE), m_chSlope(nullptr),
     m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr), m_netPcp(nullptr), m_qSubbasin(nullptr),m_qsCh(nullptr),m_qiCh(nullptr),
     m_elevation(nullptr),
-    m_flowLen(nullptr), m_qi(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
+    m_flowLen(nullptr), m_qi(nullptr), m_qg(nullptr), m_flowInIndex(nullptr), m_flowOutIdx(nullptr),
     m_streamLink(nullptr),
     m_sourceCellIds(nullptr),
     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
@@ -180,18 +180,9 @@ void DiffusiveWave:: InitialOutputs() {
 
             // initial channel depth
             float h0 = m_chDepth[i] * m_Chs0_perc;
-
-            // calculate initial Q with manning equation
-            float chslope = (m_chSlope != nullptr) ? m_chSlope[i] : 0.001f;
-            if (chslope < 0.0001f) chslope = 0.0001f;
-            float perim = m_chWidth[i] + 2.0f * h0;
             float area = m_chWidth[i] * h0;
-            float radius = area / perim;
-            float q0 = (1.0f / m_reachN[i]) * area * pow(radius, 2.0f / 3.0f) * sqrt(chslope);
 
-            //estimate qs and qi of the outlet
-            m_qiCh[i] = 0.f;
-            m_qsCh[i] = q0;
+
 
             int id;
             float s0, dx;
@@ -213,7 +204,6 @@ void DiffusiveWave:: InitialOutputs() {
                 m_flowLen[i][j] = dx;
 
                 m_hCh[i][j] = h0;
-                m_qCh[i][j] = q0;
             }
         }
 
@@ -221,7 +211,7 @@ void DiffusiveWave:: InitialOutputs() {
 }
 
 //! Channel flow
-void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
+void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
    
     //debug
     int TARGET_DEBUG_ID = 4197;
@@ -232,7 +222,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     }
 
     float qUp = 0.f;
-    float hUp = 0.f;
+    float hUp = 0.f; // h for the previous time step
 
     if (iReach == 0 && iCell == 0) {
         qUp = m_qUpReach;
@@ -313,19 +303,16 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
 
     float rain_flux = 0.f;
 
-    float qLat = m_prec[id] / 1000.f / m_dt * m_chWidth[id];
+    float qLat_rain = m_prec[id] / 1000.f / m_dt * m_chWidth[id];
+    float qLat_qs = (m_qs != nullptr) ? (m_qs[id][0] / dx) : 0.f;
+    float qLat_qi = (m_qi != nullptr) ? (m_qi[id] / dx) : 0.f;
+    float qLat_qg = (qgEachCell > 0.f) ? (qgEachCell / dx) : 0.f;
+    float qLat = qLat_rain + qLat_qs + qLat_qi + qLat_qg;
 
-    rain_flux = qLat * dx;
+    rain_flux = qLat_rain * dx;
 
     m_qsCh[iReach] += local_qs + rain_flux;
     m_qiCh[iReach] += local_qi;
-
-    if (m_qs != nullptr) {
-        qLat += m_qs[id][0] / dx;
-    }
-    if (m_qi != nullptr) {
-        qLat += m_qi[id] / dx;
-    }
     //debug
     if (isDebug) {
         std::cout << "[1. Inflows]" << std::endl;
@@ -457,10 +444,14 @@ int DiffusiveWave::Execute() {
             vector<int> &vecCells = m_reachs[reachIndex];
             int n = vecCells.size();
             
-            //std::cout << "the verCell of reachid  " << reachIndex << " is " << n << endl;
+            // Distribute groundwater baseflow equally to each channel cell
+            float qgEachCell = 0.f;
+            if (m_qg != nullptr) {
+                qgEachCell = m_qg[reachIndex + 1] / n;
+            }
             
             for (int iCell = 0; iCell < n; iCell++) {
-                ChannelFlow(reachIndex, iCell, vecCells[iCell]);
+                ChannelFlow(reachIndex, iCell, vecCells[iCell], qgEachCell);
             }
 
 
@@ -520,7 +511,11 @@ void DiffusiveWave::Set1DData(const char *key, int n, FLTPT *data) {
     }
     else if (StringMatch(sk, VAR_QSOIL[0])) {
         m_qi = data;
-    }  else if (StringMatch(sk, VAR_CHWIDTH[0])) {
+    }
+    else if (StringMatch(sk, VAR_SBQG[0])) {
+        m_qg = data;
+    }
+    else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
     }
     //else if (StringMatch(sk, Tag_FLOWOUT_INDEX[0])) { // TODO: Use a simple way to get outlet index

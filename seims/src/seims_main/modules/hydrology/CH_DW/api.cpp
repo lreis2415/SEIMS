@@ -41,6 +41,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     // Inputs from other modules
     mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Array2D);
     mdi.AddInput(VAR_QSOIL[0], UNIT_FLOW_CMS, VAR_QSOIL[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], Source_Module, DT_Array1D);
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);
 
@@ -51,7 +52,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddOutput(VAR_QS[0], UNIT_FLOW_CMS, VAR_QS[1], DT_Array1D);//different from that of other modules,estimated result
     mdi.AddOutput(VAR_QI[0], UNIT_FLOW_CMS, VAR_QI[1], DT_Array1D); //different from that of other modules,estimated result
-    //mdi.AddOutput(VAR_QG[0], UNIT_FLOW_CMS, VAR_QG[1], DT_Array1D);
+    mdi.AddOutput(VAR_QG[0], UNIT_FLOW_CMS, VAR_QG[1], DT_Array1D);
 
     string res = mdi.GetXMLDocument();
 
