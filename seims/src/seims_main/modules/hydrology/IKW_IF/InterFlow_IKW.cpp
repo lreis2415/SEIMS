@@ -204,7 +204,7 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 		float k = m_ks[id][j] / 1000 / 3600 * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
         
         // calculate interflow (m3/s)
-		float layer_q = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
+		float layer_q = m_landuseFactor * m_rootDepth[id][j] / 1000.f * s0 * k * m_CellWidth;
 
 
 		// available water
