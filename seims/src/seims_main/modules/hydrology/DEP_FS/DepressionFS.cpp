@@ -133,7 +133,11 @@ int DepressionFS::Execute() {
             else {
                 m_ed[i] = 0.f;
             }
-        }        
+
+            // Update storage after evaporation.--Fanxy
+            m_sd[i] -= m_ed[i];
+            if (m_sd[i] < 0.f) m_sd[i] = 0.f;
+        }
     }
     return 0;
 }
