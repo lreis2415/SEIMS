@@ -86,6 +86,8 @@ private:
     float **m_qs;
     /// interflow to channel (m3/s)
     float *m_qi;
+    /// groundwater discharge per subbasin (m3/s), from GW_RSVR
+    float *m_qg;
 
     /*!
      * \brief 2d array of flow in cells

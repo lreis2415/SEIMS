@@ -42,6 +42,8 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
+    virtual void Get2DData(const char* key, int* nrows, int* ncols, FLTPT*** data);
+
     virtual void Set2DData(const char *key, int nrows, int ncols, FLTPT **data);
 
     virtual void Set2DData(const char* key, int nrows, int ncols, int** data);
@@ -112,7 +114,10 @@ private:
     float *m_sr;
 
     /// output flow to downstream cells (output)
-    float *m_q;
+    float *m_qi;
+    /// Subsurface lateral flow rate for each cell and layer (m^3/s) --Fanxy
+    /// Dimension: [nCells][nLayers] 
+    float** m_subSurfQ;
     /// interflow depth
     float *m_h;
     /// return flow

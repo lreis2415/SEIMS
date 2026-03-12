@@ -85,23 +85,35 @@ int DepressionFS::Execute() {
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
+        float inputExsPcp = m_exsPcp[i];
+        // debug end
 
+        // Temporary variable to store current runoff generation (Flux)
+        float currentRunoff = 0.f;
+        // Accumulate new water into existing storage
+        float totalWater = m_exsPcp[i];
         // m_depCap: depression storage capacity. Anything exceeds m_depCap becomes runoff(m_sr). --fanxy
         if (m_depCap[i] < 0.001f) {
-            m_sr[i] = m_exsPcp[i];
+            currentRunoff = totalWater; // Little to no capacity: all excess precip becomes runoff
             m_sd[i] = 0.f;
         }
         else{
-            if (m_exsPcp[i] <= m_depCap[i]) {
-                m_sd[i] = m_exsPcp[i];
-                m_sr[i] = 0.f;
+
+            if (totalWater <= m_depCap[i]) {
+                m_sd[i] = totalWater; // Store all water
+                currentRunoff = 0.f;
             }
             else {
                 // water filled the pit: the pit filled to capacity, and generates surface runoff.
                 m_sd[i] = m_depCap[i];
-                m_sr[i] = m_exsPcp[i] - m_depCap[i];
+                currentRunoff = totalWater - m_depCap[i];
             }
         }
+
+        // Accumulate runoff into the surface ponded depth (State Variable)
+        // Do not overwrite m_sr[i] with =, use +=
+        m_sr[i] += currentRunoff;
+
         // Since the water has been distributed, clear the input variables.
         m_exsPcp[i] = 0.f;
 
@@ -121,7 +133,11 @@ int DepressionFS::Execute() {
             else {
                 m_ed[i] = 0.f;
             }
-        }        
+
+            // Update storage after evaporation.--Fanxy
+            m_sd[i] -= m_ed[i];
+            if (m_sd[i] < 0.f) m_sd[i] = 0.f;
+        }
     }
     return 0;
 }

@@ -108,7 +108,7 @@ private:
     /// water height available for runoff (surface runoff)
     float *m_sr;
     /// discharge to the downslope cell
-    float **m_q;
+    float **m_qs;
 
     /// flow velocity
     float **m_vel;

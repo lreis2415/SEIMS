@@ -47,6 +47,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SURU[0], UNIT_DEPTH_MM, VAR_SURU[1], Source_Module, DT_Raster1D);
 
     mdi.AddOutput(VAR_QSOIL[0], UNIT_FLOW_CMS, VAR_QSOIL[1], DT_Raster1D);
+
     mdi.AddOutput(VAR_RETURNFLOW[0], UNIT_DEPTH_MM, VAR_RETURNFLOW[1], DT_Raster1D);
 
     string res = mdi.GetXMLDocument();

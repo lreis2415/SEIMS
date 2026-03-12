@@ -103,6 +103,9 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
+    //debug
+    int target_cell = 100;
+
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //if (i == 2)
@@ -110,19 +113,28 @@ int clsPI_MCS::Execute() {
         //    std::cout << m_pcp[i] << endl;
 
         //}
+        //debug
+        // FLTPT slope_correction_factor = 1.0;
+        // FLTPT raw_pcp = m_pcp[i];
+
         if (m_pcp[i] > 0.) {
             if (m_stormMode) {
                 /// correction for slope gradient, water spreads out over larger area
                 /// 1. / 3600. = 0.0002777777777777778
                 m_pcp[i] = m_pcp[i] * m_hilldt * 0.0002777777777777778 * cos(atan(m_slope[i]));
+                //slope_correction_factor = m_hilldt * 0.0002777777777777778 * cos(atan(m_slope[i])); //debug,--Fanxy
             }
             //interception storage capacity, 1. / 365. = 0.0027397260273972603
             FLTPT degree = 2. * PI * (m_dayOfYear - 87.) * 0.0027397260273972603;
             /// For water, min and max are both 0, then no need for specific handling.
             FLTPT min = m_minIntcpStoCap[i];
             FLTPT max = m_maxIntcpStoCap[i];
-            FLTPT capacity = min + (max - min) * CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
-            
+            FLTPT seasonality = CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp); // debug,--Fanxys
+            FLTPT capacity = min + (max - min) * seasonality;
+
+            //debug
+            FLTPT start_storage = m_canSto[i];
+
             //interception, currently, m_st[i] is storage of (t-1) time step
             FLTPT availableSpace = capacity - m_canSto[i];
             if (availableSpace < 0) {
@@ -144,6 +156,21 @@ int clsPI_MCS::Execute() {
                 m_netPcp[i] = 0.;
             }
             m_canSto[i] += m_intcpLoss[i];
+
+            //debug
+            /*if (i == target_cell) {
+                cout << "\n[DEBUG PI_MCS] Cell: " << i << " | DOY: " << m_dayOfYear << endl;
+                cout << "  Input Rate(mm/h): " << raw_pcp << endl;
+                if (m_stormMode) {
+                    cout << "  DT(s): " << m_hilldt << " | Slope(tan): " << m_slope[i] << endl;
+                    cout << "  Factor: " << slope_correction_factor << " (Rate -> Depth & Slope Corr)" << endl;
+                    cout << "  Corrected PCP(mm): " << m_pcp[i] << endl;
+                }
+                cout << "  Capacity: " << capacity << " (Min:" << min << " Max:" << max << " Season:" << seasonality << ")" << endl;
+                cout << "  Storage: " << start_storage << " -> " << m_canSto[i] << " (Space: " << availableSpace << ")" << endl;
+                cout << "  Loss: " << m_intcpLoss[i] << " | NetPCP: " << m_netPcp[i] << endl;
+                cout << "------------------------------------------" << endl;
+            }*/
         } else {
             m_intcpLoss[i] = 0.;
             m_netPcp[i] = 0.;

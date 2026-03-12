@@ -185,6 +185,7 @@ CONST_CHARS Source_Module_Optional =                "Module_Optional"; ///< opti
 ///////// Table Names required in MongoDB /////////
 CONST_CHARS DB_TAB_FILE_IN =                           "FILE_IN"; ///< based on file.in
 CONST_CHARS DB_TAB_FILE_OUT =                          "FILE_OUT"; ///< based on file.out
+CONST_CHARS DB_TAB_FILE_OUT_SPEC =                     "FILE_OUT_SPEC"; ///< based on file.out
 CONST_CHARS DB_TAB_PARAMETERS =                        "PARAMETERS"; ///< model parameters table
 CONST_CHARS DB_TAB_SITELIST =                          "SITELIST"; ///< meteorology and precipitation sites
 CONST_CHARS DB_TAB_SCENARIO =                          "BMPDATABASE"; ///< scenario database name

@@ -89,9 +89,10 @@ bool GWaterReservoir::CheckInputSize(const char *key, int n) {
 
 void GWaterReservoir::InitOutputs(void) {
 	if (m_qg == nullptr) Initialize1DArray(m_nReaches + 1, m_qg, 0.f);
-	if (m_nCellsSubbasin == nullptr) Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
 	if (m_percSubbasin == nullptr) Initialize1DArray(m_nReaches + 1, m_percSubbasin, 0.f);
-	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, 0.f);
+	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
+	if (m_nCellsSubbasin == nullptr) {
+		Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
 	if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
 		for (int i = 0; i < m_nCells; i++) {
 			m_nCellsSubbasin[(int)m_subbasin[i]] += 1;
@@ -100,6 +101,7 @@ void GWaterReservoir::InitOutputs(void) {
 	else {
 		m_nCellsSubbasin[1] = m_nCells;
 	}
+}
 }
 
 int GWaterReservoir::Execute(void) {
@@ -124,7 +126,9 @@ int GWaterReservoir::Execute(void) {
     for (int i = 1; i <= m_nReaches; i++) {
         FLTPT percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
-        FLTPT outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
+        float dt_days = m_dt / 86400.f;
+        FLTPT outFlowDepth = m_storage[i] * (1.f - CalExp(-m_recessionCoefficient * dt_days));
+        //FLTPT outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
         // groundwater flow out of the subbasin at time t (m3/s)
         m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
         //sum = sum + m_qg[i];
