@@ -114,10 +114,6 @@ void InterFlow_IKW:: InitialOutputs() {
 
 bool InterFlow_IKW::FlowInSoil(const int id) {
 
-    //debug
-    const int TARGET_ID = 100;
-    bool is_debug = (id == TARGET_ID);
-
     //Loop through all upstream cells
     vector<float> qUp(m_nSoilLyrs[id], 0.0f);
     for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
@@ -231,7 +227,28 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
     m_qi[id] = total_qi;
     m_h[id] = 1000 * total_h_vol / (m_CellWidth * m_CellWidth);
+    // --- DEBUG PRINT ---
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    bool isDebugTarget = false;
+    for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
 
+    if (isDebugTarget) { // DEBUG_ID
+        
+        std::cout << "[TRACE_CSV],Step,UNKNOWN"
+            << ",Module,InterFlow"
+            << ",Cell," << id
+            << ",Total_Interflow_Qi," << m_qi[id]; 
+
+        for (int j = 0; j < m_nSoilLyrs[id]; j++) {
+            std::cout << ",LatFlow_L" << j << "," << m_subSurfQ[id][j]
+                << ",SoilSto_L" << j << "," << m_soilWtrSto[id][j];
+        }
+        std::cout << std::endl;
+    }
     return true;
 }
 
