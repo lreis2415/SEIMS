@@ -114,10 +114,6 @@ void InterFlow_IKW:: InitialOutputs() {
 
 bool InterFlow_IKW::FlowInSoil(const int id) {
 
-    //debug
-    const int TARGET_ID = 100;
-    bool is_debug = (id == TARGET_ID);
-
     //Loop through all upstream cells
     vector<float> qUp(m_nSoilLyrs[id], 0.0f);
     for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
@@ -201,7 +197,11 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
 		// calculate effective hydraulic conductivity (mm/h -> m/s)
 		//float k = m_ks[id]/1000/3600 * CalPow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
-		float k = m_ks[id][j] / 1000 / 3600 * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
+        //float anisotropy_ratio = 10.0f; //
+        // Fix: Use correct Campbell exponent (3 + 2/lambda) instead of lambda directly
+        // Assuming m_poreIndex stores lambda (pore size distribution index) as used in Percolation module
+        float campbell_exponent = 3.0f + 2.0f / m_poreIndex[id][j];
+        float k = m_ks[id][j] / 1000.f / 3600.f * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], campbell_exponent);
         
         // calculate interflow (m3/s)
 		float layer_q = m_landuseFactor * m_rootDepth[id][j] / 1000.f * s0 * k * m_CellWidth;
@@ -231,7 +231,28 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
 
     m_qi[id] = total_qi;
     m_h[id] = 1000 * total_h_vol / (m_CellWidth * m_CellWidth);
+    // --- DEBUG PRINT ---
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    bool isDebugTarget = false;
+    for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
 
+    if (isDebugTarget) { // DEBUG_ID
+        
+        std::cout << "[TRACE_CSV],Step,UNKNOWN"
+            << ",Module,InterFlow"
+            << ",Cell," << id
+            << ",Total_Interflow_Qi," << m_qi[id]; 
+
+        for (int j = 0; j < m_nSoilLyrs[id]; j++) {
+            std::cout << ",LatFlow_L" << j << "," << m_subSurfQ[id][j]
+                << ",SoilSto_L" << j << "," << m_soilWtrSto[id][j];
+        }
+        std::cout << std::endl;
+    }
     return true;
 }
 

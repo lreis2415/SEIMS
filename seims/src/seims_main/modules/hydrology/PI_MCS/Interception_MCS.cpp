@@ -102,20 +102,16 @@ int clsPI_MCS::Execute() {
     CheckInputData();
     /// initialize outputs
     InitialOutputs();
-
-    //debug
-    int target_cell = 100;
-
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    static int stepCount = 0;
+    stepCount++;
+    
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        //if (i == 2)
-        //{
-        //    std::cout << m_pcp[i] << endl;
-
-        //}
-        //debug
-        // FLTPT slope_correction_factor = 1.0;
-        // FLTPT raw_pcp = m_pcp[i];
 
         if (m_pcp[i] > 0.) {
             if (m_stormMode) {
@@ -157,20 +153,7 @@ int clsPI_MCS::Execute() {
             }
             m_canSto[i] += m_intcpLoss[i];
 
-            //debug
-            /*if (i == target_cell) {
-                cout << "\n[DEBUG PI_MCS] Cell: " << i << " | DOY: " << m_dayOfYear << endl;
-                cout << "  Input Rate(mm/h): " << raw_pcp << endl;
-                if (m_stormMode) {
-                    cout << "  DT(s): " << m_hilldt << " | Slope(tan): " << m_slope[i] << endl;
-                    cout << "  Factor: " << slope_correction_factor << " (Rate -> Depth & Slope Corr)" << endl;
-                    cout << "  Corrected PCP(mm): " << m_pcp[i] << endl;
-                }
-                cout << "  Capacity: " << capacity << " (Min:" << min << " Max:" << max << " Season:" << seasonality << ")" << endl;
-                cout << "  Storage: " << start_storage << " -> " << m_canSto[i] << " (Space: " << availableSpace << ")" << endl;
-                cout << "  Loss: " << m_intcpLoss[i] << " | NetPCP: " << m_netPcp[i] << endl;
-                cout << "------------------------------------------" << endl;
-            }*/
+            
         } else {
             m_intcpLoss[i] = 0.;
             m_netPcp[i] = 0.;
@@ -186,7 +169,32 @@ int clsPI_MCS::Execute() {
             m_IntcpET[i] = m_canSto[i];
             m_canSto[i] -= m_IntcpET[i];
         }
+
+        bool isDebugTarget = false;
+        for (int target : targetCells) {
+            if (i == target) {
+                isDebugTarget = true;
+                break;
+            }
+        }
+
+        if (isDebugTarget) {
+            std::cout << "[TRACE_CSV],Step," << stepCount
+                << ",Module,CanopyInterception"
+                << ",Cell," << i
+                << ",Precip_In," << m_pcp[i]
+                << ",Net_Precip," << m_netPcp[i]
+                << ",Canopy_Storage," << m_canSto[i]
+                << ",Intcp_Loss," << m_intcpLoss[i]
+                << ",IntcpCap_Max," << m_maxIntcpStoCap[i]
+                << ",IntcpCap_Min," << m_minIntcpStoCap[i]
+                << std::endl;
+        }
+
     }
+
+    
+
     float total_netPcp = 0.0;
     float ave_netPcp = 0.0;
     for (int i = 0; i < m_nCells; i++)

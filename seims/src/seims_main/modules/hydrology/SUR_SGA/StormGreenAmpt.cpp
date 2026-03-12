@@ -306,6 +306,26 @@ int StormGreenAmpt::Execute(void) {
         //    std::cout << "  [Result] Infil: " << m_infil[i] << " mm | Runoff: " << m_surfRf[i] << " mm" << std::endl;
         //    std::cout << "===============================" << std::endl;
         //}
+        // --- DEBUG PRINT ---
+        std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+        bool isDebugTarget = false;
+        for (int id : targetCells) { if (i == id) { isDebugTarget = true; break; } }
+
+        if (isDebugTarget) { // DEBUG_ID
+            std::cout << "[TRACE_CSV],Step," << counter  
+                << ",Module,GreenAmpt"
+                << ",Cell," << i
+                << ",NetRain," << m_netPcp[i]
+                << ",Infiltration," << m_infil[i]
+                << ",Excess_Pcp," << m_exsPcp[i]
+                << ",Sat_Deficit," << (m_soilPor[i][0] - m_soilWtrSto[i][0])
+                << std::endl;
+        }
+
 # ifdef IS_DEBUG
         if ((counter >= printInfilMinT && counter <= printInfilMaxT)) {
             if (i >= output_icell_min && i <= output_icell_max && infiltFileFptr.is_open()) {

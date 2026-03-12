@@ -54,11 +54,12 @@ public:
     void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
 
 private:
-    void ChannelFlow(int iReach, int iCell, int id);
+    void ChannelFlow(int iReach, int iCell, int id, float qgEachCell = 0.f);
 
     
 
     int m_nCells;  ///< Valid cells number
+    int m_stepCount; ///< debug step counter
     float m_CellWidth; ///< cell width of the grid (m)
     float m_dt; ///< channel routing time step (seconds)
     float *m_s0; ///< slope (percent)
