@@ -228,7 +228,14 @@ int StormGreenAmpt::Execute(void) {
         // infiltration rate (m/s)
         float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
 
-        float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
+        //float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
+        float infilCap = 0.f;
+        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+            float deficit = m_soilPor[i][k] - m_soilWtrSto[i][k];
+            if (deficit > 0.f) {
+                infilCap += deficit * m_soilDepth[i][k];
+            }
+        }
 
         if (hWater > 0) {
             // for frozen soil
@@ -261,7 +268,18 @@ int StormGreenAmpt::Execute(void) {
 
 
                 if (m_soilDepth != nullptr) {
-                    m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
+                    //m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
+                    if (m_infil[i] > 0.f) {
+                        float remainInfil = m_infil[i]; // mm
+                        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+                            float deficit = (m_soilPor[i][k] - m_soilWtrSto[i][k]) * m_soilDepth[i][k]; // mm
+                            if (deficit <= 0.f) continue;
+                            float fill = Min(remainInfil, deficit);
+                            m_soilWtrSto[i][k] += fill / m_soilDepth[i][k];
+                            remainInfil -= fill;
+                            if (remainInfil <= 0.f) break;
+                        }
+                    }
                 }
             }
             m_exsPcp[i] = hWater - m_infil[i];
