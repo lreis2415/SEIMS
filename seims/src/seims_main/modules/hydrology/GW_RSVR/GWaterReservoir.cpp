@@ -93,20 +93,30 @@ void GWaterReservoir::InitOutputs(void) {
 	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
 	if (m_nCellsSubbasin == nullptr) {
 		Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
-	if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
-		for (int i = 0; i < m_nCells; i++) {
-			m_nCellsSubbasin[(int)m_subbasin[i]] += 1;
+		if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
+			for (int i = 0; i < m_nCells; i++) {
+				m_nCellsSubbasin[(int)m_subbasin[i]] += 1;
+			}
+		}
+		else {
+			m_nCellsSubbasin[1] = m_nCells;
 		}
 	}
-	else {
-		m_nCellsSubbasin[1] = m_nCells;
-	}
-}
 }
 
 int GWaterReservoir::Execute(void) {
     InitOutputs();
     CheckInputData();
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    std::set<int> targetSubbasins;
+
+    static int stepCount = 0;
+    stepCount++;
+
 //#pragma omp parallel for
     for (int i = 0; i <= m_nReaches; i++) {
         m_percSubbasin[i] = 0.f;
@@ -118,6 +128,15 @@ int GWaterReservoir::Execute(void) {
         if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
             subbasinIdx = (int)m_subbasin[i];
         }
+        //debug
+        for (int target : targetCells) {
+            if (i == target) {
+                targetSubbasins.insert(subbasinIdx);
+                break;
+            }
+        }
+        //--debug end
+
         m_percSubbasin[subbasinIdx] += m_recharge[i];
     }
 
@@ -135,6 +154,17 @@ int GWaterReservoir::Execute(void) {
 
         // water balance (mm)
         m_storage[i] += percolation - outFlowDepth;
+
+        // debug
+        if (targetSubbasins.count(i)) {
+            std::cout << "[TRACE_CSV],Step," << stepCount
+                << ",Module,Groundwater"
+                << ",Subbasin," << i
+                << ",Percolation_In," << percolation 
+                << ",Baseflow_Out," << m_qg[i]
+                << ",GW_Storage_Depth," << m_storage[i]
+                << std::endl;
+        }
     }
     //m_qg[0] = sum;
 

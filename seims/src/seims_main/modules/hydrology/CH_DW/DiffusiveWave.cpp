@@ -1,7 +1,40 @@
 #include "DiffusiveWave.h"
 #include "text.h"
 #include <queue>
+#include <fstream>
+#include <unordered_set>
+#include <set>
+#include <cstdlib>
 //using namespace std;
+
+namespace {
+std::unordered_set<int> g_debugCells;
+bool g_debugCellsLoaded = false;
+
+void LoadDebugCellsOnce() {
+    if (g_debugCellsLoaded) {
+        return;
+    }
+    g_debugCellsLoaded = true;
+
+    const char* path = std::getenv("SEIMS_DEBUG_CELLS_FILE");
+    if (path == nullptr || *path == '\0') {
+        return;
+    }
+
+    std::ifstream fin(path);
+    if (!fin.is_open()) {
+        return;
+    }
+
+    int id = 0;
+    while (fin >> id) {
+        g_debugCells.insert(id);
+    }
+}
+
+
+}
 
 DiffusiveWave::DiffusiveWave() :
     m_nCells(-1),  m_dt(-1.0f), m_CellWidth(-1.0f), m_chNumber(-1),
@@ -214,13 +247,30 @@ void DiffusiveWave:: InitialOutputs() {
 void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
    
     //debug
-    int TARGET_DEBUG_ID = 4197;
-    bool isDebug = (id == TARGET_DEBUG_ID) || (iReach == 4 && iCell == 0);
-    if (isDebug) {
-        std::cout << "\n========== [DEBUG] Reach:" << iReach << " | Cell:" << iCell << " | ID:" << id << " ==========" << std::endl;
-        std::cout << std::fixed << std::setprecision(4); // 设置小数位数
-    }
+    //int TARGET_DEBUG_ID = 4197;
+    //bool isDebug = (id == TARGET_DEBUG_ID) || (iReach == 4 && iCell == 0);
+    //if (isDebug) {
+    //    std::cout << "\n========== [DEBUG] Reach:" << iReach << " | Cell:" << iCell << " | ID:" << id << " ==========" << std::endl;
+    //    std::cout << std::fixed << std::setprecision(4); // 设置小数位数
+    //}
 
+    static const std::set<int> targetCells = { 1944,2052,2159,2158,2157,2156,
+        2264,2372,2481,2591,2590,2589,
+        2588,2698,2810,2923,2922,2921,
+        3036,3035,3034,3148,3147,3146,3145,
+        3144,3143,3142,3141,3025,3024,3023,
+        3022,3021,3020,3134,3247,3361,3472,
+        3582,3691,3797,3901,4006,4110,4209,
+        4208,4207,4299,4391,4481,4569,4653,
+        4735,4816,4896,4975,5053,5128,5200,
+        5199,5267,5336,5335,5404,5472,5471,
+        5530,5584,5635,5686,5737,5786,5833,
+        5832,5831,5830,5829,5874,5913,5939,
+        5950,5956,5962,5966,5970,5973,5975 };
+    bool isInterestCell = targetCells.find(id) != targetCells.end();
+
+    
+    
     float qUp = 0.f;
     float hUp = 0.f; // h for the previous time step
 
@@ -253,11 +303,11 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
                     hUp = hWater;
                 }
                 //debug
-                if (isDebug) {
-                    std::cout << "  -> Upstream Reach Found: ID=" << upReachId
-                        << " Q_out=" << m_qCh[upReachId][upCellsNum - 1]
-                        << " H_water=" << hWater << std::endl;
-                }
+                //if (isDebug) {
+                //    std::cout << "  -> Upstream Reach Found: ID=" << upReachId
+                //        << " Q_out=" << m_qCh[upReachId][upCellsNum - 1]
+                //        << " H_water=" << hWater << std::endl;
+                //}
             }
         }
     } else {
@@ -314,19 +364,31 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
     m_qsCh[iReach] += local_qs + rain_flux;
     m_qiCh[iReach] += local_qi;
     //debug
-    if (isDebug) {
-        std::cout << "[1. Inflows]" << std::endl;
-        std::cout << "  qUp (Upstream)   = " << qUp << std::endl;
-        std::cout << "  hUp (Up-Head/Dep)= " << hUp << std::endl;
-        std::cout << "  qLat (Lateral)   = " << qLat  << std::endl;
-        std::cout << "  Current Depth h  = " << h << std::endl;
-        std::cout << "  Flow Len dx      = " << dx << std::endl;
-    }
+    //if (isDebug) {
+    //    std::cout << "[1. Inflows]" << std::endl;
+    //    std::cout << "  qUp (Upstream)   = " << qUp << std::endl;
+    //    std::cout << "  hUp (Up-Head/Dep)= " << hUp << std::endl;
+    //    std::cout << "  qLat (Lateral)   = " << qLat  << std::endl;
+    //    std::cout << "  Current Depth h  = " << h << std::endl;
+    //    std::cout << "  Flow Len dx      = " << dx << std::endl;
+    //}
 
     if (qLat < MIN_FLUX && qUp < MIN_FLUX) {
         m_hCh[iReach][iCell] = 0.f;
         m_qCh[iReach][iCell] = 0.f;
-        if (isDebug) std::cout << "[Result] Dry condition. Q=0, H=0" << std::endl;
+        //if (isDebug) std::cout << "[Result] Dry condition. Q=0, H=0" << std::endl;
+        if (isInterestCell) {
+            std::cout << "[TRACE_CSV],Step,Step,DRY_SKIP" 
+                << ",Module,ChannelFlow"
+                << ",Reach," << iReach
+                << ",Cell," << id
+                << ",CellIdx," << iCell
+                << ",Q_Up," << qUp
+                << ",Q_Lat_Total," << (qLat * dx)
+                << ",Q_Out,0"
+                << ",H_Ch,0"
+                << std::endl;
+        }
         return;
     }
 
@@ -334,11 +396,11 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
     float sf = (hUp - m_elevation[id] - h) / dx;
 
     //debug
-    if (isDebug) {
-        std::cout << "[2. Physics]" << std::endl;
-        std::cout << "  Elevation Cur    = " << m_elevation[id] << std::endl;
-        std::cout << "  Slope (sf) Raw   = " << sf << std::endl;
-    }
+    //if (isDebug) {
+    //    std::cout << "[2. Physics]" << std::endl;
+    //    std::cout << "  Elevation Cur    = " << m_elevation[id] << std::endl;
+    //    std::cout << "  Slope (sf) Raw   = " << sf << std::endl;
+    //}
 
     if (sf < MINI_SLOPE) {
         sf = MINI_SLOPE;
@@ -347,11 +409,11 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
     c = CalPow(c, 0.6f);
 
     //debug
-    if (isDebug) {
-        std::cout << "  Slope (sf) Used  = " << sf << std::endl;
-        std::cout << "  Perimeter        = " << perim << std::endl;
-        std::cout << "  Conductance (c)  = " << c << std::endl;
-    }
+    //if (isDebug) {
+    //    std::cout << "  Slope (sf) Used  = " << sf << std::endl;
+    //    std::cout << "  Perimeter        = " << perim << std::endl;
+    //    std::cout << "  Conductance (c)  = " << c << std::endl;
+    //}
 
     float d = 1.f;
     int counter = 0;
@@ -362,15 +424,15 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
     }
 
     //debug
-    if (isDebug) std::cout << "[3. Iteration]" << std::endl;
+    //if (isDebug) std::cout << "[3. Iteration]" << std::endl;
 
     while (abs(d) > MIN_FLUX && counter < 10) {
         d = (qNew * m_dt / dx + c * Power(qNew, 0.6f) - qUp * m_dt / dx - c * Power(qLast, 0.6f) - qLat * m_dt) /
             (m_dt / dx + c * 0.6f / Power(qNew, 0.4f));
         //debug
-        if (isDebug) {
-            std::cout << "  Iter " << counter << ": qNew=" << qNew << ", d=" << d << std::endl;
-        }
+        //if (isDebug) {
+        //    std::cout << "  Iter " << counter << ": qNew=" << qNew << ", d=" << d << std::endl;
+        //}
 
         //if(d != d)
         //	int test = 1;
@@ -385,11 +447,11 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
     float qAvail = m_hCh[iReach][iCell] * m_chWidth[iReach] * dx / m_dt + qLat * dx + qUp;
 
     //debug
-    if (isDebug) {
-        std::cout << "[4. Balance Check]" << std::endl;
-        std::cout << "  qCalculated = " << qNew << std::endl;
-        std::cout << "  qAvailable  = " << qAvail << std::endl;
-    }
+    //if (isDebug) {
+    //    std::cout << "[4. Balance Check]" << std::endl;
+    //    std::cout << "  qCalculated = " << qNew << std::endl;
+    //    std::cout << "  qAvailable  = " << qAvail << std::endl;
+    //}
 
     if (qNew > qAvail) {
         m_qCh[iReach][iCell] = qAvail;
@@ -399,13 +461,33 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
         m_hCh[iReach][iCell] = c * CalPow(qNew, 0.6f) / m_chWidth[iReach];
         //float hh = (qUp + qLat*dx - qNew)*m_dt/(m_chWidth[iReach]*dx) + m_hCh[iReach][iCell];
     }
-    //debug
-    if (isDebug) {
-        std::cout << "[Final Output]" << std::endl;
-        std::cout << "  Q_out = " << m_qCh[iReach][iCell] << std::endl;
-        std::cout << "  H_new = " << m_hCh[iReach][iCell] << std::endl;
-        std::cout << "==========================================\n" << std::endl;
+
+
+
+    if (isInterestCell) {
+        float qLat_total = qLat * dx;
+        std::cout << "[TRACE_CSV],Step,Step,UNKNOWN"
+            << ",Module,ChannelFlow"
+            << ",Reach," << iReach
+            << ",Cell," << id
+            << ",CellIdx," << iCell
+            << ",Q_Up," << qUp
+            << ",Q_Lat_Total," << qLat_total
+            << ",Q_Lat_Rain," << (qLat_rain * dx)
+            << ",Q_Lat_QS," << (qLat_qs * dx)
+            << ",Q_Lat_QI," << (qLat_qi * dx)
+            << ",Q_Lat_QG," << (qLat_qg * dx)
+            << ",Q_Out," << m_qCh[iReach][iCell]
+            << ",H_Ch," << m_hCh[iReach][iCell]
+            << std::endl;
     }
+    //debug
+    //if (isDebug) {
+    //    std::cout << "[Final Output]" << std::endl;
+    //    std::cout << "  Q_out = " << m_qCh[iReach][iCell] << std::endl;
+    //    std::cout << "  H_new = " << m_hCh[iReach][iCell] << std::endl;
+    //    std::cout << "==========================================\n" << std::endl;
+    //}
 
     int nCells = m_reachs[iReach].size();
     if (iCell == nCells - 1) {

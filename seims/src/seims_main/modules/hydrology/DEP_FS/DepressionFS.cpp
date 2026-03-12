@@ -82,9 +82,24 @@ int DepressionFS::Execute() {
         m_checkInput = false;
     }
 
+    // --- DEBUG ---
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    static int step = 0;
+    step++;
+    // ------------------
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
+        //debug
+        bool isDebugTarget = false;
+        for (int id : targetCells) {
+            if (i == id) { isDebugTarget = true; break; }
+        }
+
         float inputExsPcp = m_exsPcp[i];
         // debug end
 
@@ -138,6 +153,19 @@ int DepressionFS::Execute() {
             m_sd[i] -= m_ed[i];
             if (m_sd[i] < 0.f) m_sd[i] = 0.f;
         }
+
+        //debug
+        if (isDebugTarget) {
+            std::cout << "[TRACE_CSV],Step," << step
+                << ",Module,DepressionFS"
+                << ",Cell," << i
+                << ",Input_ExsPcp," << totalWater
+                << ",Depression_Storage(Sd)," << m_sd[i]
+                << ",New_Runoff," << currentRunoff
+                << ",Total_Ponded_Depth(Sr)," << m_sr[i]
+                << std::endl;
+        }
+        // ------------------
     }
     return 0;
 }

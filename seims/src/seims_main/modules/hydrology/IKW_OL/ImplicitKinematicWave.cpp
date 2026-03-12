@@ -372,6 +372,26 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         }
         m_qs[id][0] = qUp;
         m_sr[id] = 0.f;
+
+        //debug
+        std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+        bool isDebugTarget = false;
+        for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
+        if (isDebugTarget) { // DEBUG_ID
+            std::cout << "[TRACE_CSV],Step,UNKNOWN"
+                << ",Module,OverlandFlow"
+                << ",Cell," << id
+                << ",Ponded_Depth_Final(Sr)," << m_sr[id]
+                << ",Surfaceflow_Q," << m_qs[id][0]
+                << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
+                << std::endl;
+        }
+
+
         return;
     }
 
@@ -383,6 +403,26 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             m_qs[id][j] = 0.f;
         }
         if (m_reInfil != NULL) m_reInfil[id] = 0.f;
+
+        //debug
+        std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+        bool isDebugTarget = false;
+        for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
+        if (isDebugTarget) { // DEBUG_ID
+            std::cout << "[TRACE_CSV],Step,UNKNOWN"
+                << ",Module,OverlandFlow"
+                << ",Cell," << id
+                << ",Ponded_Depth_Final(Sr)," << m_sr[id]
+                << ",Surfaceflow_Q," << m_qs[id][0]
+                << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
+                << std::endl;
+        }
+
+
         return;
     }
 
@@ -549,18 +589,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     m_reInfil[id] = reInfil;
 
-    ////debug
-    //if (isDebugCell) {
-    //    std::cout << "  --- DEBUG ID: " << id << " (OverlandFlow End) ---" << std::endl;
-    //    std::cout << "  reInfil : " << reInfil << std::endl;
-    //    std::cout << "----------------------------------------------" << std::endl;
-    //}    ////debug
-    //if (isDebugCell) {
-    //    std::cout << "  --- DEBUG ID: " << id << " (OverlandFlow End) ---" << std::endl;
-    //    std::cout << "  reInfil : " << reInfil << std::endl;
-    //    std::cout << "----------------------------------------------" << std::endl;
-    //}
-
+   
     // compute to channel flow
     // In this modification, the hillslope routing module does not consider channel flow. (by Fan xinyi)
     //if (m_streamLink[id] > 0) {
@@ -574,6 +603,22 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     //    m_sr[id] *= (1.f - fractiontochannel);
 
     //}
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    bool isDebugTarget = false;
+    for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
+    if (isDebugTarget) { // DEBUG_ID
+        std::cout << "[TRACE_CSV],Step,UNKNOWN"
+            << ",Module,OverlandFlow"
+            << ",Cell," << id
+            << ",Ponded_Depth_Final(Sr)," << m_sr[id]
+            << ",Surfaceflow_Q," << m_qs[id][0] 
+            << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
+            << std::endl;
+    }
 
 }
 
@@ -774,12 +819,6 @@ void ImplicitKinematicWave_OL::Set2DData(const char* key, int nrows, int ncols, 
         m_flowOutIdx = data;
         for (int i = 0; i < m_nCells; i++) {
             if (m_flowOutIdx[i][0] == 0 && m_flowOutIdx[i][1] < 0) {
-
-                std::cout << "[Debug] Found Outlet at Cell Index: " << i << std::endl;
-                std::cout << "[Debug] m_flowOutIdx[" << i << "][0] = " << m_flowOutIdx[i][0] << std::endl;
-                std::cout << "[Debug] m_flowOutIdx[" << i << "][1] = " << m_flowOutIdx[i][1] << " (Expecting -1)" << std::endl;
-
-
                 m_idOutlet = i;
                 if (m_idOutlet < 0)
                 {

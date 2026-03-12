@@ -36,7 +36,15 @@ int Percolation_DARCY::Execute() {
         CheckInputData();
         m_recharge = new float[m_nCells];
     }
-    
+    //debug
+    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
+                                     1189, 1188, 1187, 1186, 1185,
+                                     1294, 1404, 1403, 1513, 1623,
+                                     1622, 1731, 1730, 1838, 1837, 1836,
+                                     1944 };
+    static int stepCount = 0;
+    stepCount++;
+
 //#pragma omp parallel for
 	for (int i = 0; i < m_nCells; i++) {
         // m_recharge here is used only to store the final water volume recharging the groundwater. --Fanxy
@@ -93,6 +101,26 @@ int Percolation_DARCY::Execute() {
                 m_recharge[i] += totalPrec;
             }
 		}
+        // --- DEBUG PRINT ---
+        bool isDebugTarget = false;
+        for (int target : targetCells) {
+            if (i == target) {
+                isDebugTarget = true;
+                break;
+            }
+        }
+        if (isDebugTarget) { // DEBUG_ID
+            
+            std::cout << "[TRACE_CSV],Step," << stepCount
+                << ",Module,Percolation"
+                << ",Cell," << i
+                << ",Recharge_to_GW," << m_recharge[i];
+
+            for (int lyr = 0; lyr < m_nSoilLyrs[i]; lyr++) {
+                std::cout << ",Moist_L" << lyr << "," << m_Moisture[i][lyr];
+            }
+            std::cout << std::endl;
+        }
 	}
 
     return true;
