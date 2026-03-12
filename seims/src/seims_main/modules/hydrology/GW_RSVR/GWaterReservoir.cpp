@@ -89,9 +89,10 @@ bool GWaterReservoir::CheckInputSize(const char *key, int n) {
 
 void GWaterReservoir::InitOutputs(void) {
 	if (m_qg == nullptr) Initialize1DArray(m_nReaches + 1, m_qg, 0.f);
-	if (m_nCellsSubbasin == nullptr) Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
 	if (m_percSubbasin == nullptr) Initialize1DArray(m_nReaches + 1, m_percSubbasin, 0.f);
-	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, 0.f);
+	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
+	if (m_nCellsSubbasin == nullptr) {
+		Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
 	if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
 		for (int i = 0; i < m_nCells; i++) {
 			m_nCellsSubbasin[(int)m_subbasin[i]] += 1;
@@ -100,6 +101,7 @@ void GWaterReservoir::InitOutputs(void) {
 	else {
 		m_nCellsSubbasin[1] = m_nCells;
 	}
+}
 }
 
 int GWaterReservoir::Execute(void) {
