@@ -1,13 +1,19 @@
+Moist_in,0.95
+#Depression,5
+#Conductivity,2000
+Conductivity,1
 #Interc_min,95
 #Interc_max,200
 #Pi_b,-0.1
-
-#MANNING,10
+#chs0_perc,1
+#chs0,50
+#MANNING,5
+MANNING,0
 
 #Depression,0.82
 #ch_width,0.3
 
-#Conductivity,1.25
+
 
 #Ki,5
 #Poreindex,1.2

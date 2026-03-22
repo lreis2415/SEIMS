@@ -5,11 +5,11 @@
 0 | Interpolation_0 | Thiessen | ITP
 ### Surface processes
 0 | Interception | Maximum Canopy Storage | PI_MCS
-0 | Infiltration | GreenAmpt | SUR_SGA
+3 | Infiltration | GreenAmpt | SUR_SGA
 4 | Depression storage | Fill | DEP_FS
 5 | Overland flow | IKW overland | IKW_OL
-6 | percolation | Darcy method | PERCO_DARCY
-7 | interflow | ikw method | IKW_IF
+6 | interflow | ikw method | IKW_IF
+7 | percolation | Darcy method | PERCO_DARCY
 8 | groundwater | resevoir method | GW_RSVR
 #9 | ChannelRouting | MSK method | IKW_CH
 9 | ChannelRouting | Diffusive wave | CH_DW
