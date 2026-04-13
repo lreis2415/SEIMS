@@ -1,6 +1,6 @@
 ARG DEBIAN_VER=12.7-slim@sha256:ad86386827b083b3d71139050b47ffb32bbd9559ea9b1345a739b14fec2d9ecf
 
-FROM continuumio/miniconda3 AS builder
+FROM continuumio/miniconda3:24.7.1-0 AS pybuilder
 # References:
 #  https://pythonspeed.com/articles/activate-conda-dockerfile/
 #  https://medium.com/@rvaid.29/reduce-the-size-of-conda-based-docker-images-3f7f713d3a8f
@@ -33,7 +33,7 @@ RUN conda install -c conda-forge conda-pack && \
 # Using slim debian image as the base image for the environment
 FROM debian:${DEBIAN_VER} AS runner
 # Copy the environment directory /venv from the environment build stage
-COPY --from=builder /venv /venv
+COPY --from=pybuilder /venv /venv
 
 # Copy source directory
 WORKDIR /seims
