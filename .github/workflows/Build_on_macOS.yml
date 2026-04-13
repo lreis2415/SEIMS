@@ -40,7 +40,7 @@ jobs:
       run: mongosh --eval "db.version()"
 
     - name: Install mongo-c-driver
-      run: brew install mongo-c-driver
+      run: brew install mongo-c-driver@1
 
     - name: Install GDAL
       run: brew list gdal &>/dev/null || brew install gdal
@@ -54,7 +54,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_PREFIX_PATH="$(brew --prefix mongo-c-driver@1)" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build and Install SEIMS
       run: |

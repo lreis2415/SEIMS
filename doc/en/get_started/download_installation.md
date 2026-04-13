@@ -159,7 +159,7 @@ Be default, the latest GDAL version will be installed.
 #### homebrew for macOS
 On macOS, the GDAL can be installed simply by `brew` command:
 ```shell
-brew install mongo-c-driver
+brew install mongo-c-driver@1
 ```
 
 ## Software to support running SEIMS

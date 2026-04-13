@@ -163,7 +163,7 @@ apt-get update && sudo apt-get install -qq libmongoc-1.0-0 libmongoc-dev
 ##### 在macOS上使用homebrew
 在macOS上，可以通过 `brew` 命令轻松地安装GDAL：
 ```shell
-brew install mongo-c-driver
+brew install mongo-c-driver@1
 ```
 
 ### 支持运行SEIMS的软件
