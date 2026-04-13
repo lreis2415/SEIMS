@@ -7,7 +7,7 @@
 #   > cd TauDEM_ext
 #   > docker build -t taudem_ext:debian -f docker/Dockerfile.debian .
 #
-# Copyright 2022-2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
+# Copyright 2022-2026 Liang-Jun Zhu <zlj@lreis.ac.cn>
 #
 
 # Use debian as the build and runner container, which is used for continuumio/miniconda3

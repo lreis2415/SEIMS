@@ -1,43 +1,33 @@
 set(shape_srcs ReadOutlets.cpp)
-set(common_srcs commonLib.cpp tiffIO.cpp)
+set(common_srcs commonLib.cpp createpart.cpp tiffIO.cpp)
 
 set(CONNECTDOWNFILES ConnectDownmn.cpp ConnectDown.cpp ${common_srcs} ${shape_srcs})
 set(D8FILES aread8mn.cpp aread8.cpp ${common_srcs} ${shape_srcs})
 set(DINFFILES areadinfmn.cpp areadinf.cpp ${common_srcs} ${shape_srcs})
-set(D8 D8FlowDirmn.cpp d8.cpp Node.cpp ${common_srcs} ${shape_srcs})
-set(D8EXTREAMUP D8flowpathextremeup.cpp D8FlowPathExtremeUpmn.cpp
-        ${common_srcs} ${shape_srcs})
+set(D8 D8FlowDirmn.cpp d8.cpp dinf.cpp Node.cpp ${common_srcs} ${shape_srcs})
+set(D8EXTREAMUP D8flowpathextremeup.cpp D8FlowPathExtremeUpmn.cpp ${common_srcs} ${shape_srcs})
 set(D8HDIST D8HDistToStrm.cpp D8HDistToStrmmn.cpp ${common_srcs})
 set(DINFAVA DinfAvalanche.cpp DinfAvalanchemn.cpp ${common_srcs})
-set(DINFCONCLIM DinfConcLimAccum.cpp DinfConcLimAccummn.cpp
-        ${common_srcs} ${shape_srcs})
-set(DINFDECAY dinfdecayaccum.cpp DinfDecayAccummn.cpp
-        ${common_srcs} ${shape_srcs})
+set(DINFCONCLIM DinfConcLimAccum.cpp DinfConcLimAccummn.cpp ${common_srcs} ${shape_srcs})
+set(DINFDECAY dinfdecayaccum.cpp DinfDecayAccummn.cpp ${common_srcs} ${shape_srcs})
 set(DINFDISTDOWN DinfDistDown.cpp DinfDistDownmn.cpp ${common_srcs})
 set(DINFDISTUP DinfDistUp.cpp DinfDistUpmn.cpp ${common_srcs})
-set(DINF DinfFlowDirmn.cpp dinf.cpp Node.cpp
-        ${common_srcs} ${shape_srcs})
+set(DINF DinfFlowDirmn.cpp dinf.cpp d8.cpp Node.cpp ${common_srcs} ${shape_srcs})
 set(DINFREVACCUM DinfRevAccum.cpp DinfRevAccummn.cpp ${common_srcs})
-set(DINFTRANSLIMACCUM DinfTransLimAccum.cpp DinfTransLimAccummn.cpp
-        ${common_srcs} ${shape_srcs})
+set(DINFTRANSLIMACCUM DinfTransLimAccum.cpp DinfTransLimAccummn.cpp ${common_srcs} ${shape_srcs})
 set(DINFUPDEPEND DinfUpDependence.cpp DinfUpDependencemn.cpp ${common_srcs})
-set(DROPANALYSISFILES DropAnalysis.cpp DropAnalysismn.cpp
-        ${common_srcs} ${shape_srcs})
-set(GRIDNET gridnetmn.cpp gridnet.cpp
-        ${common_srcs} ${shape_srcs})
+set(DROPANALYSISFILES DropAnalysis.cpp DropAnalysismn.cpp ${common_srcs} ${shape_srcs})
+set(GRIDNET gridnetmn.cpp gridnet.cpp ${common_srcs} ${shape_srcs})
 set(LENGTHAREA LengthArea.cpp LengthAreamn.cpp ${common_srcs})
-set(MVOUTLETSTOSTRMFILES MoveOutletsToStrm.cpp MoveOutletsToStrmmn.cpp
-        ${common_srcs} ${shape_srcs})
+set(MVOUTLETSTOSTRMFILES MoveOutletsToStrm.cpp MoveOutletsToStrmmn.cpp ${common_srcs} ${shape_srcs})
 set(PEUKERDOUGLAS PeukerDouglas.cpp PeukerDouglasmn.cpp ${common_srcs})
 set(PITREMOVE flood.cpp PitRemovemn.cpp ${common_srcs})
 set(SLOPEAREA SlopeArea.cpp SlopeAreamn.cpp ${common_srcs})
 set(SLOPEAREARATIO SlopeAreaRatio.cpp SlopeAreaRatiomn.cpp ${common_srcs})
 set(SLOPEAVEDOWN SlopeAveDown.cpp SlopeAveDownmn.cpp ${common_srcs})
-set(STREAMNET streamnetmn.cpp streamnet.cpp
-        ${common_srcs} ${shape_srcs})
+set(STREAMNET streamnetmn.cpp streamnet.cpp ${common_srcs} ${shape_srcs})
 set(THRESHOLD Threshold.cpp Thresholdmn.cpp ${common_srcs})
-set(GAGEWATERSHED gagewatershedmn.cpp gagewatershed.cpp ${common_srcs}
-        ${shape_srcs})
+set(GAGEWATERSHED gagewatershedmn.cpp gagewatershed.cpp ${common_srcs} ${shape_srcs})
 set(TWI TWImn.cpp TWI.cpp ${common_srcs} ${shape_srcs})
 # New apps from TauDEM 5.3.8
 set (CATCHHYDROGEO CatchHydroGeo.cpp CatchHydroGeomn.cpp ${common_srcs} ${shape_srcs})
