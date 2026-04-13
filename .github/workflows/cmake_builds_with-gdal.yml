@@ -9,9 +9,9 @@ on:
       - 'dev'
     paths-ignore:
       - 'doc/**'
-  pull_request:
-      paths-ignore:
-          - 'doc/**'
+  # pull_request:
+  #     paths-ignore:
+  #         - 'doc/**'
   workflow_dispatch:
 
 env:
