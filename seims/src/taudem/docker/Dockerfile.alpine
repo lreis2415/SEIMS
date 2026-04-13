@@ -7,12 +7,12 @@
 #   > cd TauDEM_ext
 #   > docker build -t taudem_ext:alpine -f docker/Dockerfile.alpine .
 #
-# Copyright 2022-2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
+# Copyright 2022-2026 Liang-Jun Zhu <zlj@lreis.ac.cn>
 #
 
 # Use GDAL image tagged alpine-small-<version> as the build and test container
 #  see https://github.com/OSGeo/gdal/pkgs/container/gdal/versions?filters%5Bversion_type%5D=tagged
-ARG GDAL_VERSION=3.9.2
+ARG GDAL_VERSION=3.9.3
 FROM ghcr.io/osgeo/gdal:alpine-small-${GDAL_VERSION} AS builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
@@ -44,8 +44,8 @@ FROM ghcr.io/osgeo/gdal:alpine-small-${GDAL_VERSION} AS runner
 # Replace alpine repository source cdn to accelarate access speed and setup build env, when necessary
 # Add OpenMPI related tools/libraries for running TauDEM
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    apk update && apk upgrade && \
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+RUN apk update && apk upgrade && \
     apk add --no-cache openmpi libgomp tini openssh \
     rm -rf /var/cache/apk/*
 

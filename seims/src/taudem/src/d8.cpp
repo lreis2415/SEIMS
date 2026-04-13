@@ -1,15 +1,15 @@
 /*  TauDEM D8FlowDir function to compute flow direction based on d8 flow model.
-     
+
   David G Tarboton, Dan Watson, Jeremy Neff
-  Utah State University     
+  Utah State University
   May 23, 2010
-  
+
 */
 
 /*  Copyright (C) 2010  David Tarboton, Utah State University
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License 
+modify it under the terms of the GNU General Public License
 version 2, 1991 as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
@@ -17,23 +17,23 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-A copy of the full GNU General Public License is included in file 
+A copy of the full GNU General Public License is included in file
 gpl.html. This is also available at:
 http://www.gnu.org/copyleft/gpl.html
 or from:
-The Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+The Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
-If you wish to use or incorporate this program (or parts of it) into 
-other software that does not meet the GNU General Public License 
+If you wish to use or incorporate this program (or parts of it) into
+other software that does not meet the GNU General Public License
 conditions contact the author to request permission.
-David G. Tarboton  
-Utah State University 
-8200 Old Main Hill 
-Logan, UT 84322-8200 
-USA 
-http://www.engineering.usu.edu/dtarb/ 
-email:  dtarb@usu.edu 
+David G. Tarboton
+Utah State University
+8200 Old Main Hill
+Logan, UT 84322-8200
+USA
+http://www.engineering.usu.edu/dtarb/
+email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
@@ -43,18 +43,21 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "commonLib.h"
 #include "d8.h"
+#include "dinf.h" // for using SET2 in resolveflats()
 //#include "tiffIO.h"    Part of CommonLib
 #include "Node.h"
 
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
-double **fact;
+double **fact; // Definition
 
 //Checks if cells cross
-int dontCross(int k, int i, int j, tdpartition *flowDir) {
+int dontCross(int k, int i, int j, tdpartition *flowDir, int alg/*=0*/) {
     long n1, n2, c1, c2, ans = 0;
     long in1, jn1, in2, jn2;
-    short tempShort;
+    short tempShort; // for d8
+    float tempFloat; // for dinf
+    bool doit = false;
     switch (k) {
         case 2: n1 = 1;
             c1 = 4;
@@ -64,7 +67,17 @@ int dontCross(int k, int i, int j, tdpartition *flowDir) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if ((flowDir->getData(in1, jn1, tempShort)) == c1 || (flowDir->getData(in2, jn2, tempShort)) == c2) {
+            if ((alg == 0 || alg == 2) &&
+                ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempShort)) == c2)) {
+                doit = true;
+            }
+            if (alg == 1 &&
+                ((flowDir->getData(in1, jn1, tempFloat)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempFloat)) == c2)) {
+                doit = true;
+            }
+            if (doit) {
                 ans = 1;
             }
             break;
@@ -76,7 +89,17 @@ int dontCross(int k, int i, int j, tdpartition *flowDir) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if ((flowDir->getData(in1, jn1, tempShort)) == c1 || (flowDir->getData(in2, jn2, tempShort)) == c2) {
+            if ((alg == 0 || alg == 2) &&
+                ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempShort)) == c2)) {
+                doit = true;
+            }
+            if (alg == 1 &&
+                ((flowDir->getData(in1, jn1, tempFloat)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempFloat)) == c2)) {
+                doit = true;
+            }
+            if (doit) {
                 ans = 1;
             }
             break;
@@ -88,10 +111,17 @@ int dontCross(int k, int i, int j, tdpartition *flowDir) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if ((flowDir->getData(in1, jn1, tempShort) == c1)) {
-                ans = 1;
+            if ((alg == 0 || alg == 2) &&
+                ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempShort)) == c2)) {
+                doit = true;
             }
-            if (flowDir->getData(in2, jn2, tempShort) == c2) {
+            if (alg == 1 &&
+                ((flowDir->getData(in1, jn1, tempFloat)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempFloat)) == c2)) {
+                doit = true;
+            }
+            if (doit) {
                 ans = 1;
             }
             break;
@@ -103,7 +133,17 @@ int dontCross(int k, int i, int j, tdpartition *flowDir) {
             jn1 = j + d2[n1];
             in2 = i + d1[n2];
             jn2 = j + d2[n2];
-            if ((flowDir->getData(in1, jn1, tempShort)) == c1 || (flowDir->getData(in2, jn2, tempShort)) == c2) {
+            if ((alg == 0 || alg == 2) &&
+                ((flowDir->getData(in1, jn1, tempShort)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempShort)) == c2)) {
+                doit = true;
+            }
+            if (alg == 1 &&
+                ((flowDir->getData(in1, jn1, tempFloat)) == c1 ||
+                    (flowDir->getData(in2, jn2, tempFloat)) == c2)) {
+                doit = true;
+            }
+            if (doit) {
                 ans = 1;
             }
             break;
@@ -152,7 +192,7 @@ void setFlow(int i, int j, tdpartition *flowDir, tdpartition *elevDEM, tdpartiti
 
         slope = fact[j][k] * (elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat));
 
-        if (slope > smax && dontCross(k, i, j, flowDir) == 0) {
+        if (slope > smax && dontCross(k, i, j, flowDir, 0) == 0) {
             smax = slope;
             dirnb = flowDir->getData(in, jn, tempShort);
             if (dirnb > 0 && abs(dirnb - k) == 4) {
@@ -314,7 +354,7 @@ int setdird8(char *demfile, char *pointfile, char *slopefile, char *flowfile, in
         bool first = true;  //  Variable to be used in iteration to know whether first or subsequent iteration
         if (totalNumFlat > 0) {
             lastNumFlat = totalNumFlat;
-            totalNumFlat = resolveflats(elevDEM, flowDir, &que, first);
+            totalNumFlat = resolveflats(elevDEM, flowDir, &que, 0, first);
             //Repeatedly call resolve flats until there is no change
             while (totalNumFlat > 0 && totalNumFlat < lastNumFlat) {
                 if (rank == 0) {
@@ -322,7 +362,7 @@ int setdird8(char *demfile, char *pointfile, char *slopefile, char *flowfile, in
                     fflush(stderr);
                 }
                 lastNumFlat = totalNumFlat;
-                totalNumFlat = resolveflats(elevDEM, flowDir, &que, first);
+                totalNumFlat = resolveflats(elevDEM, flowDir, &que, 0, first);
             }
         }
 
@@ -434,10 +474,10 @@ long setPosDir(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *area, in
 void setFlow2(int i, int j, tdpartition *flowDir, tdpartition *elevDEM, tdpartition *elev2, tdpartition *dn) {
 /*  This function sets directions based upon secondary elevations for
   assignment of flow directions across flats according to Garbrecht and Martz
-  scheme.  There are two possibilities: 
+  scheme.  There are two possibilities:
 	A.  The neighbor is outside the flat set
 	B.  The neighbor is in the flat set.
-	In the case of A the input elevations are used and if a draining neighbor is found it is selected.  
+	In the case of A the input elevations are used and if a draining neighbor is found it is selected.
 	Case B requires slope to be positive.  Remaining flats are removed by iterating this process*/
 
     float slope, smax, ed;
@@ -471,7 +511,7 @@ void setFlow2(int i, int j, tdpartition *flowDir, tdpartition *elevDEM, tdpartit
 //************************************************************************
 
 //Resolve flat cells according to Garbrecht and Martz
-long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que, bool &first) {
+long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que, int alg, bool &first) {
     elevDEM->share();
     flowDir->share();
     //Header data
@@ -487,9 +527,10 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
 
     long i, j, k, in, jn;
     bool doNothing, done;
-    long numFlat;
+    double tempdxc, tempdyc; // added for compatible with resolveflats for dinf. by lj 09/22/2025
+    // long numFlat; // never used, commented by lj 09/22/2025
     short tempShort;
-    int32_t tempLong;
+    // int32_t tempLong; // never used, commented by lj 09/22/2025
     float tempFloat;
     long numInc, numIncOld, numIncTotal;
 
@@ -508,17 +549,19 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         first = false;
         for (j = 0; j < ny; j++) {
             for (i = 0; i < nx; i++) {
-                if (flowDir->getData(i, j, tempShort) == 0) {
+                if (flowDir->isNodata(i, j)) continue; // refers to resolveflats in Dinf, by lj. 09/22/2025
+                bool addit = false; // compatible with d8 (alg=0) and dinf (alg=1), by lj. 09/22/2025
+                if ((alg == 0 || alg == 2) && flowDir->getData(i, j, tempShort) == 0) addit = true;
+                if (alg == 1 && flowDir->getData(i, j, tempFloat) < 0.0) addit = true;
+                if (addit) {
                     temp.x = i;
                     temp.y = j;
                     que->push(temp);
-                    nflat++;
                 }
             }
         }
-    } else {
-        nflat = que->size();
     }
+    nflat = que->size();
     dn->share();
     elev2->share();
 
@@ -547,12 +590,24 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
 
             doNothing = false;
             for (k = 1; k <= 8; k++) {
-                if (dontCross(k, i, j, flowDir) == 0) {
+                if (dontCross(k, i, j, flowDir, alg) == 0) {
                     jn = j + d2[k];
                     in = i + d1[k];
                     elevDiff = elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat);
-                    tempShort = flowDir->getData(in, jn, tempShort);
-                    if (elevDiff >= 0 && tempShort > 0 && tempShort < 9) { 
+                    bool exist_low_boundary = false; // by lj. 09/22/2025
+                    if (alg == 0) {
+                        flowDir->getData(in, jn, tempShort);
+                        if (tempShort > 0 && tempShort < 9) exist_low_boundary = true;
+                    }
+                    if (alg == 2) {
+                        flowDir->getData(in, jn, tempShort);
+                        if (tempShort >= 1) exist_low_boundary = true;
+                    }
+                    if (alg == 1) {
+                        flowDir->getData(in, jn, tempFloat);
+                        if (tempFloat >= 0.0) exist_low_boundary = true;
+                    }
+                    if (elevDiff >= 0 && exist_low_boundary) {
                         //adjacent cell drains and is equal or lower in elevation so this is a low boundary
                         doNothing = true;
                     } else if (elevDiff == 0) { //if neighbor is in flat
@@ -563,7 +618,7 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
                     }
                 }
             }
-            if (!doNothing) {
+            if (!doNothing) { // if I still have to do something...
                 elev2->addToData(i, j, short(1));
                 numInc++;
             }
@@ -588,12 +643,24 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
             que->push(temp);
             doNothing = false;
             for (k = 1; k <= 8; k++) {
-                if (dontCross(k, i, j, flowDir) == 0) {
+                if (dontCross(k, i, j, flowDir, alg) == 0) {
                     jn = j + d2[k];
                     in = i + d1[k];
                     elevDiff = elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat);
-                    tempShort = flowDir->getData(in, jn, tempShort);
-                    if (elevDiff >= 0 && tempShort > 0 && tempShort < 9) { 
+                    bool exist_low_boundary = false; // by lj. 09/22/2025
+                    if (alg == 0) {
+                        flowDir->getData(in, jn, tempShort);
+                        if (tempShort > 0 && tempShort < 9) exist_low_boundary = true;
+                    }
+                    if (alg == 2) {
+                        flowDir->getData(in, jn, tempShort);
+                        if (tempShort >= 1) exist_low_boundary = true;
+                    }
+                    if (alg == 1) {
+                        flowDir->getData(in, jn, tempFloat);
+                        if (tempFloat >= 0.0) exist_low_boundary = true;
+                    }
+                    if (elevDiff >= 0 && exist_low_boundary) {
                         //adjacent cell drains and is equal or lower in elevation so this is a low boundary
                         doNothing = true;
                     } else if (elevDiff == 0) { //if neighbor is in flat
@@ -622,7 +689,7 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
     //  DGT moved from above - write directly into elev2
     s = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)0);  //  Use 0 as no data to avoid need to initialize
 
-    //incrise - drain away from higher ground
+    //increase - drain away from higher ground
     done = false;
     numIncOld = 0;
     if (rank == 0) {
@@ -694,17 +761,36 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         i = temp.x;
         j = temp.y; //  Do not push que on this last one - so que is empty at end
 
-        setFlow2(i, j, flowDir, elevDEM, elev2, dn);
-        if (flowDir->getData(i, j, tempShort) == 0) {
+        bool still_has_flat = false;
+        if (alg == 0 || alg == 2) {
+            // for now, use d8's algorithm to resolve flats for mfdmd. lj 09/22/2025
+            setFlow2(i, j, flowDir, elevDEM, elev2, dn);
+            if (flowDir->getData(i, j, tempShort) == 0) still_has_flat = true;
+        }
+        if (alg == 1) {
+            //  The logic here was to replace SETFLOW2 from D8 with SET2 so that it computes a DINF flow
+            //  direction based on the artificial elevations
+
+            elevDEM->getdxdyc(j, tempdxc, tempdyc);
+            double DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
+            double DD = sqrt((float)(tempdxc * tempdxc + tempdyc * tempdyc));//tardemlib.cpp ln 1293
+
+            SET2((int)j, (int)i, DXX, DD, elevDEM, elev2, flowDir, dn);    //use new elevations to calculate flowDir.
+            if (!flowDir->isNodata(i, j) && flowDir->getData(i, j, tempFloat) < 0.) {
+                //this is still a flat
+                still_has_flat = true;
+            }
+        }
+
+        if (still_has_flat) {
             que->push(temp);
             localStillFlat++;
         }
     }
 
     MPI_Allreduce(&localStillFlat, &totalStillFlat, 1, MPI_LONG, MPI_SUM, MCW);
-    if (totalStillFlat
-        > 0)  //  We will have to iterate again so overwrite original elevation with the modified ones and hope for the best
-    {
+    if (totalStillFlat > 0) {
+        //  We will have to iterate again so overwrite original elevation with the modified ones and hope for the best
         for (j = 0; j < ny; j++) {
             for (i = 0; i < nx; i++) {
                 elevDEM->setData(i, j, (float) elev2->getData(i, j, tempShort));//set/add change jjn friday

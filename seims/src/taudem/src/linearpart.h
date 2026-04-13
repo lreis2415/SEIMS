@@ -38,6 +38,9 @@ email:  dtarb@usu.edu
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
 
+#ifndef LINEARPART_H
+#define LINEARPART_H
+
 #include "mpi.h"
 #include "partition.h"
 
@@ -48,9 +51,6 @@ email:  dtarb@usu.edu
 #include <cstring>
 #include <cmath>
 #include <exception>
-
-#ifndef LINEARPART_H
-#define LINEARPART_H
 
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 using std::bad_alloc;

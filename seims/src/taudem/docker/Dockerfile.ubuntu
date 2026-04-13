@@ -12,7 +12,7 @@
 
 # Use GDAL image tagged ubuntu-small-<version> as the build and runner container
 #  see https://github.com/OSGeo/gdal/pkgs/container/gdal/versions?filters%5Bversion_type%5D=tagged
-ARG GDAL_VERSION=3.9.2
+ARG GDAL_VERSION=3.9.3
 FROM ghcr.io/osgeo/gdal:ubuntu-small-${GDAL_VERSION} AS builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
