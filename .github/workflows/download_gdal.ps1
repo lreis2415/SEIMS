@@ -1,8 +1,8 @@
-﻿param ($gdalPath = "$env:SystemDrive\gdal", $VSversion = "1928", $GDALversion = "3.9.1", $MAPSversion = "8.2.0")
+﻿param ($gdalPath = "$env:SystemDrive\gdal", $VSversion = "1930", $GDALversion = "3.9.3", $MAPSversion = "8.2.2")
 $GDALversion=$GDALversion -replace '\.','-'
 $MAPSversion=$MAPSversion -replace '\.','-'
-$urllib = "https://download.gisinternals.com/sdk/downloads/release-$VSversion-x64-gdal-$GDALversion-mapserver-$MAPSversion-libs.zip"
-$urlbin = "https://download.gisinternals.com/sdk/downloads/release-$VSversion-x64-gdal-$GDALversion-mapserver-$MAPSversion.zip"
+$urllib = "https://build2.gisinternals.com/sdk/downloads/release-$VSversion-x64-gdal-$GDALversion-mapserver-$MAPSversion-libs.zip"
+$urlbin = "https://build2.gisinternals.com/sdk/downloads/release-$VSversion-x64-gdal-$GDALversion-mapserver-$MAPSversion.zip"
 $zipLibFile = "$gdalPath\gdallib.zip"
 $zipBinFile = "$gdalPath\gdal.zip"
 

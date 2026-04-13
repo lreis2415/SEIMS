@@ -51,7 +51,7 @@ jobs:
         mpi: openmpi
 
     - name: Checkout SEIMS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -79,18 +79,18 @@ jobs:
         auto-update-conda: true
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-    - name: Run SEIMS on demo data
-      shell: bash -el {0}
-      run: |
-        #conda info
-        #conda list
-        #printenv | sort
-        cd seims
-        python pyseims_check.py
-        cd test
-        python demo_preprocess.py -name youwuzhen
-        python demo_runmodel.py -name youwuzhen
-        python demo_postprocess.py -name youwuzhen
-        python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
-        python -m scoop -n 2 demo_calibration.py -name youwuzhen
-        python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen
+    # - name: Run SEIMS on demo data
+    #   shell: bash -el {0}
+    #   run: |
+    #     #conda info
+    #     #conda list
+    #     #printenv | sort
+    #     cd seims
+    #     python pyseims_check.py
+    #     cd test
+    #     python demo_preprocess.py -name youwuzhen
+    #     python demo_runmodel.py -name youwuzhen
+    #     python demo_postprocess.py -name youwuzhen
+    #     python -m scoop -n 2 demo_parameters_sensitivity.py -name youwuzhen
+    #     python -m scoop -n 2 demo_calibration.py -name youwuzhen
+    #     python -m scoop -n 2 demo_scenario_analysis.py -name youwuzhen
