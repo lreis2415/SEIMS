@@ -3,9 +3,9 @@ Download and Installation {#getstart_download_installation}
 
 [TOC]
 
-SEIMS is hosted on [Github](https://github.com/lreis2415/SEIMS). SEIMS is dependent on several open-source software, e.g., [GDAL](https://www.gdal.org/) and[mongo-c-driver](https://github.com/mongodb/mongo-c-driver). Currently, there are no compiled binaries for distribution, but only through source code. 
+SEIMS is hosted on [Github](https://github.com/lreis2415/SEIMS). SEIMS is dependent on several open-source software, e.g., [GDAL](https://www.gdal.org/) and[mongo-c-driver](https://github.com/mongodb/mongo-c-driver). Currently, there are no compiled binaries for distribution, but only through source code.
 
-Users are encouraged to download and install (means compile from the source code) SEIMS manually. Generally, the `master` branch of SEIMS repository (https://github.com/lreis2415/SEIMS/tree/master) is the relative stable version, while the `dev` branch reflects the latest development changes and now is the default branch. 
+Users are encouraged to download and install (means compile from the source code) SEIMS manually. Generally, the `master` branch of SEIMS repository (https://github.com/lreis2415/SEIMS/tree/master) is the relative stable version, while the `dev` branch reflects the latest development changes and now is the default branch.
 
 Users are highly recommended to take a look at the automatic workflow of installation and testing of SEIMS on Windows, Linux, and macOS through GitHub actions:
 
@@ -15,13 +15,13 @@ Users are highly recommended to take a look at the automatic workflow of install
 
 [![Build on macOS using AppleClang](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml)
 
-The configuration yml scripts are located in `SEIMS/.github/workflows`. 
+The configuration yml scripts are located in `SEIMS/.github/workflows`.
 
 # Download
 
-Users can use git to clone the repository or download the compressed zip file directly. 
+Users can use git to clone the repository or download the compressed zip file directly.
 + Clone the single `master` or `dev` branch using git.
-  1. Download and install git, e.g., Windows users can visit https://gitforwindows.org/. 
+  1. Download and install git, e.g., Windows users can visit https://gitforwindows.org/.
   2. Open or create a local directory without spaces in File Explorer, e.g., `D:\demo`, right-click in the space and select “Git Bash Here”. Then, enter the following two commands to configure your basic settings of git, i.e., the username and email of your Github account.
   3. If it is the first time to use git in your computer, a SSH key should be created and added to your Github account.
 
@@ -33,7 +33,7 @@ Users can use git to clone the repository or download the compressed zip file di
   4. Clone a single branch, e.g., the `master` branch:
     `git clone git@github.com:lreis2415/SEIMS.git --branch master --single-branch`
 
-+ Alternatively, users can download the compressed zip file (e.g., the zip file of the `master` branch, https://github.com/lreis2415/SEIMS/archive/master.zip) directly and then decompress it to a local directory without spaces, e.g., `D:\demo`. 
++ Alternatively, users can download the compressed zip file (e.g., the zip file of the `master` branch, https://github.com/lreis2415/SEIMS/archive/master.zip) directly and then decompress it to a local directory without spaces, e.g., `D:\demo`.
 
 # Prerequisite software and libraries
 
@@ -60,8 +60,8 @@ After the installation of CMake, please add the path of CMake executable, e.g., 
 
 ### C/C++ compiler
 #### Microsoft Visual C++ (MSVC)
-SEIMS uses several features of C++11 such as `nullptr` and `auto` keywords. Therefore, the minimum support version is MSVC 2010. Microsoft Visual Studio is a powerful IDE based on Microsoft Visual C++. If you don’t want to install Microsoft Visual Studio, the Visual C++ build tools can allow you to build C++ libraries and applications targeting Windows desktop, which are the same tools that you find in Microsoft Visual Studio. Even though, Visual Studio is still highly recommended. 
-If you want to develop parallel applications based on MPI, MSVC 2010 is the best choice since it is the last MSVC version that integrated the MPI cluster debugger. MPI cluster debugger is the most convenient and powerful tools on Windows to debug MPI-based parallel applications. More details about MPI cluster debugger can be found in https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/dd560809(v=vs.100). Otherwise, MSVC 2013, 2015, and 2019 are all supported and recommended. All these MSVC versions can be downloaded from https://visualstudio.microsoft.com/vs/older-downloads/. 
+SEIMS uses several features of C++11 such as `nullptr` and `auto` keywords. Therefore, the minimum support version is MSVC 2010. Microsoft Visual Studio is a powerful IDE based on Microsoft Visual C++. If you don’t want to install Microsoft Visual Studio, the Visual C++ build tools can allow you to build C++ libraries and applications targeting Windows desktop, which are the same tools that you find in Microsoft Visual Studio. Even though, Visual Studio is still highly recommended.
+If you want to develop parallel applications based on MPI, MSVC 2010 is the best choice since it is the last MSVC version that integrated the MPI cluster debugger. MPI cluster debugger is the most convenient and powerful tools on Windows to debug MPI-based parallel applications. More details about MPI cluster debugger can be found in https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/dd560809(v=vs.100). Otherwise, MSVC 2013, 2015, and 2019 are all supported and recommended. All these MSVC versions can be downloaded from https://visualstudio.microsoft.com/vs/older-downloads/.
 
 #### GCC
 GCC is recommended on Linux or macOS.
@@ -103,7 +103,7 @@ The [GISInternals support site](http://www.gisinternals.com/index.html) maintain
     GDAL_PATHS=C:\GDAL;C:\GDAL\bin;C:\GDAL\bin\proj\apps;C:\GDAL\bin\gdal\apps;C:\GDAL\bin\ms\apps;C:\GDAL\bin\curl;
     ```
 + Then, append `%%GDAL_PATHS%` to the end of the system variable `PATH`.
-+ The GDAL library for C/C++ has been installed, as well as executable utility tools of GDAL, e.g., `gdalinfo`. Open a new CMD window, and enter 
++ The GDAL library for C/C++ has been installed, as well as executable utility tools of GDAL, e.g., `gdalinfo`. Open a new CMD window, and enter
 `gdalinfo --version`, something like `GDAL 1.11.4, released 2016/01/25` should be printed.
 
 #### apt-get for Ubuntu
@@ -131,7 +131,7 @@ The mongo-c-driver library for MongoDB (https://github.com/mongodb/mongo-c-drive
     REM VS2015:
     cmake -G "Visual Studio 14 2015 Win64" -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2015" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2015" ..
     REM VS2019:
-    cmake -G "Visual Studio 16 2019" -A x64 -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2019" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2019" ..
+    cmake -G "Visual Studio 17 2022" -A x64 -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2019" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2019" ..
 
     msbuild.exe /p:Configuration=RelWithDebInfo ALL_BUILD.vcxproj
     msbuild.exe INSTALL.vcxproj
@@ -205,7 +205,7 @@ Download the previous stable release version 3.6.9 https://fastdl.mongodb.org/wi
         - If no errors occur, the automatically start service has been set successfully!
 
 ### MongoDB GUI
-To view, query, and update data stored in MongoDB, a user-friendly and efficient GUI is urgently needed. 
+To view, query, and update data stored in MongoDB, a user-friendly and efficient GUI is urgently needed.
 Robo 3T is what we need (https://robomongo.org/download). Download the proper version for your system and install it.
 Open Robo 3T and connect to the `localhost:27017` (i.e., `127.0.0.1:27017`). The key-pair data we just inserted can be found.
 
@@ -227,7 +227,7 @@ conda activate pyseims
 > See [this commit](https://github.com/lreis2415/SEIMS/commit/8767acc76a87473524ab8e9fa01943ac37cfcb12) for more information about GDAL versions' compatibility for C++ and Python environments.
 
 # Test of the C/C++ building environment
-Now, we have set up the C/C++ building environment for SEIMS, e.g., MSVC 2015, MS-MPI v6, GDAL 1.11.4, and mongo-c-driver 1.16.2. In case of any unpredictable omissions or errors, users are highly recommended to test the C/C++ building environment by compiling the Common Cross-platform Geographic-computing Library (CCGL, https://github.com/crazyzlj/CCGL) and running its unit test. CCGL has been integrated into SEIMS and no additional download is required. 
+Now, we have set up the C/C++ building environment for SEIMS, e.g., MSVC 2015, MS-MPI v6, GDAL 1.11.4, and mongo-c-driver 1.16.2. In case of any unpredictable omissions or errors, users are highly recommended to test the C/C++ building environment by compiling the Common Cross-platform Geographic-computing Library (CCGL, https://github.com/crazyzlj/CCGL) and running its unit test. CCGL has been integrated into SEIMS and no additional download is required.
 
 Common commands to compile CCGL and run unit tests:
 ```
@@ -251,7 +251,7 @@ Specifically, for users using MSVC on Windows, please follow the steps below:
  If any `FAILED` tests occurred, you should check the settings of prerequisite software and libraries carefully. If you do not sure what the errors mean, please contact the developers for supports.
 
 # Installation of SEIMS
-SEIMS is mainly written by C++ and Python. Python is an interpreted language which means the source code can be executed directly under the Python environment without any manual compilation. Therefore, the installation of SEIMS is the compilation and installation of C++ applications. 
+SEIMS is mainly written by C++ and Python. Python is an interpreted language which means the source code can be executed directly under the Python environment without any manual compilation. Therefore, the installation of SEIMS is the compilation and installation of C++ applications.
 The C++ applications of SEIMS not only include the main programs and modules for watershed modeling, but also the integrated programs for preprocessing such as watershed delineation by TauDEM (http://hydrology.usu.edu/taudem/taudem5/index.html) and static task scheduling with the graph of subbasins by METIS (http://glaros.dtc.umn.edu/gkhome/metis/metis/overview). All the C++ applications are organized by CMake and can be built, compiled, and installed at one time.
 
 Common commands to compile SEIMS:

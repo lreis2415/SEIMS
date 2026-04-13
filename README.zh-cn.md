@@ -51,7 +51,7 @@ _Environmental Modelling & Software_ 51: 221–227.
 [Estimation of theoretical maximum speedup ratio for parallel computing of grid-based distributed hydrological models](https://doi.org/10.1016/j.cageo.2013.04.030).
 _Computers & Geosciences_ 60: 58–62.
 
-### 流域管理措施情景优化
+### 流域管理措施情景分析
 
 + Wu, T., Zhu, L.-J., Shen, S., Qin, C.-Z., Zhu, A.-X., **2026**.
 [Spatiotemporal optimization method for watershed management practice scenarios within a simulation–optimization framework]().
@@ -80,7 +80,7 @@ _Journal of Environmental Management_ 342, 118280.
 
 ### 数据集研发
 
-+ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2006**.
++ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2026**.
 [RiverLakeBasins: a global dataset of nested river-watersheds and lake-hillslopes](https://doi.org/10.1080/13658816.2026.2620024).
 _International Journal of Geographical Information Science_.
 + Liu, J., Fang, P., Que, Y., Zhu, L.-J., Duan, Z., Tang, G., Liu, P., Ji, M., Liu, Y., **2022**.

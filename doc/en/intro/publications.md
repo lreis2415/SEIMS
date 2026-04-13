@@ -61,7 +61,7 @@ _Journal of Environmental Management_ 342, 118280.
 
 ## Data sets {#DatasetDeveloping}
 
-+ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2006**.
++ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2026**.
 [RiverLakeBasins: a global dataset of nested river-watersheds and lake-hillslopes](https://doi.org/10.1080/13658816.2026.2620024).
 _International Journal of Geographical Information Science_.
 + Liu, J., Fang, P., Que, Y., Zhu, L.-J., Duan, Z., Tang, G., Liu, P., Ji, M., Liu, Y., **2022**.

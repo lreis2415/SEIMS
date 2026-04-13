@@ -15,7 +15,7 @@ SEIMS托管于[Github](https://github.com/lreis2415/SEIMS)。SEIMS依赖于多�
 
 [![Build on macOS using AppleClang](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml/badge.svg)](https://github.com/lreis2415/SEIMS/actions/workflows/Build_on_macOS.yml)
 
-配置的yml脚本位于 `SEIMS/.github/workflows`. 
+配置的yml脚本位于 `SEIMS/.github/workflows`.
 # docker方式
 
 
@@ -24,7 +24,7 @@ SEIMS托管于[Github](https://github.com/lreis2415/SEIMS)。SEIMS依赖于多�
 
 用户可以使用git来克隆仓库或直接下载压缩包zip文件。
 + 使用git克隆单独的 `master` 或 `dev` 分支。
-  1. 下载并安装git，例如Windows用户可以访问 https://gitforwindows.org/. 
+  1. 下载并安装git，例如Windows用户可以访问 https://gitforwindows.org/.
   2. 在文件资源管理器中打开或创建一个本地目录，该目录名中不要有空格，例如 `D:\demo`，在该目录的空白处右键单击，然后选择 “Git Bash Here”。然后，输入以下两个命令来配置 Git 的基本设置，也就是你的 GitHub 账户的用户名和邮箱。`git config --global user.name "YourUsername"``git config --global user.email "youremail@example.com"`
 `
   3. 如果这是你第一次在计算机中使用git，需要创建一个SSH密钥并加入到你的Github账户中。
@@ -33,7 +33,7 @@ SEIMS托管于[Github](https://github.com/lreis2415/SEIMS)。SEIMS依赖于多�
 
     `ssh-keygen -t rsa -C "email@example.com"`
 
-    然后，复制该文件的内容并添加到你的Github账户中（路径为：“Settings” -> “SSH and GPG keys” -> “New SSH key”）。 
+    然后，复制该文件的内容并添加到你的Github账户中（路径为：“Settings” -> “SSH and GPG keys” -> “New SSH key”）。
   4. 克隆一个单独的分支，如 `master` 分支：
     `git clone git@github.com:lreis2415/SEIMS.git --branch master --single-branch`
 
@@ -135,7 +135,7 @@ SEIMS采用了MongoDB的mongo-c-driver库（https://github.com/mongodb/mongo-c-d
     REM VS2015:
     cmake -G "Visual Studio 14 2015 Win64" -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2015" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2015" ..
     REM VS2019:
-    cmake -G "Visual Studio 16 2019" -A x64 -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2019" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2019" ..
+    cmake -G "Visual Studio 17 2022" -A x64 -DENABLE_ZLIB=BUNDLED "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver-vs2019" "-DCMAKE_PREFIX_PATH=C:\mongo-c-driver-vs2019" ..
 
     msbuild.exe /p:Configuration=RelWithDebInfo ALL_BUILD.vcxproj
     msbuild.exe INSTALL.vcxproj

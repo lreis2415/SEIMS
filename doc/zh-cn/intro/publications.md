@@ -4,7 +4,7 @@
 [TOC]
 
 # 期刊文章 {#PeerReviewedJournalPapers}
-## 流域过程模拟与情景分析相关综述 {#ReviewsWatershedModelingScenarioAnalysis}
+## 观点、综述等 {#ReviewsWatershedModelingScenarioAnalysis}
 
 + Qin, C.-Z., Zhu, L.-J., and Zhu, A.-X., **2025**.
 [Position paper: Domain knowledge-driven intelligentization of watershed modeling and scenario analysis for precise watershed management](https://www.sciencedirect.com/science/article/pii/S3050520825000168).
@@ -18,7 +18,7 @@ _地理学报_ 79(1): 58–75.
 + 吴辉, 刘永波, 朱阿兴, 杨典华, 刘军志, **2013**. [流域最佳管理措施空间配置优化研究进展](https://doi.org/10.11820/dlkxjz.2013.04.009). _地理科学进展_ 32(4): 570–579. (*in Chinese with English Abstract*.)
 + 陈腊娇, 朱阿兴, 秦承志, 李润奎, 刘京, 刘军志, **2011**. [流域生态水文模型研究进展](http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFD2011&filename=DLKJ201105005&uid=WEEvREcwSlJHSldRa1FhcEE0RVZxbjU5ckNyLy9zcTkxRXZEdW00Yy82Yz0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4ggI8Fm4gTkoUKaID8j8gFw!!&v=MzI1MzhSOGVYMUx1eFlTN0RoMVQzcVRyV00xRnJDVVJMS2ZaZVpvRnl2blc3dkJJU0hBWkxHNEg5RE1xbzlGWVk=). _地理科学进展_ 30(5): 535–544. (*in Chinese with English Abstract*.)
 
-## 流域建模框架相关 {#ModelingFramework}
+## 流域建模框架 {#ModelingFramework}
 
 + Wang, Y.-J., Zhu, L.-J., Qin, C.-Z., Zhu, A-X., **2026**.
 [A spatially hybrid hydrological modeling approach using subbasin-specific model structures](https://www.sciencedirect.com/science/article/pii/S1364815226000915).
@@ -36,7 +36,7 @@ _Information Geography_ 1(1), 100010.
 + 江净超, 余洁, 秦承志, 刘军志, 李润奎, 朱良君, 朱阿兴, **2017**. [知识驱动下的水文模型参数智能化设置方法](https://doi.org/10.13203/j.whugis20150044). _武汉大学学报(信息科学版)_ 42(4): 525–530. (*in Chinese with English Abstract*.)
 + 刘军志, 朱阿兴, 刘永波, 秦承志, 陈腊娇, 吴辉, 杨琳, **2013**. [基于栅格分层的逐栅格汇流算法并行化研究](http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFD2013&filename=GFKJ201301023&uid=WEEvREcwSlJHSldRa1FhdXNXa0hFMGkyakp1d0VVSzYwVXBrVDhESEk4TT0=$9A4hF_YAuvQ5obgVAqNKPCYcEjKensW4ggI8Fm4gTkoUKaID8j8gFw!!&v=MDY0MTh6QklpdkFaTEc0SDlMTXJvOUhaNFI4ZVgxTHV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZmIrWm5GQ2psVmI=). _国防科技大学学报_ 35(1): 123–129. (*in Chinese with English Abstract*.)
 
-## 流域最佳管理措施（BMPs）情景分析 {#BMPsScenarioAnalysis}
+## 流域管理措施情景分析 {#BMPsScenarioAnalysis}
 
 + Wu, T., Zhu, L.-J., Shen, S., Qin, C.-Z., Zhu, A.-X., **2026**.
 [Spatiotemporal optimization method for watershed management practice scenarios within a simulation–optimization framework]().
@@ -53,7 +53,7 @@ _Water Resources Research_ 59(6), e2022WR032986.
 + Wu, H., Liu, Y., Liu, J., Zhu, A-X., **2014**. [Representation of Agricultural Best Management Practices in a Fully Distributed Hydrologic Model: A Case Study in the Luoyugou Watershed](https://doi.org/10.5814/j.issn.1674-764X.2014.02.011). Journal of Resources and Ecology 5(2): 179–184.
 + 朱阿兴, 陈腊娇, 秦承志, 王平, 刘军志, 李润奎, 蔡强国, **2012**. [水土流失治理新范式: 基于流域过程模拟和情景分析的方法](https://doi.org/10.13287/j.1001-9332.2012.0217). _应用生态学报_ 23(7): 1883–1890. (*in Chinese with English Abstract*.)
 
-## Participatory Decision Support System {#ParticipatoryDSS}
+## 参与式决策支持系统 {#ParticipatoryDSS}
 
 + Shen, S., Qin, C.-Z., Zhu, L.-J., Zhu, A.-X., **2023**.
 [From scenario to roadmap: Design and evaluation of a web-based participatory watershed planning system for optimizing multistage implementation plans of management practices under stepwise investment](https://doi.org/10.1016/j.jenvman.2023.118280).
@@ -61,7 +61,7 @@ _Journal of Environmental Management_ 342, 118280.
 
 ## 数据集研发 {#DatasetDeveloping}
 
-+ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2006**.
++ Liu, J., Zhang, B., Que, Y., Xu, J., Hou, W., Yang, W., **2026**.
 [RiverLakeBasins: a global dataset of nested river-watersheds and lake-hillslopes](https://doi.org/10.1080/13658816.2026.2620024).
 _International Journal of Geographical Information Science_.
 + Liu, J., Fang, P., Que, Y., Zhu, L.-J., Duan, Z., Tang, G., Liu, P., Ji, M., Liu, Y., **2022**.
