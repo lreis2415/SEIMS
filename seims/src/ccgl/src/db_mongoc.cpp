@@ -272,19 +272,9 @@ MongoCollection::~MongoCollection() {
     mongoc_collection_destroy(collection_);
 }
 
-mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
-    // NOTE: mongoc_collection_find should be deprecated from v1.5.0, however, mongoc_collection_find_with_opts
-    //       do not work in my Windows 10 both by MSVC and MINGW64.
-    //       Upd 12/13/2017 The new method also failed in our linux cluster (redhat 6.2 and Intel C++ 12.1).
-    //       Upd 12/29/2021 I decide to use new method from a quite later version such as v1.8.0.
-    //                      Maybe a precise version can be determined after a thorough test.
-    //       Upd 06/24/2022 The new API still not working in Windows.
+mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b, const bson_t* opts /* = nullptr */) {
     mongoc_cursor_t* cursor = nullptr;
-// #if MONGOC_CHECK_VERSION(1, 8, 0)
-//     cursor = mongoc_collection_find_with_opts(collection_, b, NULL, NULL);
-// #else // Deprecated from 1.5.0
-    cursor = mongoc_collection_find(collection_, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-// #endif
+    cursor = mongoc_collection_find_with_opts(collection_, b, opts, NULL);
     return cursor;
 }
 
@@ -420,13 +410,17 @@ bson_t* MongoGridFs::GetFileMetadata(string const& gfilename,
 
 bool MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
                                 vint& datalength, mongoc_gridfs_t* gfs /* = NULL */,
-                                STRING_MAP opts /* = STRING_MAP() */) {
+                                const STRING_MAP* opts /* = nullptr */) {
     if (gfs_ != NULL) { gfs = gfs_; }
     if (NULL == gfs) {
         StatusMessage("mongoc_gridfs_t must be provided for MongoGridFs!");
         return false;
     }
-    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, opts);
+    STRING_MAP opts_temp;
+    if (nullptr == opts) {
+        opts = &opts_temp;
+    }
+    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, *opts);
     if (NULL == gfile) {
         databuf = NULL;
         StatusMessage(("MongoGridFs::GetStreamData(" + gfilename + ") failed!").c_str());

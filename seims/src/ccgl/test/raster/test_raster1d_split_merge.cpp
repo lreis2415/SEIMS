@@ -58,6 +58,9 @@ public:
         mask_name = maskf.c_str();
         raster_name = rsf.c_str();
     }
+
+    ~InputRasterFiles() { ; }
+
     const char* mask_name;
     const char* raster_name;
 };
@@ -338,6 +341,7 @@ TEST_P(clsRasterDataSplitMerge, MaskLyrIO) {
         for (int i = 0; i < full->n_cells; i++) {
             EXPECT_EQ(full->local_pos_[i][0], valid->local_pos_[i][0]);
             EXPECT_EQ(full->local_pos_[i][1], valid->local_pos_[i][1]);
+            EXPECT_EQ(full->local_posidx_[i], valid->local_posidx_[i]);
             EXPECT_DOUBLE_EQ(full->data_[i], valid->data_[i]);
         }
     }
@@ -568,6 +572,9 @@ TEST_P(clsRasterDataSplitMerge, SplitRaster) {
         Release1DArray(it->second);
     }
     subarray.clear();
+
+    Release1DArray(datacom);
+    Release1DArray(datacomvalid);
     delete rs;
 }
 
@@ -575,10 +582,10 @@ TEST_P(clsRasterDataSplitMerge, SplitRaster) {
 #ifdef USE_GDAL
 INSTANTIATE_TEST_CASE_P(SingleLayer, clsRasterDataSplitMerge,
                         Values(new InputRasterFiles(mask_asc_file, rs1_asc),
-                            new InputRasterFiles(mask_tif_file, rs1_tif)));
+                            new InputRasterFiles(mask_tif_file, rs1_tif)),);
 #else
 INSTANTIATE_TEST_CASE_P(SingleLayer, clsRasterDataSplitMerge,
-                        Values(new InputRasterFiles(mask_asc_file, rs1_asc)));
+                        Values(new InputRasterFiles(mask_asc_file, rs1_asc)),);
 #endif /* USE_GDAL */
 
 } /* namespace */

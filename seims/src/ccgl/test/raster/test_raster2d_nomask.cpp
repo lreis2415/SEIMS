@@ -56,6 +56,9 @@ public:
         raster_name2 = rs2.c_str();
         raster_name3 = rs3.c_str();
     }
+
+    ~InputRasterFiles() { ; }
+
     const char* raster_name1;
     const char* raster_name2;
     const char* raster_name3;
@@ -112,6 +115,7 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIO) {
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_EQ(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_EQ(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -415,9 +419,12 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIO) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);
@@ -454,6 +461,7 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIOWithCalcPos) {
     EXPECT_TRUE(rs_->PositionsCalculated());
     EXPECT_TRUE(rs_->PositionsAllocated());
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer());
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer());
     EXPECT_EQ(6, ncells);
     EXPECT_NE(nullptr, positions);
 
@@ -490,6 +498,7 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIOWithCalcPos) {
     EXPECT_EQ(nullptr, rs_->GetRasterDataPointer());         // m_rasterData
     EXPECT_NE(nullptr, rs_->Get2DRasterDataPointer());       // m_raster2DData
     EXPECT_NE(nullptr, rs_->GetRasterPositionDataPointer()); // m_rasterPositionData
+    EXPECT_NE(nullptr, rs_->GetRasterPositionIndexPointer()); // m_rasterPositionIndex
 
     /** Get metadata, m_headers **/
     STRDBL_MAP header_info = rs_->GetRasterHeader();
@@ -747,9 +756,12 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIOWithCalcPos) {
     FltRaster* mongors_valid = new FltRaster(); // create empty raster, set and read data
     mongors_valid->SetHeader(rs_->GetRasterHeader()); // set header
     int** posdata;
+    int* posidx;
     int poslen;
     rs_->GetRasterPositionData(&poslen, &posdata);
     mongors_valid->SetPositions(poslen, posdata);
+    rs_->GetRasterPositionData(&poslen, &posidx);
+    mongors_valid->SetPositions(poslen, posidx);
     STRING_MAP opts;
     UpdateStringMap(opts, HEADER_INC_NODATA, "FALSE");
     mongors_valid->ReadFromMongoDB(gfs_, gfsfilename_valid, false, nullptr, true, NODATA_VALUE, opts);
@@ -782,10 +794,10 @@ TEST_P(clsRasterDataTest2DNoMask, RasterIOWithCalcPos) {
 #ifdef USE_GDAL
 INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTest2DNoMask,
                         Values(new InputRasterFiles(rs1_asc, rs2_asc, rs3_asc),
-                            new InputRasterFiles(rs1_tif, rs2_tif, rs3_tif)));
+                            new InputRasterFiles(rs1_tif, rs2_tif, rs3_tif)),);
 #else
 INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTest2DNoMask,
-                        Values(new InputRasterFiles(rs1_asc, rs2_asc, rs3_asc)));
+                        Values(new InputRasterFiles(rs1_asc, rs2_asc, rs3_asc)),);
 #endif /* USE_GDAL */
 
 } /* namespace */

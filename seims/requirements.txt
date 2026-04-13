@@ -2,7 +2,7 @@
 # CAUTION:
 #         DO NOT RUN `pip install -r requirements.txt` BY YOURSELF!
 # Usage:
-#       conda env create -f py39seims_env.yml
+#       conda env create -f pyseims_env.yml
 #       or
 #       conda env create -f py27seims_env.yml
 #
