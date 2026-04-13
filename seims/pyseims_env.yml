@@ -19,6 +19,8 @@ channels:
   - defaults
 dependencies:
   - python=3.9
+  - setuptools<70
+  - numpy<2
   - gdal<3.6
   - Shapely
   - matplotlib
