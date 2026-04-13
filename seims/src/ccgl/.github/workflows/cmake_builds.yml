@@ -39,12 +39,12 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
 
     - name: Build
       # Build your program with the given configuration
@@ -68,7 +68,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # login alibaba Container Registry
       - name: Login to ACR
         uses: aliyun/acr-login@v1
@@ -79,7 +79,7 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
       # login ghcr.io
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -88,7 +88,7 @@ jobs:
       # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.REGISTRY_ACR }}/${{ env.NAMESPACE_ACR }}/${{ env.IMAGE_NAME }}
@@ -101,8 +101,8 @@ jobs:
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
       # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v5
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/${{ env.DOCKERFILE_NAME }}
@@ -116,15 +116,15 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - name: Checkout CCGL
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Configure CMake
       shell: cmd
       run: |
-        cmake -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/build ^
+        cmake -G "Visual Studio 17 2022" -A x64 -B ${{github.workspace}}/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ^
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
 
     - name: Build
@@ -143,10 +143,10 @@ jobs:
       uses: maxim-lobanov/setup-xcode@v1
 
     - name: Checkout CCGL
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUNITTEST=1
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}

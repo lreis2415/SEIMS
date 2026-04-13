@@ -158,7 +158,8 @@ public:
                     STRING_MAP opts = STRING_MAP());
 
     /*! Get GridFS file names */
-    void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL);
+    void GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* gfs = NULL,
+                    STRING_MAP opts = STRING_MAP());
 
     /*! Get metadata of a given GridFS file name, remember to destory bson_t after use */
     bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
@@ -212,6 +213,69 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
 }
 
 /*!
+parse the following nested vector from bson_t:
+[1, 2, 3]
+ */
+template<typename T>
+void GetVectorFromBsonIter(bson_iter_t* iter, vector<T>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    T value;
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            const bson_value_t* sub_vv = bson_iter_value(&sub_iter);
+            if (sub_vv->value_type == BSON_TYPE_INT32) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int32));
+            } else if (sub_vv->value_type == BSON_TYPE_INT64) {
+                out.emplace_back(CVT_INT(sub_vv->value.v_int64));
+            } else if (sub_vv->value_type == BSON_TYPE_DOUBLE) {
+                out.emplace_back(sub_vv->value.v_double);
+            } else {
+                StatusMessage("Failed in get vector value in the inner loop of GetVectorFromBsonIter.");
+            }
+        }
+    }
+    else if (GetNumericFromBsonIterator(iter, value)){
+        out.emplace_back(value);
+    }
+    else {
+        StatusMessage("Failed in get vector value in the outer loop of GetVectorFromBsonIter.");
+    }
+}
+
+/*!
+parse the following nested vector from bson_t:
+[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+ */
+template<typename T>
+void GetVectorVectorFromBsonIter(bson_iter_t* iter, vector<vector<T>>& out){
+    const bson_value_t* vv = bson_iter_value(iter);
+    T value;
+    if (vv->value_type == BSON_TYPE_ARRAY) {
+        bson_iter_t sub_iter;
+        bson_iter_recurse(iter, &sub_iter);
+        while (bson_iter_next(&sub_iter)) {
+            vector<T> tmp;
+            GetVectorFromBsonIter(&sub_iter, tmp);
+            out.emplace_back(tmp);
+        }
+    }
+    else if (GetNumericFromBsonIterator(iter, value)) {
+        vector<T> tmp;
+        tmp.emplace_back(value);
+        out.emplace_back(tmp);
+    }
+    else {
+        StatusMessage("Failed in get vector value.");
+    }
+}
+
+/*!
  * \brief Get numeric value from `bson_t` according to a given key
  * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
@@ -256,7 +320,7 @@ bool GetBoolFromBsonIterator(bson_iter_t* iter);
  * \brief Get String from `bson_t`
  * \param[in] bmeta Instance of `bson_t`
  * \param[in] key
- * \return true if succeed, otherwise false.]
+ * \return true if succeeded, otherwise false.
  * \sa GetBoolFromBsonIterator()
  */
 bool GetBoolFromBson(bson_t* bmeta, const char* key);

@@ -14,7 +14,7 @@
 # Copyright 2022-2024 Liang-Jun Zhu <zlj@lreis.ac.cn>
 
 # Use GDAL image tagged alpine-small-<gdal_version> as the build container
-ARG GDAL_VERSION=3.9.2
+ARG GDAL_VERSION=3.9.3
 FROM ghcr.io/osgeo/gdal:alpine-small-${GDAL_VERSION} AS builder
 
 LABEL maintainer="Liang-Jun Zhu <zlj@lreis.ac.cn>"
