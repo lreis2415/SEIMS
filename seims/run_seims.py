@@ -41,6 +41,7 @@ import sys
 from shutil import rmtree
 import time
 from typing import Optional, Union, Dict, List, AnyStr
+import subprocess
 from subprocess import CalledProcessError
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -134,8 +135,10 @@ class ParseSEIMSConfig(object):
         #     raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
 
         self.host = get_option_value(cf, sec_name, ['hostname', 'host', 'ip'])
+        # Support both IP addresses and hostnames (e.g., Docker service names)
         if not StringClass.is_valid_ip_addr(self.host):
-            raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
+            if not (self.host and self.host.replace('-', '').replace('_', '').isalnum()):
+                raise ValueError('HOSTNAME (%s) defined is illegal!' % self.host)
         self.port = get_option_value(cf, sec_name, 'port', valtyp=int)
 
         self.bin_dir = get_option_value(cf, sec_name, 'bin_dir')
@@ -211,7 +214,7 @@ class ParseSEIMSConfig(object):
                                 'out_stime': self.out_stime, 'out_etime': self.out_etime,
                                 'workload': self.workload
                                 }
-        print(self.config_dict)
+        # print(self.config_dict)  # Suppress verbose debug output
         return self.config_dict
 
 
@@ -302,6 +305,9 @@ class MainSEIMS(object):
 
         self.workload = args_dict['workload'] if 'workload' in args_dict else workload  # type: AnyStr
 
+        # Custom output directory support
+        self.custom_output_dir = args_dict.get('output_dir', None)
+
         # Concatenate output directory name, which is also the name of runtime log
         # The format of OUTPUT directory is: OUTPUT_<FDIR>_<LYR>-<ScenarioID>-<CalibrationID>
         # - OUTPUT_<FDIR>_<LYR>--1 means no scenario, calibration ID is 1
@@ -365,10 +371,18 @@ class MainSEIMS(object):
                         self.cmd += [self.flag_npernode, str(self.npernode)]
 
             self.cmd += ['-n', str(self.nprocess)]
+        # seims_omp requires an IP address, not a hostname. Resolve if needed.
+        _host = self.host
+        if not StringClass.is_valid_ip_addr(_host):
+            import socket as _socket
+            try:
+                _host = _socket.gethostbyname(_host)
+            except Exception:
+                pass  # keep original if resolution fails
         self.cmd += [self.seims_exec,
                      '-wp', self.model_dir, '-thread', str(self.nthread),
                      '-fdir', str(self.fdirmtd),
-                     '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port]
+                     '-lyr', str(self.lyrmtd), '-host', _host, '-port', self.port]
         if self.cfg_name:
             self.cmd += ['-cfg']
         if self.scenario_id >= 0:
@@ -715,8 +729,62 @@ class MainSEIMS(object):
             return self.executed
 
         try:
-            self.runlogs = UtilClass.run_command(self.Command)
-            self.ParseTimespan()
+            # ================= [关键修复开始] =================
+            # 1. 构造命令：确保所有参数都是字符串
+            cmd_args = [str(x) for x in self.Command]
+
+            # 打印调试信息，方便看它到底在执行什么
+            print(f"\n[SEIMS Executor] Running: {' '.join(cmd_args)}")
+            print(f"[SEIMS Executor] Working Dir: {self.model_dir}")
+
+            # 2. 启动子进程
+            # - cwd: 设置为模型目录，这对 SEIMS 读取相对路径文件很重要
+            # - creationflags: Windows下防止 Ctrl+C 误杀
+            # - stdout/stderr: 捕获输出以便实时打印
+            creation_flags = 0
+            if sys.platform == 'win32':
+                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+
+            process = subprocess.Popen(
+                cmd_args,
+                cwd=self.model_dir,  # <--- 关键：设置工作目录
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # 将 stderr 合并到 stdout
+                creationflags=creation_flags,
+                universal_newlines=True,  # 文本模式
+                encoding='utf-8',
+                errors='replace'  # 防止中文乱码导致崩溃
+            )
+
+            self.runlogs = []
+
+            # 3. 实时读取输出 (解决“无输出”和“卡死”问题)
+            while True:
+                line = process.stdout.readline()
+                if line == '' and process.poll() is not None:
+                    break
+                if line:
+                    line_str = line.strip()
+                    self.runlogs.append(line_str)
+                    # 可选：如果你想看到 SEIMS 的实时刷屏日志，取消下面注释
+                    # print(f"  [SEIMS] {line_str}")
+
+            # 4. 等待结束并检查返回码
+            return_code = process.wait()
+
+            if return_code != 0:
+                # NEW: Remove emoji to avoid GBK encoding error on Windows
+                # OLD: print(f"❌ SEIMS exited with error code: {return_code}")
+                print(f"[ERROR] SEIMS exited with error code: {return_code}")
+                # 打印最后几行日志帮助 debug
+                print("Last 10 lines of log:")
+                for l in self.runlogs[-10:]:
+                    print(f"  {l}")
+                self.run_success = False
+            else:
+                self.run_success = True
+                # 解析时间跨度日志 (SEIMS 特有逻辑)
+                self.ParseTimespan()
         except CalledProcessError or IOError or Exception as err:
             # 1. SEIMS-based model running failed
             # 2. The OUTPUT directory was not been created successfully by SEIMS-based model
@@ -768,7 +836,11 @@ class MainSEIMS(object):
         self.output_name += '-'
         if self.calibration_id >= 0:
             self.output_name += '%d' % self.calibration_id
-        if self.cfg_name:
+
+        # Use custom output_dir if provided, otherwise use default construction
+        if hasattr(self, 'custom_output_dir') and self.custom_output_dir:
+            self.output_dir = self.custom_output_dir
+        elif self.cfg_name:
             self.output_dir = '%s/%s/%s' % (self.model_dir, self.cfg_name, self.output_name)
         else:
             self.output_dir = '%s/%s' % (self.model_dir, self.output_name)

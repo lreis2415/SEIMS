@@ -19,6 +19,7 @@ import sys
 import random
 import time
 import pickle
+import logging
 from typing import Dict, List
 from io import open
 
@@ -52,6 +53,8 @@ from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness
 from scenario_analysis.spatialunits.userdef import check_individual_diff,\
     crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
+from scenario_analysis.interactive_algorithm import InteractiveAlgorithm
+from scenario_analysis.async_interactive_algorithm import AsyncInteractiveAlgorithm
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -143,6 +146,37 @@ def main(sceobj):
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
 
+    # 初始化交互算法（支持 spatial/temporal/spatio_temporal 三种模式）
+    # 根据 enable_async 选择同步或异步交互算法
+    enable_async = getattr(sceobj.cfg, 'enable_async', False)
+    if enable_async:
+        ia = AsyncInteractiveAlgorithm(
+            enable_interactive=getattr(sceobj.cfg, 'enable_interactive', False),
+            interactive_interval=getattr(sceobj.cfg, 'interactive_interval', 10),
+            users=getattr(sceobj.cfg, 'users', {}),
+            logger=logging.getLogger(__name__),
+            enable_async=True,
+            task_id=getattr(sceobj.cfg, 'async_task_id', 'default_task'),
+            signal_dir=getattr(sceobj.cfg, 'async_signal_dir', '/data/config'),
+            checkpoint_dir=getattr(sceobj.cfg, 'async_checkpoint_dir', '/data/checkpoints')
+        )
+        scoop_log('Async Interactive mode enabled: task_id=%s, interval=%d generations' %
+                  (getattr(sceobj.cfg, 'async_task_id', 'default_task'),
+                   getattr(sceobj.cfg, 'interactive_interval', 10)))
+        # 异步模式也注册select_prefer
+        ia.register_to_toolbox(toolbox)
+    else:
+        ia = InteractiveAlgorithm(
+            enable_interactive=getattr(sceobj.cfg, 'enable_interactive', False),
+            interactive_interval=getattr(sceobj.cfg, 'interactive_interval', 10),
+            users=getattr(sceobj.cfg, 'users', {}),
+            logger=logging.getLogger(__name__)
+        )
+        ia.register_to_toolbox(toolbox)
+        if ia.enable_interactive:
+            scoop_log('Interactive mode enabled: %d users, interval=%d generations' %
+                      (len(ia.users), ia.interactive_interval))
+
     # create reference point for hypervolume
     ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
 
@@ -157,19 +191,31 @@ def main(sceobj):
 
     # Initialize population
     initialize_byinputs = False
-    if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
-        sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
-        inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
-        if os.path.isfile(inpareto_file):
-            inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
-                                                                sce_name='scenario',
-                                                                field_name='gene_values')
-            if sceobj.cfg.input_pareto_gen in inpareto_solutions:
-                pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
-                pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
+
+    # 异步模式下：检查是否有checkpoint，有则从checkpoint加载
+    if enable_async and hasattr(ia, 'has_checkpoint'):
+        latest_gen = ia.get_latest_checkpoint_gen()
+        if latest_gen is not None and latest_gen >= 0:
+            scoop_log(f'Loading checkpoint from generation {latest_gen}...')
+            pop = ia.load_from_checkpoint(latest_gen)
+            if pop is not None:
                 initialize_byinputs = True
+                scoop_log(f'Checkpoint loaded successfully: {len(pop)} individuals')
+
     if not initialize_byinputs:
-        pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
+        if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
+            sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
+            inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
+            if os.path.isfile(inpareto_file):
+                inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
+                                                                    sce_name='scenario',
+                                                                    field_name='gene_values')
+                if sceobj.cfg.input_pareto_gen in inpareto_solutions:
+                    pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
+                    pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
+                    initialize_byinputs = True
+        if not initialize_byinputs:
+            pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
 
     init_time = time.time() - stime
 
@@ -229,7 +275,7 @@ def main(sceobj):
         modelruns_time_sum[0] += ind.runtime
 
     # Currently, len(pop) may less than pop_select_num
-    pop = toolbox.select(pop, pop_select_num)
+    pop = ia.select_population(toolbox, pop, pop_select_num)
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
     scoop_log(logbook.stream)
@@ -255,7 +301,10 @@ def main(sceobj):
                 old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
                     if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
-                        toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num)
+                        # NEW: Add fixed_positions parameter (empty dict for spatial optimization)
+                        # OLD: toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num)
+                        fixed_positions = getattr(sceobj.cfg, 'key_bmps', {})
+                        toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num, fixed_positions)
                     elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
                         toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
                     else:
@@ -318,7 +367,8 @@ def main(sceobj):
             elif tmpind.id not in unique_sces[tmpind.gen]:
                 unique_sces[tmpind.gen].append(tmpind.id)
             pop.append(tmpind)
-        pop = toolbox.select(pop, pop_select_num)
+        pop = ia.select_population(toolbox, pop, pop_select_num)
+        ia.run_interaction(pop, gen)
 
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \

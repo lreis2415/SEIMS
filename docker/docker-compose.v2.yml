@@ -1,0 +1,55 @@
+version: '3.8'
+
+# 使用方法（在 D:\EGC\SEIMS-dev 目录执行）:
+#   启动 MongoDB + 导入数据:
+#     docker-compose -f docker/docker-compose.v2.yml up mongodb -d
+#   运行快速测试:
+#     docker-compose -f docker/docker-compose.v2.yml run --rm seims-optimizer --config /data/config/config_quick.json
+#   查看日志:
+#     docker-compose -f docker/docker-compose.v2.yml logs -f
+
+services:
+  mongodb:
+    image: mongo:4.4
+    container_name: seims-mongodb
+    restart: unless-stopped
+    # 不设置 MONGO_INITDB_ROOT_USERNAME/PASSWORD，MongoDB 以无认证模式启动
+    # 与本地开发环境保持一致（SEIMS代码默认不传认证信息）
+    ports:
+      - "27018:27017"   # 用27018避免与本机MongoDB冲突
+    volumes:
+      - mongodb_data:/data/db
+      - ../mongo_dump:/mongo_dump:ro
+    networks:
+      - seims-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  seims-optimizer:
+    image: seims-optimizer:v2
+    container_name: seims-optimizer
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+    volumes:
+      - ../data/youwuzhen/demo_youwuzhen30m_longterm_model:/data/youwuzhen/demo_youwuzhen30m_longterm_model
+      - ./workspace:/data/config:ro
+      - ./output:/data/output
+    networks:
+      - seims-network
+
+networks:
+  seims-network:
+    driver: bridge
+    name: seims-network-v2
+
+volumes:
+  mongodb_data:
+    name: seims-mongodb-data-v2

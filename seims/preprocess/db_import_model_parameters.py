@@ -221,6 +221,7 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
         """
         file_in_path = cfg.modelcfgs.filein
+        #file_out_path = cfg.modelcfgs.fileout
         file_out_path = cfg.paramcfgs.init_outputs_file
         # initialize if collection not existed
         c_list = cfg.maindb.list_collection_names()
@@ -305,19 +306,34 @@ class ImportParam2Mongo(object):
                                     ModelCfgFields.subbsn]
             data_items.insert(0, user_out_field_array)
 
+
         update_requests = list()
+        insert_requests = list()
+
+        existing_output_ids = set()
+
         for idx, iitem in enumerate(data_items):
             if idx == 0:
                 continue
             data_import = read_output_item(user_out_field_array, iitem)
             data_import[ModelCfgFields.use] = 1
-            cur_filter = dict()
-            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
-            update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
-        # execute import operators
+            cur_filter = {ModelCfgFields.output_id: data_import[ModelCfgFields.output_id]}
+
+            # Check if the output_id already exists in update_requests
+            if data_import[ModelCfgFields.output_id] in existing_output_ids:
+                insert_requests.append(InsertOne(data_import))
+            else:
+                update_requests.append(UpdateOne(cur_filter, {'$set': data_import}))
+                existing_output_ids.add(data_import[ModelCfgFields.output_id])
+
+        # Execute update operations
         results = MongoUtil.run_bulk_write(cfg.maindb[DBTableNames.main_fileout], update_requests)
-        print('Updated %d desired outputs!' % (results.modified_count
-              if results is not None else 0))
+        print('Updated %d desired outputs!' % (results.modified_count if results is not None else 0))
+
+        # Execute insert operations
+        if insert_requests:
+            insert_results = cfg.maindb[DBTableNames.main_fileout].bulk_write(insert_requests)
+            print('Inserted %d new desired outputs!' % insert_results.inserted_count)
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg):

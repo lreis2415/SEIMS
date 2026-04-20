@@ -26,16 +26,14 @@ from gridfs import GridFS
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser, is_string
 from pymongo.errors import NetworkTimeout
-from pymongo import MongoClient
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-# import global_mongoclient as MongoDBObj
-
-from utility import read_simulation_from_txt, mask_rasterio
+import global_mongoclient as MongoDBObj
+from collections import defaultdict, namedtuple
+from utility import read_simulation_from_txt
 from preprocess.text import DBTableNames, RasterMetadata
-from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from preprocess.sd_slopeposition_units import DelinateSlopePositionByThreshold
 from scenario_analysis import _DEBUG, BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.scenario import Scenario
@@ -59,6 +57,7 @@ class SUScenario(Scenario):
         self.suit_bmps = dict()  # type: Dict[AnyStr, Dict[int, List[int]]] # {type:{id: [bmp_ids]}}
         self.bmps_grade = dict()  # type: Dict[int, int] # {slppos_id: effectiveness_grade}
 
+        # Read BMP parameters from MongoDB
         self.read_bmp_parameters()
         bmps_suit_type = ['SLPPOS', 'LANDUSE'] \
             if self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3] else ['LANDUSE']
@@ -69,55 +68,54 @@ class SUScenario(Scenario):
         Each BMP is stored in Collection as one item identified by 'SUBSCENARIO' field,
         so the `self.bmps_params` is dict with BMP_ID ('SUBSCENARIO') as key.
         """
-        # conn = MongoDBObj.client  # type: MongoClient
-        conn = ConnectMongoDB(self.model.host, self.model.port).get_conn()  # type: MongoClient
+        # client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
+        # conn = client.get_conn()
+        conn = MongoDBObj.client
         scenariodb = conn[self.scenario_db]
 
         bmpcoll = scenariodb[self.cfg.bmps_coll]
-        # UserWarning: use an explicit session with no_cursor_timeout=True,
-        # otherwise the cursor may still timeout after 30 minutes,
-        # for more info see https://jira.mongodb.org/browse/DOCS-11255
-        with conn.start_session() as session:
-            for fb in bmpcoll.find(no_cursor_timeout=True, session=session):
-                fb = UtilClass.decode_strs_in_dict(fb)
-                if 'SUBSCENARIO' not in fb:
+        findbmps = bmpcoll.find({}, no_cursor_timeout=True)
+        for fb in findbmps:
+            fb = UtilClass.decode_strs_in_dict(fb)
+            if 'SUBSCENARIO' not in fb:
+                continue
+            curid = fb['SUBSCENARIO']
+            if curid not in self.cfg.bmps_subids:
+                continue
+            if curid not in self.bmps_params:
+                self.bmps_params[curid] = dict()
+            for k, v in fb.items():
+                if k == 'SUBSCENARIO':
                     continue
-                curid = fb['SUBSCENARIO']
-                if curid not in self.cfg.bmps_subids:
-                    continue
-                if curid not in self.bmps_params:
-                    self.bmps_params[curid] = dict()
-                for k, v in fb.items():
-                    if k == 'SUBSCENARIO':
-                        continue
-                    elif k == 'LANDUSE':
-                        if isinstance(v, int):
-                            v = [v]
-                        elif v == 'ALL' or v == '':
-                            v = None
-                        else:
-                            v = StringClass.extract_numeric_values_from_string(v)
-                            v = [int(abs(nv)) for nv in v]
+                elif k == 'LANDUSE':
+                    if isinstance(v, int):
+                        v = [v]
+                    elif v == 'ALL' or v == '':
+                        v = None
+                    else:
+                        v = StringClass.extract_numeric_values_from_string(v)
+                        v = [int(abs(nv)) for nv in v]
+                    self.bmps_params[curid][k] = v[:]
+                elif k == 'SLPPOS':
+                    if isinstance(v, int):
+                        v = [v]
+                    elif v == 'ALL' or v == '':
+                        v = list(self.cfg.slppos_tags.keys())
+                    else:
+                        v = StringClass.extract_numeric_values_from_string(v)
+                        v = [int(abs(nv)) for nv in v]
+                    self.bmps_params[curid][k] = v[:]
+                elif k == 'INCOME':
+                    if isinstance(v, int):  # scenario analysis
+                        self.bmps_params[curid][k] = v
+                    elif isinstance(v, str):  # bmp order optimization
+                        v = StringClass.extract_numeric_values_from_string(v)
                         self.bmps_params[curid][k] = v[:]
-                    elif k == 'SLPPOS':
-                        if isinstance(v, int):
-                            v = [v]
-                        elif v == 'ALL' or v == '':
-                            v = list(self.cfg.slppos_tags.keys())
-                        else:
-                            v = StringClass.extract_numeric_values_from_string(v)
-                            v = [int(abs(nv)) for nv in v]
-                        self.bmps_params[curid][k] = v[:]
-                    elif k == 'INCOME':
-                        if isinstance(v, int):  # scenario analysis
-                            self.bmps_params[curid][k] = v
-                        elif isinstance(v, str):  # bmp order optimization
-                            v = StringClass.extract_numeric_values_from_string(v)
-                            self.bmps_params[curid][k] = v[:]
-                        else:
-                            self.bmps_params[curid][k] = v
                     else:
                         self.bmps_params[curid][k] = v
+                else:
+                    self.bmps_params[curid][k] = v
+        # client.close()
 
     def get_suitable_bmps(self, types='LANDUSE'):
         # type: (Union[AnyStr, List[AnyStr]]) -> None
@@ -146,8 +144,10 @@ class SUScenario(Scenario):
         Returns:
             A list contains BMPs identifier of each gene location.
         """
-        # Create configuration rate for each location randomly, 0.4 ~ 0.6
+        # OLD: Create configuration rate for each location randomly, 0.4 ~ 0.6
         cr = random.randint(40, 60) / 100.
+        # NEW: Uniform [0, 1] for full coverage
+        #cr = random.random()
 
         if input_genes is not None:  # Using the input genes
             if len(input_genes) == self.gene_num:
@@ -160,6 +160,9 @@ class SUScenario(Scenario):
                     self.gene_values[gidx] = gv
             return self.gene_values
         else:
+            # NEW: Use random initialization in surrogate mode (no BMP suitability data)
+            #if hasattr(self.cfg, 'use_surrogate') and self.cfg.use_surrogate:
+                #self.random_based_config(cr)
             if self.rule_mtd == BMPS_CFG_METHODS[0]:
                 self.random_based_config(cr)
             else:
@@ -173,6 +176,146 @@ class SUScenario(Scenario):
                 if random.random() >= cr:
                     continue
                 self.gene_values[ti] = thresholds[random.randint(0, len(thresholds) - 1)]
+
+
+        #todo: 空间优化的投资约束计算，需要重新写一个
+        satisfied, _ = self.satisfy_investment_constraints_spatial
+        while not satisfied:
+            if self.rule_mtd == BMPS_CFG_METHODS[0]:
+                self.random_based_config(cr)
+            else:
+                self.rule_based_config(self.rule_mtd, cr)
+            copyed_genes = deepcopy(self.gene_values)
+
+            # NEW: Use spatial constraint (was incorrectly using s-t constraint)
+            satisfied, _ = self.satisfy_investment_constraints_spatial
+
+
+        if len(self.gene_values) == self.gene_num > 0:
+            return self.gene_values
+        else:
+            raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
+                               ' class, especially the overwritten rule_based_config and'
+                               ' random_based_config!')
+
+    def initialize_s_t(self, input_genes=None):
+        # type: (Optional[List]) -> List
+        """Initialize a scenario.
+
+        Returns:
+            A list contains BMPs identifier of each gene location.
+        """
+        # OLD: Create configuration rate for each location randomly, 0.4 ~ 0.6
+        # cr = random.randint(40, 60) / 100.
+        # NEW: Uniform [0, 1] for full coverage
+        cr = random.random()
+
+        if input_genes is not None:  # Using the input genes
+            if len(input_genes) == self.gene_num:
+                self.gene_values = input_genes[:]
+            # else:  # Only usable for slope position units when optimizing unit boundary
+            #     typenum = self.cfg.slppos_types_num
+            #     tnum = self.cfg.thresh_num
+            #     for idx, gv in enumerate(input_genes):
+            #         gidx = idx // typenum * (typenum + tnum) + idx % typenum
+            #         self.gene_values[gidx] = gv
+            return self.gene_values
+        else:
+            if self.rule_mtd == BMPS_CFG_METHODS[0]:
+                self.random_based_config(cr)
+            else:
+                self.rule_based_config(self.rule_mtd, cr)
+                # if self.cfg.enable_implementation_order and self.cfg.enable_investment_quota:
+                #     suitbmp = self.get_sets_of_suitbmp_s_t()
+                #     self.set_based_config_s_t(self.rule_mtd, cr, suitbmp)
+                # else:
+                #     self.rule_based_config(self.rule_mtd, cr)
+
+        def generate_gene_values_with_bmps_order_with_keyarea(obj, genes, flag):
+            key_bmps = obj.cfg.key_bmps
+            if obj.cfg.enable_investment_quota:
+                # pro_dist = invests / numpy.sum(invests)
+                pro_dist = None
+            else:
+                pro_dist = None
+            rand_range = range(0, obj.cfg.change_times + 1)
+
+            # gene index and BMP type
+            for idx, gene in enumerate(genes):
+                rand_bit = numpy.random.choice(rand_range, p=pro_dist)
+                if idx in key_bmps:
+                    if key_bmps[idx]:
+                        obj.gene_values[idx] = int(key_bmps[idx]) * 1000 + (rand_bit if rand_bit else 1)
+                    else:
+                        if gene > 0:
+                            obj.gene_values[idx] = int(gene) * 1000 + (rand_bit if rand_bit else 1)
+                elif numpy.isclose(gene, 0.):
+                    obj.gene_values[idx] = 0
+                else:
+                    # rand_bit = random.randint(1, obj.cfg.change_times)
+
+                    if flag:
+                        if rand_bit == 0:
+                            obj.gene_values[idx] = 0
+                        else:
+                            obj.gene_values[idx] = int(gene) * 1000 + rand_bit
+                    else:
+                        # Only consider the spatial optimization, i.e, all BMPs are implemented in the first year
+                        if obj.cfg.enable_investment_quota:
+                            if rand_bit == 0:
+                                obj.gene_values[idx] = 0
+                            else:
+                                obj.gene_values[idx] = int(gene) * 1000 + 1
+                        else:
+                            obj.gene_values[idx] = int(gene) * 1000 + 1
+
+        def generate_gene_values_with_bmps_order(obj, genes, flag):
+            invests = numpy.array(self.cfg.investment_each_period, dtype=float)
+            if obj.cfg.enable_investment_quota:
+                # pro_dist = invests / numpy.sum(invests)
+                pro_dist = None
+            else:
+                pro_dist = None
+            rand_range = range(0, obj.cfg.change_times + 1)
+
+            # gene index and BMP type
+            for idx, gene in enumerate(genes):
+                if numpy.isclose(gene, 0.):
+                    obj.gene_values[idx] = 0
+                else:
+                    # rand_bit = random.randint(1, obj.cfg.change_times)
+                    rand_bit = numpy.random.choice(rand_range, p=pro_dist)
+                    if flag:
+                        if rand_bit == 0:
+                            obj.gene_values[idx] = 0
+                        else:
+                            obj.gene_values[idx] = int(gene) * 1000 + rand_bit
+                    else:
+                        # Only consider the spatial optimization, i.e, all BMPs are implemented in the first year
+                        if obj.cfg.enable_investment_quota:
+                            if rand_bit == 0:
+                                obj.gene_values[idx] = 0
+                            else:
+                                obj.gene_values[idx] = int(gene) * 1000 + 1
+                        else:
+                            obj.gene_values[idx] = int(gene) * 1000 + 1
+
+        copyed_genes = deepcopy(self.gene_values)
+        if self.cfg.enable_implementation_order:
+            flag = True
+        else:
+            flag = False  # Only consider the spatial optimization with variable BMPs effectiveness
+        generate_gene_values_with_bmps_order(self, copyed_genes, flag)
+        satisfied, _ = self.satisfy_investment_constraints
+        while not satisfied:
+            if self.rule_mtd == BMPS_CFG_METHODS[0]:
+                self.random_based_config(cr)
+            else:
+                self.rule_based_config(self.rule_mtd, cr)
+            copyed_genes = deepcopy(self.gene_values)
+            generate_gene_values_with_bmps_order(self, copyed_genes, flag)
+            satisfied, _ = self.satisfy_investment_constraints
+
         if len(self.gene_values) == self.gene_num > 0:
             return self.gene_values
         else:
@@ -189,29 +332,173 @@ class SUScenario(Scenario):
         """
 
         def generate_gene_values(obj, genes):
-            invests = numpy.array(obj.cfg.investment_each_period, dtype=float)
-            pro_dist = invests / numpy.sum(invests)
+            # FIXED: Handle case when investment_each_period is not set (no constraint mode)
             rand_range = range(1, obj.cfg.change_times + 1)
+
+            # Check if investment constraints are enabled
+            if obj.cfg.enable_investment_quota and hasattr(obj.cfg, 'investment_each_period') and obj.cfg.investment_each_period:
+                invests = numpy.array(obj.cfg.investment_each_period, dtype=float)
+                pro_dist = invests / numpy.sum(invests)
+            else:
+                # Use uniform distribution when no investment constraints
+                pro_dist = None
 
             # gene index and BMP type
             for idx, gene in enumerate(genes):
                 if numpy.isclose(gene, 0.):
                     obj.gene_values[idx] = 0
                 else:
-                    # rand_bit = random.randint(1, obj.cfg.change_times)
-                    rand_bit = numpy.random.choice(rand_range, p=pro_dist)
+                    if pro_dist is not None:
+                        rand_bit = numpy.random.choice(rand_range, p=pro_dist)
+                    else:
+                        # Uniform random selection when no investment constraints
+                        rand_bit = random.randint(1, obj.cfg.change_times)
                     obj.gene_values[idx] = int(gene) * 1000 + rand_bit
 
         if input_genes:
             self.gene_values = opt_genes
         else:
             generate_gene_values(self, opt_genes)
-            satisfied, _ = self.satisfy_investment_constraints()
-            while not satisfied:
+            satisfied, _ = self.satisfy_investment_constraints
+            max_attempts = 1000  # FIXED: Add max attempts to prevent infinite loop
+            attempts = 0
+            while not satisfied and attempts < max_attempts:
                 generate_gene_values(self, opt_genes)
-                satisfied, _ = self.satisfy_investment_constraints()
+                satisfied, _ = self.satisfy_investment_constraints
+                attempts += 1
+            if attempts >= max_attempts:
+                print(f"Warning: Failed to satisfy investment constraints after {max_attempts} attempts")
 
         return self.gene_values
+
+    def get_sets_of_suitbmp_s_t(self):
+        suitbmp_dict = {}
+        if self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+            spname = self.cfg.slppos_tagnames[-1][1]  # bottom slope position name, e.g., 'valley'
+            for unitid, spdict in viewitems(self.cfg.units_infos[spname]):
+                spidx = len(self.cfg.slppos_tagnames) - 1
+                while True:  # trace upslope units
+                    sptag = self.cfg.slppos_tagnames[spidx][0]
+                    sp = self.cfg.slppos_tagnames[spidx][1]
+                    up_spid = self.cfg.units_infos[sp][unitid]['upslope']
+                    gene_idx = self.cfg.unit_to_gene[unitid]
+                    spidx -= 1
+                    # Get the union set of multiple suitable bmps
+                    cur_suit_bmps = deepcopy(self.suit_bmps['SLPPOS'])
+                    unit_area = self.cfg.units_infos[sp][unitid]['area']
+                    unit_luids = self.cfg.units_infos[sp][unitid]['landuse']
+                    lu_suit_bmps = self.suit_bmps['LANDUSE']
+                    sp_suit_bmps = self.suit_bmps['SLPPOS'][sptag][:]
+                    new_sp_suit_bmps = list()
+                    for unit_luid, unit_luarea in viewitems(unit_luids):
+                        if unit_luarea / unit_area < 0.1:
+                            continue
+                        if unit_luid not in lu_suit_bmps:
+                            continue
+                        for lu_suit_bmp in lu_suit_bmps[unit_luid]:
+                            if lu_suit_bmp in sp_suit_bmps and lu_suit_bmp not in new_sp_suit_bmps:
+                                new_sp_suit_bmps.append(lu_suit_bmp)
+                    cur_suit_bmps[sptag] = new_sp_suit_bmps[:]
+
+                    cur_bmps = select_potential_bmps(unitid, cur_suit_bmps, self.cfg.units_infos,
+                                                     self.cfg.unit_to_gene, self.gene_values,
+                                                     unit=self.cfg.bmps_cfg_unit,
+                                                     method=self.cfg.bmps_cfg_method,
+                                                     bmpgrades=self.bmps_grade,
+                                                     tagnames=self.cfg.slppos_tagnames)
+
+                    period = list(range(1, self.cfg.change_times + 1))
+                    bmp_costs_by_period = [0.] * self.cfg.change_times
+                    bmp_maintain_by_period = [0.] * self.cfg.change_times
+
+                    cost_dict = {}
+
+                    for impl_period in period:
+                        if cur_bmps is None or len(cur_bmps) == 0:
+                            suitbmp_dict[gene_idx] = cost_dict
+                            break
+                        for bmp in cur_bmps:
+                            bmpparam = self.bmps_params[bmp]
+                            for unit_luid, unit_luarea in viewitems(unit_luids):
+                                if unit_luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                                    capex = unit_luarea * bmpparam['CAPEX']
+                                    opex = bmpparam['OPEX']
+                                    # income = bmpparam['INCOME']
+                                    bmp_costs_by_period[impl_period - 1] += capex
+                                    # every period has income after impl
+                                    for prd in range(impl_period, self.cfg.change_times + 1):  # closed interval
+                                        bmp_maintain_by_period[prd - 1] += unit_luarea * opex
+                                        # bmp_income_by_period[prd - 1] += unit_luarea * income[
+                                        #     prd - impl_period]  # each year has different benefit
+                        cost_dict[bmp] = bmp_costs_by_period + bmp_maintain_by_period
+                    suitbmp_dict[gene_idx] = cost_dict
+                    if up_spid < 0:
+                        break
+                    unitid = up_spid
+        else:
+            # Loop each gene to config one of the suitable BMP
+            for gene_idx in range(self.gene_num):
+                unitid = self.cfg.gene_to_unit[gene_idx]
+                cur_bmps = select_potential_bmps(unitid, self.suit_bmps['LANDUSE'],
+                                                 self.cfg.units_infos,
+                                                 self.cfg.unit_to_gene, self.gene_values,
+                                                 unit=self.cfg.bmps_cfg_unit,
+                                                 method=self.cfg.bmps_cfg_method,
+                                                 bmpgrades=self.bmps_grade)
+                if cur_bmps is None or len(cur_bmps) == 0:
+                    self.gene_values[gene_idx] = 0
+                    continue
+        return suitbmp_dict
+
+    # def set_based_config_s_t(self, method, conf_rate=0.5, suitbmp):
+    #     # type: (float, AnyStr) -> None
+    #     """Config available BMPs on each spatial units by knowledge-based rule method.
+    #     The looping methods vary from different spatial units, e.g., for slope position units,
+    #     it is from the bottom slope position of each hillslope tracing upslope.
+    #
+    #     The available rule methods are 'SUIT', 'UPDOWN', and 'HILLSLP'.
+    #
+    #     See Also:
+    #         :obj:`scenario_analysis.BMPS_CFG_METHODS`
+    #     """
+    #     if self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+    #         sce_dict = {}
+    #         selected_genes = []
+    #         years = list(range(0, self.cfg.years_first_period))
+    #         for year in years:
+    #             net_cost = 0
+    #             while True:
+    #                 random_gene = random.choice(list(suitbmp.keys()))
+    #                 if random_gene in selected_genes:
+    #                     continue
+    #                 random_bmp_set = suitbmp[random_gene]
+    #                 if random_bmp_set is None or len(random_bmp_set) == 0:
+    #                         self.gene_values[random_gene] = 0
+    #                         selected_genes.append(random_gene)
+    #                         continue
+    #                 random_bmp = random.choice(list(random_bmp_set.keys()))
+    #                 random_bmp_netcost = random_bmp_set[random_bmp]
+    #                 net_cost = net_cost + random_bmp_netcost[year]
+    #                 if net_cost < self.cfg.investment_each_period[year]:
+    #                     self.gene_values[random_gene] = int(random_bmp) * 1000 + (year + 1)
+    #                 else:
+    #                     print("Net cost of year {} is {}".format(year, net_cost))
+    #                     break
+    # else:
+    #      # Loop each gene to config one of the suitable BMP
+    #      for gene_idx in range(self.gene_num):
+    #          unitid = self.cfg.gene_to_unit[gene_idx]
+    #          cur_bmps = select_potential_bmps(unitid, self.suit_bmps['LANDUSE'],
+    #                                           self.cfg.units_infos,
+    #                                           self.cfg.unit_to_gene, self.gene_values,
+    #                                           unit=self.cfg.bmps_cfg_unit,
+    #                                           method=self.cfg.bmps_cfg_method,
+    #                                           bmpgrades=self.bmps_grade)
+    #          if cur_bmps is None or len(cur_bmps) == 0:
+    #              self.gene_values[gene_idx] = 0
+    #              continue
+    #          # select one randomly
+    #          self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
 
     def rule_based_config(self, method, conf_rate=0.5):
         # type: (float, AnyStr) -> None
@@ -428,6 +715,9 @@ class SUScenario(Scenario):
             curd['LOCATION'] = '-'.join(repr(uid) for uid in v)
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
+            # For spatial optimization, use default values
+            curd['EFFECTIVENESSVARIABLE'] = 1 if getattr(self.cfg, 'effectiveness_changeable', False) else 0
+            curd['CHANGEFREQUENCY'] = getattr(self.cfg, 'change_frequency', 1) * 365 * 24 * 60 * 60  # convert to seconds
             self.bmp_items[sce_item_count] = curd
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
@@ -437,6 +727,8 @@ class SUScenario(Scenario):
                 curd['BMPID'] = k
                 curd['NAME'] = 'S%d' % self.ID
                 curd['ID'] = self.ID
+                curd['EFFECTIVENESSVARIABLE'] = 0
+                curd['CHANGEFREQUENCY'] = -1
                 self.bmp_items[sce_item_count] = curd
                 sce_item_count += 1
 
@@ -505,9 +797,9 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
-            bmpparam = self.bmps_params[gene_v]
+            bmpparam = self.bmps_params[int(gene_v)]  # Convert to int for dict lookup
             for luid, luarea in unit_lu.items():
-                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                if bmpparam['LANDUSE'] is None or luid in bmpparam['LANDUSE']:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * actual_years
                     income += luarea * bmpparam['INCOME'][-1] * actual_years
@@ -515,6 +807,12 @@ class SUScenario(Scenario):
         # self.economy = capex
         # self.economy = capex + opex
         self.economy = capex + opex - income
+
+        # NEW (2026-03-30): Store detailed cost breakdown for output
+        self.capex_per_period = [capex]  # Single period for spatial optimization
+        self.opex_per_period = [opex]
+        self.incomes_per_period = [income]
+
         # print('economy: capex {}, income {}, opex {}'.format(capex, income, opex))
         return self.economy
 
@@ -523,6 +821,34 @@ class SUScenario(Scenario):
         self.net_costs_per_period = (costs + maintains - incomes).tolist()
         self.costs_per_period = (costs + maintains).tolist()
         self.incomes_per_period = incomes.tolist()
+        self.cost_variation = numpy.var(self.net_costs_per_period)
+
+        key_type_ids = set(self.cfg.key_bmps.keys())
+        risk_orders = []
+        idx = 0
+        for value in self.gene_values:
+
+            if value == 0 or idx not in key_type_ids:
+                idx += 1
+                continue
+            num = int(value)
+            type_id = num // 1000  # Extract BMP type from thousands digit
+            order = num % 10  # Extract implementation order from units digit
+            # if type_id in key_type_ids and order:
+            risk_orders.append(order)
+            idx += 1
+        # Risk increases with later implementation order (using exponential decay inverse)
+        self.abandon_possibility = sum((1 - numpy.exp(-(o - 1) * 0.2)) for o in risk_orders)
+        discounted_income = 0.
+        discounted_cost = 0.
+        for idx in range(len(incomes)):
+            discount_factor = numpy.power(1.0 + self.cfg.discount_rate, idx + 1)
+            discounted_income += incomes[idx] / discount_factor
+            discounted_cost += (costs[idx] + maintains[idx]) / discount_factor
+        if discounted_cost != 0:
+            self.return_on_invest = discounted_income / discounted_cost
+        else:
+            self.return_on_invest = 0.0
 
         # use net present value
         net_present_value = 0.
@@ -535,37 +861,151 @@ class SUScenario(Scenario):
     def calculate_environment(self):
         """Calculate environment benefit based on the output and base values predefined in
         configuration file.
+
+        NEW (2026-03-27): Support surrogate model evaluation
+        NEW (2026-03-30): Support surrogate vs SEIMS comparison mode
         """
-        if not self.modelrun:  # no evaluate done
-            self.economy = self.worst_econ
-            self.environment = self.worst_env
-            return
-        rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
+        # NEW: Use surrogate model to predict sed_sum instead of reading from SEIMS output
+        if hasattr(self.cfg, 'use_surrogate') and self.cfg.use_surrogate:
+            import numpy as np
+            import joblib
+            # NOTE: os is already imported at top of file, no need to import again
 
-        if not FileClass.is_file_exists(rfile):
-            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
-        if not FileClass.is_file_exists(rfile):
-            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
-                  ' cannot be found!' % rfile)
-            self.economy = self.worst_econ
-            self.environment = self.worst_env
-            # model clean
-            # self.model.SetMongoClient()
-            # self.model.clean(delete_scenario=True)
-            # self.model.UnsetMongoClient()
-            return
+            # Load surrogate model and scaler (cached in config)
+            if not hasattr(self.cfg, '_surrogate_model'):
+                model_file = os.path.join(self.cfg.surrogate_model_dir, 'surrogate_model.pkl')
+                scaler_y_file = os.path.join(self.cfg.surrogate_model_dir, 'scaler_y.pkl')
+                self.cfg._surrogate_model = joblib.load(model_file)
+                self.cfg._scaler_y = joblib.load(scaler_y_file)
 
-        base_amount = self.eval_info['BASE_ENV']
-        if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
-            rr = RasterUtilClass.read_raster(rfile)
-            sed_sum = rr.get_sum() / self.eval_timerange  # unit: year
-        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
-            sed_sum = read_simulation_from_txt(self.modelout_dir,
-                                               ['SED'], self.model.OutletID,
-                                               self.cfg.eval_stime, self.cfg.eval_etime)
+                # Load One-Hot encoder if exists
+                onehot_file = os.path.join(self.cfg.surrogate_model_dir, 'onehot_encoder.pkl')
+                if os.path.exists(onehot_file):
+                    self.cfg._onehot_encoder = joblib.load(onehot_file)
+                    scaler_x_file = os.path.join(self.cfg.surrogate_model_dir, 'scaler_X.pkl')
+                    self.cfg._scaler_x = joblib.load(scaler_x_file)
+                else:
+                    self.cfg._onehot_encoder = None
+
+            # Predict SED using gene values
+            gene_arr = np.array(self.gene_values, dtype=float)
+
+            # Apply One-Hot encoding if model uses it (10m spatio-temporal model)
+            # gene_values encoding: bmp_type * 1000 + time_period (e.g. 2003 = BMP type 2, period 3)
+            # Feature layout: [one_hot(bmp_types) 525-dim] + [time_periods 105-dim] = 630-dim
+            if hasattr(self.cfg, '_onehot_encoder') and self.cfg._onehot_encoder is not None:
+                n_units = self.cfg._onehot_encoder.n_features_in_  # 105
+                X_bmp_types = (gene_arr[:n_units] // 1000).astype(int).reshape(1, -1)
+                X_time = (gene_arr[:n_units] % 1000).reshape(1, -1)
+                X_bmp_oh = self.cfg._onehot_encoder.transform(X_bmp_types)  # (1, 525)
+                X = np.concatenate([X_bmp_oh, X_time], axis=1)  # (1, 630)
+                X = self.cfg._scaler_x.transform(X)
+            else:
+                X = gene_arr.reshape(1, -1)
+
+            sed_normalized = self.cfg._surrogate_model.predict(X)[0]
+            # Inverse transform to get real sed_sum value
+            # NOTE (2026-03-30): Surrogate model was trained on sed_sum values that were
+            # already divided by eval_timerange (annual average), so the prediction is
+            # also an annual average value, which can be directly used regardless of
+            # the current evaluation time range.
+            sed_sum_surro = self.cfg._scaler_y.inverse_transform([[sed_normalized]])[0][0]
+
+            # NEW (2026-03-30): Comparison mode - also run SEIMS for validation
+            if hasattr(self.cfg, 'surrogate_comparison') and self.cfg.surrogate_comparison:
+                # Run SEIMS model to get real result
+                if not self.modelrun:
+                    # Need to run SEIMS first
+                    self.execute_seims_model()
+
+                # Read SEIMS result
+                if self.modelrun:
+                    rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
+                    if FileClass.is_file_exists(rfile):
+                        if StringClass.string_match(rfile.split('.')[-1], 'tif'):
+                            rr = RasterUtilClass.read_raster(rfile)
+                            sed_sum_seims = rr.get_sum() / self.eval_timerange
+                        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):
+                            # BUG FIX (2026-03-30): read_simulation_from_txt returns (vars, data_dict), need to sum values
+                            plot_vars, sim_data_dict = read_simulation_from_txt(self.modelout_dir,
+                                                                     ['SED'], self.model.OutletID,
+                                                                     self.cfg.eval_stime, self.cfg.eval_etime)
+                            # BUG FIX (2026-03-30): Need to divide by eval_timerange to get annual average, same as raster case
+                            sed_sum_seims = (sum(values[0] for values in sim_data_dict.values()) / self.eval_timerange) if sim_data_dict else 0.0
+                        else:
+                            sed_sum_seims = None
+
+                        # Store both results for comparison
+                        self.sed_sum_seims = sed_sum_seims
+                        self.sed_sum_surro = sed_sum_surro
+
+                        # Calculate environment for both
+                        base_amount = self.eval_info['BASE_ENV']
+                        if base_amount > 0:
+                            self.env_seims = (base_amount - sed_sum_seims) / base_amount if sed_sum_seims else 0
+                            self.env_surro = (base_amount - sed_sum_surro) / base_amount
+                        else:
+                            self.env_seims = sed_sum_seims if sed_sum_seims else 0
+                            self.env_surro = sed_sum_surro
+
+                        # Use surrogate result for optimization
+                        sed_sum = sed_sum_surro
+                    else:
+                        # SEIMS failed, only use surrogate
+                        sed_sum = sed_sum_surro
+                        self.sed_sum_seims = None
+                        self.sed_sum_surro = sed_sum_surro
+                        self.env_seims = None
+                        self.env_surro = None
+                else:
+                    # SEIMS not run, only use surrogate
+                    sed_sum = sed_sum_surro
+                    self.sed_sum_seims = None
+                    self.sed_sum_surro = sed_sum_surro
+                    self.env_seims = None
+                    self.env_surro = None
+            else:
+                # Pure surrogate mode - no SEIMS comparison
+                sed_sum = sed_sum_surro
+                self.sed_sum_surro = sed_sum_surro
+                self.sed_sum_seims = None
+                self.env_seims = None
+                self.env_surro = None
+
+            # Mark as evaluated
+            self.modelrun = True
         else:
-            raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+            # OLD: Original SEIMS-based evaluation - read sed_sum from model output
+            if not self.modelrun:  # no evaluate done
+                self.economy = self.worst_econ
+                self.environment = self.worst_env
+                return
+            rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
 
+            if not FileClass.is_file_exists(rfile):
+                time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+            if not FileClass.is_file_exists(rfile):
+                print('WARNING: Although SEIMS model has been executed, the desired output: %s'
+                      ' cannot be found!' % rfile)
+                self.economy = self.worst_econ
+                self.environment = self.worst_env
+                return
+
+            if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
+                rr = RasterUtilClass.read_raster(rfile)
+                sed_sum = rr.get_sum() / self.eval_timerange  # unit: year
+            elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
+                # BUG FIX (2026-03-30): read_simulation_from_txt returns (vars, data_dict), need to sum values
+                plot_vars, sim_data_dict = read_simulation_from_txt(self.modelout_dir,
+                                                   ['SED'], self.model.OutletID,
+                                                   self.cfg.eval_stime, self.cfg.eval_etime)
+                # BUG FIX (2026-03-30): Need to divide by eval_timerange to get annual average, same as raster case
+                sed_sum = (sum(values[0] for values in sim_data_dict.values()) / self.eval_timerange) if sim_data_dict else 0.0
+            else:
+                raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+
+        # Common logic: Calculate environment benefit based on sed_sum
+        base_amount = self.eval_info['BASE_ENV']
         if base_amount < 0:  # indicates a base scenario
             self.environment = sed_sum
             self.sed_sum = sed_sum
@@ -576,13 +1016,31 @@ class SUScenario(Scenario):
             # print exception values
             if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
-                      'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                      'SED_SUM: %s' % (self.ID, repr(sed_sum)))
                 self.environment = self.worst_env
+
+    def calculate_bmp(self):
+        gene_values = self.gene_values
+        gene_types = [extract_bmp_type(v) for v in gene_values]
+        type_counter = defaultdict(int)
+        for t in gene_types:
+            if t != 0:
+                type_counter[t] += 1
+        self.bmp_type_count = type_counter
 
     def calculate_environment_bmps_order(self):
         """Calculate environment benefit based on the output and base values predefined in
                 configuration file.
                 """
+        # NEW: surrogate model support — delegate to calculate_environment() which has full surrogate logic
+        if hasattr(self.cfg, 'use_surrogate') and self.cfg.use_surrogate:
+            self.calculate_environment()  # sets self.sed_sum, self.environment, self.modelrun=True
+            # For ST mode: distribute sed evenly across periods as approximation
+            if not self.sed_per_period:
+                n_periods = getattr(self.cfg, 'change_times', 1)
+                self.sed_per_period = [self.sed_sum] * n_periods
+            return
+
         if not self.modelrun:  # no evaluate done
             self.economy = self.worst_econ
             self.environment = self.worst_env
@@ -608,15 +1066,19 @@ class SUScenario(Scenario):
             # sum of 2013-2017
             rr = RasterUtilClass.read_raster(rfile)
             sed_sum = rr.get_sum() / self.cfg.implementation_period  # Annual average of sediment 13-17
+            print("sed_sum", sed_sum)
             for i in range(self.cfg.change_times):
                 # 2013-2017
                 filename = self.modelout_dir + os.path.sep + str(i + 3) + '_' + self.eval_info['ENVEVAL']
                 sed_per_period.append(RasterUtilClass.read_raster(filename).get_sum())
             # sed_sum = sed_per_period[-1]  # 2017 sed sum
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
-            sed_sum = read_simulation_from_txt(self.modelout_dir,
+            # BUG FIX (2026-03-30): read_simulation_from_txt returns (vars, data_dict), need to sum values
+            plot_vars, sim_data_dict = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
                                                self.cfg.eval_stime, self.cfg.eval_etime)
+            # BUG FIX (2026-03-30): Need to divide by eval_timerange to get annual average, same as raster case
+            sed_sum = (sum(values[0] for values in sim_data_dict.values()) / self.eval_timerange) if sim_data_dict else 0.0
         else:
             raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
 
@@ -639,8 +1101,7 @@ class SUScenario(Scenario):
         # type: (Optional[str]) -> None
         """Export scenario to GTiff.
 
-        Read Raster from MongoDB should be extracted to pygeoc. -- Done using mask_rasterio!
-        By ZhuLJ, 2023-03-25
+        TODO: Read Raster from MongoDB should be extracted to pygeoc.
         """
         if not self.export_sce_tif:
             return
@@ -648,20 +1109,67 @@ class SUScenario(Scenario):
         dist_list = StringClass.split_string(dist, '|')
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin
+            # read dist_name from MongoDB
+            # client = ConnectMongoDB(self.modelcfg.host, self.modelcfg.port)
+            # conn = client.get_conn()
+            conn = MongoDBObj.client
+            maindb = conn[self.modelcfg.db_name]
+            spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
+            # read file from mongodb
+            if not spatial_gfs.exists(filename=dist_name):
+                print('WARNING: %s is not existed, export scenario failed!' % dist_name)
+                return
+            try:
+                slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
+                                                                         no_cursor_timeout=True)[0]
+            except NetworkTimeout or Exception:
+                # In case of unexpected raise
+                # client.close()
+                return
+
+            ysize = int(slpposf['metadata'][RasterMetadata.nrows])
+            xsize = int(slpposf['metadata'][RasterMetadata.ncols])
+            xll = slpposf['metadata'][RasterMetadata.xll]
+            yll = slpposf['metadata'][RasterMetadata.yll]
+            cellsize = slpposf['metadata'][RasterMetadata.cellsize]
+            nodata_value = slpposf['metadata'][RasterMetadata.nodata]
+            srs = slpposf['metadata'][RasterMetadata.srs]
+            if is_string(srs):
+                srs = str(srs)
+            from osgeo import osr
+            srs = osr.GetUserInputAsWKT(srs)
+            geotransform = [0] * 6
+            geotransform[0] = xll - 0.5 * cellsize
+            geotransform[1] = cellsize
+            geotransform[3] = yll + (ysize - 0.5) * cellsize  # yMax
+            geotransform[5] = -cellsize
+
+            slppos_data = spatial_gfs.get(slpposf['_id'])
+            total_len = xsize * ysize
+            fmt = '%df' % (total_len,)
+            slppos_data = unpack(fmt, slppos_data.read())
+            slppos_data = numpy.reshape(slppos_data, (ysize, xsize))
+
             v_dict = dict()
             for unitidx, geneidx in viewitems(self.cfg.unit_to_gene):
                 v_dict[unitidx] = self.gene_values[geneidx]
+            # Deprecated and replaced by using self.cfg.unit_to_gene. 03/14/2019. ljzhu.
+            # for idx, gene_v in enumerate(self.gene_values):
+            #     v_dict[self.cfg.gene_to_unit[idx]] = gene_v
+
+            for k, v in v_dict.items():
+                slppos_data[slppos_data == k] = v
             if outpath is None:
                 outpath = self.scenario_dir + os.path.sep + 'Scenario_%d.tif' % self.ID
-            unit2bmpsstr = ','.join('%s:%s' % (repr(k), repr(v)) for k, v in v_dict.items())
-            # print(unit2bmpsstr)
-            mongoargs = [self.cfg.model.host, self.cfg.model.port,
-                         self.cfg.model.db_name, 'SPATIAL']
-            mask_rasterio(self.cfg.model.bin_dir,
-                          [[dist_name, outpath, 0, -9999, 'INT32', unit2bmpsstr]],
-                          mongoargs=mongoargs, maskfile='0_SUBBASIN', include_nodata=False)
+            RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
+                                             srs, nodata_value)
+            # client.close()
 
     def calculate_profits_by_period(self):
+        """Calculate BMP costs, maintenance, and income by period for temporal optimization.
+
+        FIXED (2026-03-19): bmps_params keys are full gene values (e.g., 2005), not BMP types (e.g., 2).
+        """
         bmp_costs_by_period = [0.] * self.cfg.change_times
         bmp_maintain_by_period = [0.] * self.cfg.change_times
         bmp_income_by_period = [0.] * self.cfg.change_times
@@ -674,7 +1182,9 @@ class SUScenario(Scenario):
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
+            # Extract BMP type and implementation period from temporal gene encoding
             subscenario, impl_period = divmod(int(gene_v), 1000)
+            # bmps_params keys are BMP type IDs (1,2,3,4), subscenario = gene_v // 1000
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
@@ -689,19 +1199,128 @@ class SUScenario(Scenario):
                             prd - impl_period]  # each year has different benefit
         return bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period
 
+    @property
+    def satisfy_investment_constraints_spatial(self):
+        """Check investment constraints for spatial optimization.
+
+        In spatial mode, all BMPs are treated as implemented in period 1.
+        Gene values are plain BMP IDs (not bmp_type * 1000 + period).
+        Income uses INCOME[-1] * actual_years (stable-period income estimate).
+        """
+        # No constraint: always satisfied
+        if not self.cfg.enable_investment_quota:
+            costs = numpy.array([0.])
+            maintain = numpy.array([0.])
+            income = numpy.array([0.])
+            return True, [costs, maintain, income]
+
+        actual_years = self.cfg.runtime_years
+        capex = 0.
+        opex_total = 0.
+        income_total = 0.
+
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            bmpparam = self.bmps_params[int(gene_v)]
+            for luid, luarea in unit_lu.items():
+                if bmpparam['LANDUSE'] is None or luid in bmpparam['LANDUSE']:
+                    capex += luarea * bmpparam['CAPEX']
+                    opex_total += luarea * bmpparam['OPEX'] * actual_years
+                    income_total += luarea * bmpparam['INCOME'][-1] * actual_years
+
+        costs = numpy.array([capex])
+        maintain = numpy.array([opex_total])
+        income = numpy.array([income_total])
+        net_cost = capex + opex_total - income_total
+
+        investment_each_period = numpy.array(self.cfg.investment_each_period)
+        investment_up = investment_each_period[0] * (1 + self.cfg.investment_float_range)
+        investment_down = investment_each_period[0] * (1 - self.cfg.investment_float_range)
+
+        if investment_up >= net_cost >= investment_down:
+            self.capex_per_period = [capex]
+            self.opex_per_period = [opex_total]
+            self.incomes_per_period = [income_total]
+            self.net_costs_per_period = [net_cost]
+            self.costs_per_period = [capex + opex_total]
+            return True, [costs, maintain, income]
+        else:
+            return False, [None, None, None]
+
+    @property
     def satisfy_investment_constraints(self):
         # compute economy
         bmp_costs_by_period, bmp_maintain_by_period, bmp_income_by_period = self.calculate_profits_by_period()
-        invest = numpy.array(self.cfg.investment_each_period)
+        investment_each_period = numpy.array(self.cfg.investment_each_period)
+        Flag = False
+        invest_aver_constrain = []
+        if self.cfg.investment_aver_constrain:
+            invest_aver_constrain_up = investment_each_period[0] * (1 + self.cfg.investment_float_range)
+            invest_aver_constrain_down = investment_each_period[0] * (1 - self.cfg.investment_float_range)
+            invest_aver_constrain = [invest_aver_constrain_down, invest_aver_constrain_up]
+        # OLD: Hardcoded 2-stage investment logic (2026-03-19)
+        # invest_first_period_up = investment_each_period[0] * (1 + self.cfg.investment_float_range)
+        # invest_first_period_down = investment_each_period[0] * (1 - self.cfg.investment_float_range)
+        # invest_first_period = [invest_first_period_down, invest_first_period_up]
+        # invest_second_period_up = invest_tot_constrain_up - invest_first_period_up
+        # invest_second_period_down = invest_tot_constrain_down - invest_first_period_down
+        # invest_second_period = [invest_second_period_down, invest_second_period_up]
+
+        # NEW: Multi-stage investment logic (2026-03-19)
+        if self.cfg.enable_implementation_order and self.cfg.enable_investment_quota:
+            total_budget = sum(investment_each_period)
+            invest_tot_constrain_up = total_budget * (1 + self.cfg.investment_float_range)
+            invest_tot_constrain_down = total_budget * (1 - self.cfg.investment_float_range)
+            invest_tot_constrain = [invest_tot_constrain_down, invest_tot_constrain_up]
+
+            # Build per-stage constraints dynamically
+            # investment_each_period format: [stage1_budget, stage2_budget, ...]
+            num_stages = len(investment_each_period)
+            stage_constraints = []
+            for i in range(num_stages):
+                stage_up = investment_each_period[i] * (1 + self.cfg.investment_float_range)
+                stage_down = investment_each_period[i] * (1 - self.cfg.investment_float_range)
+                stage_constraints.append([stage_down, stage_up])
+
+            Flag = True
         costs = numpy.array(bmp_costs_by_period)
         maintain = numpy.array(bmp_maintain_by_period)
         income = numpy.array(bmp_income_by_period)
-        diff = invest - (costs + maintain - income)
-        print('investment constraints: ', invest)
-        print('costs: ', costs)
-        print('maintain: ', maintain)
-        print('income: ', income)
-        print('diff: ', diff)
+        if not self.cfg.enable_implementation_order and self.cfg.enable_investment_quota:
+            investment_up = investment_each_period[0] * (1 + self.cfg.investment_float_range)
+            investment_down = investment_each_period[0] * (1 - self.cfg.investment_float_range)
+            net_cost = costs + maintain - income
+            net_cost_value = 0.
+            # net_cost_value: government needs to prepare money for the first year and the future.
+            for value in net_cost:
+                if value < 0:
+                    break
+                net_cost_value = value + net_cost_value
+            if investment_up >= net_cost_value >= investment_down:
+                print('investment up: ', investment_up)
+                print('investment down: ', investment_down)
+                print('net cost: ', net_cost_value)
+                self.net_costs_per_period = (costs + maintain - income).tolist()
+                self.costs_per_period = (costs + maintain).tolist()
+                self.incomes_per_period = income.tolist()
+                # NEW (2026-03-30): Store detailed cost breakdown
+                self.capex_per_period = costs.tolist()
+                self.opex_per_period = maintain.tolist()
+                return True, [costs, maintain, income]
+            else:
+                return False, [None, None, None]
+        # print('investment constraints: ', investment_each_period)
+        # print('costs: ', costs)
+        # print('maintain: ', maintain)
+        # print('income: ', income)
+        # print('diff: ', diff)
 
         # not consider investment quota
         if not self.cfg.enable_investment_quota:
@@ -709,15 +1328,112 @@ class SUScenario(Scenario):
         else:
             if self.cfg.investment_each_period is None:
                 return False, [None, None, None]
-
-            # satisfy economic constraint
-            if numpy.all(numpy.greater(invest, costs + maintain - income)):
-                self.net_costs_per_period = (costs + maintain - income).tolist()
-                self.costs_per_period = (costs + maintain).tolist()
-                self.incomes_per_period = income.tolist()
+            # for the base scenario
+            if (costs == maintain).all():
                 return True, [costs, maintain, income]
-            else:
-                return False, [None, None, None]
+
+            # OLD: Hardcoded 2-stage validation (2026-03-19)
+            # if not self.cfg.investment_aver_constrain and Flag:
+            #     real_invest_first_period = 0
+            #     real_invest_second_period = 0
+            #     for ele in range(0, int(self.cfg.years_first_period)):
+            #         real_invest_first_period = real_invest_first_period + net_costs[ele]
+            #     for ele in range(int(self.cfg.years_first_period), int(self.cfg.implementation_period)):
+            #         real_invest_second_period = real_invest_second_period + net_costs[ele]
+            #     if invest_first_period_down <= real_invest_first_period <= invest_first_period_up and \
+            #         invest_second_period_down <= real_invest_second_period <= invest_second_period_up:
+            #         ...
+
+            # NEW: Multi-stage validation (2026-03-19)
+            if not self.cfg.investment_aver_constrain and Flag:
+                net_costs = (costs + maintain - income).tolist()
+                invest_tot_actual = 0
+
+                # Calculate actual investment per stage
+                # stage_years format: [years_stage1, years_stage2, ...]
+                # If not provided, fallback to 2-stage with years_first_period
+                if hasattr(self.cfg, 'stage_years') and self.cfg.stage_years:
+                    stage_years = self.cfg.stage_years
+                else:
+                    # Backward compatibility: use years_first_period for 2-stage
+                    years_first = int(self.cfg.years_first_period)
+                    years_second = int(self.cfg.implementation_period) - years_first
+                    stage_years = [years_first, years_second]
+
+                # Validate number of stages matches configuration
+                if len(stage_years) != len(stage_constraints):
+                    print(f'ERROR: stage_years length ({len(stage_years)}) != stage_constraints length ({len(stage_constraints)})')
+                    return False, [None, None, None]
+
+                # Calculate actual investment for each stage
+                real_invest_per_stage = []
+                year_offset = 0
+                for stage_idx, years_in_stage in enumerate(stage_years):
+                    stage_invest = 0
+                    for year in range(year_offset, year_offset + years_in_stage):
+                        if year < len(net_costs):
+                            stage_invest += net_costs[year]
+                    real_invest_per_stage.append(stage_invest)
+                    year_offset += years_in_stage
+
+                # Validate each stage against constraints
+                all_stages_valid = True
+                for stage_idx, (real_invest, constraint) in enumerate(zip(real_invest_per_stage, stage_constraints)):
+                    if not (constraint[0] <= real_invest <= constraint[1]):
+                        all_stages_valid = False
+                        break
+
+                if all_stages_valid:
+                    # Calculate total investment
+                    invest_tot_actual = sum(net_costs)
+                    if invest_tot_constrain_down <= invest_tot_actual <= invest_tot_constrain_up:
+                        # Print validation results
+                        for stage_idx, (real_invest, constraint) in enumerate(zip(real_invest_per_stage, stage_constraints)):
+                            print(f'Stage {stage_idx+1} investment constraint: {constraint}')
+                            print(f'Stage {stage_idx+1} actual investment: {real_invest}')
+                        print('Total investment constraint: ', invest_tot_constrain)
+                        print('Total actual investment: ', invest_tot_actual)
+
+                        self.net_costs_per_period = net_costs
+                        self.costs_per_period = (costs + maintain).tolist()
+                        self.incomes_per_period = income.tolist()
+                        # NEW (2026-03-30): Store detailed cost breakdown
+                        self.capex_per_period = costs.tolist()
+                        self.opex_per_period = maintain.tolist()
+                        return True, [costs, maintain, income]
+                    else:
+                        return False, [None, None, None]
+                else:
+                    return False, [None, None, None]
+            if self.cfg.investment_aver_constrain and Flag:
+                net_costs = (costs + maintain - income).tolist()
+                count = 0
+                invest_tot_actual = 0
+                for ele in range(0, int(self.cfg.implementation_period)):
+                    if invest_aver_constrain_down <= net_costs[ele] <= invest_aver_constrain_up:
+                        count = count + 1
+                    else:
+                        return False, [None, None, None]
+                if count == int(self.cfg.implementation_period):
+                    for element in range(0, len(net_costs)):
+                        invest_tot_actual = invest_tot_actual + net_costs[element]
+                    if invest_tot_constrain_down <= invest_tot_actual <= invest_tot_constrain_up:
+                        print('costs: ', costs)
+                        print('maintain: ', maintain)
+                        print('income: ', income)
+                        print('total investment constraint: ', invest_tot_constrain)
+                        print('total actual investment: ', invest_tot_actual)
+                        self.net_costs_per_period = net_costs
+                        self.costs_per_period = (costs + maintain).tolist()
+                        self.incomes_per_period = income.tolist()
+                        # NEW (2026-03-30): Store detailed cost breakdown
+                        self.capex_per_period = costs.tolist()
+                        self.opex_per_period = maintain.tolist()
+                        return True, [costs, maintain, income]
+                    else:
+                        return False, [None, None, None]
+                else:
+                    return False, [None, None, None]
 
     def statistics_by_period_bmp(self):
         periods = list()
@@ -742,6 +1458,7 @@ class SUScenario(Scenario):
                     unit_lu = spunits[unit_id]['landuse']
                     break
             subscenario, impl_period = divmod(int(gene_v), 1000)
+            # bmps_params keys are BMP type IDs (1,2,3,4)
             bmpparam = self.bmps_params[subscenario]
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
@@ -812,7 +1529,10 @@ class SUScenario(Scenario):
                         stats['BMPS'][bmpname]['INCOME'] += income
         return stats
 
-
+def extract_bmp_type(value):
+    if value == 0:
+        return 0
+    return int(value) // 1000  # 提取千位数作为BMP类型
 def select_potential_bmps(unitid,  # type: int
                           suitbmps,  # type: Dict[int, List[int]] # key could be SLPPOS or LANDUSE
                           unitsinfo,  # type: Dict[Union[AnyStr, int], Any]
@@ -939,6 +1659,13 @@ def initialize_scenario(cf, input_genes=None):
     return sce.initialize(input_genes=input_genes)
 
 
+def initialize_scenario_s_t(cf, input_genes=None):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
+    """Initialize gene values"""
+    sce = SUScenario(cf)
+    return sce.initialize_s_t(input_genes=input_genes)
+
+
 def initialize_scenario_with_bmps_order(cf, opt_genes, input_genes=False):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
     """Initialize gene values"""
@@ -959,20 +1686,49 @@ def scenario_effectiveness(cf, ind):
     # 3. decode gene values to BMP items and exporting to MongoDB.
     sce.decoding()
     sce.export_to_mongodb()
-    # 4. execute the SEIMS-based watershed model and get the timespan
-    sce.execute_seims_model()
-    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
-    # 5. calculate scenario effectiveness and delete intermediate data
-    sce.calculate_economy()
-    sce.calculate_environment()
-    # 6. Export scenarios information
+    # 4. NEW: Check investment constraints before running expensive simulation.
+    # OLD: No constraint check on offspring — violated individuals were simulated anyway.
+    satisfied, _ = sce.satisfy_investment_constraints_spatial
+    if not satisfied:
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
+        sce.economy = sce.worst_econ
+        sce.environment = sce.worst_env
+    else:
+        # 5. execute the SEIMS-based watershed model and get the timespan
+        # NEW: Skip SEIMS execution if using surrogate model
+        if not (hasattr(cf, 'use_surrogate') and cf.use_surrogate):
+            sce.execute_seims_model()
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        else:
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = 0., 0., 0., 0.
+        # 6. calculate scenario effectiveness
+        sce.calculate_economy()
+        sce.calculate_environment()
+    # 7. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
-    # 7. Clean the intermediate data of current scenario
-    sce.clean(scenario_id=sce.ID, delete_scenario=True, delete_spatial_gfs=True)
-    # 8. Assign fitness values
+    # 8. Clean the intermediate data of current scenario
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 9. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
-
+    ind.sed_sum = sce.sed_sum
+    ind.environment = sce.environment
+    ind.economy = sce.economy
+    # env_on_invest: 在任何模式（含代理模型）下均可由 environment/economy 直接计算
+    if sce.economy != 0:
+        sce.env_on_invest = sce.environment / sce.economy
+    else:
+        sce.env_on_invest = 0.0
+    # return_on_invest: 空间模式为单期，可由已计算的 capex/opex/income 推算 NPV 比值
+    if hasattr(sce, 'capex_per_period') and hasattr(sce, 'incomes_per_period') and sce.capex_per_period:
+        disc = 1.0 + getattr(sce.cfg, 'discount_rate', 0.1)
+        disc_cost = (sce.capex_per_period[0] + sce.opex_per_period[0]) / disc
+        disc_income = sce.incomes_per_period[0] / disc
+        sce.return_on_invest = disc_income / disc_cost if disc_cost != 0 else 0.0
+    else:
+        sce.return_on_invest = 0.0
+    ind.env_on_invest = sce.env_on_invest
+    ind.return_on_invest = sce.return_on_invest
     return ind
 
 
@@ -986,18 +1742,39 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
 
     # 2. decode gene values to BMP items and exporting to MongoDB.
     sce.decoding_with_bmps_order()
-    sce.export_to_mongodb()
+    _use_surrogate = hasattr(cf, 'use_surrogate') and cf.use_surrogate
+    if not _use_surrogate:
+        sce.export_to_mongodb()
 
     # 3. first evaluate economic investment to exclude scenarios that don't satisfy the constraints
     # if that don't satisfy the constraints, don't execute the time-consuming simulation process
-    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()  # sce.check_custom_constraints():
+    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints  # sce.check_custom_constraints():
+    if sce.cfg.eval_info['BASE_ENV'] < 0:
+        # 4. execute the SEIMS-based watershed model (or surrogate) to get base environment
+        if not _use_surrogate:
+            sce.execute_seims_model()
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        else:
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = 0., 0., 0., 0.
+        # 5. calculate scenario effectiveness and delete intermediate data
+        sce.calculate_environment_bmps_order()
+        sce.cfg.eval_info['BASE_ENV'] = sce.sed_sum  # use raw sed_sum for ratio calculation
+        sce.cfg.eval_info['BASE_SED_PERIODS'] = sce.sed_per_period
     if satisfied:
-        # 4. execute the SEIMS-based watershed model and get the timespan
-        sce.execute_seims_model()
-        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        # 4. execute the SEIMS-based watershed model (or surrogate) and get the timespan
+        if not _use_surrogate:
+            sce.execute_seims_model()
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        else:
+            ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = 0., 0., 0., 0.
         # 5. calculate scenario effectiveness and delete intermediate data
         sce.calculate_economy_bmps_order(costs, maintains, incomes)
         sce.calculate_environment_bmps_order()
+        sce.calculate_bmp()
+        if sce.economy is not 0:
+            sce.env_on_invest = sce.environment / sce.economy
+        else:
+            sce.env_on_invest = 0.0
     else:
         # worst conditions
         ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
@@ -1006,16 +1783,23 @@ def scenario_effectiveness_with_bmps_order(cf, ind):
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
-    # 7. Clean the intermediate data of current scenario
-    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 7. Clean the intermediate data of current scenario (skip in surrogate mode)
+    if not _use_surrogate:
+        sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
     ind.sed_sum = sce.sed_sum
     ind.sed_per_period = sce.sed_per_period
+    ind.environment = sce.environment
+    ind.economy = sce.economy
     ind.net_costs_per_period = sce.net_costs_per_period
     ind.costs_per_period = sce.costs_per_period
     ind.incomes_per_period = sce.incomes_per_period
-
+    ind.cost_variation = sce.cost_variation
+    ind.abandon_possibility = sce.abandon_possibility
+    ind.return_on_invest = sce.return_on_invest
+    ind.env_on_invest = sce.env_on_invest
+    ind.bmp_type_count = sce.bmp_type_count
     return ind
 
 
@@ -1123,7 +1907,7 @@ def main_manual_bmps_order(sceid, gene_values):
     sce.initialize(input_genes=gene_values)
     sce.decoding_with_bmps_order()
     sce.export_to_mongodb()
-    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()
+    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints
     print('investments: ', costs + maintains)
     if satisfied:
         sce.execute_seims_model()
@@ -1135,17 +1919,57 @@ def main_manual_bmps_order(sceid, gene_values):
         sce.export_scenario_to_txt()
 
         print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-        print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\t'
-              'sed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\t'
-              'incomes_per_period: %s'
-              % (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period),
-                 str(sce.net_costs_per_period), str(sce.costs_per_period),
-                 str(sce.incomes_per_period)))
+        print(
+            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\tincomes_per_period: %s' %
+            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period),
+             str(sce.costs_per_period), str(sce.incomes_per_period)))
 
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
-def generate_tiff_txt(sceid, gene_values):
+def main_manual_s_t(sceid, gene_values):
+    """Test of set scenario manually."""
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+    key_bmp = {9: 1, 16: 2, 43: 2, 60: 1, 61: 3, 66: 1, 67: 2, 69: 1}
+    sce.cfg.key_bmps = key_bmp
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.decoding_with_bmps_order()
+    sce.export_to_mongodb()
+    satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints
+    # print('investments: ', costs + maintains)
+
+    if satisfied:
+        sce.execute_seims_model()
+        sce.calculate_economy_bmps_order(costs, maintains, incomes)
+        sce.calculate_environment_bmps_order()
+        sce.export_sce_tif = True
+        sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
+        sce.export_sce_txt = True
+        sce.export_scenario_to_txt()
+
+        print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+        print(
+            'Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n\tnet_costs_per_period: %s\n\tcosts_per_period: %s\n\tincomes_per_period: %s' %
+            (sce.economy, sce.environment, sce.sed_sum, str(sce.sed_per_period), str(sce.net_costs_per_period),
+             str(sce.costs_per_period), str(sce.incomes_per_period)))
+        result = 'D:\EGC\SEIMS-dev\data\youwuzhen\demo_youwuzhen30m_longterm_model\SA_NSGA2_S_T_CONSTRAINED_SLPPOS_HILLSLP_Gen_777_Pop_80\spatial_result.txt'
+        with open(result, 'a') as f:
+            f.write('{} {}\n'.format(sce.economy, sce.environment))
+
+    # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+
+
+def generate_giff_txt(sceid, gene_values):
     cf = get_config_parser()
     base_cfg = SAConfig(cf)  # type: SAConfig
     if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
@@ -1164,8 +1988,8 @@ def generate_tiff_txt(sceid, gene_values):
     # indicate the model has run
     sce.modelrun = True
     sce.modelout_dir = sce.model.output_dir
-    # sce.calculate_economy()
-    # sce.calculate_environment()
+    sce.calculate_economy()
+    sce.calculate_environment()
     sce.export_sce_tif = True
     sce.export_scenario_to_gtiff(sce.model.output_dir + os.sep + 'scenario_%d.tif' % sceid)
     sce.export_sce_txt = True
@@ -1178,16 +2002,7 @@ def generate_tiff_txt(sceid, gene_values):
     # sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
-def extra_process_for_last_generation(cf, log_filename, last_gen, output_path, export_tif=False):
-    base_cfg = SAConfig(cf)  # type: SAConfig
-    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
-        cfg = SASlpPosConfig(cf)
-    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
-        cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
-        cfg = SACommUnitConfig(cf)
-    cfg.construct_indexes_units_gene()
-
+def extra_process_for_last_generation(log_filename, last_gen, output_path, export_tif=False):
     def cumulative(lists):
         cu_list = []
         length = len(lists)
@@ -1209,6 +2024,16 @@ def extra_process_for_last_generation(cf, log_filename, last_gen, output_path, e
                 gene_values = ast.literal_eval(items[9][11:-2])
                 output_tif = '{}/Scenario_{}.tif'.format(output_path, sceid)
 
+                # instantiate scenario
+                cf = get_config_parser()
+                base_cfg = SAConfig(cf)  # type: SAConfig
+                if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+                    cfg = SASlpPosConfig(cf)
+                elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+                    cfg = SAConnFieldConfig(cf)
+                else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+                    cfg = SACommUnitConfig(cf)
+                cfg.construct_indexes_units_gene()
                 sce = SUScenario(cfg)
                 sce.set_unique_id(sceid)
                 sce.initialize(input_genes=gene_values)
@@ -1273,56 +2098,20 @@ def test_func():
     #            2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
     # main_manual(sid, gvalues)
 
-    # STEP+FIXED+HH
-    print('-----STEP+FIXED+HH-----')
-    sid = 240815984
-    gvalues = [0.0, 2002.0, 2003.0, 2003.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2003.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2002.0, 0.0, 0.0, 2002.0, 0.0, 1004.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2003.0, 2004.0, 0.0, 0.0, 2003.0, 0.0, 2003.0, 2001.0, 0.0, 2004.0, 0.0, 0.0, 1001.0, 3001.0, 2002.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2002.0, 2004.0, 0.0, 2002.0, 2003.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2001.0, 2005.0, 0.0, 0.0, 0.0, 1004.0, 3001.0, 4002.0, 1004.0, 3003.0, 0.0, 1002.0, 3001.0, 0.0, 2005.0, 2002.0, 0.0, 0.0, 0.0, 0.0]
-    main_manual_bmps_order(sid, gvalues)
-
-    # STEP+FIXED+MM
-    print('-----STEP+FIXED+MM-----')
-    sid = 248886478
-    gvalues = [0.0, 2002.0, 2003.0, 2005.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 2005.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2002.0, 0.0, 0.0, 2001.0, 0.0, 1003.0, 1001.0, 0.0, 2005.0, 2001.0, 0.0, 2003.0, 2004.0, 0.0, 0.0, 2003.0, 0.0, 2003.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 1001.0, 3001.0, 2001.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2004.0, 2005.0, 0.0, 2005.0, 2003.0, 1002.0, 0.0, 0.0, 2002.0, 2001.0, 0.0, 1001.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2001.0, 2005.0, 0.0, 0.0, 0.0, 1003.0, 3003.0, 4003.0, 1002.0, 3004.0, 0.0, 1001.0, 3004.0, 0.0, 2005.0, 2004.0, 0.0, 0.0, 0.0, 0.0]
-    main_manual_bmps_order(sid, gvalues)
-
-    # STEP+FIXED+LL
-    print('-----STEP+FIXED+LL-----')
-    sid = 187742724
-    gvalues = [0.0, 2004.0, 2005.0, 2005.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2002.0, 2003.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2002.0, 0.0, 1001.0, 1002.0, 0.0, 2001.0, 2002.0, 0.0, 2002.0, 2005.0, 0.0, 0.0, 2005.0, 0.0, 2003.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 1005.0, 3002.0, 2003.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1003.0, 2001.0, 2005.0, 0.0, 2002.0, 2002.0, 1004.0, 0.0, 0.0, 2005.0, 2001.0, 0.0, 1004.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 2002.0, 2003.0, 0.0, 0.0, 0.0, 1003.0, 3002.0, 4003.0, 1003.0, 3003.0, 0.0, 1001.0, 3004.0, 0.0, 2002.0, 2005.0, 0.0, 0.0, 0.0, 0.0]
-    main_manual_bmps_order(sid, gvalues)
-
-    # # STEP+VARY+HH
-    # print('-----STEP+VARY+HH-----')
-    # sid = 573558828
-    # gvalues = [0.0, 2002.0, 2002.0, 2005.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2002.0, 0.0, 0.0, 2004.0, 2003.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 2002.0, 0.0, 0.0, 2002.0, 0.0, 1003.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2005.0, 0.0, 0.0, 2002.0, 0.0, 2003.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 1001.0, 3001.0, 2005.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 2001.0, 0.0, 2003.0, 2004.0, 1004.0, 0.0, 0.0, 2004.0, 2001.0, 0.0, 1001.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3002.0, 4003.0, 1004.0, 3001.0, 0.0, 1002.0, 3005.0, 0.0, 2003.0, 2002.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
-    #
-    # # STEP+VARY+MM
-    # print('-----STEP+VARY+MM-----')
-    # sid = 248509513
-    # gvalues = [0.0, 2002.0, 2002.0, 2004.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 2005.0, 2001.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2004.0, 0.0, 0.0, 2002.0, 0.0, 1001.0, 1001.0, 0.0, 2004.0, 2001.0, 0.0, 2005.0, 2004.0, 0.0, 0.0, 2005.0, 0.0, 2004.0, 2003.0, 0.0, 2001.0, 0.0, 0.0, 1002.0, 3002.0, 2001.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 2004.0, 0.0, 2002.0, 2004.0, 1001.0, 0.0, 0.0, 2004.0, 2001.0, 0.0, 1001.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2005.0, 2001.0, 2005.0, 0.0, 0.0, 0.0, 1002.0, 3002.0, 4004.0, 1001.0, 3001.0, 0.0, 1003.0, 3005.0, 0.0, 2003.0, 2003.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
-    #
-    # # STEP+VARY+LL
-    # print('-----STEP+VARY+LL-----')
-    # sid = 120310505
-    # gvalues = [0.0, 2004.0, 2003.0, 2002.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 2005.0, 2002.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 1001.0, 1002.0, 0.0, 2005.0, 2001.0, 0.0, 2002.0, 2002.0, 0.0, 0.0, 2003.0, 0.0, 2005.0, 2001.0, 0.0, 2003.0, 0.0, 0.0, 1001.0, 3003.0, 2002.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1004.0, 2005.0, 2005.0, 0.0, 2003.0, 2004.0, 1003.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1004.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 2003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 2002.0, 2005.0, 0.0, 0.0, 0.0, 1004.0, 3002.0, 4005.0, 1003.0, 3002.0, 0.0, 1001.0, 3001.0, 0.0, 2001.0, 2003.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
-
     # benchmark scenario: all BMPs are implemented in the 1st year
-    # sid = 1051
-    # gvalues = [0.0, 2001.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0,
-    #            0.0, 2001.0, 0.0, 0.0,
-    #            0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 1001.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0,
-    #            2001.0, 0.0, 0.0, 2001.0, 0.0,
-    #            2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 1001.0, 3001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #            0.0, 1001.0, 2001.0, 2001.0,
-    #            0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0,
-    #            0.0,
-    #            0.0, 0.0, 0.0, 0.0,
-    #            2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3001.0, 4001.0, 1001.0, 3001.0, 0.0, 1001.0, 3001.0, 0.0,
-    #            2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
-    # main_manual_bmps_order(sid, gvalues)
+    sid = 1051
+    gvalues = [0.0, 2001.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0,
+               0.0, 2001.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 1001.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0,
+               2001.0, 0.0, 0.0, 2001.0, 0.0,
+               2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 1001.0, 3001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0, 1001.0, 2001.0, 2001.0,
+               0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0,
+               0.0,
+               0.0, 0.0, 0.0, 0.0,
+               2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3001.0, 4001.0, 1001.0, 3001.0, 0.0, 1001.0, 3001.0, 0.0,
+               2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual_bmps_order(sid, gvalues)
 
     # benchmark scenario: all BMPs are implemented in the 2nd year
     # sid = 1052
@@ -1452,6 +2241,44 @@ def test_func():
     # generate_giff_txt_with_bmps_order(sid, gvalues)
 
 
+def get_key_bmps(cfg):
+    key_bmps = dict()
+    if cfg.prioritize_key_bmps:
+        if cfg.pareto_front_scenarios:
+            for file in cfg.pareto_front_scenarios:
+                filepath = cfg.model.model_dir + os.sep + file
+                with open(filepath) as fp:
+                    for line in fp.readlines():
+                        items = line.split(':')
+                        if items[0] == 'Scenario ID':
+                            sceid = int(items[1])
+                        elif items[0] == 'Gene number':
+                            geneNum = int(items[1])
+                        elif items[0] == 'Gene values':
+                            gvalues = [float(v.strip()) for v in items[1].split(',')]
+                        else:
+                            pass
+                # Initialize key_bmps with the current scenario's values if empty
+                if not key_bmps:
+                    for idx, gene_v in enumerate(gvalues):
+                        if gene_v > 1000:
+                            gene_v, impl_period = divmod(int(gene_v), 1000)
+                        if gene_v > 0:
+                            key_bmps[idx] = gene_v
+                else:
+                    # Update key_bmps to 0 if the current scenario's value differs
+                    for idx, gene_v in enumerate(gvalues):
+                        if gene_v > 1000:
+                            gene_v, impl_period = divmod(int(gene_v), 1000)
+                        if gene_v > 0:
+                            if idx in key_bmps and key_bmps[idx] != gene_v:
+                                key_bmps[idx] = 0
+                        else:
+                            if idx in key_bmps:
+                                del key_bmps[idx]
+    cfg.key_bmps = key_bmps
+
+
 def recalc_economy():
     # only for some custom functions
     # the operation list -> str only works in python 3
@@ -1460,7 +2287,7 @@ def recalc_economy():
     contents = []
     with open(log_file, 'r') as fp_in:
         for index, line in enumerate(fp_in.readlines()):
-            if index in [0,1]:
+            if index in [0, 1]:
                 contents.append(line)
                 continue
             items = line.split('\t')
@@ -1478,10 +2305,10 @@ def recalc_economy():
             sce.initialize(input_genes=gene_values)
             sce.decoding_with_bmps_order()
             # sce.export_to_mongodb()
-            satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints()
+            satisfied, [costs, maintains, incomes] = sce.satisfy_investment_constraints
             new_economy = sce.calculate_economy_bmps_order(costs, maintains, incomes)
-            items.insert(7,str(sce.costs_per_period))
-            items.insert(8,str(sce.incomes_per_period))
+            items.insert(7, str(sce.costs_per_period))
+            items.insert(8, str(sce.incomes_per_period))
             contents.append('\t'.join(items))
 
     with open(output_file, 'w') as fp_out:
@@ -1489,31 +2316,74 @@ def recalc_economy():
 
 
 if __name__ == '__main__':
-    # output_tif = 'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/Scenario_220322012.tif'
-    # gene_values = [0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0,
-    #                0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0,
-    #                2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    #                1.0, 2.0, 2.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0,
-    #                0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0,
-    #                2.0, 0.0, 0.0, 0.0, 0.0]
-    # generate_giff_txt_with_bmps_order(220322012, gene_values, True, True, output_tif)
+    #output_tif = 'D:\EGC\SEIMS-dev\data\youwuzhen\demo_youwuzhen30m_longterm_model\SA_NSGA2_S_T_CONSTRAINED_SLPPOS_HILLSLP_Gen_267_Pop_80\Scenario_374851655.tif'
+    # shenshen's
+    # gene_values=[0.0, 2001.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 1001.0, 1001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 2001.0, 0.0, 2001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 2001.0, 3001.0, 2001.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 2001.0, 0.0, 2001.0, 2001.0, 1001.0, 0.0, 0.0, 2001.0, 2001.0, 0.0, 1001.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 1001.0, 3001.0, 4001.0, 1001.0, 3001, 0.0, 1001.0, 3001.0, 0.0, 2001.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
+    # sid = 196508708
 
-    gvalues = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 2.0, 0.0, 3.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 1.0, 3.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               1.0, 0.0, 4.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0]
-    generate_tiff_txt(111, gvalues)
+    # gen100 = 'E:/3-Papers/SpatialTemporalBMPoptiz/result/SA_NSGA2_S_T_UNCONSTRAINED_SLPPOS_HILLSLP_Gen_100_Pop_100/s_t_uncons_gen100.txt'
+    '''gen100 = 'E:/3-Papers/SpatialTemporalBMPoptiz/result/SA_NSGA2_TEMPORAL_no5_Gen_100_Pop_100/t_gen100.txt'
+    # notdiscount = 'E:/3-Papers/SpatialTemporalBMPoptiz/result/SA_NSGA2_S_T_UNCONSTRAINED_SLPPOS_HILLSLP_Gen_100_Pop_100/s_t_notdiscount_result.txt'
+    # stepwise_result = 'E:/3-Papers/SpatialTemporalBMPoptiz/result/SA_NSGA2_S_T_UNCONSTRAINED_SLPPOS_HILLSLP_Gen_100_Pop_100/s_t_stepwise_result.txt'
+    stepwise_result = 'E:/3-Papers/SpatialTemporalBMPoptiz/result/SA_NSGA2_TEMPORAL_no5_Gen_100_Pop_100/t_stepwise_result.txt'
+    discount_rate = 0.1
+    with open(gen100, 'r') as f:
+        for line in f:
+            data = line.split('\t')
+            filename = 'Scenario_{}.txt'.format(data[1])
+            # net_cost = eval(data[6])
+
+            # cost_maintain = eval(data[7])
+            # with open(stepwise_result, 'a') as f1:
+            #     print('cost+maintain:{}'.format(cost_maintain))
+            #     for index, cost_maintain_per in enumerate(cost_maintain):
+            #         cost_maintain[index] = cost_maintain_per / numpy.power(1.0 + discount_rate, index + 1)
+            #     f1.write('{}\n'.format(cost_maintain))
+            #     print('cost+maintain_discount:{}'.format(cost_maintain))
+
+            # with open(notdiscount, 'a') as f1:
+            #     f1.write('{} {}\n'.format(sum(net_cost),int(data[3])))
+
+            sid = int(data[1])
+            filepath = os.path.join(
+                'E:/3-Papers/SpatialTemporalBMPoptiz/result_newcrossover/SA_NSGA2_S_T_Gen_92-100_Pop_100_20230706/Scenarios/',
+                filename)  #
+
+            with open(filepath, 'r') as f_file:
+                lines = f_file.readlines()
+                for i in range(len(lines)):
+                    if lines[i].startswith('Gene values:'):
+                        values = lines[i].split(':')[1].strip().split(',')
+                        new_values = []
+                        for value in values:
+                            if float(value) != 0:
+                                value = (float(value) // 1000) * 1000 + 1.0
+                            else:
+                                value = float(value)
+                            new_values.append(value)
+                        print('Spatial scenario: ', new_values)
+                        gene_values = new_values
+                        main_manual_s_t(sid, gene_values)
+'''
+    sid = 218551245
+    gene_values=[1003.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 1005.0, 0.0, 0.0, 1004.0, 0.0, 0.0, 2002.0, 2004.0, 0.0, 1003.0, 0.0, 2005.0, 2003.0, 0.0, 4003.0, 0.0, 0.0, 0.0, 1003.0, 0.0, 2002.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 1001.0, 0.0, 2005.0, 0.0, 0.0, 2002.0, 2001.0, 0.0, 1005.0, 0.0, 0.0, 1001.0, 0.0, 0.0, 1004.0, 1004.0, 0.0, 1005.0, 0.0, 0.0, 2004.0, 0.0, 0.0, 1005.0, 3005.0, 0.0, 0.0, 0.0, 0.0, 1001.0, 2001.0, 0.0, 1004.0, 1001.0, 2004.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2001.0, 2002.0, 0.0, 1001.0, 0.0, 0.0, 0.0, 1001.0, 0.0, 2004.0, 2004.0, 2004.0, 0.0, 0.0, 2005.0, 0.0, 0.0, 0.0, 0.0, 2004.0, 0.0, 2002.0, 2001.0, 0.0, 0.0, 0.0, 0.0]
+    main_manual_s_t(sid, gene_values)
+    #generate_giff_txt_with_bmps_order(220322012,gene_values,True,True,output_tif)
+    # gvalues = [0.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0,
+    #            2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 1.0, 3.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0,
+    #            0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #            2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 1.0, 3.0, 4.0, 1.0, 3.0, 0.0, 1.0, 3.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0]
+    # generate_giff_txt(10, gvalues)
 
     # recalc_economy()
 
     # test_func()
 
-    # cf = get_config_parser()
-    # extra_process_for_last_generation(cf,
-    #     'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/SA_NSGA2_SLPPOS_HILLSLP_Gen_2_Pop_4/runtime.log',
-    #     2,
-    #     'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt30/Scenarios/')
+    # extra_process_for_last_generation(
+    #     'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt25/SA_NSGA2_SLPPOS_HILLSLP_Gen_100_Pop_100/runtime.log',
+    #     100,
+    #     'D:/Programs/SEIMS/data/youwuzhen/ss_youwuzhen10m_longterm_model/group12_opt25/Scenarios/')
 
 # cf = get_config_parser()
 # # cfg = SAConfig(cf)  # type: SAConfig

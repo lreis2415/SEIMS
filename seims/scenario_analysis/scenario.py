@@ -27,7 +27,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from bson.objectid import ObjectId
 from pygeoc.utils import get_config_parser
-from pymongo.errors import NetworkTimeout
+from pymongo.errors import NetworkTimeout, PyMongoError
 from typing import List, Iterator, Optional
 
 from scenario_analysis.config import SAConfig
@@ -80,11 +80,14 @@ class Scenario(object):
         self.sed_per_period = list()
         self.worst_econ = cfg.worst_econ
         self.worst_env = cfg.worst_env
-
+        self.return_on_invest = 0.
+        self.env_on_invest = 0.
+        self.abandon_possibility = 0.
+        self.cost_variation = 0.
         self.gene_num = 0
         self.gene_values = list()  # type: List[int]
         self.bmp_items = dict()
-
+        self.bmp_type_count = dict()
         self.rule_mtd = cfg.bmps_cfg_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
@@ -96,10 +99,10 @@ class Scenario(object):
         # SEIMS-based model related
         self.modelcfg = cfg.model
         self.modelcfg_dict = self.modelcfg.ConfigDict
+
+        # Initialize SEIMS model
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
-
         self.model.ReadMongoDBData()
-
         self.model.SetMongoClient()
         self.scenario_db = self.model.ScenarioDBName
         self.model.ResetSimulationPeriod()  # Reset the simulation period
@@ -110,7 +113,6 @@ class Scenario(object):
         else:
             print('Warning: No OUTPUTID is defined in BMPs_info. Please make sure the '
                   'STARTTIME and ENDTIME of ENVEVAL are consistent with Evaluation period!')
-
         self.model.UnsetMongoClient()  # Unset in time!
 
         # (Re)Calculate timerange in the unit of year
@@ -168,9 +170,9 @@ class Scenario(object):
         try:
             # find ScenarioID, remove if existed.
             if collection.count_documents({'ID': self.ID}) > 0:
-                collection.remove({'ID': self.ID})
-        except NetworkTimeout or Exception:
-            # In case of unexpected raise
+                collection.delete_many({'ID': self.ID})  # 使用 delete_many 替代 remove
+        except PyMongoError as e:
+            print(f"MongoDB operation failed: {str(e)}")
             pass
         for objid, bmp_item in viewitems(self.bmp_items):
             bmp_item['_id'] = ObjectId()
@@ -203,6 +205,27 @@ class Scenario(object):
             outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n\tsed_sum: %f\n\tsed_per_period: %s\n' % (
                 self.economy, self.environment, self.sed_sum, self.sed_per_period))
 
+            # NEW (2026-03-30): Output detailed cost breakdown
+            if hasattr(self, 'capex_per_period') and hasattr(self, 'opex_per_period') and hasattr(self, 'incomes_per_period'):
+                total_capex = sum(self.capex_per_period) if self.capex_per_period else 0
+                total_opex = sum(self.opex_per_period) if self.opex_per_period else 0
+                total_income = sum(self.incomes_per_period) if self.incomes_per_period else 0
+                outfile.write('\tcost_detail: {"cost": %.2f, "maintain": %.2f, "income": %.2f}\n' % (total_capex, total_opex, total_income))
+
+            # NEW (2026-03-30): Output surrogate vs SEIMS comparison results
+            if hasattr(self, 'sed_sum_seims') and self.sed_sum_seims is not None:
+                outfile.write('\tsed_sum_seims: %f\n' % self.sed_sum_seims)
+            if hasattr(self, 'sed_sum_surro') and self.sed_sum_surro is not None:
+                outfile.write('\tsed_sum_surro: %f\n' % self.sed_sum_surro)
+            if hasattr(self, 'env_seims') and self.env_seims is not None:
+                outfile.write('\tenv_seims: %f\n' % self.env_seims)
+            if hasattr(self, 'env_surro') and self.env_surro is not None:
+                outfile.write('\tenv_surro: %f\n' % self.env_surro)
+
+            outfile.write('Preference:\n\treturn_on_invest: %f\n\tenvironment_on_invest: %f\n\tabandon_possibility: %f\n\tcost_variation: %f\n' % (
+                self.return_on_invest, self.env_on_invest, self.abandon_possibility, self.cost_variation))
+            outfile.write(
+                'BMP_type_count: %s\n' % (self.bmp_type_count))
     def export_scenario_to_gtiff(self):
         """Export the areal BMPs to gtiff for further analysis.
 

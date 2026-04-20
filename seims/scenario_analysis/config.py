@@ -1,6 +1,6 @@
 """Base configuration of Scenario Analysis.
 
-    @author   : Liangjun Zhu, Huiran Gao, Shen Shen
+    @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
     - 16-12-30  - hr - initial implementation.
@@ -10,6 +10,7 @@
 """
 from __future__ import absolute_import, unicode_literals
 
+import ast
 from configparser import ConfigParser
 from future.utils import viewitems
 from datetime import datetime
@@ -44,6 +45,8 @@ class SAConfig(object):
         self.runtime_years = 0.
         self.export_sce_txt = False
         self.export_sce_tif = False
+        self.enable_implementation_order = False
+        self.enable_investment_quota = False
         if 'Scenario_Common' not in cf.sections():
             raise ValueError('[Scenario_Common] section MUST be existed in *.ini file.')
         self.eval_stime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_start')
@@ -51,32 +54,59 @@ class SAConfig(object):
         self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
         self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
         self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
-        # add optional parameters for stepwise investment-based optimization. By SS
-        self.implementation_period = -1
-        self.effectiveness_changeable = False
-        self.change_frequency = -1
-        self.change_times = -1
-        self.enable_investment_quota = True
-        self.investment_each_period = list()
-        self.discount_rate = 0
-        if cf.has_option('Scenario_Common', 'implementation_period'):
+        if cf.has_option('Scenario_Common', 'implementation_period') and cf.has_option('Scenario_Common', 'effectiveness_changeable') and \
+         cf.has_option('Scenario_Common', 'change_frequency') and cf.has_option('Scenario_Common', 'enable_investment_quota') and \
+         cf.has_option('Scenario_Common', 'investment_each_period') and cf.has_option('Scenario_Common', 'discount_rate') and \
+            cf.has_option('Scenario_Common', 'investment_float_range') and cf.has_option('Scenario_Common', 'years_first_period') and \
+            cf.has_option('Scenario_Common', 'selected_scenario_file') and cf.has_option('Scenario_Common', 'enable_implementation_order') and \
+            cf.has_option('Scenario_Common', 'investment_aver_constrain'):
             self.implementation_period = cf.getfloat('Scenario_Common', 'implementation_period')
-        if cf.has_option('Scenario_Common', 'effectiveness_changeable'):
             self.effectiveness_changeable = cf.getboolean('Scenario_Common', 'effectiveness_changeable')
-        if cf.has_option('Scenario_Common', 'change_frequency'):
             self.change_frequency = cf.getint('Scenario_Common', 'change_frequency')
             self.change_times = int(self.implementation_period/self.change_frequency)
-        if cf.has_option('Scenario_Common', 'enable_investment_quota'):
             self.enable_investment_quota = cf.getboolean('Scenario_Common', 'enable_investment_quota')
-        if cf.has_option('Scenario_Common', 'investment_each_period'):
             self.investment_each_period = eval(cf.get('Scenario_Common', 'investment_each_period'))
-        if cf.has_option('Scenario_Common', 'discount_rate'):
             self.discount_rate = cf.getfloat('Scenario_Common', 'discount_rate')
+            self.selected_scenario_file = cf.get('Scenario_Common', 'selected_scenario_file')
+            self.enable_implementation_order = cf.getboolean('Scenario_Common', 'enable_implementation_order')
+            self.investment_float_range = cf.getfloat('Scenario_Common', 'investment_float_range')
+            self.years_first_period = cf.getfloat('Scenario_Common', 'years_first_period')
+            self.investment_aver_constrain = cf.getboolean('Scenario_Common', 'investment_aver_constrain')
+        # NEW: Multi-stage support (2026-03-19)
+        if cf.has_option('Scenario_Common', 'stage_years'):
+            stage_years_str = cf.get('Scenario_Common', 'stage_years')
+            if stage_years_str:
+                import json as _json
+                self.stage_years = _json.loads(stage_years_str)
+            else:
+                self.stage_years = []
+        else:
+            self.stage_years = []
         if cf.has_option('Scenario_Common', 'export_scenario_txt'):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
 
+        # NEW (2026-03-30): Surrogate model configuration
+        self.use_surrogate = False
+        self.surrogate_model_dir = ''
+        self.surrogate_comparison = False
+        if cf.has_option('Scenario_Common', 'use_surrogate'):
+            self.use_surrogate = cf.getboolean('Scenario_Common', 'use_surrogate')
+        if cf.has_option('Scenario_Common', 'surrogate_model_dir'):
+            self.surrogate_model_dir = cf.get('Scenario_Common', 'surrogate_model_dir')
+        if cf.has_option('Scenario_Common', 'surrogate_comparison'):
+            self.surrogate_comparison = cf.getboolean('Scenario_Common', 'surrogate_comparison')
+
+        # Initialize prioritize_key_bmps before checking
+        self.prioritize_key_bmps = False
+        if cf.has_option('Scenario_Common', 'prioritize_key_bmps'):
+            self.prioritize_key_bmps = cf.getboolean('Scenario_Common', 'prioritize_key_bmps')
+        if self.prioritize_key_bmps and cf.has_option('Scenario_Common', 'pareto_front_scenarios'):
+            self.pareto_front_scenarios = list()
+            pareto_front_scenarios_str = cf.get('Scenario_Common', 'pareto_front_scenarios')
+            self.pareto_front_scenarios = ast.literal_eval(pareto_front_scenarios_str)
+            print(self.pareto_front_scenarios[0])
         # 3. Application specific setting section [BMPs]
         # Selected BMPs, the key is BMPID, and value is the BMP information dict
         self.bmps_info = dict()  # type: Dict[int, Dict[AnyStr, Union[int, float, AnyStr, List[Union[int, float, AnyStr]]]]]
@@ -141,10 +171,43 @@ class SAConfig(object):
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config, None]
+
+        # FIXED: Read optimization_mode to distinguish temporal and spatio_temporal
+        opt_mode = 'spatial'  # default
+        if cf.has_option('Scenario_Common', 'optimization_mode'):
+            opt_mode = cf.get('Scenario_Common', 'optimization_mode')
+
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir,
-                                        'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
-                                                            self.bmps_cfg_method))
+            if opt_mode == 'temporal':
+                # Temporal mode: optimize BMP implementation order only
+                if self.enable_investment_quota:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_TEMPORAL_CONSTRAINED_%s_%s' % (self.bmps_cfg_unit,
+                                                                            self.bmps_cfg_method))
+                else:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_TEMPORAL_%s_%s' % (self.bmps_cfg_unit,
+                                                                        self.bmps_cfg_method))
+            elif opt_mode == 'spatio_temporal':
+                # Spatio-temporal mode: optimize both spatial configuration and temporal order
+                if self.enable_investment_quota:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_S_T_CONSTRAINED_%s_%s' % (self.bmps_cfg_unit,
+                                                                        self.bmps_cfg_method))
+                else:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_S_T_%s_%s' % (self.bmps_cfg_unit,
+                                                                    self.bmps_cfg_method))
+            else:  # spatial mode
+                if self.enable_investment_quota:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_SPATIAL_CONSTRAINED_%s_%s' % (self.bmps_cfg_unit,
+                                                                                self.bmps_cfg_method))
+                else:
+                    self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                                'SA_NSGA2_SPATIAL_%s_%s' % (self.bmps_cfg_unit,
+                                                                            self.bmps_cfg_method))
+
         # Using the existed population derived from previous scenario optimization
         self.initial_byinput = cf.getboolean(self.opt_mtd.upper(), 'inputpopulation') if \
             cf.has_option(self.opt_mtd.upper(), 'inputpopulation') else False
@@ -156,7 +219,8 @@ class SAConfig(object):
             self.input_pareto_gen = cf.getint(self.opt_mtd.upper(), 'generationselected')
 
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
-        UtilClass.rmmkdir(self.scenario_dir)
+        if not os.path.exists(self.scenario_dir):
+            os.makedirs(self.scenario_dir, exist_ok=True)
 
         # 5. (Optional) Plot settings for matplotlib
         self.plot_cfg = PlotConfig(cf)

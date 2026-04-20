@@ -1,0 +1,96 @@
+# SEIMS情景优化框架 Docker镜像 - 代理模型版本
+# 使用 python:3.10-slim 基础镜像，本地wheels离线安装
+#
+# 构建命令（在 D:\EGC\SEIMS-dev 目录执行）：
+#   docker build --tag seims-optimizer:surrogate -f docker/Dockerfile.surrogate .
+
+FROM python:3.10-slim
+
+LABEL maintainer="SEIMS Team"
+LABEL description="SEIMS Scenario Analysis with Surrogate Model"
+LABEL version="surrogate-v1"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 阶段1: 安装系统依赖
+# ══════════════════════════════════════════════════════════════════════════════
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgdal-dev \
+    gdal-bin \
+    netcat-openbsd \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 阶段2: 使用本地wheels目录离线安装Python依赖
+# ══════════════════════════════════════════════════════════════════════════════
+COPY seims/scenario_analysis/wheels_complete /tmp/wheels
+
+RUN pip install --no-cache-dir --no-index --find-links=/tmp/wheels \
+    pip setuptools wheel && \
+    pip install --no-cache-dir --no-index --find-links=/tmp/wheels \
+    numpy \
+    scipy \
+    matplotlib \
+    pandas \
+    pymongo \
+    deap \
+    pymoo \
+    scikit-learn \
+    xgboost \
+    joblib \
+    PyGeoC \
+    networkx \
+    cma \
+    autograd \
+    "alive-progress" \
+    dill \
+    future \
+    dnspython \
+    deprecated \
+    wrapt \
+    packaging \
+    pyparsing \
+    cycler \
+    kiwisolver \
+    pillow \
+    fonttools \
+    contourpy \
+    python-dateutil \
+    six \
+    && rm -rf /tmp/wheels
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 阶段3: 复制Python代码
+# ══════════════════════════════════════════════════════════════════════════════
+WORKDIR /app
+
+COPY seims/scenario_analysis   /app/seims/scenario_analysis
+COPY seims/scenario_analysis/pygeoc_local /app/seims/pygeoc
+COPY seims/preprocess          /app/seims/preprocess
+COPY seims/postprocess         /app/seims/postprocess
+COPY seims/utility             /app/seims/utility
+COPY seims/run_seims.py        /app/seims/
+COPY seims/global_mongoclient.py /app/seims/
+COPY seims/surrogate_model     /app/seims/surrogate_model
+
+RUN mkdir -p /opt/seims/bin
+
+ENV SEIMS_HOME=/opt/seims
+ENV SEIMS_DATA_DIR=/data
+ENV PYTHONPATH=/app:$PYTHONPATH
+ENV PATH=/opt/seims/bin:$PATH
+ENV MONGODB_HOST=mongodb
+ENV MONGODB_PORT=27018
+
+RUN mkdir -p /workspace /output /data /data/youwuzhen
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+WORKDIR /workspace
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["--help"]

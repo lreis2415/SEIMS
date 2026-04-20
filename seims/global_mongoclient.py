@@ -23,8 +23,12 @@ from preprocess.db_mongodb import ConnectMongoDB
 this = sys.modules[__name__]
 
 # user specific parameters for their MongoDB server
-this.host = '127.0.0.1'
-this.port = 27017
+# OLD: this.host = '127.0.0.1'
+# OLD: this.port = 27017
+# NEW: Read from environment variables for Docker support (2026-03-19)
+import os
+this.host = os.environ.get('MONGO_HOST', '127.0.0.1')
+this.port = int(os.environ.get('MONGO_PORT', 27017))
 
 # this client will be created once for each process in the entire application
 this.client = ConnectMongoDB(ip=this.host, port=this.port).get_conn()

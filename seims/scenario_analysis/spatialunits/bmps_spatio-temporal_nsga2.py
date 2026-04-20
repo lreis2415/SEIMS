@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-# """ BMPs order optimization based on slope position units.
+# """ BMPs location and order optimization based on slope position units.
 #
-#     @author   : Shen Shen
+#     @author   : Tong Wu
 #
 # """
 from __future__ import absolute_import, unicode_literals
 
 import array
+import json
 import os
 import sys
 import random
@@ -16,13 +17,10 @@ import copy
 import logging
 from io import open
 
-import matplotlib as mpl
+import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    try:  # The 'warn' parameter of use() is deprecated since Matplotlib 3.1 and will be removed in 3.3. 
-        mpl.use('Agg', warn=False)
-    except TypeError:
-        mpl.use('Agg')
+    matplotlib.use('Agg')
 
 from typing import Dict
 import numpy
@@ -40,15 +38,22 @@ from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv, \
-    initRepeatWithCfgFromList, initIterateWithCfgIndvInput
+    initRepeatWithCfgFromList, initIterateWithCfgIndvInput, initIterateWithCfg, initRepeatWithCfg, \
+    initIterateWithCfgWithInput
 from scenario_analysis.visualization import read_pareto_solutions_from_txt
 from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness, \
-    initialize_scenario_with_bmps_order, scenario_effectiveness_with_bmps_order
-from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_with_bmps_order
+    initialize_scenario_with_bmps_order, initialize_scenario_s_t, scenario_effectiveness_with_bmps_order, get_key_bmps
+from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_with_bmps_order, crossover_slppos, \
+    mutate_rule_s_t, mutate_rule_s
+from scenario_analysis.spatialunits.userdef import check_individual_diff, \
+    crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
+from scenario_analysis.deap_tool import selNSGA2_prefer, calculate_preference_score, interactive_selection, \
+    update_preference_params, merge_multiuser_pops, merge_multiuser_prefs
 from scenario_analysis.interactive_algorithm import InteractiveAlgorithm
+from scenario_analysis.async_interactive_algorithm import AsyncInteractiveAlgorithm
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -66,19 +71,32 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
-toolbox.register('gene_values', initialize_scenario_with_bmps_order)
-toolbox.register('individual', initIterateWithCfgIndv, creator.Individual, toolbox.gene_values)
-toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
+# toolbox.register('gene_values', initialize_scenario_with_bmps_order)
+toolbox.register('gene_values', initialize_scenario_s_t)
+# toolbox.register('individual', initIterateWithCfgIndv, creator.Individual, toolbox.gene_values)
+toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
+# toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
+toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
 
 # register functions by inputs
-toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Individual,
+# toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Individual,
+#                  toolbox.gene_values)
+toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
                  toolbox.gene_values)
 toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
 toolbox.register('evaluate', scenario_effectiveness_with_bmps_order)
 toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', mutate_with_bmps_order)
+# toolbox.register('mutate', mutate_with_bmps_order)
+toolbox.register('mutate_s_t', mutate_rule_s_t)
+toolbox.register('mutate_s', mutate_rule_s)
 toolbox.register('select', tools.selNSGA2)
+toolbox.register('select_prefer', selNSGA2_prefer)
+ref_points = tools.uniform_reference_points(nobj=2, p=12)
+toolbox.register('select3', tools.selNSGA3, ref_points=ref_points)
+toolbox.register('mate_slppos', crossover_slppos)
+toolbox.register('mate_updown', crossover_updown)
+toolbox.register('mate_rdm', crossover_rdm)
 
 
 def run_benchmark_scenario(sceobj):
@@ -88,11 +106,9 @@ def run_benchmark_scenario(sceobj):
     new_gene_values = []
     for v in sceobj.gene_values:
         if numpy.isclose(v, 0.0):
-            new_v = 0  # FIXED: Keep 0 as 0, not convert to 1
+            new_v = v
         else:
-            # Extract BMP type and set implementation period to 1
-            bmp_type = int(v) // 1000 if int(v) >= 1000 else int(v)
-            new_v = bmp_type * 1000 + 1
+            new_v = int('{0}1'.format(int(v)))
         new_gene_values.append(new_v)
 
     copyed_sceobj = copy.deepcopy(sceobj)
@@ -100,22 +116,33 @@ def run_benchmark_scenario(sceobj):
     copyed_sceobj.cfg.enable_investment_quota = False
     benchmark_indv = creator.Individual(initialize_scenario_with_bmps_order(copyed_sceobj.cfg, new_gene_values, True))
     benchmark_indv = scenario_effectiveness_with_bmps_order(copyed_sceobj.cfg, benchmark_indv)
-    # OLD: sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]  # BUG: fitness.values[1] is percentage (≈0%), not raw sediment
-    # NEW: Use sed_sum (raw sediment yield) as BASE_ENV for environment benefit calculation
-    sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.sed_sum
-    sceobj.cfg.eval_info['BASE_SED_PERIODS'] = benchmark_indv.sed_per_period
+    sceobj.cfg.eval_info['BASE_ENV'] = benchmark_indv.fitness.values[1]
     scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f, sed_per_period: %s ' %
               (benchmark_indv.fitness.values[0], benchmark_indv.fitness.values[1], benchmark_indv.sed_sum,
                benchmark_indv.sed_per_period))
 
 
+def run_base_scenario(sceobj):
+    """Run base scenario to get the environment effectiveness value."""
+    copyed_sceobj = copy.deepcopy(sceobj)
+    base_ind = creator.Individual(initialize_scenario_s_t(copyed_sceobj.cfg))
+    for i in list(range(len(base_ind))):
+        base_ind[i] = 0
+    base_ind = scenario_effectiveness_with_bmps_order(copyed_sceobj.cfg, base_ind)
+    sceobj.cfg.eval_info['BASE_ENV'] = base_ind.sed_sum
+    scoop_log('Benchmark scenario economy: %f, environment %f, sed_sum: %f, sed_per_period: %s ' %
+              (base_ind.fitness.values[0], base_ind.fitness.values[1], base_ind.sed_sum,
+               base_ind.sed_per_period))
+
+
 def main(scenario_obj):
     # type: (SUScenario, Individual) -> ()
-    """Main workflow of NSGA-II based Time Extended Scenario analysis."""
+    """Main workflow of NSGA-II based Spatio-temporal Scenario analysis."""
     # The Base scenario maintains the same evaluation method as the original one.
-    # FIXED: Enable benchmark scenario to calculate BASE_ENV for temporal optimization
+
     if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-        run_benchmark_scenario(scenario_obj)
+        # run_benchmark_scenario(scenario_obj)
+        run_base_scenario(scenario_obj)
         print('The environment effectiveness value of the '
               'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
@@ -150,46 +177,8 @@ def main(scenario_obj):
     unit_to_gene = scenario_obj.cfg.unit_to_gene
     updown_units = scenario_obj.cfg.updown_units
 
-    # import json
-    # with open('gene_to_unit.json', 'w',encoding="utf-8") as gtu:
-    #     # json.dump(gene_to_unit, gtu,ensure_ascii=False)
-    #     gtu.write(unicode(json.dumps(gene_to_unit, ensure_ascii=False)))
-    # with open('unit_to_gene.json', 'w') as utg:
-    #     utg.write(unicode(json.dumps(unit_to_gene, ensure_ascii=False)))
-    #     # json.dump(unit_to_gene, utg,ensure_ascii=False)
-
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
-
-    # 初始化交互算法（支持 spatial/temporal/spatio_temporal 三种模式）
-    # 根据 enable_async 选择同步或异步交互算法
-    enable_async = getattr(scenario_obj.cfg, 'enable_async', False)
-    if enable_async:
-        ia = AsyncInteractiveAlgorithm(
-            enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
-            interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
-            users=getattr(scenario_obj.cfg, 'users', {}),
-            logger=logging.getLogger(__name__),
-            enable_async=True,
-            task_id=getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
-            signal_dir=getattr(scenario_obj.cfg, 'async_signal_dir', '/data/config'),
-            checkpoint_dir=getattr(scenario_obj.cfg, 'async_checkpoint_dir', '/data/checkpoints')
-        )
-        scoop_log('Async Interactive mode enabled: task_id=%s, interval=%d generations' %
-                  (getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
-                   getattr(scenario_obj.cfg, 'interactive_interval', 10)))
-        ia.register_to_toolbox(toolbox)
-    else:
-        ia = InteractiveAlgorithm(
-            enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
-            interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
-            users=getattr(scenario_obj.cfg, 'users', {}),
-            logger=logging.getLogger(__name__)
-        )
-        ia.register_to_toolbox(toolbox)
-        if ia.enable_interactive:
-            scoop_log('Interactive mode enabled: %d users, interval=%d generations' %
-                      (len(ia.users), ia.interactive_interval))
 
     # create reference point for hypervolume
     ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
@@ -208,16 +197,6 @@ def main(scenario_obj):
     # PopulationSize must be the same as the original
     initialize_byinputs = False
 
-    # 异步模式下：检查是否有checkpoint，有则从checkpoint加载
-    if enable_async and hasattr(ia, 'has_checkpoint'):
-        latest_gen = ia.get_latest_checkpoint_gen()
-        if latest_gen is not None and latest_gen >= 0:
-            scoop_log(f'Loading checkpoint from generation {latest_gen}...')
-            pop = ia.load_from_checkpoint(latest_gen)
-            if pop is not None:
-                initialize_byinputs = True
-                scoop_log(f'Checkpoint loaded successfully: {len(pop)} individuals')
-
     if not initialize_byinputs:
         if scenario_obj.cfg.initial_byinput and scenario_obj.cfg.input_pareto_file is not None and \
             scenario_obj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
@@ -231,7 +210,7 @@ def main(scenario_obj):
                     pop = toolbox.population_byinputs(scenario_obj.cfg, pareto_solutions)  # type: List
                     initialize_byinputs = True
         if not initialize_byinputs:
-            pop = toolbox.population(scenario_obj.cfg, scenario_obj.gene_values, n=pop_size)  # type: List
+            pop = toolbox.population(scenario_obj.cfg, n=pop_size)  # type: List
             print(pop)
 
     init_time = time.time() - stime
@@ -268,7 +247,7 @@ def main(scenario_obj):
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
             invalid_pops = list(futures.map(toolbox.evaluate, [scenario_obj.cfg] * popnum, invalid_pops))
-        except (ImportError, ImportWarning):  # FIXED: Correct exception syntax
+        except ImportError or ImportWarning:
             # serial
             invalid_pops = list(toolbox.map(toolbox.evaluate, [scenario_obj.cfg] * popnum, invalid_pops))
 
@@ -297,14 +276,16 @@ def main(scenario_obj):
         modelruns_time_sum[0] += ind.runtime
 
     # Currently, len(pop) may less than pop_select_num
-    pop = ia.select_population(toolbox, pop, pop_select_num)
+    pop = toolbox.select(pop, pop_select_num)
+
+    #pop = toolbox.select_prefer(pop, pop_select_num, preference_params=scenario_obj.cfg.preference_param)
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
     scoop_log(logbook.stream)
     front = numpy.array([ind.fitness.values for ind in pop])
     # save front for further possible use
-    # FIXED: Unified output file naming - directory name already encodes mode
-    # OLD: 'pareto_front_with_bmps_order_gen0.txt'
+    # FIXED: Unified output file naming
+    # OLD: 'pareto_front_s_t_gen0.txt'
     numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_gen0.txt',
                   front, delimiter=str(' '), fmt=str('%.4f'))
 
@@ -315,6 +296,47 @@ def main(scenario_obj):
 
     modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
 
+    fixed_positions = scenario_obj.cfg.key_bmps
+    # 使用 InteractiveAlgorithm 封装所有交互逻辑，替代原先内联的 enable_interactive/merged_prefs 代码
+    # 根据 enable_async 选择同步或异步交互算法
+    enable_async = getattr(scenario_obj.cfg, 'enable_async', False)
+    if enable_async:
+        ia = AsyncInteractiveAlgorithm(
+            enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
+            interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
+            users=getattr(scenario_obj.cfg, 'users', {}),
+            logger=logging.getLogger(__name__),
+            enable_async=True,
+            task_id=getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
+            signal_dir=getattr(scenario_obj.cfg, 'async_signal_dir', '/data/config'),
+            checkpoint_dir=getattr(scenario_obj.cfg, 'async_checkpoint_dir', '/data/checkpoints')
+        )
+        scoop_log('Async Interactive mode enabled: task_id=%s, interval=%d generations' %
+                  (getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
+                   getattr(scenario_obj.cfg, 'interactive_interval', 10)))
+        ia.register_to_toolbox(toolbox)
+    else:
+        ia = InteractiveAlgorithm(
+            enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
+            interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
+            users=getattr(scenario_obj.cfg, 'users', {}),
+            logger=logging.getLogger(__name__)
+        )
+        ia.register_to_toolbox(toolbox)
+        if ia.enable_interactive:
+            scoop_log('Interactive mode enabled: %d users, interval=%d generations' %
+                      (len(ia.users), ia.interactive_interval))
+
+    # 异步模式下：检查是否有checkpoint，有则从checkpoint加载（ia必须先初始化）
+    if enable_async and hasattr(ia, 'has_checkpoint'):
+        latest_gen = ia.get_latest_checkpoint_gen()
+        if latest_gen is not None and latest_gen >= 0:
+            scoop_log(f'Loading checkpoint from generation {latest_gen}...')
+            pop = ia.load_from_checkpoint(latest_gen)
+            if pop is not None:
+                initialize_byinputs = True
+                scoop_log(f'Checkpoint loaded successfully: {len(pop)} individuals')
+
     for gen in range(1, gen_num + 1):
         output_str = '###### Generation: %d ######\n' % gen
         scoop_log(output_str)
@@ -324,10 +346,49 @@ def main(scenario_obj):
                 old_ind1 = toolbox.clone(ind1)
                 old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
-                    toolbox.crossover(ind1, ind2)
+                    # toolbox.crossover(ind1, ind2)
+                    if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
+                        toolbox.mate_slppos(ind1, ind2, scenario_obj.cfg.hillslp_genes_num, fixed_positions)
+                    elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
+                        toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
+                    else:
+                        toolbox.mate_rdm(ind1, ind2)
 
-                toolbox.mutate(ind1, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
-                toolbox.mutate(ind2, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+                # toolbox.mutate(ind1, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+                # toolbox.mutate(ind2, 1, scenario_obj.cfg.change_times, mut_rate, mut_perc)
+
+                # Mutation Gene values for rule-based BMP configuration strategies with implementation order.
+                # Note: cfg_method != BMPS_CFG_METHODS[0]
+                if cfg_method != BMPS_CFG_METHODS[0]:
+                    tagnames = None
+                    if scenario_obj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                        tagnames = scenario_obj.cfg.slppos_tagnames
+                    if scenario_obj.cfg.enable_implementation_order:
+                        toolbox.mutate_s_t(units_info, gene_to_unit, unit_to_gene,
+                                           suit_bmps, ind1, fixed_positions=fixed_positions,
+                                           perc=mut_perc, indpb=mut_rate,
+                                           unit=cfg_unit, method=cfg_method,
+                                           tagnames=tagnames,
+                                           low=1,
+                                           up=scenario_obj.cfg.change_times)
+                        toolbox.mutate_s_t(units_info, gene_to_unit, unit_to_gene,
+                                           suit_bmps, ind2, fixed_positions=fixed_positions,
+                                           perc=mut_perc, indpb=mut_rate,
+                                           unit=cfg_unit, method=cfg_method,
+                                           tagnames=tagnames,
+                                           low=1,
+                                           up=scenario_obj.cfg.change_times)
+                    else:
+                        toolbox.mutate_s(units_info, gene_to_unit, unit_to_gene,
+                                         suit_bmps, ind1, fixed_positions=fixed_positions,
+                                         perc=mut_perc, indpb=mut_rate,
+                                         unit=cfg_unit, method=cfg_method,
+                                         tagnames=tagnames)
+                        toolbox.mutate_s(units_info, gene_to_unit, unit_to_gene,
+                                         suit_bmps, ind2, fixed_positions=fixed_positions,
+                                         perc=mut_perc, indpb=mut_rate,
+                                         unit=cfg_unit, method=cfg_method,
+                                         tagnames=tagnames)
 
                 if check_individual_diff(old_ind1, ind1):
                     delete_fitness(ind1)  # delete fitness, valid will be false
@@ -368,7 +429,9 @@ def main(scenario_obj):
             elif tmpind.id not in unique_sces[tmpind.gen]:
                 unique_sces[tmpind.gen].append(tmpind.id)
             pop.append(tmpind)
+        # 使用 InteractiveAlgorithm 统一处理种群选择（自动区分偏好/标准选择）
         pop = ia.select_population(toolbox, pop, pop_select_num)
+        # 若当前代需要交互，执行用户交互流程并更新偏好参数
         ia.run_interaction(pop, gen)
 
         hyper_str = 'Gen: %d, New model runs: %d, ' \
@@ -393,12 +456,52 @@ def main(scenario_obj):
         # Plot 2D near optimal pareto front graphs
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
-        # save front for further possible use
-        # FIXED: Unified output file naming
-        # OLD: 'pareto_front_with_bmps_order_gen%d.txt' % gen
-        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
-                      front, delimiter=str(' '), fmt=str('%.4f'))
+        scenarios = numpy.array([ind.id for ind in pop])
 
+        # NEW: Only save preference_score/front_id when interactive mode is enabled
+        # OLD: Always tried to access ind.fitness.preference_score which doesn't exist in non-interactive mode
+        if enable_interactive and merged_prefs:
+            front_array = numpy.array([
+                numpy.concatenate([
+                    ind.fitness.values,  # 浮点数组
+                    [getattr(ind.fitness, 'preference_score', 0.0)],  # 浮点标量
+                    [getattr(ind.fitness, 'front_id', 0)],  # 整型标量（存储为float）
+                    [ind.id]  # 整型标量（存储为float）
+                ]) for ind in pop
+            ])
+            n_float_columns = len(pop[0].fitness.values) + 1  # values列数 + preference_score
+            n_int_columns = 2  # front_id + id
+            fmt_str = ' '.join(['%.4f'] * n_float_columns + ['%d'] * n_int_columns)
+
+            # save front with preference info
+            # FIXED: Unified naming - interactive mode saves extra preference data as separate file
+            # OLD: pareto_front_with_s_t_gen{gen}.txt
+            numpy.savetxt(scenario_obj.scenario_dir + os.sep + f'pareto_front_prefer_gen{gen}.txt',
+                          front_array, delimiter=str(' '), fmt=fmt_str)
+        else:
+            # Non-interactive: no extra preference file needed
+            pass
+        # FIXED: Unified output file naming for all modes
+        # OLD: pareto_front_with_s_t_gen{gen}.txt / pareto_front_values_with_s_t_gen{gen}.txt
+        numpy.savetxt(scenario_obj.scenario_dir + os.sep + f'pareto_front_gen{gen}.txt',
+                      front, delimiter=str(' '), fmt=str('%.4f'))
+        numpy.savetxt(
+            scenario_obj.scenario_dir + os.sep + f'pareto_front_scenarios_gen{gen}.txt',
+            scenarios, delimiter=' ', fmt='%.4f')
+
+        '''front_array_user = numpy.array([
+            numpy.concatenate([
+                ind.fitness.values,  # 浮点数组（例如[0.85, 0.92]）
+                [ind.fitness.preference_score],  # 浮点标量（例如0.78）
+                [ind.fitness.front_id],  # 显式转换为浮点（例如3.0）
+                [ind.id]  # 显式转换为浮点（例如1024.0）
+            ])
+            # 修正循环顺序：先遍历每个用户的种群，再遍历种群中的个体
+            for user_pop in user_pops  # 外层循环遍历用户种群列表
+            for ind in user_pop  # 内层循环遍历当前种群中的个体
+        ])
+        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_with_s_t_user_gen%d.txt' % gen,
+                      front_array_user, delimiter=str(' '), fmt=fmt_str)'''
         # Comment out the following plot code if matplotlib does not work.
         try:
             from scenario_analysis.visualization import plot_pareto_front_single
@@ -420,8 +523,11 @@ def main(scenario_obj):
         output_str += 'generation\tscenario\teconomy\tenvironment\tsed_sum\tsed_pp\tnet_cost_pp\tcosts_pp\tincomes_pp\tgene_values\n'
         for indi in pop:
             output_str += '%d\t%d\t%f\t%f\t%f\t%s\t%s\t%s\t%s\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                indi.fitness.values[1], indi.sed_sum, str(indi.sed_per_period), str(indi.net_costs_per_period),
-                str(indi.costs_per_period), str(indi.incomes_per_period), str(indi))
+                                                                        indi.fitness.values[1], indi.sed_sum,
+                                                                        str(indi.sed_per_period),
+                                                                        str(indi.net_costs_per_period),
+                                                                        str(indi.costs_per_period),
+                                                                        str(indi.incomes_per_period), str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
         pklfile_str = 'gen%d.pickle' % (gen,)
@@ -479,37 +585,97 @@ if __name__ == "__main__":
     base_cfg = SAConfig(in_cf)  # type: SAConfig
     sa_cfg = SASlpPosConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
+    get_key_bmps(sa_cfg)
+
     sce = SUScenario(sa_cfg)
+    key_bmp = {9: 1, 16: 2, 43: 2, 60: 1, 61: 3, 66: 1, 67: 2, 69: 1}
+    sce.cfg.key_bmps=key_bmp
+    # 定义偏好参数
+    ori_preference_params = {
+        'economy': (78, 'equal', 2),
+        'environment': (12.5, 'equal', 0.0),
+        'abandon_possibility': (3.04764, 'equal', 0.0),
+        'cost_variation': (148.91808, 'equal', 20),
+        'return_on_invest': (0.08936, 'equal', 0.018),
+        'env_on_invest': (0.16374, 'equal', 0.01257),
+        'bmp_rules': {
+            "position_specific_rules": {9: 1, 16: 2, 43: 2},
+            "type_distribution_rules": {}
+        }
 
-    selectedScenarioFile = sa_cfg.model.model_dir+os.sep+sa_cfg.selected_scenario_file
-    with open(selectedScenarioFile) as fp:
-        for line in fp.readlines():
-            items = line.split(':')
-            if items[0] == 'Scenario ID':
-                sceid = int(items[1])
-            elif items[0] == 'Gene number':
-                geneNum = int(items[1])
-            elif items[0] == 'Gene values':
-                gvalues = [float(v.strip()) for v in items[1].split(',')]
-            else:
-                pass
+    }
+    users = {
+        "user2": {
+            "history_good": [],
+            "history_bad": [],
+            "history_bad_reasons": [],
+            "preference_param": {
+                'economy': (66.58, 'greater', 5),
+                'environment': (14.33, 'greater', 2),
+                'abandon_possibility': (2.6, 'less', 0.8),
+                'cost_variation': (135, 'equal', 120),
+                'return_on_invest': (0.08, 'equal', 0.015),
+                'env_on_invest': (0.215, 'greater', 0.012),
+                'bmp_rules': {
+                    "position_specific_rules": {},
+                    "type_distribution_rules": {}
+                }
+            },
+        },"user1": {
+            "history_good": [],
+            "history_bad": [],
+            "history_bad_reasons": [],
+            "preference_param": {
+                'economy': (63.85, 'less', 4.5),
+                'environment': (8.89, 'equal', 0.0),
+                'abandon_possibility': (3.1, 'equal', 0.0),
+                'cost_variation': (123, 'less', 125),
+                'return_on_invest': (0.06, 'equal', 0.02),
+                'env_on_invest': (0.15, 'equal', 0.02),
+                'bmp_rules': {
+                    "position_specific_rules": {},
+                    "type_distribution_rules": {}
+                }
+            },
+        }
 
-    sce.set_unique_id(sceid)
-    sce.initialize(input_genes=gvalues)
-    print('The ID of the selected scenario that provided spatial configuration: ' + str(sce.ID))
-    print('The genes of the selected scenario: ' + str(gvalues))
+    }
+    '''
+,
+        # 用户1的配置
+
+        '''
+    sce.cfg.users = users
+    sce.cfg.preference_param = ori_preference_params
+    # selectedScenarioFile = sa_cfg.model.model_dir + os.sep + sa_cfg.selected_scenario_file
+    # with open(selectedScenarioFile) as fp:
+    #     for line in fp.readlines():
+    #         items = line.split(':')
+    #         if items[0] == 'Scenario ID':
+    #             sceid = int(items[1])
+    #         elif items[0] == 'Gene number':
+    #             geneNum = int(items[1])
+    #         elif items[0] == 'Gene values':
+    #             gvalues = [float(v.strip()) for v in items[1].split(',')]
+    #         else:
+    #             pass
+    #
+    # sce.set_unique_id(sceid)
+    # sce.initialize(input_genes=gvalues)
+    # print('The ID of the selected scenario that provided spatial configuration: ' + str(sce.ID))
+    # print('The genes of the selected scenario: ' + str(gvalues))
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
-    time_pareto_pop, time_pareto_stats = main(sce)
+    s_t_pareto_pop, s_t_pareto_stats = main(sce)
 
-    time_pareto_pop.sort(key=lambda x: x.fitness.values)
-    scoop_log(time_pareto_stats)
+    s_t_pareto_pop.sort(key=lambda x: x.fitness.values)
+    scoop_log(s_t_pareto_stats)
     with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
         #   when using unicode_literals, please use '%s' to concatenate string!
-        f.write('%s' % time_pareto_stats.__str__())
+        f.write('%s' % s_t_pareto_stats.__str__())
 
     endT = time.time()
     scoop_log('Running time: %.2fs' % (endT - startT))

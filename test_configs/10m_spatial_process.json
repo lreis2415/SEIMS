@@ -1,0 +1,44 @@
+{
+  "_comment": "10m 空间优化 | 过程模型(SEIMS) | SLPPOS+HILLSLP | 有投资约束",
+  "mode": "spatial",
+  "model": {
+    "model_dir": "D:/EGC/SEIMS-dev/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
+    "bin_dir": "D:/EGC/SEIMS-dev/build/bin",
+    "model_name": "ss_youwuzhen10m_longterm_model",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "ss_youwuzhen10m_Scenario"
+  },
+  "spatial": {
+    "unit": "SLPPOS",
+    "config_method": "HILLSLP"
+  },
+  "algorithm": {
+    "type": "NSGA2",
+    "GenerationsNum": 100,
+    "PopulationSize": 60,
+    "CrossoverRate": 0.8,
+    "MutateRate": 0.1,
+    "MaxMutatePerc": 0.2,
+    "SelectRate": 0.8
+  },
+  "budget": {
+    "enable_investment_quota": true,
+    "investment_each_period": [90],
+    "investment_float_range": 0.2
+  },
+  "evaluation": {
+    "eval_stime": "2013-01-01 00:00:00",
+    "eval_etime": "2017-12-31 23:59:59",
+    "worst_economy": 300.0,
+    "worst_environment": 0.0
+  },
+  "surrogate": {
+    "use_surrogate": false
+  },
+  "output": {
+    "output_dir": "D:/EGC/SEIMS-dev/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
+    "export_scenario_txt": true,
+    "export_scenario_tif": false
+  }
+}

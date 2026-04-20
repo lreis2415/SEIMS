@@ -1,0 +1,67 @@
+{
+  "_comment": "10m 时空优化 | 过程模型(SEIMS) | SLPPOS+HILLSLP | 有投资约束 | 交互式优化(1用户，含时序指标)",
+  "mode": "spatio_temporal",
+  "model": {
+    "model_dir": "D:/EGC/SEIMS-dev/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
+    "bin_dir": "D:/EGC/SEIMS-dev/build/bin",
+    "model_name": "ss_youwuzhen10m_longterm_model",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "ss_youwuzhen10m_Scenario"
+  },
+  "spatial": {
+    "unit": "SLPPOS",
+    "config_method": "HILLSLP"
+  },
+  "temporal": {
+    "implementation_period": 5,
+    "change_frequency": 1,
+    "effectiveness_changeable": true
+  },
+  "algorithm": {
+    "type": "NSGA2",
+    "GenerationsNum": 100,
+    "PopulationSize": 60,
+    "CrossoverRate": 0.8,
+    "MutateRate": 0.1,
+    "MaxMutatePerc": 0.2,
+    "SelectRate": 0.8
+  },
+  "budget": {
+    "enable_investment_quota": true,
+    "investment_each_period": [25, 15, 10],
+    "investment_float_range": 0.2,
+    "years_first_period": 3
+  },
+  "evaluation": {
+    "eval_stime": "2013-01-01 00:00:00",
+    "eval_etime": "2017-12-31 23:59:59",
+    "worst_economy": 300.0,
+    "worst_environment": 0.0
+  },
+  "surrogate": {
+    "use_surrogate": false
+  },
+  "interactive": {
+    "enable": true,
+    "interval_generations": 10,
+    "users": [
+      {
+        "user_id": "user1",
+        "preference_params": {
+          "economy":           [150,  "less",    50],
+          "environment":       [5,    "greater",  2],
+          "env_on_invest":     [0.08, "greater", 0.02],
+          "return_on_invest":  [1.2,  "greater",  0.3],
+          "abandon_possibility":[0.15, "less",   0.05],
+          "cost_variation":    [20,   "less",    10]
+        }
+      }
+    ]
+  },
+  "output": {
+    "output_dir": "D:/EGC/SEIMS-dev/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
+    "export_scenario_txt": true,
+    "export_scenario_tif": false
+  }
+}

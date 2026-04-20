@@ -1,0 +1,64 @@
+{
+  "_comment": "[CI] 30m 空间优化 | 代理模型(MLP) | 异步交互式(gen5触发) | signal文件驱动",
+  "mode": "spatial",
+  "model": {
+    "model_dir": "/data/youwuzhen/demo_youwuzhen30m_longterm_model",
+    "bin_dir": "/opt/seims/bin",
+    "model_name": "demo_youwuzhen30m_longterm_model",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "demo_youwuzhen30m_Scenario"
+  },
+  "spatial": {
+    "unit": "SLPPOS",
+    "config_method": "HILLSLP"
+  },
+  "algorithm": {
+    "type": "NSGA2",
+    "GenerationsNum": 10,
+    "PopulationSize": 20,
+    "CrossoverRate": 0.8,
+    "MutateRate": 0.1,
+    "MaxMutatePerc": 0.2,
+    "SelectRate": 0.8
+  },
+  "budget": {
+    "enable_investment_quota": true,
+    "investment_each_period": [100],
+    "investment_float_range": 0.2
+  },
+  "evaluation": {
+    "eval_stime": "2013-01-01 00:00:00",
+    "eval_etime": "2017-12-31 23:59:59",
+    "base_env": 32437922,
+    "worst_economy": 300.0,
+    "worst_environment": 0.0
+  },
+  "surrogate": {
+    "use_surrogate": true,
+    "surrogate_model_dir": "/data/youwuzhen/surrogate_training_2000_optimized/models"
+  },
+  "interactive": {
+    "enable": true,
+    "enable_async": true,
+    "task_id": "ci_async_test",
+    "interval_generations": 5,
+    "signal_dir": "/data/results/ci_async_signals",
+    "checkpoint_dir": "/data/results/ci_async_ckpt",
+    "users": [
+      {
+        "user_id": "user1",
+        "preference_params": {
+          "economy": [80, "less", 20],
+          "environment": [0.1, "greater", 0.05],
+          "env_on_invest": [0.001, "greater", 0.0005]
+        }
+      }
+    ]
+  },
+  "output": {
+    "output_dir": "/data/results/ci_30m_async",
+    "export_scenario_txt": true,
+    "export_scenario_tif": false
+  }
+}
