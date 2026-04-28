@@ -363,7 +363,7 @@ class Sensitivity(object):
             obs_vars, obs_data_dict = output_models[0].ReadOutletObservations(input_eva_vars)
             output_models[0].UnsetMongoClient()
 
-            if (len(obs_vars)) < 1:  # Make sure the observation data exists.
+            if obs_vars is None or len(obs_vars) < 1:  # Make sure the observation data exists.
                 continue
             # Loop the executed models
             eva_values = list()
