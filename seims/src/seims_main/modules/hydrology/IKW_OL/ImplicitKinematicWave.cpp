@@ -13,7 +13,7 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
-                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL) {
+                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL), m_chWidth(NULL) {
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
@@ -81,6 +81,9 @@ bool ImplicitKinematicWave_OL::CheckInputData(void) {
     if (m_dem == NULL) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: m_dem has not been set.");
     }
+    if (m_chWidth == NULL) {
+        throw ModelException(M_IKW_OL[0], "CheckInputData", "The parameter: CH_WIDTH has not been set.");
+    }
 
     return true;
 }
@@ -106,14 +109,21 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
             int numOutflows = m_flowOutIdx[i][0];
 
             m_qs[i] = new float[numOutflows + 1];
+            memset(m_qs[i], 0, sizeof(float) * (numOutflows + 1));
             m_sRadian[i] = new float[numOutflows + 1];
+            memset(m_sRadian[i], 0, sizeof(float) * (numOutflows + 1));
             m_flowLen[i] = new float[numOutflows + 1];
+            memset(m_flowLen[i], 0, sizeof(float) * (numOutflows + 1));
             m_flowWidth[i] = new float[numOutflows + 1];
+            memset(m_flowWidth[i], 0, sizeof(float) * (numOutflows + 1));
             m_alpha[i] = new float[numOutflows + 1];
+            memset(m_alpha[i], 0, sizeof(float) * (numOutflows + 1));
             m_vel[i] = new float[numOutflows + 1];
+            memset(m_vel[i], 0, sizeof(float) * (numOutflows + 1));
             m_s0[i] = new float[numOutflows + 1];
+            memset(m_s0[i], 0, sizeof(float) * (numOutflows + 1));
 
-            //m_qs[i] = 0.0f;
+//m_qs[i] = 0.0f;
             m_reInfil[i] = 0.f;
 
             // flow width
@@ -138,7 +148,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
             //calculate slope from DEM
             for (int j = 1; j <= numOutflows; ++j) {
                 int nextCell = m_flowOutIdx[i][j];
-                float s0 = 0.0f;
+                                float s0 = 0.0f;
 
                 if (m_dem[i] <= m_dem[nextCell]) {
                     s0 = MIN_SLOPE;
@@ -175,7 +185,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
 
             // flow length needs to be corrected by slope angle
             for (int j = 1; j <= numOutflows; ++j) {
-                int dir = m_flowOutIdx[i][j];
+                int dir = m_direction[i][j];
                 float dx = m_CellWidth / cos(m_sRadian[i][j]);
                 //if ((int) m_diagonal[dir] == 1) {
                 if (DiagonalCCW[dir] == 1) {
@@ -334,7 +344,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float qUp = 0.0f;
     for (int k = 1; k <= m_flowInIndex[id][0]; ++k) {
         int flowInID = m_flowInIndex[id][k];
-        if (m_streamLink[flowInID] <= 0) { // if the upstream cell is not a channel cell
+                if (m_streamLink[flowInID] <= 0) { // if the upstream cell is not a channel cell
             int numDownstreamofUpstream = m_flowOutIdx[flowInID][0];
             if (numDownstreamofUpstream >= 1) {
                 for (int j = 1; j <= numDownstreamofUpstream; ++j) {
@@ -382,13 +392,13 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         bool isDebugTarget = false;
         for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
         if (isDebugTarget) { // DEBUG_ID
-            std::cout << "[TRACE_CSV],Step,UNKNOWN"
+            /*std::cout << "[TRACE_CSV],Step,UNKNOWN"
                 << ",Module,OverlandFlow"
                 << ",Cell," << id
                 << ",Ponded_Depth_Final(Sr)," << m_sr[id]
                 << ",Surfaceflow_Q," << m_qs[id][0]
                 << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
-                << std::endl;
+                << std::endl;*/
         }
 
 
@@ -413,13 +423,13 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         bool isDebugTarget = false;
         for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
         if (isDebugTarget) { // DEBUG_ID
-            std::cout << "[TRACE_CSV],Step,UNKNOWN"
+            /*std::cout << "[TRACE_CSV],Step,UNKNOWN"
                 << ",Module,OverlandFlow"
                 << ",Cell," << id
                 << ",Ponded_Depth_Final(Sr)," << m_sr[id]
                 << ",Surfaceflow_Q," << m_qs[id][0]
                 << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
-                << std::endl;
+                << std::endl;*/
         }
 
 
@@ -611,13 +621,13 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     bool isDebugTarget = false;
     for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
     if (isDebugTarget) { // DEBUG_ID
-        std::cout << "[TRACE_CSV],Step,UNKNOWN"
+        /*std::cout << "[TRACE_CSV],Step,UNKNOWN"
             << ",Module,OverlandFlow"
             << ",Cell," << id
             << ",Ponded_Depth_Final(Sr)," << m_sr[id]
             << ",Surfaceflow_Q," << m_qs[id][0] 
             << ",Infil_Surplus," << (m_infilCapacitySurplus ? m_infilCapacitySurplus[id] : 0)
-            << std::endl;
+            << std::endl;*/
     }
 
 }

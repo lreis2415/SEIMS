@@ -308,10 +308,118 @@ class ImportParam2Mongo(object):
                 cur_lookup_gridfs.close()
 
     @staticmethod
+    def calibrated_params_from_txt(cfg):
+        """
+        Import calibrated parameters from a text file (e.g., param.cali) to MongoDB.
+        This function is refactored from run_seims.py to separate data import from model execution.
+
+        Args:
+            cfg: SEIMS configuration object containing database connections and file paths.
+        """
+        # 1. Get database connection from the config object
+        maindb = cfg.maindb
+        # Access the collection for initial parameters (used to reset impacts)
+        coll = maindb[DBTableNames.main_parameter]
+
+        # 2. Clean up existing calibration settings in the main parameter table
+        # The initial PARAMETERS table should not retain modification impacts from previous runs.
+        # We reset the 'impact' field to default values based on the change type.
+        print('Resetting impact factors in main parameters table...')
+        # For Value Change (VC), reset impact to -9999 (NODATA)
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
+                         {'$set': {ModelParamFields.impact: -9999.}})
+        # For Relative Change (RC), reset impact to 1.0 (no change multiplier)
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
+                         {'$set': {ModelParamFields.impact: 1.}})
+        # For Absolute Change (AC), reset impact to 0.0 (no addition)
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
+                         {'$set': {ModelParamFields.impact: 0.}})
+
+        # 3. Determine Configuration Name and Task Name
+        # These are used to tag the calibrated parameters in the database.
+        # If specific names are not provided in the config, use defaults.
+        cur_cfg = ModelCfgFields.configname_default
+        if hasattr(cfg.paramcfgs, 'configname') and cfg.paramcfgs.configname:
+            cur_cfg = cfg.paramcfgs.configname
+
+        cur_task = ModelCfgFields.taskname_default
+        if hasattr(cfg.paramcfgs, 'taskname') and cfg.paramcfgs.taskname:
+            cur_task = cfg.paramcfgs.taskname
+
+        # 4. Prepare the Parameter Specification Collection
+        # This collection (main_param_spec) stores the specific calibration rules.
+        param_spec_coll = maindb[DBTableNames.main_param_spec]
+
+        # Delete any existing records for the current configuration and task
+        # to ensure a clean import.
+        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
+                                     ModelCfgFields.taskname: cur_task})
+
+        # Create a unique index to prevent duplicate entries for the same parameter
+        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
+                                      (ModelCfgFields.taskname, 1),
+                                      (ModelParamFields.name, 1)], unique=True)
+
+        # 5. Read the Calibration Text File
+        model_dir = cfg.model_dir if hasattr(cfg, 'model_dir') else ''
+        sub_folder = 'storm'
+        cali_file_path = os.path.join(model_dir, sub_folder, 'param.cali')
+        if not os.path.exists(cali_file_path):
+            fallback_path = os.path.join(model_dir, 'param.cali')
+            if os.path.exists(fallback_path):
+                print(f"Warning: File not found in '{sub_folder}', falling back to: {fallback_path}")
+                cali_file_path = fallback_path
+            else:
+                print(f"Error: Calibration file not found at {cali_file_path}")
+                return
+
+        data_items = read_data_items_from_txt(cali_file_path)
+        insert_requests = list()
+
+        # Iterate through the rows in the text file
+        for i, cur_data_item in enumerate(data_items):
+            data_import = dict()
+
+            # Basic validation: ensure the row has at least Name and Impact value
+            if len(cur_data_item) < 2:
+                print(f"Skipping invalid line {i}: {cur_data_item}")
+                continue
+                # Or raise error:
+                # raise RuntimeError('param.cali MUST contain at least two columns: NAME and IMPACT!')
+
+            # Parse parameter name and impact value
+            data_import[ModelParamFields.name] = cur_data_item[0].upper()
+            data_import[ModelParamFields.impact] = float(cur_data_item[1])
+
+            # Parse optional 'Change Type' column (e.g., VC, RC, AC, NC)
+            if len(cur_data_item) >= 3:
+                change_type = cur_data_item[2].upper()
+                if change_type in [ModelParamFields.change_vc,
+                                   ModelParamFields.change_ac,
+                                   ModelParamFields.change_rc,
+                                   ModelParamFields.change_nc]:
+                    data_import[ModelParamFields.change] = change_type
+
+            # Add configuration metadata
+            data_import[ModelCfgFields.configname] = cur_cfg
+            data_import[ModelCfgFields.taskname] = cur_task
+
+            # Add to the bulk request list
+            insert_requests.append(InsertOne(data_import))
+
+        # 6. Execute Bulk Write to MongoDB
+        if insert_requests:
+            results = MongoUtil.run_bulk_write(param_spec_coll, insert_requests)
+            print('Inserted %d calibration parameters for config: %s!' %
+                  (results.inserted_count if results is not None else 0, cur_cfg))
+        else:
+            print('No valid calibration parameters found to import.')
+
+    @staticmethod
     def workflow(cfg):
         """Workflow"""
         ImportParam2Mongo.initial_params_from_txt(cfg)
-        # ImportParam2Mongo.calibrated_params_from_txt(cfg)
+        ImportParam2Mongo.calibrated_params_from_txt(cfg)
         ImportParam2Mongo.model_initial_outputs(cfg)
         ImportParam2Mongo.subbasin_statistics(cfg)
         ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg)
