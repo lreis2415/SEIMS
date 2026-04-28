@@ -45,8 +45,8 @@ class ReadModelData(object):
         self.fileout_spec_tab = self.maindb[DBTableNames.main_fileout_spec]
         self._climdb_name = self.HydroClimateDBName
         self.climatedb = conn[self._climdb_name]
-        self._scenariodb_name = self.ScenarioDBName
-        self.scenariodb = conn[self._scenariodb_name]
+        # self._scenariodb_name = self.ScenarioDBName
+        # self.scenariodb = conn[self._scenariodb_name]
         self._mode = ''
         self._interval = -1
         self.cfg_name = cfgname if cfgname != '' else ModelCfgFields.configname_default

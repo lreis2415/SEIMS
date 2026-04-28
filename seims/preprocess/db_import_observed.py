@@ -133,10 +133,10 @@ class ImportObservedData(object):
                     if not matched:
                         break
                     if len(cur_sids) == 1:  # if only one subbasin ID, store integer
-                        cur_subbsn_id_str = cur_sids[0]
+                        cur_subbsn_id_str = int(cur_sids[0])
                     else:
                         cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids
-                                                     if cur_sids is None)
+                                                     if cur_sids is not None)
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
@@ -195,6 +195,13 @@ class ImportObservedData(object):
                                            bulk_requests)
         print('Inserted %d observed data!' % (results.inserted_count
                                               if results is not None else 0))
+
+        # Create indices to speed up queries for conversion calculation
+        hydro_clim_db[DBTableNames.observes].create_index([
+            (StationFields.type, 1),
+            (DataValueFields.utc, 1),
+            (StationFields.id, 1)
+        ])
 
         # 3. Add measurement data with unit converted
         # loop variables list

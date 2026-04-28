@@ -84,7 +84,7 @@ class ImportWeightData(object):
         # fmt = '%df' % (len(coef_list))
         # s = pack(fmt, *coef_list)
         # return s, i_min
-        return dump_values(coef_list, fltfmt)
+        return dump_values(coef_list, fltfmt), i_min
 
     @staticmethod
     def generate_weight_dependent_parameters(conn, maindb, subbsn_id, fltpt='FLOAT'):
