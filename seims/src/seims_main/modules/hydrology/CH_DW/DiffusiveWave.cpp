@@ -194,16 +194,20 @@ void DiffusiveWave:: InitialOutputs() {
         m_flowLen = new float *[m_chNumber + 1];
 
         m_qSubbasin = new float[m_chNumber + 1];
+        memset(m_qSubbasin, 0, sizeof(float) * (m_chNumber + 1));
 
         //estimate qs and qi of the outlet
         m_qiCh = new float[m_chNumber + 1];
+        memset(m_qiCh, 0, sizeof(float) * (m_chNumber + 1));
         m_qsCh = new float[m_chNumber + 1];
+        memset(m_qsCh, 0, sizeof(float) * (m_chNumber + 1));
 
 
         for (int i = 1; i <= m_chNumber; ++i) {
             int n = m_reachs[i].size();
             m_hCh[i] = new float[n];
             m_qCh[i] = new float[n];
+            memset(m_qCh[i], 0, sizeof(float) * n);
 
             m_flowLen[i] = new float[n];
 
@@ -378,7 +382,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
         m_qCh[iReach][iCell] = 0.f;
         //if (isDebug) std::cout << "[Result] Dry condition. Q=0, H=0" << std::endl;
         if (isInterestCell) {
-            std::cout << "[TRACE_CSV],Step,Step,DRY_SKIP" 
+            /*std::cout << "[TRACE_CSV],Step,Step,DRY_SKIP" 
                 << ",Module,ChannelFlow"
                 << ",Reach," << iReach
                 << ",Cell," << id
@@ -387,7 +391,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
                 << ",Q_Lat_Total," << (qLat * dx)
                 << ",Q_Out,0"
                 << ",H_Ch,0"
-                << std::endl;
+                << std::endl;*/
         }
         return;
     }
@@ -466,7 +470,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
 
     if (isInterestCell) {
         float qLat_total = qLat * dx;
-        std::cout << "[TRACE_CSV],Step,Step,UNKNOWN"
+        /*std::cout << "[TRACE_CSV],Step,Step,UNKNOWN"
             << ",Module,ChannelFlow"
             << ",Reach," << iReach
             << ",Cell," << id
@@ -479,7 +483,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id, float qgEachCell)
             << ",Q_Lat_QG," << (qLat_qg * dx)
             << ",Q_Out," << m_qCh[iReach][iCell]
             << ",H_Ch," << m_hCh[iReach][iCell]
-            << std::endl;
+            << std::endl;*/
     }
     //debug
     //if (isDebug) {
@@ -529,7 +533,7 @@ int DiffusiveWave::Execute() {
             // Distribute groundwater baseflow equally to each channel cell
             float qgEachCell = 0.f;
             if (m_qg != nullptr) {
-                qgEachCell = m_qg[reachIndex + 1] / n;
+                qgEachCell = m_qg[reachIndex] / n;
             }
             
             for (int iCell = 0; iCell < n; iCell++) {
