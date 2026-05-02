@@ -39,8 +39,8 @@ _Information Geography_ 1(1), 100010.
 ## BMPs scenario analysis {#BMPsScenarioAnalysis}
 
 + Wu, T., Zhu, L.-J., Shen, S., Qin, C.-Z., Zhu, A.-X., **2026**.
-[Spatiotemporal optimization method for watershed management practice scenarios within a simulation–optimization framework]().
-_Water Resource Management_.
+[Spatiotemporal optimization method for watershed management practice scenarios within a simulation–optimization framework](https://link.springer.com/article/10.1007/s11269-026-04647-7).
+_Water Resource Management_ 40(7), 281.
 + Shen, S., Qin, C.-Z., Zhu, L.-J., Zhu, A-X., **2023**.
 [Optimizing the implementation plan of watershed best management practices with time-varying effectiveness under stepwise investment](https://doi.org/10.1029/2022WR032986).
 _Water Resources Research_ 59(6), e2022WR032986.
