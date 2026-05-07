@@ -1,0 +1,30 @@
+.git
+.claude
+.vscode
+.vs
+__pycache__/
+**/__pycache__/
+**/*.pyc
+
+# Runtime data and generated outputs
+data/
+mongo_dump/
+seims/results/
+data/results/
+docker/workspace/
+
+# Large build/runtime artifacts
+*.log
+*.zip
+*.tar
+*.tar.gz
+*.xlsx
+*.pkl
+*.h5
+*.png
+*.pdf
+*.stackdump
+
+# Local package caches
+seims/scenario_analysis/wheels/
+seims/scenario_analysis/wheels_complete/

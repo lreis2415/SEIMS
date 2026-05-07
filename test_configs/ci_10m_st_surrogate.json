@@ -1,5 +1,5 @@
 {
-  "_comment": "[CI] 10m 时空优化 | 代理模型(XGBoost) | 5代 20个 | 验证特征提取修复",
+  "_comment": "[CI] 10m 时空优化 | 代理模型(XGBoost x00x) | 5代 20个 | 无投资约束",
   "mode": "spatio_temporal",
   "model": {
     "model_dir": "/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
@@ -7,7 +7,7 @@
     "model_name": "youwuzhen10m_longterm_model",
     "host": "127.0.0.1",
     "port": 27017,
-    "scenario_db": "youwuzhen10m_Scenario"
+    "scenario_db": "ss_youwuzhen10m_Scenario"
   },
   "spatial": {
     "unit": "SLPPOS",
@@ -28,10 +28,7 @@
     "SelectRate": 0.8
   },
   "budget": {
-    "enable_investment_quota": true,
-    "investment_each_period": [25, 15, 10],
-    "investment_float_range": 0.2,
-    "stage_years": [2, 2, 1]
+    "enable_investment_quota": false
   },
   "evaluation": {
     "eval_stime": "2013-01-01 00:00:00",
@@ -41,7 +38,7 @@
   },
   "surrogate": {
     "use_surrogate": true,
-    "surrogate_model_dir": "/data/youwuzhen10m/surrogate_model_comparison"
+    "surrogate_model_dir": "/data/youwuzhen10m/surrogate_x00x"
   },
   "output": {
     "output_dir": "/data/results/ci_10m_st",

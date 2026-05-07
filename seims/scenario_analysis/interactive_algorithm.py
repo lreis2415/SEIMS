@@ -28,6 +28,7 @@ if _this_dir not in sys.path:
 # 导入DEAP工具函数
 from deap_tool import (
     selNSGA2_prefer,
+    selNSGA2_multiuser_prefer,
     interactive_selection,
     update_preference_params,
     merge_multiuser_prefs
@@ -45,6 +46,7 @@ class InteractiveAlgorithm:
                  enable_interactive: bool = False,
                  interactive_interval: int = 10,
                  users: Optional[Dict] = None,
+                 preference_fusion_strategy: str = 'merge_preferences',
                  logger: Optional[logging.Logger] = None):
         """
         初始化交互式算法
@@ -58,10 +60,12 @@ class InteractiveAlgorithm:
         self.enable_interactive = enable_interactive
         self.interactive_interval = interactive_interval
         self.users = users if users else {}
+        self.preference_fusion_strategy = preference_fusion_strategy or 'merge_preferences'
         self.logger = logger if logger else logging.getLogger(__name__)
 
         # 合并后的偏好参数
         self.merged_prefs = []
+        self.user_prefs_list = []
 
         # 初始化
         if self.enable_interactive and self.users:
@@ -89,17 +93,20 @@ class InteractiveAlgorithm:
         """更新合并后的多用户偏好参数"""
         if not self.enable_interactive or not self.users:
             self.merged_prefs = []
+            self.user_prefs_list = []
             return
 
         user_prefs_list = []
         for user_id, user in self.users.items():
             user_prefs_list.append(user['preference_param'])
 
+        self.user_prefs_list = user_prefs_list
         if user_prefs_list:
             self.merged_prefs = merge_multiuser_prefs(user_prefs_list)
             self.logger.debug(f"Merged preferences updated: {len(self.merged_prefs)} metrics")
         else:
             self.merged_prefs = []
+            self.user_prefs_list = []
 
     def should_interact(self, generation: int) -> bool:
         """
@@ -130,7 +137,11 @@ class InteractiveAlgorithm:
         Returns:
             选择函数（selNSGA2_prefer或标准selNSGA2）
         """
-        if self.enable_interactive and self.merged_prefs:
+        if self.enable_interactive and self.preference_fusion_strategy == 'select_then_merge' and self.user_prefs_list:
+            return toolbox.select_multiuser_prefer(
+                population, k, user_preference_params=self.user_prefs_list
+            )
+        elif self.enable_interactive and self.merged_prefs:
             # 返回带偏好的选择函数
             def select_with_preference(pop, k):
                 return selNSGA2_prefer(pop, k, preference_params=self.merged_prefs)
@@ -207,6 +218,7 @@ class InteractiveAlgorithm:
         """
         if self.enable_interactive:
             toolbox.register('select_prefer', selNSGA2_prefer)
+            toolbox.register('select_multiuser_prefer', selNSGA2_multiuser_prefer)
             self.logger.info("Registered select_prefer to toolbox")
 
     def select_population(self, toolbox, population: List, k: int) -> List:
@@ -239,7 +251,8 @@ class InteractiveAlgorithm:
             'enable_interactive': self.enable_interactive,
             'interactive_interval': self.interactive_interval,
             'num_users': len(self.users),
-            'has_merged_prefs': len(self.merged_prefs) > 0
+            'has_merged_prefs': len(self.merged_prefs) > 0,
+            'preference_fusion_strategy': self.preference_fusion_strategy
         }
 
     def __repr__(self):
@@ -262,11 +275,13 @@ def create_interactive_algorithm(config, logger=None) -> InteractiveAlgorithm:
     enable_interactive = getattr(config, 'enable_interactive', False)
     interactive_interval = getattr(config, 'interactive_interval', 10)
     users = getattr(config, 'users', {})
+    preference_fusion_strategy = getattr(config, 'preference_fusion_strategy', 'merge_preferences')
 
     return InteractiveAlgorithm(
         enable_interactive=enable_interactive,
         interactive_interval=interactive_interval,
         users=users,
+        preference_fusion_strategy=preference_fusion_strategy,
         logger=logger
     )
 
@@ -285,10 +300,12 @@ def create_interactive_algorithm_from_dict(config_dict: Dict, logger=None) -> In
     enable_interactive = config_dict.get('enable_interactive', False)
     interactive_interval = config_dict.get('interactive_interval', 10)
     users = config_dict.get('users', {})
+    preference_fusion_strategy = config_dict.get('preference_fusion_strategy', 'merge_preferences')
 
     return InteractiveAlgorithm(
         enable_interactive=enable_interactive,
         interactive_interval=interactive_interval,
         users=users,
+        preference_fusion_strategy=preference_fusion_strategy,
         logger=logger
     )

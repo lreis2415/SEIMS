@@ -1,0 +1,41 @@
+{
+  "project": {
+    "name": "youwuzhen_surrogate_quick_test",
+    "work_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/surrogate_quick_test"
+  },
+  "seims": {
+    "model_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/demo_youwuzhen30m_longterm_model",
+    "config_ini": "D:/EGC/SEIMS-dev/data/youwuzhen/model_configs/scenario_analysis.ini",
+    "bin_dir": "D:/EGC/SEIMS-dev/build/bin",
+    "model_name": "demo_youwuzhen30m_longterm_model",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "demo_youwuzhen30m_Scenario",
+    "nthread": 4,
+    "lyrmtd": 0
+  },
+  "spatial": {
+    "unit": "SLPPOS",
+    "config_method": "HILLSLP"
+  },
+  "sampling": {
+    "n_samples": 10,
+    "seed": 12345
+  },
+  "evaluation": {
+    "eval_stime": "2012-02-27 00:00:00",
+    "eval_etime": "2012-04-30 23:59:59",
+    "output_vars": ["SED"]
+  },
+  "simulation": {
+    "parallel_jobs": 4
+  },
+  "training": {
+    "test_size": 0.2,
+    "validation_size": 0.1,
+    "epochs": 50,
+    "batch_size": 8,
+    "target_r2": 0.80,
+    "hidden_layers": [64, 32]
+  }
+}

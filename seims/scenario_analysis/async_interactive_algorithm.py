@@ -6,13 +6,13 @@
 
 与同步模式区别：
 - 到达交互世代时，保存 checkpoint 并写入 WAIT_INTERACTION signal 文件
-- 容器立即退出，将控制权交给外部系统
-- 外部系统完成用户交互后，启动新容器从断点继续
-- 新容器读取 CONTINUE signal 获取新偏好，继续优化
+- 抛出 AsyncInteractionPending 异常，进程退出（exit code 42）
+- 外部系统：用 generate_continue.py 读取 checkpoint + 用户分类 → 写入 CONTINUE JSON
+- 用 --resume 重启优化器，从 checkpoint 断点继续，应用新偏好参数
 
 @author: SEIMS Team
-@version: 2.0
-@date: 2026-04-20
+@version: 2.1
+@date: 2026-04-21
 """
 
 import os
@@ -38,6 +38,37 @@ from deap_tool import (
     merge_multiuser_prefs
 )
 
+# 退出码：优化器正常暂停等待用户交互（非错误）
+ASYNC_INTERACTION_EXIT_CODE = 42
+
+
+class AsyncInteractionPending(Exception):
+    """
+    异步交互暂停信号。
+
+    当优化到达交互节点，保存 checkpoint 和 WAIT_INTERACTION 信号后抛出此异常。
+    调用方（NSGA2 main / unified_optimizer_v2）捕获后以 exit code 42 退出进程。
+    外部系统完成用户交互后，用 generate_continue.py 生成 CONTINUE JSON，
+    再以 --resume 重启优化器从断点继续。
+
+    Attributes:
+        generation: 触发交互的代数
+        task_id: 任务标识
+        checkpoint_file: 保存的 checkpoint 路径
+        signal_file: 写入的 WAIT_INTERACTION 信号路径
+    """
+    def __init__(self, generation: int, task_id: str,
+                 checkpoint_file: str = '', signal_file: str = ''):
+        super().__init__(
+            f"Async interaction pending at generation {generation} "
+            f"(task={task_id}). "
+            f"Run generate_continue.py then restart with --resume."
+        )
+        self.generation = generation
+        self.task_id = task_id
+        self.checkpoint_file = checkpoint_file
+        self.signal_file = signal_file
+
 
 class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
     """
@@ -48,8 +79,9 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
     1. 保存 checkpoint 到文件
     2. 写入 WAIT_INTERACTION signal 文件
     3. 写入 SOLUTIONS 文件供前端展示
-    4. 等待 CONTINUE signal 文件
-    5. 读取新偏好参数，继续优化
+    4. 抛出 AsyncInteractionPending（进程以 exit code 42 退出）
+    续跑时（--resume 模式）：
+    5. 读取 CONTINUE JSON，应用新偏好参数，从断点继续
     """
 
     def __init__(self,
@@ -61,6 +93,7 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
                  task_id: str = 'default_task',
                  signal_dir: str = '/tmp/signals',
                  checkpoint_dir: str = '/tmp/checkpoints',
+                 preference_fusion_strategy: str = 'merge_preferences',
                  timeout_seconds: int = 3600):
         """
         初始化异步交互式算法
@@ -80,6 +113,7 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
             enable_interactive=enable_interactive,
             interactive_interval=interactive_interval,
             users=users,
+            preference_fusion_strategy=preference_fusion_strategy,
             logger=logger
         )
 
@@ -188,6 +222,7 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
             'generation': gen,
             'random_state': random.getstate(),
             'preference_params': self.current_prefs,
+            'preference_fusion_strategy': self.preference_fusion_strategy,
             'interactive_interval': self.interactive_interval,
             'users': self.users,
             'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S')
@@ -250,17 +285,57 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
         return None
 
     def _update_preferences_from_continue(self, continue_data: Dict) -> bool:
-        """从 CONTINUE signal 更新偏好参数"""
+        """从 CONTINUE signal 更新偏好参数。
+
+        支持两种 users_preferences 格式：
+          - 扁平格式（旧）: [{"economy": [80, "less", 20], ...}, ...]
+          - 带 user_id 格式（generate_continue.py 输出）:
+            [{"user_id": "user1", "preference_params": {"economy": [...], ...}}, ...]
+        """
         if not continue_data:
             return False
 
-        new_prefs = continue_data.get('users_preferences', [])
-        merge_method = continue_data.get('merge_method', 'weighted_sum')
+        raw_prefs = continue_data.get('users_preferences', [])
+        merge_method = continue_data.get('merge_method', self.preference_fusion_strategy)
 
-        if new_prefs:
-            self.current_prefs = merge_multiuser_prefs(new_prefs)
+        if not raw_prefs:
+            return False
+
+        # 标准化：提取纯 preference_param 列表（用于 merge_multiuser_prefs）
+        pref_list = []
+        for item in raw_prefs:
+            if 'preference_params' in item:
+                # generate_continue.py 格式：{user_id, preference_params}
+                params = item['preference_params']
+            else:
+                # 扁平格式：直接是 {metric: [h, dir, r]}
+                params = item
+
+            # JSON 反序列化后 list → tuple
+            normalized = {}
+            for metric, val in params.items():
+                if metric == 'bmp_rules':
+                    normalized[metric] = val
+                elif isinstance(val, (list, tuple)) and len(val) == 3:
+                    normalized[metric] = tuple(val)
+                else:
+                    normalized[metric] = val
+            pref_list.append(normalized)
+
+            # 同步更新 self.users 中对应用户的 preference_param
+            user_id = item.get('user_id')
+            if user_id and user_id in self.users:
+                self.users[user_id]['preference_param'] = normalized
+
+        if pref_list:
+            self.user_prefs_list = pref_list
+            self.current_prefs = merge_multiuser_prefs(pref_list)
             self.merged_prefs = self.current_prefs
-            self.logger.info(f"[Async] Preferences updated: {len(new_prefs)} users, method={merge_method}")
+            if merge_method in ('merge_preferences', 'select_then_merge'):
+                self.preference_fusion_strategy = merge_method
+            self.logger.info(
+                f"[Async] Preferences updated: {len(pref_list)} users, method={merge_method}"
+            )
             return True
 
         return False
@@ -270,16 +345,37 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
         if random_state:
             random.setstate(random_state)
 
+    def apply_continue(self, continue_data: Dict) -> bool:
+        """
+        续跑入口：读取 CONTINUE JSON 数据，更新偏好参数。
+
+        由外部（unified_optimizer_v2 --resume 模式）在重启后调用。
+
+        Args:
+            continue_data: CONTINUE JSON 内容（由 generate_continue.py 生成）
+
+        Returns:
+            是否成功更新偏好
+        """
+        return self._update_preferences_from_continue(continue_data)
+
     def run_async_interaction(self, pop: List, gen: int) -> bool:
         """
-        执行异步交互流程
+        执行异步交互流程。
+
+        保存 checkpoint + 写入 WAIT_INTERACTION 信号后，
+        抛出 AsyncInteractionPending 异常，进程将以 exit code 42 退出。
+
+        外部流程：
+          1. 用 generate_continue.py 生成 CONTINUE JSON
+          2. 用 --resume 重启优化器，从断点继续
 
         Args:
             pop: 当前种群
             gen: 当前代数
 
-        Returns:
-            是否成功执行交互（用户提交了偏好）
+        Raises:
+            AsyncInteractionPending: 触发异步暂停
         """
         if not self.should_interact(gen):
             return False
@@ -289,35 +385,24 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
         self.logger.info(f"{'=' * 60}")
 
         # 1. 保存 checkpoint
-        self._save_checkpoint(pop, gen)
+        checkpoint_file = self._save_checkpoint(pop, gen)
 
-        # 2. 保存随机状态（在写入signal之前）
-        current_random_state = random.getstate()
+        # 2. 写入 WAIT_INTERACTION signal
+        signal_file = self._write_wait_signal(pop, gen)
 
-        # 3. 写入 WAIT_INTERACTION signal
-        self._write_wait_signal(pop, gen)
+        self.logger.info(f"[Async] Checkpoint: {checkpoint_file}")
+        self.logger.info(f"[Async] Signal:     {signal_file}")
+        self.logger.info(
+            f"[Async] Run generate_continue.py then restart with --resume to continue."
+        )
 
-        # 4. 等待 CONTINUE signal
-        continue_data = self._wait_for_continue_signal(gen)
-
-        if continue_data:
-            # 5. 更新偏好参数
-            self._update_preferences_from_continue(continue_data)
-
-            # 6. 恢复随机状态
-            self._restore_random_state(current_random_state)
-
-            # 7. 清理旧checkpoint
-            old_checkpoint = self._get_checkpoint_path(gen)
-            if os.path.exists(old_checkpoint):
-                os.remove(old_checkpoint)
-
-            self.logger.info(f"[Async] Continuing with new preferences at gen {gen}")
-            return True
-        else:
-            # 超时或无CONTINUE，使用默认选择
-            self.logger.warning(f"[Async] No CONTINUE received, continuing without preference update")
-            return False
+        # 3. 抛出异常通知调用方退出
+        raise AsyncInteractionPending(
+            generation=gen,
+            task_id=self.task_id,
+            checkpoint_file=checkpoint_file or '',
+            signal_file=signal_file or ''
+        )
 
     def run_interaction(self, pop: List, generation: int) -> bool:
         """
@@ -359,6 +444,8 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
             if 'preference_params' in data:
                 self.current_prefs = data['preference_params']
                 self.merged_prefs = self.current_prefs
+            if 'preference_fusion_strategy' in data:
+                self.preference_fusion_strategy = data['preference_fusion_strategy']
             if 'interactive_interval' in data:
                 self.interactive_interval = data['interactive_interval']
 
@@ -425,6 +512,7 @@ def create_async_interactive_algorithm(config, logger=None) -> AsyncInteractiveA
     task_id = getattr(config, 'task_id', 'default_task')
     signal_dir = getattr(config, 'signal_dir', '/tmp/signals')
     checkpoint_dir = getattr(config, 'checkpoint_dir', '/tmp/checkpoints')
+    preference_fusion_strategy = getattr(config, 'preference_fusion_strategy', 'merge_preferences')
 
     return AsyncInteractiveAlgorithm(
         enable_interactive=enable_interactive,
@@ -434,7 +522,8 @@ def create_async_interactive_algorithm(config, logger=None) -> AsyncInteractiveA
         enable_async=enable_async,
         task_id=task_id,
         signal_dir=signal_dir,
-        checkpoint_dir=checkpoint_dir
+        checkpoint_dir=checkpoint_dir,
+        preference_fusion_strategy=preference_fusion_strategy
     )
 
 
@@ -456,6 +545,7 @@ def create_async_interactive_algorithm_from_dict(config_dict: Dict, logger=None)
     task_id = config_dict.get('task_id', 'default_task')
     signal_dir = config_dict.get('signal_dir', '/tmp/signals')
     checkpoint_dir = config_dict.get('checkpoint_dir', '/tmp/checkpoints')
+    preference_fusion_strategy = config_dict.get('preference_fusion_strategy', 'merge_preferences')
 
     return AsyncInteractiveAlgorithm(
         enable_interactive=enable_interactive,
@@ -465,5 +555,6 @@ def create_async_interactive_algorithm_from_dict(config_dict: Dict, logger=None)
         enable_async=enable_async,
         task_id=task_id,
         signal_dir=signal_dir,
-        checkpoint_dir=checkpoint_dir
+        checkpoint_dir=checkpoint_dir,
+        preference_fusion_strategy=preference_fusion_strategy
     )

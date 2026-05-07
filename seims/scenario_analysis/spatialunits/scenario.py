@@ -892,13 +892,21 @@ class SUScenario(Scenario):
 
             # Apply One-Hot encoding if model uses it (10m spatio-temporal model)
             # gene_values encoding: bmp_type * 1000 + time_period (e.g. 2003 = BMP type 2, period 3)
-            # Feature layout: [one_hot(bmp_types) 525-dim] + [time_periods 105-dim] = 630-dim
             if hasattr(self.cfg, '_onehot_encoder') and self.cfg._onehot_encoder is not None:
                 n_units = self.cfg._onehot_encoder.n_features_in_  # 105
-                X_bmp_types = (gene_arr[:n_units] // 1000).astype(int).reshape(1, -1)
-                X_time = (gene_arr[:n_units] % 1000).reshape(1, -1)
-                X_bmp_oh = self.cfg._onehot_encoder.transform(X_bmp_types)  # (1, 525)
-                X = np.concatenate([X_bmp_oh, X_time], axis=1)  # (1, 630)
+                # Check if this is x00x encoding (21 values per position) vs old 630-dim encoding
+                # x00x encoding: encoder.categories_ has 21 values per position (0, 1001-4005)
+                # Old encoding: encoder.categories_ has 5 values per position (0-4 for types only)
+                if len(self.cfg._onehot_encoder.categories_[0]) == 21:
+                    # x00x encoding: gene_arr already contains merged type*1000+time values
+                    X = gene_arr[:n_units].reshape(1, -1).astype(int)
+                    X = self.cfg._onehot_encoder.transform(X)
+                else:
+                    # Old 630-dim encoding: split types and times
+                    X_bmp_types = (gene_arr[:n_units] // 1000).astype(int).reshape(1, -1)
+                    X_time = (gene_arr[:n_units] % 1000).reshape(1, -1)
+                    X_bmp_oh = self.cfg._onehot_encoder.transform(X_bmp_types)  # (1, 525)
+                    X = np.concatenate([X_bmp_oh, X_time], axis=1)  # (1, 630)
                 X = self.cfg._scaler_x.transform(X)
             else:
                 X = gene_arr.reshape(1, -1)
@@ -1354,6 +1362,9 @@ class SUScenario(Scenario):
                 # If not provided, fallback to 2-stage with years_first_period
                 if hasattr(self.cfg, 'stage_years') and self.cfg.stage_years:
                     stage_years = self.cfg.stage_years
+                elif len(stage_constraints) == 1:
+                    # Single budget value → single stage covering full implementation period
+                    stage_years = [int(self.cfg.implementation_period)]
                 else:
                     # Backward compatibility: use years_first_period for 2-stage
                     years_first = int(self.cfg.years_first_period)

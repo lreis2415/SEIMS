@@ -1,0 +1,34 @@
+{
+  "project": {
+    "name": "youwuzhen_surrogate",
+    "work_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/surrogate_training"
+  },
+  "seims": {
+    "model_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/demo_youwuzhen30m_longterm_model",
+    "config_ini": "D:/EGC/SEIMS-dev/data/youwuzhen/model_configs/scenario_analysis.ini",
+    "bin_dir": "D:/EGC/SEIMS-dev/build/bin",
+    "model_name": "model_youwuzhen30m_longterm",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "model_youwuzhen30m_longterm_scenario",
+    "nthread": 4,
+    "lyrmtd": 0
+  },
+  "sampling": {
+    "n_samples": 100,
+    "seed": 12345
+  },
+  "evaluation": {
+    "eval_stime": "2012-02-27 00:00:00",
+    "eval_etime": "2012-04-30 23:59:59",
+    "output_vars": ["SED"]
+  },
+  "training": {
+    "test_size": 0.2,
+    "validation_size": 0.1,
+    "epochs": 100,
+    "batch_size": 32,
+    "target_r2": 0.85,
+    "hidden_layers": [128, 64, 32]
+  }
+}

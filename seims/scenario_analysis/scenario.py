@@ -102,6 +102,9 @@ class Scenario(object):
 
         # Initialize SEIMS model
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
+
+        # NOTE: Even in surrogate mode, we need to read MongoDB data for suit_bmps and bmps_params
+        # which are required by rule_based_config() during initialization
         self.model.ReadMongoDBData()
         self.model.SetMongoClient()
         self.scenario_db = self.model.ScenarioDBName

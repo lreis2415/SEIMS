@@ -228,6 +228,9 @@ def main():
                        help='模型目录路径')
     parser.add_argument('--bin-dir', type=str,
                        help='SEIMS二进制文件目录 (默认: /opt/seims/bin)')
+    parser.add_argument('--resume', type=str, default=None, metavar='CONTINUE_JSON',
+                       help='从异步交互断点续跑，指定 CONTINUE JSON 路径 '
+                            '(由 generate_continue.py 生成)')
 
     # 算法参数
     # NEW: Remove default values to avoid overriding config file
@@ -344,6 +347,14 @@ def main():
             log_level=log_level
         )
 
+        # --resume：注入 CONTINUE JSON 路径
+        if args.resume:
+            if not os.path.isfile(args.resume):
+                print(f"Error: CONTINUE JSON not found: {args.resume}")
+                sys.exit(1)
+            optimizer.cfg.async_continue_file = args.resume
+            print(f"Resume mode: CONTINUE JSON = {args.resume}")
+
         if args.verbose:
             print("\nConfiguration Summary:")
             print(json.dumps(optimizer.get_config_summary(), indent=2, ensure_ascii=False))
@@ -361,6 +372,8 @@ def main():
     except KeyboardInterrupt:
         print("\n\nOptimization interrupted by user.")
         sys.exit(130)
+    except SystemExit:
+        raise  # 透传 sys.exit()（包括 exit code 42 异步暂停）
     except Exception as e:
         print(f"\nError: {e}")
         if args.verbose:

@@ -1,0 +1,41 @@
+{
+  "project": {
+    "name": "youwuzhen_surrogate_slppos_500",
+    "work_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/surrogate_training_slppos_500"
+  },
+  "seims": {
+    "model_dir": "D:/EGC/SEIMS-dev/data/youwuzhen/demo_youwuzhen30m_longterm_model",
+    "config_ini": "D:/EGC/SEIMS-dev/data/youwuzhen/model_configs/scenario_analysis.ini",
+    "bin_dir": "D:/EGC/SEIMS-dev/build/bin",
+    "model_name": "demo_youwuzhen30m_longterm_model",
+    "host": "127.0.0.1",
+    "port": 27017,
+    "scenario_db": "demo_youwuzhen30m_Scenario",
+    "nthread": 4,
+    "lyrmtd": 0
+  },
+  "spatial": {
+    "unit": "SLPPOS",
+    "config_method": "HILLSLP"
+  },
+  "sampling": {
+    "n_samples": 500,
+    "seed": 12345
+  },
+  "evaluation": {
+    "eval_stime": "2013-01-01 00:00:00",
+    "eval_etime": "2017-12-31 23:59:59",
+    "output_vars": ["SED"]
+  },
+  "simulation": {
+    "parallel_jobs": 8
+  },
+  "training": {
+    "test_size": 0.2,
+    "validation_size": 0.1,
+    "epochs": 200,
+    "batch_size": 32,
+    "target_r2": 0.90,
+    "hidden_layers": [256, 128, 64, 32]
+  }
+}

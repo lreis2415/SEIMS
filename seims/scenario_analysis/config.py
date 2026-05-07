@@ -86,6 +86,9 @@ class SAConfig(object):
             self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
         if cf.has_option('Scenario_Common', 'export_scenario_tif'):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
+        self.preference_fusion_strategy = 'merge_preferences'
+        if cf.has_option('Scenario_Common', 'preference_fusion_strategy'):
+            self.preference_fusion_strategy = cf.get('Scenario_Common', 'preference_fusion_strategy')
 
         # NEW (2026-03-30): Surrogate model configuration
         self.use_surrogate = False

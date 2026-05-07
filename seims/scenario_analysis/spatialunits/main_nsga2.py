@@ -154,6 +154,7 @@ def main(sceobj):
             enable_interactive=getattr(sceobj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(sceobj.cfg, 'interactive_interval', 10),
             users=getattr(sceobj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(sceobj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__),
             enable_async=True,
             task_id=getattr(sceobj.cfg, 'async_task_id', 'default_task'),
@@ -170,6 +171,7 @@ def main(sceobj):
             enable_interactive=getattr(sceobj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(sceobj.cfg, 'interactive_interval', 10),
             users=getattr(sceobj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(sceobj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__)
         )
         ia.register_to_toolbox(toolbox)

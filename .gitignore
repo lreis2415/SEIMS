@@ -102,3 +102,64 @@ node_modules
 doc/.history/**
 .history/**
 doc\zh-cn\.history**
+
+# Local agent/memory artifacts
+.claude/
+/CLAUDE.md
+/MEMORY.md
+
+# Runtime logs and generated artifacts from optimization/surrogate experiments
+*.log
+*.stackdump
+*.pkl
+*.h5
+*.png
+*.xlsx
+*.tar
+*.tar.gz
+/build.log
+/check_progress.log
+/run_5000.log
+/run_5000_samples_serial.log
+/seims_optimizer.log
+
+# Large local datasets, model outputs, and database dumps generated during this work
+/data/chaohe/
+/data/meixi/
+/data/results/
+/data/youwuzhen10m/
+/data/youwuzhen10m.zip
+/data/youwuzhen-EN-wut20230725/
+/data/youwuzhen-EN-wut20230725.zip
+/data/youwuzhen/surrogate_*/
+/data/youwuzhen/demo_youwuzhen30m_longterm_model/SA_NSGA2_*.log
+/data/youwuzhen/demo_youwuzhen30m_longterm_model/Scenario_*.txt
+/data/youwuzhen/demo_youwuzhen30m_longterm_model/key_scenarios.zip
+/mongo_dump/
+/docker/workspace/
+/docker/almalinux8.tar
+/docker/mongo-init/mongo_dump/
+/seims/results/
+/seims/scenario_analysis/wheels/
+/seims/scenario_analysis/wheels_complete/
+
+# Local progress/notification state
+/seims/surrogate_model/feishu_webhook.txt
+/seims/surrogate_model/feishu_stall_sent.flag
+/seims/surrogate_model/last_progress_time.txt
+/seims/surrogate_model/last_reported.txt
+/seims/surrogate_model/*_output.log
+/seims/surrogate_model/*_verification*.csv
+/seims/surrogate_model/test_samples.csv
+
+# One-off local writeups generated during development
+/BUG_FIX_REPORT*.md
+/DOCKER_QUICKSTART.md
+/EXAMPLE_SCENARIO_OUTPUT_WITH_NEW_FEATURES.txt
+/FEATURE_*REPORT*.md
+/IMPLEMENTATION_REPORT*.md
+/WORK_SUMMARY.md
+/修复总结_*.md
+/工作简报.md
+/最终报告.md
+/代理模型对比问题分析.md

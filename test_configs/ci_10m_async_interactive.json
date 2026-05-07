@@ -4,7 +4,7 @@
   "model": {
     "model_dir": "/data/youwuzhen10m/ss_youwuzhen10m_longterm_model",
     "bin_dir": "/opt/seims/bin",
-    "model_name": "ss_youwuzhen10m_longterm_model",
+    "model_name": "youwuzhen10m_longterm_model",
     "host": "127.0.0.1",
     "port": 27017,
     "scenario_db": "ss_youwuzhen10m_Scenario"
@@ -20,7 +20,7 @@
   },
   "algorithm": {
     "type": "NSGA2",
-    "GenerationsNum": 10,
+    "GenerationsNum": 20,
     "PopulationSize": 20,
     "CrossoverRate": 0.8,
     "MutateRate": 0.1,
@@ -29,9 +29,8 @@
   },
   "budget": {
     "enable_investment_quota": true,
-    "investment_each_period": [25, 15, 10],
-    "investment_float_range": 0.2,
-    "years_first_period": 3
+    "investment_each_period": [80],
+    "investment_float_range": 0.5
   },
   "evaluation": {
     "eval_stime": "2013-01-01 00:00:00",
@@ -41,13 +40,13 @@
   },
   "surrogate": {
     "use_surrogate": true,
-    "surrogate_model_dir": "/data/youwuzhen10m/surrogate_model_comparison"
+    "surrogate_model_dir": "/data/youwuzhen10m/surrogate_x00x"
   },
   "interactive": {
     "enable": true,
     "enable_async": true,
     "task_id": "ci_test_async",
-    "interval_generations": 5,
+    "interval_generations": 10,
     "signal_dir": "/data/results/ci_async_signals",
     "checkpoint_dir": "/data/results/ci_async_ckpt",
     "users": [
@@ -55,8 +54,8 @@
         "user_id": "user1",
         "preference_params": {
           "economy": [80, "less", 20],
-          "environment": [5, "greater", 2],
-          "abandon_possibility": [0.15, "less", 0.05]
+          "environment": [0.1, "greater", 0.05],
+          "cost_variation": [200, "less", 80]
         }
       }
     ]

@@ -86,6 +86,27 @@ def selNSGA2_prefer(original_pop, k, nd='standard', preference_params=None):
     return chosen
 
 
+def selNSGA2_multiuser_prefer(original_pop, k, nd='standard', user_preference_params=None):
+    """Apply preference selection per user, then merge the selected populations."""
+    if not user_preference_params:
+        return selNSGA2(original_pop, k, nd=nd)
+
+    user_pops = []
+    for preference_params in user_preference_params:
+        if not preference_params:
+            continue
+        user_pops.append(
+            selNSGA2_prefer(original_pop, k, nd=nd, preference_params=preference_params)
+        )
+
+    if not user_pops:
+        return selNSGA2(original_pop, k, nd=nd)
+    if len(user_pops) == 1:
+        return user_pops[0]
+
+    return merge_multiuser_pops(user_pops, k)
+
+
 def satisfaction_score(value, h, direction, r):
     """计算单个指标的满意度得分（高斯衰减）"""
     # 安全处理r=0的情况
@@ -1617,6 +1638,6 @@ def _partition(array, begin, end):
             return j
 
 
-__all__ = ['selNSGA2', 'selNSGA3', 'selNSGA2_prefer', 'selNSGA3WithMemory', 'selSPEA2', 'sortNondominated',
+__all__ = ['selNSGA2', 'selNSGA3', 'selNSGA2_prefer', 'selNSGA2_multiuser_prefer', 'selNSGA3WithMemory', 'selSPEA2', 'sortNondominated',
            'sortLogNondominated',
            'selTournamentDCD', 'uniform_reference_points']

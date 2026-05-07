@@ -169,6 +169,7 @@ def main(scenario_obj):
             enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
             users=getattr(scenario_obj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(scenario_obj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__),
             enable_async=True,
             task_id=getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
@@ -184,6 +185,7 @@ def main(scenario_obj):
             enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
             users=getattr(scenario_obj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(scenario_obj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__)
         )
         ia.register_to_toolbox(toolbox)

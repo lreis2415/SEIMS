@@ -53,7 +53,9 @@ from scenario_analysis.spatialunits.userdef import check_individual_diff, \
 from scenario_analysis.deap_tool import selNSGA2_prefer, calculate_preference_score, interactive_selection, \
     update_preference_params, merge_multiuser_pops, merge_multiuser_prefs
 from scenario_analysis.interactive_algorithm import InteractiveAlgorithm
-from scenario_analysis.async_interactive_algorithm import AsyncInteractiveAlgorithm
+from scenario_analysis.async_interactive_algorithm import (
+    AsyncInteractiveAlgorithm, AsyncInteractionPending, ASYNC_INTERACTION_EXIT_CODE
+)
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -305,6 +307,7 @@ def main(scenario_obj):
             enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
             users=getattr(scenario_obj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(scenario_obj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__),
             enable_async=True,
             task_id=getattr(scenario_obj.cfg, 'async_task_id', 'default_task'),
@@ -320,6 +323,7 @@ def main(scenario_obj):
             enable_interactive=getattr(scenario_obj.cfg, 'enable_interactive', False),
             interactive_interval=getattr(scenario_obj.cfg, 'interactive_interval', 10),
             users=getattr(scenario_obj.cfg, 'users', {}),
+            preference_fusion_strategy=getattr(scenario_obj.cfg, 'preference_fusion_strategy', 'merge_preferences'),
             logger=logging.getLogger(__name__)
         )
         ia.register_to_toolbox(toolbox)
@@ -327,17 +331,29 @@ def main(scenario_obj):
             scoop_log('Interactive mode enabled: %d users, interval=%d generations' %
                       (len(ia.users), ia.interactive_interval))
 
-    # 异步模式下：检查是否有checkpoint，有则从checkpoint加载（ia必须先初始化）
-    if enable_async and hasattr(ia, 'has_checkpoint'):
+    # 异步模式：检查是否有 checkpoint 或 CONTINUE JSON，有则从断点续跑
+    start_gen = 0
+    if enable_async:
         latest_gen = ia.get_latest_checkpoint_gen()
         if latest_gen is not None and latest_gen >= 0:
             scoop_log(f'Loading checkpoint from generation {latest_gen}...')
-            pop = ia.load_from_checkpoint(latest_gen)
-            if pop is not None:
+            loaded_pop = ia.load_from_checkpoint(latest_gen)
+            if loaded_pop is not None:
+                pop = loaded_pop
+                start_gen = latest_gen
                 initialize_byinputs = True
-                scoop_log(f'Checkpoint loaded successfully: {len(pop)} individuals')
+                scoop_log(f'Checkpoint loaded: {len(pop)} individuals, resuming from gen {start_gen + 1}')
 
-    for gen in range(1, gen_num + 1):
+        # 应用 CONTINUE JSON 中的偏好参数（若存在）
+        continue_file = getattr(scenario_obj.cfg, 'async_continue_file', None)
+        if continue_file and os.path.isfile(continue_file):
+            with open(continue_file, 'r', encoding='utf-8') as _f:
+                continue_data = json.load(_f)
+            applied = ia.apply_continue(continue_data)
+            if applied:
+                scoop_log(f'Preferences applied from CONTINUE JSON: {continue_file}')
+
+    for gen in range(start_gen + 1, gen_num + 1):
         output_str = '###### Generation: %d ######\n' % gen
         scoop_log(output_str)
         offspring = [toolbox.clone(ind) for ind in pop]
@@ -432,6 +448,7 @@ def main(scenario_obj):
         # 使用 InteractiveAlgorithm 统一处理种群选择（自动区分偏好/标准选择）
         pop = ia.select_population(toolbox, pop, pop_select_num)
         # 若当前代需要交互，执行用户交互流程并更新偏好参数
+        # AsyncInteractionPending 不在此捕获，向上传播到 unified_optimizer_v2
         ia.run_interaction(pop, gen)
 
         hyper_str = 'Gen: %d, New model runs: %d, ' \
@@ -460,7 +477,7 @@ def main(scenario_obj):
 
         # NEW: Only save preference_score/front_id when interactive mode is enabled
         # OLD: Always tried to access ind.fitness.preference_score which doesn't exist in non-interactive mode
-        if enable_interactive and merged_prefs:
+        if ia.enable_interactive and ia.merged_prefs:
             front_array = numpy.array([
                 numpy.concatenate([
                     ind.fitness.values,  # 浮点数组
