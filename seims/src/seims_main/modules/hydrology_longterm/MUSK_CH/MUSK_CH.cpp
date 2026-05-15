@@ -644,7 +644,11 @@ bool MUSK_CH::ChannelFlow(const int i) {
         rtwtr += m_chSto[i];
         m_chSto[i] = 0.;
     }
-    m_qRchOut[i] = sdti;
+    // QRECH is the discharge at the reach outlet. The Muskingum loop computes
+    // rtwtr as the routed outflow volume for the day, while sdti is the in-channel
+    // flow rate implied by current storage. Use routed outflow for calibration
+    // against observed outlet discharge.
+    m_qRchOut[i] = rtwtr / m_dt;
     m_rteWtrOut[i] = rtwtr;
     m_chCrossArea[i] = rcharea;
 
