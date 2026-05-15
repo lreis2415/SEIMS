@@ -1,0 +1,18 @@
+### FORMAT
+### MODULE NO. | PROCESS NAME | METHOD NAME | MODULE ID
+### Driver factors, including climate and precipitation
+0 | TimeSeries | | TSD_RD
+0 | Interpolation_0 | Thiessen | ITP
+### Surface processes
+0 | Interception | Maximum Canopy Storage | PI_MCS
+3 | Infiltration | GreenAmpt | SUR_SGA
+4 | Depression storage | Fill | DEP_FS
+5 | Overland flow | IKW overland | IKW_OL
+6 | interflow | ikw method | IKW_IF
+7 | percolation | Darcy method | PERCO_DARCY
+8 | groundwater | resevoir method | GW_RSVR
+9 | ChannelRouting | IKW method | IKW_CH
+#9 | ChannelRouting | Diffusive wave | CH_DW
+### 10 | Soil Detachment | PARK_FOSTER | SPLASHERO_PARK
+### 11 | Overland Erosion | KinWavSed_OL | KINWAVSED_OL
+### 12 | Channel Erosion | KinWavSed_CH | KINWAVSED_CH
