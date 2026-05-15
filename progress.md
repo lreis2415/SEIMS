@@ -74,3 +74,53 @@
 
 - 分支：`merge-wwj-validation`（基于 `revise-fxy`）
 - 提交：`ac8ff175` — Merge reasonable improvements from wwj/validation-2026-05-07
+
+---
+
+## 日期：2026-05-13（续）— 土壤数据修复专项
+
+### 背景
+
+用户决定**不合并** wwj 的代码修改，仅使用其土壤修复思路。当前分支已回退到 `revise-fxy`（不合并 wwj 内容）。目标是修复 Andrews Forest storm 模型的土壤数据，使 FIELDCAP 等关键土壤属性恢复正常。
+
+### 问题诊断
+
+1. **SOILLOOKUP 集合被污染**：MongoDB 中 `SOILLOOKUP` 集合包含中国土壤编码（101~111, 231xxxxx），与 Andrews Forest 的 SOILTYPE 栅格（1-34）不匹配
+2. **GridFS 土壤栅格全 0**：FIELDCAP、WILTINGPOINT 等栅格在 GridFS 中全为 0
+3. **根本原因定位**：`data/AndrewsForest/data_prepare/lookup/soil_properties_lookup.csv` 中的 `SOL_FC` 和 `SOL_WP` 列本身就是 **全 0**。预处理脚本 `sp_soil.py` 的条件 `elif not self.FIELDCAP` 检查列表是否为空；当 CSV 提供 `[0, 0, 0, ...]` 时，列表非空，因此不会触发基于 SAND/CLAY/OM 的 SWAT 经验公式自动计算。0 被当作有效值保留下来，最终通过 C++ `mask_rasterio` 工具写入 GridFS 栅格。
+
+### 修复措施
+
+**措施 1：修复 MongoDB GridFS（立即生效）**
+
+- 创建 `fix_soil_gridfs_v2.py` 脚本，复用 `seims/preprocess/sp_soil.py` 中的 `SoilProperty` 类
+- 读取 CSV 时**不设置** FIELDCAP/WILTINGPOINT，让 `check_data_validation()` 自动根据土壤质地计算
+- 脚本成功为全部 6 个子流域（136,812 个栅格单元）重新生成土壤属性栅格
+
+**验证结果**：
+
+| 属性 | Layer0 Min | Layer0 Max | Layer0 Mean | 状态 |
+|------|-----------|-----------|------------|------|
+| FIELDCAP | 0.3517 | 0.9034 | 0.8571 | ✅ 正常 |
+| POROSITY | 0.6980 | 0.9250 | 0.9181 | ✅ 正常 |
+| WILTINGPOINT | 0.0991 | 0.5370 | 0.3719 | ✅ 正常 |
+| CONDUCTIVITY | 180.0 | 1440.0 | 1401.7 | ✅ 正常 |
+
+**措施 2：修复源 CSV（为完整预处理做准备）**
+
+- 修改 `soil_properties_lookup.csv`，将所有 `SOL_FC` 和 `SOL_WP` 列的 0 值替换为 `-9999`（`DEFAULT_NODATA`）
+- 共修复 68 处零值条目
+- 这样今晚重新运行完整预处理时，`sp_soil.py` 会检测到 `DEFAULT_NODATA` 并自动触发计算
+
+### 新增/修改文件
+
+| 文件 | 说明 |
+|------|------|
+| `fix_soil_gridfs_v2.py` | 改进版土壤栅格修复脚本，使用 SoilProperty 自动计算 FC/WP |
+| `data/AndrewsForest/data_prepare/lookup/soil_properties_lookup.csv` | SOL_FC/SOL_WP 0 → -9999 |
+
+### 待办事项（用户计划今晚执行）
+
+1. **完整预处理**：重新运行 `demo_preprocess.py`，从干净的源数据重新生成 SOILLOOKUP 集合和所有 GridFS 栅格
+2. **模型测试**：使用修复后的土壤数据运行 storm 模型，评估 NSE/PBIAS/PeakError
+3. **参数调优**：若土壤修复后模拟流量仍然偏低，可尝试调整 `OL_SPEED_FACTOR`、`FAST_RATIO`、`ANISOTROPY` 等参数
