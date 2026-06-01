@@ -191,8 +191,10 @@ else()
         string(REPLACE "-Wno-maybe-uninitialized " "" LLVM_CXXFLAGS ${LLVM_CXXFLAGS})
     endif()
 
-    if (${LLVM_VERSION_STRING} VERSION_LESS ${LLVM_FIND_VERSION})
-        _LLVM_FAIL("Unsupported LLVM version ${LLVM_VERSION_STRING} found (${LLVM_CONFIG}). At least version ${LLVM_FIND_VERSION} is required. You can also set variables 'LLVM_ROOT_DIR' or 'LLVM_CONFIG' to use a different LLVM installation.")
+    if (LLVM_FIND_VERSION)
+        if (${LLVM_VERSION_STRING} VERSION_LESS ${LLVM_FIND_VERSION})
+            _LLVM_FAIL("Unsupported LLVM version ${LLVM_VERSION_STRING} found (${LLVM_CONFIG}). At least version ${LLVM_FIND_VERSION} is required. You can also set variables 'LLVM_ROOT_DIR' or 'LLVM_CONFIG' to use a different LLVM installation.")
+        endif()
     endif()
 endif()
 

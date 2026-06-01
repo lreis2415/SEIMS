@@ -203,7 +203,7 @@ bool DataCenterMongoDB::GetFileInStringVector() {
         bson_iter_t it;
         const bson_t* bson_table;
         file_in_strs_.resize(4); // currently, only four TAG-Value are supported!
-        while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
+        while (mongoc_cursor_next(cursor, &bson_table)) {
             // Move "MODE", "INTERVAL", "STARTTIME", and "ENDTIME" to text.h
             if (bson_iter_init_find(&it, bson_table, "MODE")) {
                 model_mode_ = GetStringFromBsonIterator(&it);
@@ -248,7 +248,7 @@ bool DataCenterMongoDB::GetInitialFileOutMap() {
     }
     bson_iter_t itertor;
     const bson_t* bson_table;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
+    while (mongoc_cursor_next(cursor, &bson_table)) {
         OrgOutItem tmp_output_item;
         if (bson_iter_init_find(&itertor, bson_table, Tag_OutputUSE)) {
             GetNumericFromBsonIterator(&itertor, tmp_output_item.use);
@@ -323,7 +323,7 @@ bool DataCenterMongoDB::GetSelectedFileOutVector() {
     }
     bson_iter_t itertor;
     const bson_t* bson_table;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
+    while (mongoc_cursor_next(cursor, &bson_table)) {
         string cur_outid = "";
         if (bson_iter_init_find(&itertor, bson_table, Tag_OutputID)) {
             cur_outid = GetUpper(GetStringFromBsonIterator(&itertor));
@@ -369,6 +369,8 @@ bool DataCenterMongoDB::GetSelectedFileOutVector() {
     }
     vector<OrgOutItem>(selected_out_items_).swap(selected_out_items_);
     // selected_out_items_.shrink_to_fit();
+    bson_destroy(b);
+    mongoc_cursor_destroy(cursor);
     return !selected_out_items_.empty();
 }
 
@@ -468,7 +470,7 @@ bool DataCenterMongoDB::ReadParametersInDB() {
         mongoc_cursor_destroy(cursor);
         return false;
     }
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
+    while (mongoc_cursor_next(cursor, &info)) {
         //ParamInfo<FLTPT>* p = new ParamInfo<FLTPT>();
         bson_iter_t iter;
         string name = "";
@@ -581,7 +583,7 @@ bool DataCenterMongoDB::ReadCalibrateParametersInDB() {
     }
     bson_iter_t itertor;
     const bson_t* info;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
+    while (mongoc_cursor_next(cursor, &info)) {
         string cur_paramname = "";
         if (bson_iter_init_find(&itertor, info, PARAM_FLD_NAME)) {
             cur_paramname = GetUpper(GetStringFromBsonIterator(&itertor));
@@ -653,6 +655,8 @@ bool DataCenterMongoDB::ReadCalibrateParametersInDB() {
             }
         }
     }
+    bson_destroy(b);
+    mongoc_cursor_destroy(cursor);
     return true;
 }
 
