@@ -150,10 +150,6 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
                 int nextCell = m_flowOutIdx[i][j];
                                 float s0 = 0.0f;
 
-                if (m_dem[i] <= m_dem[nextCell]) {
-                    s0 = MIN_SLOPE;
-                }
-
                 float deltaZ = m_dem[i] - m_dem[nextCell];
 
                 float horizontalDist = m_CellWidth;
@@ -163,7 +159,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
                 }
 
                 if (horizontalDist > 0) {
-                    s0 = deltaZ / horizontalDist;
+                    s0 = Max(deltaZ / horizontalDist, MIN_SLOPE);
                 }
 
                 if (FloatEqual(s0, 0.0f)) {
