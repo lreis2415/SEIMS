@@ -376,7 +376,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     //}
 
     // if the channel width is greater than the cell width
-    if (m_streamLink[id] >= 0 && m_flowWidth[id] <= 0) {
+    if (m_streamLink[id] >= 0 && m_flowWidth[id][1] <= 0) {
         for (int j = 1; j <= numOutflows; ++j) {
             m_qs[id][j] = 0.f;
         }
