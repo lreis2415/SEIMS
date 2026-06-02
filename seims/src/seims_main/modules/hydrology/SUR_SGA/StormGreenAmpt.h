@@ -34,6 +34,8 @@ public:
 
     void SetValue(const char* key, int value) OVERRIDE;
 
+    void SetValue(const char* key, FLTPT value) OVERRIDE;
+
     void Set1DData(const char* key, int n, FLTPT* data) OVERRIDE;
 
     void Set1DData(const char* key, int n, int* data) OVERRIDE;
@@ -72,11 +74,22 @@ private:
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
+    /// Calculate the active storm infiltration depth (mm)
+    float CalculateWettingFrontDepth(int cell);
+
+    /// Calculate remaining event-scale pore deficit within the active depth (mm)
+    float CalculateActiveInfilCap(int cell, float activeDepth);
+
+    /// Add infiltration water to soil layers within the active wetting front depth
+    void AddInfiltrationToSoil(int cell, float infiltration, float activeDepth);
+
     // Parameters from database
     float m_dt;             ///< time step (seconds)
     int m_nCells;           ///< valid cells number
     float m_tSnow;          ///< snow fall temperature
     float m_t0;             ///< snow melt threshold temperature
+    float m_infilFactor;    ///< infiltration reduction factor, default 1.0
+    float m_activeDepthMax; ///< maximum active wetting front depth (mm)
     int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
     int* m_nSoilLyrs;     ///< soil layers
     float** m_soilDepth;    ///< root depth

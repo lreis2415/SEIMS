@@ -200,6 +200,8 @@ WaterBalance,soil_td1,Empirical coefficient for estimating soil temperature,deg 
 WaterBalance,soil_td2,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.339,0,AC,1,0,FLT
 WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8,FLT
 WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15,FLT
+WaterBalance,INFIL_FACTOR,Infiltration reduction factor for diagnostic runoff experiments,none,SUR_SGA,1,1,RC,1,0,FLT
+WaterBalance,ACTIVE_DEPTH_MAX,Maximum active wetting front depth for storm infiltration,mm,SUR_SGA,150,1,RC,1000,10,FLT
 WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8,FLT
 WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8,FLT
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05,FLT

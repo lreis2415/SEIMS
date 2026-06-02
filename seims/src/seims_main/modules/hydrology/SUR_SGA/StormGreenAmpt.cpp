@@ -3,7 +3,8 @@
 #include "text.h"
 
 StormGreenAmpt::StormGreenAmpt() :
-    m_dt(-1), m_nCells(-1), m_tSnow(0.0f), m_t0(1.0f),
+    m_dt(-1), m_nCells(-1), m_tSnow(0.0f), m_t0(1.0f), m_infilFactor(1.0f),
+    m_activeDepthMax(0.0f),
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilDepth(nullptr), m_soilPor(nullptr),
     m_soilClay(nullptr), m_soilSand(nullptr), m_ks(nullptr),
@@ -228,14 +229,8 @@ int StormGreenAmpt::Execute(void) {
         // infiltration rate (m/s)
         float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
 
-        //float infilCap = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_soilDepth[i][j];
-        float infilCap = 0.f;
-        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
-            float deficit = m_soilPor[i][k] - m_soilWtrSto[i][k];
-            if (deficit > 0.f) {
-                infilCap += deficit * m_soilDepth[i][k];
-            }
-        }
+        const float activeDepth = CalculateWettingFrontDepth(i);
+        const float infilCap = CalculateActiveInfilCap(i, activeDepth);
 
         if (hWater > 0) {
             // for frozen soil
@@ -250,7 +245,9 @@ int StormGreenAmpt::Execute(void) {
                 m_infilCapacitySurplus[i] = 0.f;
             }
             else {
-                m_infil[i] = Min(infilRate * dt * 1000.f, infilCap); // mm
+                float rawInfil = Min(infilRate * dt * 1000.f, infilCap); // mm
+                rawInfil *= m_infilFactor;
+                m_infil[i] = rawInfil;
 
                 //cout << m_infil[i] << endl;
                 //check if the infiltration potential exceeds the available water
@@ -267,19 +264,8 @@ int StormGreenAmpt::Execute(void) {
                 m_accumuDepth[i] += m_infil[i];
 
 
-                if (m_soilDepth != nullptr) {
-                    //m_soilWtrSto[i][j] += m_infil[i] / m_soilDepth[i][j];
-                    if (m_infil[i] > 0.f) {
-                        float remainInfil = m_infil[i]; // mm
-                        for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
-                            float deficit = (m_soilPor[i][k] - m_soilWtrSto[i][k]) * m_soilDepth[i][k]; // mm
-                            if (deficit <= 0.f) continue;
-                            float fill = Min(remainInfil, deficit);
-                            m_soilWtrSto[i][k] += fill / m_soilDepth[i][k];
-                            remainInfil -= fill;
-                            if (remainInfil <= 0.f) break;
-                        }
-                    }
+                if (m_soilDepth != nullptr && m_infil[i] > 0.f) {
+                    AddInfiltrationToSoil(i, m_infil[i], activeDepth);
                 }
             }
             m_exsPcp[i] = hWater - m_infil[i];
@@ -355,6 +341,79 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
     return cs;
 }
 
+float StormGreenAmpt::CalculateWettingFrontDepth(const int cell) {
+    const float minActiveDepth = 10.0f; // mm, keeps early storm infiltration numerically stable.
+    if (m_nSoilLyrs[cell] <= 0 || m_soilDepth[cell][0] <= 0.f) {
+        return minActiveDepth;
+    }
+
+    float activeDepth = m_activeDepthMax;
+    if (activeDepth <= 0.f) {
+        activeDepth = m_soilDepth[cell][CVT_INT(m_nSoilLyrs[cell]) - 1];
+    }
+    if (activeDepth < minActiveDepth) {
+        activeDepth = minActiveDepth;
+    }
+    const float profileDepth = m_soilDepth[cell][CVT_INT(m_nSoilLyrs[cell]) - 1];
+    if (profileDepth > 0.f && activeDepth > profileDepth) {
+        activeDepth = profileDepth;
+    }
+    return activeDepth;
+}
+
+float StormGreenAmpt::CalculateActiveInfilCap(const int cell, const float activeDepth) {
+    float activeStorage = 0.f;
+    float upperDepth = 0.f;
+    for (int k = 0; k < CVT_INT(m_nSoilLyrs[cell]); k++) {
+        const float lowerDepth = m_soilDepth[cell][k];
+        if (lowerDepth <= upperDepth) {
+            continue;
+        }
+        if (activeDepth <= upperDepth) {
+            break;
+        }
+        const float activeThickness = Min(activeDepth, lowerDepth) - upperDepth;
+        if (activeThickness > 0.f) {
+            const float initTheta = m_initSoilWtrStoRatio[cell] * m_soilFC[cell][k];
+            const float deficit = m_soilPor[cell][k] - initTheta;
+            if (deficit > 0.f) {
+                activeStorage += deficit * activeThickness;
+            }
+        }
+        upperDepth = lowerDepth;
+    }
+    const float remainingStorage = activeStorage - m_accumuDepth[cell];
+    return Max(remainingStorage, 0.f);
+}
+
+void StormGreenAmpt::AddInfiltrationToSoil(const int cell, const float infiltration, const float activeDepth) {
+    float remainInfil = infiltration;
+    float upperDepth = 0.f;
+    for (int k = 0; k < CVT_INT(m_nSoilLyrs[cell]); k++) {
+        const float lowerDepth = m_soilDepth[cell][k];
+        if (lowerDepth <= upperDepth) {
+            continue;
+        }
+        if (activeDepth <= upperDepth) {
+            break;
+        }
+        const float layerThickness = lowerDepth - upperDepth;
+        const float activeThickness = Min(activeDepth, lowerDepth) - upperDepth;
+        if (activeThickness > 0.f) {
+            const float deficit = m_soilPor[cell][k] - m_soilWtrSto[cell][k];
+            if (deficit > 0.f) {
+                const float fill = Min(remainInfil, deficit * activeThickness);
+                m_soilWtrSto[cell][k] += fill / layerThickness;
+                remainInfil -= fill;
+                if (remainInfil <= 0.f) {
+                    break;
+                }
+            }
+        }
+        upperDepth = lowerDepth;
+    }
+}
+
 
 void StormGreenAmpt::SetValue(const char *key, const int value) {
     string sk(key);
@@ -365,6 +424,18 @@ void StormGreenAmpt::SetValue(const char *key, const int value) {
                              "Parameter " + sk + " does not exist.");
     }
 
+}
+
+void StormGreenAmpt::SetValue(const char* key, const FLTPT value) {
+    string sk(key);
+    if (StringMatch(sk, "INFIL_FACTOR")) {
+        m_infilFactor = CVT_FLT(value);
+    } else if (StringMatch(sk, "ACTIVE_DEPTH_MAX")) {
+        m_activeDepthMax = CVT_FLT(value);
+    } else {
+        throw ModelException(M_SUR_SGA[0], "SetValue",
+                             "Parameter " + sk + " does not exist.");
+    }
 }
 
 void StormGreenAmpt::Set1DData(const char *key, const int n, FLTPT *data) {

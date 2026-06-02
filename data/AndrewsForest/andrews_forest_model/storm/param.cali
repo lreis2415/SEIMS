@@ -1,26 +1,28 @@
 # Best parameters from validation-2026-05-07 branch (NSE=0.7329, TTP=8.75h)
 # Hydrology parameters
-MOIST_IN,0.58
-CONDUCTIVITY,15
-MANNING,0.03
-CH_N,0.85
+MOIST_IN,0.99
+INFIL_FACTOR,1.0,VC
+ACTIVE_DEPTH_MAX,150,VC
+#CONDUCTIVITY,15
+#MANNING,0.03
+#CH_N,0.85
 
 # Groundwater parameters
-GW0,0.5
-KG,0.1
-KI,0.007
+#GW0,0.5
+#KG,0.1
+#KI,0.007
 
 # New macropore/fast-flow parameters (IKW_IF)
-FAST_RATIO,1.0
-ANISOTROPY,32
-MACROPORE_FACTOR,21
+#FAST_RATIO,1.0
+#ANISOTROPY,32
+#MACROPORE_FACTOR,21
 
 # Overland flow speed factor (IKW_OL)
-OL_SPEED_FACTOR,0.5
+#OL_SPEED_FACTOR,0.5
 
 # Percolation adjustment
-FC_ADJUST,1
+#FC_ADJUST,1
 
 # Infiltration/deep percolation (SUR_SGA)
-INFIL_FACTOR,1.0
-DEEP_PERC_RATE,1.2
+#INFIL_FACTOR,1.0
+#DEEP_PERC_RATE,1.2
