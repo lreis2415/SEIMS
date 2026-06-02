@@ -213,6 +213,8 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
     float fQkx; //function
     float dfQkx;  //derivative
     const float _epsilon = 1e-12f;
+    const float _relEpsilon = 1e-6f;
+    const int maxIters = 50;
     const float beta = 0.6f;
 
     /* if no input then output = 0 */
@@ -250,10 +252,14 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
         Qkx = Max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (Abs(fQkx) > _epsilon && count < MAX_ITERS_KW);
+    } while (Abs(fQkx) > Max(_epsilon, _relEpsilon * Max(Abs(C), 1.f)) &&
+             count < maxIters);
 
     if (Qkx != Qkx) {
         throw ModelException(M_IKW_OL[0], "GetNewQ", "Error in iteration!");
+    }
+    if (Qkx < 0.f) {
+        return 0.f;
     }
 
     //itercount = count;
