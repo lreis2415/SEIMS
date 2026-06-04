@@ -74,6 +74,8 @@ private:
 
     void initialOutputs2(void);
 
+    void InitializeChannelWithBaseflow(void);
+
     /// valid cells number
     int m_nCells;
     /// cell width of the grid (m)
@@ -84,6 +86,8 @@ private:
     float m_dt;
     /// number of internal channel routing substeps for numerical stability
     int m_substeps;
+    /// whether channel flow has been initialized from groundwater baseflow
+    bool m_channelBaseflowInitialized;
 
     /// slope (radian)
     float **m_sRadian;

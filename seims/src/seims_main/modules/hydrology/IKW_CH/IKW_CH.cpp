@@ -6,6 +6,7 @@
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
     m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_substeps(2),
+    m_channelBaseflowInitialized(false),
     m_CellWidth(-1.0f), //m_layeringMethod(DOWNUP),
     m_sRadian(nullptr), m_direction(nullptr), m_reachDownStream(nullptr),
     m_chWidth(nullptr),
@@ -271,6 +272,56 @@ void ImplicitKinematicWave_CH::initialOutputs2() {
     }
 }
 
+void ImplicitKinematicWave_CH::InitializeChannelWithBaseflow() {
+    if (m_channelBaseflowInitialized || m_qg == nullptr || m_hCh == nullptr ||
+        m_qCh == nullptr || m_flowLen == nullptr) {
+        return;
+    }
+
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
+        for (size_t i = 0; i < it->second.size(); ++i) {
+            int reachIndex = it->second[i];
+            vector<int>& vecCells = m_reachs[reachIndex];
+            int n = CVT_INT(vecCells.size());
+            if (n <= 0) {
+                continue;
+            }
+
+            float qUp = 0.f;
+            for (size_t iUp = 0; iUp < m_reachUpStream[reachIndex].size(); ++iUp) {
+                int upReachId = m_reachUpStream[reachIndex][iUp];
+                if (upReachId >= 0 && !m_reachs[upReachId].empty()) {
+                    int upCellsNum = CVT_INT(m_reachs[upReachId].size());
+                    qUp += m_qCh[upReachId][upCellsNum - 1];
+                }
+            }
+
+            float localBaseflow = Max(m_qg[reachIndex], 0.f);
+            for (int iCell = 0; iCell < n; ++iCell) {
+                int id = vecCells[iCell];
+                float qBase = qUp + localBaseflow * (iCell + 1.f) / n;
+                if (qBase < MIN_FLUX) {
+                    m_qCh[reachIndex][iCell] = 0.f;
+                    m_hCh[reachIndex][iCell] = 0.f;
+                    continue;
+                }
+
+                float sSin = CalSqrt(sin(Max(m_sRadian[id][1], 0.001f)));
+                if (sSin < 1e-6f) {
+                    sSin = 1e-6f;
+                }
+                float alpha = CalPow(m_reachN[reachIndex] / sSin *
+                                     CalPow(m_chWidth[id], _2div3), 0.6f);
+                m_qCh[reachIndex][iCell] = qBase;
+                m_hCh[reachIndex][iCell] = alpha * CalPow(qBase, 0.6f) / m_chWidth[id];
+            }
+            m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
+        }
+    }
+
+    m_channelBaseflowInitialized = true;
+}
+
 void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
     float qUp = 0.f;
 
@@ -337,6 +388,7 @@ int ImplicitKinematicWave_CH::Execute() {
 
     InitialOutputs();
     initialOutputs2();
+    InitializeChannelWithBaseflow();
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
 

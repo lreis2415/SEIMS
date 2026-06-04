@@ -69,6 +69,7 @@ def build_model(args):
         "scenario_id": -1,
         "calibration_id": -1,
         "subbasin_id": 0,
+        "filein_mongo": 1,
         "simu_stime": args.start,
         "simu_etime": args.end,
         "out_stime": args.start,
