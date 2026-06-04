@@ -20,12 +20,13 @@ Percolation_DARCY::Percolation_DARCY(void) {
     m_recharge = NULL;
     m_rootDepth = NULL;
     m_CellWidth = -1.f;
+    m_fcAdjust = 1.f;
 
     m_nSoilLyrs = NULL;
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
-    if (m_recharge == NULL) Release1DArray(m_recharge);
+    if (m_recharge != NULL) Release1DArray(m_recharge);
 }
 
 
@@ -57,11 +58,16 @@ int Percolation_DARCY::Execute() {
 			//}
 
 			float currentMoisture = m_Moisture[i][j];
+            if (m_Porosity[i][j] <= 0.f || m_rootDepth[i][j] <= 0.f) {
+                continue;
+            }
 
             // record total water percolating downward from the current layer (mm). --Fanxy
             float totalPrec = 0.f;
+            float fieldCapacity = m_FieldCapacity[i][j] * m_fcAdjust;
+            fieldCapacity = Min(Max(fieldCapacity, 0.f), m_Porosity[i][j]);
 
-			if (currentMoisture > m_FieldCapacity[i][j]) {
+			if (currentMoisture > fieldCapacity) {
 				// the water exceeds the porosity is added to percolation directly
 				if (currentMoisture > m_Porosity[i][j]) {
                     float excess = (currentMoisture - m_Porosity[i][j]) * m_rootDepth[i][j];
@@ -72,12 +78,12 @@ int Percolation_DARCY::Execute() {
 
                 // Darcy Flow Calculation
 				// recharge capacity (mm)
-				float dcIndex = 3.f + 2.f / m_Poreindex[i][j]; // pore disconnectedness index
+				float poreIdx = Max(m_Poreindex[i][j], 1.e-6f);
+				float dcIndex = 3.f + 2.f / poreIdx; // pore disconnectedness index
 				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
 				float rechargeCap =
 					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(currentMoisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
-				float availableWater = (currentMoisture - m_FieldCapacity
-                    [i][j]) * m_rootDepth[i][j];
+				float availableWater = (currentMoisture - fieldCapacity) * m_rootDepth[i][j];
 
 
 				if (rechargeCap >= availableWater) {
@@ -109,7 +115,7 @@ int Percolation_DARCY::Execute() {
                 break;
             }
         }
-        if (isDebugTarget) { // DEBUG_ID
+        if (false) { // TRACE_CSV disabled
             
             std::cout << "[TRACE_CSV],Step," << stepCount
                 << ",Module,Percolation"
@@ -207,7 +213,8 @@ void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) {
         m_CellWidth = data;
-        //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
+    } else if (StringMatch(s, "FC_ADJUST")) {
+        m_fcAdjust = CVT_FLT(Max(data, 0.f));
     } else {
         throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");

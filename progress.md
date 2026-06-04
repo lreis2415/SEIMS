@@ -1541,3 +1541,35 @@ python import_andrews_storm_params.py
   3. 测试比 `ACTIVE_DEPTH_MAX=200` 更温和的活动深度或动态湿润锋方案，例如 `160/175 mm` 或随累计入渗逐步扩展，而不是一次使用全剖面；
   4. 放松 `IKW_IF` 的优先流启动阈值，但不采用 wwj 的 `0.2*FC` 下限；目标是事件期 `QI` 进入河道占比达到若干百分点，观察是否能降低 `QS` 峰并让退水更缓；
   5. 若上述水量分配已经合理，再小幅调整 `MANNING/CH_N` 做时序和峰宽校正。
+
+## 2026-06-04 AndrewsForest PERCO_DARCY 与 GW_RSVR 安全修复实验
+
+- 按上一阶段计划，先吸收 wwj 分支中属于物理边界/接口稳健性的修复，而不引入 `OL_SPEED_FACTOR` 或更强的纯幅度旋钮。
+- 本阶段代码修改：
+  - `GW_RSVR` 初始化 `m_storageMax=-1`，避免未初始化的 `GWMAX` 上限参与判断；
+  - 当地下水库容超过 `GWMAX` 时，将超出部分转成当步基流出流，保持水量守恒；
+  - `GW_RSVR::Get1DData()` 对 `SBQG/SBGS` 显式返回数组长度，增强模块接口稳定性；
+  - 关闭 `GW_RSVR/PERCO_DARCY` 中遗留的逐步 TRACE 调试输出，避免长窗口日志被无关诊断污染；
+  - 修复 `PERCO_DARCY` 析构条件，避免 `m_recharge` 已分配时不释放；
+  - `PERCO_DARCY` 新增可选参数 `FC_ADJUST`，其物理含义是渗漏启动阈值的田间持水量调节因子：`effective_fc = clamp(FieldCapacity * FC_ADJUST, 0, Porosity)`；
+  - `PERCO_DARCY` 对孔隙度、土层厚度和 pore index 增加基础数值保护，避免除零、负阈值或高于孔隙度的渗漏阈值导致负渗漏。
+- 为保证 `FC_ADJUST` 真正写入数据库，`run_andrews_storm.py` 的可选参数初始化列表加入 `FC_ADJUST`，默认值仍为 `1.0`。
+- 编译与同步：
+  - 已执行 `cmake --build build --target GW_RSVR PERCO_DARCY -j4`；
+  - 已将 `libGW_RSVR.dylib` 与 `libPERCO_DARCY.dylib` 同步到 `build/lib/` 与 `build/install/lib/`；
+  - 编译只出现既有 SDK/override 警告，没有新增编译错误。
+- 长窗口基线恢复：
+  - 时间：`2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`；
+  - 当前 `param.cali` 保持 `FC_ADJUST=1.0`；
+  - 当前输出图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_long_safefix_fc1_restored.png`；
+  - 指标：NSE `-0.2059`，PBIAS `-14.91%`，模拟峰值 `13.995 m3/s`，实测峰值 `10.449 m3/s`，峰值误差 `33.94%`，峰现偏晚 `7.92 h`；
+  - 与上一阶段 `GW0=50` 基线一致，说明安全修复没有扰动当前结果。
+- `FC_ADJUST` 控制变量实验：
+  - `FC_ADJUST=0.95`：NSE `-0.2060`，PBIAS `-14.92%`，峰值误差 `33.93%`，峰现偏晚 `7.92 h`；
+  - `FC_ADJUST=0.90`：NSE `-0.2060`，PBIAS `-14.92%`，峰值误差 `33.93%`，峰现偏晚 `7.92 h`；
+  - 相对 `FC_ADJUST=1.0`，`Q.txt` 最大差异仅约 `0.0017 m3/s`，基本不可见；
+  - 河道源项占比也没有朝预期改善：完整期 `QS` 仍约 `74.1%`，`QG` 约 `25.9%`，`QI` 反而从约 `0.028%` 降到 `0.008-0.013%`。
+- 结论：
+  - `GW_RSVR/PERCO_DARCY` 的安全修复建议保留并提交，因为它们提升了水量守恒和接口稳定性；
+  - `FC_ADJUST` 可作为以后解释深层渗漏阈值的参数接口保留，但本轮 `0.95/0.90` 对 Andrews 长窗口几乎无效，不作为当前调参方向；
+  - 当前问题仍是 `QS` 地表快流主导洪峰，而 `QI` 没有成为有效缓释路径。下一步应进入建议顺序的第 3/4 步：测试更温和的活动湿润锋深度或动态湿润锋方案，并进一步放松 `IKW_IF` 的事件水连通机制，而不是继续调 `FC_ADJUST`。

@@ -36,6 +36,8 @@ private:
     float **m_Moisture;
     float **m_FieldCapacity;
     float **m_rootDepth;
+    //! Field capacity adjustment factor for the percolation threshold.
+    float m_fcAdjust;
     //float* m_SoilT;
     //float  m_ForzenT;
 
