@@ -916,23 +916,30 @@ class MainSEIMS(object):
         param_name_default = list()
         for d in coll.find({}, {ModelParamFields.name: 1}):
             param_name_default.append(d.get(ModelParamFields.name))
-        # Clean up previous selected calibrated parameters in PARAMETERS_SPEC
-        param_spec_coll = maindb[DBTableNames.main_param_spec]
-        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
-                                     ModelCfgFields.taskname: cur_task})
-        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
-                                      (ModelCfgFields.taskname, 1),
-                                      (ModelParamFields.name, 1)], unique=True)
         # read calibrated parameters from txt file
         data_items = read_data_items_from_txt(self.modelcfgs.filecali)
         insert_requests = list()
+        param_names = list()
         for i, cur_data_item in enumerate(data_items):
             data_import = parse_calibrated_parameter_item(cur_data_item)
             if data_import is None:
                 continue
             data_import[ModelCfgFields.configname] = cur_cfg
             data_import[ModelCfgFields.taskname] = cur_task
+            param_names.append(data_import[ModelParamFields.name])
             insert_requests.append(InsertOne(data_import))
+        # Clean up previous selected calibrated parameters in PARAMETERS_SPEC.
+        # Delete by TASK+NAME as well as SUB_MODEL+TASK to remove stale _BASE_
+        # records that can shadow the current sub-model in older databases.
+        param_spec_coll = maindb[DBTableNames.main_param_spec]
+        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
+                                     ModelCfgFields.taskname: cur_task})
+        if param_names:
+            param_spec_coll.delete_many({ModelCfgFields.taskname: cur_task,
+                                         ModelParamFields.name: {'$in': param_names}})
+        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
+                                      (ModelCfgFields.taskname, 1),
+                                      (ModelParamFields.name, 1)], unique=True)
         # execute update operators
         results = MongoUtil.run_bulk_write(param_spec_coll, insert_requests)
         print('Inserted %d calibration parameters for the model %s!' % (results.inserted_count

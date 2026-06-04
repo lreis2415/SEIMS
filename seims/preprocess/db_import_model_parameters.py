@@ -405,16 +405,6 @@ class ImportParam2Mongo(object):
         # This collection (main_param_spec) stores the specific calibration rules.
         param_spec_coll = maindb[DBTableNames.main_param_spec]
 
-        # Delete any existing records for the current configuration and task
-        # to ensure a clean import.
-        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
-                                     ModelCfgFields.taskname: cur_task})
-
-        # Create a unique index to prevent duplicate entries for the same parameter
-        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
-                                      (ModelCfgFields.taskname, 1),
-                                      (ModelParamFields.name, 1)], unique=True)
-
         # 5. Read the Calibration Text File
         model_dir = cfg.model_dir if hasattr(cfg, 'model_dir') else ''
         sub_folder = 'storm'
@@ -430,6 +420,7 @@ class ImportParam2Mongo(object):
 
         data_items = read_data_items_from_txt(cali_file_path)
         insert_requests = list()
+        param_names = list()
 
         # Iterate through the rows in the text file
         for i, cur_data_item in enumerate(data_items):
@@ -444,9 +435,24 @@ class ImportParam2Mongo(object):
             # Add configuration metadata
             data_import[ModelCfgFields.configname] = cur_cfg
             data_import[ModelCfgFields.taskname] = cur_task
+            param_names.append(data_import[ModelParamFields.name])
 
             # Add to the bulk request list
             insert_requests.append(InsertOne(data_import))
+
+        # Delete existing records for the current configuration/task and stale
+        # same-task records with the same parameter names (e.g. old _BASE_
+        # records) so they cannot shadow the current sub-model.
+        param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
+                                     ModelCfgFields.taskname: cur_task})
+        if param_names:
+            param_spec_coll.delete_many({ModelCfgFields.taskname: cur_task,
+                                         ModelParamFields.name: {'$in': param_names}})
+
+        # Create a unique index to prevent duplicate entries for the same parameter
+        param_spec_coll.create_index([(ModelCfgFields.configname, 1),
+                                      (ModelCfgFields.taskname, 1),
+                                      (ModelParamFields.name, 1)], unique=True)
 
         # 6. Execute Bulk Write to MongoDB
         if insert_requests:

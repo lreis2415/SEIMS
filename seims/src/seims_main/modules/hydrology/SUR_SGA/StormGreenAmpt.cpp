@@ -2,16 +2,20 @@
 
 #include "text.h"
 
+#include <cmath>
+
 StormGreenAmpt::StormGreenAmpt() :
     m_dt(-1), m_nCells(-1), m_tSnow(0.0f), m_t0(1.0f), m_infilFactor(1.0f),
-    m_activeDepthMax(0.0f),
+    m_activeDepthMax(0.0f), m_moistureReference(0.0f),
+    m_accumuRecoveryRate(0.0f), m_accumuRecoveryDelay(0.0f),
+    m_stateRecoveryFactor(0.0f),
     m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilDepth(nullptr), m_soilPor(nullptr),
     m_soilClay(nullptr), m_soilSand(nullptr), m_ks(nullptr),
     m_initSoilWtrStoRatio(nullptr), m_soilFC(nullptr),
     m_meanTmp(nullptr), m_netPcp(nullptr), m_sd(nullptr),
     m_snowMelt(nullptr), m_snowAccu(nullptr), m_surfRf(nullptr),
-    m_capillarySuction(nullptr), m_accumuDepth(nullptr),
+    m_capillarySuction(nullptr), m_accumuDepth(nullptr), m_dryDuration(nullptr),
     m_soilWtrSto(nullptr), m_infil(nullptr), m_infilCapacitySurplus(nullptr),
     m_exsPcp(nullptr){
 
@@ -20,6 +24,7 @@ StormGreenAmpt::StormGreenAmpt() :
 StormGreenAmpt::~StormGreenAmpt() {
     if (m_capillarySuction != nullptr) Release1DArray(m_capillarySuction);
     if (m_accumuDepth != nullptr) Release1DArray(m_accumuDepth);
+    if (m_dryDuration != nullptr) Release1DArray(m_dryDuration);
     if (m_soilWtrSto != nullptr) Release2DArray(m_soilWtrSto);
     if (m_infil != nullptr) Release1DArray(m_infil);
     if (m_infilCapacitySurplus != nullptr) Release1DArray(m_infilCapacitySurplus);
@@ -48,14 +53,9 @@ void StormGreenAmpt:: InitialOutputs() {
 //#pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                if (m_initSoilWtrStoRatio[i] < 0.f || m_initSoilWtrStoRatio[i] > 1.f ||
-                    m_soilFC[i][j] < 0.f) {
-                    continue;
-                }
-                m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
+                m_soilWtrSto[i][j] = CalculateInitialSoilWater(i, j);
             }
         }
-        std::cout << "\n[DEBUG] StormGreenAmpt Initialization Check:" << std::endl;
 
         // debug
         /*int debug_count = 0;
@@ -175,6 +175,7 @@ int StormGreenAmpt::Execute(void) {
     if (nullptr == m_capillarySuction) {
         Initialize1DArray(m_nCells, m_capillarySuction, 0.f);
         Initialize1DArray(m_nCells, m_accumuDepth, 0.f);
+        Initialize1DArray(m_nCells, m_dryDuration, 0.f);
 
 //#pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
@@ -194,43 +195,99 @@ int StormGreenAmpt::Execute(void) {
         float snowMelt = 0.f;
         float snowAcc = 0.f;
         if (m_snowMelt != nullptr) {
-            snowMelt = m_snowMelt[i];
+            snowMelt = std::isfinite(m_snowMelt[i]) ? Max(m_snowMelt[i], 0.f) : 0.f;
         }
         if (m_snowAccu != nullptr) {
-            snowAcc = m_snowAccu[i];
+            snowAcc = std::isfinite(m_snowAccu[i]) ? Max(m_snowAccu[i], 0.f) : 0.f;
         }
 
-        float hWater = m_netPcp[i];
+        const float netPcp = std::isfinite(m_netPcp[i]) ? Max(m_netPcp[i], 0.f) : 0.f;
+        const float depWater = (m_sd != nullptr && std::isfinite(m_sd[i])) ? Max(m_sd[i], 0.f) : 0.f;
+        const float surfWater = (m_surfRf != nullptr && std::isfinite(m_surfRf[i])) ? Max(m_surfRf[i], 0.f) : 0.f;
+        const float meanTmp = std::isfinite(m_meanTmp[i]) ? m_meanTmp[i] : m_t0 + 1.f;
+        float hWater = netPcp;
         //account for the effects of snow melt and soil temperature
-        if (m_meanTmp[i] <= m_tSnow) {
+        if (meanTmp <= m_tSnow) {
             // snow, without snow melt
             hWater = 0.0f;
         }
-        else if (m_meanTmp[i] > m_tSnow && m_meanTmp[i] <= m_t0 && snowAcc > hWater) {
-            // rain on snow, no snow melt
-            hWater = 0.0f;
+        else if (meanTmp > m_tSnow && meanTmp <= m_t0 && snowAcc > hWater) {
+            // rain on snow, no snow melt, but rainfall is still liquid water
+            hWater = netPcp + depWater;
         }
         else {
             //the old depression water has been added.(m_deprSto)
-            hWater = m_netPcp[i] + m_sd[i] + snowMelt;
+            hWater = netPcp + depWater + snowMelt;
+        }
+        if (!std::isfinite(hWater) || hWater < 0.f) {
+            hWater = 0.f;
         }
 
         //hWater += m_surfRf[i];
 
-        // effective matric potential (m)
-        float matricPotential = (m_soilPor[i][j] - m_soilWtrSto[i][j]) * m_capillarySuction[i] / 1000.f;
-        // algorithm of Li, 1996, uesd in C2SC2D
-        float ks = m_ks[i][j] / 1000.f / 3600.f; // mm/h -> m/s
         float dt = m_dt;
-        float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
+        if (!std::isfinite(dt) || dt <= 0.f) {
+            dt = 1.f;
+        }
+        const float dryThreshold = 1.e-6f;
+        const bool isDry = netPcp <= dryThreshold &&
+                           snowMelt <= dryThreshold &&
+                           depWater <= dryThreshold &&
+                           surfWater <= dryThreshold;
+        if (isDry) {
+            m_dryDuration[i] += dt;
+        } else {
+            m_dryDuration[i] = 0.f;
+        }
+        const float recoveryDelay = Max(0.f, m_accumuRecoveryDelay) * 3600.f;
+        if (isDry && m_dryDuration[i] >= recoveryDelay &&
+            m_accumuRecoveryRate > 0.f && m_accumuDepth[i] > 0.f) {
+            const float recovery = m_accumuRecoveryRate * dt / 3600.f;
+            m_accumuDepth[i] = Max(0.f, m_accumuDepth[i] - recovery);
+        }
+
+        float por = std::isfinite(m_soilPor[i][j]) ? Max(m_soilPor[i][j], 0.f) : 0.f;
+        float theta = std::isfinite(m_soilWtrSto[i][j]) ? m_soilWtrSto[i][j] : 0.f;
+        theta = Max(0.f, Min(theta, por));
+        m_soilWtrSto[i][j] = theta;
+
+        const float suction = std::isfinite(m_capillarySuction[i]) ?
+            Max(m_capillarySuction[i], 0.f) : 0.f;
+        const float soilDeficit = Max(por - theta, 0.f);
+        // effective matric potential (m)
+        float matricPotential = soilDeficit * suction / 1000.f;
+        // algorithm of Li, 1996, uesd in C2SC2D
+        float ks = std::isfinite(m_ks[i][j]) ? Max(m_ks[i][j], 0.f) / 1000.f / 3600.f : 0.f; // mm/h -> m/s
+        float infilDepth = std::isfinite(m_accumuDepth[i]) ? Max(m_accumuDepth[i], 0.f) / 1000.f : 0.f; // mm ->m
 
         float p1 = ks * dt - 2.f * infilDepth;
+        if (!std::isfinite(p1)) {
+            p1 = 0.f;
+        }
         float p2 = ks * (infilDepth + matricPotential);
+        if (!std::isfinite(p2) || p2 < 0.f) {
+            p2 = 0.f;
+        }
+        float radicand = CalPow(p1, 2.f) + 8.f * p2 * dt;
+        if (!std::isfinite(radicand) || radicand < 0.f) {
+            radicand = 0.f;
+        }
         // infiltration rate (m/s)
-        float infilRate = (p1 + CalSqrt(CalPow(p1, 2.f) + 8.f * p2 * dt)) / (2.f * dt);
+        float infilRate = (p1 + CalSqrt(radicand)) / (2.f * dt);
+        if (!std::isfinite(infilRate) || infilRate < 0.f) {
+            infilRate = 0.f;
+        }
 
         const float activeDepth = CalculateWettingFrontDepth(i);
-        const float infilCap = CalculateActiveInfilCap(i, activeDepth);
+        float infilCap = CalculateActiveInfilCap(i, activeDepth);
+        if (!std::isfinite(infilCap) || infilCap < 0.f) {
+            infilCap = 0.f;
+        }
+        float potentialInfil = infilRate * dt * 1000.f;
+        if (!std::isfinite(potentialInfil) || potentialInfil < 0.f) {
+            potentialInfil = 0.f;
+        }
+        potentialInfil = Min(potentialInfil, infilCap);
 
         if (hWater > 0) {
             // for frozen soil
@@ -240,13 +297,16 @@ int StormGreenAmpt::Execute(void) {
             //	m_infil[i] = 0.0f;
             //}
             //for saturation overland flow
-            if (m_soilWtrSto[i][j] > m_soilPor[i][j]) {
+            if (theta >= por) {
                 m_infil[i] = 0.0f;
                 m_infilCapacitySurplus[i] = 0.f;
             }
             else {
-                float rawInfil = Min(infilRate * dt * 1000.f, infilCap); // mm
-                rawInfil *= m_infilFactor;
+                const float infilFactor = std::isfinite(m_infilFactor) ? Max(m_infilFactor, 0.f) : 0.f;
+                float rawInfil = Min(potentialInfil * infilFactor, infilCap); // mm
+                if (!std::isfinite(rawInfil) || rawInfil < 0.f) {
+                    rawInfil = 0.f;
+                }
                 m_infil[i] = rawInfil;
 
                 //cout << m_infil[i] << endl;
@@ -261,20 +321,22 @@ int StormGreenAmpt::Execute(void) {
                 }
 
                 //Compute the cumulative depth of infiltration
-                m_accumuDepth[i] += m_infil[i];
+                if (std::isfinite(m_infil[i]) && m_infil[i] > 0.f) {
+                    m_accumuDepth[i] = Max(m_accumuDepth[i], 0.f) + m_infil[i];
+                }
 
 
                 if (m_soilDepth != nullptr && m_infil[i] > 0.f) {
                     AddInfiltrationToSoil(i, m_infil[i], activeDepth);
                 }
             }
-            m_exsPcp[i] = hWater - m_infil[i];
+            m_exsPcp[i] = Max(hWater - m_infil[i], 0.f);
             // xdw modify
             //m_surfRf[i] = hWater - m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
         } else {
             //m_surfRf[i] = 0.0f;
             m_infil[i] = 0.0f;
-            m_infilCapacitySurplus[i] = Min(infilRate * dt * 1000.f, infilCap);
+            m_infilCapacitySurplus[i] = potentialInfil;
 
             m_exsPcp[i] = 0.f;
         }
@@ -292,6 +354,7 @@ int StormGreenAmpt::Execute(void) {
         //    std::cout << "  [Result] Infil: " << m_infil[i] << " mm | Runoff: " << m_surfRf[i] << " mm" << std::endl;
         //    std::cout << "===============================" << std::endl;
         //}
+#ifdef IS_DEBUG
         // --- DEBUG PRINT ---
         std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
                                      1189, 1188, 1187, 1186, 1185,
@@ -311,6 +374,7 @@ int StormGreenAmpt::Execute(void) {
                 << ",Sat_Deficit," << (m_soilPor[i][0] - m_soilWtrSto[i][0])
                 << std::endl;
         }
+#endif
 
 # ifdef IS_DEBUG
         if ((counter >= printInfilMinT && counter <= printInfilMaxT)) {
@@ -331,6 +395,9 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
                               + 0.001608f * CalPow(por, 2) * CalPow(sand, 2)
                               + 0.001602f * CalPow(por, 2) * CalPow(clay, 2) - 0.0000136f * CalPow(sand, 2) * clay -
                               0.003479f * CalPow(clay, 2) * por - 0.000799f * CalPow(sand, 2) * por);
+    if (!std::isfinite(cs) || cs < 0.f) {
+        return 0.f;
+    }
     // debug
     /*if (cs < 0.00001f) {
         std::cout << "\n[ERROR] Capillary Suction Underflow Detected!" << std::endl;
@@ -341,32 +408,56 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
     return cs;
 }
 
+float StormGreenAmpt::CalculateInitialSoilWater(const int cell, const int layer) {
+    float ratio = std::isfinite(m_initSoilWtrStoRatio[cell]) ? m_initSoilWtrStoRatio[cell] : 0.f;
+    ratio = Max(0.f, Min(ratio, 1.f));
+
+    const float por = std::isfinite(m_soilPor[cell][layer]) ? Max(m_soilPor[cell][layer], 0.f) : 0.f;
+    if (por <= 0.f) {
+        return 0.f;
+    }
+
+    float baseTheta = m_soilFC[cell][layer];
+    if (m_moistureReference >= 0.5f) {
+        baseTheta = m_soilPor[cell][layer];
+    }
+    if (!std::isfinite(baseTheta) || baseTheta < 0.f) {
+        baseTheta = 0.f;
+    }
+    return Min(ratio * baseTheta, por);
+}
+
 float StormGreenAmpt::CalculateWettingFrontDepth(const int cell) {
     const float minActiveDepth = 10.0f; // mm, keeps early storm infiltration numerically stable.
-    if (m_nSoilLyrs[cell] <= 0 || m_soilDepth[cell][0] <= 0.f) {
+    if (m_nSoilLyrs[cell] <= 0 || !std::isfinite(m_soilDepth[cell][0]) ||
+        m_soilDepth[cell][0] <= 0.f) {
         return minActiveDepth;
     }
 
     float activeDepth = m_activeDepthMax;
-    if (activeDepth <= 0.f) {
+    if (!std::isfinite(activeDepth) || activeDepth <= 0.f) {
         activeDepth = m_soilDepth[cell][CVT_INT(m_nSoilLyrs[cell]) - 1];
     }
     if (activeDepth < minActiveDepth) {
         activeDepth = minActiveDepth;
     }
     const float profileDepth = m_soilDepth[cell][CVT_INT(m_nSoilLyrs[cell]) - 1];
-    if (profileDepth > 0.f && activeDepth > profileDepth) {
+    if (std::isfinite(profileDepth) && profileDepth > 0.f && activeDepth > profileDepth) {
         activeDepth = profileDepth;
     }
     return activeDepth;
 }
 
 float StormGreenAmpt::CalculateActiveInfilCap(const int cell, const float activeDepth) {
-    float activeStorage = 0.f;
+    if (!std::isfinite(activeDepth) || activeDepth <= 0.f || m_nSoilLyrs[cell] <= 0) {
+        return 0.f;
+    }
+    float dynamicStorage = 0.f;
+    float eventStorage = 0.f;
     float upperDepth = 0.f;
     for (int k = 0; k < CVT_INT(m_nSoilLyrs[cell]); k++) {
         const float lowerDepth = m_soilDepth[cell][k];
-        if (lowerDepth <= upperDepth) {
+        if (!std::isfinite(lowerDepth) || lowerDepth <= upperDepth) {
             continue;
         }
         if (activeDepth <= upperDepth) {
@@ -374,24 +465,44 @@ float StormGreenAmpt::CalculateActiveInfilCap(const int cell, const float active
         }
         const float activeThickness = Min(activeDepth, lowerDepth) - upperDepth;
         if (activeThickness > 0.f) {
-            const float initTheta = m_initSoilWtrStoRatio[cell] * m_soilFC[cell][k];
-            const float deficit = m_soilPor[cell][k] - initTheta;
-            if (deficit > 0.f) {
-                activeStorage += deficit * activeThickness;
+            const float por = std::isfinite(m_soilPor[cell][k]) ? Max(m_soilPor[cell][k], 0.f) : 0.f;
+            const float theta = std::isfinite(m_soilWtrSto[cell][k]) ?
+                Max(0.f, Min(m_soilWtrSto[cell][k], por)) : 0.f;
+            const float dynamicDeficit = por - theta;
+            if (dynamicDeficit > 0.f) {
+                dynamicStorage += dynamicDeficit * activeThickness;
+            }
+            const float initTheta = CalculateInitialSoilWater(cell, k);
+            const float eventDeficit = por - initTheta;
+            if (eventDeficit > 0.f) {
+                eventStorage += eventDeficit * activeThickness;
             }
         }
         upperDepth = lowerDepth;
     }
-    const float remainingStorage = activeStorage - m_accumuDepth[cell];
-    return Max(remainingStorage, 0.f);
+    // Blend event memory with the current active-layer state without overwriting the state.
+    const float retainedEventWater = Max(eventStorage - dynamicStorage, 0.f);
+    const float stateRecoveryFactor = std::isfinite(m_stateRecoveryFactor) ?
+        Max(0.f, Min(m_stateRecoveryFactor, 1.f)) : 0.f;
+    float effectiveAccumuDepth = std::isfinite(m_accumuDepth[cell]) ? Max(m_accumuDepth[cell], 0.f) : 0.f;
+    if (stateRecoveryFactor > 0.f && effectiveAccumuDepth > retainedEventWater) {
+        const float excessMemory = effectiveAccumuDepth - retainedEventWater;
+        effectiveAccumuDepth -= stateRecoveryFactor * excessMemory;
+    }
+    const float remainingEventStorage = Max(eventStorage - effectiveAccumuDepth, 0.f);
+    return Min(Max(dynamicStorage, 0.f), remainingEventStorage);
 }
 
 void StormGreenAmpt::AddInfiltrationToSoil(const int cell, const float infiltration, const float activeDepth) {
+    if (!std::isfinite(infiltration) || infiltration <= 0.f ||
+        !std::isfinite(activeDepth) || activeDepth <= 0.f) {
+        return;
+    }
     float remainInfil = infiltration;
     float upperDepth = 0.f;
     for (int k = 0; k < CVT_INT(m_nSoilLyrs[cell]); k++) {
         const float lowerDepth = m_soilDepth[cell][k];
-        if (lowerDepth <= upperDepth) {
+        if (!std::isfinite(lowerDepth) || lowerDepth <= upperDepth) {
             continue;
         }
         if (activeDepth <= upperDepth) {
@@ -400,10 +511,13 @@ void StormGreenAmpt::AddInfiltrationToSoil(const int cell, const float infiltrat
         const float layerThickness = lowerDepth - upperDepth;
         const float activeThickness = Min(activeDepth, lowerDepth) - upperDepth;
         if (activeThickness > 0.f) {
-            const float deficit = m_soilPor[cell][k] - m_soilWtrSto[cell][k];
+            const float por = std::isfinite(m_soilPor[cell][k]) ? Max(m_soilPor[cell][k], 0.f) : 0.f;
+            const float theta = std::isfinite(m_soilWtrSto[cell][k]) ?
+                Max(0.f, Min(m_soilWtrSto[cell][k], por)) : 0.f;
+            const float deficit = por - theta;
             if (deficit > 0.f) {
                 const float fill = Min(remainInfil, deficit * activeThickness);
-                m_soilWtrSto[cell][k] += fill / layerThickness;
+                m_soilWtrSto[cell][k] = Min(theta + fill / layerThickness, por);
                 remainInfil -= fill;
                 if (remainInfil <= 0.f) {
                     break;
@@ -429,9 +543,17 @@ void StormGreenAmpt::SetValue(const char *key, const int value) {
 void StormGreenAmpt::SetValue(const char* key, const FLTPT value) {
     string sk(key);
     if (StringMatch(sk, "INFIL_FACTOR")) {
-        m_infilFactor = CVT_FLT(value);
+        m_infilFactor = Max(0.f, CVT_FLT(value));
     } else if (StringMatch(sk, "ACTIVE_DEPTH_MAX")) {
         m_activeDepthMax = CVT_FLT(value);
+    } else if (StringMatch(sk, "MOIST_IN_REF")) {
+        m_moistureReference = CVT_FLT(value) >= 0.5f ? 1.f : 0.f;
+    } else if (StringMatch(sk, "GA_ACC_RECOVERY_RATE")) {
+        m_accumuRecoveryRate = Max(0.f, CVT_FLT(value));
+    } else if (StringMatch(sk, "GA_ACC_RECOVERY_DELAY")) {
+        m_accumuRecoveryDelay = Max(0.f, CVT_FLT(value));
+    } else if (StringMatch(sk, "GA_STATE_RECOVERY_FACTOR")) {
+        m_stateRecoveryFactor = Max(0.f, Min(CVT_FLT(value), 1.f));
     } else {
         throw ModelException(M_SUR_SGA[0], "SetValue",
                              "Parameter " + sk + " does not exist.");

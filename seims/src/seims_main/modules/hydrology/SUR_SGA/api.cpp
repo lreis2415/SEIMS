@@ -40,6 +40,18 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter("ACTIVE_DEPTH_MAX", UNIT_DEPTH_MM,
                      "Maximum active wetting front depth for storm infiltration",
                      Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("MOIST_IN_REF", UNIT_NON_DIM,
+                     "Reference for MOIST_IN initialization: 0 field capacity, 1 porosity",
+                     Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("GA_ACC_RECOVERY_RATE", UNIT_WTRDLT_MMH,
+                     "Dry-period recovery rate of Green-Ampt cumulative infiltration",
+                     Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("GA_ACC_RECOVERY_DELAY", UNIT_HOUR,
+                     "Continuous dry duration before Green-Ampt cumulative infiltration recovery starts",
+                     Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("GA_STATE_RECOVERY_FACTOR", UNIT_NON_DIM,
+                     "Fraction of Green-Ampt cumulative infiltration memory recovered from current soil water state",
+                     Source_ParameterDB_Optional, DT_Single);
 
     mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);

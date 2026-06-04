@@ -1,12 +1,20 @@
 #include "InterFlow_IKW.h"
 #include "text.h"
 
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+
 // using namespace std;  // Avoid this statement! by lj.
 
 InterFlow_IKW::InterFlow_IKW() :
     m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_chWidth(nullptr),
     m_s0(nullptr), m_rootDepth(nullptr), m_ks(nullptr), m_landuseFactor(1.f),
-    m_soilWtrSto(nullptr), m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
+    m_initSoilWtrStoRatio(nullptr), m_moistureReference(0.f),
+    m_fastRatio(0.f), m_anisotropy(1.f), m_macroporeFactor(1.f),
+    m_substeps(1),
+    m_soilWtrSto(nullptr), m_initialSoilWtrSto(nullptr),
+    m_porosity(nullptr), m_poreIndex(nullptr), m_fieldCapacity(nullptr),
     m_flowInIndex(nullptr), m_routingLayers(nullptr), m_nLayers(-1),m_nSoilLyrs(nullptr),
     m_qi(nullptr), m_h(nullptr), m_sr(nullptr), m_streamLink(nullptr), m_hReturnFlow(nullptr),
     m_subSurfQ(nullptr){
@@ -17,6 +25,7 @@ InterFlow_IKW::~InterFlow_IKW(void) {
     Release1DArray(m_qi);
     Release1DArray(m_hReturnFlow);
     Release2DArray(m_subSurfQ);
+    Release2DArray(m_initialSoilWtrSto);
 }
 
 bool InterFlow_IKW::CheckInputData(void) {
@@ -70,6 +79,9 @@ bool InterFlow_IKW::CheckInputData(void) {
     if (m_fieldCapacity == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The field capacity can not be nullptr.");
     }
+    if (m_initSoilWtrStoRatio == nullptr) {
+        throw ModelException(M_IKW_IF[0], "CheckInputData", "The initial soil moisture can not be nullptr.");
+    }
     if (m_soilWtrSto == nullptr) {
         throw ModelException(M_IKW_IF[0], "CheckInputData", "The soil moistrue can not be nullptr.");
     }
@@ -99,6 +111,7 @@ void InterFlow_IKW:: InitialOutputs() {
         m_h = new float[m_nCells];
         m_hReturnFlow = new float[m_nCells];
         m_subSurfQ = new float* [m_nCells];
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_initialSoilWtrSto, 0.f);
         for (int i = 0; i < m_nCells; ++i) {
             m_qi[i] = 0.0f;
             m_h[i] = 0.f;
@@ -106,6 +119,14 @@ void InterFlow_IKW:: InitialOutputs() {
             m_subSurfQ[i] = new float[m_nSoilLyrs[i]];
             for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
                 m_subSurfQ[i][j] = 0.0f;
+                float ratio = std::isfinite(m_initSoilWtrStoRatio[i]) ?
+                    Max(0.f, Min(m_initSoilWtrStoRatio[i], 1.f)) : 0.f;
+                float fieldCapacity = std::isfinite(m_fieldCapacity[i][j]) ?
+                    Max(m_fieldCapacity[i][j], 0.f) : 0.f;
+                float porosity = std::isfinite(m_porosity[i][j]) ?
+                    Max(m_porosity[i][j], fieldCapacity) : fieldCapacity;
+                float baseTheta = m_moistureReference >= 0.5f ? porosity : fieldCapacity;
+                m_initialSoilWtrSto[i][j] = Min(ratio * baseTheta, porosity);
             }
 
         }
@@ -113,6 +134,7 @@ void InterFlow_IKW:: InitialOutputs() {
 }
 
 bool InterFlow_IKW::FlowInSoil(const int id) {
+    m_hReturnFlow[id] = 0.0f;
 
     //Loop through all upstream cells
     vector<float> qUp(m_nSoilLyrs[id], 0.0f);
@@ -169,61 +191,100 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
     float total_qi = 0.0f; // To sum up total interflow for this cell
     float total_h_vol = 0.0f; // To sum up total volume (for depth calculation)
 
-   	// adjust soil moisture
+	// adjust soil moisture
 	for (int j = 0; j < m_nSoilLyrs[id]; j++) {
 		//float s0 = m_s0[id];
-		float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
+        float rootDepth = std::isfinite(m_rootDepth[id][j]) ? Max(m_rootDepth[id][j], 0.f) : 0.f;
+		float soilVolumn = rootDepth / 1000.f * m_CellWidth * flowWidth / cos(atan(s0)); //m3
         if (soilVolumn <= 1e-6) soilVolumn = 1e-6; // Avoid division by zero
 
-        // Add upstream inflow to the current layer's soil moisture
-        // Note: qUp_layers is in m3/s, so multiply by dt to get volume
-        m_soilWtrSto[id][j] += qUp[j] * m_dt / soilVolumn;
+        float fieldCapacity = std::isfinite(m_fieldCapacity[id][j]) ?
+            Max(m_fieldCapacity[id][j], 1.e-6f) : 1.e-6f;
+        float porosity = std::isfinite(m_porosity[id][j]) ?
+            Max(m_porosity[id][j], fieldCapacity + 1.e-6f) : fieldCapacity + 1.e-6f;
+        float soilTheta = std::isfinite(m_soilWtrSto[id][j]) ?
+            Max(0.f, Min(m_soilWtrSto[id][j], porosity)) : 0.f;
+        m_soilWtrSto[id][j] = soilTheta;
+
+        float initialTheta = std::isfinite(m_initialSoilWtrSto[id][j]) ?
+            Max(0.f, Min(m_initialSoilWtrSto[id][j], porosity)) : 0.f;
+        const float eventThreshold = Max(0.f, Min(initialTheta, fieldCapacity));
+        const float eventMobileRange = Max(porosity - eventThreshold, 1.e-6f);
+        float eventMobileSaturation = Max(0.0f, Min((soilTheta - eventThreshold) / eventMobileRange, 1.0f));
+        float effectiveFastRatio = Max(0.0f, Min(m_fastRatio * eventMobileSaturation, 0.95f));
+        float upstreamFlow = Max(qUp[j], 0.0f);
+        float fastInflow = upstreamFlow * effectiveFastRatio;
+        float matrixInflow = upstreamFlow - fastInflow;
+
+        // Add the matrix part of upstream inflow to soil moisture. The fast
+        // part is routed laterally as preferential flow without filling storage.
+        m_soilWtrSto[id][j] += matrixInflow * m_dt / soilVolumn;
 
 
 		// the water exceeds the porosity is added to storage (return flow)
-		if (m_soilWtrSto[id][j] > m_porosity[id][j]) {
-			m_hReturnFlow[id] = (m_soilWtrSto[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
-			m_sr[id] += m_hReturnFlow[id]; // Add to surface runoff
-			m_soilWtrSto[id][j] = m_porosity[id][j]; // Cap at porosity
+		if (m_soilWtrSto[id][j] > porosity) {
+			float returnFlow = (m_soilWtrSto[id][j] - porosity) * rootDepth;
+			m_hReturnFlow[id] += returnFlow;
+			// Return flow is added to surface runoff in Execute() after all substeps,
+			// to avoid double-counting when m_substeps > 1.
+			m_soilWtrSto[id][j] = porosity; // Cap at porosity
 		}
 
-		// if soil moisture is below the field capacity, no interflow will be generated
-		if (m_soilWtrSto[id][j] < m_fieldCapacity[id][j]) {
-            m_subSurfQ[id][j] = 0.0f; // No flow generated
-
-            continue; //--fanxy
-			//return;
-		}
+        soilTheta = Max(0.f, Min(m_soilWtrSto[id][j], porosity));
 
 		// calculate effective hydraulic conductivity (mm/h -> m/s)
 		//float k = m_ks[id]/1000/3600 * CalPow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
-        //float anisotropy_ratio = 10.0f; //
         // Fix: Use correct Campbell exponent (3 + 2/lambda) instead of lambda directly
         // Assuming m_poreIndex stores lambda (pore size distribution index) as used in Percolation module
-        float campbell_exponent = 3.0f + 2.0f / m_poreIndex[id][j];
-        float k = m_ks[id][j] / 1000.f / 3600.f * CalPow(m_soilWtrSto[id][j] / m_porosity[id][j], campbell_exponent);
+        float poreIndex = std::isfinite(m_poreIndex[id][j]) ? Max(m_poreIndex[id][j], 1.e-6f) : 1.e-6f;
+        float campbell_exponent = 3.0f + 2.0f / poreIndex;
+        float relativeSaturation = Max(0.0f, Min(soilTheta / porosity, 1.0f));
+        float ksat = std::isfinite(m_ks[id][j]) ? Max(m_ks[id][j], 0.0f) / 1000.f / 3600.f : 0.0f;
+        float baseK = ksat * CalPow(relativeSaturation, campbell_exponent);
+        float k = baseK * Max(m_anisotropy, 0.0f);
         
         // calculate interflow (m3/s)
-		float layer_q = m_landuseFactor * m_rootDepth[id][j] / 1000.f * s0 * k * m_CellWidth;
+		float layer_q = 0.0f;
+		if (soilTheta > fieldCapacity) {
+            layer_q = m_landuseFactor * rootDepth / 1000.f * s0 * k * m_CellWidth;
+        }
 
 
 		// available water
-		float availableWater = (m_soilWtrSto[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
+		float availableWater = (soilTheta - fieldCapacity) * soilVolumn;
         if (availableWater < 0.0f) {
             availableWater = 0.0f;
         }
 
-		float potentialFlowVol = layer_q * (int)m_dt; // m3
+		float potentialFlowVol = layer_q * m_dt; // m3
 		if (potentialFlowVol > availableWater) {
-            layer_q = availableWater / (int)m_dt;
+            layer_q = availableWater / m_dt;
             potentialFlowVol = availableWater;
 		}
 
-        m_subSurfQ[id][j] = layer_q;
-        
-
 		// adjust soil moisture
 		m_soilWtrSto[id][j] -= potentialFlowVol / soilVolumn;
+        availableWater -= potentialFlowVol;
+        soilTheta = Max(0.f, Min(m_soilWtrSto[id][j], porosity));
+
+        float macropore_q = 0.0f;
+        float eventWater = (soilTheta - eventThreshold) * soilVolumn;
+        if (m_macroporeFactor > 1.0f && eventWater > 0.0f && soilTheta > eventThreshold) {
+            eventMobileSaturation = Max(0.0f, Min((soilTheta - eventThreshold) / eventMobileRange, 1.0f));
+            float macroporeK = k * (m_macroporeFactor - 1.0f) * eventMobileSaturation;
+            macropore_q = m_landuseFactor * rootDepth / 1000.f * s0 * macroporeK * m_CellWidth;
+            float macroporeWater = Max(eventWater, 0.0f);
+            float macroporeVol = macropore_q * m_dt;
+            if (macroporeVol > macroporeWater) {
+                macropore_q = macroporeWater / m_dt;
+                macroporeVol = macroporeWater;
+            }
+            m_soilWtrSto[id][j] -= macroporeVol / soilVolumn;
+            m_soilWtrSto[id][j] = Max(eventThreshold, m_soilWtrSto[id][j]);
+            potentialFlowVol += macroporeVol;
+        }
+
+        m_subSurfQ[id][j] = layer_q + macropore_q + fastInflow;
 
         total_h_vol += potentialFlowVol;
         total_qi += m_subSurfQ[id][j];
@@ -240,7 +301,7 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
     bool isDebugTarget = false;
     for (int target : targetCells) { if (id == target) { isDebugTarget = true; break; } }
 
-    if (isDebugTarget) { // DEBUG_ID
+    if (false && isDebugTarget) { // DEBUG_ID
         
         std::cout << "[TRACE_CSV],Step,UNKNOWN"
             << ",Module,InterFlow"
@@ -260,25 +321,129 @@ int InterFlow_IKW::Execute() {
 
     InitialOutputs();
 
-    for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
-        // There are not any flow relationship within each routing layer.
-        // So parallelization can be done here.
-        int nCells = (int) m_routingLayers[iLayer][0];
-        //SetOpenMPThread(2);
-		int errCount = 0; //similar to SSR_DA, such that FlowInSoil(id) isn't called in omp loop
-//#pragma omp parallel for
-        for (int iCell = 1; iCell <= nCells; ++iCell) {
-            int id = (int) m_routingLayers[iLayer][iCell];
-            if (!FlowInSoil(id))
-            {
-                errCount++;
-            }
-        }
-        if (errCount > 0) {
-            throw ModelException(M_IKW_IF[0], "Execute:FlowInSoil",
-                                 "Please check the error message for more information");
+    // Substep routing: allow interflow to propagate multiple routing layers
+    // within a single model timestep, reducing peak timing lag.
+    float dtOriginal = m_dt;
+    int substeps = Max(1, m_substeps);
+    m_dt = dtOriginal / substeps;
+
+    float* totalReturnFlow = nullptr;
+    if (m_nCells > 0) {
+        totalReturnFlow = new float[m_nCells];
+        for (int i = 0; i < m_nCells; i++) {
+            totalReturnFlow[i] = 0.f;
         }
     }
+
+    for (int sub = 0; sub < substeps; sub++) {
+        for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
+            // There are not any flow relationship within each routing layer.
+            // So parallelization can be done here.
+            int nCells = (int) m_routingLayers[iLayer][0];
+            //SetOpenMPThread(2);
+			int errCount = 0; //similar to SSR_DA, such that FlowInSoil(id) isn't called in omp loop
+//#pragma omp parallel for
+            for (int iCell = 1; iCell <= nCells; ++iCell) {
+                int id = (int) m_routingLayers[iLayer][iCell];
+                if (!FlowInSoil(id))
+                {
+                    errCount++;
+                }
+                if (totalReturnFlow != nullptr) {
+                    totalReturnFlow[id] += m_hReturnFlow[id];
+                }
+            }
+            if (errCount > 0) {
+                throw ModelException(M_IKW_IF[0], "Execute:FlowInSoil",
+                                     "Please check the error message for more information");
+            }
+        }
+    }
+
+    // Add total return flow to surface runoff once, after all substeps
+    if (totalReturnFlow != nullptr) {
+        for (int i = 0; i < m_nCells; i++) {
+            if (totalReturnFlow[i] > 0.f) {
+                m_sr[i] += totalReturnFlow[i];
+            }
+        }
+        delete[] totalReturnFlow;
+    }
+
+    const char* diagEnv = std::getenv("SEIMS_IKW_IF_DIAG");
+    if (diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty()) {
+        double riverQi = 0.0;
+        double allQi = 0.0;
+        double returnFlow = 0.0;
+        float maxRiverQi = 0.f;
+        float maxCellQi = 0.f;
+        float maxThetaMinusInitial = -MAXIMUMFLOAT;
+        float maxThetaMinusFieldCapacity = -MAXIMUMFLOAT;
+        int riverCells = 0;
+        int wetCells = 0;
+        int aboveInitialCells = 0;
+        int aboveFieldCapacityCells = 0;
+        for (int i = 0; i < m_nCells; i++) {
+            const float qi = std::isfinite(m_qi[i]) ? Max(m_qi[i], 0.f) : 0.f;
+            allQi += qi;
+            if (qi > maxCellQi) {
+                maxCellQi = qi;
+            }
+            if (m_streamLink[i] > 0) {
+                riverQi += qi;
+                riverCells++;
+                if (qi > maxRiverQi) {
+                    maxRiverQi = qi;
+                }
+            }
+            if (qi > 0.f) {
+                wetCells++;
+            }
+            returnFlow += std::isfinite(m_hReturnFlow[i]) ? Max(m_hReturnFlow[i], 0.f) : 0.f;
+            for (int j = 0; j < m_nSoilLyrs[i]; j++) {
+                const float theta = std::isfinite(m_soilWtrSto[i][j]) ? m_soilWtrSto[i][j] : 0.f;
+                const float initialTheta = std::isfinite(m_initialSoilWtrSto[i][j]) ?
+                    m_initialSoilWtrSto[i][j] : 0.f;
+                const float fieldCapacity = std::isfinite(m_fieldCapacity[i][j]) ?
+                    m_fieldCapacity[i][j] : MAXIMUMFLOAT;
+                const float dInitial = theta - initialTheta;
+                const float dFieldCapacity = theta - fieldCapacity;
+                if (dInitial > maxThetaMinusInitial) {
+                    maxThetaMinusInitial = dInitial;
+                }
+                if (dFieldCapacity > maxThetaMinusFieldCapacity) {
+                    maxThetaMinusFieldCapacity = dFieldCapacity;
+                }
+                if (dInitial > 1.e-6f) {
+                    aboveInitialCells++;
+                }
+                if (dFieldCapacity > 1.e-6f) {
+                    aboveFieldCapacityCells++;
+                }
+            }
+        }
+        const string diagPath = m_outpath + SEP + "IKW_IF_diag.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,river_qi_sum,all_qi_sum,max_river_qi,max_cell_qi,"
+                   << "returnflow_depth_sum,river_cells,wet_cells,"
+                   << "max_theta_minus_initial,max_theta_minus_fc,"
+                   << "above_initial_cells,above_fc_cells\n";
+            }
+            fs << ConvertToString2(m_date) << ","
+               << riverQi << "," << allQi << ","
+               << maxRiverQi << "," << maxCellQi << ","
+               << returnFlow << "," << riverCells << "," << wetCells << ","
+               << maxThetaMinusInitial << "," << maxThetaMinusFieldCapacity << ","
+               << aboveInitialCells << "," << aboveFieldCapacityCells << "\n";
+        }
+    }
+
+    m_dt = dtOriginal;
     return 0;
 }
 
@@ -307,7 +472,22 @@ void InterFlow_IKW::SetValue(const char *key, FLTPT data) {
         m_CellWidth = data;
     }
     else if (StringMatch(sk, VAR_KI[0])) {
-        m_landuseFactor = data;
+        m_landuseFactor = Max(0.f, CVT_FLT(data));
+    }
+    else if (StringMatch(sk, "MOIST_IN_REF")) {
+        m_moistureReference = CVT_FLT(data) >= 0.5f ? 1.f : 0.f;
+    }
+    else if (StringMatch(sk, VAR_FAST_RATIO[0])) {
+        m_fastRatio = Max(0.f, Min(CVT_FLT(data), 1.f));
+    }
+    else if (StringMatch(sk, VAR_ANISOTROPY[0])) {
+        m_anisotropy = Max(0.f, CVT_FLT(data));
+    }
+    else if (StringMatch(sk, VAR_MACROPORE_FACTOR[0])) {
+        m_macroporeFactor = Max(1.f, CVT_FLT(data));
+    }
+    else if (StringMatch(sk, "IF_SUBSTEPS")) {
+        m_substeps = Max(1, CVT_INT(data));
     } else {
         throw ModelException(M_IKW_IF[0], "SetSingleData", "Parameter " + sk
                              + " does not exist.");
@@ -355,6 +535,8 @@ void InterFlow_IKW::Set1DData(const char *key, int n, FLTPT *data) {
         m_chWidth = data;
     } else if (StringMatch(s, VAR_SURU[0])) {
         m_sr = data;
+    } else if (StringMatch(s, VAR_MOIST_IN[0])) {
+        m_initSoilWtrStoRatio = data;
     } 
     else {
         throw ModelException(M_IKW_IF[0], "Set1DData", "Parameter " + s

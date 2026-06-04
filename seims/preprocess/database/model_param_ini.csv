@@ -24,6 +24,10 @@ Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,50000,1,FLT
 Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,50000,1,FLT
 Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001,FLT
 Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0,FLT
+Discharge,FAST_RATIO,Upper bypass fraction for event-mobile lateral interflow,none,IKW_IF,0,1,VC,1,0,FLT
+Discharge,ANISOTROPY,Horizontal to vertical saturated conductivity ratio for lateral interflow,none,IKW_IF,1,1,VC,100,1,FLT
+Discharge,MACROPORE_FACTOR,Macropore lateral conductivity multiplier for event-mobile interflow,none,IKW_IF,1,1,VC,50,1,FLT
+Discharge,IF_SUBSTEPS,Numerical substeps for lateral interflow routing within one hillslope timestep,none,IKW_IF,1,1,VC,20,1,FLT
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001,FLT
 Discharge,MSK_co1,Calibration coefficient used to control impact of the storage time constant for normal flow,none,ChannelRouting,0.75,0,AC,1,0,FLT
 Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.3,0,FLT
@@ -202,6 +206,10 @@ WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8,
 WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15,FLT
 WaterBalance,INFIL_FACTOR,Infiltration reduction factor for diagnostic runoff experiments,none,SUR_SGA,1,1,RC,1,0,FLT
 WaterBalance,ACTIVE_DEPTH_MAX,Maximum active wetting front depth for storm infiltration,mm,SUR_SGA,150,1,RC,1000,10,FLT
+WaterBalance,MOIST_IN_REF,Reference for MOIST_IN initialization (0 field capacity; 1 porosity),none,SUR_SGA,0,1,VC,1,0,FLT
+WaterBalance,GA_ACC_RECOVERY_RATE,Dry-period recovery rate of Green-Ampt cumulative infiltration,mm/h,SUR_SGA,0,1,RC,50,0,FLT
+WaterBalance,GA_ACC_RECOVERY_DELAY,Continuous dry duration before Green-Ampt cumulative infiltration recovery starts,hr,SUR_SGA,0,1,RC,72,0,FLT
+WaterBalance,GA_STATE_RECOVERY_FACTOR,Fraction of Green-Ampt cumulative infiltration memory recovered from current soil water state,none,SUR_SGA,0,1,RC,1,0,FLT
 WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8,FLT
 WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8,FLT
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05,FLT

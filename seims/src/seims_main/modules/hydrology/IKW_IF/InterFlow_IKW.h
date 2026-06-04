@@ -86,8 +86,21 @@ private:
     float **m_ks;
     /// scaling factor depending on land use (Ki)
     float m_landuseFactor;
+    /// initial soil water ratio
+    float *m_initSoilWtrStoRatio;
+    /// 0: MOIST_IN relative to FC; 1: relative to porosity
+    float m_moistureReference;
+    /// fraction of upstream lateral inflow routed through preferential fast paths
+    float m_fastRatio;
+    /// multiplier for saturated lateral hydraulic conductivity
+    float m_anisotropy;
+    /// multiplier for macropore lateral conductivity
+    float m_macroporeFactor;
+    /// number of substeps within one model timestep for interflow routing
+    int m_substeps;
 
     float **m_soilWtrSto;
+    float **m_initialSoilWtrSto;
     //float* m_residual;
     float **m_porosity;
     float **m_poreIndex;

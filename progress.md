@@ -1391,3 +1391,55 @@ python import_andrews_storm_params.py
   - 运行日志中 `SUR_SGA` 出现 `Infiltration=-inf` 与 `Excess_Pcp=inf`，并传播到 `DEP_FS`；
   - `param.cali` 中 `CH_N`、`FC_ADJUST` 当前仍被数据库报告为 unsupported/ignored，说明这些参数还没有按当前数据库参数表生效；
   - 下一步优先修复 `SUR_SGA` 的非有限入渗值保护，并加入可解释的 `MOIST_IN` 初始化基准切换，再重新跑同一基线。
+
+## 2026-06-04 AndrewsForest SUR_SGA 数值保护与 IKW_CH 河道源头修复
+
+- 本阶段继续执行物理机理化计划，目标是先解决 wwj 结构基线下 `Q.txt` 全零和 `SUR_SGA` 非有限值传播问题。
+- `SUR_SGA` 修改内容：
+  - 去掉默认开启的调试输出，避免运行日志被逐栅格入渗打印淹没；
+  - 对降雨、雪融水、洼蓄水、土壤孔隙度、含水量、导水率、毛管吸力、入渗率和入渗容量加入 `finite/nonnegative` 防护，避免 `inf/-inf/nan` 继续传播到 `DEP_FS` 与汇流模块；
+  - 新增可选参数 `MOIST_IN_REF`：`0` 表示 `MOIST_IN` 相对田间持水量初始化，`1` 表示相对孔隙度初始化。本次最佳组合采用 `MOIST_IN_REF=0`，因为它更接近原模型 `MOIST_IN * FC` 语义，且水量体积明显更合理；
+  - 新增 `GA_ACC_RECOVERY_RATE`、`GA_ACC_RECOVERY_DELAY`、`GA_STATE_RECOVERY_FACTOR` 三个可选接口，为后续按降雨间歇期恢复 Green-Ampt 累计入渗记忆做实验；当前最佳组合保持默认 `0`，避免恢复项过度压制 2 月 7 日峰值；
+  - 入渗只填充活动湿润锋深度内的土层孔隙亏缺，并把土壤含水量限制在 `0-porosity` 范围内。
+- `IKW_CH` 关键修复：
+  - 发现 `m_sourceCellIds` 原来使用未初始化的 `m_idToIndex[reachId]`，导致所有源头河道单元几乎都写到错误索引，`ChannelFlow()` 实际没有执行，最终 `QSUBBASIN/Q.txt` 全零；
+  - 修复为按真实 reach id 记录源头单元：`m_sourceCellIds[reachId] = i`；
+  - 修复河道 BFS 中用起点 `iCell` 判断 reach 归属的问题，改为用当前弹出的 `curCell` 判断；
+  - 对空 reach 单元列表增加保护，避免除以 0 或写入未定义输出。
+- 消融诊断结果：
+  - 修复前 wwj 结构基线：NSE `-3.6437`，PBIAS `-100.00%`，模拟峰值 `0.000 m3/s`；
+  - `MOIST_IN_REF=1` 时径流体积明显偏大，短窗口 PBIAS 超过 `160%`；
+  - `MOIST_IN_REF=0, MANNING=0.3, GW0=0.5`：NSE `-4.0973`，PBIAS `15.05%`，峰值 `27.033 m3/s`；
+  - `MOIST_IN_REF=0, MANNING=6.0, GW0=0.5`：NSE `0.1188`，PBIAS `-7.72%`，峰值 `14.436 m3/s`；
+  - 当前最佳短窗口组合 `MOIST_IN_REF=0, MANNING=8.0, GW0=30`：NSE `0.2984`，PBIAS `-0.36%`，峰值误差 `30.52%`，峰现时间偏晚 `7.75 h`。
+- 当前输出图：
+  - `data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_commit_sga_ikwch_best.png`
+- 结论与问题：
+  - 这一步有效解决了 `Q.txt` 全零和水量体积严重偏差问题，模型已经能产生连续非零流量；
+  - 但结果还远没有达到 wwj 的较好模拟：峰值仍偏高、峰现偏晚，2 月 7 日前稳定基流仍低于实测；
+  - 分量诊断显示当前 `QS` 地表快流占主导，`QG` 有贡献，`QI` 壤中流几乎为 0；下一步应集中检查 `IKW_IF` 的输入维度、土层含水量单位、侧向导水率公式和出流写入逻辑，而不是继续单纯加大 `MANNING`。
+
+## 2026-06-04 AndrewsForest IKW_IF 与 MOIST_IN 导入残留诊断
+
+- 在继续检查 `IKW_IF` 时发现一个数据库可重复性问题：
+  - `param.cali` 当前写的是 `MOIST_IN,0.58,VC`；
+  - 但 MongoDB `PARAMETERS_SPEC` 中残留了旧的 `_BASE_/SingleRun` 记录 `MOIST_IN=0.99`；
+  - 旧记录会干扰当前运行判断，使此前 `MOIST_IN=0.58` 文件实际可能仍带有旧的偏湿初始状态。
+- 本阶段修复：
+  - `seims/run_seims.py` 与 `seims/preprocess/db_import_model_parameters.py` 在导入 `param.cali` 前，先解析本次文件中的参数名；
+  - 除删除当前 `SUB_MODEL/TASK` 的旧记录外，也删除同一 `TASK` 下这些参数名的旧记录，避免 `_BASE_` 残留遮蔽当前子模型；
+  - `run_andrews_storm.py` 的可选参数初始化改为修正已有默认参数元数据，而不是只在不存在时插入，避免 `FAST_RATIO/ANISOTROPY/MACROPORE_FACTOR` 这类旧空记录保留错误 `MODULE/TYPE`。
+- `IKW_IF` 诊断修改与结论：
+  - 增加环境变量触发的轻量诊断：设置 `SEIMS_IKW_IF_DIAG=1` 时输出 `IKW_IF_diag.csv`，正常运行不输出；
+  - 参考 wwj 的快速壤中流思想，但把阈值改为“事件新增水”：`IKW_IF` 读取 `Moist_in` 与 `MOIST_IN_REF`，用 `MOIST_IN * Fieldcap/Porosity` 作为事件前水分阈值，优先流和 macropore 只排出高于该阈值的水；
+  - 这样避免了 wwj 中 macropore 可排到 `0.2*FC` 的过强假设，也避免从土壤中抽走事件前稳定水；
+  - 诊断显示修复后 `IKW_IF` 确实产生了非零壤中流：`all_qi_sum` 最大约 `0.80 m3/s`，但进入河道的 `river_qi_sum` 最大仅约 `0.0065 m3/s`，相对出口峰值仍可忽略；
+  - 尝试 `IF_SUBSTEPS=5` 作为数值传播实验，运行明显变慢，`river_qi_sum` 与出口指标几乎不变，因此没有保留在当前 `param.cali`。
+- 干净数据库后的当前正式结果：
+  - 图件：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_current_clean.png`；
+  - NSE `0.2670`，PBIAS `-3.98%`，模拟峰值 `13.576 m3/s`，峰值误差 `29.92%`；
+  - 峰现时间仍偏晚 `8.00 h`，说明当前主要问题不是 `IKW_IF` 公式本身，而是壤中流难以有效进入河道/或地表与地下水汇流时序仍不对。
+- 下一步建议：
+  - 暂不把 `IF_SUBSTEPS` 作为调参方向；
+  - 优先检查 `IKW_CH` 对河道侧向输入的空间映射、子流域/河道栅格 ID 对齐，以及是否需要像 wwj 一样在河道侧保留更合理的子步长/侧向入流累积；
+  - 同时需要复查 `Fieldcap` 值偏高的土壤数据库来源：当前顶层 `Fieldcap` 平均约 `0.86`、`Porosity` 平均约 `0.92`，这会让“超过 FC 才侧向流”的机制天然很难触发。

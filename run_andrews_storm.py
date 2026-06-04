@@ -76,6 +76,75 @@ def build_model(args):
     })
 
 
+def ensure_optional_parameters(model):
+    """Ensure new optional scalar parameters exist in the current MongoDB."""
+    from preprocess.text import DBTableNames, ModelParamFields
+
+    optional_rows = [
+        ("WaterBalance", "INFIL_FACTOR",
+         "Infiltration reduction factor for diagnostic runoff experiments",
+         "none", "SUR_SGA", 1.0, 1.0, "RC", 1.0, 0.0, "FLT"),
+        ("WaterBalance", "ACTIVE_DEPTH_MAX",
+         "Maximum active wetting front depth for storm infiltration",
+         "mm", "SUR_SGA", 150.0, 1.0, "RC", 1000.0, 10.0, "FLT"),
+        ("WaterBalance", "MOIST_IN_REF",
+         "Reference for MOIST_IN initialization (0 field capacity; 1 porosity)",
+         "none", "SUR_SGA", 0.0, 1.0, "VC", 1.0, 0.0, "FLT"),
+        ("WaterBalance", "GA_ACC_RECOVERY_RATE",
+         "Dry-period recovery rate of Green-Ampt cumulative infiltration",
+         "mm/h", "SUR_SGA", 0.0, 1.0, "RC", 50.0, 0.0, "FLT"),
+        ("WaterBalance", "GA_ACC_RECOVERY_DELAY",
+         "Continuous dry duration before Green-Ampt cumulative infiltration recovery starts",
+         "hr", "SUR_SGA", 0.0, 1.0, "RC", 72.0, 0.0, "FLT"),
+        ("WaterBalance", "GA_STATE_RECOVERY_FACTOR",
+         "Fraction of Green-Ampt cumulative infiltration memory recovered from current soil water state",
+         "none", "SUR_SGA", 0.0, 1.0, "RC", 1.0, 0.0, "FLT"),
+        ("Discharge", "FAST_RATIO",
+         "Upper bypass fraction for event-mobile lateral interflow",
+         "none", "IKW_IF", 0.0, 1.0, "VC", 1.0, 0.0, "FLT"),
+        ("Discharge", "ANISOTROPY",
+         "Horizontal to vertical saturated conductivity ratio for lateral interflow",
+         "none", "IKW_IF", 1.0, 1.0, "VC", 100.0, 1.0, "FLT"),
+        ("Discharge", "MACROPORE_FACTOR",
+         "Macropore lateral conductivity multiplier for event-mobile interflow",
+         "none", "IKW_IF", 1.0, 1.0, "VC", 50.0, 1.0, "FLT"),
+        ("Discharge", "IF_SUBSTEPS",
+         "Numerical substeps for lateral interflow routing within one hillslope timestep",
+         "none", "IKW_IF", 1.0, 1.0, "VC", 20.0, 1.0, "FLT"),
+    ]
+
+    model.SetMongoClient()
+    try:
+        coll = model.mongoclient[model.db_name][DBTableNames.main_parameter]
+        inserted = 0
+        for row in optional_rows:
+            type_, name, desc, unit, module, value, impact, change, max_, min_, dtype = row
+            doc = {
+                ModelParamFields.name: name,
+                ModelParamFields.value: value,
+                ModelParamFields.impact: impact,
+                ModelParamFields.change: change,
+            }
+            metadata_doc = {
+                ModelParamFields.type: type_,
+                ModelParamFields.desc: desc,
+                ModelParamFields.unit: unit,
+                ModelParamFields.module: module,
+                ModelParamFields.max: max_,
+                ModelParamFields.min: min_,
+                ModelParamFields.dtype: dtype,
+            }
+            result = coll.update_one({ModelParamFields.name: name},
+                                     {"$set": metadata_doc,
+                                      "$setOnInsert": doc}, upsert=True)
+            if result.upserted_id is not None:
+                inserted += 1
+        if inserted:
+            print("Inserted %d optional parameter defaults into MongoDB." % inserted)
+    finally:
+        model.UnsetMongoClient()
+
+
 def run_plot(model, args):
     """Generate the standard Q/precipitation comparison plot."""
     fig_path = os.path.join(model.output_dir, args.figure_name)
@@ -96,6 +165,7 @@ def main():
     model = build_model(args)
 
     print("Importing file.in, file.out, and param.cali...")
+    ensure_optional_parameters(model)
     model.ImportModelIOConfiguration()
     model.ImportCalibratedParameters()
     model.ResetSimulationPeriod()

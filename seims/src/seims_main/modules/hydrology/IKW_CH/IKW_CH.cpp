@@ -168,8 +168,7 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
             }
 
             if (isSource) {
-                int reachIndex = m_idToIndex[reachId];
-                m_sourceCellIds[reachIndex] = i;
+                m_sourceCellIds[reachId] = i;
             }
         }
 
@@ -191,7 +190,7 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
                 int curCell = q.front();
                 q.pop(); // dequeue the first cell
 
-                if ((int)m_streamLink[iCell] != reachId) {
+                if ((int)m_streamLink[curCell] != reachId) {
                     continue; //skip the cell not belong to this reach
                 }
                 m_reachs[iCh].push_back(curCell); // add the cell to the reach list
@@ -297,11 +296,14 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
 
     float dx = m_flowLen[iReach][iCell];
 
-    float qLat = (m_prec[id] / m_substeps) / 1000.f * m_chWidth[id] * dx / m_dt;
-    qLat += qgEachCell;
-    qLat += m_qs[id][0] / m_substeps;
+    float qLatPrec = (m_prec[id] / m_substeps) / 1000.f * m_chWidth[id] * dx / m_dt;
+    float qLatQg = qgEachCell;
+    float qLatQs = m_qs[id][0] / m_substeps;
+    float qLatQi = 0.f;
+    float qLat = qLatPrec + qLatQg + qLatQs;
     if (m_qi != nullptr) {
-        qLat += m_qi[id] / m_substeps;
+        qLatQi = m_qi[id] / m_substeps;
+        qLat += qLatQi;
     }
 
     if (qLat < MIN_FLUX && qUp < MIN_FLUX) {
@@ -355,6 +357,10 @@ int ImplicitKinematicWave_CH::Execute() {
 
                 vector<int> &vecCells = m_reachs[reachIndex];
                 int n = vecCells.size();
+                if (n <= 0) {
+                    m_qSubbasin[reachIndex] = 0.f;
+                    continue;
+                }
                 //cout << "\tNumber of cells in reach " << reachIndex << ": " << n << endl;
                 float qgEachCell = 0.f;
                 if (m_qg != nullptr) {

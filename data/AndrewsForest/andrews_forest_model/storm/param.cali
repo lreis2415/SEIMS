@@ -1,10 +1,11 @@
 # wwj validation-2026-05-07 verified-best structural baseline.
 # OL_SPEED_FACTOR is intentionally omitted; overland routing should use MANNING.
 MOIST_IN,0.58,VC
+MOIST_IN_REF,0,VC
 CONDUCTIVITY,15,VC
-MANNING,0.03,VC
+MANNING,8.0,VC
 CH_N,0.85,VC
-GW0,0.5,VC
+GW0,30,VC
 KG,0.10,VC
 KI,0.007,VC
 FC_ADJUST,1.0,VC
