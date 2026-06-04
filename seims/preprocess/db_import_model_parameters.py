@@ -62,6 +62,61 @@ def read_output_item(output_fields, item):
     return file_out_dict
 
 
+def parse_calibrated_parameter_item(item):
+    """Parse one param.cali row into a PARAMETERS_SPEC document."""
+    valid_changes = [ModelParamFields.change_vc, ModelParamFields.change_ac,
+                     ModelParamFields.change_rc, ModelParamFields.change_nc]
+    if not item or len(item) < 2:
+        raise RuntimeError('param.cali MUST contain at least NAME and VALUE!')
+
+    pname = item[0].strip().upper()
+    if pname == ModelParamFields.name:
+        return None
+
+    value_idx = 1
+    change = ModelParamFields.change_vc
+    max_idx = None
+    min_idx = None
+    if len(item) >= 3 and item[1].strip().upper() in valid_changes:
+        change = item[1].strip().upper()
+        value_idx = 2
+        max_idx = 3
+        min_idx = 4
+    else:
+        if len(item) >= 3 and item[2].strip().upper() in valid_changes:
+            change = item[2].strip().upper()
+            max_idx = 3
+            min_idx = 4
+
+    try:
+        value = float(item[value_idx])
+    except (TypeError, ValueError):
+        raise RuntimeError('Invalid calibrated value for parameter %s: %s' %
+                           (pname, item[value_idx]))
+
+    data_import = {
+        ModelParamFields.name: pname,
+        ModelParamFields.change: change,
+    }
+    if change == ModelParamFields.change_nc:
+        data_import[ModelParamFields.impact] = DEFAULT_NODATA
+    else:
+        data_import[ModelParamFields.impact] = value
+    if change == ModelParamFields.change_vc:
+        data_import[ModelParamFields.value] = value
+    if max_idx is not None and len(item) > max_idx:
+        try:
+            data_import[ModelParamFields.max] = float(item[max_idx])
+        except (TypeError, ValueError):
+            pass
+    if min_idx is not None and len(item) > min_idx:
+        try:
+            data_import[ModelParamFields.min] = float(item[min_idx])
+        except (TypeError, ValueError):
+            pass
+    return data_import
+
+
 class ImportParam2Mongo(object):
     """Import model parameters to MongoDB,
        including default parameters, model configuration information, etc.
@@ -378,27 +433,13 @@ class ImportParam2Mongo(object):
 
         # Iterate through the rows in the text file
         for i, cur_data_item in enumerate(data_items):
-            data_import = dict()
-
-            # Basic validation: ensure the row has at least Name and Impact value
-            if len(cur_data_item) < 2:
-                print(f"Skipping invalid line {i}: {cur_data_item}")
+            try:
+                data_import = parse_calibrated_parameter_item(cur_data_item)
+            except RuntimeError as err:
+                print(f"Skipping invalid line {i}: {err}")
                 continue
-                # Or raise error:
-                # raise RuntimeError('param.cali MUST contain at least two columns: NAME and IMPACT!')
-
-            # Parse parameter name and impact value
-            data_import[ModelParamFields.name] = cur_data_item[0].upper()
-            data_import[ModelParamFields.impact] = float(cur_data_item[1])
-
-            # Parse optional 'Change Type' column (e.g., VC, RC, AC, NC)
-            if len(cur_data_item) >= 3:
-                change_type = cur_data_item[2].upper()
-                if change_type in [ModelParamFields.change_vc,
-                                   ModelParamFields.change_ac,
-                                   ModelParamFields.change_rc,
-                                   ModelParamFields.change_nc]:
-                    data_import[ModelParamFields.change] = change_type
+            if data_import is None:
+                continue
 
             # Add configuration metadata
             data_import[ModelCfgFields.configname] = cur_cfg

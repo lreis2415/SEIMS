@@ -63,6 +63,62 @@ from utility import (read_simulation_from_txt, get_option_value,
 from utility import match_simulation_observation, calculate_statistics
 
 
+def parse_calibrated_parameter_item(item):
+    """Parse one row from param.cali into a MongoDB PARAMETERS_SPEC document."""
+    valid_changes = [ModelParamFields.change_vc, ModelParamFields.change_ac,
+                     ModelParamFields.change_rc, ModelParamFields.change_nc]
+    if not item or len(item) < 2:
+        raise RuntimeError('param.cali MUST contain at least NAME and VALUE!')
+
+    pname = item[0].strip().upper()
+    if pname == ModelParamFields.name:
+        return None
+
+    value_idx = 1
+    change = ModelParamFields.change_vc
+    max_idx = None
+    min_idx = None
+    if len(item) >= 3 and item[1].strip().upper() in valid_changes:
+        change = item[1].strip().upper()
+        value_idx = 2
+        max_idx = 3
+        min_idx = 4
+    else:
+        if len(item) >= 3 and item[2].strip().upper() in valid_changes:
+            change = item[2].strip().upper()
+            max_idx = 3
+            min_idx = 4
+
+    try:
+        value = float(item[value_idx])
+    except (TypeError, ValueError):
+        raise RuntimeError('Invalid calibrated value for parameter %s: %s' %
+                           (pname, item[value_idx]))
+
+    data_import = {
+        ModelParamFields.name: pname,
+        ModelParamFields.change: change,
+    }
+    if change == ModelParamFields.change_nc:
+        data_import[ModelParamFields.impact] = -9999.
+    else:
+        data_import[ModelParamFields.impact] = value
+    if change == ModelParamFields.change_vc:
+        data_import[ModelParamFields.value] = value
+
+    if max_idx is not None and len(item) > max_idx:
+        try:
+            data_import[ModelParamFields.max] = float(item[max_idx])
+        except (TypeError, ValueError):
+            pass
+    if min_idx is not None and len(item) > min_idx:
+        try:
+            data_import[ModelParamFields.min] = float(item[min_idx])
+        except (TypeError, ValueError):
+            pass
+    return data_import
+
+
 class ParseSEIMSConfig(object):
     """Parse SEIMS model related configurations from `ConfigParser` object.
 
@@ -747,6 +803,7 @@ class MainSEIMS(object):
             col.find_one_and_update({**flt, ModelCfgFields.output_id: outputid},
                                     {'$set': {ModelCfgFields.stime: cur_stime_str,
                                               ModelCfgFields.etime: cur_etime_str}})
+        self.UnsetMongoClient()
 
     def ImportModelIOConfiguration(self):
         """
@@ -806,7 +863,8 @@ class MainSEIMS(object):
 
         # Clean up previous selected outputs
         model_out_spec_coll = maindb[DBTableNames.main_fileout_spec]
-        model_out_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg})
+        model_out_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
+                                         ModelCfgFields.taskname: cur_task})
         model_out_spec_coll.create_index([(ModelCfgFields.configname, 1),
                                           (ModelCfgFields.taskname, 1),
                                           (ModelCfgFields.output_id, 1)], unique=True)
@@ -827,7 +885,7 @@ class MainSEIMS(object):
                       'Please check!' % data_import[ModelCfgFields.output_id])
                 continue
             data_import[ModelCfgFields.configname] = cur_cfg
-            data_import[ModelCfgFields.taskname] = ModelCfgFields.taskname_default
+            data_import[ModelCfgFields.taskname] = cur_task
             insert_requests.append(InsertOne(data_import))
         # execute import operators
         results = MongoUtil.run_bulk_write(model_out_spec_coll, insert_requests)
@@ -857,7 +915,7 @@ class MainSEIMS(object):
         # find all available parameter ids
         param_name_default = list()
         for d in coll.find({}, {ModelParamFields.name: 1}):
-            param_name_default.append(d.get(ModelCfgFields.output_id))
+            param_name_default.append(d.get(ModelParamFields.name))
         # Clean up previous selected calibrated parameters in PARAMETERS_SPEC
         param_spec_coll = maindb[DBTableNames.main_param_spec]
         param_spec_coll.delete_many({ModelCfgFields.configname: cur_cfg,
@@ -869,18 +927,9 @@ class MainSEIMS(object):
         data_items = read_data_items_from_txt(self.modelcfgs.filecali)
         insert_requests = list()
         for i, cur_data_item in enumerate(data_items):
-            data_import = dict()
-            if len(cur_data_item) < 2:
-                raise RuntimeError('param.cali MUST contain at least two columns: '
-                                   'NAME and IMPACT!')
-            data_import[ModelParamFields.name] = cur_data_item[0].upper()
-            data_import[ModelParamFields.impact] = float(cur_data_item[1])
-            if len(cur_data_item) >= 3:
-                if cur_data_item[2].upper() in [ModelParamFields.change_vc,
-                                                ModelParamFields.change_ac,
-                                                ModelParamFields.change_rc,
-                                                ModelParamFields.change_nc]:
-                    data_import[ModelParamFields.change] = cur_data_item[2].upper()
+            data_import = parse_calibrated_parameter_item(cur_data_item)
+            if data_import is None:
+                continue
             data_import[ModelCfgFields.configname] = cur_cfg
             data_import[ModelCfgFields.taskname] = cur_task
             insert_requests.append(InsertOne(data_import))
