@@ -1512,3 +1512,32 @@ python import_andrews_storm_params.py
   - 不保留 `ACTIVE_DEPTH_MAX=200`；
   - 已恢复 `param.cali` 为当前基线 `GW0=50`，并重新运行长窗口；
   - 当前主输出目录 `storm/OUTPUT_D8_DOWNUP--` 已恢复为 `GW0=50` 基线，图件为 `q_pcp_comparison_long_current_gw0_50.png`，指标为 NSE `-0.2059`、PBIAS `-14.91%`、峰值误差 `33.94%`。
+
+## 2026-06-04 参考 wwj 分支差异后的下一步判断
+
+- 重新比较当前分支与 `wwj/validation-2026-05-07` 的水文模块差异，重点查看 `SUR_SGA`、`IKW_IF`、`IKW_OL`、`PERCO_DARCY`、`GW_RSVR`、`IKW_CH` 与 `DEP_FS`。
+- 已经吸收或替代的内容：
+  - 当前已使用 `IKW_CH` 而不是 `CH_DW`，并修复了当前分支中河道源头和初始基流问题；
+  - 当前 `IKW_IF` 已保留 wwj 的“各向异性/优先流”思想，但采用更保守的事件水阈值，避免像 wwj 那样排到 `0.2*FC`；
+  - 当前没有保留 `OL_SPEED_FACTOR`，仍坚持通过物理糙率 `MANNING/CH_N` 与水量分配解释。
+- wwj 中不建议直接照抄的内容：
+  - `OL_SPEED_FACTOR` 属于纯速度旋钮，缺少明确物理含义；
+  - `IKW_IF` 中 `MACROPORE_FACTOR` 可把土壤水排到 `0.2*FC`，对 H.J. Andrews 的优先流现象有启发，但过强，容易成为无约束调参；
+  - `SUR_SGA` 使用全土层孔隙亏缺作为入渗容量，当前测试 `ACTIVE_DEPTH_MAX=200` 已证明类似方向会过度削弱 2 月 7 日主峰；
+  - `IKW_CH` 中按 `m_qg[i+1]` 取地下水输入更像索引权宜修复，当前按真实 `reachIndex` 映射更稳。
+- wwj 中仍值得吸收的物理/数值修复：
+  - `GW_RSVR` 的 `GWMAX` 溢出转为基流，属于水量守恒修复，可去掉 debug 后吸收；
+  - `GW_RSVR::Get1DData()` 设置输出长度，属于接口稳健性修复；
+  - `PERCO_DARCY` 的析构条件修复和 `FC_ADJUST` 接口值得吸收；当前 `param.cali` 写了 `FC_ADJUST=1.0`，但当前代码并未真正使用；
+  - `PERCO_DARCY` 可作为“已入渗水如何进入地下水”的物理调节点，比继续调 `GW0` 更适合解释后期基流不足；
+  - `IKW_IF` 需要一个介于当前保守阈值和 wwj 极强 macropore 之间的机制，让部分事件水从 `QS` 转到 `QI`，目标是把事件期 `QI` 从约 `0.016%` 提高到可见但不过强的比例。
+- 当前诊断对下一步的约束：
+  - 2 月 7 与 2 月 9-10 事件中，河道侧向输入约 `86%` 来自 `QS`；
+  - 因此下一步不能主要靠 `GW0` 或 `CH_N/MANNING`，而应减少 `QS` 过强，同时避免像 `ACTIVE_DEPTH_MAX=200` 那样让水量消失；
+  - 最优先的方向是“温和增加入渗/渗漏，并把一部分事件水转为可到达河道的 `QI`”，每一步都用 `IKW_CH_diag.csv` 检查 `QS/QI/QG` 分量是否按预期变化。
+- 建议执行顺序：
+  1. 先吸收安全 bugfix：`GW_RSVR` 的 `GWMAX` 守恒与输出长度、`PERCO_DARCY` 的析构修复和 `FC_ADJUST` 可选参数接口；
+  2. 在当前长窗口基线下测试 `FC_ADJUST=0.95/0.90`，看能否增加 `QG`/尾水而不抬高峰值；
+  3. 测试比 `ACTIVE_DEPTH_MAX=200` 更温和的活动深度或动态湿润锋方案，例如 `160/175 mm` 或随累计入渗逐步扩展，而不是一次使用全剖面；
+  4. 放松 `IKW_IF` 的优先流启动阈值，但不采用 wwj 的 `0.2*FC` 下限；目标是事件期 `QI` 进入河道占比达到若干百分点，观察是否能降低 `QS` 峰并让退水更缓；
+  5. 若上述水量分配已经合理，再小幅调整 `MANNING/CH_N` 做时序和峰宽校正。
