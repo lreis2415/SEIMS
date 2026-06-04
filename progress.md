@@ -1365,3 +1365,29 @@ python import_andrews_storm_params.py
 - 这一步的意义：
   - 后续每次实验都能从干净输出目录开始，避免 `Q.txt` 追加重复块；
   - 参数调整语义可追踪，尤其适合继续做 `MANNING/CH_N/ACTIVE_DEPTH_MAX/ANISOTROPY` 等消融实验。
+
+## 2026-06-04 AndrewsForest wwj 可比结构基线恢复
+
+- 本阶段目标是先恢复与 wwj 高 NSE 报告一致的结构基线，用于判断差异来自代码逻辑、配置还是参数数据库，而不是直接进入无约束调参。
+- 配置与接口修改：
+  - `storm/config.fig` 当前使用 `SUR_SGA, IKW_OL, IKW_IF, PERCO_DARCY, GW_RSVR, IKW_CH`，保留 `CH_DW` 注释，后续多流向对比再单独处理；
+  - `storm/param.cali` 改为 wwj verified-best 结构参数集，并有意不加入 `OL_SPEED_FACTOR`，地表汇流速度仍通过已有 `MANNING` 解释；
+  - `storm/file.out` 去掉 `QS/QI`，因为这两个输出属于当前 `CH_DW` 路径，不属于 `IKW_CH` 的输出接口；
+  - `run_andrews_storm.py` 增加运行 C++ 主程序所需的 `DYLD_LIBRARY_PATH` 注入，避免提前污染 Python/conda 进程。
+- 代码兼容性修复：
+  - 修复 `IKW_CH` 元数据，把 `RadianSlope` 与 `QOverland` 改为 2D 模块输入，匹配 `IKW_OL` 实际输出；
+  - 修复 `IKW_OL` 的 `RadianSlope` 输出声明，从 1D 改为 2D；
+  - 修复 `IKW_CH` 把 `QCH` 错声明为输入的问题，并恢复 `QSUBBASIN` 输出读取；
+  - `IKW_CH` 增加内部子步长、读取坡面径流/壤中流/地下水侧向输入，并兼容 `SBQG` 数组长度。
+- 编译与运行：
+  - `IKW_CH` 与 `IKW_OL` 模块单独编译通过，并已同步到 `build/lib` 与 `build/install/lib`；
+  - `cmake --build build --target install` 仍会被无关 TauDEM `streamnet` 源码的 macOS 编译错误阻断，因此本次仅同步已改模块；
+  - 使用 `run_andrews_storm.py --figure-name q_pcp_comparison_wwj_structural_baseline.png` 可完成运行和绘图。
+- 当前基线结果：
+  - 输出图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_wwj_structural_baseline.png`；
+  - NSE `-3.6437`，PBIAS `-100.00%`，模拟峰值 `0.000 m3/s`，实测峰值 `10.449 m3/s`；
+  - 结果说明：结构已跑通，但水文结果完全不可用。
+- 关键诊断：
+  - 运行日志中 `SUR_SGA` 出现 `Infiltration=-inf` 与 `Excess_Pcp=inf`，并传播到 `DEP_FS`；
+  - `param.cali` 中 `CH_N`、`FC_ADJUST` 当前仍被数据库报告为 unsupported/ignored，说明这些参数还没有按当前数据库参数表生效；
+  - 下一步优先修复 `SUR_SGA` 的非有限入渗值保护，并加入可解释的 `MOIST_IN` 初始化基准切换，再重新跑同一基线。

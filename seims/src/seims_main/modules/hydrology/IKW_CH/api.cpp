@@ -39,15 +39,15 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
 
     // from other module
-    mdi.AddInput(VAR_RadianSlope[0], UNIT_NON_DIM, VAR_RadianSlope[1], Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_RadianSlope[0], UNIT_NON_DIM, VAR_RadianSlope[1], Source_Module, DT_Array2D);
+    mdi.AddInput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], Source_Module, DT_Array2D);
     mdi.AddInput(VAR_QSOIL[0], UNIT_FLOW_CMS, VAR_QSOIL[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_PCP[0], UNIT_DEPTH_MM, VAR_PCP[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], Source_Module, DT_Array1D);
 
     // output
     //mdi.AddOutput(VAR_QRECH[0], UNIT_FLOW_CMS, VAR_QRECH[1], DT_Array1D);
-    mdi.AddInput(VAR_QCH[0], UNIT_FLOW_CMS, VAR_QCH[1], Source_Module, DT_Array2D);
+    mdi.AddOutput(VAR_QCH[0], UNIT_FLOW_CMS, VAR_QCH[1], DT_Array2D);
     mdi.AddOutput(VAR_QTOTAL[0], UNIT_FLOW_CMS, VAR_QTOTAL[1], DT_Single);
     mdi.AddOutput(VAR_QSUBBASIN[0], UNIT_FLOW_CMS, VAR_QSUBBASIN[1], DT_Array1D);
     mdi.AddOutput(VAR_HCH[0], UNIT_DEPTH_MM, VAR_HCH[1], DT_Array2D);

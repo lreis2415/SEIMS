@@ -5,7 +5,7 @@
 //using namespace std;  // Avoid this statement! by lj.
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
-    m_nCells(-1), m_chNumber(-1), m_dt(-1.0f),
+    m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_substeps(2),
     m_CellWidth(-1.0f), //m_layeringMethod(DOWNUP),
     m_sRadian(nullptr), m_direction(nullptr), m_reachDownStream(nullptr),
     m_chWidth(nullptr),
@@ -14,7 +14,7 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
     m_flowLen(nullptr), m_qi(nullptr), m_streamLink(nullptr),
     m_sourceCellIds(nullptr),
     m_idUpReach(-1), m_qUpReach(0.f),
-    m_qgDeep(100.f),
+    m_qgDeep(0.f),
     m_idOutlet(-1)//, m_qsInput(nullptr)
 {
 }
@@ -261,7 +261,7 @@ void ImplicitKinematicWave_CH::initialOutputs2() {
         for (int j = 0; j < n; ++j) {
             id = m_reachs[i][j];
             // slope length needs to be corrected by slope angle
-            dx = m_CellWidth / cos(m_sRadian[id]);
+            dx = m_CellWidth / cos(m_sRadian[id][1]);
             int dir = (int) m_direction[id];
             //if ((int) m_diagonal[dir] == 1) {
             if (DiagonalCCW[dir] == 1) {
@@ -297,13 +297,11 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
 
     float dx = m_flowLen[iReach][iCell];
 
-    float qLat = m_prec[id] / 1000.f * m_chWidth[id] * dx / m_dt;
+    float qLat = (m_prec[id] / m_substeps) / 1000.f * m_chWidth[id] * dx / m_dt;
     qLat += qgEachCell;
-
-    //if (m_qs != nullptr)
-    qLat += m_qs[id];
+    qLat += m_qs[id][0] / m_substeps;
     if (m_qi != nullptr) {
-        qLat += m_qi[id];
+        qLat += m_qi[id] / m_substeps;
     }
 
     if (qLat < MIN_FLUX && qUp < MIN_FLUX) {
@@ -316,7 +314,10 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
 
     float Perim = 2.f * m_hCh[iReach][iCell] + m_chWidth[id];
 
-    float sSin = CalSqrt(sin(m_sRadian[id]));
+    float sSin = CalSqrt(sin(Max(m_sRadian[id][1], 0.001f)));
+    if (sSin < 1e-6f) {
+        sSin = 1e-6f;
+    }
     float alpha = CalPow(m_reachN[iReach] / sSin * CalPow(Perim, _2div3), 0.6f);
 
     float qIn = m_qCh[iReach][iCell];
@@ -337,33 +338,39 @@ int ImplicitKinematicWave_CH::Execute() {
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
 
-    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
-        // There are not any flow relationship within each routing layer.
-        // So parallelization can be done here.
-        int nReaches = it->second.size();
-        //cout << "Number of reaches: " << nReaches << endl;
-        // the size of m_reachLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
-        for (int i = 0; i < nReaches; ++i) {
-            int reachIndex = it->second[i]; // index in the array, from 0
-            //m_qsInput[reachIndex+1] = 0.f;
+    float dtOriginal = m_dt;
+    m_dt = dtOriginal / m_substeps;
 
-            vector<int> &vecCells = m_reachs[reachIndex];
-            int n = vecCells.size();
-            //cout << "\tNumber of cells in reach " << reachIndex << ": " << n << endl;
-            float qgEachCell = 0.f;
-            if (m_qg != nullptr) {
-                qgEachCell = m_qg[i + 1] / n;
+    for (int sub = 0; sub < m_substeps; sub++) {
+        for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+            // There are not any flow relationship within each routing layer.
+            // So parallelization can be done here.
+            int nReaches = it->second.size();
+            //cout << "Number of reaches: " << nReaches << endl;
+            // the size of m_reachLayers (map) is equal to the maximum stream order
+#pragma omp parallel for
+            for (int i = 0; i < nReaches; ++i) {
+                int reachIndex = it->second[i]; // index in the array, from 0
+                //m_qsInput[reachIndex+1] = 0.f;
+
+                vector<int> &vecCells = m_reachs[reachIndex];
+                int n = vecCells.size();
+                //cout << "\tNumber of cells in reach " << reachIndex << ": " << n << endl;
+                float qgEachCell = 0.f;
+                if (m_qg != nullptr) {
+                    qgEachCell = m_qg[reachIndex] / n / m_substeps;
+                }
+                //cout << "\tGroundwater: " << qgEachCell << endl;
+                for (int iCell = 0; iCell < n; ++iCell) {
+                    int idCell = vecCells[iCell];
+                    //m_qsInput[reachIndex+1] += m_qs[idCell];
+                    ChannelFlow(reachIndex, iCell, idCell, qgEachCell);
+                }
+                m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
             }
-            //cout << "\tGroundwater: " << qgEachCell << endl;
-            for (int iCell = 0; iCell < n; ++iCell) {
-                int idCell = vecCells[iCell];
-                //m_qsInput[reachIndex+1] += m_qs[idCell];
-                ChannelFlow(reachIndex, iCell, idCell, qgEachCell);
-            }
-            m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
         }
     }
+    m_dt = dtOriginal;
 
     return 0;
 }
@@ -433,26 +440,30 @@ void ImplicitKinematicWave_CH::Set1DData(const char *key, int n, float *data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_SBQG[0])) {
-        CheckInputSize(M_IKW_CH[0], key, n, m_chNumber);
         m_qg = data;
         return;
     }
 
     CheckInputSize(M_IKW_CH[0], key, n, m_nCells);
 
-    if (StringMatch(sk, VAR_RadianSlope[0])) {
-        m_sRadian = data;
-    } else if (StringMatch(sk, VAR_FLOWDIR[0])) {
+    if (StringMatch(sk, VAR_FLOWDIR[0])) {
         m_direction = data;
     } else if (StringMatch(sk, VAR_PCP[0])) {
         m_prec = data;
     } else if (StringMatch(sk, VAR_QSOIL[0])) {
         m_qi = data;
-    } else if (StringMatch(sk, VAR_QOVERLAND[0])) {
-        m_qs = data;
     } else if (StringMatch(sk, VAR_CHWIDTH[0])) {
         m_chWidth = data;
-    } else if (StringMatch(sk, VAR_STREAM_LINK[0])) {
+    } else {
+        throw ModelException(M_IKW_CH[0], "Set1DData",
+                             "Parameter " + sk + " does not exist.");
+    }
+}
+
+void ImplicitKinematicWave_CH::Set1DData(const char* key, int n, int* data) {
+    CheckInputSize(M_IKW_CH[0], key, n, m_nCells);
+    string sk(key);
+    if (StringMatch(sk, VAR_STREAM_LINK[0])) {
         m_streamLink = data;
     } else {
         throw ModelException(M_IKW_CH[0], "Set1DData",
@@ -464,7 +475,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
     string sk(key);
     *n = m_chNumber + 1;
     // TODO. Check.
-    if (StringMatch(sk, VAR_QRECH[0])) {
+    if (StringMatch(sk, VAR_QSUBBASIN[0])) {
         *data = m_qSubbasin;
     }
     else if (StringMatch(sk, VAR_QRECH[0])) {
@@ -501,12 +512,15 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nrows, int *ncols
 
 void ImplicitKinematicWave_CH::Set2DData(const char *key, int nrows, int ncols, FLTPT **data) {
     string sk(key);
-    /*if (StringMatch(sk, Tag_FLOWIN_INDEX[0])) {
-        m_flowInIdx = data;
+    CheckInputSize(M_IKW_CH[0], key, nrows, m_nCells);
+    if (StringMatch(sk, VAR_QOVERLAND[0])) {
+        m_qs = data;
+    } else if (StringMatch(sk, VAR_RadianSlope[0])) {
+        m_sRadian = data;
     } else {
         throw ModelException(M_IKW_CH[0], "Set1DData",
                              "Parameter " + sk + " does not exist.");
-    }*/
+    }
 }
 
 void ImplicitKinematicWave_CH::Set2DData(const char* key, int nrows, int ncols, int** data) {

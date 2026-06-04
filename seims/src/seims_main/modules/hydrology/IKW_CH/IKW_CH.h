@@ -40,6 +40,8 @@ public:
 
     void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
+    void Set1DData(const char* key, int n, int* data) OVERRIDE;
+
     void Set2DData(const char *key, int nrows, int ncols, FLTPT **data) OVERRIDE;
 
     void Set2DData(const char* key, int nrows, int ncols, int** data) OVERRIDE;
@@ -80,14 +82,16 @@ private:
     //LayeringMethod m_layeringMethod;
     /// time step (second)
     float m_dt;
+    /// number of internal channel routing substeps for numerical stability
+    int m_substeps;
 
     /// slope (radian)
-    float *m_sRadian;
+    float **m_sRadian;
     /// channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells)
     float *m_chWidth;
 
     /// stream link
-    float *m_streamLink;
+    int *m_streamLink;
 
     /**
     *	@brief flow direction by the rule of TauDEM
@@ -102,7 +106,7 @@ private:
     /// precipitation
     float *m_prec;
     /// overland flow to channel (m3/s)
-    float *m_qs;
+    float **m_qs;
     /// interflow to channel (m3/s)
     float *m_qi;
     /// ground water

@@ -52,7 +52,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_FLOWWIDTH[0], UNIT_LEN_M, VAR_FLOWWIDTH[1], DT_Raster1D);
     mdi.AddOutput("ChWidth", "m", "Flow length of overland plane",
                   DT_Raster1D);  //Flowlen add by Wu hui  /// TODO Figure out what's meaning? LJ
-    mdi.AddOutput(VAR_RadianSlope[0], UNIT_NON_DIM, VAR_RadianSlope[1], DT_Raster1D);
+    mdi.AddOutput(VAR_RadianSlope[0], UNIT_NON_DIM, VAR_RadianSlope[1], DT_Array2D);
 
     mdi.AddOutput(VAR_ID_OUTLET[0], UNIT_NON_DIM, VAR_ID_OUTLET[1], DT_Single);
 

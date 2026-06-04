@@ -15,6 +15,11 @@ DEFAULT_MODEL_DIR = os.path.join(
 DEFAULT_BIN_DIR = os.path.join(REPO_ROOT, "build", "bin")
 DEFAULT_START = "2015-02-05 07:00:00"
 DEFAULT_END = "2015-02-08 20:00:00"
+DEFAULT_DYLD_LIBRARY_PATH = ":".join([
+    "/Users/flora/miniconda3/envs/pyseims/lib",
+    "/opt/homebrew/opt/llvm/lib",
+    "/opt/homebrew/opt/mongo-c-driver@1/lib",
+])
 
 
 def parse_args():
@@ -34,6 +39,8 @@ def parse_args():
     parser.add_argument("--no-plot", action="store_true", help="Do not create comparison plot.")
     parser.add_argument("--figure-name", default="q_pcp_comparison.png",
                         help="Figure filename under the model output directory.")
+    parser.add_argument("--dyld-library-path", default=DEFAULT_DYLD_LIBRARY_PATH,
+                        help="DYLD_LIBRARY_PATH used by the SEIMS C++ executable.")
     return parser.parse_args()
 
 
@@ -92,12 +99,14 @@ def main():
     model.ImportModelIOConfiguration()
     model.ImportCalibratedParameters()
     model.ResetSimulationPeriod()
-    model.ResetOutputsPeriod(["QSUBBASIN", "QS", "QI", "SBQG", "SBGS", "SOLST"],
+    model.ResetOutputsPeriod(["QSUBBASIN", "SBQG", "SBGS", "SOLST"],
                              model.simu_stime, model.simu_etime)
 
     print("Cleaning output directory: %s" % model.output_dir)
     model.clean()
 
+    if args.dyld_library_path:
+        os.environ["DYLD_LIBRARY_PATH"] = args.dyld_library_path
     print("Running SEIMS: %s" % model.CommandString)
     model.run()
     if not os.path.isfile(os.path.join(model.output_dir, "Q.txt")):
