@@ -209,9 +209,11 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
         float initialTheta = std::isfinite(m_initialSoilWtrSto[id][j]) ?
             Max(0.f, Min(m_initialSoilWtrSto[id][j], porosity)) : 0.f;
         const float eventThreshold = Max(0.f, Min(initialTheta, fieldCapacity));
-        const float eventMobileRange = Max(porosity - eventThreshold, 1.e-6f);
-        float eventMobileSaturation = Max(0.0f, Min((soilTheta - eventThreshold) / eventMobileRange, 1.0f));
-        float effectiveFastRatio = Max(0.0f, Min(m_fastRatio * eventMobileSaturation, 0.95f));
+        // Preferential paths are assumed to become connected by field capacity,
+        // while porosity still limits the event-water storage volume.
+        const float connectivityRange = Max(fieldCapacity - eventThreshold, 1.e-6f);
+        float eventConnectivity = Max(0.0f, Min((soilTheta - eventThreshold) / connectivityRange, 1.0f));
+        float effectiveFastRatio = Max(0.0f, Min(m_fastRatio * eventConnectivity, 0.95f));
         float upstreamFlow = Max(qUp[j], 0.0f);
         float fastInflow = upstreamFlow * effectiveFastRatio;
         float matrixInflow = upstreamFlow - fastInflow;
@@ -270,8 +272,8 @@ bool InterFlow_IKW::FlowInSoil(const int id) {
         float macropore_q = 0.0f;
         float eventWater = (soilTheta - eventThreshold) * soilVolumn;
         if (m_macroporeFactor > 1.0f && eventWater > 0.0f && soilTheta > eventThreshold) {
-            eventMobileSaturation = Max(0.0f, Min((soilTheta - eventThreshold) / eventMobileRange, 1.0f));
-            float macroporeK = k * (m_macroporeFactor - 1.0f) * eventMobileSaturation;
+            eventConnectivity = Max(0.0f, Min((soilTheta - eventThreshold) / connectivityRange, 1.0f));
+            float macroporeK = k * (m_macroporeFactor - 1.0f) * eventConnectivity;
             macropore_q = m_landuseFactor * rootDepth / 1000.f * s0 * macroporeK * m_CellWidth;
             float macroporeWater = Max(eventWater, 0.0f);
             float macroporeVol = macropore_q * m_dt;
