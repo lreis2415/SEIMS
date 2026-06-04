@@ -1,6 +1,8 @@
 #include "IKW_CH.h"
 #include "text.h"
-#include<queue>
+#include <cstdlib>
+#include <fstream>
+#include <queue>
 
 //using namespace std;  // Avoid this statement! by lj.
 
@@ -394,6 +396,13 @@ int ImplicitKinematicWave_CH::Execute() {
 
     float dtOriginal = m_dt;
     m_dt = dtOriginal / m_substeps;
+    const char* diagEnv = std::getenv("SEIMS_IKW_CH_DIAG");
+    const bool writeDiag = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
+    double diagPrecVolume = 0.0;
+    double diagQsVolume = 0.0;
+    double diagQiVolume = 0.0;
+    double diagQgVolume = 0.0;
+    int diagCount = 0;
 
     for (int sub = 0; sub < m_substeps; sub++) {
         for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
@@ -402,7 +411,7 @@ int ImplicitKinematicWave_CH::Execute() {
             int nReaches = it->second.size();
             //cout << "Number of reaches: " << nReaches << endl;
             // the size of m_reachLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:diagPrecVolume,diagQsVolume,diagQiVolume,diagQgVolume,diagCount)
             for (int i = 0; i < nReaches; ++i) {
                 int reachIndex = it->second[i]; // index in the array, from 0
                 //m_qsInput[reachIndex+1] = 0.f;
@@ -422,6 +431,18 @@ int ImplicitKinematicWave_CH::Execute() {
                 for (int iCell = 0; iCell < n; ++iCell) {
                     int idCell = vecCells[iCell];
                     //m_qsInput[reachIndex+1] += m_qs[idCell];
+                    if (writeDiag) {
+                        float dx = m_flowLen[reachIndex][iCell];
+                        float qLatPrec = (m_prec[idCell] / m_substeps) / 1000.f *
+                                         m_chWidth[idCell] * dx / m_dt;
+                        float qLatQs = m_qs[idCell][0] / m_substeps;
+                        float qLatQi = m_qi != nullptr ? m_qi[idCell] / m_substeps : 0.f;
+                        diagPrecVolume += qLatPrec * m_dt;
+                        diagQsVolume += qLatQs * m_dt;
+                        diagQiVolume += qLatQi * m_dt;
+                        diagQgVolume += qgEachCell * m_dt;
+                        diagCount++;
+                    }
                     ChannelFlow(reachIndex, iCell, idCell, qgEachCell);
                 }
                 m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
@@ -429,6 +450,30 @@ int ImplicitKinematicWave_CH::Execute() {
         }
     }
     m_dt = dtOriginal;
+
+    if (writeDiag) {
+        const string diagPath = m_outpath + SEP + "IKW_CH_diag.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,prec_cms,qs_cms,qi_cms,qg_cms,total_cms,"
+                   << "prec_m3,qs_m3,qi_m3,qg_m3,count\n";
+            }
+            const double precCms = diagPrecVolume / dtOriginal;
+            const double qsCms = diagQsVolume / dtOriginal;
+            const double qiCms = diagQiVolume / dtOriginal;
+            const double qgCms = diagQgVolume / dtOriginal;
+            fs << ConvertToString2(m_date) << ","
+               << precCms << "," << qsCms << "," << qiCms << "," << qgCms << ","
+               << (precCms + qsCms + qiCms + qgCms) << ","
+               << diagPrecVolume << "," << diagQsVolume << ","
+               << diagQiVolume << "," << diagQgVolume << ","
+               << diagCount << "\n";
+        }
+    }
 
     return 0;
 }
