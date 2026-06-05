@@ -200,8 +200,21 @@ int StormGreenAmpt::Execute(void) {
     double diagExcp = 0.0;
     double diagInfilSurplus = 0.0;
     double diagPotentialInfil = 0.0;
+    double diagRawPotentialInfil = 0.0;
+    double diagActiveDepth = 0.0;
+    double diagInfilCap = 0.0;
+    double diagAccumuDepth = 0.0;
+    double diagSoilDeficit = 0.0;
+    double diagTheta = 0.0;
+    double diagPorosity = 0.0;
     double diagClosure = 0.0;
     int diagWetCells = 0;
+    int diagSaturatedCells = 0;
+    int diagCapZeroCells = 0;
+    int diagPotentialZeroCells = 0;
+    int diagFactorZeroCells = 0;
+    int diagOtherZeroCells = 0;
+    int diagPositiveInfilCells = 0;
 
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -299,10 +312,12 @@ int StormGreenAmpt::Execute(void) {
         if (!std::isfinite(infilCap) || infilCap < 0.f) {
             infilCap = 0.f;
         }
-        float potentialInfil = infilRate * dt * 1000.f;
-        if (!std::isfinite(potentialInfil) || potentialInfil < 0.f) {
-            potentialInfil = 0.f;
+        const float accumuDepthMm = std::isfinite(m_accumuDepth[i]) ? Max(m_accumuDepth[i], 0.f) : 0.f;
+        float rawPotentialInfil = infilRate * dt * 1000.f;
+        if (!std::isfinite(rawPotentialInfil) || rawPotentialInfil < 0.f) {
+            rawPotentialInfil = 0.f;
         }
+        float potentialInfil = rawPotentialInfil;
         potentialInfil = Min(potentialInfil, infilCap);
 
         if (hWater > 0) {
@@ -358,6 +373,7 @@ int StormGreenAmpt::Execute(void) {
         }
 
         if (writeDiag) {
+            const bool hasWater = hWater > 1.e-6f;
             diagNetPcp += netPcp;
             diagDepOld += depWater;
             diagSurfOld += surfWater;
@@ -367,9 +383,31 @@ int StormGreenAmpt::Execute(void) {
             diagExcp += m_exsPcp[i];
             diagInfilSurplus += m_infilCapacitySurplus[i];
             diagPotentialInfil += potentialInfil;
+            diagRawPotentialInfil += rawPotentialInfil;
+            diagActiveDepth += activeDepth;
+            diagInfilCap += infilCap;
+            diagAccumuDepth += accumuDepthMm;
+            diagSoilDeficit += soilDeficit;
+            diagTheta += theta;
+            diagPorosity += por;
             diagClosure += hWater - m_infil[i] - m_exsPcp[i];
-            if (hWater > 1.e-6f || m_infil[i] > 1.e-6f || m_exsPcp[i] > 1.e-6f) {
+            if (hasWater || m_infil[i] > 1.e-6f || m_exsPcp[i] > 1.e-6f) {
                 diagWetCells++;
+            }
+            if (hasWater) {
+                if (theta >= por) {
+                    diagSaturatedCells++;
+                } else if (infilCap <= 1.e-6f) {
+                    diagCapZeroCells++;
+                } else if (potentialInfil <= 1.e-6f) {
+                    diagPotentialZeroCells++;
+                } else if (m_infilFactor <= 1.e-6f) {
+                    diagFactorZeroCells++;
+                } else if (m_infil[i] <= 1.e-6f) {
+                    diagOtherZeroCells++;
+                } else {
+                    diagPositiveInfilCells++;
+                }
             }
         }
 
@@ -427,16 +465,27 @@ int StormGreenAmpt::Execute(void) {
             if (needHeader) {
                 fs << "time,ncells,wet_cells,net_pcp_mm_cell,dep_old_mm_cell,"
                    << "surf_old_mm_cell,snowmelt_mm_cell,hwater_mm_cell,"
-                   << "potential_infil_mm_cell,infil_mm_cell,excp_mm_cell,"
-                   << "infil_capacity_surplus_mm_cell,closure_mm_cell\n";
+                   << "raw_potential_infil_mm_cell,potential_infil_mm_cell,"
+                   << "active_depth_mm_cell,infil_cap_mm_cell,accumu_depth_mm_cell,"
+                   << "soil_deficit_cell,theta_cell,porosity_cell,"
+                   << "infil_mm_cell,excp_mm_cell,infil_capacity_surplus_mm_cell,"
+                   << "saturated_cells,cap_zero_cells,potential_zero_cells,"
+                   << "factor_zero_cells,other_zero_cells,positive_infil_cells,"
+                   << "closure_mm_cell\n";
             }
             fs << ConvertToString2(m_date) << ","
                << m_nCells << "," << diagWetCells << ","
                << diagNetPcp << "," << diagDepOld << ","
                << diagSurfOld << "," << diagSnowMelt << ","
-               << diagHWater << "," << diagPotentialInfil << ","
-               << diagInfil << "," << diagExcp << ","
-               << diagInfilSurplus << "," << diagClosure << "\n";
+               << diagHWater << "," << diagRawPotentialInfil << ","
+               << diagPotentialInfil << "," << diagActiveDepth << ","
+               << diagInfilCap << "," << diagAccumuDepth << ","
+               << diagSoilDeficit << "," << diagTheta << ","
+               << diagPorosity << "," << diagInfil << "," << diagExcp << ","
+               << diagInfilSurplus << "," << diagSaturatedCells << ","
+               << diagCapZeroCells << "," << diagPotentialZeroCells << ","
+               << diagFactorZeroCells << "," << diagOtherZeroCells << ","
+               << diagPositiveInfilCells << "," << diagClosure << "\n";
         }
     }
     return 0;

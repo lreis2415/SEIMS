@@ -205,7 +205,7 @@ WaterBalance,soil_td2,Empirical coefficient for estimating soil temperature,deg 
 WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8,FLT
 WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15,FLT
 WaterBalance,INFIL_FACTOR,Infiltration reduction factor for diagnostic runoff experiments,none,SUR_SGA,1,1,RC,1,0,FLT
-WaterBalance,ACTIVE_DEPTH_MAX,Maximum active wetting front depth for storm infiltration,mm,SUR_SGA,150,1,RC,1000,10,FLT
+WaterBalance,ACTIVE_DEPTH_MAX,Maximum active wetting front depth for storm infiltration,mm,SUR_SGA,150,1,RC,1000,0,FLT
 WaterBalance,MOIST_IN_REF,Reference for MOIST_IN initialization (0 field capacity; 1 porosity),none,SUR_SGA,0,1,VC,1,0,FLT
 WaterBalance,GA_ACC_RECOVERY_RATE,Dry-period recovery rate of Green-Ampt cumulative infiltration,mm/h,SUR_SGA,0,1,RC,50,0,FLT
 WaterBalance,GA_ACC_RECOVERY_DELAY,Continuous dry duration before Green-Ampt cumulative infiltration recovery starts,hr,SUR_SGA,0,1,RC,72,0,FLT

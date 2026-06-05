@@ -150,8 +150,14 @@ private:
     double m_diagInitialSurfaceVol;
     double m_diagUpstreamInflowVol;
     double m_diagOutflowVol;
+    double m_diagStreamCellQsRawVol;
     double m_diagReinfilVol;
+    double m_diagPotentialReinfilVol;
+    double m_diagUnusedReinfilCapacityVol;
+    double m_diagUnusedCapacityWithWaterVol;
+    double m_diagWaterBypassedCapacityVol;
     double m_diagFinalSurfaceVol;
+    double m_diagFinalSurfaceWithUnusedCapacityVol;
     double m_diagClosureVol;
     int m_diagCellCount;
 };

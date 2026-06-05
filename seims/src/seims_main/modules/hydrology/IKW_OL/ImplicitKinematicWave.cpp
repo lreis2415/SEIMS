@@ -19,7 +19,13 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL), m_chWidth(NULL),
                                                            m_diagEnabled(false), m_diagInitialSurfaceVol(0.0),
                                                            m_diagUpstreamInflowVol(0.0), m_diagOutflowVol(0.0),
-                                                           m_diagReinfilVol(0.0), m_diagFinalSurfaceVol(0.0),
+                                                           m_diagStreamCellQsRawVol(0.0), m_diagReinfilVol(0.0),
+                                                           m_diagPotentialReinfilVol(0.0),
+                                                           m_diagUnusedReinfilCapacityVol(0.0),
+                                                           m_diagUnusedCapacityWithWaterVol(0.0),
+                                                           m_diagWaterBypassedCapacityVol(0.0),
+                                                           m_diagFinalSurfaceVol(0.0),
+                                                           m_diagFinalSurfaceWithUnusedCapacityVol(0.0),
                                                            m_diagClosureVol(0.0), m_diagCellCount(0) {
 }
 
@@ -281,6 +287,10 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float h = m_sr[id] / 1000.f;
     const float cellAreaDiag = m_CellWidth * m_CellWidth;
     const double initialSurfaceVolDiag = h * cellAreaDiag;
+    float potentialInfilVol = 0.f;
+    if (m_infilCapacitySurplus != NULL && m_infilCapacitySurplus[id] > 0) {
+        potentialInfilVol = m_infilCapacitySurplus[id] / 1000.f * cellAreaDiag;
+    }
 
     //debug
     const int DEBUG_ID = 2988; 
@@ -397,9 +407,19 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         if (m_diagEnabled) {
             const double qUpVol = qUp * m_dtStorm;
             const double qOutVol = qUp * m_dtStorm;
+            const double unusedCapacity = Max(static_cast<double>(potentialInfilVol), 0.0);
             m_diagInitialSurfaceVol += initialSurfaceVolDiag;
             m_diagUpstreamInflowVol += qUpVol;
             m_diagOutflowVol += qOutVol;
+            if (m_streamLink[id] > 0) {
+                m_diagStreamCellQsRawVol += qOutVol;
+            }
+            m_diagPotentialReinfilVol += potentialInfilVol;
+            m_diagUnusedReinfilCapacityVol += unusedCapacity;
+            if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                m_diagUnusedCapacityWithWaterVol += unusedCapacity;
+                m_diagWaterBypassedCapacityVol += qOutVol;
+            }
             m_diagFinalSurfaceVol += 0.0;
             m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol;
             m_diagCellCount++;
@@ -438,9 +458,15 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
         if (m_diagEnabled) {
             const double qUpVol = qUp * m_dtStorm;
+            const double unusedCapacity = Max(static_cast<double>(potentialInfilVol), 0.0);
             m_diagInitialSurfaceVol += initialSurfaceVolDiag;
             m_diagUpstreamInflowVol += qUpVol;
             m_diagOutflowVol += 0.0;
+            m_diagPotentialReinfilVol += potentialInfilVol;
+            m_diagUnusedReinfilCapacityVol += unusedCapacity;
+            if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                m_diagUnusedCapacityWithWaterVol += unusedCapacity;
+            }
             m_diagFinalSurfaceVol += 0.0;
             m_diagClosureVol += initialSurfaceVolDiag + qUpVol;
             m_diagCellCount++;
@@ -486,16 +512,8 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float totalLeftoverVolume = 0.f;
     //float totalInflowVolume = 0.f;
 
-
-    float cellArea = m_CellWidth * m_CellWidth;
-
-
+    float cellArea = cellAreaDiag;
     float initialVolume = h * cellArea;
-
-    float potentialInfilVol = 0.f;
-    if (m_infilCapacitySurplus != NULL && m_infilCapacitySurplus[id] > 0) {
-        potentialInfilVol = m_infilCapacitySurplus[id] / 1000.f * cellArea;
-    }
 
     ////debug
     //if (isDebugCell) {
@@ -635,11 +653,27 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         const double qUpVol = qUp * m_dtStorm;
         const double qOutVol = qNewTotal * m_dtStorm;
         const double finalSurfaceVol = totalLeftoverVolume;
+        const double unusedCapacity = Max(static_cast<double>(potentialInfilVol - reInfilVol), 0.0);
+        const double availableWater = initialSurfaceVolDiag + qUpVol;
         m_diagInitialSurfaceVol += initialSurfaceVolDiag;
         m_diagUpstreamInflowVol += qUpVol;
         m_diagOutflowVol += qOutVol;
+        if (m_streamLink[id] > 0) {
+            m_diagStreamCellQsRawVol += qOutVol;
+        }
         m_diagReinfilVol += reInfilVol;
+        m_diagPotentialReinfilVol += potentialInfilVol;
+        m_diagUnusedReinfilCapacityVol += unusedCapacity;
+        if (availableWater > 1.e-12) {
+            m_diagUnusedCapacityWithWaterVol += unusedCapacity;
+            if (unusedCapacity > 1.e-12) {
+                m_diagWaterBypassedCapacityVol += qOutVol;
+            }
+        }
         m_diagFinalSurfaceVol += finalSurfaceVol;
+        if (unusedCapacity > 1.e-12) {
+            m_diagFinalSurfaceWithUnusedCapacityVol += finalSurfaceVol;
+        }
         m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol -
                              reInfilVol - finalSurfaceVol;
         m_diagCellCount++;
@@ -687,8 +721,14 @@ int ImplicitKinematicWave_OL::Execute() {
         m_diagInitialSurfaceVol = 0.0;
         m_diagUpstreamInflowVol = 0.0;
         m_diagOutflowVol = 0.0;
+        m_diagStreamCellQsRawVol = 0.0;
         m_diagReinfilVol = 0.0;
+        m_diagPotentialReinfilVol = 0.0;
+        m_diagUnusedReinfilCapacityVol = 0.0;
+        m_diagUnusedCapacityWithWaterVol = 0.0;
+        m_diagWaterBypassedCapacityVol = 0.0;
         m_diagFinalSurfaceVol = 0.0;
+        m_diagFinalSurfaceWithUnusedCapacityVol = 0.0;
         m_diagClosureVol = 0.0;
         m_diagCellCount = 0;
     }
@@ -713,7 +753,10 @@ int ImplicitKinematicWave_OL::Execute() {
         if (fs.is_open()) {
             if (needHeader) {
                 fs << "time,ncells,initial_surface_m3,upstream_inflow_m3,"
-                   << "outflow_m3,reinfiltration_m3,final_surface_m3,"
+                   << "outflow_m3,stream_cell_qs_raw_m3,reinfiltration_m3,"
+                   << "potential_reinfiltration_m3,unused_reinfil_capacity_m3,"
+                   << "unused_capacity_with_water_m3,water_bypassed_capacity_m3,"
+                   << "final_surface_m3,final_surface_with_unused_capacity_m3,"
                    << "closure_m3\n";
             }
             fs << ConvertToString2(m_date) << ","
@@ -721,8 +764,14 @@ int ImplicitKinematicWave_OL::Execute() {
                << m_diagInitialSurfaceVol << ","
                << m_diagUpstreamInflowVol << ","
                << m_diagOutflowVol << ","
+               << m_diagStreamCellQsRawVol << ","
                << m_diagReinfilVol << ","
+               << m_diagPotentialReinfilVol << ","
+               << m_diagUnusedReinfilCapacityVol << ","
+               << m_diagUnusedCapacityWithWaterVol << ","
+               << m_diagWaterBypassedCapacityVol << ","
                << m_diagFinalSurfaceVol << ","
+               << m_diagFinalSurfaceWithUnusedCapacityVol << ","
                << m_diagClosureVol << "\n";
         }
     }

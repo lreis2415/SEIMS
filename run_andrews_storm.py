@@ -87,7 +87,7 @@ def ensure_optional_parameters(model):
          "none", "SUR_SGA", 1.0, 1.0, "RC", 1.0, 0.0, "FLT"),
         ("WaterBalance", "ACTIVE_DEPTH_MAX",
          "Maximum active wetting front depth for storm infiltration",
-         "mm", "SUR_SGA", 150.0, 1.0, "RC", 1000.0, 10.0, "FLT"),
+         "mm", "SUR_SGA", 150.0, 1.0, "RC", 1000.0, 0.0, "FLT"),
         ("WaterBalance", "MOIST_IN_REF",
          "Reference for MOIST_IN initialization (0 field capacity; 1 porosity)",
          "none", "SUR_SGA", 0.0, 1.0, "VC", 1.0, 0.0, "FLT"),

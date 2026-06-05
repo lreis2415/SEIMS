@@ -1648,3 +1648,36 @@ python import_andrews_storm_params.py
   - 扩展 `IKW_OL` 诊断，明确 `DEP_FS` 新增 `SURU` 中有多少真正进入河道 `QS`、多少仍在坡面、多少发生二次下渗；
   - 检查 `SUR_SGA` 事件期入渗为 0 的直接原因，是 `theta >= porosity`、活动层入渗容量为 0，还是 Green-Ampt 累计入渗记忆过强；
   - 若确认 `SURU` 长时间停留但二次下渗关闭，应优先改造 `IKW_OL` 的二次下渗/近地表滞蓄机制，再调 `MANNING/CH_N`。
+
+## 2026-06-05 AndrewsForest SUR_SGA 入渗关停原因与 IKW_OL 去向诊断
+
+- 按用户要求继续检查两个点：
+  - 事件期 `SUR_SGA` 入渗为 0 的直接原因；
+  - `DEP_FS` 新增的 `SURU` 在 `IKW_OL/IKW_CH` 中有多少进入河道 `QS`、多少留在坡面、多少本该二次下渗但没有发生。
+- 代码诊断扩展：
+  - `SUR_SGA_balance.csv` 新增 `raw_potential_infil_mm_cell`、`active_depth_mm_cell`、`infil_cap_mm_cell`、`accumu_depth_mm_cell`、`soil_deficit_cell`、`theta_cell`、`porosity_cell`；
+  - `SUR_SGA_balance.csv` 新增关停原因分类：`saturated_cells`、`cap_zero_cells`、`potential_zero_cells`、`factor_zero_cells`、`other_zero_cells`、`positive_infil_cells`；
+  - `IKW_OL_balance.csv` 新增二次下渗和坡面水去向字段：`potential_reinfiltration_m3`、`unused_reinfil_capacity_m3`、`unused_capacity_with_water_m3`、`water_bypassed_capacity_m3`、`final_surface_with_unused_capacity_m3`；
+  - 将 IKW_OL 中原 `channel_qs_m3` 诊断口径改名为 `stream_cell_qs_raw_m3`，因为 `IKW_CH` 有 `m_substeps=2`，实际进入河道的 `QS` 应以 `IKW_CH_diag.csv` 的 `qs_m3` 为准。
+- 发现 `ACTIVE_DEPTH_MAX` 参数语义问题：
+  - 当前 MongoDB 中曾为 `VALUE=0`，但 `MIN=10`；
+  - C++ `ParamInfo::GetAdjustedValue()` 会把 0 裁成 10，导致 `SUR_SGA` 实际使用 10 mm 活动层；
+  - 已将 `run_andrews_storm.py` 和 `seims/preprocess/database/model_param_ini.csv` 中 `ACTIVE_DEPTH_MAX` 的默认 `MIN` 改为 0，避免 0 被错误裁剪；
+  - 当前数据库已显式设为 `ACTIVE_DEPTH_MAX=150, CHANGE=RC, IMPACT=1, MIN=0`，作为后续诊断基线。
+- 对照实验：
+  - 锁死 10 mm 情景：NSE `-0.2043`，PBIAS `-14.77%`，全期入渗仅 `2.32 mm`，`cap_zero_cells` 占湿像元步 `99.55%`，`DEP_FS` 新增地表水 `102.54 mm`，`IKW_CH` 接收 `QS` 约 `50.61 mm`；
+  - `ACTIVE_DEPTH_MAX=0` 且 `MIN=0`，即自动完整剖面约 `1500 mm`：NSE `-2.6720`，PBIAS `-71.01%`，入渗 `105.57 mm`，`EXCP=0`，`QS=0`，洪峰消失；
+  - 显式 `ACTIVE_DEPTH_MAX=150 mm`：NSE `-1.3095`，PBIAS `-42.23%`，入渗 `51.69 mm`，`DEP_FS` 新增地表水 `53.18 mm`，`IKW_CH` 接收 `QS` 约 `25.85 mm`。
+- 事件窗口结论：
+  - 10 mm 情景中，2 月 7 日与 2 月 9-10 日事件 `cap_zero_cells` 都接近或达到 100%，说明不是 `theta >= porosity`，也不是原始 Green-Ampt 潜在入渗为 0，而是活动层库容被 `m_accumuDepth` 消耗完；
+  - 150 mm 情景中，2 月 7 日仍有 `34.40 mm` 入渗，`DEP_FS` 新增地表水降到 `9.24 mm`；但 2 月 9-10 日 `cap_zero_cells` 占 `99.76%`，入渗仅 `0.214 mm`，`DEP_FS` 新增地表水仍有 `43.94 mm`；
+  - 说明后段异常峰主要来自 Green-Ampt 累计入渗记忆/活动层库容缺少降雨间歇期恢复，而不是土壤真实饱和。
+- IKW_OL 去向诊断：
+  - 10 mm 情景中，`IKW_OL` 二次下渗约 `0.0005 mm`，主要因为 `SUR_SGA` 输出的 `INFILCAPSURPLUS` 在事件期已经为 0；
+  - 150 mm 情景中，`IKW_OL` 二次下渗约 `0.165 mm`，2 月 7 日窗口 `IKW_CH` 实际 `QS` 约 `0.878 mm`，2 月 9-10 日窗口 `QS` 约 `16.52 mm`；
+  - 因此 IKW_OL 不是主要漏水点，真正控制二次下渗能否发生的是上游 `SUR_SGA` 给出的剩余入渗能力及其与坡面水的时空重合。
+- 当前结论：
+  - `SUR_SGA` 的关停原因是活动层入渗容量被累计入渗记忆耗尽；
+  - 单纯把活动深度放到完整土壤剖面会让所有事件水入渗，结果更差；
+  - 下一步应实现 GAR 式降雨间歇期恢复/湿润锋重分配，而不是继续单调增大 `ACTIVE_DEPTH_MAX`；
+  - 诊断详情已补充到 `data/AndrewsForest/andrews_forest_model/storm/water_balance_closure_diagnosis.md`。
