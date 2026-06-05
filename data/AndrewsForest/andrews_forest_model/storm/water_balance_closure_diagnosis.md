@@ -197,3 +197,44 @@ NEPR + initial DPST - INFIL - runoff_added - final DPST ~= 0
 3. 显式 `ACTIVE_DEPTH_MAX=150 mm` 是一个中间态，但后段事件仍因累计入渗记忆过强而再次关停入渗。
 4. 下一步不应继续单纯增大活动层深度，而应实现降雨间歇期的 Green-Ampt/GAR 式恢复或湿润锋重分配：让 `m_accumuDepth` 随无雨时段和当前土壤水状态逐步恢复，同时限制不能把事件水全部吞入完整剖面。
 5. `IKW_OL` 的二次下渗接口需要保留，但它当前受 `SUR_SGA` 输出的 `INFILCAPSURPLUS` 控制；若上游入渗容量关停，坡面运动波没有可用二次下渗能力。
+
+## GAR 式降雨间歇期恢复实现与首轮实验
+
+本次在 `SUR_SGA` 中加入了更接近 GAR 思路的降雨间歇期恢复：
+
+- 新增 `CalculateActiveStorage()`，统一计算活动层当前孔隙亏缺 `dynamicStorage` 与事件初始参考孔隙亏缺 `eventStorage`；
+- 新增 `RedistributeAccumulatedInfiltration()`，只在无净雨、无融雪、无旧洼地水且达到 `GA_ACC_RECOVERY_DELAY` 后恢复 `m_accumuDepth`；
+- 恢复量由两部分限制：`GA_ACC_RECOVERY_RATE` 的速率上限，以及 `GA_STATE_RECOVERY_FACTOR` 对可释放事件记忆的比例；
+- 恢复不能低于仍滞留在活动层内的事件水量，即 `retainedEventWater = eventStorage - dynamicStorage`，避免把活动层里尚未排走的水凭空清掉；
+- 原先在 `CalculateActiveInfilCap()` 中每步直接按状态削弱累计入渗记忆的逻辑被移除，避免降雨过程中也无条件恢复入渗能力。
+
+no-op 检查：`GA_ACC_RECOVERY_RATE=0`、`GA_ACC_RECOVERY_DELAY=0`、`GA_STATE_RECOVERY_FACTOR=0` 时，长窗口结果与显式 `ACTIVE_DEPTH_MAX=150 mm` 对照一致：
+
+| 情景 | NSE | PBIAS | 峰值误差 | 峰现误差 |
+| --- | ---: | ---: | ---: | ---: |
+| `ACTIVE_DEPTH_MAX=150` no-op | `-1.3095` | `-42.23%` | `25.78%` | `71.58 h` |
+
+诊断中 `accumu_recovery_mm_cell=0`、`redistribution_cells=0`，说明新增逻辑在参数为 0 时不会自行改变模拟。
+
+首轮保守恢复实验：`ACTIVE_DEPTH_MAX=150 mm`、`GA_ACC_RECOVERY_RATE=0.5 mm/h`、`GA_ACC_RECOVERY_DELAY=2 h`、`GA_STATE_RECOVERY_FACTOR=0.2`。
+
+| 情景 | NSE | PBIAS | 峰值误差 | 峰现误差 |
+| --- | ---: | ---: | ---: | ---: |
+| GAR `0.5 mm/h, 2 h, 0.2` | `-1.2878` | `-43.64%` | `17.70%` | `72.00 h` |
+
+关键水量变化：
+
+| 窗口 | `SUR_SGA` 入渗 | `m_accumuDepth` 恢复 | `DEP_FS` 新增地表水 | `IKW_CH` 接收 `QS` |
+| --- | ---: | ---: | ---: | ---: |
+| 全期 | `54.05 mm` | `2.73 mm` | `50.82 mm` | `24.62 mm` |
+| 2 月 7 日 | `25.03 mm` | `0.35 mm` | `7.30 mm` | `0.11 mm` |
+| 2 月 9-10 日 | `1.53 mm` | `0.31 mm` | `42.56 mm` | `15.57 mm` |
+
+结论：GAR 恢复方向有一定物理意义，也能把 2 月 9-10 日异常大峰从 `13.14 m3/s` 降到 `12.30 m3/s`，但它没有解决主峰错位问题；2 月 7 日模拟峰仍只有约 `1.65 m3/s`，远低于实测 `10.45 m3/s`。这说明 2 月 7 日问题更像是坡面产流进入河道太少或汇流时滞过强，而不是单纯的 Green-Ampt 入渗能力恢复不足。
+
+下一步应转向：
+
+1. 对比 wwj 分支在 `IKW_CH`、`CH_DW` 与 `IKW_OL` 中的河道/坡面连通处理，确认 2 月 7 日 `DEP_FS` 新增地表水为什么只有很少进入 `IKW_CH::QS`；
+2. 检查当前使用 `CH_DW` 还是 `IKW_CH` 的配置差异，避免在未启用的河道模块上继续调参；
+3. 若确认 2 月 7 日水量主要滞留在坡面，应先修正坡面到河道的连通或运动波出流分配，再谈 `MANNING/CH_N` 校正；
+4. 若确认河道接收了足够水但出口峰延迟，则转向河道汇流子步长、河道糙率和基流初始条件。

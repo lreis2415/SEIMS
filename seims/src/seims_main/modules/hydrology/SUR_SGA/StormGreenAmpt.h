@@ -80,6 +80,12 @@ private:
     /// Calculate remaining event-scale pore deficit within the active depth (mm)
     float CalculateActiveInfilCap(int cell, float activeDepth);
 
+    /// Calculate current and event-reference storage deficits inside the active depth (mm)
+    void CalculateActiveStorage(int cell, float activeDepth, float& dynamicStorage, float& eventStorage);
+
+    /// Redistribute Green-Ampt event memory during rainfall breaks (mm)
+    float RedistributeAccumulatedInfiltration(int cell, float activeDepth, float dt, bool canRedistribute);
+
     /// Calculate initial volumetric soil water content for a layer
     float CalculateInitialSoilWater(int cell, int layer);
 
@@ -96,7 +102,7 @@ private:
     float m_moistureReference; ///< 0: MOIST_IN relative to FC; 1: relative to porosity
     float m_accumuRecoveryRate; ///< dry-period recovery rate of Green-Ampt cumulative infiltration (mm/h)
     float m_accumuRecoveryDelay; ///< dry duration before recovery starts (h)
-    float m_stateRecoveryFactor; ///< fraction of state-based Green-Ampt memory recovery (0-1)
+    float m_stateRecoveryFactor; ///< fraction of dry-period state-based Green-Ampt memory recovery (0-1)
     int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
     int* m_nSoilLyrs;     ///< soil layers
     float** m_soilDepth;    ///< root depth

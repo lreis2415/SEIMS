@@ -1681,3 +1681,39 @@ python import_andrews_storm_params.py
   - 单纯把活动深度放到完整土壤剖面会让所有事件水入渗，结果更差；
   - 下一步应实现 GAR 式降雨间歇期恢复/湿润锋重分配，而不是继续单调增大 `ACTIVE_DEPTH_MAX`；
   - 诊断详情已补充到 `data/AndrewsForest/andrews_forest_model/storm/water_balance_closure_diagnosis.md`。
+
+## 2026-06-05 SUR_SGA 加入 GAR 式降雨间歇期恢复
+
+- 按用户要求在 `SUR_SGA` 中加入 GAR 式“降雨间歇期恢复/湿润锋重分布”逻辑，目标是让 Green-Ampt 累计入渗记忆 `m_accumuDepth` 在无雨间歇期逐步恢复，而不是在多雨峰事件中永久耗尽活动层库容。
+- 代码修改：
+  - 新增 `CalculateActiveStorage()`，统一计算活动层当前孔隙亏缺 `dynamicStorage` 与事件初始参考孔隙亏缺 `eventStorage`；
+  - 新增 `RedistributeAccumulatedInfiltration()`，只在无净雨、无融雪、无旧洼地水并达到 `GA_ACC_RECOVERY_DELAY` 后恢复 `m_accumuDepth`；
+  - 恢复量由 `GA_ACC_RECOVERY_RATE` 的速率上限和 `GA_STATE_RECOVERY_FACTOR` 的状态恢复比例共同限制；
+  - 恢复不能低于仍滞留在活动层内的事件水量 `retainedEventWater = eventStorage - dynamicStorage`，避免把尚未排走的活动层水凭空清掉；
+  - 移除原先在 `CalculateActiveInfilCap()` 中每步直接削弱累计入渗记忆的做法，避免降雨过程中也无条件恢复入渗能力。
+- 诊断输出扩展：
+  - `SUR_SGA_balance.csv` 新增 `accumu_recovery_mm_cell` 和 `redistribution_cells`，用于检查恢复量和触发范围。
+- 编译与同步：
+  - 执行 `cmake --build build --target SUR_SGA -j4` 通过；
+  - 将 `libSUR_SGA.dylib` 同步到 `build/lib/` 和 `build/install/lib/`；
+  - 仅出现既有 macOS SDK 常量转换警告。
+- no-op 检查：
+  - 参数：`GA_ACC_RECOVERY_RATE=0`、`GA_ACC_RECOVERY_DELAY=0`、`GA_STATE_RECOVERY_FACTOR=0`、`ACTIVE_DEPTH_MAX=150 mm`；
+  - 长窗口：`2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`；
+  - 结果与显式 150 mm 对照一致：NSE `-1.3095`，PBIAS `-42.23%`，峰值误差 `25.78%`，峰现偏晚 `71.58 h`；
+  - 诊断中 `accumu_recovery_mm_cell=0`、`redistribution_cells=0`，说明新增逻辑在恢复参数为 0 时不改变模拟。
+- 首轮保守 GAR 实验：
+  - 参数：`ACTIVE_DEPTH_MAX=150 mm`、`GA_ACC_RECOVERY_RATE=0.5 mm/h`、`GA_ACC_RECOVERY_DELAY=2 h`、`GA_STATE_RECOVERY_FACTOR=0.2`；
+  - 图件：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_long_gar_rate0p5_delay2_state0p2_20150204_20150216.png`；
+  - 结果：NSE `-1.2878`，PBIAS `-43.64%`，峰值误差 `17.70%`，峰现偏晚 `72.00 h`；
+  - 全期 `m_accumuDepth` 恢复约 `2.73 mm`，`SUR_SGA` 入渗从 150 mm 对照的约 `51.69 mm` 增至 `54.05 mm`，`DEP_FS` 新增地表水降至 `50.82 mm`，`IKW_CH` 接收 `QS` 降至 `24.62 mm`。
+- 事件窗口发现：
+  - 2 月 7 日窗口：`SUR_SGA` 入渗约 `25.03 mm`，`DEP_FS` 新增地表水约 `7.30 mm`，但 `IKW_CH` 接收 `QS` 仅 `0.11 mm`，模拟流量峰约 `1.65 m3/s`，明显低于实测 `10.45 m3/s`；
+  - 2 月 9-10 日窗口：`SUR_SGA` 入渗约 `1.53 mm`，`DEP_FS` 新增地表水约 `42.56 mm`，`IKW_CH` 接收 `QS` 约 `15.57 mm`，异常峰从 `13.14 m3/s` 降到 `12.30 m3/s`。
+- 结论：
+  - GAR 式恢复是物理上更合理的入渗记忆处理，能缓解 2 月 9-10 日入渗关死和异常大峰；
+  - 但它不能解决 2 月 7 日主峰过低/错位问题，说明下一步重点不应继续单调增强入渗恢复，而应检查坡面产流到河道 `QS` 的连通与河道汇流配置。
+- 下一步计划：
+  - 对比 wwj 分支的 `IKW_CH`、`CH_DW`、`IKW_OL` 相关修改，确认当前 `config.fig` 实际启用的河道模块；
+  - 检查 2 月 7 日 `DEP_FS` 新增地表水为什么只有很少进入 `IKW_CH::QS`，区分是坡面滞留、河道模块未启用对应修改，还是汇流时滞过强；
+  - 若水主要滞留在坡面，优先修正坡面到河道连通或运动波出流分配；若河道已接收足够水但出口偏晚，再调整河道子步长、`CH_N` 或基流初始条件。

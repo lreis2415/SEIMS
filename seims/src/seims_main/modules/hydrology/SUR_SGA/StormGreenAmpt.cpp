@@ -204,11 +204,13 @@ int StormGreenAmpt::Execute(void) {
     double diagActiveDepth = 0.0;
     double diagInfilCap = 0.0;
     double diagAccumuDepth = 0.0;
+    double diagAccumuRecovery = 0.0;
     double diagSoilDeficit = 0.0;
     double diagTheta = 0.0;
     double diagPorosity = 0.0;
     double diagClosure = 0.0;
     int diagWetCells = 0;
+    int diagRedistributionCells = 0;
     int diagSaturatedCells = 0;
     int diagCapZeroCells = 0;
     int diagPotentialZeroCells = 0;
@@ -252,28 +254,21 @@ int StormGreenAmpt::Execute(void) {
             hWater = 0.f;
         }
 
-        //hWater += m_surfRf[i];
-
         float dt = m_dt;
         if (!std::isfinite(dt) || dt <= 0.f) {
             dt = 1.f;
         }
         const float dryThreshold = 1.e-6f;
-        const bool isDry = netPcp <= dryThreshold &&
-                           snowMelt <= dryThreshold &&
-                           depWater <= dryThreshold &&
-                           surfWater <= dryThreshold;
-        if (isDry) {
+        const bool canRedistribute = netPcp <= dryThreshold &&
+                                     snowMelt <= dryThreshold &&
+                                     depWater <= dryThreshold;
+        if (canRedistribute) {
             m_dryDuration[i] += dt;
         } else {
             m_dryDuration[i] = 0.f;
         }
-        const float recoveryDelay = Max(0.f, m_accumuRecoveryDelay) * 3600.f;
-        if (isDry && m_dryDuration[i] >= recoveryDelay &&
-            m_accumuRecoveryRate > 0.f && m_accumuDepth[i] > 0.f) {
-            const float recovery = m_accumuRecoveryRate * dt / 3600.f;
-            m_accumuDepth[i] = Max(0.f, m_accumuDepth[i] - recovery);
-        }
+        const float activeDepth = CalculateWettingFrontDepth(i);
+        const float accumuRecovery = RedistributeAccumulatedInfiltration(i, activeDepth, dt, canRedistribute);
 
         float por = std::isfinite(m_soilPor[i][j]) ? Max(m_soilPor[i][j], 0.f) : 0.f;
         float theta = std::isfinite(m_soilWtrSto[i][j]) ? m_soilWtrSto[i][j] : 0.f;
@@ -307,7 +302,6 @@ int StormGreenAmpt::Execute(void) {
             infilRate = 0.f;
         }
 
-        const float activeDepth = CalculateWettingFrontDepth(i);
         float infilCap = CalculateActiveInfilCap(i, activeDepth);
         if (!std::isfinite(infilCap) || infilCap < 0.f) {
             infilCap = 0.f;
@@ -387,12 +381,16 @@ int StormGreenAmpt::Execute(void) {
             diagActiveDepth += activeDepth;
             diagInfilCap += infilCap;
             diagAccumuDepth += accumuDepthMm;
+            diagAccumuRecovery += accumuRecovery;
             diagSoilDeficit += soilDeficit;
             diagTheta += theta;
             diagPorosity += por;
             diagClosure += hWater - m_infil[i] - m_exsPcp[i];
             if (hasWater || m_infil[i] > 1.e-6f || m_exsPcp[i] > 1.e-6f) {
                 diagWetCells++;
+            }
+            if (accumuRecovery > 1.e-6f) {
+                diagRedistributionCells++;
             }
             if (hasWater) {
                 if (theta >= por) {
@@ -467,9 +465,9 @@ int StormGreenAmpt::Execute(void) {
                    << "surf_old_mm_cell,snowmelt_mm_cell,hwater_mm_cell,"
                    << "raw_potential_infil_mm_cell,potential_infil_mm_cell,"
                    << "active_depth_mm_cell,infil_cap_mm_cell,accumu_depth_mm_cell,"
-                   << "soil_deficit_cell,theta_cell,porosity_cell,"
+                   << "accumu_recovery_mm_cell,soil_deficit_cell,theta_cell,porosity_cell,"
                    << "infil_mm_cell,excp_mm_cell,infil_capacity_surplus_mm_cell,"
-                   << "saturated_cells,cap_zero_cells,potential_zero_cells,"
+                   << "redistribution_cells,saturated_cells,cap_zero_cells,potential_zero_cells,"
                    << "factor_zero_cells,other_zero_cells,positive_infil_cells,"
                    << "closure_mm_cell\n";
             }
@@ -480,9 +478,10 @@ int StormGreenAmpt::Execute(void) {
                << diagHWater << "," << diagRawPotentialInfil << ","
                << diagPotentialInfil << "," << diagActiveDepth << ","
                << diagInfilCap << "," << diagAccumuDepth << ","
-               << diagSoilDeficit << "," << diagTheta << ","
+               << diagAccumuRecovery << "," << diagSoilDeficit << "," << diagTheta << ","
                << diagPorosity << "," << diagInfil << "," << diagExcp << ","
-               << diagInfilSurplus << "," << diagSaturatedCells << ","
+               << diagInfilSurplus << "," << diagRedistributionCells << ","
+               << diagSaturatedCells << ","
                << diagCapZeroCells << "," << diagPotentialZeroCells << ","
                << diagFactorZeroCells << "," << diagOtherZeroCells << ","
                << diagPositiveInfilCells << "," << diagClosure << "\n";
@@ -557,6 +556,21 @@ float StormGreenAmpt::CalculateActiveInfilCap(const int cell, const float active
     }
     float dynamicStorage = 0.f;
     float eventStorage = 0.f;
+    CalculateActiveStorage(cell, activeDepth, dynamicStorage, eventStorage);
+
+    // Cumulative Green-Ampt memory is reduced only by dry-period redistribution.
+    const float effectiveAccumuDepth = std::isfinite(m_accumuDepth[cell]) ? Max(m_accumuDepth[cell], 0.f) : 0.f;
+    const float remainingEventStorage = Max(eventStorage - effectiveAccumuDepth, 0.f);
+    return Min(Max(dynamicStorage, 0.f), remainingEventStorage);
+}
+
+void StormGreenAmpt::CalculateActiveStorage(const int cell, const float activeDepth,
+                                            float& dynamicStorage, float& eventStorage) {
+    dynamicStorage = 0.f;
+    eventStorage = 0.f;
+    if (!std::isfinite(activeDepth) || activeDepth <= 0.f || m_nSoilLyrs[cell] <= 0) {
+        return;
+    }
     float upperDepth = 0.f;
     for (int k = 0; k < CVT_INT(m_nSoilLyrs[cell]); k++) {
         const float lowerDepth = m_soilDepth[cell][k];
@@ -583,17 +597,51 @@ float StormGreenAmpt::CalculateActiveInfilCap(const int cell, const float active
         }
         upperDepth = lowerDepth;
     }
-    // Blend event memory with the current active-layer state without overwriting the state.
+}
+
+float StormGreenAmpt::RedistributeAccumulatedInfiltration(const int cell, const float activeDepth,
+                                                          const float dt, const bool canRedistribute) {
+    if (!canRedistribute || !std::isfinite(dt) || dt <= 0.f ||
+        !std::isfinite(activeDepth) || activeDepth <= 0.f ||
+        m_nSoilLyrs[cell] <= 0 || m_accumuDepth[cell] <= 0.f) {
+        return 0.f;
+    }
+
+    const float recoveryDelay = Max(0.f, m_accumuRecoveryDelay) * 3600.f;
+    if (m_dryDuration[cell] < recoveryDelay) {
+        return 0.f;
+    }
+
+    float dynamicStorage = 0.f;
+    float eventStorage = 0.f;
+    CalculateActiveStorage(cell, activeDepth, dynamicStorage, eventStorage);
+
+    // Water still stored above the event-reference state must keep limiting Green-Ampt capacity.
     const float retainedEventWater = Max(eventStorage - dynamicStorage, 0.f);
+    const float memoryAboveRetained = Max(m_accumuDepth[cell] - retainedEventWater, 0.f);
+    if (memoryAboveRetained <= 0.f) {
+        return 0.f;
+    }
+
     const float stateRecoveryFactor = std::isfinite(m_stateRecoveryFactor) ?
         Max(0.f, Min(m_stateRecoveryFactor, 1.f)) : 0.f;
-    float effectiveAccumuDepth = std::isfinite(m_accumuDepth[cell]) ? Max(m_accumuDepth[cell], 0.f) : 0.f;
-    if (stateRecoveryFactor > 0.f && effectiveAccumuDepth > retainedEventWater) {
-        const float excessMemory = effectiveAccumuDepth - retainedEventWater;
-        effectiveAccumuDepth -= stateRecoveryFactor * excessMemory;
+    const float stateRecovery = stateRecoveryFactor * memoryAboveRetained;
+    const float rateRecovery = m_accumuRecoveryRate > 0.f ? m_accumuRecoveryRate * dt / 3600.f : 0.f;
+
+    float recovery = 0.f;
+    if (stateRecovery > 0.f && rateRecovery > 0.f) {
+        recovery = Min(stateRecovery, rateRecovery);
+    } else {
+        recovery = Max(stateRecovery, rateRecovery);
     }
-    const float remainingEventStorage = Max(eventStorage - effectiveAccumuDepth, 0.f);
-    return Min(Max(dynamicStorage, 0.f), remainingEventStorage);
+    recovery = Min(memoryAboveRetained, recovery);
+    if (!std::isfinite(recovery) || recovery <= 0.f) {
+        return 0.f;
+    }
+
+    const float oldAccumu = m_accumuDepth[cell];
+    m_accumuDepth[cell] = Max(retainedEventWater, m_accumuDepth[cell] - recovery);
+    return Max(oldAccumu - m_accumuDepth[cell], 0.f);
 }
 
 void StormGreenAmpt::AddInfiltrationToSoil(const int cell, const float infiltration, const float activeDepth) {
