@@ -1,6 +1,9 @@
 #include "DepressionFS.h"
 #include "text.h"
 
+#include <cstdlib>
+#include <fstream>
+
 DepressionFS::DepressionFS() :
     m_nCells(-1), m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr), m_ei(nullptr),
     m_ed(nullptr), m_sd(nullptr), m_sr(nullptr), m_netPcp(nullptr),
@@ -92,6 +95,19 @@ int DepressionFS::Execute() {
     step++;
     // ------------------
 
+    const char* diagEnv = std::getenv("SEIMS_WB_DIAG");
+    const bool writeDiag = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
+    double diagExcpIn = 0.0;
+    double diagDepOld = 0.0;
+    double diagDepNew = 0.0;
+    double diagDepCap = 0.0;
+    double diagRunoffAdded = 0.0;
+    double diagSrOld = 0.0;
+    double diagSrNew = 0.0;
+    double diagStorageCapSurplus = 0.0;
+    double diagClosure = 0.0;
+    int diagWetCells = 0;
+
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
         //debug
@@ -101,6 +117,8 @@ int DepressionFS::Execute() {
         }
 
         float inputExsPcp = m_exsPcp[i];
+        const float oldSd = m_sd[i];
+        const float oldSr = m_sr[i];
         // debug end
 
         // Temporary variable to store current runoff generation (Flux)
@@ -154,6 +172,21 @@ int DepressionFS::Execute() {
             if (m_sd[i] < 0.f) m_sd[i] = 0.f;
         }
 
+        if (writeDiag) {
+            diagExcpIn += inputExsPcp;
+            diagDepOld += oldSd;
+            diagDepNew += m_sd[i];
+            diagDepCap += m_depCap[i];
+            diagRunoffAdded += currentRunoff;
+            diagSrOld += oldSr;
+            diagSrNew += m_sr[i];
+            diagStorageCapSurplus += m_storageCapSurplus[i];
+            diagClosure += inputExsPcp - currentRunoff - m_sd[i];
+            if (inputExsPcp > 1.e-6f || currentRunoff > 1.e-6f || m_sd[i] > 1.e-6f) {
+                diagWetCells++;
+            }
+        }
+
         //debug
         if (isDebugTarget) {
             std::cout << "[TRACE_CSV],Step," << step
@@ -166,6 +199,28 @@ int DepressionFS::Execute() {
                 << std::endl;
         }
         // ------------------
+    }
+    if (writeDiag) {
+        const string diagPath = m_outpath + SEP + "DEP_FS_balance.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,ncells,wet_cells,excp_in_mm_cell,dep_old_mm_cell,"
+                   << "dep_new_mm_cell,dep_cap_mm_cell,runoff_added_mm_cell,"
+                   << "sr_old_mm_cell,sr_new_mm_cell,storage_cap_surplus_mm_cell,"
+                   << "closure_mm_cell\n";
+            }
+            fs << ConvertToString2(m_date) << ","
+               << m_nCells << "," << diagWetCells << ","
+               << diagExcpIn << "," << diagDepOld << ","
+               << diagDepNew << "," << diagDepCap << ","
+               << diagRunoffAdded << "," << diagSrOld << ","
+               << diagSrNew << "," << diagStorageCapSurplus << ","
+               << diagClosure << "\n";
+        }
     }
     return 0;
 }

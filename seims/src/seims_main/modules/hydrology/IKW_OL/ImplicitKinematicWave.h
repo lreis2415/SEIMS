@@ -145,5 +145,14 @@ private:
     float **m_sRadian;
     /// elevation of cells
     FLTPT* m_dem;
+
+    bool m_diagEnabled;
+    double m_diagInitialSurfaceVol;
+    double m_diagUpstreamInflowVol;
+    double m_diagOutflowVol;
+    double m_diagReinfilVol;
+    double m_diagFinalSurfaceVol;
+    double m_diagClosureVol;
+    int m_diagCellCount;
 };
 #endif /* SEIMS_IKW_OL_H */

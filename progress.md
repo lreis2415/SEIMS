@@ -1599,3 +1599,52 @@ python import_andrews_storm_params.py
   - 该 `IKW_IF` 修改方向符合物理解释，并且确实让壤中流更容易连通到河道，可作为后续工作的机制基础保留；
   - 但它仍没有解决主问题：事件期 `QS` 仍约 `86-87%`，峰值仍由地表快流主导；
   - 下一步应检查 `SUR_SGA -> DEP_FS -> IKW_OL` 的地表快流水量链路，尤其是森林坡面上 `EXCP` 是否应有一部分作为近地表滞蓄/侧向慢释，而不是全部立即进入 `QS` 快流；这一步需要避开正在被另一 agent 修改的 `DEP_FS`，或先审查该改动后再继续。
+
+## 2026-06-05 AndrewsForest SUR_SGA/DEP_FS/IKW_OL 水量闭合诊断
+
+- 针对用户提出的原始设计逻辑，重新核对 `SUR_SGA -> DEP_FS -> IKW_OL` 三段状态变量语义：
+  - `DPST/m_sd` 是静态洼地蓄水，当前已经在 `SUR_SGA` 中作为旧水量加入 `hWater = NEPR + DPST_old + snowmelt`；
+  - 因此 `DEP_FS` 中使用 `totalWater = EXCP` 是合理的，不能简单改成 `m_sd + m_exsPcp`，否则旧洼地水会重复计入；
+  - `SURU/m_sr` 是坡面运动波水深，不适合直接送回 `DEP_FS` 再填洼；物理上它应有继续下渗机会，但更合理的位置是在 `IKW_OL` 中按剩余入渗能力和坡面滞留体积处理。
+- 新增环境变量控制的诊断输出，默认不开启、不改变模拟结果：
+  - `SUR_SGA_balance.csv`：记录逐步 `hWater = INFIL + EXCP` 闭合，并记录旧 `DPST`、旧 `SURU`、潜在入渗和剩余入渗能力；
+  - `DEP_FS_balance.csv`：记录逐步 `EXCP = DPST_new + runoff_added` 闭合；
+  - `IKW_OL_balance.csv`：记录逐步坡面运动波体积闭合，即初始地表水体积、上游入流、坡面出流、二次下渗和末态地表水体积。
+- 编译与同步：
+  - 执行 `cmake --build build --target SUR_SGA DEP_FS IKW_OL -j4` 通过；
+  - 将新编译的 `libSUR_SGA.dylib`、`libDEP_FS.dylib`、`libIKW_OL.dylib` 从 `build/seims/bin/seims_project/` 同步到 `build/lib/` 与 `build/install/lib/`；
+  - 编译仅出现既有 macOS SDK 常量转换警告。
+- 长窗口诊断运行：
+  - 时间：`2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`；
+  - 命令通过 `SEIMS_WB_DIAG=1 SEIMS_IKW_CH_DIAG=1 SEIMS_IKW_IF_DIAG=1 python run_andrews_storm.py ...` 执行；
+  - 输出图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_long_water_balance_diag.png`；
+  - 诊断文档：`data/AndrewsForest/andrews_forest_model/storm/water_balance_closure_diagnosis.md`。
+- 运行指标与上一轮一致：
+  - NSE `-0.2043`；
+  - PBIAS `-14.77%`；
+  - 峰值误差 `34.04%`，模拟峰值 `14.005 m3/s`，实测峰值 `10.449 m3/s`；
+  - 峰现偏晚 `7.92 h`。
+- 闭合结果：
+  - `SUR_SGA` 最大闭合误差为 `0 mm-cell`；
+  - `DEP_FS` 最大闭合误差为 `7.94e-06 mm-cell`，累计绝对误差 `6.39e-04 mm-cell`，仅为浮点量级；
+  - `IKW_OL` 最大闭合误差约 `0.970 m3`，累计绝对误差约 `94.22 m3`，相对于坡面内部通量可忽略；
+  - 说明当前问题不是显式漏水/造水导致，而是水量路径分配导致。
+- 关键水量结果：
+  - 全期累计净雨 `105.43 mm`；
+  - `SUR_SGA` 入渗仅 `2.32 mm`；
+  - `DEP_FS` 新增地表水 `runoff_added` 为 `102.54 mm`；
+  - `IKW_OL` 二次下渗仅约 `0.0005 mm`；
+  - 末态 `DPST` 约 `0.704 mm`，末态 `SURU` 约 `1.316 mm`；
+  - 河道侧向来源中 `QS=50.61 mm`、`QI=0.139 mm`、`QG=17.66 mm`，出口模拟总水量约 `69.99 mm`。
+- 事件窗口诊断：
+  - 2 月 7 日事件净雨 `44.32 mm`，`SUR_SGA` 入渗 `0 mm`，`DEP_FS` 新增地表水 `44.32 mm`，`IKW_OL` 二次下渗 `0 mm`，河道侧向来源约 `QS/QI/QG = 84.17%/0.14%/15.21%`；
+  - 2 月 9-10 日事件净雨 `44.17 mm`，`SUR_SGA` 入渗 `0 mm`，`DEP_FS` 新增地表水 `44.17 mm`，`IKW_OL` 二次下渗 `0 mm`，河道侧向来源约 `QS/QI/QG = 86.32%/0.12%/12.99%`。
+- 结论：
+  - 当前 `SUR_SGA -> DEP_FS` 闭合逻辑成立；
+  - 残留 `SURU` 物理上应有继续下渗机会，当前代码在 `IKW_OL` 中有二次下渗接口，但实际几乎不起作用；
+  - 峰值偏高和 `QS` 主导不是由模块水量不闭合造成，而是事件水几乎全部从 `DEP_FS` 进入地表快流，缺少有效的近地表滞蓄/壤中流转化。
+- 下一步建议：
+  - 先不要把 `m_surfRf` 直接加回 `SUR_SGA::hWater`，避免把运动水重新送入填洼逻辑；
+  - 扩展 `IKW_OL` 诊断，明确 `DEP_FS` 新增 `SURU` 中有多少真正进入河道 `QS`、多少仍在坡面、多少发生二次下渗；
+  - 检查 `SUR_SGA` 事件期入渗为 0 的直接原因，是 `theta >= porosity`、活动层入渗容量为 0，还是 Green-Ampt 累计入渗记忆过强；
+  - 若确认 `SURU` 长时间停留但二次下渗关闭，应优先改造 `IKW_OL` 的二次下渗/近地表滞蓄机制，再调 `MANNING/CH_N`。

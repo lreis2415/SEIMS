@@ -3,6 +3,8 @@
 #include "text.h"
 
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
 
 StormGreenAmpt::StormGreenAmpt() :
     m_dt(-1), m_nCells(-1), m_tSnow(0.0f), m_t0(1.0f), m_infilFactor(1.0f),
@@ -187,6 +189,20 @@ int StormGreenAmpt::Execute(void) {
         }
     }
 
+    const char* diagEnv = std::getenv("SEIMS_WB_DIAG");
+    const bool writeDiag = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
+    double diagNetPcp = 0.0;
+    double diagDepOld = 0.0;
+    double diagSurfOld = 0.0;
+    double diagSnowMelt = 0.0;
+    double diagHWater = 0.0;
+    double diagInfil = 0.0;
+    double diagExcp = 0.0;
+    double diagInfilSurplus = 0.0;
+    double diagPotentialInfil = 0.0;
+    double diagClosure = 0.0;
+    int diagWetCells = 0;
+
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // only calculate the first soillayer
@@ -341,6 +357,22 @@ int StormGreenAmpt::Execute(void) {
             m_exsPcp[i] = 0.f;
         }
 
+        if (writeDiag) {
+            diagNetPcp += netPcp;
+            diagDepOld += depWater;
+            diagSurfOld += surfWater;
+            diagSnowMelt += snowMelt;
+            diagHWater += hWater;
+            diagInfil += m_infil[i];
+            diagExcp += m_exsPcp[i];
+            diagInfilSurplus += m_infilCapacitySurplus[i];
+            diagPotentialInfil += potentialInfil;
+            diagClosure += hWater - m_infil[i] - m_exsPcp[i];
+            if (hWater > 1.e-6f || m_infil[i] > 1.e-6f || m_exsPcp[i] > 1.e-6f) {
+                diagWetCells++;
+            }
+        }
+
         // debug
         //int target_cell = 2988;
         //if (i == target_cell && (hWater > 0 || m_infil[i] > 0)) {
@@ -385,6 +417,28 @@ int StormGreenAmpt::Execute(void) {
 # endif
     }
     infiltFileFptr.close();
+    if (writeDiag) {
+        const string diagPath = m_outpath + SEP + "SUR_SGA_balance.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,ncells,wet_cells,net_pcp_mm_cell,dep_old_mm_cell,"
+                   << "surf_old_mm_cell,snowmelt_mm_cell,hwater_mm_cell,"
+                   << "potential_infil_mm_cell,infil_mm_cell,excp_mm_cell,"
+                   << "infil_capacity_surplus_mm_cell,closure_mm_cell\n";
+            }
+            fs << ConvertToString2(m_date) << ","
+               << m_nCells << "," << diagWetCells << ","
+               << diagNetPcp << "," << diagDepOld << ","
+               << diagSurfOld << "," << diagSnowMelt << ","
+               << diagHWater << "," << diagPotentialInfil << ","
+               << diagInfil << "," << diagExcp << ","
+               << diagInfilSurplus << "," << diagClosure << "\n";
+        }
+    }
     return 0;
 }
 

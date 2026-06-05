@@ -2,6 +2,9 @@
 #include "ImplicitKinematicWave.h"
 #include "text.h"
 
+#include <cstdlib>
+#include <fstream>
+
 // using namespace std;  // Avoid this statement! by lj.
 
 ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellWidth(-1.0f),
@@ -13,7 +16,11 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
-                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL), m_chWidth(NULL) {
+                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL), m_chWidth(NULL),
+                                                           m_diagEnabled(false), m_diagInitialSurfaceVol(0.0),
+                                                           m_diagUpstreamInflowVol(0.0), m_diagOutflowVol(0.0),
+                                                           m_diagReinfilVol(0.0), m_diagFinalSurfaceVol(0.0),
+                                                           m_diagClosureVol(0.0), m_diagCellCount(0) {
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
@@ -272,6 +279,8 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     const float beta = 0.6f;
     float beta1 = 1.0f / beta;
     float h = m_sr[id] / 1000.f;
+    const float cellAreaDiag = m_CellWidth * m_CellWidth;
+    const double initialSurfaceVolDiag = h * cellAreaDiag;
 
     //debug
     const int DEBUG_ID = 2988; 
@@ -385,6 +394,17 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         m_qs[id][0] = qUp;
         m_sr[id] = 0.f;
 
+        if (m_diagEnabled) {
+            const double qUpVol = qUp * m_dtStorm;
+            const double qOutVol = qUp * m_dtStorm;
+            m_diagInitialSurfaceVol += initialSurfaceVolDiag;
+            m_diagUpstreamInflowVol += qUpVol;
+            m_diagOutflowVol += qOutVol;
+            m_diagFinalSurfaceVol += 0.0;
+            m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol;
+            m_diagCellCount++;
+        }
+
         //debug
         std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
                                      1189, 1188, 1187, 1186, 1185,
@@ -415,6 +435,16 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             m_qs[id][j] = 0.f;
         }
         if (m_reInfil != NULL) m_reInfil[id] = 0.f;
+
+        if (m_diagEnabled) {
+            const double qUpVol = qUp * m_dtStorm;
+            m_diagInitialSurfaceVol += initialSurfaceVolDiag;
+            m_diagUpstreamInflowVol += qUpVol;
+            m_diagOutflowVol += 0.0;
+            m_diagFinalSurfaceVol += 0.0;
+            m_diagClosureVol += initialSurfaceVolDiag + qUpVol;
+            m_diagCellCount++;
+        }
 
         //debug
         std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
@@ -601,6 +631,20 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     m_reInfil[id] = reInfil;
 
+    if (m_diagEnabled) {
+        const double qUpVol = qUp * m_dtStorm;
+        const double qOutVol = qNewTotal * m_dtStorm;
+        const double finalSurfaceVol = totalLeftoverVolume;
+        m_diagInitialSurfaceVol += initialSurfaceVolDiag;
+        m_diagUpstreamInflowVol += qUpVol;
+        m_diagOutflowVol += qOutVol;
+        m_diagReinfilVol += reInfilVol;
+        m_diagFinalSurfaceVol += finalSurfaceVol;
+        m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol -
+                             reInfilVol - finalSurfaceVol;
+        m_diagCellCount++;
+    }
+
    
     // compute to channel flow
     // In this modification, the hillslope routing module does not consider channel flow. (by Fan xinyi)
@@ -637,6 +681,17 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 int ImplicitKinematicWave_OL::Execute() {
     InitialOutputs();
     //std::cout << "    m_date " << m_date << std::endl;
+    const char* diagEnv = std::getenv("SEIMS_WB_DIAG");
+    m_diagEnabled = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
+    if (m_diagEnabled) {
+        m_diagInitialSurfaceVol = 0.0;
+        m_diagUpstreamInflowVol = 0.0;
+        m_diagOutflowVol = 0.0;
+        m_diagReinfilVol = 0.0;
+        m_diagFinalSurfaceVol = 0.0;
+        m_diagClosureVol = 0.0;
+        m_diagCellCount = 0;
+    }
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -646,6 +701,29 @@ int ImplicitKinematicWave_OL::Execute() {
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];
             OverlandFlow(id);
+        }
+    }
+
+    if (m_diagEnabled) {
+        const string diagPath = m_outpath + SEP + "IKW_OL_balance.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,ncells,initial_surface_m3,upstream_inflow_m3,"
+                   << "outflow_m3,reinfiltration_m3,final_surface_m3,"
+                   << "closure_m3\n";
+            }
+            fs << ConvertToString2(m_date) << ","
+               << m_diagCellCount << ","
+               << m_diagInitialSurfaceVol << ","
+               << m_diagUpstreamInflowVol << ","
+               << m_diagOutflowVol << ","
+               << m_diagReinfilVol << ","
+               << m_diagFinalSurfaceVol << ","
+               << m_diagClosureVol << "\n";
         }
     }
 
