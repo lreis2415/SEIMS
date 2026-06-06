@@ -159,6 +159,18 @@ private:
     double m_diagFinalSurfaceVol;
     double m_diagFinalSurfaceWithUnusedCapacityVol;
     double m_diagClosureVol;
+    double m_diagStreamInitialSurfaceVol;
+    double m_diagHillslopeInitialSurfaceVol;
+    double m_diagStreamUpstreamInflowVol;
+    double m_diagHillslopeUpstreamInflowVol;
+    double m_diagStreamOutflowVol;
+    double m_diagHillslopeOutflowVol;
+    double m_diagStreamFinalSurfaceVol;
+    double m_diagHillslopeFinalSurfaceVol;
     int m_diagCellCount;
+    int m_diagStreamCellCount;
+    int m_diagHillslopeCellCount;
+    int m_diagStreamWaterCells;
+    int m_diagHillslopeWaterCells;
 };
 #endif /* SEIMS_IKW_OL_H */

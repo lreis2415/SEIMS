@@ -26,7 +26,20 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_diagWaterBypassedCapacityVol(0.0),
                                                            m_diagFinalSurfaceVol(0.0),
                                                            m_diagFinalSurfaceWithUnusedCapacityVol(0.0),
-                                                           m_diagClosureVol(0.0), m_diagCellCount(0) {
+                                                           m_diagClosureVol(0.0),
+                                                           m_diagStreamInitialSurfaceVol(0.0),
+                                                           m_diagHillslopeInitialSurfaceVol(0.0),
+                                                           m_diagStreamUpstreamInflowVol(0.0),
+                                                           m_diagHillslopeUpstreamInflowVol(0.0),
+                                                           m_diagStreamOutflowVol(0.0),
+                                                           m_diagHillslopeOutflowVol(0.0),
+                                                           m_diagStreamFinalSurfaceVol(0.0),
+                                                           m_diagHillslopeFinalSurfaceVol(0.0),
+                                                           m_diagCellCount(0),
+                                                           m_diagStreamCellCount(0),
+                                                           m_diagHillslopeCellCount(0),
+                                                           m_diagStreamWaterCells(0),
+                                                           m_diagHillslopeWaterCells(0) {
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
@@ -291,6 +304,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     if (m_infilCapacitySurplus != NULL && m_infilCapacitySurplus[id] > 0) {
         potentialInfilVol = m_infilCapacitySurplus[id] / 1000.f * cellAreaDiag;
     }
+    const bool isStreamCell = m_streamLink != NULL && m_streamLink[id] > 0;
 
     //debug
     const int DEBUG_ID = 2988; 
@@ -423,6 +437,23 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             m_diagFinalSurfaceVol += 0.0;
             m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol;
             m_diagCellCount++;
+            if (isStreamCell) {
+                m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
+                m_diagStreamUpstreamInflowVol += qUpVol;
+                m_diagStreamOutflowVol += qOutVol;
+                m_diagStreamCellCount++;
+                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                    m_diagStreamWaterCells++;
+                }
+            } else {
+                m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
+                m_diagHillslopeUpstreamInflowVol += qUpVol;
+                m_diagHillslopeOutflowVol += qOutVol;
+                m_diagHillslopeCellCount++;
+                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                    m_diagHillslopeWaterCells++;
+                }
+            }
         }
 
         //debug
@@ -470,6 +501,21 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             m_diagFinalSurfaceVol += 0.0;
             m_diagClosureVol += initialSurfaceVolDiag + qUpVol;
             m_diagCellCount++;
+            if (isStreamCell) {
+                m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
+                m_diagStreamUpstreamInflowVol += qUpVol;
+                m_diagStreamCellCount++;
+                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                    m_diagStreamWaterCells++;
+                }
+            } else {
+                m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
+                m_diagHillslopeUpstreamInflowVol += qUpVol;
+                m_diagHillslopeCellCount++;
+                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
+                    m_diagHillslopeWaterCells++;
+                }
+            }
         }
 
         //debug
@@ -677,6 +723,25 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol -
                              reInfilVol - finalSurfaceVol;
         m_diagCellCount++;
+        if (isStreamCell) {
+            m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
+            m_diagStreamUpstreamInflowVol += qUpVol;
+            m_diagStreamOutflowVol += qOutVol;
+            m_diagStreamFinalSurfaceVol += finalSurfaceVol;
+            m_diagStreamCellCount++;
+            if (availableWater > 1.e-12) {
+                m_diagStreamWaterCells++;
+            }
+        } else {
+            m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
+            m_diagHillslopeUpstreamInflowVol += qUpVol;
+            m_diagHillslopeOutflowVol += qOutVol;
+            m_diagHillslopeFinalSurfaceVol += finalSurfaceVol;
+            m_diagHillslopeCellCount++;
+            if (availableWater > 1.e-12) {
+                m_diagHillslopeWaterCells++;
+            }
+        }
     }
 
    
@@ -730,7 +795,19 @@ int ImplicitKinematicWave_OL::Execute() {
         m_diagFinalSurfaceVol = 0.0;
         m_diagFinalSurfaceWithUnusedCapacityVol = 0.0;
         m_diagClosureVol = 0.0;
+        m_diagStreamInitialSurfaceVol = 0.0;
+        m_diagHillslopeInitialSurfaceVol = 0.0;
+        m_diagStreamUpstreamInflowVol = 0.0;
+        m_diagHillslopeUpstreamInflowVol = 0.0;
+        m_diagStreamOutflowVol = 0.0;
+        m_diagHillslopeOutflowVol = 0.0;
+        m_diagStreamFinalSurfaceVol = 0.0;
+        m_diagHillslopeFinalSurfaceVol = 0.0;
         m_diagCellCount = 0;
+        m_diagStreamCellCount = 0;
+        m_diagHillslopeCellCount = 0;
+        m_diagStreamWaterCells = 0;
+        m_diagHillslopeWaterCells = 0;
     }
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -757,6 +834,12 @@ int ImplicitKinematicWave_OL::Execute() {
                    << "potential_reinfiltration_m3,unused_reinfil_capacity_m3,"
                    << "unused_capacity_with_water_m3,water_bypassed_capacity_m3,"
                    << "final_surface_m3,final_surface_with_unused_capacity_m3,"
+                   << "stream_initial_surface_m3,hillslope_initial_surface_m3,"
+                   << "stream_upstream_inflow_m3,hillslope_upstream_inflow_m3,"
+                   << "stream_outflow_m3,hillslope_outflow_m3,"
+                   << "stream_final_surface_m3,hillslope_final_surface_m3,"
+                   << "stream_cell_count,hillslope_cell_count,"
+                   << "stream_water_cells,hillslope_water_cells,"
                    << "closure_m3\n";
             }
             fs << ConvertToString2(m_date) << ","
@@ -772,6 +855,18 @@ int ImplicitKinematicWave_OL::Execute() {
                << m_diagWaterBypassedCapacityVol << ","
                << m_diagFinalSurfaceVol << ","
                << m_diagFinalSurfaceWithUnusedCapacityVol << ","
+               << m_diagStreamInitialSurfaceVol << ","
+               << m_diagHillslopeInitialSurfaceVol << ","
+               << m_diagStreamUpstreamInflowVol << ","
+               << m_diagHillslopeUpstreamInflowVol << ","
+               << m_diagStreamOutflowVol << ","
+               << m_diagHillslopeOutflowVol << ","
+               << m_diagStreamFinalSurfaceVol << ","
+               << m_diagHillslopeFinalSurfaceVol << ","
+               << m_diagStreamCellCount << ","
+               << m_diagHillslopeCellCount << ","
+               << m_diagStreamWaterCells << ","
+               << m_diagHillslopeWaterCells << ","
                << m_diagClosureVol << "\n";
         }
     }

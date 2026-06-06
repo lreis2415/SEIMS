@@ -1717,3 +1717,41 @@ python import_andrews_storm_params.py
   - 对比 wwj 分支的 `IKW_CH`、`CH_DW`、`IKW_OL` 相关修改，确认当前 `config.fig` 实际启用的河道模块；
   - 检查 2 月 7 日 `DEP_FS` 新增地表水为什么只有很少进入 `IKW_CH::QS`，区分是坡面滞留、河道模块未启用对应修改，还是汇流时滞过强；
   - 若水主要滞留在坡面，优先修正坡面到河道连通或运动波出流分配；若河道已接收足够水但出口偏晚，再调整河道子步长、`CH_N` 或基流初始条件。
+
+## 2026-06-06 AndrewsForest 汇流/连通诊断
+
+- 按用户要求继续检查汇流/连通问题，确认当前 `data/AndrewsForest/andrews_forest_model/storm/config.fig` 实际启用 `IKW_CH`，`CH_DW` 为注释状态；因此本轮重点检查 `DEP_FS -> IKW_OL -> IKW_CH`。
+- 新增 `IKW_OL` 诊断字段，只用于水量拆分，不改变模拟结果：
+  - `stream_initial_surface_m3` / `hillslope_initial_surface_m3`；
+  - `stream_upstream_inflow_m3` / `hillslope_upstream_inflow_m3`；
+  - `stream_outflow_m3` / `hillslope_outflow_m3`；
+  - `stream_final_surface_m3` / `hillslope_final_surface_m3`；
+  - `stream_water_cells` / `hillslope_water_cells`。
+- 编译与运行：
+  - 执行 `cmake --build build --target IKW_OL -j4` 通过；
+  - 将 `libIKW_OL.dylib` 同步到 `build/lib/` 与 `build/install/lib/`；
+  - 使用长窗口 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00` 运行诊断；
+  - no-change 结果保持为 NSE `-1.2878`，PBIAS `-43.64%`，峰值误差 `17.70%`，说明新增字段没有改变水力计算。
+- 当前 `MANNING=8.0` 下的连通诊断：
+  - 2 月 7 日事件：`DEP_FS` 新增地表水约 `8.27 mm`，到达河道格子的上游入流仅 `1.78 mm`，`IKW_OL` 送入河道原始 QS 约 `1.39 mm`，窗口末仍有 `6.27 mm` 留在非河道坡面格子，出口局部峰仅 `1.99 m3/s`；
+  - 2 月 9-10 日：`DEP_FS` 新增地表水约 `42.56 mm`，到达河道格子约 `31.81 mm`，送入河道原始 QS 约 `31.13 mm`，出口局部峰 `12.30 m3/s`；
+  - 因此 2 月 7 日主要卡在坡面到河网格的连通阶段，不是 `IKW_CH` 吃掉已进入河道的 QS。
+- 对比 wwj 分支：
+  - wwj 最优文档中坡面 `MANNING=0.03`，`OL_SPEED_FACTOR=0.5`；
+  - wwj 代码中 `OL_SPEED_FACTOR` 通过 `effective_n = MANNING / factor` 生效，因此等效坡面阻力约为 `0.06`；
+  - 当前 `param.cali` 中 `MANNING=8.0, VC`，这不是“略增糙率”，而是极端大的坡面阻力，能够解释 2 月 7 日前期连通太慢。
+- MANNING 控制实验：
+  - 所有实验均临时覆盖 MongoDB `PARAMETERS_SPEC`，实验后恢复为 `MANNING=8.0`；
+  - `MANNING=0.03`：NSE `-4.1566`，主峰 `36.20 m3/s`，2 月 7 日局部峰 `12.39 m3/s`，但 2 月 9-10 日严重爆峰；
+  - `MANNING=0.06`：NSE `-4.0749`，主峰 `35.77 m3/s`，2 月 7 日局部峰 `11.76 m3/s`，同样后期爆峰；
+  - `MANNING=1.0`：NSE `-3.0611`，主峰 `27.00 m3/s`，2 月 7 日局部峰 `4.73 m3/s`，仍无法平衡前后两个事件；
+  - `MANNING=8.0`：NSE `-1.2878`，主峰 `12.30 m3/s`，但 2 月 7 日局部峰仅 `1.99 m3/s`。
+- 结论：
+  - 降低坡面糙率能修复 2 月 7 日连通，但同一个常数糙率会把 2 月 9-10 日也快速送入河道，导致爆峰；
+  - `MANNING=8.0` 物理量级不合理，只是在数值上压住后期爆峰；
+  - `MANNING=0.03/0.06` 物理量级更接近 wwj，但在当前代码与水量分配下会放大后期产流；
+  - 下一步不能只调汇流参数，应回到 `SUR_SGA/IKW_IF` 的水量路径分配：在合理坡面糙率范围内，减少 2 月 9-10 日直接进入 `QS` 的地表水，增加近地表滞蓄、壤中流或事件间歇期入渗恢复。
+- 输出保存：
+  - `data/AndrewsForest/andrews_forest_model/storm/experiments/20260606_connectivity_manning003/`；
+  - `data/AndrewsForest/andrews_forest_model/storm/experiments/20260606_connectivity_manning006/`；
+  - `data/AndrewsForest/andrews_forest_model/storm/experiments/20260606_connectivity_manning1/`。
