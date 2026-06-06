@@ -84,7 +84,11 @@ private:
     void CalculateActiveStorage(int cell, float activeDepth, float& dynamicStorage, float& eventStorage);
 
     /// Redistribute Green-Ampt event memory during rainfall breaks (mm)
-    float RedistributeAccumulatedInfiltration(int cell, float activeDepth, float dt, bool canRedistribute);
+    float RedistributeAccumulatedInfiltration(int cell, float activeDepth, float dt, bool canRedistribute,
+                                              float* activeLayerDrain);
+
+    /// Drain event water from the active wetting front into deeper soil layers (mm)
+    float RedistributeActiveLayerWater(int cell, float activeDepth, float maxRedistribution);
 
     /// Calculate initial volumetric soil water content for a layer
     float CalculateInitialSoilWater(int cell, int layer);

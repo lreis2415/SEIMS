@@ -1840,3 +1840,32 @@ python import_andrews_storm_params.py
   - 优先修改 `SUR_SGA` 的降雨间歇期湿润锋重分布/活动层排水恢复逻辑，使 2 月 7 日后约 15 小时无雨期能释放部分活动层容量；
   - 同时检查 `IKW_OL` 的二次下渗/近地表滞蓄逻辑，当前坡面滞水很多但实际再入渗几乎为零；
   - 暂时不要继续单独调 `MANNING`，因为它只能在 2 月 7 日和 2 月 9-10 日之间顾此失彼。
+
+## 2026-06-06 修改 SUR_SGA 间歇期湿润锋重分布/活动层排水恢复
+
+- 按用户要求修改 `SUR_SGA`，目标是让 2 月 7 日后至 2 月 9 日前的无雨期恢复一部分入渗容量，并检查 `IKW_OL` 二次下渗为什么几乎为 0。
+- 代码修改：
+  - `SUR_SGA` 干歇恢复计时改为只由新降雨和融雪重置，不再让旧 `DPST` 洼蓄水阻断恢复；
+  - 新增活动层排水恢复逻辑：在达到 `GA_ACC_RECOVERY_DELAY` 后，按 `GA_ACC_RECOVERY_RATE` 与 `GA_STATE_RECOVERY_FACTOR` 上限，把活动层中高于初始含水状态的水转移到活动层以下仍有孔隙容量的深层土壤；
+  - 活动层排水后同步降低 `m_accumuDepth`，使 Green-Ampt 累计入渗记忆随湿润锋重分布恢复；
+  - `SUR_SGA_balance.csv` 新增 `active_drain_mm_cell` 诊断列。
+- 编译：
+  - 运行 `cmake --build build --target SUR_SGA -j4`，编译通过；
+  - 将新生成的 `build/seims/bin/seims_project/libSUR_SGA.dylib` 同步到 `build/lib/libSUR_SGA.dylib` 和 `build/install/lib/libSUR_SGA.dylib`，避免运行脚本加载旧库。
+- 运行：
+  - 使用 `SEIMS_WB_DIAG=1 SEIMS_IKW_CH_DIAG=1 python run_andrews_storm.py --no-plot`；
+  - 模拟窗口仍为 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00`；
+  - 结果归档到 `data/AndrewsForest/andrews_forest_model/storm/experiments/20260606_active_drain_20150115_20150216/`；
+  - 对比图为 `data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_active_drain.png`。
+- 指标：
+  - 正式窗口 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`：NSE `-0.4971`，PBIAS `-38.46%`，模拟峰值 `11.158 m3/s`，实测峰值 `10.449 m3/s`，峰现偏晚 `73.42 h`；
+  - 2 月 7 日事件：NSE `-1.0426`，PBIAS `-56.36%`，模拟峰值 `6.556 m3/s`，实测峰值 `10.449 m3/s`，峰现偏晚 `14.50 h`；
+  - 2 月 9-10 日事件：NSE `-5.2514`，PBIAS `-10.44%`，模拟峰值 `11.158 m3/s`，实测峰值 `8.382 m3/s`，峰现偏晚 `11.67 h`。
+- 诊断结论：
+  - `SUR_SGA` 恢复逻辑已生效：2 月 8 到 2 月 9 前多步出现全流域 `active_drain`，2 月 9 日 00:00 平均 `infil_cap` 恢复到约 `2.79 mm`；
+  - 2 月 9-10 日入渗从上一轮约 `0.035 mm` 增加到约 `5.36 mm`，`DEP_FS` 新增地表水从约 `44.14 mm` 降到约 `38.83 mm`，峰值被压低；
+  - 但 2 月 7 日峰值也被压得过低，整体 PBIAS 从 `-18.17%` 变差到 `-38.46%`，说明当前恢复/再入渗过强或削弱了关键事件水量；
+  - `IKW_OL` 二次下渗仍小不是因为完全没有潜在容量，而是容量和水空间错位：2 月 9-10 日潜在二次下渗约 `30.49 million m3`，实际只有约 `0.32 million m3`，未用容量中只有约 `0.01%` 是“有水但未用”的容量，大部分容量出现在当步无剩余坡面水的栅格。
+- 当前判断：
+  - 本次修改是有物理意义的诊断性改动，验证了“干歇期恢复入渗容量会压低 2 月 9-10 爆峰”；
+  - 但当前参数/实现下整体结果变差，下一步应更保守地限制恢复速率或把恢复与坡面连通位置耦合，而不是继续单纯加大恢复。
