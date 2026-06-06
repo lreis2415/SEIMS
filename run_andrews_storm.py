@@ -13,8 +13,8 @@ REPO_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_MODEL_DIR = os.path.join(
     REPO_ROOT, "data", "AndrewsForest", "andrews_forest_model")
 DEFAULT_BIN_DIR = os.path.join(REPO_ROOT, "build", "bin")
-DEFAULT_START = "2015-02-05 07:00:00"
-DEFAULT_END = "2015-02-08 20:00:00"
+DEFAULT_START = "2015-01-15 00:00:00"
+DEFAULT_END = "2015-02-16 12:00:00"
 DEFAULT_DYLD_LIBRARY_PATH = ":".join([
     "/Users/flora/miniconda3/envs/pyseims/lib",
     "/opt/homebrew/opt/llvm/lib",

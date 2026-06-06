@@ -1782,3 +1782,31 @@ python import_andrews_storm_params.py
   - 数据层面完全支持把模拟开始时间往前推；
   - 若目标是解决 2 月 7 日事件受冷启动影响、前期土壤水和坡面连通状态不足的问题，下一轮实验应优先使用 `2015-01-15 00:00:00` 或 `2015-01-14 00:00:00` 作为预热开始时间；
   - 评价指标仍应从原正式窗口 `2015-02-04 06:00:00` 之后计算，避免把预热期初始状态误差纳入模型性能评价。
+
+## 2026-06-06 AndrewsForest storm 使用 2015-01-15 预热期重跑
+
+- 按用户要求将 storm 模型运行窗口改为：
+  - `STARTTIME = 2015-01-15 00:00:00`；
+  - `ENDTIME = 2015-02-16 12:00:00`。
+- 持久配置同步：
+  - 更新 `data/AndrewsForest/andrews_forest_model/storm/file.in`；
+  - 更新 `data/AndrewsForest/andrews_forest_model/model_configs/storm/runmodel.ini`；
+  - 更新 `run_andrews_storm.py` 默认 `DEFAULT_START/DEFAULT_END`，方便后续直接运行脚本复现该窗口；
+  - MongoDB `andrews_forest_model.FILE_IN` 已同步为同一时间窗口。
+- 本次运行命令：
+  - `python run_andrews_storm.py --start "2015-01-15 00:00:00" --end "2015-02-16 12:00:00" --figure-name q_pcp_comparison_warmup_20150115_20150216.png`
+- 当前有效 `param.cali` 包含 `MANNING=8,VC`、`ANISOTROPY=32,VC`、`FAST_RATIO=1,VC`、`MACROPORE_FACTOR=21,VC`、`GW0=50,VC` 等参数，因此本次不是单纯时间窗口控制实验，而是在当前参数组合上增加预热期。
+- 输出检查：
+  - `Q.txt` 共 `9360` 行，时间从 `2015-01-15 00:00:00` 到 `2015-02-16 11:55:00`，无重复时间戳；
+  - 全窗口图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_warmup_20150115_20150216.png`；
+  - 正式评价窗口图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_warmup_eval_20150204_20150216.png`；
+  - 结果归档：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260606_warmup_20150115_20150216/`。
+- 指标：
+  - 全窗口 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00`：NSE `0.0591`，PBIAS `-33.20%`，模拟峰值 `12.787 m3/s`，实测峰值 `15.886 m3/s`；该窗口峰现误差受 1 月 18 日预热期实测峰影响，不能作为正式评分。
+  - 正式评价窗口 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`：NSE `-0.2701`，PBIAS `-18.17%`，峰值误差 `22.37%`，峰现偏晚 `71.08 h`。
+  - 2 月 7 日事件窗口 `2015-02-06 00:00:00` 至 `2015-02-08 23:55:00`：NSE `0.6047`，PBIAS `7.76%`，模拟峰值 `12.383 m3/s`，实测峰值 `10.449 m3/s`，峰现偏晚 `8.17 h`。
+  - 2 月 9-10 日事件窗口 `2015-02-09 00:00:00` 至 `2015-02-10 23:55:00`：NSE `-6.6593`，PBIAS `-3.20%`，模拟峰值 `12.787 m3/s`，实测峰值 `8.382 m3/s`，峰现偏晚 `9.33 h`。
+- 当前判断：
+  - 往前加入预热期后，2 月 7 日事件的前期状态和连通明显改善，局部事件 NSE 达到 `0.6047`，说明冷启动确实是 2 月 7 日偏低的重要原因；
+  - 正式全窗口仍较差，主要问题转移到 2 月 9-10 日峰值偏高和整体峰现偏晚；
+  - 下一步应在保持预热期的基础上，重点诊断 2 月 9-10 日产流分配：减少后期过多直接地表快流 `QS`，或让更大比例水量进入可解释的壤中流/滞蓄路径。
