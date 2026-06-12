@@ -1869,3 +1869,124 @@ python import_andrews_storm_params.py
 - 当前判断：
   - 本次修改是有物理意义的诊断性改动，验证了“干歇期恢复入渗容量会压低 2 月 9-10 爆峰”；
   - 但当前参数/实现下整体结果变差，下一步应更保守地限制恢复速率或把恢复与坡面连通位置耦合，而不是继续单纯加大恢复。
+
+## 2026-06-06 当前 active-drain 曲线问题分析：基流偏低与 2 月 7/10 峰值顺序错误
+
+- 用户指出当前模拟曲线中基流偏低，且 2 月 7 日模拟峰值低于 2 月 10 日模拟峰值，而实测峰值顺序相反。
+- 对当前 `OUTPUT_D8_DOWNUP--` 结果重新汇总：
+  - `2015-02-04 06:00` 至 `2015-02-06 23:55`：模拟流量平均约 `0.98 m3/s`，实测平均约 `2.68 m3/s`，模拟低约 `1.70 m3/s`；
+  - 同期 `IKW_CH_diag.csv` 中 `QI` 平均约 `0.49 m3/s`，`QG` 平均约 `0.50 m3/s`，`QS` 几乎为 0，说明模拟前期基流基本就是 `QI+QG≈1.0 m3/s`；
+  - 2 月 7 日事件：模拟峰值 `6.56 m3/s`，实测峰值 `10.45 m3/s`；
+  - 2 月 9-10 日事件：模拟峰值 `11.16 m3/s`，实测峰值 `8.38 m3/s`。
+- 原因判断：
+  - 基流偏低主要是慢流储量/释放不足：`GW_RSVR` 地下水释放和 `IKW_IF` 壤中流背景贡献加起来只有约 `1.0 m3/s`，没有达到实测约 `2-3 m3/s` 的稳定底水；
+  - 2 月 7 日峰值被压低，是因为 active-drain 修改后前一事件恢复/再入渗过强，2 月 7 日净雨约 `56.06 mm` 中入渗约 `26.29 mm`，进入 `DEP_FS` 的新增地表水约 `29.49 mm`；
+  - 2 月 10 日峰值偏高，是因为 2 月 9-10 日虽然净雨较小约 `44.17 mm`，但入渗仅约 `5.36 mm`，新增地表水约 `38.83 mm`，且前期坡面滞水持续释放，`IKW_CH` 侧向输入中 `QS` 体积约为 2 月 7 日的 `2.7` 倍；
+  - 因此当前曲线同时存在“慢流底水偏低”和“地表快流时序/空间连通过强”的双重问题，不能只靠调 `MANNING` 或继续加大/减小入渗恢复解决。
+- 后续建议：
+  - 先恢复/校正基流背景：检查 `GW0`、`KG`、`GWMAX`、`PERCO_DARCY` 到地下水库的补给，以及 `IKW_IF` 的低流量背景贡献；
+  - 再保守化 active-drain：降低恢复速率或增加恢复延迟，避免把 2 月 7 日事件水量过度吃掉；
+  - 同时继续检查坡面滞水在 2 月 9-10 日为何更容易转成 `QS`，尤其是 `IKW_OL` 的局地水-容量错位和高 `MANNING` 造成的滞留后集中释放。
+
+## 2026-06-08 m_accumuDepth 与壤中流参与情况代码核查
+
+- 用户询问 `SUR_SGA` 中 `m_accumuDepth` 的具体含义、是否每日清零，以及第二次降雨时为什么会出现入渗容量耗尽；同时要求核查 `IKW_IF` 是否真正参与运算并形成壤中流。
+- `m_accumuDepth` 代码结论：
+  - `StormGreenAmpt.h` 中注释为 `cumulative infiltration depth (mm)`，即 Green-Ampt 累计入渗深度；
+  - 在 `StormGreenAmpt.cpp` 中只在模块第一次初始化时 `Initialize1DArray(m_nCells, m_accumuDepth, 0.f)`；
+  - 每个时间步若发生入渗，则 `m_accumuDepth[i] += m_infil[i]`；
+  - `IKW_OL` 二次下渗也会把 `reInfil` 加回 `m_accumuDepth[id]`；
+  - 代码中没有按日期、午夜或每日重置 `m_accumuDepth` 的逻辑；
+  - 当前只有 dry-period redistribution / active-drain 逻辑会降低 `m_accumuDepth`。
+- 物理解释：
+  - `m_accumuDepth` 不是日累计降雨/日累计入渗，而是 `SUR_SGA` 在一次连续模拟状态中的 Green-Ampt 湿润锋/事件记忆变量；
+  - “入渗容量满”指 `SUR_SGA` 定义的活动层事件容量 `eventStorage - m_accumuDepth` 接近 0，不等同于整个土壤剖面所有孔隙都饱和；
+  - 土壤水可以继续通过 `IKW_IF` 和 `PERCO_DARCY` 释放，但释放速率可能小于降雨输入速率，因此事件尺度上活动层仍会被判为容量耗尽。
+- `IKW_IF` 参与情况：
+  - 当前 `data/AndrewsForest/andrews_forest_model/storm/config.fig` 中明确启用 `IKW_IF`，执行顺序为 `IKW_OL -> IKW_IF -> PERCO_DARCY -> GW_RSVR -> IKW_CH`；
+  - `IKW_IF/api.cpp` 输出 `QSoil`，`IKW_CH/api.cpp` 输入 `QSoil`；
+  - `IKW_CH.cpp` 中 `m_qi = data` 接收 `QSoil`，并在河道侧向入流中加入 `qLatQi`；
+  - 当前 `IKW_CH_diag.csv` 中 `qi_cms` 有非零值，说明壤中流确实进入河道计算。
+- 当前结果中的壤中流量级：
+  - 2 月 4-6 日前期：`QI` 平均约 `0.49 m3/s`，`QG` 平均约 `0.50 m3/s`，`QS` 近 0；
+  - 2 月 7 日事件：`QI` 体积占约 `18.9%`，`QS` 占约 `62.9%`；
+  - 2 月 9-10 日事件：`QI` 体积占约 `9.3%`，`QS` 占约 `78.8%`。
+- 当前判断：
+  - 壤中流模块不是没运行，也不是完全没有流走；
+  - 问题是壤中流和地下水慢流量级偏小，无法支撑实测约 `2-3 m3/s` 的基流；
+  - 同时事件期 `QS` 地表快流仍占主导，尤其 2 月 9-10 日，说明活动层容量恢复、壤中流排水和地表汇流之间还没有形成合理平衡。
+
+## 2026-06-09 事件尺度模拟无日尺度预热时的关键初始状态与率定参数文献梳理
+
+- 用户询问：不先进行日尺度预热、直接进行次降水/事件尺度模拟时，除土壤初始含水量外，哪些参数可能重要并应加入率定。
+- 查阅资料：
+  - HEC-HMS Green-Ampt 说明强调事件模拟所需关键参数包括初始含水量或初始亏缺、湿润锋吸力、饱和导水率等，并提示普通 Green-Ampt 不含入渗水抽取过程，适用于事件模拟；
+  - GSSHA GAR 说明指出 Green-Ampt with Redistribution 通过无雨或低雨强间歇期水分重分布恢复下一段降雨的入渗能力；
+  - HEC-HMS Linear Reservoir baseflow 文档说明基流/地下水库初始状态和储水释放系数对基流过程重要；
+  - H.J. Andrews 相关研究表明陡坡森林流域中坡面-河道连通、土壤-基岩界面壤中流、裂隙/基岩地下水会影响事件响应；
+  - 事件尺度降雨径流研究普遍强调 antecedent soil moisture / initial wetness condition 对事件径流量、峰值和产流阈值有显著影响。
+- 对 SEIMS 当前 AndrewsForest storm 模型的建议参数组：
+  - 初始土壤水：`MOIST_IN`、`MOIST_IN_REF`；
+  - 初始地下水/基流：`GW0`、`KG`、`GWMAX`；
+  - 入渗与活动层记忆：`CONDUCTIVITY`、`ACTIVE_DEPTH_MAX`、`GA_ACC_RECOVERY_RATE`、`GA_ACC_RECOVERY_DELAY`、`GA_STATE_RECOVERY_FACTOR`；
+  - 田间持水量/垂向渗漏：`FC_ADJUST`、必要时土壤 `FIELDCAP/POROST/CONDUCTIVITY` 数据本身；
+  - 壤中流/优先流：`KI`、`ANISOTROPY`、`FAST_RATIO`、`MACROPORE_FACTOR`；
+  - 汇流：坡面 `MANNING`，河道糙率应通过 `REACHES` 的 `CH_N` 或后续新增可校准因子处理，而不是当前无效的 `param.cali` 中 `CH_N`。
+- 当前判断：
+  - 如果不做日尺度预热，率定里必须显式处理“初始状态参数”，尤其 `MOIST_IN` 与 `GW0/KG`；
+  - 只调 `MOIST_IN` 容易让事件峰值变动，但未必能补足稳定基流；
+  - 当前基流偏低更像 `GW0/KG` 和慢壤中流贡献不足，2 月 7/10 峰值顺序错误则同时涉及 `SUR_SGA` 活动层恢复和 `IKW_OL/IKW_IF` 的快慢流分配。
+
+## 2026-06-12 当前结果下一步调节方向分析
+
+- 用户提出：壤中流和渗漏都有，但流量/流速有限，下一步应如何继续调节。
+- 当前结果的核心矛盾：
+  - 基流偏低：2 月 4-6 日模拟约 `1 m3/s`，实测约 `2-3 m3/s`，说明 `QI+QG` 慢流背景不足；
+  - active-drain 版 2 月 7 日峰值被压低，而 2 月 9-10 日仍偏高，说明当前入渗恢复/活动层排水对前一事件过强，但第二场雨时活动层容量和坡面滞水问题仍未平衡；
+  - `IKW_IF` 与 `PERCO_DARCY` 有参与，但释放速度有限，因此不能假设“有渗漏/壤中流就会自动消除第二场雨的活动层容量耗尽”。
+- 下一步建议顺序：
+  1. 先调慢流初始状态和释放：`GW0`、`KG`，必要时 `GWMAX`，目标是把无雨/小雨期底水抬到接近实测；
+  2. 再调壤中流背景：适度增加 `KI`、检查 `ANISOTROPY`，但不要继续使用过大的 `FAST_RATIO/MACROPORE_FACTOR` 解释全部峰值；
+  3. 再保守化 `SUR_SGA` 活动层恢复：降低 `GA_ACC_RECOVERY_RATE` 或增加 `GA_ACC_RECOVERY_DELAY`，避免 2 月 7 日被过度吃水；
+  4. 最后用 `MANNING` 或河道糙率修正峰值宽度和峰现，不优先用汇流参数解决水量分配。
+- 建议做控制实验：
+  - 保持当前 active-drain 代码，先只改 `GW0/KG/GWMAX`；
+  - 再单独调 `KI/ANISOTROPY`；
+  - 再单独调 `GA_ACC_RECOVERY_RATE/DELAY`；
+  - 每一步比较 2 月 4-6 基流、2 月 7 峰值、2 月 9-10 峰值，以及 `QS/QI/QG` 占比。
+- 代码补充核查：
+  - `GW_RSVR` 虽然在 `SetValue` 中接收 `Base_ex`，但当前实际出流公式为 `m_storage * (1 - exp(-KG * dt_days))`；
+  - 使用 `Base_ex` 的非线性公式当前被注释，因此短期率定不应把 `Base_ex` 当作有效参数，除非后续恢复该公式。
+
+## 2026-06-12 基流、壤中流、active-drain 与 Manning 顺序控制实验
+
+- 按“先基流、再壤中流、再保守化 active-drain、最后 Manning”的顺序完成控制实验，模拟窗口保持 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00`，正式评价窗口为 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`。
+- 基流实验归档：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260612_gw0_kg_sweep/`。
+  - 原基线 `GW0=50, KG=0.10`：雨前均流约 `0.98 m3/s`，正式期 NSE `-0.4971`、PBIAS `-38.46%`；
+  - `GW0=160, KG=0.05`：雨前均流约 `1.65 m3/s`，正式期 NSE `-0.1469`、PBIAS `-29.25%`；
+  - `GW0=200, KG=0.05`：雨前均流约 `1.90 m3/s`，正式期 NSE `-0.0240`、PBIAS `-25.14%`；
+  - 采用 `GW0=220, KG=0.05` 作为新基线：雨前均流约 `2.02 m3/s`，正式期 NSE `0.0303`、PBIAS `-23.08%`，2 月 7 日峰值 `7.42 m3/s`，2 月 10 日峰值 `11.87 m3/s`；
+  - `GW0=220 mm` 小于 `GWMAX=300 mm`，`KG=0.05 d-1` 对应约 20 天退水特征时间，参数仍有明确物理含义；
+  - `param.cali` 与 MongoDB `PARAMETERS_SPEC` 已同步为 `GW0=220,VC`、`KG=0.05,VC`。
+- 壤中流实验归档：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260612_ki_sweep/`。
+  - 当前 `KI=0.007` 时，正式期河道侧向水量中 `QI` 约占 `14.1%`，雨前 `QI` 均值约 `0.49 m3/s`；
+  - `KI=0.014` 将正式期 `QI` 占比提高到约 `19.1%`、NSE 提高到 `0.2052`，但 2 月 10 日峰值升至 `12.26 m3/s`；
+  - `KI=0.021` 将雨前均流抬到 `2.66 m3/s`，正式期 NSE `0.2743`，但 2 月 10 日峰值进一步升至 `12.48 m3/s`；
+  - 两组实验中 `QS` 绝对量几乎没有下降，说明增大 `KI` 主要叠加额外土壤排水和地下水补给，没有实现“把地表快流重新分配为壤中流”，因此不保留，继续使用 `KI=0.007`。
+- active-drain 实验归档：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260612_active_drain_sweep/`。
+  - 当前主表配置为 `GA_ACC_RECOVERY_RATE=0.5 mm/h`、`GA_ACC_RECOVERY_DELAY=2 h`、`GA_STATE_RECOVERY_FACTOR=0.2`；
+  - 中间档 `0.35/4/0.15` 可把 2 月 7 日峰值提高到 `11.22 m3/s`，但 2 月 10 日峰值升至 `13.08 m3/s`；
+  - 更弱的 `0.2/6/0.1` 和 `0.1/12/0.05` 会让事件期 `QS` 重新占到约 `75%-82%`，两个峰均明显过高，并出现雨前坡面水残留；
+  - 结论是 active-drain 确实承担了恢复入渗容量、抑制跨事件坡面滞水的作用，不能简单大幅削弱；本轮不修改当前配置。
+- Manning 实验归档：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260612_manning_sweep/`。
+  - `MANNING=5` 将 2 月 7 日峰值改善到 `9.99 m3/s`、峰现误差缩短到约 `8.6 h`，但 2 月 10 日产生 `15.35 m3/s` 尖峰；
+  - `MANNING=3.5` 时 2 月 10 日峰值进一步升到 `18.49 m3/s`；
+  - 说明降低 Manning 会释放跨事件坡面滞水并改善第一场峰现，但无法解决第二场雨本身的过强 `QS` 生成；本轮保留 `MANNING=8`。
+- 当前保留的新正式基线：`GW0=220`、`KG=0.05`、`KI=0.007`、当前 active-drain 配置、`MANNING=8`。输出恢复到 `storm/OUTPUT_D8_DOWNUP--`，对比图为 `q_pcp_comparison_gw0_220_kg_0p05.png`。
+- 初始状态参数核查：
+  - 已有参数包括 `MOIST_IN/MOIST_IN_REF`（土壤初始含水状态）、`GW0/GWMAX/KG`（地下水初值与退水）、`Depre_in`（初始洼蓄比例）和 `Init_IS`（初始冠层截留）；
+  - `IKW_CH` 已根据首步地下水基流初始化河道流量和水深，因此当前不需要再增加一个独立的任意初始河道流量旋钮；
+  - 后续最值得新增的是可选的分层/空间化初始土壤水分 `MOIST_IN_LAYER`（`DT_Raster2D`），原 `MOIST_IN` 作为兼容回退值；
+  - 第二优先是按子流域或河段给定的初始地下水储量，而不是所有地下水库共享单一 `GW0`；
+  - 不建议把初始 Green-Ampt 累计入渗或湿润锋深度作为无约束率定旋钮，只有在有前期降雨、土壤水观测或日尺度预热结果时，才适合作为状态热启动输入。
+- 运行中的问题与处理：追加 `GW0=200` 实验首次评价时，临时脚本误把三列 `Q.txt` 当成至少四列而出现除零；模型输出已正常归档，改用项目 `plot_storm_q_pcp.py` 的 `read_simulated_q()` 重新计算，无需重跑该组模型。正式运行时还发现不应在 Python 启动前覆盖 `DYLD_LIBRARY_PATH`，否则会干扰 conda GDAL 的 `libiconv`；改为让 `run_andrews_storm.py` 在启动 C++ 前设置动态库路径后运行成功。
