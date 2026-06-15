@@ -2043,3 +2043,35 @@ python import_andrews_storm_params.py
   - 不再优先从 `SUR_SGA` 深层容量或 `IKW_IF` 子步入手；
   - 下一步应回到 `IKW_OL/IKW_CH` 的连通和滞留逻辑，重点检查为何 2 月 7 日地表水到河道明显滞后，而 2 月 10 日累计坡面水/河道输入集中释放；
   - 需要特别检查 `DEP_FS` 当前调试改动中 `m_sr += currentRunoff` 与 `IKW_OL` 中坡面剩余水深的共同作用，确认是否导致坡面水跨事件长时间滞留并在第二场雨集中释放。
+
+## 2026-06-15 DEP_FS、IKW_OL、IKW_CH 连通诊断
+
+- 按上一节建议启用 `SEIMS_WB_DIAG=1` 和 `SEIMS_IKW_CH_DIAG=1`，用当前稳定参数重新运行 Andrews Forest storm 模型，输出文件为 `storm/OUTPUT_D8_DOWNUP--/SUR_SGA_balance.csv`、`DEP_FS_balance.csv`、`IKW_OL_balance.csv` 和 `IKW_CH_diag.csv`，对比图为 `q_pcp_comparison_connectivity_diag_current.png`。
+- 当前正式评价窗口仍为 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`：NSE 约 `0.0303`，PBIAS 约 `-23.08%`；2 月 7 日事件模拟峰值约 `6.49 m3/s`，实测峰值约 `10.45 m3/s`，峰现滞后约 `9 h`；2 月 10 日事件模拟峰值约 `11.87 m3/s`，实测峰值约 `8.38 m3/s`，峰现滞后约 `11.6 h`。
+- `DEP_FS` 逻辑检查：
+  - 代码中 `totalWater = m_exsPcp[i]`，填满洼地后的剩余量作为 `currentRunoff`，再通过 `m_sr[i] += currentRunoff` 累加到坡面水；
+  - 这与“降雨/旧洼蓄经 `SUR_SGA` 产生 `EXCP`，再由 `DEP_FS` 填洼，超过洼蓄容量才形成地表径流”的设计思路基本一致；
+  - 旧洼蓄 `DPST` 没有在 `DEP_FS` 内再次相加，是因为它已经作为 `SUR_SGA` 的输入水量参与了本步入渗计算；旧坡面水 `SURU` 当前没有回到 `SUR_SGA`，而是由 `IKW_OL` 继续汇流和少量二次下渗。
+- 诊断显示主要问题不在 `DEP_FS` 立即产流，而在坡面水到河道的连通与滞留：
+  - 2 月 7 日事件期，`SUR_SGA` 产生的 `EXCP` 约 `1.31e7 m3`，`DEP_FS` 新增坡面径流约 `1.72e6 m3`，约占 `13.1%`；
+  - 同期 `IKW_OL` 计算的总坡面出流约 `2.39e7 m3`，但 stream cell 原始 `QS` 只有约 `3.71e5 m3`，仅占总坡面出流约 `1.6%`；
+  - 2 月 10 日事件期，`IKW_OL` 总坡面出流约 `6.93e7 m3`，stream cell 原始 `QS` 约 `1.59e6 m3`，占比也只有约 `2.3%`；
+  - `IKW_OL` 每个窗口的 final/init surface ratio 约 `0.997-0.999`，说明大部分坡面水仍滞留在坡面状态量 `m_sr` 中，只有很小一部分进入河道。
+- `IKW_OL` 代码层面发现：
+  - `OverlandFlow()` 只把非河道上游格子的 `QS` 累加到下游，河道格子之间的坡面流不会作为普通坡面流继续累加；
+  - 原先“stream cell 坡面水直接分流入河道”的代码块目前被注释，当前主要依赖 stream cell 自身 `m_qs[id][0]` 被 `IKW_CH` 读取；
+  - 因此在当前格网连通结构下，坡面水大量在 hillslope cell 间缓慢迁移，2 月 7 日没有及时到河道，到了 2 月 10 日已有更大的坡面水记忆，使第二场雨的河道输入更强。
+- `IKW_CH` 发现一个明确的子步长体积缩小问题：
+  - 当前代码把 `m_dt` 改为 `dtOriginal / m_substeps`，但又把 `qLatPrec`、`qLatQs`、`qLatQi` 和分摊地下水 `qgEachCell` 都除以 `m_substeps`；
+  - 如果 `m_qs/m_qi/m_qg` 已经是流量 `m3/s`，在每个子步应保持同样流量并乘以较短的 `dt`，不应再次除以子步数；
+  - 诊断中 `IKW_CH` 接收到的 `QS` 体积正好是 `IKW_OL` stream cell 原始 `QS` 的 `0.5`，与当前 `m_substeps=2` 完全一致，证明实际进入河道的侧向水量被减半；
+  - 对比 `wwj/validation-2026-05-07` 分支，wwj 的 `IKW_CH` 也存在同样的 `/ m_substeps` 写法，因此这是子步长改动中遗留的数值体积问题，不是本轮后续改动单独引入的。
+- 对当前结果的解释：
+  - 基流偏低的一部分原因可能是 `IKW_CH` 对 `QG/QI/QS` 侧向入流都减半，使河道接收慢流和快流均偏少；
+  - 2 月 7 日峰值偏低且滞后，主要因为早期坡面水到 stream cell 的比例太小，再进入 `IKW_CH` 时还被减半；
+  - 2 月 10 日峰值过高，主要不是该步降雨数据异常，而是前期坡面状态 `m_sr` 和土壤/洼蓄状态记忆已经积累，第二场雨触发了更多已连通或接近连通的坡面水进入河道。
+- 下一步计划：
+  1. 优先修正 `IKW_CH` 子步侧向入流体积缩小问题：`qLatPrec`、`qLatQs`、`qLatQi` 和 `qgEachCell` 不再除以 `m_substeps`，诊断字段同步按实际子步流量计量；
+  2. 修正后重新运行 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00` 的长窗口，检查基流、2 月 7 日峰值和 2 月 10 日峰值变化；
+  3. 如果 2 月 10 日峰值随侧向入流修正进一步升高，再回到物理参数层面重新率定 `GW0/KG`、`MANNING/CH_N` 和 `SUR_SGA` 的恢复强度；
+  4. 若修正 `IKW_CH` 后 2 月 7 日仍明显滞后，再继续检查 `IKW_OL` 中 stream cell 坡面水入河比例和 channel-cell 连通处理，而不是继续增加 `KI/ANISOTROPY` 这类壤中流参数。
