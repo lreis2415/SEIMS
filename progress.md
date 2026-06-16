@@ -2195,3 +2195,27 @@ python import_andrews_storm_params.py
   - 2 月 10 过峰的直接来源是前期坡面水 `m_sr/SURU` 和第二场雨前后局地入渗容量关闭共同造成的 `QS` 延迟释放；
   - 继续调 `GW0/KG` 已经不是主线，`QI/QG` 也不是 2 月 10 过峰的主因；
   - 下一步应检查并修改两个方向：其一，`SUR_SGA` 的 GAR 式恢复不能只在完全无净雨/无融雪时发生，应允许低强度间歇或无新增产流时的湿润锋重分布；其二，旧坡面水 `SURU` 是否应以局地、受容量限制的方式参与再下渗，而不是只在 `IKW_OL` 中以很小的 `infilCapacitySurplus` 二次下渗。
+
+## 2026-06-16 SUR_SGA 低强度间歇恢复与旧坡面水本地回渗
+
+- 按用户要求继续修改两个点：
+  - 将 `SUR_SGA` 的 Green-Ampt 事件记忆恢复条件从“必须完全无净雨/无融雪”放宽为“本步新大气水量不超过当前 `GA_ACC_RECOVERY_RATE` 对应的恢复水量”，使小雨或间歇期不会完全打断湿润锋重分布；
+  - 在 `SUR_SGA` 中让上一时刻残留坡面水 `SURU/m_sr` 以局地、受剩余入渗能力限制的方式先回渗，回渗水计入 `INFIL`、土壤水和 `m_accumuDepth`，但不作为新的 `EXCP`；剩余坡面水仍交给 `DEP_FS/IKW_OL` 继续处理。
+- 同步修改诊断：
+  - `SUR_SGA_balance.csv` 新增 `surface_reinfil_mm_cell`；
+  - 水量闭合改为 `hWater + surface_reinfil - infil - excp`，本次完整窗口闭合为 `0`。
+- 编译与运行：
+  - 重新编译 `SUR_SGA`，并同步新库到 `build/lib/libSUR_SGA.dylib` 和 `build/install/lib/libSUR_SGA.dylib`；
+  - 运行完整窗口 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00`；
+  - 输出图：`data/AndrewsForest/andrews_forest_model/storm/OUTPUT_D8_DOWNUP--/q_pcp_comparison_surface_recovery_reinfil_full.png`；
+  - 运行日志：`data/AndrewsForest/andrews_forest_model/storm/seims_surface_recovery_reinfil_full.log`。
+- 指标结果：
+  - 全窗口 NSE `-0.1994`，PBIAS `-1.31%`；全窗口最大观测峰在 `2015-01-18 04:00:00`，因此全窗口峰现误差不适合评价 2 月事件；
+  - 正式窗口 `2015-02-04 06:00:00` 至 `2015-02-16 12:00:00`：NSE `-2.2956`，PBIAS `23.26%`，模拟峰值 `21.933 m3/s`，发生在 `2015-02-10 15:30:00`；
+  - 2 月 7 日事件：模拟峰值 `12.810 m3/s`，实测 `10.449 m3/s`，峰现滞后 `13.92 h`；
+  - 2 月 10 日事件：模拟峰值 `21.933 m3/s`，实测 `8.382 m3/s`，峰现滞后 `10.75 h`。
+- 诊断结论：
+  - 相比上一轮 `GW0=60, KG=0.04` 诊断基线，正式窗口 NSE 从约 `-2.52` 小幅改善到 `-2.30`，2 月 10 日峰值从约 `22.29 m3/s` 小幅降到 `21.93 m3/s`；
+  - 但 2 月 7 日峰值被抬高且滞后更明显，PBIAS 从约 `18.56%` 增至 `23.26%`，说明该修改修复了机制闭合，但不是解决 2 月 10 日过峰的主控；
+  - 量级上，2 月 10 日 `surf_old` 时间累计约 `6.78e8 mm-cell`，新增本地回渗仅约 `3.92e5 mm-cell`，差约三位数量级；`IKW_OL` 同期二次下渗实际也只有约 `9.8 m3`，远小于坡面水库存和入河 `QS`；
+  - 因此下一步应重点检查/调整坡面水 `m_sr/SURU` 的长期滞留和释放机制、`DEP_FS` 旧洼蓄到新坡面水的传递，以及 `IKW_OL` 对旧坡面水入河连通的数值响应，而不是继续把二次下渗作为主要调节手段。

@@ -194,6 +194,7 @@ int StormGreenAmpt::Execute(void) {
     double diagNetPcp = 0.0;
     double diagDepOld = 0.0;
     double diagSurfOld = 0.0;
+    double diagSurfaceReinfil = 0.0;
     double diagSnowMelt = 0.0;
     double diagHWater = 0.0;
     double diagInfil = 0.0;
@@ -260,11 +261,10 @@ int StormGreenAmpt::Execute(void) {
             dt = 1.f;
         }
         const float dryThreshold = 1.e-6f;
-        // Old depression/surface water can remain during rainfall breaks. It should be allowed to
-        // reinfiltrate after wetting-front redistribution, so only new atmospheric water resets
-        // the dry-period recovery clock.
-        const bool canRedistribute = netPcp <= dryThreshold &&
-                                     snowMelt <= dryThreshold;
+        const float recoveryStep = Max(0.f, m_accumuRecoveryRate) * dt / 3600.f;
+        // Treat very light atmospheric input as an inter-event redistribution period. This keeps
+        // the Green-Ampt event memory from being fully reset by drizzle-scale water additions.
+        const bool canRedistribute = netPcp + snowMelt <= Max(dryThreshold, recoveryStep);
         if (canRedistribute) {
             m_dryDuration[i] += dt;
         } else {
@@ -319,7 +319,9 @@ int StormGreenAmpt::Execute(void) {
         float potentialInfil = rawPotentialInfil;
         potentialInfil = Min(potentialInfil, infilCap);
 
-        if (hWater > 0) {
+        float surfaceReinfil = 0.f;
+        float eventWaterInfil = 0.f;
+        if (hWater > 0 || surfWater > 0.f) {
             // for frozen soil
             //if (m_soilTemp[i] <= m_tSoilFrozen && m_soilMoisture[i] >= m_sFrozen*m_porosity[i])
             //{
@@ -337,18 +339,22 @@ int StormGreenAmpt::Execute(void) {
                 if (!std::isfinite(rawInfil) || rawInfil < 0.f) {
                     rawInfil = 0.f;
                 }
-                m_infil[i] = rawInfil;
 
                 //cout << m_infil[i] << endl;
                 //check if the infiltration potential exceeds the available water
-                if (m_infil[i] > hWater) {
-                    m_infilCapacitySurplus[i] = m_infil[i] - hWater;
-                    //limit infiltration rate to available water supply
-                    m_infil[i] = hWater;
+                eventWaterInfil = Min(rawInfil, hWater);
+                float remainingCapacity = Max(rawInfil - eventWaterInfil, 0.f);
+                if (m_surfRf != nullptr && surfWater > 0.f && remainingCapacity > 0.f) {
+                    surfaceReinfil = Min(surfWater, remainingCapacity);
+                    if (std::isfinite(surfaceReinfil) && surfaceReinfil > 0.f) {
+                        m_surfRf[i] = Max(m_surfRf[i] - surfaceReinfil, 0.f);
+                        remainingCapacity = Max(remainingCapacity - surfaceReinfil, 0.f);
+                    } else {
+                        surfaceReinfil = 0.f;
+                    }
                 }
-                else {
-                    m_infilCapacitySurplus[i] = 0.f;
-                }
+                m_infil[i] = eventWaterInfil + surfaceReinfil;
+                m_infilCapacitySurplus[i] = remainingCapacity;
 
                 //Compute the cumulative depth of infiltration
                 if (std::isfinite(m_infil[i]) && m_infil[i] > 0.f) {
@@ -360,7 +366,7 @@ int StormGreenAmpt::Execute(void) {
                     AddInfiltrationToSoil(i, m_infil[i], activeDepth);
                 }
             }
-            m_exsPcp[i] = Max(hWater - m_infil[i], 0.f);
+            m_exsPcp[i] = Max(hWater - eventWaterInfil, 0.f);
             // xdw modify
             //m_surfRf[i] = hWater - m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
         } else {
@@ -376,6 +382,7 @@ int StormGreenAmpt::Execute(void) {
             diagNetPcp += netPcp;
             diagDepOld += depWater;
             diagSurfOld += surfWater;
+            diagSurfaceReinfil += surfaceReinfil;
             diagSnowMelt += snowMelt;
             diagHWater += hWater;
             diagInfil += m_infil[i];
@@ -391,7 +398,7 @@ int StormGreenAmpt::Execute(void) {
             diagSoilDeficit += soilDeficit;
             diagTheta += theta;
             diagPorosity += por;
-            diagClosure += hWater - m_infil[i] - m_exsPcp[i];
+            diagClosure += hWater + surfaceReinfil - m_infil[i] - m_exsPcp[i];
             if (hasWater || m_infil[i] > 1.e-6f || m_exsPcp[i] > 1.e-6f) {
                 diagWetCells++;
             }
@@ -468,7 +475,7 @@ int StormGreenAmpt::Execute(void) {
         if (fs.is_open()) {
             if (needHeader) {
                 fs << "time,ncells,wet_cells,net_pcp_mm_cell,dep_old_mm_cell,"
-                   << "surf_old_mm_cell,snowmelt_mm_cell,hwater_mm_cell,"
+                   << "surf_old_mm_cell,surface_reinfil_mm_cell,snowmelt_mm_cell,hwater_mm_cell,"
                    << "raw_potential_infil_mm_cell,potential_infil_mm_cell,"
                    << "active_depth_mm_cell,infil_cap_mm_cell,accumu_depth_mm_cell,"
                    << "accumu_recovery_mm_cell,active_drain_mm_cell,"
@@ -481,7 +488,7 @@ int StormGreenAmpt::Execute(void) {
             fs << ConvertToString2(m_date) << ","
                << m_nCells << "," << diagWetCells << ","
                << diagNetPcp << "," << diagDepOld << ","
-               << diagSurfOld << "," << diagSnowMelt << ","
+               << diagSurfOld << "," << diagSurfaceReinfil << "," << diagSnowMelt << ","
                << diagHWater << "," << diagRawPotentialInfil << ","
                << diagPotentialInfil << "," << diagActiveDepth << ","
                << diagInfilCap << "," << diagAccumuDepth << ","
