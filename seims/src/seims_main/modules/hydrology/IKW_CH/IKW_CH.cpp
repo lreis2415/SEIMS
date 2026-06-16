@@ -349,13 +349,14 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
 
     float dx = m_flowLen[iReach][iCell];
 
+    // Precipitation is a depth over the full step; QS/QI/QG are already flow rates.
     float qLatPrec = (m_prec[id] / m_substeps) / 1000.f * m_chWidth[id] * dx / m_dt;
     float qLatQg = qgEachCell;
-    float qLatQs = m_qs[id][0] / m_substeps;
+    float qLatQs = m_qs[id][0];
     float qLatQi = 0.f;
     float qLat = qLatPrec + qLatQg + qLatQs;
     if (m_qi != nullptr) {
-        qLatQi = m_qi[id] / m_substeps;
+        qLatQi = m_qi[id];
         qLat += qLatQi;
     }
 
@@ -425,7 +426,7 @@ int ImplicitKinematicWave_CH::Execute() {
                 //cout << "\tNumber of cells in reach " << reachIndex << ": " << n << endl;
                 float qgEachCell = 0.f;
                 if (m_qg != nullptr) {
-                    qgEachCell = m_qg[reachIndex] / n / m_substeps;
+                    qgEachCell = m_qg[reachIndex] / n;
                 }
                 //cout << "\tGroundwater: " << qgEachCell << endl;
                 for (int iCell = 0; iCell < n; ++iCell) {
@@ -435,8 +436,8 @@ int ImplicitKinematicWave_CH::Execute() {
                         float dx = m_flowLen[reachIndex][iCell];
                         float qLatPrec = (m_prec[idCell] / m_substeps) / 1000.f *
                                          m_chWidth[idCell] * dx / m_dt;
-                        float qLatQs = m_qs[idCell][0] / m_substeps;
-                        float qLatQi = m_qi != nullptr ? m_qi[idCell] / m_substeps : 0.f;
+                        float qLatQs = m_qs[idCell][0];
+                        float qLatQi = m_qi != nullptr ? m_qi[idCell] : 0.f;
                         diagPrecVolume += qLatPrec * m_dt;
                         diagQsVolume += qLatQs * m_dt;
                         diagQiVolume += qLatQi * m_dt;

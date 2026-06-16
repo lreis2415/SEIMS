@@ -2091,3 +2091,20 @@ python import_andrews_storm_params.py
   2. 若还有剩余恢复额度，则根据活动层当前储水与事件参考储水，最多只恢复超过“仍应保留的事件水量”的那一部分 Green-Ampt 记忆。
 - 当前 MongoDB `andrews_forest_model.PARAMETERS` 中存在有效参数：`ACTIVE_DEPTH_MAX=150`、`GA_ACC_RECOVERY_RATE=0.5`、`GA_ACC_RECOVERY_DELAY=2`、`GA_STATE_RECOVERY_FACTOR=0.2`；当前 `storm/param.cali` 没有显式列出这些恢复参数，但基础参数表中仍有值。
 - 结论：现在代码已不是“`m_accumuDepth` 只累积不恢复”的状态；但它也不是完全重置机制，而是模拟降雨间歇期湿润锋重分布/活动层排水造成的渐进式恢复。
+
+## 2026-06-16 修复 IKW_CH 子步侧向入流体积缩小问题
+
+- 回答提交状态：前面保留下来的有效机制修改已经分别提交过，例如 `3e574630 Add GAR-style infiltration redistribution`、`35bc1f96 Run Andrews storm with January warmup`、`9a4c3059 Calibrate Andrews storm baseflow state`、`f1fe4cf3 Document Andrews storm infiltration experiments`；最近两个提交 `4846f182` 和 `3b4e0e84` 是诊断/说明文档提交。
+- 本次修复目标：`IKW_CH` 在内部子步长 `m_substeps=2` 下，把 `QS/QI/QG` 这类已经是 `m3/s` 的侧向流量又除以 `m_substeps`，导致进入河道的体积被缩小为原来的 `1/m_substeps`。
+- 代码修改：
+  - 保留河道面降雨 `m_prec` 的子步水深分配，因为 `D_P` 是时间步水深；
+  - 移除 `m_qs[id][0] / m_substeps`，改为直接使用 `m_qs[id][0]`；
+  - 移除 `m_qi[id] / m_substeps`，改为直接使用 `m_qi[id]`；
+  - 移除 `m_qg[reachIndex] / n / m_substeps`，改为 `m_qg[reachIndex] / n`；
+  - 同步修改 `IKW_CH_diag.csv` 诊断体积计算，保证诊断字段与实际进入河道的侧向流量一致。
+- 编译验证：执行 `cmake --build build --target IKW_CH -j4` 成功；仅出现项目已有 warning。由于当前 `run_andrews_storm.py` 使用 `build/bin/seims_omp`，模块优先从 `build/lib` 加载，已将新编译的 `libIKW_CH.dylib` 同步到 `build/lib` 和 `build/install/lib` 用于本地验证。
+- 运行验证：
+  - 首次长窗口验证发现仍加载旧 `build/lib/libIKW_CH.dylib`，`IKW_CH.qs_m3 / IKW_OL.stream_cell_qs_raw_m3` 仍为 `0.5`；
+  - 同步动态库后，用 `2015-02-04 06:00:00` 至 `2015-02-08 00:00:00` 短窗口重跑，诊断结果为 `IKW_OL stream_cell_qs_raw_m3 = 11213.943934`，`IKW_CH qs_m3 = 11213.943934`，比例 `1.0`；
+  - 说明本次修复已经消除了 `IKW_CH` 子步长导致的 `QS` 体积减半问题。
+- 注意事项：这次修复会增加河道接收到的 `QS/QI/QG` 体积，后续完整长窗口结果可能会抬高基流和洪峰；下一步需要基于完整 `2015-01-15` 至 `2015-02-16` 运行重新评价，并可能回调 `GW0/KG`、`MANNING/CH_N` 或 `SUR_SGA` 恢复强度。
