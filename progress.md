@@ -2075,3 +2075,19 @@ python import_andrews_storm_params.py
   2. 修正后重新运行 `2015-01-15 00:00:00` 至 `2015-02-16 12:00:00` 的长窗口，检查基流、2 月 7 日峰值和 2 月 10 日峰值变化；
   3. 如果 2 月 10 日峰值随侧向入流修正进一步升高，再回到物理参数层面重新率定 `GW0/KG`、`MANNING/CH_N` 和 `SUR_SGA` 的恢复强度；
   4. 若修正 `IKW_CH` 后 2 月 7 日仍明显滞后，再继续检查 `IKW_OL` 中 stream cell 坡面水入河比例和 channel-cell 连通处理，而不是继续增加 `KI/ANISOTROPY` 这类壤中流参数。
+
+## 2026-06-16 m_accumuDepth 恢复/重置机制核查
+
+- 当前 `SUR_SGA` 代码中 `m_accumuDepth` 已经有恢复机制，但不是按天或按事件强制清零。
+- 初始化逻辑：`InitialOutputs()` 第一次分配数组时把 `m_accumuDepth` 初始化为 `0`；同一次模型运行过程中不会每天自动重置，也不会新一场雨开始时自动清零。
+- 累加逻辑：每个时间步实际入渗 `m_infil[i] > 0` 时，执行 `m_accumuDepth[i] += m_infil[i]`，表示 Green-Ampt 事件累计入渗记忆继续增加。
+- 恢复逻辑：每个时间步入渗计算前调用 `RedistributeAccumulatedInfiltration()`；只有当 `netPcp` 和 `snowMelt` 都接近 0、连续干燥时长超过 `GA_ACC_RECOVERY_DELAY`、且 `m_accumuDepth > 0` 时才会恢复。
+- 恢复量受两个约束控制：
+  - `GA_ACC_RECOVERY_RATE`：按时间给出的最大恢复速率，单位 `mm/h`；
+  - `GA_STATE_RECOVERY_FACTOR`：按当前累计记忆可恢复比例给出的状态约束，范围 `0-1`；
+  - 两者都大于 0 时取较小值作为恢复上限。
+- 恢复实现分两步：
+  1. `RedistributeActiveLayerWater()` 尝试把活动湿润锋层内的水重新分布到更深未饱和层，并同步减少 `m_accumuDepth`；
+  2. 若还有剩余恢复额度，则根据活动层当前储水与事件参考储水，最多只恢复超过“仍应保留的事件水量”的那一部分 Green-Ampt 记忆。
+- 当前 MongoDB `andrews_forest_model.PARAMETERS` 中存在有效参数：`ACTIVE_DEPTH_MAX=150`、`GA_ACC_RECOVERY_RATE=0.5`、`GA_ACC_RECOVERY_DELAY=2`、`GA_STATE_RECOVERY_FACTOR=0.2`；当前 `storm/param.cali` 没有显式列出这些恢复参数，但基础参数表中仍有值。
+- 结论：现在代码已不是“`m_accumuDepth` 只累积不恢复”的状态；但它也不是完全重置机制，而是模拟降雨间歇期湿润锋重分布/活动层排水造成的渐进式恢复。
