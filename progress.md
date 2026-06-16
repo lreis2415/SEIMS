@@ -2245,3 +2245,31 @@ python import_andrews_storm_params.py
   - 同时保留 `CH_N=0.85` 先不动，避免坡面和河道两个延迟源混在一起；
   - 若降低 `MANNING` 后峰现变好但 2 月 10 峰值更高，则再实现一个物理化 stream-cell 入河机制：水到达 stream cell 后按横向到河道距离和曼宁速度计算入河比例，守恒地从 `m_sr` 中扣除并进入 `QS`，不再用 `OL_SPEED_FACTOR`；
   - 最后才调整 `CH_N`，用于修正剩余 1-4 小时河道滞后。
+
+## 2026-06-16 MANNING 参数语义控制实验
+
+- 按用户要求先修改 `MANNING` 排查峰现滞后和 2 月 10 过峰问题。
+- 原始 `MANNING.tif` 统计：
+  - 有效格子 `68406`；
+  - 最小值 `0.15`，中位数 `0.4`，均值 `0.3955`，95 分位数 `0.4`，最大值 `0.4`；
+  - 因此旧设置 `MANNING=8.0,VC` 相当于把坡面糙率从原始约 `0.4` 绝对提高到 `8`，约为原始值的 `20` 倍。
+- 实验 1：`MANNING=1.0,RC`
+  - 含义：保留原空间糙率，即大部分格子约 `0.4`；
+  - 归档目录：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260616_manning_rc1_after_reinfil/`；
+  - 全窗口图：`q_pcp_comparison_manning_rc1_full.png`；
+  - 正式窗口 NSE `-20.0262`，PBIAS `26.67%`；
+  - 2 月 7 日：模拟峰值 `54.280 m3/s`，实测 `10.449 m3/s`，峰现误差 `-0.50 h`；
+  - 2 月 10 日：模拟峰值 `63.897 m3/s`，实测 `8.382 m3/s`，峰现误差 `-2.42 h`；
+  - 结论：峰现不再滞后，但快流过强，洪峰被严重放大。
+- 实验 2：`MANNING=5.0,RC`
+  - 含义：保留空间分布，将坡面等效糙率放大 5 倍，主值约 `2.0`；
+  - 归档目录：`data/AndrewsForest/andrews_forest_model/storm/experiments/20260616_manning_rc5_after_reinfil/`；
+  - 全窗口图：`q_pcp_comparison_manning_rc5_full.png`；
+  - 正式窗口 NSE `-10.4032`，PBIAS `25.85%`；
+  - 2 月 7 日：模拟峰值 `33.350 m3/s`，实测 `10.449 m3/s`，峰现滞后 `3.42 h`；`IKW_OL stream_raw` 峰与实测峰同为 `2015-02-07 15:00`；
+  - 2 月 10 日：模拟峰值 `45.006 m3/s`，实测 `8.382 m3/s`，峰现滞后 `1.17 h`；`IKW_OL stream_raw` 比实测峰提前约 `2 h`。
+- 当前判断：
+  - `MANNING` 明确控制了坡面到河道的峰现滞后；从绝对 `8` 降到 `RC=5` 后，2 月 7/10 的峰现问题大幅改善；
+  - 但单独降低糙率会把旧 `m_sr/SURU` 快速释放为尖峰，2 月 7/10 峰值仍严重偏高；
+  - 因此下一步不应继续只靠调小/调大 `MANNING`，而应在保留相对合理峰现的 `MANNING=5.0,RC` 附近，检查并修改 `IKW_OL` 的 stream-cell 入河/坡面水连通和削峰机制，或者回到 `SUR_SGA/DEP_FS` 限制过多水进入快流库。
+- 当前工作树和 MongoDB 中 `MANNING` 暂为 `5.0,RC`，该参数用于诊断，不作为最终有效提交。
