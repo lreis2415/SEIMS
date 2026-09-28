@@ -78,6 +78,15 @@ private:
 
     void InitializeChannelWithBaseflow(void);
 
+    double GetWaterLedgerStorage(void) const;
+
+    bool IsOutletReach(int reachIndex) const;
+
+    void WriteWaterLedger(double storageBefore, double storageAfter,
+        double initializationAdded, double precipitation,
+        double qs, double qi, double qg, double outlet,
+        double outletLastRate) const;
+
     /// valid cells number
     int m_nCells;
     /// cell width of the grid (m)

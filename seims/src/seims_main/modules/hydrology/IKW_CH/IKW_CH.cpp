@@ -2,6 +2,7 @@
 #include "text.h"
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <queue>
 
 //using namespace std;  // Avoid this statement! by lj.
@@ -348,6 +349,73 @@ void ImplicitKinematicWave_CH::InitializeChannelWithBaseflow() {
     m_channelBaseflowInitialized = true;
 }
 
+double ImplicitKinematicWave_CH::GetWaterLedgerStorage() const {
+    double storage = 0.;
+    for (auto reach = m_reachs.begin(); reach != m_reachs.end(); ++reach) {
+        const int reachIndex = reach->first;
+        for (size_t iCell = 0; iCell < reach->second.size(); ++iCell) {
+            const int id = reach->second[iCell];
+            storage += static_cast<double>(m_hCh[reachIndex][iCell]) *
+                m_chWidth[id] * m_flowLen[reachIndex][iCell];
+        }
+    }
+    if (m_qsBankStorage != nullptr) {
+        for (int id = 0; id < m_nCells; ++id) {
+            storage += m_qsBankStorage[id];
+        }
+    }
+    return storage;
+}
+
+bool ImplicitKinematicWave_CH::IsOutletReach(const int reachIndex) const {
+    if (m_reachDownStream == nullptr) {
+        return true;
+    }
+    const int downstream = CVT_INT(m_reachDownStream[reachIndex]);
+    const auto downstreamReach = m_reachs.find(downstream);
+    return downstream <= 0 || downstreamReach == m_reachs.end() ||
+        downstreamReach->second.empty();
+}
+
+void ImplicitKinematicWave_CH::WriteWaterLedger(
+    const double storageBefore, const double storageAfter,
+    const double initializationAdded, const double precipitation,
+    const double qs, const double qi, const double qg, const double outlet,
+    const double outletLastRate) const {
+    if (m_outpath.empty()) {
+        throw ModelException(M_IKW_CH[0], "WriteWaterLedger",
+            "Output directory is empty.");
+    }
+
+    const string path = m_outpath + SEP + "CHANNEL_water_ledger.csv";
+    std::ifstream existing(path.c_str(), std::ios::in | std::ios::ate);
+    const bool needHeader = !existing.good() || existing.tellg() == 0;
+    existing.close();
+
+    std::ofstream output(path.c_str(), std::ios::out | std::ios::app);
+    if (!output.is_open()) {
+        throw ModelException(M_IKW_CH[0], "WriteWaterLedger",
+            "Failed to open water ledger: " + path);
+    }
+    output << std::setprecision(17);
+    if (needHeader) {
+        output << "time,storage_before_m3,storage_after_m3,initialization_added_m3,"
+               << "precipitation_m3,qs_m3,qi_m3,qg_m3,outlet_m3,"
+               << "outlet_last_rate_m3,balance_residual_m3\n";
+    }
+    const double residual = storageBefore + initializationAdded + precipitation +
+        qs + qi + qg - outlet - storageAfter;
+    output << ConvertToString2(m_date) << "," << storageBefore << ","
+           << storageAfter << "," << initializationAdded << ","
+           << precipitation << "," << qs << "," << qi << "," << qg << ","
+           << outlet << "," << outletLastRate << "," << residual << "\n";
+    output.flush();
+    if (!output.good()) {
+        throw ModelException(M_IKW_CH[0], "WriteWaterLedger",
+            "Failed to write water ledger: " + path);
+    }
+}
+
 void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
     float qUp = 0.f;
 
@@ -415,7 +483,13 @@ int ImplicitKinematicWave_CH::Execute() {
 
     InitialOutputs();
     initialOutputs2();
+
+    const char *ledgerEnv = std::getenv("SEIMS_WATER_LEDGER");
+    const bool writeWaterLedger = ledgerEnv != nullptr && string(ledgerEnv) != "0";
+    const double storageBefore = writeWaterLedger ? GetWaterLedgerStorage() : 0.;
     InitializeChannelWithBaseflow();
+    const double initializationAdded = writeWaterLedger ?
+        GetWaterLedgerStorage() - storageBefore : 0.;
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
 
@@ -423,11 +497,14 @@ int ImplicitKinematicWave_CH::Execute() {
     m_dt = dtOriginal / m_substeps;
     const char* diagEnv = std::getenv("SEIMS_IKW_CH_DIAG");
     const bool writeDiag = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
+    const bool collectVolumes = writeDiag || writeWaterLedger;
     double diagPrecVolume = 0.0;
     double diagQsVolume = 0.0;
     double diagQiVolume = 0.0;
     double diagQgVolume = 0.0;
     int diagCount = 0;
+    double outletVolume = 0.;
+    double outletLastRate = 0.;
 
     for (int sub = 0; sub < m_substeps; sub++) {
         for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
@@ -456,7 +533,7 @@ int ImplicitKinematicWave_CH::Execute() {
                 for (int iCell = 0; iCell < n; ++iCell) {
                     int idCell = vecCells[iCell];
                     //m_qsInput[reachIndex+1] += m_qs[idCell];
-                    if (writeDiag) {
+                    if (collectVolumes) {
                         float dx = m_flowLen[reachIndex][iCell];
                         float qLatPrec = (m_prec[idCell] / m_substeps) / 1000.f *
                                          m_chWidth[idCell] * dx / m_dt;
@@ -473,8 +550,26 @@ int ImplicitKinematicWave_CH::Execute() {
                 m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
             }
         }
+        if (writeWaterLedger) {
+            outletLastRate = 0.;
+            for (auto reach = m_reachs.begin(); reach != m_reachs.end(); ++reach) {
+                const int reachIndex = reach->first;
+                if (reach->second.empty() || !IsOutletReach(reachIndex)) {
+                    continue;
+                }
+                outletLastRate += m_qCh[reachIndex][reach->second.size() - 1];
+            }
+            outletVolume += outletLastRate * m_dt;
+        }
     }
     m_dt = dtOriginal;
+
+    if (writeWaterLedger) {
+        const double storageAfter = GetWaterLedgerStorage();
+        WriteWaterLedger(storageBefore, storageAfter, initializationAdded,
+            diagPrecVolume, diagQsVolume, diagQiVolume, diagQgVolume,
+            outletVolume, outletLastRate * dtOriginal);
+    }
 
     if (writeDiag) {
         const string diagPath = m_outpath + SEP + "IKW_CH_diag.csv";
