@@ -61,9 +61,10 @@ class ObsSimData(object):
             else:
                 if name.upper() == 'PBIAS':
                     tmpvars.append('%s-abs(PBIAS)' % varname)
+                    values.append(abs(self.objvalues[self.objnames.index(tmpvar)]))
                 else:
                     tmpvars.append(tmpvar)
-                values.append(self.objvalues[self.objnames.index(tmpvar)])
+                    values.append(self.objvalues[self.objnames.index(tmpvar)])
         return values, tmpvars
 
     def output_header(self, varname, effnames, prefix=''):
@@ -88,7 +89,10 @@ class ObsSimData(object):
             if tmpvar not in self.objnames:
                 concate += '\t'
             else:
-                concate += '%.3f\t' % self.objvalues[self.objnames.index(tmpvar)]
+                value = self.objvalues[self.objnames.index(tmpvar)]
+                if name.upper() == 'PBIAS':
+                    value = abs(value)
+                concate += '%.3f\t' % value
         return concate
 
 

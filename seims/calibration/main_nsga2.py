@@ -58,8 +58,9 @@ filter_ind = False  # Filter for valid population for the next generation
 # Definitions of Multiobjectives:
 multiobj = dict()
 if step == 'Q':
-    # Step 1: Calibrate streamflow, max. NSE, min. RSR, and min. |PBIAS| (percent)
-    multiobj.setdefault('Q', [['NSE', 1., -100, '>0'], ['RSR', -1., 100], ['PBIAS', -1., 500.]])
+    # Step 1: Calibrate overall shape, low-flow dynamics, and absolute water-balance bias.
+    multiobj.setdefault(
+        'Q', [['NSE', 1., -100.], ['lnNSE', 1., -100.], ['PBIAS', -1., 500.]])
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min., and |PBIAS|-SED
     multiobj.setdefault('SED', [['NSE', 1., -100, '>0'], ['RSR', -1., 100], ['PBIAS', -1., 500.]])

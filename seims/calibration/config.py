@@ -51,8 +51,12 @@ class CaliConfig(object):
                              "MUST be specified in [CALI_Settings].")
         self.cali_stime = parse_datetime_from_ini(cf, 'CALI_Settings', 'cali_time_start')
         self.cali_etime = parse_datetime_from_ini(cf, 'CALI_Settings', 'cali_time_end')
-        self.vali_stime = parse_datetime_from_ini(cf, 'CALI_Settings', 'vali_time_start')
-        self.vali_etime = parse_datetime_from_ini(cf, 'CALI_Settings', 'vali_time_end')
+        self.vali_stime = parse_datetime_from_ini(
+            cf, 'CALI_Settings', 'vali_time_start',
+            print_warn=False, required=False)
+        self.vali_etime = parse_datetime_from_ini(
+            cf, 'CALI_Settings', 'vali_time_end',
+            print_warn=False, required=False)
         self.calc_validation = True if self.vali_stime and self.vali_etime else False
         if self.cali_stime >= self.cali_etime or (self.calc_validation and
                                                   self.vali_stime >= self.vali_etime):
