@@ -1,6 +1,10 @@
 #include "Percolation.h"
 #include "text.h"
 
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+
 Percolation_DARCY::Percolation_DARCY(void) {
 
     // set default values for member variables
@@ -20,13 +24,13 @@ Percolation_DARCY::Percolation_DARCY(void) {
     m_recharge = NULL;
     m_rootDepth = NULL;
     m_CellWidth = -1.f;
-    m_fcAdjust = 1.f;
+    m_bedrockVerticalConductivity = -1.f;
 
     m_nSoilLyrs = NULL;
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
-    if (m_recharge != NULL) Release1DArray(m_recharge);
+    Release1DArray(m_recharge);
 }
 
 
@@ -37,53 +41,65 @@ int Percolation_DARCY::Execute() {
         CheckInputData();
         m_recharge = new float[m_nCells];
     }
-    //debug
-    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
-                                     1189, 1188, 1187, 1186, 1185,
-                                     1294, 1404, 1403, 1513, 1623,
-                                     1622, 1731, 1730, 1838, 1837, 1836,
-                                     1944 };
-    static int stepCount = 0;
-    stepCount++;
-
-//#pragma omp parallel for
+    double rechargeVolume = 0.;
+    double transferVolume = 0.;
+    double storageBefore = 0.;
+    double storageAfter = 0.;
+    //#pragma omp parallel for
 	for (int i = 0; i < m_nCells; i++) {
         // m_recharge here is used only to store the final water volume recharging the groundwater. --Fanxy
         m_recharge[i] = 0.f;
-		for (int j = 0; j < m_nSoilLyrs[i]; j++) {
-			//if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
+        float storageDepth = 0.f;
+        for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
+            const float bottomDepth = Max(m_rootDepth[i][j], storageDepth);
+            const float thickness = bottomDepth - storageDepth;
+            storageDepth = bottomDepth;
+            storageBefore += m_Moisture[i][j] * thickness *
+                m_CellWidth * m_CellWidth / 1000.;
+        }
+        float previousBottomDepth = 0.f;
+        for (int j = 0; j < m_nSoilLyrs[i]; j++) {
+            const float bottomDepth = Max(m_rootDepth[i][j], previousBottomDepth);
+            const float layerThickness = bottomDepth - previousBottomDepth;
+            previousBottomDepth = bottomDepth;
+            if (layerThickness <= 1.e-6f) {
+                continue;
+            }
+            //if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
 			//{
 			//	m_recharge[i] = 0.0f;
 			//	continue;
 			//}
 
 			float currentMoisture = m_Moisture[i][j];
-            if (m_Porosity[i][j] <= 0.f || m_rootDepth[i][j] <= 0.f) {
-                continue;
-            }
 
             // record total water percolating downward from the current layer (mm). --Fanxy
             float totalPrec = 0.f;
-            float fieldCapacity = m_FieldCapacity[i][j] * m_fcAdjust;
-            fieldCapacity = Min(Max(fieldCapacity, 0.f), m_Porosity[i][j]);
+            float excessDepth = 0.f;
 
-			if (currentMoisture > fieldCapacity) {
-				// the water exceeds the porosity is added to percolation directly
+            if (currentMoisture > m_FieldCapacity[i][j]) {
+                // the water exceeds the porosity is added to percolation directly
 				if (currentMoisture > m_Porosity[i][j]) {
-                    float excess = (currentMoisture - m_Porosity[i][j]) * m_rootDepth[i][j];
-                    totalPrec += excess;
+                    excessDepth = (currentMoisture - m_Porosity[i][j]) * layerThickness;
+                    totalPrec += excessDepth;
                     // update soil moisture --Fanxy
                     currentMoisture = m_Porosity[i][j];
 				}
 
                 // Darcy Flow Calculation
 				// recharge capacity (mm)
-				float poreIdx = Max(m_Poreindex[i][j], 1.e-6f);
-				float dcIndex = 3.f + 2.f / poreIdx; // pore disconnectedness index
-				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
-				float rechargeCap =
-					m_Conductivity[i][j] / 3600.f * m_timestep * CalPow(currentMoisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
-				float availableWater = (currentMoisture - fieldCapacity) * m_rootDepth[i][j];
+                float dcIndex = 3.f + 2.f / Max(m_Poreindex[i][j], 1.e-6f);
+                //float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * CalPow((moisture - m_Residual[i])/temp, dcIndex);
+                float interfaceKsat = Max(m_Conductivity[i][j], 0.f);
+                if (j + 1 < m_nSoilLyrs[i]) {
+                    interfaceKsat = Min(interfaceKsat, Max(m_Conductivity[i][j + 1], 0.f));
+                } else if (m_bedrockVerticalConductivity >= 0.f) {
+                    interfaceKsat = Min(interfaceKsat, m_bedrockVerticalConductivity);
+                }
+                float rechargeCap = interfaceKsat / 3600.f * m_timestep *
+                    CalPow(Max(0.f, Min(currentMoisture / m_Porosity[i][j], 1.f)), dcIndex);
+                float availableWater = (currentMoisture - m_FieldCapacity
+                    [i][j]) * layerThickness;
 
 
 				if (rechargeCap >= availableWater) {
@@ -91,43 +107,52 @@ int Percolation_DARCY::Execute() {
 				}
                 totalPrec += rechargeCap;
 
-                currentMoisture -= rechargeCap / m_rootDepth[i][j];
-			}
+                currentMoisture -= rechargeCap / layerThickness;
+            }
             m_Moisture[i][j] = currentMoisture;
             if (m_Moisture[i][j] < 0.f) m_Moisture[i][j] = 0.f;
 
             // Inter-layer transfer --Fanxy
             if (j < m_nSoilLyrs[i] - 1) {
                 // Not the last layer->Transfer to the next layer.
-                float next_depth = m_rootDepth[i][j + 1];
-                m_Moisture[i][j + 1] += totalPrec / next_depth;
+                float nextDepth = Max(m_rootDepth[i][j + 1] - m_rootDepth[i][j], 1.e-6f);
+                m_Moisture[i][j + 1] += totalPrec / nextDepth;
+                transferVolume += totalPrec * m_CellWidth * m_CellWidth / 1000.;
             }
             else {
                 // Last layer -> Becomes groundwater recharge
                 m_recharge[i] += totalPrec;
+                rechargeVolume += totalPrec * m_CellWidth * m_CellWidth / 1000.;
             }
 		}
-        // --- DEBUG PRINT ---
-        bool isDebugTarget = false;
-        for (int target : targetCells) {
-            if (i == target) {
-                isDebugTarget = true;
-                break;
-            }
+        storageDepth = 0.f;
+        for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
+            const float bottomDepth = Max(m_rootDepth[i][j], storageDepth);
+            const float thickness = bottomDepth - storageDepth;
+            storageDepth = bottomDepth;
+            storageAfter += m_Moisture[i][j] * thickness *
+                m_CellWidth * m_CellWidth / 1000.;
         }
-        if (false) { // TRACE_CSV disabled
-            
-            std::cout << "[TRACE_CSV],Step," << stepCount
-                << ",Module,Percolation"
-                << ",Cell," << i
-                << ",Recharge_to_GW," << m_recharge[i];
+    }
 
-            for (int lyr = 0; lyr < m_nSoilLyrs[i]; lyr++) {
-                std::cout << ",Moist_L" << lyr << "," << m_Moisture[i][lyr];
+
+    const char* diagEnv = std::getenv("SEIMS_PERCO_DIAG");
+    if (diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty()) {
+        const string path = m_outpath + SEP + "PERCO_DARCY_diag.csv";
+        std::ifstream existing(path.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(path.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,interlayer_transfer_m3,groundwater_recharge_m3,"
+                   << "storage_before_m3,storage_after_m3,balance_residual_m3\n";
             }
-            std::cout << std::endl;
+            fs << ConvertToString2(m_date) << "," << transferVolume << ","
+               << rechargeVolume << "," << storageBefore << "," << storageAfter << ","
+               << storageBefore - storageAfter - rechargeVolume << "\n";
         }
-	}
+    }
 
     return true;
 
@@ -213,8 +238,9 @@ void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth[0])) {
         m_CellWidth = data;
-    } else if (StringMatch(s, "FC_ADJUST")) {
-        m_fcAdjust = CVT_FLT(Max(data, 0.f));
+    } else if (StringMatch(s, VAR_BEDROCK_KV[0])) {
+        m_bedrockVerticalConductivity = data;
+        //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
         throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");

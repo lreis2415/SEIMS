@@ -28,6 +28,8 @@ private:
     int m_nCells;
     //! Width of cell (m)
     float m_CellWidth;
+    /// Vertical saturated conductivity of the soil-bedrock interface (mm/h)
+    float m_bedrockVerticalConductivity;
 
     float **m_Conductivity;
     float **m_Porosity;
@@ -35,9 +37,8 @@ private:
     float **m_Poreindex;
     float **m_Moisture;
     float **m_FieldCapacity;
+    /// Cumulative depth to the bottom of each soil layer (mm)
     float **m_rootDepth;
-    //! Field capacity adjustment factor for the percolation threshold.
-    float m_fcAdjust;
     //float* m_SoilT;
     //float  m_ForzenT;
 

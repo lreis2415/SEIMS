@@ -1252,4 +1252,6 @@ CONST_CHARS MONG_SITELIST_DB =                      "DB";
 //#define HEADER_RS_SRS                          "SRS"
 
 #define OUTPUT_ICELL 1000;
+CONST_CHARS_LIST VAR_BEDROCK_KV[] = {
+    "BEDROCK_KV", "vertical saturated hydraulic conductivity of the soil-bedrock interface"};
 #endif
