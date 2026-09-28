@@ -8,6 +8,7 @@
 
 #include "SimulationModule.h"
 
+
 // using namespace std;  // Avoid this statement! by lj.
 
 
@@ -128,6 +129,20 @@ private:
     float *m_infil;
     /// reinfiltration
     float *m_reInfil;
+    // Borrowed shared soil arrays, never freed by IKW_OL.
+    int *m_soilLayers;
+    int m_soilColumns;
+    FLTPT **m_soilTheta;
+    FLTPT **m_soilDepth;
+    FLTPT **m_soilPorosity;
+    FLTPT **m_soilFieldcap;
+    FLTPT m_activeDepth;
+    FLTPT m_activeFraction;
+    double m_reinfilVolume;
+    double m_soilGainVolume;
+    double m_surfaceResidual;
+    double m_budgetVolume;
+    double m_solverSinkVolume;
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
@@ -145,32 +160,5 @@ private:
     float **m_sRadian;
     /// elevation of cells
     FLTPT* m_dem;
-
-    bool m_diagEnabled;
-    double m_diagInitialSurfaceVol;
-    double m_diagUpstreamInflowVol;
-    double m_diagOutflowVol;
-    double m_diagStreamCellQsRawVol;
-    double m_diagReinfilVol;
-    double m_diagPotentialReinfilVol;
-    double m_diagUnusedReinfilCapacityVol;
-    double m_diagUnusedCapacityWithWaterVol;
-    double m_diagWaterBypassedCapacityVol;
-    double m_diagFinalSurfaceVol;
-    double m_diagFinalSurfaceWithUnusedCapacityVol;
-    double m_diagClosureVol;
-    double m_diagStreamInitialSurfaceVol;
-    double m_diagHillslopeInitialSurfaceVol;
-    double m_diagStreamUpstreamInflowVol;
-    double m_diagHillslopeUpstreamInflowVol;
-    double m_diagStreamOutflowVol;
-    double m_diagHillslopeOutflowVol;
-    double m_diagStreamFinalSurfaceVol;
-    double m_diagHillslopeFinalSurfaceVol;
-    int m_diagCellCount;
-    int m_diagStreamCellCount;
-    int m_diagHillslopeCellCount;
-    int m_diagStreamWaterCells;
-    int m_diagHillslopeWaterCells;
 };
 #endif /* SEIMS_IKW_OL_H */

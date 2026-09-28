@@ -27,7 +27,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_HillSlopeTimeStep[0], UNIT_SECOND, Tag_HillSlopeTimeStep[1], File_Input, DT_SingleInt);
 
     mdi.AddParameter(VAR_POROST[0], UNIT_NON_DIM, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_LEN_M, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_CLAY[0], UNIT_PERCENT, VAR_CLAY[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SAND[0], UNIT_PERCENT, VAR_SAND[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
@@ -35,23 +35,14 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_FIELDCAP[0], UNIT_VOL_FRA_M3M3, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
     mdi.AddParameter("INFIL_FACTOR", UNIT_NON_DIM,
-                     "Infiltration reduction factor for diagnostic runoff experiments",
-                     Source_ParameterDB_Optional, DT_Single);
+        "Optional multiplier on Green-Ampt potential infiltration",
+        Source_ParameterDB_Optional, DT_Single);
     mdi.AddParameter("ACTIVE_DEPTH_MAX", UNIT_DEPTH_MM,
-                     "Maximum active wetting front depth for storm infiltration",
-                     Source_ParameterDB_Optional, DT_Single);
-    mdi.AddParameter("MOIST_IN_REF", UNIT_NON_DIM,
-                     "Reference for MOIST_IN initialization: 0 field capacity, 1 porosity",
-                     Source_ParameterDB_Optional, DT_Single);
-    mdi.AddParameter("GA_ACC_RECOVERY_RATE", UNIT_WTRDLT_MMH,
-                     "Dry-period recovery rate of Green-Ampt cumulative infiltration",
-                     Source_ParameterDB_Optional, DT_Single);
-    mdi.AddParameter("GA_ACC_RECOVERY_DELAY", UNIT_HOUR,
-                     "Continuous dry duration before Green-Ampt cumulative infiltration recovery starts",
-                     Source_ParameterDB_Optional, DT_Single);
-    mdi.AddParameter("GA_STATE_RECOVERY_FACTOR", UNIT_NON_DIM,
-                     "Fraction of Green-Ampt cumulative infiltration memory recovered from current soil water state",
-                     Source_ParameterDB_Optional, DT_Single);
+        "Optional maximum active soil depth participating in storm infiltration",
+        Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("ACTIVE_STORAGE_FRACTION", UNIT_NON_DIM,
+        "Optional active-layer storage target between field capacity (0) and porosity (1)",
+        Source_ParameterDB_Optional, DT_Single);
 
     mdi.AddInput(VAR_TMEAN[0], UNIT_TEMP_DEG, VAR_TMEAN[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_NEPR[0], UNIT_DEPTH_MM, VAR_NEPR[1], Source_Module, DT_Raster1D);

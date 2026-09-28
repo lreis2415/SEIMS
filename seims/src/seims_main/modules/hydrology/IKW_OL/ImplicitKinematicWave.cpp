@@ -1,9 +1,10 @@
 #include "ImplicitKinematicWave.h"
 #include "ImplicitKinematicWave.h"
 #include "text.h"
-
-#include <cstdlib>
+#include "ConservativeInfiltration.h"
 #include <fstream>
+#include <iomanip>
+#include <limits>
 
 // using namespace std;  // Avoid this statement! by lj.
 
@@ -16,30 +17,12 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_sRadian(NULL), m_vel(NULL), m_reInfil(NULL),
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
-                                                           m_infil(NULL), m_dtStorm(-1.0f),m_dem(NULL), m_chWidth(NULL),
-                                                           m_diagEnabled(false), m_diagInitialSurfaceVol(0.0),
-                                                           m_diagUpstreamInflowVol(0.0), m_diagOutflowVol(0.0),
-                                                           m_diagStreamCellQsRawVol(0.0), m_diagReinfilVol(0.0),
-                                                           m_diagPotentialReinfilVol(0.0),
-                                                           m_diagUnusedReinfilCapacityVol(0.0),
-                                                           m_diagUnusedCapacityWithWaterVol(0.0),
-                                                           m_diagWaterBypassedCapacityVol(0.0),
-                                                           m_diagFinalSurfaceVol(0.0),
-                                                           m_diagFinalSurfaceWithUnusedCapacityVol(0.0),
-                                                           m_diagClosureVol(0.0),
-                                                           m_diagStreamInitialSurfaceVol(0.0),
-                                                           m_diagHillslopeInitialSurfaceVol(0.0),
-                                                           m_diagStreamUpstreamInflowVol(0.0),
-                                                           m_diagHillslopeUpstreamInflowVol(0.0),
-                                                           m_diagStreamOutflowVol(0.0),
-                                                           m_diagHillslopeOutflowVol(0.0),
-                                                           m_diagStreamFinalSurfaceVol(0.0),
-                                                           m_diagHillslopeFinalSurfaceVol(0.0),
-                                                           m_diagCellCount(0),
-                                                           m_diagStreamCellCount(0),
-                                                           m_diagHillslopeCellCount(0),
-                                                           m_diagStreamWaterCells(0),
-                                                           m_diagHillslopeWaterCells(0) {
+                                                           m_infil(NULL), m_dtStorm(-1.0f), m_dem(NULL), m_chWidth(NULL),
+                                                           m_soilLayers(nullptr), m_soilColumns(0),
+                                                           m_soilTheta(nullptr), m_soilDepth(nullptr),
+                                                           m_soilPorosity(nullptr), m_soilFieldcap(nullptr),
+                                                           m_activeDepth(0), m_activeFraction(1),
+                                                           m_reinfilVolume(0), m_soilGainVolume(0), m_surfaceResidual(0) {
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
@@ -54,6 +37,20 @@ ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
 }
 
 bool ImplicitKinematicWave_OL::CheckInputData(void) {
+    if (!m_soilLayers || !m_soilTheta || !m_soilDepth || !m_soilPorosity ||
+        !m_soilFieldcap || !m_infil || !m_infilCapacitySurplus || m_soilColumns <= 0) {
+        throw ModelException(M_IKW_OL[0], "CheckInputData", "Missing reinfiltration soil state");
+    }
+    if (m_activeDepth <= 0 && m_activeFraction != 1) {
+        throw ModelException(M_IKW_OL[0], "CheckInputData", "Full-profile non-default target needs SUR_SGA audit");
+    }
+    for (int i = 0; i < m_nCells; ++i) {
+        if (m_soilLayers[i] <= 0 || m_soilLayers[i] > m_soilColumns) {
+            throw ModelException(M_IKW_OL[0], "CheckInputData", "Invalid soil layer count");
+        }
+        conservative_infiltration::Capacity(m_soilLayers[i], m_soilDepth[i], m_soilPorosity[i],
+            m_soilFieldcap[i], m_soilTheta[i], m_activeDepth, m_activeFraction);
+    }
     if (m_date <= 0) {
         throw ModelException(M_IKW_OL[0], "CheckInputData", "You have not set the Date variable.");
     }
@@ -176,6 +173,10 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
                 int nextCell = m_flowOutIdx[i][j];
                                 float s0 = 0.0f;
 
+                if (m_dem[i] <= m_dem[nextCell]) {
+                    s0 = MIN_SLOPE;
+                }
+
                 float deltaZ = m_dem[i] - m_dem[nextCell];
 
                 float horizontalDist = m_CellWidth;
@@ -185,7 +186,7 @@ void ImplicitKinematicWave_OL:: InitialOutputs() {
                 }
 
                 if (horizontalDist > 0) {
-                    s0 = Max(deltaZ / horizontalDist, MIN_SLOPE);
+                    s0 = deltaZ / horizontalDist;
                 }
 
                 if (FloatEqual(s0, 0.0f)) {
@@ -239,8 +240,6 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
     float fQkx; //function
     float dfQkx;  //derivative
     const float _epsilon = 1e-12f;
-    const float _relEpsilon = 1e-6f;
-    const int maxIters = 50;
     const float beta = 0.6f;
 
     /* if no input then output = 0 */
@@ -278,14 +277,10 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
         Qkx = Max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (Abs(fQkx) > Max(_epsilon, _relEpsilon * Max(Abs(C), 1.f)) &&
-             count < maxIters);
+    } while (Abs(fQkx) > _epsilon && count < MAX_ITERS_KW);
 
     if (Qkx != Qkx) {
         throw ModelException(M_IKW_OL[0], "GetNewQ", "Error in iteration!");
-    }
-    if (Qkx < 0.f) {
-        return 0.f;
     }
 
     //itercount = count;
@@ -295,16 +290,10 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
 // end code form LISEM
 
 void ImplicitKinematicWave_OL::OverlandFlow(int id) {
+    m_reInfil[id] = 0.f;
     const float beta = 0.6f;
     float beta1 = 1.0f / beta;
     float h = m_sr[id] / 1000.f;
-    const float cellAreaDiag = m_CellWidth * m_CellWidth;
-    const double initialSurfaceVolDiag = h * cellAreaDiag;
-    float potentialInfilVol = 0.f;
-    if (m_infilCapacitySurplus != NULL && m_infilCapacitySurplus[id] > 0) {
-        potentialInfilVol = m_infilCapacitySurplus[id] / 1000.f * cellAreaDiag;
-    }
-    const bool isStreamCell = m_streamLink != NULL && m_streamLink[id] > 0;
 
     //debug
     const int DEBUG_ID = 2988; 
@@ -418,44 +407,6 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         m_qs[id][0] = qUp;
         m_sr[id] = 0.f;
 
-        if (m_diagEnabled) {
-            const double qUpVol = qUp * m_dtStorm;
-            const double qOutVol = qUp * m_dtStorm;
-            const double unusedCapacity = Max(static_cast<double>(potentialInfilVol), 0.0);
-            m_diagInitialSurfaceVol += initialSurfaceVolDiag;
-            m_diagUpstreamInflowVol += qUpVol;
-            m_diagOutflowVol += qOutVol;
-            if (m_streamLink[id] > 0) {
-                m_diagStreamCellQsRawVol += qOutVol;
-            }
-            m_diagPotentialReinfilVol += potentialInfilVol;
-            m_diagUnusedReinfilCapacityVol += unusedCapacity;
-            if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                m_diagUnusedCapacityWithWaterVol += unusedCapacity;
-                m_diagWaterBypassedCapacityVol += qOutVol;
-            }
-            m_diagFinalSurfaceVol += 0.0;
-            m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol;
-            m_diagCellCount++;
-            if (isStreamCell) {
-                m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
-                m_diagStreamUpstreamInflowVol += qUpVol;
-                m_diagStreamOutflowVol += qOutVol;
-                m_diagStreamCellCount++;
-                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                    m_diagStreamWaterCells++;
-                }
-            } else {
-                m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
-                m_diagHillslopeUpstreamInflowVol += qUpVol;
-                m_diagHillslopeOutflowVol += qOutVol;
-                m_diagHillslopeCellCount++;
-                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                    m_diagHillslopeWaterCells++;
-                }
-            }
-        }
-
         //debug
         std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
                                      1189, 1188, 1187, 1186, 1185,
@@ -486,37 +437,6 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
             m_qs[id][j] = 0.f;
         }
         if (m_reInfil != NULL) m_reInfil[id] = 0.f;
-
-        if (m_diagEnabled) {
-            const double qUpVol = qUp * m_dtStorm;
-            const double unusedCapacity = Max(static_cast<double>(potentialInfilVol), 0.0);
-            m_diagInitialSurfaceVol += initialSurfaceVolDiag;
-            m_diagUpstreamInflowVol += qUpVol;
-            m_diagOutflowVol += 0.0;
-            m_diagPotentialReinfilVol += potentialInfilVol;
-            m_diagUnusedReinfilCapacityVol += unusedCapacity;
-            if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                m_diagUnusedCapacityWithWaterVol += unusedCapacity;
-            }
-            m_diagFinalSurfaceVol += 0.0;
-            m_diagClosureVol += initialSurfaceVolDiag + qUpVol;
-            m_diagCellCount++;
-            if (isStreamCell) {
-                m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
-                m_diagStreamUpstreamInflowVol += qUpVol;
-                m_diagStreamCellCount++;
-                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                    m_diagStreamWaterCells++;
-                }
-            } else {
-                m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
-                m_diagHillslopeUpstreamInflowVol += qUpVol;
-                m_diagHillslopeCellCount++;
-                if (initialSurfaceVolDiag + qUpVol > 1.e-12) {
-                    m_diagHillslopeWaterCells++;
-                }
-            }
-        }
 
         //debug
         std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
@@ -558,8 +478,16 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     float totalLeftoverVolume = 0.f;
     //float totalInflowVolume = 0.f;
 
-    float cellArea = cellAreaDiag;
+
+    float cellArea = m_CellWidth * m_CellWidth;
+
+
     float initialVolume = h * cellArea;
+    const double soilCapacity = conservative_infiltration::Capacity(m_soilLayers[id],
+        m_soilDepth[id], m_soilPorosity[id], m_soilFieldcap[id], m_soilTheta[id],
+        m_activeDepth, m_activeFraction);
+    const double effectiveCapacity = std::min(std::max(0., static_cast<double>(m_infilCapacitySurplus[id])), soilCapacity);
+    m_budgetVolume += effectiveCapacity / 1000. * cellArea;
 
     ////debug
     //if (isDebugCell) {
@@ -569,17 +497,12 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     for (int j = 1; j <= numOutflows; ++j) {
         float qUp_j = qUp * m_flowOutFrac[id][j];
 
-        // calcluate infiltration surplus (m2/s)
-        float surplus = 0.f;
-        if (m_infilCapacitySurplus != NULL) {
-            //if (isDebugCell) {
-            //    std::cout << "  m_infilCapacitySurplus: " << m_infilCapacitySurplus[id] << std::endl;
-            //}
-            float validCapacity = (m_infilCapacitySurplus[id] > 0.f) ? m_infilCapacitySurplus[id] : 0.f;
-            surplus = -validCapacity / 1000.f * m_flowWidth[id][j] / m_dtStorm;
-        }
-
-        float surplus_j = surplus * m_flowOutFrac[id][j];
+        // Convert the allocated cell budget (m3) to a line sink (m2/s).
+        // dx * dt * -surplus must recover that same volume, including on
+        // steep/diagonal paths and cells with reduced overland flow width.
+        const float surplus_j = static_cast<float>(-effectiveCapacity / 1000. * cellArea *
+            m_flowOutFrac[id][j] / (static_cast<double>(m_flowLen[id][j]) * m_dtStorm));
+        m_solverSinkVolume -= static_cast<double>(surplus_j) * m_flowLen[id][j] * m_dtStorm;
 
 
         //calculate total potential outflow qIn based on Manning's equation using average alpha
@@ -632,21 +555,26 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     // re-infiltraction
     float reInfilVol = 0.f;
-    if (potentialInfilVol > 0 && totalLeftoverVolume > 0) {
-        if (totalLeftoverVolume >= potentialInfilVol) {
-            reInfilVol = potentialInfilVol;
-            totalLeftoverVolume -= potentialInfilVol;
-        }
-        else {
-            reInfilVol = totalLeftoverVolume;
-            totalLeftoverVolume = 0.f;
-        }
+    const double request = std::min(effectiveCapacity,
+        std::max(0., static_cast<double>(totalLeftoverVolume)) / cellArea * 1000.);
+    const double accepted = conservative_infiltration::Accept(m_soilLayers[id],
+        m_soilDepth[id], m_soilPorosity[id], m_soilFieldcap[id], m_soilTheta[id],
+        m_activeDepth, m_activeFraction, request);
+    const double tolerance = 8 * std::numeric_limits<FLTPT>::epsilon() * m_soilDepth[id][m_soilLayers[id] - 1];
+    if (request - accepted > tolerance) {
+        throw ModelException(M_IKW_OL[0], "OverlandFlow", "Soil rejected pre-limited infiltration");
     }
+    reInfilVol = static_cast<float>(accepted / 1000. * cellArea);
+    totalLeftoverVolume -= reInfilVol;
+    m_soilGainVolume += accepted / 1000. * cellArea;
+    m_reinfilVolume += reInfilVol;
 
     if (totalLeftoverVolume < 0.f) totalLeftoverVolume = 0.f;
 
     float hNew = (cellArea > 0) ? (totalLeftoverVolume / cellArea) : 0.f;
     m_sr[id] = hNew * 1000.f;
+    m_surfaceResidual += initialVolume + static_cast<double>(qUp) * m_dtStorm -
+        static_cast<double>(qNewTotal) * m_dtStorm - reInfilVol - m_sr[id] / 1000. * cellArea;
 
     float totalOutflowVolume = qNewTotal * m_dtStorm;
 
@@ -695,54 +623,6 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
     m_reInfil[id] = reInfil;
 
-    if (m_diagEnabled) {
-        const double qUpVol = qUp * m_dtStorm;
-        const double qOutVol = qNewTotal * m_dtStorm;
-        const double finalSurfaceVol = totalLeftoverVolume;
-        const double unusedCapacity = Max(static_cast<double>(potentialInfilVol - reInfilVol), 0.0);
-        const double availableWater = initialSurfaceVolDiag + qUpVol;
-        m_diagInitialSurfaceVol += initialSurfaceVolDiag;
-        m_diagUpstreamInflowVol += qUpVol;
-        m_diagOutflowVol += qOutVol;
-        if (m_streamLink[id] > 0) {
-            m_diagStreamCellQsRawVol += qOutVol;
-        }
-        m_diagReinfilVol += reInfilVol;
-        m_diagPotentialReinfilVol += potentialInfilVol;
-        m_diagUnusedReinfilCapacityVol += unusedCapacity;
-        if (availableWater > 1.e-12) {
-            m_diagUnusedCapacityWithWaterVol += unusedCapacity;
-            if (unusedCapacity > 1.e-12) {
-                m_diagWaterBypassedCapacityVol += qOutVol;
-            }
-        }
-        m_diagFinalSurfaceVol += finalSurfaceVol;
-        if (unusedCapacity > 1.e-12) {
-            m_diagFinalSurfaceWithUnusedCapacityVol += finalSurfaceVol;
-        }
-        m_diagClosureVol += initialSurfaceVolDiag + qUpVol - qOutVol -
-                             reInfilVol - finalSurfaceVol;
-        m_diagCellCount++;
-        if (isStreamCell) {
-            m_diagStreamInitialSurfaceVol += initialSurfaceVolDiag;
-            m_diagStreamUpstreamInflowVol += qUpVol;
-            m_diagStreamOutflowVol += qOutVol;
-            m_diagStreamFinalSurfaceVol += finalSurfaceVol;
-            m_diagStreamCellCount++;
-            if (availableWater > 1.e-12) {
-                m_diagStreamWaterCells++;
-            }
-        } else {
-            m_diagHillslopeInitialSurfaceVol += initialSurfaceVolDiag;
-            m_diagHillslopeUpstreamInflowVol += qUpVol;
-            m_diagHillslopeOutflowVol += qOutVol;
-            m_diagHillslopeFinalSurfaceVol += finalSurfaceVol;
-            m_diagHillslopeCellCount++;
-            if (availableWater > 1.e-12) {
-                m_diagHillslopeWaterCells++;
-            }
-        }
-    }
 
    
     // compute to channel flow
@@ -779,36 +659,9 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 
 int ImplicitKinematicWave_OL::Execute() {
     InitialOutputs();
+    m_reinfilVolume = m_soilGainVolume = m_surfaceResidual = 0.;
+    m_budgetVolume = m_solverSinkVolume = 0.;
     //std::cout << "    m_date " << m_date << std::endl;
-    const char* diagEnv = std::getenv("SEIMS_WB_DIAG");
-    m_diagEnabled = diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty();
-    if (m_diagEnabled) {
-        m_diagInitialSurfaceVol = 0.0;
-        m_diagUpstreamInflowVol = 0.0;
-        m_diagOutflowVol = 0.0;
-        m_diagStreamCellQsRawVol = 0.0;
-        m_diagReinfilVol = 0.0;
-        m_diagPotentialReinfilVol = 0.0;
-        m_diagUnusedReinfilCapacityVol = 0.0;
-        m_diagUnusedCapacityWithWaterVol = 0.0;
-        m_diagWaterBypassedCapacityVol = 0.0;
-        m_diagFinalSurfaceVol = 0.0;
-        m_diagFinalSurfaceWithUnusedCapacityVol = 0.0;
-        m_diagClosureVol = 0.0;
-        m_diagStreamInitialSurfaceVol = 0.0;
-        m_diagHillslopeInitialSurfaceVol = 0.0;
-        m_diagStreamUpstreamInflowVol = 0.0;
-        m_diagHillslopeUpstreamInflowVol = 0.0;
-        m_diagStreamOutflowVol = 0.0;
-        m_diagHillslopeOutflowVol = 0.0;
-        m_diagStreamFinalSurfaceVol = 0.0;
-        m_diagHillslopeFinalSurfaceVol = 0.0;
-        m_diagCellCount = 0;
-        m_diagStreamCellCount = 0;
-        m_diagHillslopeCellCount = 0;
-        m_diagStreamWaterCells = 0;
-        m_diagHillslopeWaterCells = 0;
-    }
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -820,57 +673,19 @@ int ImplicitKinematicWave_OL::Execute() {
             OverlandFlow(id);
         }
     }
-
-    if (m_diagEnabled) {
-        const string diagPath = m_outpath + SEP + "IKW_OL_balance.csv";
-        std::ifstream existing(diagPath.c_str());
-        const bool needHeader = !existing.good();
+    const char* diag = std::getenv("SEIMS_REINFIL_DIAG");
+    if (diag && string(diag) != "0" && !m_outpath.empty()) {
+        const string path = m_outpath + SEP + "REINFIL_balance.csv";
+        std::ifstream existing(path.c_str());
+        const bool header = !existing.good();
         existing.close();
-        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
-        if (fs.is_open()) {
-            if (needHeader) {
-                fs << "time,ncells,initial_surface_m3,upstream_inflow_m3,"
-                   << "outflow_m3,stream_cell_qs_raw_m3,reinfiltration_m3,"
-                   << "potential_reinfiltration_m3,unused_reinfil_capacity_m3,"
-                   << "unused_capacity_with_water_m3,water_bypassed_capacity_m3,"
-                   << "final_surface_m3,final_surface_with_unused_capacity_m3,"
-                   << "stream_initial_surface_m3,hillslope_initial_surface_m3,"
-                   << "stream_upstream_inflow_m3,hillslope_upstream_inflow_m3,"
-                   << "stream_outflow_m3,hillslope_outflow_m3,"
-                   << "stream_final_surface_m3,hillslope_final_surface_m3,"
-                   << "stream_cell_count,hillslope_cell_count,"
-                   << "stream_water_cells,hillslope_water_cells,"
-                   << "closure_m3\n";
-            }
-            fs << ConvertToString2(m_date) << ","
-               << m_diagCellCount << ","
-               << m_diagInitialSurfaceVol << ","
-               << m_diagUpstreamInflowVol << ","
-               << m_diagOutflowVol << ","
-               << m_diagStreamCellQsRawVol << ","
-               << m_diagReinfilVol << ","
-               << m_diagPotentialReinfilVol << ","
-               << m_diagUnusedReinfilCapacityVol << ","
-               << m_diagUnusedCapacityWithWaterVol << ","
-               << m_diagWaterBypassedCapacityVol << ","
-               << m_diagFinalSurfaceVol << ","
-               << m_diagFinalSurfaceWithUnusedCapacityVol << ","
-               << m_diagStreamInitialSurfaceVol << ","
-               << m_diagHillslopeInitialSurfaceVol << ","
-               << m_diagStreamUpstreamInflowVol << ","
-               << m_diagHillslopeUpstreamInflowVol << ","
-               << m_diagStreamOutflowVol << ","
-               << m_diagHillslopeOutflowVol << ","
-               << m_diagStreamFinalSurfaceVol << ","
-               << m_diagHillslopeFinalSurfaceVol << ","
-               << m_diagStreamCellCount << ","
-               << m_diagHillslopeCellCount << ","
-               << m_diagStreamWaterCells << ","
-               << m_diagHillslopeWaterCells << ","
-               << m_diagClosureVol << "\n";
-        }
+        std::ofstream output(path.c_str(), std::ios::app);
+        if (!output) { throw ModelException(M_IKW_OL[0], "Execute", "Cannot write reinfiltration audit"); }
+        if (header) { output << "time,reinfiltration_m3,soil_gain_m3,writeback_residual_m3,surface_normal_branch_residual_m3,budget_m3,solver_sink_m3\n"; }
+        output << std::setprecision(17) << ConvertToString2(m_date) << "," << m_reinfilVolume << "," << m_soilGainVolume
+               << "," << m_soilGainVolume - m_reinfilVolume << "," << m_surfaceResidual
+               << "," << m_budgetVolume << "," << m_solverSinkVolume << "\n";
     }
-
     return 0;
 }
 
@@ -897,6 +712,10 @@ void ImplicitKinematicWave_OL::SetValue(const char *key, FLTPT data) {
     string sk(key);
     if  (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = data;
+    } else if (StringMatch(sk, "ACTIVE_DEPTH_MAX")) {
+        m_activeDepth = data;
+    } else if (StringMatch(sk, "ACTIVE_STORAGE_FRACTION")) {
+        m_activeFraction = data;
     }else {
         throw ModelException(M_IKW_OL[0], "SetSingleData", "Parameter " + sk
                              + " does not exist.");
@@ -953,6 +772,8 @@ void ImplicitKinematicWave_OL::Set1DData(const char* key, int n, int* data) {
     string sk(key);
     if (StringMatch(sk, VAR_STREAM_LINK[0])) {
      m_streamLink = data;
+    } else if (StringMatch(sk, VAR_SOILLAYERS[0])) {
+        m_soilLayers = data;
     }
 
     else {
@@ -1017,6 +838,19 @@ void ImplicitKinematicWave_OL::Set2DData(const char *key, int nrows, int ncols, 
     //check the input data
     //m_nLayers = nrows;
     string sk(key);
+    if (StringMatch(sk, VAR_SOL_ST[0]) || StringMatch(sk, VAR_SOILDEPTH[0]) ||
+        StringMatch(sk, VAR_POROST[0]) || StringMatch(sk, VAR_FIELDCAP[0])) {
+        if (!CheckInputSize(key, nrows) || !data || ncols <= 0 ||
+            (m_soilColumns > 0 && m_soilColumns != ncols)) {
+            throw ModelException(M_IKW_OL[0], "Set2DData", "Inconsistent soil array dimensions");
+        }
+        m_soilColumns = ncols;
+        if (StringMatch(sk, VAR_SOL_ST[0])) m_soilTheta = data;
+        else if (StringMatch(sk, VAR_SOILDEPTH[0])) m_soilDepth = data;
+        else if (StringMatch(sk, VAR_POROST[0])) m_soilPorosity = data;
+        else m_soilFieldcap = data;
+        return;
+    }
     if (StringMatch(sk, Tag_FLOWIN_FRACTION[0])) {
         m_flowInFrac = data;
     }

@@ -13,7 +13,7 @@
 
 
 #include "SimulationModule.h"
-
+#define IS_DEBUG 1
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
  * \brief  Green-Ampt Method to calculate infiltration and excess precipitation
@@ -74,39 +74,17 @@ private:
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
-    /// Calculate the active storm infiltration depth (mm)
-    float CalculateWettingFrontDepth(int cell);
+    /// Calculate current pore-space deficit used as the infiltration capacity (mm).
+    float CalculateInfiltrationCapacity(int cell) const;
 
-    /// Calculate remaining event-scale pore deficit within the active depth (mm)
-    float CalculateActiveInfilCap(int cell, float activeDepth);
-
-    /// Calculate current and event-reference storage deficits inside the active depth (mm)
-    void CalculateActiveStorage(int cell, float activeDepth, float& dynamicStorage, float& eventStorage);
-
-    /// Redistribute Green-Ampt event memory during rainfall breaks (mm)
-    float RedistributeAccumulatedInfiltration(int cell, float activeDepth, float dt, bool canRedistribute,
-                                              float* activeLayerDrain);
-
-    /// Drain event water from the active wetting front into deeper soil layers (mm)
-    float RedistributeActiveLayerWater(int cell, float activeDepth, float maxRedistribution);
-
-    /// Calculate initial volumetric soil water content for a layer
-    float CalculateInitialSoilWater(int cell, int layer);
-
-    /// Add infiltration water to soil layers within the active wetting front depth
-    void AddInfiltrationToSoil(int cell, float infiltration, float activeDepth);
+    /// Add infiltration water to soil layers while respecting the active depth (mm).
+    double AddInfiltrationToSoil(int cell, float infiltration);
 
     // Parameters from database
     float m_dt;             ///< time step (seconds)
     int m_nCells;           ///< valid cells number
     float m_tSnow;          ///< snow fall temperature
     float m_t0;             ///< snow melt threshold temperature
-    float m_infilFactor;    ///< infiltration reduction factor, default 1.0
-    float m_activeDepthMax; ///< maximum active wetting front depth (mm)
-    float m_moistureReference; ///< 0: MOIST_IN relative to FC; 1: relative to porosity
-    float m_accumuRecoveryRate; ///< dry-period recovery rate of Green-Ampt cumulative infiltration (mm/h)
-    float m_accumuRecoveryDelay; ///< dry duration before recovery starts (h)
-    float m_stateRecoveryFactor; ///< fraction of dry-period state-based Green-Ampt memory recovery (0-1)
     int m_maxSoilLyrs;      ///< maximum soil layers, mlyr in SWAT
     int* m_nSoilLyrs;     ///< soil layers
     float** m_soilDepth;    ///< root depth
@@ -114,6 +92,9 @@ private:
     float** m_soilClay;     ///< percent of clay content
     float** m_soilSand;     ///< percent of sand content
     float** m_ks;           ///< saturated hydraulic conductivity
+    float m_infilFactor;           ///< optional multiplier on potential infiltration
+    float m_activeDepthMax;        ///< optional maximum active infiltration depth (mm)
+    float m_activeStorageFraction; ///< active storage target between field capacity and porosity
     ///< initial soil water storage fraction related to field capacity (FC-WP)
     float* m_initSoilWtrStoRatio;
     //float** m_soilWtrSto;   ///< initial soil moisture
@@ -129,8 +110,7 @@ private:
 
     // intermediate variables
     float* m_capillarySuction; ///< Soil Capillary Suction Head (m)
-    float* m_accumuDepth;      ///< cumulative infiltration depth (mm)
-    float* m_dryDuration;      ///< continuous dry duration (s)
+    float* m_accumuDepth;      ///< cumulative infiltration depth (m)
 
     // Outputs
     float** m_soilWtrSto; ///< soil moisture

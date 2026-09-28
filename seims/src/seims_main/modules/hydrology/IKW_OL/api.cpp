@@ -46,6 +46,14 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_INFILCAPSURPLUS[0], UNIT_DEPTH_MM, VAR_INFILCAPSURPLUS[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_INFIL[0], UNIT_DEPTH_MM, VAR_INFIL[1], Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_ACC_INFIL[0], UNIT_DEPTH_MM, VAR_ACC_INFIL[1], Source_Module, DT_Raster1D);
+    // Storm SOL_ST is volumetric moisture despite its legacy metadata unit.
+    mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILLAYERS[0], UNIT_NON_DIM, VAR_SOILLAYERS[1], Source_ParameterDB, DT_Raster1DInt);
+    mdi.AddParameter(VAR_SOILDEPTH[0], UNIT_DEPTH_MM, VAR_SOILDEPTH[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_POROST[0], UNIT_NON_DIM, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_FIELDCAP[0], UNIT_NON_DIM, VAR_FIELDCAP[1], Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter("ACTIVE_DEPTH_MAX", UNIT_DEPTH_MM, "Active infiltration depth", Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("ACTIVE_STORAGE_FRACTION", UNIT_NON_DIM, "Storage target between FC and porosity", Source_ParameterDB_Optional, DT_Single);
 
     mdi.AddOutput(VAR_QOVERLAND[0], UNIT_FLOW_CMS, VAR_QOVERLAND[1], DT_Array2D);
     mdi.AddOutput(VAR_Reinfiltration[0], UNIT_DEPTH_MM, VAR_Reinfiltration[1], DT_Raster1D);
