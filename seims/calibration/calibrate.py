@@ -16,6 +16,7 @@ from collections import OrderedDict
 import json
 import os
 import re
+import shutil
 import sys
 from copy import deepcopy
 
@@ -359,6 +360,19 @@ def calibration_objectives(cali_obj, ind):
 
     # Get timespan
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
+
+    # Optional one-sample audit hook. It is disabled in normal calibration and
+    # lets an event launcher preserve the exact effective parameter file before
+    # the standard workflow removes each model-output directory.
+    snapshot_dir = os.environ.get('SEIMS_CALI_SNAPSHOT_DIR')
+    snapshot_id = int(os.environ.get('SEIMS_CALI_SNAPSHOT_ID', '-1'))
+    snapshot_gen = int(os.environ.get('SEIMS_CALI_SNAPSHOT_GEN', '-1'))
+    if (snapshot_dir and ind.id == snapshot_id and ind.gen == snapshot_gen):
+        destination = os.path.join(
+            snapshot_dir, 'gen%d_id%d' % (ind.gen, ind.id))
+        if os.path.isdir(destination):
+            shutil.rmtree(destination)
+        shutil.copytree(model_obj.output_dir, destination)
 
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)

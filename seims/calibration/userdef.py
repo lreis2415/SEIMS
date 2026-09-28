@@ -39,11 +39,36 @@ from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 
 
 
+def output_parameter_population(pops, outdir, gen_num, parameter_names):
+    """Persist one selected population's parameters and fitness as JSON."""
+    names = tuple(parameter_names)
+    rows = []
+    for individual in pops:
+        values = [float(value) for value in individual]
+        if len(values) != len(names):
+            raise ValueError(
+                'Parameter names and individual values have different lengths.')
+        rows.append({
+            'generation': int(individual.gen),
+            'id': int(individual.id),
+            'parameters': dict(zip(names, values)),
+            'fitness': [float(value) for value in individual.fitness.values],
+        })
+    path = os.path.join(outdir, 'gen%d_parameters.json' % gen_num)
+    with open(path, 'w', encoding='utf-8') as stream:
+        json.dump(rows, stream, indent=2)
+    return path
+
+
 def output_population_details(pops, outdir, gen_num,
+                              parameter_names=None,
                               plot_cfg=None  # type: Optional[PlotConfig]
                               ):
     """Output population details, i.e., the simulation data, etc."""
     # Save as json, which can be loaded by json.load()
+    if parameter_names is not None:
+        output_parameter_population(
+            pops, outdir, gen_num, parameter_names)
     # 1. Save the time series simulation data of the entire simulation period
     all_sim_data = list()
     pickle_file = outdir + os.path.sep + 'gen%d_allSimData.pickle' % gen_num

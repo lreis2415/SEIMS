@@ -140,6 +140,44 @@ toolbox.register('mutate', tools.mutPolynomialBounded)
 toolbox.register('select', tools.selNSGA2)
 
 
+def inject_initial_anchor(param_values, param_defs, anchor_path=None):
+    """Replace the first LHS members with validated external anchors."""
+    anchor_path = anchor_path or os.environ.get('SEIMS_CALI_ANCHOR_FILE')
+    if not anchor_path:
+        return param_values
+    with open(anchor_path, 'r') as stream:
+        payload = json.load(stream)
+    expected_names = list(param_defs['names'])
+    if list(payload.get('names', [])) != expected_names:
+        raise ValueError(
+            'Calibration anchor parameter order does not match the range file.')
+    raw_vectors = payload.get('vectors')
+    if raw_vectors is None:
+        raw_vectors = [payload.get('values', [])]
+    vectors = [[float(value) for value in values]
+               for values in raw_vectors]
+    if not vectors:
+        raise ValueError('Calibration anchor file contains no vectors.')
+    if len(vectors) > len(param_values):
+        raise ValueError('Calibration anchors exceed the population size.')
+    for values in vectors:
+        if len(values) != len(expected_names):
+            raise ValueError('Calibration anchor has the wrong value count.')
+        for name, value, bounds in zip(
+                expected_names, values, param_defs['bounds']):
+            if value < float(bounds[0]) or value > float(bounds[1]):
+                raise ValueError(
+                    'Calibration anchor %s=%s is outside [%s, %s].' %
+                    (name, value, bounds[0], bounds[1]))
+    if not param_values:
+        raise ValueError('Cannot inject an anchor into an empty population.')
+    for index, values in enumerate(vectors):
+        param_values[index] = values
+    scoop_log('Injected %d calibration anchor(s) from %s.' %
+              (len(vectors), anchor_path))
+    return param_values
+
+
 def seed_task_parameter_semantics(database, param_defs, cfg_name, task_name):
     """Copy global adjustment semantics into calibration task overrides.
 
@@ -220,6 +258,8 @@ def main(cfg):
 
     # Initialize population
     param_values = cali_obj.initialize(cfg.opt.npop)
+    param_values = inject_initial_anchor(
+        param_values, cali_obj.ParamDefs)
     pop = list()
     for i in range(cfg.opt.npop):
         ind = creator.Individual(param_values[i])
@@ -300,7 +340,10 @@ def main(cfg):
     # currently, len(pop) may less than pop_select_num
     pop = toolbox.select(pop, pop_select_num)
     # Output simulated data to json or pickle files for future use.
-    output_population_details(pop, cfg.opt.simdata_dir, 0, plot_cfg=cali_obj.cfg.plot_cfg)
+    output_population_details(
+        pop, cfg.opt.simdata_dir, 0,
+        parameter_names=cali_obj.ParamDefs['names'],
+        plot_cfg=cali_obj.cfg.plot_cfg)
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
@@ -382,7 +425,10 @@ def main(cfg):
             pop.append(tmpind)
         pop = toolbox.select(pop, pop_select_num)
 
-        output_population_details(pop, cfg.opt.simdata_dir, gen, plot_cfg=cali_obj.cfg.plot_cfg)
+        output_population_details(
+            pop, cfg.opt.simdata_dir, gen,
+            parameter_names=cali_obj.ParamDefs['names'],
+            plot_cfg=cali_obj.cfg.plot_cfg)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
