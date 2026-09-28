@@ -2,6 +2,8 @@
 #include "Interception_MCS.h"
 
 #include "utils_time.h"
+#include <cstdlib>
+#include <fstream>
 
 clsPI_MCS::clsPI_MCS() :
     m_embnkFr(0.15), m_pcp2CanalFr(0.5), m_landUse(nullptr),
@@ -102,6 +104,19 @@ int clsPI_MCS::Execute() {
     CheckInputData();
     /// initialize outputs
     InitialOutputs();
+    const char* diagEnv = std::getenv("SEIMS_PI_MCS_DIAG");
+    const bool writeDiag = diagEnv != nullptr && string(diagEnv) != "0" &&
+        !m_outpath.empty();
+    const char* traceEnv = std::getenv("SEIMS_TRACE_CSV");
+    const bool traceCsv = traceEnv != nullptr && string(traceEnv) != "0";
+    double diagPcp = 0.;
+    double diagNetPcp = 0.;
+    double diagInterception = 0.;
+    double diagCanopyStorage = 0.;
+    double diagCapacity = 0.;
+    int diagWetCells = 0;
+    int diagCanopyCells = 0;
+    int diagFullCanopyCells = 0;
     std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
                                      1189, 1188, 1187, 1186, 1185,
                                      1294, 1404, 1403, 1513, 1623,
@@ -112,6 +127,7 @@ int clsPI_MCS::Execute() {
     
 //#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+
 
         if (m_pcp[i] > 0.) {
             if (m_stormMode) {
@@ -170,6 +186,25 @@ int clsPI_MCS::Execute() {
             m_canSto[i] -= m_IntcpET[i];
         }
 
+
+        if (writeDiag) {
+            FLTPT degree = 2. * PI * (m_dayOfYear - 87.) * 0.0027397260273972603;
+            FLTPT seasonality = CalPow(0.5 + 0.5 * sin(degree), m_intcpStoCapExp);
+            FLTPT capacity = m_minIntcpStoCap[i] +
+                (m_maxIntcpStoCap[i] - m_minIntcpStoCap[i]) * seasonality;
+            capacity = Max(capacity, 0.);
+            diagPcp += Max(m_pcp[i], 0.);
+            diagNetPcp += Max(m_netPcp[i], 0.);
+            diagInterception += Max(m_intcpLoss[i], 0.);
+            diagCanopyStorage += Max(m_canSto[i], 0.);
+            diagCapacity += capacity;
+            if (m_pcp[i] > UTIL_ZERO) diagWetCells++;
+            if (capacity > UTIL_ZERO) {
+                diagCanopyCells++;
+                if (m_canSto[i] >= capacity - UTIL_ZERO) diagFullCanopyCells++;
+            }
+        }
+
         bool isDebugTarget = false;
         for (int target : targetCells) {
             if (i == target) {
@@ -178,7 +213,7 @@ int clsPI_MCS::Execute() {
             }
         }
 
-        if (isDebugTarget) {
+        if (traceCsv && isDebugTarget) {
             std::cout << "[TRACE_CSV],Step," << stepCount
                 << ",Module,CanopyInterception"
                 << ",Cell," << i
@@ -202,6 +237,28 @@ int clsPI_MCS::Execute() {
     	total_netPcp += m_netPcp[i];
     }
     ave_netPcp = total_netPcp / m_nCells;
+    if (writeDiag) {
+        const string diagPath = m_outpath + SEP + "PI_MCS_diag.csv";
+        std::ifstream existing(diagPath.c_str());
+        const bool needHeader = !existing.good();
+        existing.close();
+        std::ofstream fs(diagPath.c_str(), std::ios::out | std::ios::app);
+        if (fs.is_open()) {
+            if (needHeader) {
+                fs << "time,ncells,wet_cells,canopy_cells,full_canopy_cells,"
+                   << "full_canopy_fraction,pcp_mm_cell,net_pcp_mm_cell,"
+                   << "interception_mm_cell,canopy_storage_mm_cell,"
+                   << "capacity_mm_cell\n";
+            }
+            const double canopyDenominator = Max(diagCanopyCells, 1);
+            fs << ConvertToString2(m_date) << "," << m_nCells << ","
+               << diagWetCells << "," << diagCanopyCells << ","
+               << diagFullCanopyCells << ","
+               << diagFullCanopyCells / canopyDenominator << ","
+               << diagPcp << "," << diagNetPcp << "," << diagInterception << ","
+               << diagCanopyStorage << "," << diagCapacity << "\n";
+        }
+    }
 #ifdef _DEBUG
     // DO NOT try to print all cell's information, only print specific cell ID's info. -LJ
     //cout << "average net precipation: " << ave_netPcp << "mm" << endl;
