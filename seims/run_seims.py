@@ -40,6 +40,8 @@ from io import open
 import math
 import os
 import sys
+import subprocess
+import tempfile
 from shutil import rmtree
 import time
 from typing import Optional, Union, Dict, List, AnyStr
@@ -61,6 +63,35 @@ from preprocess.db_import_model_parameters import read_output_item
 from utility import (read_simulation_from_txt, get_option_value,
                      parse_datetime_from_ini, read_data_items_from_txt)
 from utility import match_simulation_observation, calculate_statistics
+
+
+def run_command_no_pipe(commands):
+    """Run one external command without a captured stdout pipe.
+
+    Native calibration evaluates several SEIMS processes from Python threads.
+    Redirecting every child's combined output to a private temporary file avoids
+    the intermittent inherited-pipe EOF deadlock caused by concurrent ``Popen``
+    calls while retaining the output needed by ``ParseTimespan``.
+    """
+    use_shell = is_string(commands)
+    command = commands
+    if isinstance(commands, list):
+        command = [repr(value) if isinstance(value, (int, float)) else value
+                   for value in commands]
+    with tempfile.TemporaryFile(mode='w+b') as output_stream:
+        with open(os.devnull, 'rb') as input_stream:
+            process = subprocess.Popen(
+                command, shell=use_shell, stdout=output_stream,
+                stdin=input_stream, stderr=subprocess.STDOUT,
+                close_fds=True, env=os.environ.copy())
+            return_code = process.wait()
+        output_stream.seek(0)
+        output = output_stream.read().decode('utf-8', errors='replace')
+    if return_code:
+        raise CalledProcessError(return_code, command, output=output)
+    if '\n' in output:
+        return output.split('\n')
+    return [output]
 
 
 def parse_calibrated_parameter_item(item):
@@ -1013,7 +1044,7 @@ class MainSEIMS(object):
             return self.executed
 
         try:
-            self.runlogs = UtilClass.run_command(self.Command)
+            self.runlogs = run_command_no_pipe(self.Command)
             self.ParseTimespan()
         except CalledProcessError or IOError or Exception as err:
             # 1. SEIMS-based model running failed
