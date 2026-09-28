@@ -68,6 +68,8 @@ public:
 private:
     float GetNewQ(float qIn, float qLast, float surplus, float alpha, float dt, float dx);
 
+    float RouteQsBankStorage(int id, float qIn);
+
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
     void InitialOutputs(void);
@@ -88,6 +90,10 @@ private:
     int m_substeps;
     /// whether channel flow has been initialized from groundwater baseflow
     bool m_channelBaseflowInitialized;
+    /// fraction of overland lateral inflow routed through near-channel storage
+    float m_qsBankStorageRatio;
+    /// near-channel storage residence time for overland lateral inflow (h)
+    float m_qsBankTau;
 
     /// slope (radian)
     float **m_sRadian;
@@ -111,6 +117,8 @@ private:
     float *m_prec;
     /// overland flow to channel (m3/s)
     float **m_qs;
+    /// temporary near-channel storage for the bank-storage fraction of overland flow (m3)
+    float *m_qsBankStorage;
     /// interflow to channel (m3/s)
     float *m_qi;
     /// ground water

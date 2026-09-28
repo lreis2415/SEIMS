@@ -8,11 +8,11 @@
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH() :
     m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_substeps(2),
-    m_channelBaseflowInitialized(false),
+    m_channelBaseflowInitialized(false), m_qsBankStorageRatio(0.f), m_qsBankTau(0.f),
     m_CellWidth(-1.0f), //m_layeringMethod(DOWNUP),
     m_sRadian(nullptr), m_direction(nullptr), m_reachDownStream(nullptr),
     m_chWidth(nullptr),
-    m_qs(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr),
+    m_qs(nullptr), m_qsBankStorage(nullptr), m_hCh(nullptr), m_qCh(nullptr), m_prec(nullptr),
     m_qSubbasin(nullptr), m_qg(nullptr),
     m_flowLen(nullptr), m_qi(nullptr), m_streamLink(nullptr),
     m_sourceCellIds(nullptr),
@@ -29,6 +29,7 @@ ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
 
     Release1DArray(m_sourceCellIds);
     Release1DArray(m_qSubbasin);
+    Release1DArray(m_qsBankStorage);
 }
 
 //---------------------------------------------------------------------------
@@ -97,6 +98,25 @@ float ImplicitKinematicWave_CH::GetNewQ(float qIn, float qLast, float surplus, f
 }
 
 // end code form LISEM
+
+float ImplicitKinematicWave_CH::RouteQsBankStorage(int id, float qIn) {
+    if (m_qsBankStorage == nullptr || m_qsBankStorageRatio <= 0.f ||
+        m_qsBankTau <= 0.f || m_dt <= 0.f) {
+        return Max(qIn, 0.f);
+    }
+
+    const float inflow = Max(qIn, 0.f);
+    const float bankIn = inflow * m_qsBankStorageRatio;
+    const float fastIn = inflow - bankIn;
+    m_qsBankStorage[id] += bankIn * m_dt;
+
+    const float tauSec = Max(m_qsBankTau, 1.e-6f) * 3600.f;
+    const float releaseFraction = Max(0.f, Min(1.f - CalExp(-m_dt / tauSec), 1.f));
+    const float releaseVol = Min(m_qsBankStorage[id], m_qsBankStorage[id] * releaseFraction);
+    m_qsBankStorage[id] = Max(m_qsBankStorage[id] - releaseVol, 0.f);
+
+    return fastIn + releaseVol / m_dt;
+}
 
 bool ImplicitKinematicWave_CH::CheckInputData(void) {
     if (m_date <= 0) {
@@ -226,6 +246,10 @@ void ImplicitKinematicWave_CH:: InitialOutputs() {
         //m_flowLen = new float *[m_chNumber + 1];
 
         m_qSubbasin = new float[m_chNumber + 1];
+        m_qsBankStorage = new float[m_nCells];
+        for (int i = 0; i < m_nCells; ++i) {
+            m_qsBankStorage[i] = 0.f;
+        }
         for (int i = 1; i <= m_chNumber; ++i) {
             int n = CVT_INT(m_reachs[i].size());
             m_hCh[i] = new float[n];
@@ -352,7 +376,7 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
     // Precipitation is a depth over the full step; QS/QI/QG are already flow rates.
     float qLatPrec = (m_prec[id] / m_substeps) / 1000.f * m_chWidth[id] * dx / m_dt;
     float qLatQg = qgEachCell;
-    float qLatQs = m_qs[id][0];
+    float qLatQs = RouteQsBankStorage(id, m_qs[id][0]);
     float qLatQi = 0.f;
     float qLat = qLatPrec + qLatQg + qLatQs;
     if (m_qi != nullptr) {
@@ -521,6 +545,10 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, FLTPT value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth[0])) {
         m_CellWidth = value;
+    } else if (StringMatch(sk, "QS_BANK_STORAGE_RATIO")) {
+        m_qsBankStorageRatio = Max(0.f, Min(value, 1.f));
+    } else if (StringMatch(sk, "QS_BANK_TAU")) {
+        m_qsBankTau = Max(value, 0.f);
     } else {
         throw ModelException(M_IKW_CH[0], "SetValue",
                              "Parameter " + sk + " does not exist.");

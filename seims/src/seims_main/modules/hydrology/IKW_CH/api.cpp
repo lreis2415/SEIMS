@@ -37,6 +37,12 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_STREAM_LINK[0], UNIT_NON_DIM, VAR_STREAM_LINK[1], Source_ParameterDB, DT_Raster1DInt);
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM[0], UNIT_NON_DIM, VAR_REACH_PARAM[1], Source_ParameterDB, DT_Reach);
+    mdi.AddParameter("QS_BANK_STORAGE_RATIO", UNIT_NON_DIM,
+                     "Fraction of overland lateral inflow temporarily stored in near-channel bank storage",
+                     Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter("QS_BANK_TAU", UNIT_HOUR,
+                     "Characteristic release time for near-channel bank storage of overland lateral inflow",
+                     Source_ParameterDB_Optional, DT_Single);
 
     // from other module
     mdi.AddInput(VAR_RadianSlope[0], UNIT_NON_DIM, VAR_RadianSlope[1], Source_Module, DT_Array2D);
