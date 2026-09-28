@@ -59,6 +59,86 @@ from preprocess.text import DBTableNames, ModelCfgUtils, ModelCfgFields, ModelPa
 from run_seims import ParseSEIMSConfig, create_run_model
 
 
+def hydrograph_signature_objectives(sim_obs_dict):
+    """Return peak magnitude and timing objectives for matched hydrographs."""
+    names = []
+    values = []
+    for variable, matched in sim_obs_dict.items():
+        times = list(matched.get('UTCDATETIME', []))
+        observed = numpy.asarray(matched.get('Obs', []), dtype=float)
+        simulated = numpy.asarray(matched.get('Sim', []), dtype=float)
+        if not times or len(times) != observed.size or observed.size != simulated.size:
+            raise ValueError('%s hydrograph arrays are incomplete.' % variable)
+        if not numpy.all(numpy.isfinite(observed)) or not numpy.all(numpy.isfinite(simulated)):
+            raise ValueError('%s hydrograph contains non-finite values.' % variable)
+        observed_peak_index = int(numpy.argmax(observed))
+        simulated_peak_index = int(numpy.argmax(simulated))
+        observed_peak = float(observed[observed_peak_index])
+        simulated_peak = float(simulated[simulated_peak_index])
+        if observed_peak <= 0.:
+            raise ValueError('%s requires a positive observed peak.' % variable)
+        peak_error = 100. * (simulated_peak - observed_peak) / observed_peak
+        peak_lag = (
+            times[simulated_peak_index] - times[observed_peak_index]
+        ).total_seconds() / 3600.
+        names.extend([
+            '%s-PeakErrorPct' % variable,
+            '%s-AbsPeakErrorPct' % variable,
+            '%s-PeakLagHours' % variable,
+        ])
+        values.extend([peak_error, abs(peak_error), peak_lag])
+    return names, values
+
+
+def load_control_anchors(path, param_defs):
+    """Load exact control vectors that must run but must not enter sensitivity math."""
+    if not path:
+        return {"names": [], "values": numpy.empty((0, param_defs["num_vars"]))}
+    with open(path, "r", encoding="utf-8") as stream:
+        payload = json.load(stream)
+    if payload.get("mode") != "control_rows":
+        raise ValueError("Unsupported PSA anchor mode in %s." % path)
+    if payload.get("include_in_sensitivity", False):
+        raise ValueError("Control anchors cannot be included in sensitivity effects.")
+    parameter_names = list(param_defs["names"])
+    bounds = list(param_defs["bounds"])
+    anchor_names = []
+    rows = []
+    for index, anchor in enumerate(payload.get("anchors", [])):
+        values = anchor.get("values", {})
+        missing = [name for name in parameter_names if name not in values]
+        extra = [name for name in values if name not in parameter_names]
+        if missing or extra:
+            raise ValueError("Anchor %d schema mismatch; missing=%s, extra=%s." %
+                             (index, missing, extra))
+        row = []
+        for name, bound in zip(parameter_names, bounds):
+            value = float(values[name])
+            if value < float(bound[0]) or value > float(bound[1]):
+                raise ValueError("Anchor %s value %s=%g is outside [%g, %g]." %
+                                 (anchor.get("name", index), name, value,
+                                  float(bound[0]), float(bound[1])))
+            row.append(value)
+        anchor_names.append(str(anchor.get("name", "anchor_%d" % index)))
+        rows.append(row)
+    values = numpy.asarray(rows, dtype=float)
+    if not rows:
+        values = numpy.empty((0, len(parameter_names)))
+    return {"names": anchor_names, "values": values}
+
+
+def append_control_anchors(param_values, anchors):
+    """Append control rows and return the untouched analysis row count."""
+    analysis_values = numpy.atleast_2d(numpy.asarray(param_values, dtype=float))
+    analysis_count = len(analysis_values)
+    anchor_values = numpy.atleast_2d(anchors["values"])
+    if anchor_values.size == 0:
+        return analysis_values, analysis_count
+    if anchor_values.shape[1] != analysis_values.shape[1]:
+        raise ValueError("Anchor column count does not match the sampled parameters.")
+    return numpy.concatenate((analysis_values, anchor_values), axis=0), analysis_count
+
+
 class Sensitivity(object):
     """Base class of Sensitivity Analysis."""
 
@@ -73,6 +153,8 @@ class Sensitivity(object):
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
+        self.analysis_run_count = 0
+        self.control_anchor_names = list()
         self.output_values = None
         self.objnames = list()  # Objective names, e.g., NSE-Q, RMSE-Q, PBIAS-SED
         self.psa_si = dict()
@@ -197,13 +279,33 @@ class Sensitivity(object):
 
     def generate_samples(self):
         """Sampling and write to a single file and MongoDB 'PARAMETERS' collection"""
+        anchor_path = os.environ.get("SEIMS_PSA_ANCHOR_FILE", "")
+        anchors = load_control_anchors(anchor_path, self.param_defs) if self.param_defs else None
         if self.param_values is None or len(self.param_values) == 0:
             if FileClass.is_file_exists(self.cfg.outfiles.param_values_txt):
-                self.param_values = numpy.loadtxt(self.cfg.outfiles.param_values_txt)
+                if not self.param_defs:
+                    self.read_param_ranges()
+                anchors = load_control_anchors(anchor_path, self.param_defs)
+                self.param_values = numpy.loadtxt(
+                    self.cfg.outfiles.param_values_txt, ndmin=2)
+                anchor_count = len(anchors["names"])
+                if anchor_count and (
+                        len(self.param_values) < anchor_count or
+                        not numpy.allclose(self.param_values[-anchor_count:],
+                                           anchors["values"], rtol=0., atol=5.e-5)):
+                    self.param_values, self.analysis_run_count = append_control_anchors(
+                        self.param_values, anchors)
+                    numpy.savetxt(self.cfg.outfiles.param_values_txt,
+                                  self.param_values, delimiter=str(' '),
+                                  fmt=str('%.4f'))
+                else:
+                    self.analysis_run_count = len(self.param_values) - anchor_count
+                self.control_anchor_names = anchors["names"]
                 self.run_count = len(self.param_values)
                 return
         if not self.param_defs:
             self.read_param_ranges()
+        anchors = load_control_anchors(anchor_path, self.param_defs)
         if self.cfg.method == 'morris':
             self.param_values = morris_spl(self.param_defs, self.cfg.morris.N,
                                            self.cfg.morris.num_levels,
@@ -213,6 +315,9 @@ class Sensitivity(object):
             self.param_values = fast_spl(self.param_defs, self.cfg.fast.N, self.cfg.fast.M)
         else:
             raise ValueError('%s method is not supported now!' % self.cfg.method)
+        self.param_values, self.analysis_run_count = append_control_anchors(
+            self.param_values, anchors)
+        self.control_anchor_names = anchors["names"]
         self.run_count = len(self.param_values)
         # Save as txt file, which can be loaded by numpy.loadtxt()
         numpy.savetxt(self.cfg.outfiles.param_values_txt,
@@ -378,6 +483,10 @@ class Sensitivity(object):
                 mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
                 # Calculate NSE, R2, RMSE, PBIAS, RSR, ln(NSE), NSE1, and NSE3
                 self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics(mod_obj.sim_obs_dict)
+                signature_names, signature_values = hydrograph_signature_objectives(
+                    mod_obj.sim_obs_dict)
+                self.objnames.extend(signature_names)
+                obj_values.extend(signature_values)
                 eva_values.append(obj_values)
                 # delete model output directory and GridFS files for saving storage
                 mod_obj.clean()
@@ -443,16 +552,38 @@ class Sensitivity(object):
             self.read_param_ranges()
         row, col = self.output_values.shape
         assert (row == self.run_count)
+        if self.analysis_run_count <= 0:
+            self.analysis_run_count = self.run_count - len(self.control_anchor_names)
+        analysis_params = self.param_values[:self.analysis_run_count]
+        analysis_outputs = self.output_values[:self.analysis_run_count]
+        if self.control_anchor_names:
+            controls = []
+            for offset, name in enumerate(self.control_anchor_names):
+                row_index = self.analysis_run_count + offset
+                controls.append({
+                    "name": name,
+                    "row_index": row_index,
+                    "parameters": dict(zip(
+                        self.param_defs["names"],
+                        [float(v) for v in self.param_values[row_index]])),
+                    "objectives": dict(zip(
+                        self.objnames,
+                        [float(v) for v in self.output_values[row_index]])),
+                })
+            with open(os.path.join(self.cfg.psa_outpath,
+                                   "control_anchor_results.json"),
+                      "w", encoding="utf-8") as stream:
+                json.dump(controls, stream, indent=2)
         for i in range(col):
             print(self.objnames[i])
             if self.cfg.method == 'morris':
                 tmp_Si = morris_alz(self.param_defs,
-                                    self.param_values,
-                                    self.output_values[:, i],
+                                    analysis_params,
+                                    analysis_outputs[:, i],
                                     conf_level=0.95, print_to_console=True,
                                     num_levels=self.cfg.morris.num_levels)
             elif self.cfg.method == 'fast':
-                tmp_Si = fast_alz(self.param_defs, self.output_values[:, i],
+                tmp_Si = fast_alz(self.param_defs, analysis_outputs[:, i],
                                   print_to_console=True)
             else:
                 raise ValueError('%s method is not supported now!' % self.cfg.method)
