@@ -1,5 +1,6 @@
 #include "GWaterReservoir.h"
 #include "text.h"
+#include <cstdlib>
 
 // using namespace std;  // Avoid this statement! by lj.
 
@@ -7,7 +8,7 @@ GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_re
                                          m_recessionExponent(1.f), m_CellWidth(-1.f),
                                          m_deepCoefficient(0.f), m_nCells(-1), m_nReaches(-1), m_qg(NULL),
                                          m_percSubbasin(NULL), m_subbasin(NULL), m_subbasinID(-1),
-                                         m_nCellsSubbasin(NULL), m_initStorage(0.f), m_storageMax(-1.f) {
+                                         m_nCellsSubbasin(NULL), m_initStorage(0.f) {
 }
 
 GWaterReservoir::~GWaterReservoir(void) {
@@ -107,6 +108,8 @@ void GWaterReservoir::InitOutputs(void) {
 int GWaterReservoir::Execute(void) {
     InitOutputs();
     CheckInputData();
+    const char *traceEnv = std::getenv("SEIMS_TRACE_CSV");
+    const bool traceCsv = traceEnv != nullptr && string(traceEnv) != "0";
     std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
                                      1189, 1188, 1187, 1186, 1185,
                                      1294, 1404, 1403, 1513, 1623,
@@ -129,16 +132,19 @@ int GWaterReservoir::Execute(void) {
             subbasinIdx = (int)m_subbasin[i];
         }
         //debug
-        for (int target : targetCells) {
-            if (i == target) {
-                targetSubbasins.insert(subbasinIdx);
-                break;
+        if (traceCsv) {
+            for (int target : targetCells) {
+                if (i == target) {
+                    targetSubbasins.insert(subbasinIdx);
+                    break;
+                }
             }
         }
         //--debug end
 
         m_percSubbasin[subbasinIdx] += m_recharge[i];
     }
+
 
     //FLTPT sum = 0.f;
 //#pragma omp parallel for //reduction(+:sum)
@@ -154,16 +160,9 @@ int GWaterReservoir::Execute(void) {
 
         // water balance (mm)
         m_storage[i] += percolation - outFlowDepth;
-        if (m_storageMax > 0.f && m_storage[i] > m_storageMax) {
-            const FLTPT excess = m_storage[i] - m_storageMax;
-            outFlowDepth += excess;
-            m_storage[i] = m_storageMax;
-            m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] *
-                m_CellWidth * m_CellWidth / m_dt;
-        }
 
         // debug
-        if (false) { // TRACE_CSV disabled
+        if (traceCsv && targetSubbasins.count(i)) {
             std::cout << "[TRACE_CSV],Step," << stepCount
                 << ",Module,Groundwater"
                 << ",Subbasin," << i
@@ -174,6 +173,7 @@ int GWaterReservoir::Execute(void) {
         }
     }
     //m_qg[0] = sum;
+
 
     return 0;
 }
@@ -246,10 +246,8 @@ void GWaterReservoir::Get1DData(const char *key, int *n, FLTPT **data) {
     InitOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBQG[0])) {
-        *n = m_nReaches + 1;
         *data = m_qg;
     } else if (StringMatch(sk, VAR_SBGS[0])) {
-        *n = m_nReaches + 1;
         *data = m_storage;
     } else {
         throw ModelException(M_GW_RSVR[0], "Get1DData",
