@@ -87,7 +87,13 @@ bool GridLayeringMFDmd::LoadData() {
             dem_ = FloatRaster::Init(dem_file_, true, mask_, true);
         }
     }
-    if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) return false;
+    if (nullptr == flowdir_ || nullptr == flow_fraction_ || nullptr == mask_) {
+        cout << "Failed to load MFD-md layering input(s): flow direction="
+             << (nullptr != flowdir_) << ", flow fraction="
+             << (nullptr != flow_fraction_) << ", mask=" << (nullptr != mask_)
+             << endl;
+        return false;
+    }
 
     n_rows_ = mask_->GetRows();
     n_cols_ = mask_->GetCols();
@@ -96,9 +102,14 @@ bool GridLayeringMFDmd::LoadData() {
     flowdir_matrix_ = flowdir_->GetRasterDataPointer();
     if (FloatEqual(flowdir_->GetNoDataValue(), out_nodata_)) flowdir_->ReplaceNoData(out_nodata_);
     flowfrac_matrix_ = flow_fraction_->Get2DRasterDataPointer();
-    if (flowdir_->GetValidNumber() != flow_fraction_->GetValidNumber()) {
-        cout << "The valid cell number must be the same between "
-                "MFD-md flow direction and flow fraction raster data!" << endl;
+    // Multi-layer MFD fractions may contain NoData in an unused direction while
+    // still sharing the same mask-compressed cell rows as the direction raster.
+    // Compare aligned cell rows instead of one fraction layer's valid-value count.
+    if (flowdir_->GetCellNumber() != flow_fraction_->GetCellNumber()) {
+        cout << "The aligned cell number must be the same between "
+                "MFD-md flow direction and flow fraction raster data! Direction: "
+             << flowdir_->GetCellNumber() << ", fraction: "
+             << flow_fraction_->GetCellNumber() << endl;
         return false;
     }
     // Calculate pos_index_, full size length (rows * cols) and two columns
