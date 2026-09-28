@@ -1,18 +1,17 @@
 project(google_test)
 ###########################################################
-#########  Git clone the latest googletest   ##############
+#########  Use the vendored googletest release  ############
 ###########################################################
-if (CMAKE_VERSION VERSION_LESS 3.2)
-    set(UPDATE_DISCONNECTED_IF_AVAILABLE "")
-else()
-    set(UPDATE_DISCONNECTED_IF_AVAILABLE "UPDATE_DISCONNECTED 1")
-endif()
-include(DownloadProject)
-download_project(PROJ                googletest
-                 GIT_REPOSITORY      https://github.com/google/googletest.git
-                 GIT_TAG             master
-                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+# Keep the framework tests reproducible and available without network access.
+include(FetchContent)
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(BUILD_GTEST ON CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    googletest
+    URL "file://${CCGL_LIB}/src/googletest_tags_zip/release-1.8.1.zip"
 )
+FetchContent_MakeAvailable(googletest)
 
 # Prevent GoogleTest from overriding our compiler/linker options
 # when building with Visual Studio
@@ -30,6 +29,5 @@ set(CompilerFlags
 foreach(CompilerFlag ${CompilerFlags})
   string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
 endforeach()
-add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 geo_include_directories(${gtest_SOURCE_DIR}/include)
 geo_include_directories(${gmock_SOURCE_DIR}/include)
