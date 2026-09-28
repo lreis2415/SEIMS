@@ -14,11 +14,15 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import array
+import json
 import os
 import random
+import re
 import time
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from io import open
+from itertools import repeat
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -136,6 +140,51 @@ toolbox.register('mutate', tools.mutPolynomialBounded)
 toolbox.register('select', tools.selNSGA2)
 
 
+def seed_task_parameter_semantics(database, param_defs, cfg_name, task_name):
+    """Copy global adjustment semantics into calibration task overrides.
+
+    Older SEIMS calibration code created a sparse task document containing only
+    CALI_VALUES.  That is insufficient for parameters whose task-specific
+    CHANGE/VALUE semantics differ from a legacy baseline task.  A full task
+    document also makes native calibration identical to audited single runs.
+    """
+    global_collection = database[DBTableNames.main_parameter]
+    task_collection = database[DBTableNames.main_param_spec]
+    change_map = json.loads(os.environ.get('SEIMS_CALI_CHANGE_MAP', '{}'))
+    fields = ('CHANGE', 'VALUE', 'IMPACT', 'MIN', 'MAX')
+    for name in param_defs['names']:
+        metadata = global_collection.find_one({
+            'NAME': {'$regex': '^%s$' % re.escape(name), '$options': 'i'}
+        })
+        if metadata is None:
+            raise RuntimeError(
+                'Missing global parameter metadata for %s.' % name)
+        values = {field: metadata[field] for field in fields
+                  if field in metadata}
+        task_parameter_name = str(name).upper()
+        values.update({
+            'NAME': task_parameter_name,
+            'CHANGE': change_map.get(name, metadata.get('CHANGE')),
+            'SUB_MODEL': cfg_name,
+            'TASK': task_name,
+        })
+        task_collection.delete_many({
+            'SUB_MODEL': cfg_name,
+            'TASK': task_name,
+            'NAME': {'$regex': '^%s$' % re.escape(name), '$options': 'i'},
+        })
+        task_collection.insert_one(values)
+
+
+def evaluate_population(evaluate, calibration, individuals):
+    """Evaluate external SEIMS processes locally without SCOOP heartbeat retries."""
+    workers = max(1, int(os.environ.get('SEIMS_CALI_WORKERS', '1')))
+    if workers == 1:
+        return list(map(evaluate, repeat(calibration), individuals))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(evaluate, repeat(calibration), individuals))
+
+
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
@@ -183,7 +232,10 @@ def main(cfg):
 
     # Write calibrated values to MongoDB
     conn = ConnectMongoDB(cali_obj.cfg.model.host, cali_obj.cfg.model.port).get_conn()
-    coll = conn[cali_obj.model.db_name][DBTableNames.main_param_spec]
+    database = conn[cali_obj.model.db_name]
+    seed_task_parameter_semantics(
+        database, cali_obj.ParamDefs, model_obj.cfg_name, model_obj.task_name)
+    coll = database[DBTableNames.main_param_spec]
     write_cali_param_values_to_mongodb(coll, cali_obj.ParamDefs, param_values,
                                        model_obj.cfg_name, model_obj.task_name)
 
@@ -211,11 +263,8 @@ def main(cfg):
          according to calibration step."""
         popnum = len(invalid_pops)
         labels = list()
-        try:  # parallel on multi-processors or clusters using SCOOP
-            from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
-        except ImportError or ImportWarning:  # Python build-in map (serial)
-            invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+        invalid_pops = evaluate_population(
+            toolbox.evaluate, cali_obj, invalid_pops)
         for tmpind in invalid_pops:
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()

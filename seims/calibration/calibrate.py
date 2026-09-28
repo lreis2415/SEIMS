@@ -13,7 +13,9 @@ from __future__ import absolute_import, unicode_literals
 
 import time
 from collections import OrderedDict
+import json
 import os
+import re
 import sys
 from copy import deepcopy
 
@@ -27,6 +29,7 @@ from utility import read_data_items_from_txt
 # import global_mongoclient as MongoDBObj
 from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from preprocess.text import DBTableNames
+from preprocess.text import ModelCfgFields
 from run_seims import MainSEIMS
 from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
@@ -220,14 +223,93 @@ def initialize_calibrations(cf):
     return cali.initialize()
 
 
+def calibration_model_args(cali_obj, calibration_id):
+    """Return an isolated model configuration for one parallel individual."""
+    model_args = deepcopy(cali_obj.model.ConfigDict)
+    model_args.setdefault('calibration_id', -1)
+    model_args['calibration_id'] = calibration_id
+    model_args['filein_mongo'] = 1
+    return model_args
+
+
+def prepare_direct_calibration_task(cali_obj, ind):
+    """Create one isolated no-calibration task for a native NSGA-II member."""
+    task_name = '%s_G%d_I%d' % (cali_obj.model.task_name, ind.gen, ind.id)
+    conn = ConnectMongoDB(
+        cali_obj.cfg.model.host, cali_obj.cfg.model.port).get_conn()
+    database = conn[cali_obj.model.db_name]
+    change_map = json.loads(os.environ.get('SEIMS_CALI_CHANGE_MAP', '{}'))
+    source_task_name = os.environ.get(
+        'SEIMS_CALI_BASE_TASK', cali_obj.model.task_name)
+    source_query = {
+        ModelCfgFields.configname: cali_obj.model.cfg_name,
+        ModelCfgFields.taskname: source_task_name,
+    }
+    target_query = {
+        ModelCfgFields.configname: cali_obj.model.cfg_name,
+        ModelCfgFields.taskname: task_name,
+    }
+    for collection_name in (
+            DBTableNames.main_param_spec, DBTableNames.main_filein,
+            DBTableNames.main_fileout_spec):
+        collection = database[collection_name]
+        collection.delete_many(target_query)
+        documents = []
+        for document in collection.find(source_query, {'_id': 0}):
+            document[ModelCfgFields.taskname] = task_name
+            documents.append(document)
+        if not documents:
+            raise RuntimeError(
+                'Cannot clone %s from %s for direct calibration task %s.' %
+                (collection_name, source_task_name, task_name))
+        collection.insert_many(documents)
+    task_collection = database[DBTableNames.main_param_spec]
+    for name, value in zip(cali_obj.ParamDefs['names'], ind):
+        metadata = database[DBTableNames.main_parameter].find_one({
+            'NAME': {'$regex': '^%s$' % re.escape(name), '$options': 'i'}
+        })
+        if metadata is None or 'CHANGE' not in metadata:
+            raise RuntimeError('Missing direct-task metadata for %s.' % name)
+        task_parameter_name = str(name).upper()
+        task_collection.delete_many({
+            ModelCfgFields.configname: cali_obj.model.cfg_name,
+            ModelCfgFields.taskname: task_name,
+            'NAME': {'$regex': '^%s$' % re.escape(name), '$options': 'i'},
+        })
+        task_collection.insert_one({
+            'NAME': task_parameter_name,
+            'CHANGE': change_map.get(name, metadata['CHANGE']),
+            'IMPACT': float(value),
+            'VALUE': float(value),
+            ModelCfgFields.configname: cali_obj.model.cfg_name,
+            ModelCfgFields.taskname: task_name,
+        })
+    return task_name
+
+
+def cleanup_direct_calibration_task(cali_obj, task_name):
+    """Remove only the disposable settings belonging to one direct task."""
+    conn = ConnectMongoDB(
+        cali_obj.cfg.model.host, cali_obj.cfg.model.port).get_conn()
+    database = conn[cali_obj.model.db_name]
+    query = {ModelCfgFields.configname: cali_obj.model.cfg_name,
+             ModelCfgFields.taskname: task_name}
+    for collection_name in (
+            DBTableNames.main_param_spec, DBTableNames.main_filein,
+            DBTableNames.main_fileout_spec):
+        database[collection_name].delete_many(query)
+
+
 def calibration_objectives(cali_obj, ind):
     """Evaluate the objectives of given individual.
     """
-    cali_obj.ID = ind.id
-    model_args = cali_obj.model.ConfigDict
-    model_args.setdefault('calibration_id', -1)
-    model_args['calibration_id'] = ind.id
-    model_args['filein_mongo'] = 1
+    direct_task = None
+    if os.environ.get('SEIMS_CALI_DIRECT_TASKS', '0') == '1':
+        direct_task = prepare_direct_calibration_task(cali_obj, ind)
+        model_args = calibration_model_args(cali_obj, -1)
+        model_args['task_name'] = direct_task
+    else:
+        model_args = calibration_model_args(cali_obj, ind.id)
     model_obj = MainSEIMS(args_dict=model_args)
 
     # Set observation data to model_obj, no need to query database
@@ -245,6 +327,8 @@ def calibration_objectives(cali_obj, ind):
     else:
         model_obj.clean(calibration_id=ind.id)
         model_obj.UnsetMongoClient()
+        if direct_task is not None:
+            cleanup_direct_calibration_task(cali_obj, direct_task)
         return ind
     # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
     ind.cali.vars, ind.cali.data = model_obj.ExtractSimData(cali_obj.cfg.cali_stime,
@@ -279,6 +363,8 @@ def calibration_objectives(cali_obj, ind):
     # delete model output directory for saving storage
     model_obj.clean(calibration_id=ind.id)
     model_obj.UnsetMongoClient()
+    if direct_task is not None:
+        cleanup_direct_calibration_task(cali_obj, direct_task)
     return ind
 
 
