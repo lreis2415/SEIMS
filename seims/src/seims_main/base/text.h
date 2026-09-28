@@ -657,6 +657,12 @@ CONST_CHARS_LIST VAR_KI[] = {"Ki", "Interflow scale factor"};
 CONST_CHARS_LIST VAR_FAST_RATIO[] = {"FAST_RATIO", "Upper bypass fraction for event-mobile interflow"};
 CONST_CHARS_LIST VAR_ANISOTROPY[] = {"ANISOTROPY", "Horizontal to vertical saturated conductivity ratio for interflow"};
 CONST_CHARS_LIST VAR_MACROPORE_FACTOR[] = {"MACROPORE_FACTOR", "Macropore conductivity multiplier for event-mobile interflow"};
+CONST_CHARS_LIST VAR_DHSVM_KH_RATIO[] = {
+    "DHSVM_KH_RATIO", "ratio of lateral to vertical saturated hydraulic conductivity"};
+CONST_CHARS_LIST VAR_DHSVM_MAX_DRAIN_FRAC[] = {
+    "DHSVM_MAX_DRAIN_FRAC", "maximum connected drainable fraction released per substep"};
+CONST_CHARS_LIST VAR_DHSVM_MAX_SUBSTEPS[] = {
+    "DHSVM_MAX_SUBSTEPS", "maximum adaptive substeps for DHSVM-style subsurface routing"};
 CONST_CHARS_LIST VAR_LAG_SNOW[] = {"lag_snow", "Snow temperature lag factor"};
 CONST_CHARS_LIST VAR_LAIDAY[] = {"LAIDAY", "Leaf area index of current day"}; /// m_lai
 CONST_CHARS_LIST VAR_LAIINIT[] = {"LAI_INIT", "initial leaf area index of transplants"}; /// m_initLai
@@ -777,6 +783,12 @@ CONST_CHARS_LIST VAR_QOVERLAND[] = {"QOverland", "Water discharge in the downslo
 CONST_CHARS_LIST VAR_QRECH[] = {"QRECH", "Discharge at each reach outlet of each time step"}; /// m_qRchOut,1d array
 CONST_CHARS_LIST VAR_QS[] = {"QS", "Overland discharge at each reach outlet"}; /// m_qsRchOut
 CONST_CHARS_LIST VAR_QSOIL[] = {"QSoil", "discharge added to channel flow from interflow"};
+CONST_CHARS_LIST VAR_DHSVM_WT_DEPTH[] = {
+    "DHSVM_WT_DEPTH", "depth from soil surface to the connected water table"};
+CONST_CHARS_LIST VAR_DHSVM_SAT_DEPTH[] = {
+    "DHSVM_SAT_DEPTH", "thickness of the connected saturated zone"};
+CONST_CHARS_LIST VAR_DHSVM_QOUT[] = {
+    "DHSVM_QOUT", "total lateral saturated subsurface outflow from each cell"};
 CONST_CHARS_LIST VAR_QSUBBASIN[] = {"QSUBBASIN", "discharge at each subbasin outlet"};
 CONST_CHARS_LIST VAR_QTILE[] = {"qtile", "drainage tile flow in soil profile"};
 CONST_CHARS_LIST VAR_QTOTAL[] = {"QTotal", "discharge at the watershed outlet"};
@@ -1252,6 +1264,17 @@ CONST_CHARS MONG_SITELIST_DB =                      "DB";
 //#define HEADER_RS_SRS                          "SRS"
 
 #define OUTPUT_ICELL 1000;
+CONST_CHARS_LIST M_SSR_KIT[] = {"SSR_KIT", "DHSVM-inspired saturated subsurface flow using a single water table and layer-integrated transmissivity."};
+CONST_CHARS_LIST VAR_K_LAT_RATIO[] = {
+    "K_LAT_RATIO", "ratio of lateral to vertical saturated hydraulic conductivity"};
 CONST_CHARS_LIST VAR_BEDROCK_KV[] = {
     "BEDROCK_KV", "vertical saturated hydraulic conductivity of the soil-bedrock interface"};
+CONST_CHARS_LIST VAR_IF_VELOCITY[] = {
+    "IF_VELOCITY", "legacy explicit interflow celerity override; nonpositive uses Kh*S/Sy"};
+CONST_CHARS_LIST VAR_DHSVM_K_DECAY_FACTOR[] = {
+    "DHSVM_K_DECAY_FACTOR", "dimensionless lateral conductivity decay lambda=mD"};
+CONST_CHARS_LIST VAR_DHSVM_DEPTH_THRESHOLD_RATIO[] = {
+    "DHSVM_DEPTH_THRESHOLD_RATIO", "relative depth threshold z_t/D for two-part transmissivity"};
+CONST_CHARS_LIST VAR_DHSVM_GRADIENT_MODE[] = {
+    "DHSVM_GRADIENT_MODE", "lateral gradient mode: 0 terrain slope, 1 water-table head"};
 #endif

@@ -89,6 +89,9 @@ Subsurface runoff,SBIF,Subsurface runoff discharge to streams from each subbasin
 Discharge,QRECH,Discharge at reach outlet of each time step,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
 Discharge,QSUBBASIN,Discharge at reach outlet of each time step,m3/s,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
 Discharge,QSOIL,discharge added to channel flow from interflow,m3/s,SUM,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
+Interflow,DHSVM_WT_DEPTH,Depth from soil surface to the bottom-connected water table,mm,SUM-AVE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,DHSVM_WT_DEPTH.tif,0
+Interflow,DHSVM_SAT_DEPTH,Bottom-connected saturated-zone thickness,mm,SUM-AVE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,DHSVM_SAT_DEPTH.tif,0
+Interflow,DHSVM_QOUT,Total lateral saturated outflow at the downslope cell boundary,m3/s,SUM-AVE,1970/1/1 0:00,1970/1/1 0:00,-9999,-9999,ALL,DHSVM_QOUT.tif,0
 Discharge,QOVERLAND,Water discharge in the downslope boundary of cells,m3/s,SUM,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,Q.txt,0
 Sediment,SEDRECH,Sediment concentration,kg,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,SED.txt,0
 Sediment,SEDRECHConc,Sediment concentration,mg/L,NONE,1970/1/1 0:00,1970/1/1 0:00,1,DAY,OUTLET,SEDConc.txt,0
