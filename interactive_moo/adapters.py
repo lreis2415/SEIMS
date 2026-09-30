@@ -1,0 +1,19 @@
+"""Interfaces implemented by optional domain packages such as SEIMS-BMP."""
+
+from typing import Any, Callable, Protocol, Sequence
+
+
+class DomainAdapter(Protocol):
+    """Keep physical feasibility outside the interactive optimization core."""
+
+    def initialize(self) -> Sequence[Any]: ...
+    def evaluate(self, individual: Any) -> Any: ...
+    def mate(self, left: Any, right: Any) -> Any: ...
+    def mutate(self, individual: Any) -> Any: ...
+    def repair(self, individual: Any) -> Any: ...
+
+
+class SurrogateEvaluator(Protocol):
+    """A surrogate adapter owns encoding, scalers, and model compatibility."""
+
+    def __call__(self, individual: Any) -> Any: ...

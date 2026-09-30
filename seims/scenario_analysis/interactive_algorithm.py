@@ -34,6 +34,18 @@ from deap_tool import (
     merge_multiuser_prefs
 )
 
+# The reusable package is optional for historical deployments, but is used by
+# the unified SEIMS path when present. This keeps SEIMS-specific interaction
+# prompts separate from the domain-independent selection core.
+try:
+    from interactive_moo import Stakeholder as CoreStakeholder
+    from interactive_moo import aggregate_preferences as core_aggregate_preferences
+    from interactive_moo import select_population as core_select_population
+except ImportError:  # pragma: no cover - legacy deployed installations
+    CoreStakeholder = None
+    core_aggregate_preferences = None
+    core_select_population = None
+
 
 class InteractiveAlgorithm:
     """
@@ -60,7 +72,22 @@ class InteractiveAlgorithm:
         self.enable_interactive = enable_interactive
         self.interactive_interval = interactive_interval
         self.users = users if users else {}
-        self.preference_fusion_strategy = preference_fusion_strategy or 'merge_preferences'
+        # ``merge_preferences`` and ``select_then_merge`` are kept as aliases
+        # for old JSON files; the public values are now explicit.
+        aliases = {
+            'merge_preferences': 'Func_agg',
+            'func_agg': 'Func_agg',
+            'select_then_merge': 'Elite_agg',
+            'elite_agg': 'Elite_agg',
+        }
+        requested_strategy = preference_fusion_strategy or 'Func_agg'
+        self.preference_fusion_strategy = aliases.get(
+            str(requested_strategy).lower(), requested_strategy
+        )
+        if self.preference_fusion_strategy not in ('Func_agg', 'Elite_agg'):
+            raise ValueError(
+                "preference_fusion_strategy must be 'Func_agg' or 'Elite_agg'"
+            )
         self.logger = logger if logger else logging.getLogger(__name__)
 
         # 合并后的偏好参数
@@ -102,7 +129,22 @@ class InteractiveAlgorithm:
 
         self.user_prefs_list = user_prefs_list
         if user_prefs_list:
-            self.merged_prefs = merge_multiuser_prefs(user_prefs_list)
+            if core_aggregate_preferences is not None:
+                try:
+                    fused = core_aggregate_preferences([
+                        CoreStakeholder(user_id, user.get('preference_param', {}))
+                        for user_id, user in self.users.items()
+                    ])
+                    self.merged_prefs = {
+                        name: [preference.target, preference.direction, preference.tolerance]
+                        for name, preference in fused.items()
+                    }
+                except (KeyError, TypeError, ValueError):
+                    # Retain legacy support for SEIMS-only indicators such as
+                    # bmp_rules, which are intentionally outside the generic core.
+                    self.merged_prefs = merge_multiuser_prefs(user_prefs_list)
+            else:
+                self.merged_prefs = merge_multiuser_prefs(user_prefs_list)
             self.logger.debug(f"Merged preferences updated: {len(self.merged_prefs)} metrics")
         else:
             self.merged_prefs = []
@@ -137,10 +179,12 @@ class InteractiveAlgorithm:
         Returns:
             选择函数（selNSGA2_prefer或标准selNSGA2）
         """
-        if self.enable_interactive and self.preference_fusion_strategy == 'select_then_merge' and self.user_prefs_list:
-            return toolbox.select_multiuser_prefer(
-                population, k, user_preference_params=self.user_prefs_list
-            )
+        if self.enable_interactive and self.preference_fusion_strategy == 'Elite_agg' and self.user_prefs_list:
+            def select_per_user_then_aggregate(pop, k):
+                return selNSGA2_multiuser_prefer(
+                    pop, k, user_preference_params=self.user_prefs_list
+                )
+            return select_per_user_then_aggregate
         elif self.enable_interactive and self.merged_prefs:
             # 返回带偏好的选择函数
             def select_with_preference(pop, k):
@@ -233,9 +277,32 @@ class InteractiveAlgorithm:
         Returns:
             选择后的种群
         """
-        if self.enable_interactive and self.merged_prefs:
-            # 使用偏好选择
-            return toolbox.select_prefer(population, k, preference_params=self.merged_prefs)
+        if self.enable_interactive and self.user_prefs_list:
+            if core_select_population is not None:
+                stakeholders = [
+                    CoreStakeholder(user_id, user.get('preference_param', {}))
+                    for user_id, user in self.users.items()
+                ]
+                try:
+                    return core_select_population(
+                        population, k, stakeholders, self.preference_fusion_strategy
+                    )
+                except (KeyError, TypeError, ValueError):
+                    # Domain-only preference expressions (for example legacy
+                    # BMP rule objects) stay on the SEIMS compatibility path.
+                    self.logger.warning(
+                        "Falling back to legacy selection for domain-specific preferences"
+                    )
+            if self.preference_fusion_strategy == 'Elite_agg':
+                # Each stakeholder first obtains a preference-biased elite set;
+                # the sets are then merged with duplicate removal.
+                return toolbox.select_multiuser_prefer(
+                    population, k, user_preference_params=self.user_prefs_list
+                )
+            if self.merged_prefs:
+                # Func_agg: fuse preference functions before scoring the shared
+                # population.
+                return toolbox.select_prefer(population, k, preference_params=self.merged_prefs)
         else:
             # 使用标准选择
             return toolbox.select(population, k)

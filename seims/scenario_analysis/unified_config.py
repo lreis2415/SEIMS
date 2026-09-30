@@ -134,7 +134,19 @@ class UnifiedConfig:
         self.users = interactive.get('users', [])
         self.preference_fusion_strategy = interactive.get(
             'preference_fusion_strategy',
-            interactive.get('fusion_strategy', 'merge_preferences')
+            interactive.get('fusion_strategy', 'Func_agg')
+        )
+        # Legacy values remain valid, while the public interface exposes the
+        # two aggregation modes explicitly.
+        fusion_aliases = {
+            'merge_preferences': 'Func_agg',
+            'func_agg': 'Func_agg',
+            'select_then_merge': 'Elite_agg',
+            'elite_agg': 'Elite_agg',
+        }
+        self.preference_fusion_strategy = fusion_aliases.get(
+            str(self.preference_fusion_strategy).lower(),
+            self.preference_fusion_strategy
         )
         # 异步交互配置
         self.enable_async = interactive.get('enable_async', False)
@@ -201,7 +213,16 @@ class UnifiedConfig:
 
         # 13. Surrogate model configuration
         surrogate = self.config.get('surrogate', {})
-        self.use_surrogate = surrogate.get('use_surrogate', False)
+        # ``evaluation.backend`` is the preferred explicit switch. The legacy
+        # surrogate.use_surrogate switch remains supported for old configs.
+        evaluation_backend = self.config.get('evaluation', {}).get('backend')
+        if evaluation_backend is not None:
+            if evaluation_backend not in ('surrogate', 'seims'):
+                raise ValueError("evaluation.backend must be 'surrogate' or 'seims'")
+            self.use_surrogate = evaluation_backend == 'surrogate'
+        else:
+            self.use_surrogate = surrogate.get('use_surrogate', False)
+        self.evaluation_backend = 'surrogate' if self.use_surrogate else 'seims'
         self.surrogate_model_dir = surrogate.get('surrogate_model_dir', '')
         # NEW (2026-03-30): Enable comparison mode - run both surrogate and SEIMS
         self.surrogate_comparison = surrogate.get('surrogate_comparison', False)
@@ -306,6 +327,10 @@ class UnifiedConfig:
                             f"value in spatial mode (requires multi-period data). "
                             f"It will evaluate to 0 and be silently skipped."
                         )
+            if self.preference_fusion_strategy not in ('Func_agg', 'Elite_agg'):
+                errors.append(
+                    "interactive.preference_fusion_strategy must be 'Func_agg' or 'Elite_agg'"
+                )
         # 注意：WARNING 类条目仅为提示，不阻止运行
 
         # 8. 继续运行验证

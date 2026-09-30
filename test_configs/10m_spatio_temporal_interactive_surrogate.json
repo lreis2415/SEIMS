@@ -37,7 +37,8 @@
     "eval_stime": "2013-01-01 00:00:00",
     "eval_etime": "2017-12-31 23:59:59",
     "worst_economy": 300.0,
-    "worst_environment": 0.0
+    "worst_environment": 0.0,
+    "backend": "surrogate"
   },
   "surrogate": {
     "use_surrogate": true,
@@ -46,6 +47,7 @@
   "interactive": {
     "enable": true,
     "interval_generations": 30,
+    "preference_fusion_strategy": "Func_agg",
     "users": [
       {
         "user_id": "user1",

@@ -74,6 +74,18 @@ def load_config_from_args(args) -> Dict:
             'investment_each_period': args.budget
         }
 
+    if args.interactive:
+        config['interactive'] = {
+            'enable': True,
+            'interval_generations': args.interactive_interval,
+            'preference_fusion_strategy': args.fusion_mode,
+            # Preferences are collected by interactive_moo's wizard or a JSON
+            # configuration; this generic CLI cannot invent them.
+            'users': []
+        }
+    if args.evaluation_backend:
+        config['evaluation'] = {'backend': args.evaluation_backend}
+
     return config
 
 
@@ -235,6 +247,15 @@ def main():
     # 算法参数
     # NEW: Remove default values to avoid overriding config file
     # OLD: parser.add_argument('--generations', '-g', type=int, default=100,
+    parser.add_argument('--interactive', action='store_true',
+                       help='enable interactive multi-objective optimization')
+    parser.add_argument('--interactive-interval', type=int, default=10,
+                       help='generations between interaction sessions (default: 10)')
+    parser.add_argument('--fusion-mode', choices=['Func_agg', 'Elite_agg'], default='Func_agg',
+                       help='multi-stakeholder aggregation mode')
+    parser.add_argument('--evaluation-backend', choices=['surrogate', 'seims'], default=None,
+                       help='evaluation backend; surrogate is recommended')
+
     parser.add_argument('--generations', '-g', type=int, default=None,
                        help='迭代代数 (默认: 100)')
     # OLD: parser.add_argument('--population-size', type=int, default=60,
@@ -304,6 +325,12 @@ def main():
             config.setdefault('algorithm', {})['GenerationsNum'] = args.generations
         if args.output_dir:
             config.setdefault('output', {})['output_dir'] = args.output_dir
+        if args.interactive:
+            config.setdefault('interactive', {})['enable'] = True
+            config['interactive']['interval_generations'] = args.interactive_interval
+            config['interactive']['preference_fusion_strategy'] = args.fusion_mode
+        if args.evaluation_backend:
+            config.setdefault('evaluation', {})['backend'] = args.evaluation_backend
 
     elif args.preset:
         # 从预设加载
@@ -328,6 +355,11 @@ def main():
         config = load_config_from_args(args)
 
     # Dry run模式
+    # Interactive runs prefer a surrogate unless a backend is selected
+    # explicitly, preserving existing non-interactive configurations.
+    if args.evaluation_backend is None and config.get('interactive', {}).get('enable'):
+        config.setdefault('evaluation', {}).setdefault('backend', 'surrogate')
+
     if args.dry_run:
         print("\n" + "=" * 60)
         print("DRY RUN MODE - Configuration Preview")

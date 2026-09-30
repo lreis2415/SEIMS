@@ -303,7 +303,7 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
 
         # 标准化：提取纯 preference_param 列表（用于 merge_multiuser_prefs）
         pref_list = []
-        for item in raw_prefs:
+        for index, item in enumerate(raw_prefs):
             if 'preference_params' in item:
                 # generate_continue.py 格式：{user_id, preference_params}
                 params = item['preference_params']
@@ -324,15 +324,27 @@ class AsyncInteractiveAlgorithm(InteractiveAlgorithm):
 
             # 同步更新 self.users 中对应用户的 preference_param
             user_id = item.get('user_id')
+            if not user_id and index < len(self.users):
+                user_id = list(self.users.keys())[index]
             if user_id and user_id in self.users:
                 self.users[user_id]['preference_param'] = normalized
 
         if pref_list:
             self.user_prefs_list = pref_list
-            self.current_prefs = merge_multiuser_prefs(pref_list)
+            # Delegate to the shared interactive-moo aggregation implementation
+            # when available. It supports different indicator sets per user.
+            self._update_merged_preferences()
+            self.current_prefs = self.merged_prefs
             self.merged_prefs = self.current_prefs
-            if merge_method in ('merge_preferences', 'select_then_merge'):
-                self.preference_fusion_strategy = merge_method
+            aliases = {
+                'merge_preferences': 'Func_agg',
+                'func_agg': 'Func_agg',
+                'select_then_merge': 'Elite_agg',
+                'elite_agg': 'Elite_agg',
+            }
+            self.preference_fusion_strategy = aliases.get(str(merge_method).lower(), merge_method)
+            if self.preference_fusion_strategy not in ('Func_agg', 'Elite_agg'):
+                raise ValueError("merge_method must be 'Func_agg' or 'Elite_agg'")
             self.logger.info(
                 f"[Async] Preferences updated: {len(pref_list)} users, method={merge_method}"
             )
