@@ -345,25 +345,13 @@ class Sensitivity(object):
         write_cali_param_values_to_mongodb(coll, self.param_defs, self.param_values,
                                            self.mainmodel.cfg_name,
                                            self.mainmodel.task_name)
-        # MongoDB writes are acknowledged, but immediately launching the native
-        # processes can still race with the task-specific parameter cursor on
-        # macOS MongoDB/GridFS.  Force a read-back of every sampled series before
-        # the first model starts; otherwise a child may see incomplete raster
-        # adjustment metadata and fail later as an object-valued statistic.
-        query = {'SUB_MODEL': self.mainmodel.cfg_name,
-                 'TASK': self.mainmodel.task_name}
-        for pname in self.param_defs['names']:
-            row = coll.find_one(dict(query, NAME=pname), {'CALI_VALUES': 1})
-            if row is None or not row.get('CALI_VALUES'):
-                raise RuntimeError('Calibration values were not committed for %s.' % pname)
-        time.sleep(1.0)
 
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.
         """
         if self.output_values is None or len(self.output_values) == 0:
             if FileClass.is_file_exists(self.cfg.outfiles.output_values_txt):
-                self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt, ndmin=2)
+                self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
                 return
         assert (self.run_count > 0)
 
@@ -388,23 +376,19 @@ class Sensitivity(object):
             arg_n = arg_N * self.cfg.resource.ncores_pernode // arg_c
 
         # split tasks
-        #   1. For slurm, scoop, or bash, divide available resources by model size.
-        #      Always allow one model when the configured core hint is smaller.
+        #   1. If workload of sensitivity analysis is slurm or scoop,
+        #      pnum_task equals n // nprocess of SEIMS-model
         #   2. Otherwise, pnum_task equals 100
         pnum_task = 100
-        if self.cfg.resource.workload.lower() in ['slurm', 'scoop', 'bash']:
-            pnum_task = max(1, arg_n // self.cfg.model.nprocess)
+        if self.cfg.resource.workload.lower() == 'slurm' or \
+            self.cfg.resource.workload.lower() == 'scoop':
+            pnum_task = arg_n // self.cfg.model.nprocess
         task_num = self.run_count // pnum_task
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
-            # When run_count is an exact multiple of pnum_task (notably
-            # pnum_task=1), task_num + 1 creates one trailing empty
-            # array.  Do not generate a shell script containing only
-            # "&\nwait" for that empty partition.
-            split_seqs = [a.tolist() for a in split_seqs if len(a) > 0]
-        partition_count = len(split_seqs)
+            split_seqs = [a.tolist() for a in split_seqs]
 
         # Loop partitioned tasks
         run_model_stime = time.time()
@@ -440,7 +424,9 @@ class Sensitivity(object):
                                  log_dir=self.cfg.outfiles.psa_logs_dir,
                                  bash_strict=False if self.cfg.resource.workload.lower() == 'slurm'
                                  else True)
-                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list),
+                slurmjob.run('%s &\nwait' % ' &\n'.join(model_cmd_list)
+                             if self.cfg.resource.workload.lower() == 'slurm'
+                             else '%s\nwait' % '\n'.join(model_cmd_list),
                              _cmd='sbatch' if self.cfg.resource.workload.lower() == 'slurm'
                              else 'bash',
                              name_addition='psa')
@@ -494,22 +480,13 @@ class Sensitivity(object):
                 if imod != 0:
                     mod_obj.SetOutletObservations(obs_vars, obs_data_dict)
                 # Read simulation
-                read_ok = mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
-                if not read_ok or not mod_obj.sim_obs_dict:
-                    raise RuntimeError(
-                        'SEIMS sample %d produced no simulation output. Expected Q.txt under %s. '
-                        'Command: %s' % (cali_seqs[imod], mod_obj.output_dir,
-                                         mod_obj.CommandString))
+                mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
                 # Calculate NSE, R2, RMSE, PBIAS, RSR, ln(NSE), NSE1, and NSE3
                 self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics(mod_obj.sim_obs_dict)
                 signature_names, signature_values = hydrograph_signature_objectives(
                     mod_obj.sim_obs_dict)
                 self.objnames.extend(signature_names)
                 obj_values.extend(signature_values)
-                if obj_values is None or any(v is None for v in obj_values):
-                    raise RuntimeError(
-                        'SEIMS sample %d returned incomplete objective values: %r' %
-                        (cali_seqs[imod], obj_values))
                 eva_values.append(obj_values)
                 # delete model output directory and GridFS files for saving storage
                 mod_obj.clean()
@@ -524,35 +501,31 @@ class Sensitivity(object):
         exec_times = numpy.array(exec_times)
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
                       exec_times, delimiter=str(' '), fmt=str('%.4f'))
-        if exec_times.size > 0:
-            print('Running time of all SEIMS models:\n'
-                  '\tIO\tCOMP\tSIMU\tRUNTIME\n'
-                  'MAX\t%s\n'
-                  'MIN\t%s\n'
-                  'AVG\t%s\n'
-                  'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in exec_times.max(0)),
-                                 '\t'.join('%.3f' % v for v in exec_times.min(0)),
-                                 '\t'.join('%.3f' % v for v in exec_times.mean(0)),
-                                 '\t'.join('%.3f' % v for v in exec_times.sum(0))))
-        else:
-            print('All model outputs already exist; no new SEIMS models were executed.')
+        print('Running time of all SEIMS models:\n'
+              '\tIO\tCOMP\tSIMU\tRUNTIME\n'
+              'MAX\t%s\n'
+              'MIN\t%s\n'
+              'AVG\t%s\n'
+              'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in exec_times.max(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.min(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.mean(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.sum(0))))
         print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
         # Save objective names as pickle data for further usgae
         with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
             pickle.dump(self.objnames, f)
 
         # load the first part of output values
-        self.output_values = numpy.loadtxt('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir,
-                                           ndmin=2)
-        if partition_count == 1:
+        self.output_values = numpy.loadtxt('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir)
+        if task_num == 0:
             import shutil
             shutil.move('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir,
                         self.cfg.outfiles.output_values_txt)
             shutil.rmtree(self.cfg.outfiles.output_values_dir)
             return
-        for idx in range(1, partition_count):
+        for idx in range(1, task_num + 1):
             tmp_outputs = numpy.loadtxt('%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir,
-                                                               idx), ndmin=2)
+                                                               idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
                       self.output_values, delimiter=str(' '), fmt=str('%.4f'))
