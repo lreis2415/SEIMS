@@ -234,3 +234,6 @@ Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,mi
 WaterBalance,SOIL_BEDROCK_FASTFLOW_FLAG,Enable soil-bedrock fast routing,none,PERCO_DARCY,0,0,VC,1,0,INT
 WaterBalance,BOTTOM_EXCESS_RATIO_THRESHOLD,Bottom excess to pore capacity threshold,none,PERCO_DARCY,0,0,VC,10,0,FLT
 WaterBalance,BOTTOM_FAST_FRACTION,Bottom excess fast routing fraction,none,PERCO_DARCY,0,0,VC,1,0,FLT
+Groundwater,SHALLOW_TRIGGER_MM,Deep storage trigger for shallow recharge,mm,GW_RSVR,1000000000,1000000000,VC,1000000000,0,FLT
+Groundwater,SHALLOW_FRACTION,Recharge fraction entering shallow storage,none,GW_RSVR,0,0,VC,1,0,FLT
+Groundwater,SHALLOW_TAU_H,Shallow release time constant,h,GW_RSVR,24,24,VC,500,0.001,FLT

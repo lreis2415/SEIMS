@@ -1,10 +1,13 @@
 #include "GWaterReservoir.h"
 #include "text.h"
-#include <cstdlib>
+#include <cmath>
 
 // using namespace std;  // Avoid this statement! by lj.
 
-GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_recessionCoefficient(-1.f),
+GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL),
+                                         m_shallowStorage(nullptr), m_totalStorage(nullptr),
+                                         m_qShallow(nullptr), m_shallowTriggerMm(1.e9f),
+                                         m_shallowFraction(0.f), m_shallowTauHours(24.f), m_recessionCoefficient(-1.f),
                                          m_recessionExponent(1.f), m_CellWidth(-1.f),
                                          m_deepCoefficient(0.f), m_nCells(-1), m_nReaches(-1), m_qg(NULL),
                                          m_percSubbasin(NULL), m_subbasin(NULL), m_subbasinID(-1),
@@ -16,6 +19,9 @@ GWaterReservoir::~GWaterReservoir(void) {
     if (m_nCellsSubbasin != NULL) Release1DArray(m_nCellsSubbasin);
     if (m_percSubbasin != NULL) Release1DArray(m_percSubbasin);
     if (m_storage != NULL) Release1DArray(m_storage);
+    Release1DArray(m_shallowStorage);
+    Release1DArray(m_totalStorage);
+    Release1DArray(m_qShallow);
 }
 
 bool GWaterReservoir::CheckInputData() {
@@ -89,6 +95,15 @@ bool GWaterReservoir::CheckInputSize(const char *key, int n) {
 //}
 
 void GWaterReservoir::InitOutputs(void) {
+    if (m_shallowStorage == nullptr) {
+        Initialize1DArray(m_nReaches + 1, m_shallowStorage, 0.f);
+    }
+    if (m_totalStorage == nullptr) {
+        Initialize1DArray(m_nReaches + 1, m_totalStorage, m_initStorage);
+    }
+    if (m_qShallow == nullptr) {
+        Initialize1DArray(m_nReaches + 1, m_qShallow, 0.f);
+    }
 	if (m_qg == nullptr) Initialize1DArray(m_nReaches + 1, m_qg, 0.f);
 	if (m_percSubbasin == nullptr) Initialize1DArray(m_nReaches + 1, m_percSubbasin, 0.f);
 	if (m_storage == nullptr) Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
@@ -108,18 +123,6 @@ void GWaterReservoir::InitOutputs(void) {
 int GWaterReservoir::Execute(void) {
     InitOutputs();
     CheckInputData();
-    const char *traceEnv = std::getenv("SEIMS_TRACE_CSV");
-    const bool traceCsv = traceEnv != nullptr && string(traceEnv) != "0";
-    std::vector<int> targetCells = { 1304, 1193, 1192, 1191, 1190,
-                                     1189, 1188, 1187, 1186, 1185,
-                                     1294, 1404, 1403, 1513, 1623,
-                                     1622, 1731, 1730, 1838, 1837, 1836,
-                                     1944 };
-    std::set<int> targetSubbasins;
-
-    static int stepCount = 0;
-    stepCount++;
-
 //#pragma omp parallel for
     for (int i = 0; i <= m_nReaches; i++) {
         m_percSubbasin[i] = 0.f;
@@ -131,17 +134,6 @@ int GWaterReservoir::Execute(void) {
         if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
             subbasinIdx = (int)m_subbasin[i];
         }
-        //debug
-        if (traceCsv) {
-            for (int target : targetCells) {
-                if (i == target) {
-                    targetSubbasins.insert(subbasinIdx);
-                    break;
-                }
-            }
-        }
-        //--debug end
-
         m_percSubbasin[subbasinIdx] += m_recharge[i];
     }
 
@@ -150,27 +142,31 @@ int GWaterReservoir::Execute(void) {
 //#pragma omp parallel for //reduction(+:sum)
     for (int i = 1; i <= m_nReaches; i++) {
         FLTPT percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
-        // depth of groundwater runoff(mm)
+        FLTPT shallowIn = 0.f;
+        if (m_shallowFraction > 0.f && m_storage[i] >= m_shallowTriggerMm) {
+            shallowIn = percolation * m_shallowFraction;
+            percolation -= shallowIn;
+        }
         float dt_days = m_dt / 86400.f;
         FLTPT outFlowDepth = m_storage[i] * (1.f - CalExp(-m_recessionCoefficient * dt_days));
-        //FLTPT outFlowDepth = m_recessionCoefficient * CalPow(m_storage[i], m_recessionExponent);
-        // groundwater flow out of the subbasin at time t (m3/s)
-        m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
-        //sum = sum + m_qg[i];
-
-        // water balance (mm)
-        m_storage[i] += percolation - outFlowDepth;
-
-        // debug
-        if (traceCsv && targetSubbasins.count(i)) {
-            std::cout << "[TRACE_CSV],Step," << stepCount
-                << ",Module,Groundwater"
-                << ",Subbasin," << i
-                << ",Percolation_In," << percolation 
-                << ",Baseflow_Out," << m_qg[i]
-                << ",GW_Storage_Depth," << m_storage[i]
-                << std::endl;
+        m_shallowStorage[i] += shallowIn;
+        FLTPT shallowOutDepth = 0.f;
+        if (m_shallowFraction > 0.f) {
+            const FLTPT release = 1.f - CalExp(-m_dt / (m_shallowTauHours * 3600.f));
+            shallowOutDepth = Min(m_shallowStorage[i], m_shallowStorage[i] * release);
+            m_shallowStorage[i] -= shallowOutDepth;
         }
+        const FLTPT toFlow = m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / (1000.f * m_dt);
+        m_qShallow[i] = shallowOutDepth * toFlow;
+        if (m_shallowFraction <= 0.f) {
+            m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] *
+                      m_CellWidth * m_CellWidth / m_dt;
+        } else {
+            m_qg[i] = (outFlowDepth + shallowOutDepth) * toFlow;
+        }
+
+        m_storage[i] += percolation - outFlowDepth;
+        m_totalStorage[i] = m_storage[i] + m_shallowStorage[i];
     }
     //m_qg[0] = sum;
 
@@ -190,6 +186,21 @@ void GWaterReservoir::SetValue(const char *key, FLTPT value) {
         m_initStorage = value;
     } else if (StringMatch(sk, VAR_GWMAX[0])) {
         m_storageMax = value;
+    } else if (StringMatch(sk, VAR_SHALLOW_TRIGGER_MM[0])) {
+        if (!std::isfinite(value) || value < 0.f) {
+            throw ModelException(M_GW_RSVR[0], "SetValue", "Invalid shallow trigger.");
+        }
+        m_shallowTriggerMm = value;
+    } else if (StringMatch(sk, VAR_SHALLOW_FRACTION[0])) {
+        if (!std::isfinite(value) || value < 0.f || value > 1.f) {
+            throw ModelException(M_GW_RSVR[0], "SetValue", "Invalid shallow fraction.");
+        }
+        m_shallowFraction = value;
+    } else if (StringMatch(sk, VAR_SHALLOW_TAU_H[0])) {
+        if (!std::isfinite(value) || value <= 0.f) {
+            throw ModelException(M_GW_RSVR[0], "SetValue", "Invalid shallow release time.");
+        }
+        m_shallowTauHours = value;
     } else {
         throw ModelException(M_GW_RSVR[0], "SetValue",
                              "Parameter " + sk + " does not exist in SetValue method.");
@@ -248,9 +259,14 @@ void GWaterReservoir::Get1DData(const char *key, int *n, FLTPT **data) {
     if (StringMatch(sk, VAR_SBQG[0])) {
         *data = m_qg;
     } else if (StringMatch(sk, VAR_SBGS[0])) {
-        *data = m_storage;
+        *data = m_totalStorage;
+    } else if (StringMatch(sk, VAR_SBQSH[0])) {
+        *data = m_qShallow;
+    } else if (StringMatch(sk, VAR_SBSSH[0])) {
+        *data = m_shallowStorage;
     } else {
         throw ModelException(M_GW_RSVR[0], "Get1DData",
                              "Parameter " + sk + " does not exist.");
     }
+    *n = m_nReaches + 1;
 }

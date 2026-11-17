@@ -1282,5 +1282,13 @@ CONST_CHARS_LIST VAR_BOTTOM_FAST_FRACTION[] = {
     "BOTTOM_FAST_FRACTION", "Fraction of triggered bottom excess routed through soil"};
 CONST_CHARS_LIST VAR_BOTTOM_SAT_EXCESS[] = {
     "BOTTOM_SAT_EXCESS", "Bottom excess retained for saturated soil routing"};
+CONST_CHARS_LIST VAR_SHALLOW_TRIGGER_MM[] = {
+    "SHALLOW_TRIGGER_MM", "Deep storage threshold for shallow recharge"};
+CONST_CHARS_LIST VAR_SHALLOW_FRACTION[] = {
+    "SHALLOW_FRACTION", "Fraction of recharge entering shallow storage"};
+CONST_CHARS_LIST VAR_SHALLOW_TAU_H[] = {
+    "SHALLOW_TAU_H", "Shallow storage release time constant"};
+CONST_CHARS_LIST VAR_SBQSH[] = {"SBQSH", "Shallow groundwater discharge"};
+CONST_CHARS_LIST VAR_SBSSH[] = {"SBSSH", "Shallow groundwater storage"};
 
 #endif

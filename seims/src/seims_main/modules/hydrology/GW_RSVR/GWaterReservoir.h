@@ -103,6 +103,13 @@ private:
 
     /// ground water storage (mm)
     FLTPT*m_storage;
+    /// Optional shallow storage and its contribution to total groundwater.
+    FLTPT* m_shallowStorage;
+    FLTPT* m_totalStorage;
+    FLTPT* m_qShallow;
+    FLTPT m_shallowTriggerMm;
+    FLTPT m_shallowFraction;
+    FLTPT m_shallowTauHours;
     /// Maximum groundwater storage
     FLTPT m_storageMax;
 

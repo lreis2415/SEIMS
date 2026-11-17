@@ -36,10 +36,20 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_GW0[0], UNIT_DEPTH_MM, VAR_GW0[1], Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_GWMAX[0], UNIT_DEPTH_MM, VAR_GWMAX[1], Source_ParameterDB, DT_Single);
 
+    mdi.AddParameter(VAR_SHALLOW_TRIGGER_MM[0], UNIT_DEPTH_MM, VAR_SHALLOW_TRIGGER_MM[1],
+        Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter(VAR_SHALLOW_FRACTION[0], UNIT_NON_DIM, VAR_SHALLOW_FRACTION[1],
+        Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter(VAR_SHALLOW_TAU_H[0], UNIT_HOUR, VAR_SHALLOW_TAU_H[1],
+        Source_ParameterDB_Optional, DT_Single);
+
     mdi.AddInput(VAR_PERCO[0], UNIT_DEPTH_MM, VAR_PERCO[1], Source_Module, DT_Raster1D);
 
     mdi.AddOutput(VAR_SBQG[0], UNIT_FLOW_CMS, VAR_SBQG[1], DT_Array1D);
     mdi.AddOutput(VAR_SBGS[0], UNIT_DEPTH_MM, VAR_SBGS[1], DT_Array1D);
+
+    mdi.AddOutput(VAR_SBQSH[0], UNIT_FLOW_CMS, VAR_SBQSH[1], DT_Array1D);
+    mdi.AddOutput(VAR_SBSSH[0], UNIT_DEPTH_MM, VAR_SBSSH[1], DT_Array1D);
 
     string res = mdi.GetXMLDocument();
 
