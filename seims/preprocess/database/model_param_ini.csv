@@ -231,3 +231,6 @@ Routing,ch_bnk_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,
 Routing,ch_bed_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001,FLT
 Routing,ch_bnk_d50,D50(median) particle size diameter of channel bank sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001,FLT
 Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001,FLT
+WaterBalance,SOIL_BEDROCK_FASTFLOW_FLAG,Enable soil-bedrock fast routing,none,PERCO_DARCY,0,0,VC,1,0,INT
+WaterBalance,BOTTOM_EXCESS_RATIO_THRESHOLD,Bottom excess to pore capacity threshold,none,PERCO_DARCY,0,0,VC,10,0,FLT
+WaterBalance,BOTTOM_FAST_FRACTION,Bottom excess fast routing fraction,none,PERCO_DARCY,0,0,VC,1,0,FLT

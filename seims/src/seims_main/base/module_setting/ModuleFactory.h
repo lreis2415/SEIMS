@@ -78,6 +78,9 @@ public:
     //! Get value from dependency modules
     void GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules);
 
+    //! Check enabled fast routing after parameters have been loaded.
+    void CheckFastflowDependencies() const;
+
     //! Find outputID parameter's module. Return Module index iModule and its ParamInfo<FLTPT>
     bool FindOutputParameter(string& outputID, int& iModule, ParamInfo<FLTPT>*& paraInfo);
 

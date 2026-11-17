@@ -9,6 +9,8 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
+#include <algorithm>
+
 ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, SEIMSModuleSetting *>& moduleSettings,
                              vector<DLLINSTANCE>& dllHandles, map<string, InstanceFunction>& instanceFuncs,
@@ -396,6 +398,46 @@ void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, const 
         pModule->SetOutpath(outpath);
         if (simu_mode == STORM) pModule->SetSimulationMode();
         modules.emplace_back(pModule);
+    }
+}
+
+void ModuleFactory::CheckFastflowDependencies() const {
+    if (std::count(m_moduleIDs.begin(), m_moduleIDs.end(), M_SSR_KIT[0]) > 1) {
+        throw ModelException("ModuleFactory", "CheckFastflowDependencies",
+            "Select one saturated soil routing module.");
+    }
+    for (size_t source = 0; source < m_moduleIDs.size(); ++source) {
+        const auto parameters = m_moduleParamsInt.find(m_moduleIDs[source]);
+        if (parameters == m_moduleParamsInt.end()) {
+            continue;
+        }
+        for (const auto flag : parameters->second) {
+            if (!StringMatch(flag->Name, VAR_SOIL_BEDROCK_FASTFLOW_FLAG[0]) || flag->Value != 1) {
+                continue;
+            }
+            int receivers = 0;
+            for (size_t receiver = 0; receiver < m_moduleIDs.size(); ++receiver) {
+                const auto inputs = m_moduleInputs.find(m_moduleIDs[receiver]);
+                if (inputs == m_moduleInputs.end()) {
+                    continue;
+                }
+                for (const auto input : inputs->second) {
+                    const auto output = input->DependPara;
+                    if (output != nullptr && output->ModuleID == m_moduleIDs[source] &&
+                        StringMatch(output->Name, VAR_BOTTOM_SAT_EXCESS[0])) {
+                        if (receiver <= source) {
+                            throw ModelException("ModuleFactory", "CheckFastflowDependencies",
+                                "Enabled fast routing requires a downstream receiver.");
+                        }
+                        ++receivers;
+                    }
+                }
+            }
+            if (receivers != 1) {
+                throw ModelException("ModuleFactory", "CheckFastflowDependencies",
+                    "Enabled fast routing requires exactly one receiver.");
+            }
+        }
     }
 }
 

@@ -30,6 +30,10 @@ private:
     float m_CellWidth;
     /// Vertical saturated conductivity of the soil-bedrock interface (mm/h)
     float m_bedrockVerticalConductivity;
+    /// Optional fast routing of bottom capacity excess.
+    int m_soilBedrockFastFlowFlag;
+    FLTPT m_bottomExcessRatioThreshold;
+    FLTPT m_fastFraction;
 
     float **m_Conductivity;
     float **m_Porosity;
@@ -43,6 +47,8 @@ private:
     //float  m_ForzenT;
 
     float *m_recharge;
+    /// Water depth passed to saturated soil routing in this step (mm).
+    float* m_bottomExcess;
     //soil layers 
     int m_maxSoilLyrs;
 

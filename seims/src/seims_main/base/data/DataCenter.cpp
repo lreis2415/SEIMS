@@ -446,6 +446,7 @@ double DataCenter::LoadParametersForModules(vector<SimulationModule *>& modules)
         }
     }
     double timeconsume = TimeCounting() - t1;
+    factory_->CheckFastflowDependencies();
     CLOG(TRACE, LOG_INIT) << "Loading data for modules, TIMESPAN " << timeconsume << " sec.";
     return timeconsume;
 }

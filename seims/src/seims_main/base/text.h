@@ -1274,6 +1274,12 @@ CONST_CHARS_LIST VAR_DEPTH_THRESHOLD_RATIO[] = {
 CONST_CHARS_LIST VAR_GRADIENT_MODE[] = {
     "GRADIENT_MODE", "lateral gradient mode: 0 terrain slope, 1 water-table head"};
 
+CONST_CHARS_LIST VAR_SOIL_BEDROCK_FASTFLOW_FLAG[] = {
+    "SOIL_BEDROCK_FASTFLOW_FLAG", "Enable bottom fast routing: 0 off and 1 on"};
+CONST_CHARS_LIST VAR_BOTTOM_EXCESS_RATIO_THRESHOLD[] = {
+    "BOTTOM_EXCESS_RATIO_THRESHOLD", "Bottom excess divided by bottom pore capacity"};
+CONST_CHARS_LIST VAR_BOTTOM_FAST_FRACTION[] = {
+    "BOTTOM_FAST_FRACTION", "Fraction of triggered bottom excess routed through soil"};
 CONST_CHARS_LIST VAR_BOTTOM_SAT_EXCESS[] = {
     "BOTTOM_SAT_EXCESS", "Bottom excess retained for saturated soil routing"};
 

@@ -2,8 +2,6 @@
 #include "text.h"
 
 #include <cmath>
-#include <cstdlib>
-#include <fstream>
 
 Percolation_DARCY::Percolation_DARCY(void) {
 
@@ -25,12 +23,17 @@ Percolation_DARCY::Percolation_DARCY(void) {
     m_rootDepth = NULL;
     m_CellWidth = -1.f;
     m_bedrockVerticalConductivity = -1.f;
+    m_soilBedrockFastFlowFlag = 0;
+    m_bottomExcessRatioThreshold = 0.f;
+    m_fastFraction = 0.f;
+    m_bottomExcess = nullptr;
 
     m_nSoilLyrs = NULL;
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
     Release1DArray(m_recharge);
+    Release1DArray(m_bottomExcess);
 }
 
 
@@ -40,23 +43,13 @@ int Percolation_DARCY::Execute() {
     if (m_recharge == NULL) {
         CheckInputData();
         m_recharge = new float[m_nCells];
+        Initialize1DArray(m_nCells, m_bottomExcess, 0.f);
     }
-    double rechargeVolume = 0.;
-    double transferVolume = 0.;
-    double storageBefore = 0.;
-    double storageAfter = 0.;
     //#pragma omp parallel for
 	for (int i = 0; i < m_nCells; i++) {
         // m_recharge here is used only to store the final water volume recharging the groundwater. --Fanxy
         m_recharge[i] = 0.f;
-        float storageDepth = 0.f;
-        for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
-            const float bottomDepth = Max(m_rootDepth[i][j], storageDepth);
-            const float thickness = bottomDepth - storageDepth;
-            storageDepth = bottomDepth;
-            storageBefore += m_Moisture[i][j] * thickness *
-                m_CellWidth * m_CellWidth / 1000.;
-        }
+        m_bottomExcess[i] = 0.f;
         float previousBottomDepth = 0.f;
         for (int j = 0; j < m_nSoilLyrs[i]; j++) {
             const float bottomDepth = Max(m_rootDepth[i][j], previousBottomDepth);
@@ -81,7 +74,21 @@ int Percolation_DARCY::Execute() {
                 // the water exceeds the porosity is added to percolation directly
 				if (currentMoisture > m_Porosity[i][j]) {
                     excessDepth = (currentMoisture - m_Porosity[i][j]) * layerThickness;
-                    totalPrec += excessDepth;
+                    float fastDepth = 0.f;
+                    if (j + 1 == m_nSoilLyrs[i] && m_soilBedrockFastFlowFlag == 1) {
+                        const float poreCapacity = m_Porosity[i][j] * layerThickness;
+                        if (!std::isfinite(poreCapacity) || poreCapacity <= 0.f ||
+                            !std::isfinite(excessDepth)) {
+                            throw ModelException(M_PERCO_DARCY[0], "Execute",
+                                "Invalid bottom pore capacity or excess.");
+                        }
+                        const float excessRatio = excessDepth / poreCapacity;
+                        if (excessRatio >= m_bottomExcessRatioThreshold) {
+                            fastDepth = excessDepth * m_fastFraction;
+                        }
+                    }
+                    m_bottomExcess[i] += fastDepth;
+                    totalPrec += excessDepth - fastDepth;
                     // update soil moisture --Fanxy
                     currentMoisture = m_Porosity[i][j];
 				}
@@ -117,43 +124,13 @@ int Percolation_DARCY::Execute() {
                 // Not the last layer->Transfer to the next layer.
                 float nextDepth = Max(m_rootDepth[i][j + 1] - m_rootDepth[i][j], 1.e-6f);
                 m_Moisture[i][j + 1] += totalPrec / nextDepth;
-                transferVolume += totalPrec * m_CellWidth * m_CellWidth / 1000.;
             }
             else {
                 // Last layer -> Becomes groundwater recharge
                 m_recharge[i] += totalPrec;
-                rechargeVolume += totalPrec * m_CellWidth * m_CellWidth / 1000.;
             }
 		}
-        storageDepth = 0.f;
-        for (int j = 0; j < m_nSoilLyrs[i]; ++j) {
-            const float bottomDepth = Max(m_rootDepth[i][j], storageDepth);
-            const float thickness = bottomDepth - storageDepth;
-            storageDepth = bottomDepth;
-            storageAfter += m_Moisture[i][j] * thickness *
-                m_CellWidth * m_CellWidth / 1000.;
-        }
     }
-
-
-    const char* diagEnv = std::getenv("SEIMS_PERCO_DIAG");
-    if (diagEnv != nullptr && string(diagEnv) != "0" && !m_outpath.empty()) {
-        const string path = m_outpath + SEP + "PERCO_DARCY_diag.csv";
-        std::ifstream existing(path.c_str());
-        const bool needHeader = !existing.good();
-        existing.close();
-        std::ofstream fs(path.c_str(), std::ios::out | std::ios::app);
-        if (fs.is_open()) {
-            if (needHeader) {
-                fs << "time,interlayer_transfer_m3,groundwater_recharge_m3,"
-                   << "storage_before_m3,storage_after_m3,balance_residual_m3\n";
-            }
-            fs << ConvertToString2(m_date) << "," << transferVolume << ","
-               << rechargeVolume << "," << storageBefore << "," << storageAfter << ","
-               << storageBefore - storageAfter - rechargeVolume << "\n";
-        }
-    }
-
     return true;
 
 }
@@ -193,6 +170,8 @@ void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
     string s(key);
     if (StringMatch(s, VAR_PERCO[0])) {
         *data = m_recharge;
+    } else if (StringMatch(s, VAR_BOTTOM_SAT_EXCESS[0])) {
+        *data = m_bottomExcess;
     } else {
         throw ModelException(M_PERCO_DARCY[0], "Get1DData", "Result " + s + " does not exist.");
     }
@@ -240,6 +219,16 @@ void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
         m_CellWidth = data;
     } else if (StringMatch(s, VAR_BEDROCK_KV[0])) {
         m_bedrockVerticalConductivity = data;
+    } else if (StringMatch(s, VAR_BOTTOM_EXCESS_RATIO_THRESHOLD[0])) {
+        if (!std::isfinite(data) || data < 0.f) {
+            throw ModelException(M_PERCO_DARCY[0], "SetValue", "Invalid bottom excess threshold.");
+        }
+        m_bottomExcessRatioThreshold = data;
+    } else if (StringMatch(s, VAR_BOTTOM_FAST_FRACTION[0])) {
+        if (!std::isfinite(data) || data < 0.f || data > 1.f) {
+            throw ModelException(M_PERCO_DARCY[0], "SetValue", "Invalid bottom fast fraction.");
+        }
+        m_fastFraction = data;
         //else if(StringMatch(s,"t_soil"))		this->m_ForzenT = data;
     } else {
         throw ModelException(M_PERCO_DARCY[0], "SetValue", "Parameter " + s +
@@ -249,7 +238,12 @@ void Percolation_DARCY::SetValue(const char *key, FLTPT data) {
 
 void Percolation_DARCY::SetValue(const char* key, int data) {
     string s(key);
-    if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
+    if (StringMatch(s, VAR_SOIL_BEDROCK_FASTFLOW_FLAG[0])) {
+        if (data != 0 && data != 1) {
+            throw ModelException(M_PERCO_DARCY[0], "SetValue", "Fast-flow flag must be 0 or 1.");
+        }
+        m_soilBedrockFastFlowFlag = data;
+    } else if (StringMatch(s, Tag_HillSlopeTimeStep[0])) {
         this->m_timestep = int(data);
     }
     else if (StringMatch(s, Tag_CellSize[0])) {

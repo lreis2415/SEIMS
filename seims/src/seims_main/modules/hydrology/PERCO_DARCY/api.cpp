@@ -31,6 +31,13 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_BEDROCK_KV[0], UNIT_WTRDLT_MMH, VAR_BEDROCK_KV[1],
         Source_ParameterDB_Optional, DT_Single);
 
+    mdi.AddParameter(VAR_SOIL_BEDROCK_FASTFLOW_FLAG[0], UNIT_NON_DIM,
+        VAR_SOIL_BEDROCK_FASTFLOW_FLAG[1], Source_ParameterDB_Optional, DT_SingleInt);
+    mdi.AddParameter(VAR_BOTTOM_EXCESS_RATIO_THRESHOLD[0], UNIT_NON_DIM,
+        VAR_BOTTOM_EXCESS_RATIO_THRESHOLD[1], Source_ParameterDB_Optional, DT_Single);
+    mdi.AddParameter(VAR_BOTTOM_FAST_FRACTION[0], UNIT_NON_DIM,
+        VAR_BOTTOM_FAST_FRACTION[1], Source_ParameterDB_Optional, DT_Single);
+
     mdi.AddParameter(VAR_CONDUCT[0], UNIT_WTRDLT_MMH, VAR_CONDUCT[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_POROST[0], UNIT_STRG_M3M, VAR_POROST[1], Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_POREIDX[0], UNIT_NON_DIM, VAR_POREIDX[1], Source_ParameterDB, DT_Raster2D);
@@ -41,6 +48,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SOL_ST[0], UNIT_DEPTH_MM, VAR_SOL_ST[1], Source_Module, DT_Raster2D);
     // set the output variables
     mdi.AddOutput(VAR_PERCO[0], UNIT_DEPTH_MM, VAR_PERCO[1], DT_Raster1D);
+
+    mdi.AddOutput(VAR_BOTTOM_SAT_EXCESS[0], UNIT_DEPTH_MM, VAR_BOTTOM_SAT_EXCESS[1], DT_Raster1D);
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();
